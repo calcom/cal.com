@@ -49,18 +49,15 @@ import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Alert,
-  Avatar,
-  Badge,
-  Button,
-  EmailInput,
-  useCalcomTheme,
-  TextArea,
-  showToast,
-  EmptyScreen,
-  Icon,
-} from "@calcom/ui";
+import { Alert } from "@calcom/ui/components/alert";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { EmailInput, TextArea } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
+import { useCalcomTheme } from "@calcom/ui/styles";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
@@ -108,7 +105,6 @@ export default function Success(props: PageProps) {
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
   const { eventType, bookingInfo, requiresLoginToUpdate, rescheduledToUid } = props;
-
   const {
     allRemainingBookings,
     isSuccessBookingPage,
@@ -119,6 +115,7 @@ export default function Success(props: PageProps) {
     noShow,
     rating,
   } = querySchema.parse(routerQuery);
+
   const attendeeTimeZone = bookingInfo?.attendees.find((attendee) => attendee.email === email)?.timeZone;
 
   const isFeedbackMode = !!(noShow || rating);
@@ -369,6 +366,12 @@ export default function Success(props: PageProps) {
   const isPastBooking = isBookingInPast;
   const isRerouting = searchParams?.get("cal.rerouting") === "true";
   const isRescheduled = bookingInfo?.rescheduled;
+
+  const canCancelOrReschedule = !eventType?.disableCancelling || !eventType?.disableRescheduling;
+  const canCancelAndReschedule = !eventType?.disableCancelling && !eventType?.disableRescheduling;
+
+  const canCancel = !eventType?.disableCancelling;
+  const canReschedule = !eventType?.disableRescheduling;
 
   const successPageHeadline = (() => {
     if (needsConfirmationAndReschedulable) {
@@ -711,6 +714,7 @@ export default function Success(props: PageProps) {
                       (!needsConfirmation || !userIsOwner) &&
                       isReschedulable &&
                       !isRerouting &&
+                      canCancelOrReschedule &&
                       (!isCancellationMode ? (
                         <>
                           <hr className="border-subtle mb-8" />
@@ -721,7 +725,8 @@ export default function Success(props: PageProps) {
 
                             <>
                               {!props.recurringBookings &&
-                                (!isBookingInPast || eventType.allowReschedulingPastBookings) && (
+                                (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
+                                canReschedule && (
                                   <span className="text-default inline">
                                     <span className="underline" data-testid="reschedule-link">
                                       <Link
@@ -734,19 +739,23 @@ export default function Success(props: PageProps) {
                                         {t("reschedule")}
                                       </Link>
                                     </span>
-                                    <span className="mx-2">{t("or_lowercase")}</span>
+                                    {canCancelAndReschedule && (
+                                      <span className="mx-2">{t("or_lowercase")}</span>
+                                    )}
                                   </span>
                                 )}
 
-                              <button
-                                data-testid="cancel"
-                                className={classNames(
-                                  "text-default underline",
-                                  props.recurringBookings && "ltr:mr-2 rtl:ml-2"
-                                )}
-                                onClick={() => setIsCancellationMode(true)}>
-                                {t("cancel")}
-                              </button>
+                              {canCancel && (
+                                <button
+                                  data-testid="cancel"
+                                  className={classNames(
+                                    "text-default underline",
+                                    props.recurringBookings && "ltr:mr-2 rtl:ml-2"
+                                  )}
+                                  onClick={() => setIsCancellationMode(true)}>
+                                  {t("cancel")}
+                                </button>
+                              )}
                             </>
                           </div>
                         </>

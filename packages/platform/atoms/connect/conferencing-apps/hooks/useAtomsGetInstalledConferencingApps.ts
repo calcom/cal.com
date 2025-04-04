@@ -21,12 +21,17 @@ export const useAtomsGetInstalledConferencingApps = (teamId?: number) => {
   return useQuery({
     queryKey: [QUERY_KEY, teamId, organizationId],
     queryFn: () => {
-      return http?.get<ApiResponse<ConnectedApps>>(pathname).then((res) => {
-        if (res.data.status === SUCCESS_STATUS) {
-          return (res.data as ApiSuccessResponse<ConnectedApps>).data;
-        }
-        throw new Error(res.data.error.message);
-      });
+      return http
+        ?.get<ApiResponse<ConnectedApps>>(pathname)
+        .then((res) => {
+          if (res.data.status === SUCCESS_STATUS) {
+            return (res.data as ApiSuccessResponse<ConnectedApps>).data;
+          }
+          throw new Error(res.data.error.message);
+        })
+        .catch(() => {
+          throw new Error("Failed to get installed conferencing apps");
+        });
     },
     enabled: isInit && !!accessToken,
   });

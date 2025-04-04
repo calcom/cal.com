@@ -1,69 +1,20 @@
 {
   "openapi": "3.0.0",
   "paths": {
-    "/v2/provider/{clientId}": {
-      "get": {
-        "operationId": "CalProviderController_verifyClientId",
-        "summary": "Get a provider",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProviderVerifyClientOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Cal Provider"]
-      }
-    },
-    "/v2/provider/{clientId}/access-token": {
-      "get": {
-        "operationId": "CalProviderController_verifyAccessToken",
-        "summary": "Verify an access token",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProviderVerifyAccessTokenOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Cal Provider"]
-      }
-    },
     "/v2/oauth-clients/{clientId}/users": {
       "get": {
         "operationId": "OAuthClientUsersController_getManagedUsers",
         "summary": "Get all managed users",
         "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "clientId",
             "required": true,
@@ -125,6 +76,15 @@
         "summary": "Create a managed user",
         "parameters": [
           {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "clientId",
             "required": true,
             "in": "path",
@@ -164,6 +124,15 @@
         "summary": "Get a managed user",
         "parameters": [
           {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "clientId",
             "required": true,
             "in": "path",
@@ -198,6 +167,15 @@
         "operationId": "OAuthClientUsersController_updateUser",
         "summary": "Update a managed user",
         "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "clientId",
             "required": true,
@@ -244,6 +222,15 @@
         "summary": "Delete a managed user",
         "parameters": [
           {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "clientId",
             "required": true,
             "in": "path",
@@ -279,8 +266,17 @@
       "post": {
         "operationId": "OAuthClientUsersController_forceRefresh",
         "summary": "Force refresh tokens",
-        "description": "If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials.\n    Each access token is valid for 60 minutes and each refresh token for 1 year. Make sure to store them later in your database, for example, by updating the User model to have `calAccessToken` and `calRefreshToken` columns.",
+        "description": "If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
         "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "userId",
             "required": true,
@@ -317,7 +313,7 @@
       "post": {
         "operationId": "OAuthFlowController_refreshTokens",
         "summary": "Refresh managed user tokens",
-        "description": "If managed user access token is expired then get a new one using this endpoint. Each access token is valid for 60 minutes and \n    each refresh token for 1 year. Make sure to store them later in your database, for example, by updating the User model to have `calAccessToken` and `calRefreshToken` columns.",
+        "description": "If managed user access token is expired then get a new one using this endpoint - it will also refresh the refresh token, because we use\n    \"refresh token rotation\" mechanism. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
         "parameters": [
           {
             "name": "clientId",
@@ -368,6 +364,15 @@
         "summary": "Create a webhook",
         "parameters": [
           {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "clientId",
             "required": true,
             "in": "path",
@@ -404,6 +409,15 @@
         "operationId": "OAuthClientWebhooksController_getOAuthClientWebhooks",
         "summary": "Get all webhooks",
         "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "clientId",
             "required": true,
@@ -452,6 +466,15 @@
         "summary": "Delete all webhooks",
         "parameters": [
           {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "clientId",
             "required": true,
             "in": "path",
@@ -480,6 +503,15 @@
         "operationId": "OAuthClientWebhooksController_updateOAuthClientWebhook",
         "summary": "Update a webhook",
         "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "webhookId",
             "required": true,
@@ -516,7 +548,17 @@
       "get": {
         "operationId": "OAuthClientWebhooksController_getOAuthClientWebhook",
         "summary": "Get a webhook",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -534,7 +576,17 @@
       "delete": {
         "operationId": "OAuthClientWebhooksController_deleteOAuthClientWebhook",
         "summary": "Delete a webhook",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -555,6 +607,15 @@
         "operationId": "OrganizationsAttributesController_getOrganizationAttributes",
         "summary": "Get all attributes",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -603,6 +664,15 @@
         "summary": "Create an attribute",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "orgId",
             "required": true,
             "in": "path",
@@ -642,6 +712,15 @@
         "summary": "Get an attribute",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "orgId",
             "required": true,
             "in": "path",
@@ -676,6 +755,15 @@
         "operationId": "OrganizationsAttributesController_updateOrganizationAttribute",
         "summary": "Update an attribute",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -722,6 +810,15 @@
         "summary": "Delete an attribute",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "orgId",
             "required": true,
             "in": "path",
@@ -758,6 +855,15 @@
         "operationId": "OrganizationsAttributesOptionsController_createOrganizationAttributeOption",
         "summary": "Create an attribute option",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -804,6 +910,15 @@
         "summary": "Get all attribute options",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "orgId",
             "required": true,
             "in": "path",
@@ -840,6 +955,15 @@
         "operationId": "OrganizationsAttributesOptionsController_deleteOrganizationAttributeOption",
         "summary": "Delete an attribute option",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -883,6 +1007,15 @@
         "operationId": "OrganizationsAttributesOptionsController_updateOrganizationAttributeOption",
         "summary": "Update an attribute option",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -939,6 +1072,15 @@
         "summary": "Assign an attribute to a user",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "orgId",
             "required": true,
             "in": "path",
@@ -984,6 +1126,15 @@
         "summary": "Get all attribute options for a user",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "orgId",
             "required": true,
             "in": "path",
@@ -1020,6 +1171,15 @@
         "operationId": "OrganizationsAttributesOptionsController_unassignOrganizationAttributeOptionFromUser",
         "summary": "Unassign an attribute from a user",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -1060,11 +1220,275 @@
         "tags": ["Orgs / Attributes / Options"]
       }
     },
+    "/v2/organizations/{orgId}/bookings": {
+      "get": {
+        "operationId": "OrganizationsBookingsController_getAllOrgTeamBookings",
+        "summary": "Get organization team bookings",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by status. If you want to filter by multiple statuses, separate them with a comma.",
+            "example": "?status=upcoming,past",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["upcoming", "recurring", "past", "cancelled", "unconfirmed"]
+              }
+            }
+          },
+          {
+            "name": "attendeeEmail",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's email address.",
+            "example": "example@domain.com",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "attendeeName",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's name.",
+            "example": "John Doe",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by event type ids belonging to the user. Event type ids must be separated by a comma.",
+            "example": "?eventTypeIds=100,200",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by event type id belonging to the user.",
+            "example": "?eventTypeId=100",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamsIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by team ids that user is part of. Team ids must be separated by a comma.",
+            "example": "?teamIds=50,60",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by team id that user is part of",
+            "example": "?teamId=50",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterStart",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings with start after this date string.",
+            "example": "?afterStart=2025-03-07T10:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeEnd",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings with end before this date string.",
+            "example": "?beforeEnd=2025-03-07T11:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been created after this date string.",
+            "example": "?afterCreatedAt=2025-03-07T10:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been created before this date string.",
+            "example": "?beforeCreatedAt=2025-03-14T11:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been updated after this date string.",
+            "example": "?afterUpdatedAt=2025-03-07T10:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been updated before this date string.",
+            "example": "?beforeUpdatedAt=2025-03-14T11:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortStart",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their start time in ascending or descending order.",
+            "example": "?sortStart=asc OR ?sortStart=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortEnd",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their end time in ascending or descending order.",
+            "example": "?sortEnd=asc OR ?sortEnd=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortCreated",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their creation time (when booking was made) in ascending or descending order.",
+            "example": "?sortCreated=asc OR ?sortCreated=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their updated time (for example when booking status changes) in ascending or descending order.",
+            "example": "?sortUpdated=asc OR ?sortUpdated=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "userIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by ids of users within your organization.",
+            "example": "?userIds=100,200",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingsOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Bookings"]
+      }
+    },
     "/v2/organizations/{orgId}/delegation-credentials": {
       "post": {
         "operationId": "OrganizationsDelegationCredentialController_createDelegationCredential",
         "summary": "Save delegation credentials for your organization.",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -1104,6 +1528,33 @@
         "operationId": "OrganizationsDelegationCredentialController_updateDelegationCredential",
         "summary": "Update delegation credentials of your organization.",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -1146,316 +1597,38 @@
         "tags": ["Orgs / Delegation Credentials"]
       }
     },
-    "/v2/organizations/{orgId}/teams/{teamId}/event-types": {
-      "post": {
-        "operationId": "OrganizationsEventTypesController_createTeamEventType",
-        "summary": "Create an event type",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateTeamEventTypeInput_2024_06_14"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateTeamEventTypeOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Orgs / Event Types"]
-      },
-      "get": {
-        "operationId": "OrganizationsEventTypesController_getTeamEventTypes",
-        "summary": "Get a team event type",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "eventSlug",
-            "required": false,
-            "in": "query",
-            "description": "Slug of team event type to return.",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "hostsLimit",
-            "required": false,
-            "in": "query",
-            "description": "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetTeamEventTypesOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Orgs / Event Types"]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}": {
-      "get": {
-        "operationId": "OrganizationsEventTypesController_getTeamEventType",
-        "summary": "Get an event type",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "eventTypeId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetTeamEventTypeOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Orgs / Event Types"]
-      },
-      "patch": {
-        "operationId": "OrganizationsEventTypesController_updateTeamEventType",
-        "summary": "Update a team event type",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "eventTypeId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateTeamEventTypeInput_2024_06_14"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UpdateTeamEventTypeOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Orgs / Event Types"]
-      },
-      "delete": {
-        "operationId": "OrganizationsEventTypesController_deleteTeamEventType",
-        "summary": "Delete a team event type",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "eventTypeId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeleteTeamEventTypeOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Orgs / Event Types"]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/create-phone-call": {
-      "post": {
-        "operationId": "OrganizationsEventTypesController_createPhoneCall",
-        "summary": "Create a phone call",
-        "parameters": [
-          {
-            "name": "eventTypeId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreatePhoneCallInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreatePhoneCallOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Orgs / Event Types"]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/event-types": {
-      "get": {
-        "operationId": "OrganizationsEventTypesController_getTeamsEventTypes",
-        "summary": "Get all team event types",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "take",
-            "required": false,
-            "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "skip",
-            "required": false,
-            "in": "query",
-            "description": "The number of items to skip",
-            "example": 0,
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetTeamEventTypesOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Orgs / Event Types"]
-      }
-    },
     "/v2/organizations/{orgId}/memberships": {
       "get": {
         "operationId": "OrganizationsMembershipsController_getAllMemberships",
         "summary": "Get all memberships",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -1504,6 +1677,33 @@
         "summary": "Create a membership",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "orgId",
             "required": true,
             "in": "path",
@@ -1543,6 +1743,33 @@
         "summary": "Get a membership",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "orgId",
             "required": true,
             "in": "path",
@@ -1578,6 +1805,33 @@
         "summary": "Delete a membership",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "orgId",
             "required": true,
             "in": "path",
@@ -1612,6 +1866,33 @@
         "operationId": "OrganizationsMembershipsController_updateMembership",
         "summary": "Update a membership",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -1661,6 +1942,24 @@
         "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
         "parameters": [
           {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "orgId",
             "required": true,
             "in": "path",
@@ -1699,6 +1998,24 @@
         "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
         "parameters": [
           {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "orgId",
             "required": true,
             "in": "path",
@@ -1729,6 +2046,24 @@
         "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
         "parameters": [
           {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "managedOrganizationId",
             "required": true,
             "in": "path",
@@ -1756,6 +2091,24 @@
         "summary": "Update an organization within an organization",
         "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
         "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -1803,6 +2156,24 @@
         "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
         "parameters": [
           {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "managedOrganizationId",
             "required": true,
             "in": "path",
@@ -1831,6 +2202,33 @@
         "operationId": "OrganizationsSchedulesController_getOrganizationSchedules",
         "summary": "Get all schedules",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -1875,194 +2273,38 @@
         "tags": ["Orgs / Schedules"]
       }
     },
-    "/v2/organizations/{orgId}/users/{userId}/schedules": {
-      "post": {
-        "operationId": "OrganizationsSchedulesController_createUserSchedule",
-        "summary": "Create a schedule",
-        "parameters": [
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateScheduleInput_2024_06_11"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateScheduleOutput_2024_06_11"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Orgs / Schedules", "Orgs / Users / Schedules"]
-      },
-      "get": {
-        "operationId": "OrganizationsSchedulesController_getUserSchedules",
-        "summary": "Get all schedules",
-        "parameters": [
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetSchedulesOutput_2024_06_11"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Orgs / Schedules", "Orgs / Users / Schedules"]
-      }
-    },
-    "/v2/organizations/{orgId}/users/{userId}/schedules/{scheduleId}": {
-      "get": {
-        "operationId": "OrganizationsSchedulesController_getUserSchedule",
-        "summary": "Get a schedule",
-        "parameters": [
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "scheduleId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetScheduleOutput_2024_06_11"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Orgs / Schedules", "Orgs / Users / Schedules"]
-      },
-      "patch": {
-        "operationId": "OrganizationsSchedulesController_updateUserSchedule",
-        "summary": "Update a schedule",
-        "parameters": [
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "scheduleId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateScheduleInput_2024_06_11"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UpdateScheduleOutput_2024_06_11"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Orgs / Schedules", "Orgs / Users / Schedules"]
-      },
-      "delete": {
-        "operationId": "OrganizationsSchedulesController_deleteUserSchedule",
-        "summary": "Delete a schedule",
-        "parameters": [
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "scheduleId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeleteScheduleOutput_2024_06_11"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Orgs / Schedules", "Orgs / Users / Schedules"]
-      }
-    },
     "/v2/organizations/{orgId}/teams": {
       "get": {
         "operationId": "OrganizationsTeamsController_getAllTeams",
         "summary": "Get all teams",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -2104,26 +2346,45 @@
             }
           }
         },
-        "tags": ["Orgs / Teams", "Teams"]
+        "tags": ["Orgs / Teams"]
       },
       "post": {
         "operationId": "OrganizationsTeamsController_createTeam",
         "summary": "Create a team",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
               "type": "number"
-            }
-          },
-          {
-            "name": "x-cal-client-id",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -2157,6 +2418,33 @@
         "operationId": "OrganizationsTeamsController_getMyTeams",
         "summary": "Get teams membership for user",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -2205,7 +2493,35 @@
       "get": {
         "operationId": "OrganizationsTeamsController_getTeam",
         "summary": "Get a team",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -2224,6 +2540,33 @@
         "operationId": "OrganizationsTeamsController_deleteTeam",
         "summary": "Delete a team",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -2259,6 +2602,33 @@
         "operationId": "OrganizationsTeamsController_updateTeam",
         "summary": "Update a team",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -2306,6 +2676,33 @@
         "operationId": "OrganizationsTeamsBookingsController_getAllOrgTeamBookings",
         "summary": "Get organization team bookings",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "status",
             "required": false,
@@ -2443,6 +2840,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -2460,11 +2865,532 @@
         "tags": ["Orgs / Teams / Bookings"]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/event-types": {
+      "post": {
+        "operationId": "OrganizationsEventTypesController_createTeamEventType",
+        "summary": "Create an event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTeamEventTypeInput_2024_06_14"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateTeamEventTypeOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Event Types"]
+      },
+      "get": {
+        "operationId": "OrganizationsEventTypesController_getTeamEventTypes",
+        "summary": "Get a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventSlug",
+            "required": false,
+            "in": "query",
+            "description": "Slug of team event type to return.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hostsLimit",
+            "required": false,
+            "in": "query",
+            "description": "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTeamEventTypesOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Event Types"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}": {
+      "get": {
+        "operationId": "OrganizationsEventTypesController_getTeamEventType",
+        "summary": "Get an event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTeamEventTypeOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Event Types"]
+      },
+      "patch": {
+        "operationId": "OrganizationsEventTypesController_updateTeamEventType",
+        "summary": "Update a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTeamEventTypeInput_2024_06_14"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateTeamEventTypeOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Event Types"]
+      },
+      "delete": {
+        "operationId": "OrganizationsEventTypesController_deleteTeamEventType",
+        "summary": "Delete a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteTeamEventTypeOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Event Types"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/create-phone-call": {
+      "post": {
+        "operationId": "OrganizationsEventTypesController_createPhoneCall",
+        "summary": "Create a phone call",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePhoneCallInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePhoneCallOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Event Types"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/event-types": {
+      "get": {
+        "operationId": "OrganizationsEventTypesController_getTeamsEventTypes",
+        "summary": "Get all team event types",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTeamEventTypesOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Event Types"]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/memberships": {
       "get": {
         "operationId": "OrganizationsTeamsMembershipsController_getAllOrgTeamMemberships",
         "summary": "Get all memberships",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -2521,6 +3447,33 @@
         "summary": "Create a membership",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "orgId",
             "required": true,
             "in": "path",
@@ -2568,6 +3521,33 @@
         "summary": "Get a membership",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "orgId",
             "required": true,
             "in": "path",
@@ -2611,6 +3591,33 @@
         "summary": "Delete a membership",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "orgId",
             "required": true,
             "in": "path",
@@ -2653,6 +3660,33 @@
         "operationId": "OrganizationsTeamsMembershipsController_updateOrgTeamMembership",
         "summary": "Update a membership",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -2709,6 +3743,15 @@
         "summary": "Get routing form responses",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "routingFormId",
             "required": true,
             "in": "path",
@@ -2738,6 +3781,33 @@
         "summary": "Get schedules of a team member",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "userId",
             "required": true,
             "in": "path",
@@ -2758,7 +3828,7 @@
             }
           }
         },
-        "tags": ["Orgs / Teams / Schedules", "Orgs / Teams / Users / Schedules"]
+        "tags": ["Orgs / Teams / Users / Schedules"]
       }
     },
     "/v2/organizations/{orgId}/users": {
@@ -2766,6 +3836,33 @@
         "operationId": "OrganizationsUsersController_getOrganizationsUsers",
         "summary": "Get all users",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -2829,6 +3926,33 @@
         "summary": "Create a user",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "orgId",
             "required": true,
             "in": "path",
@@ -2867,6 +3991,33 @@
         "operationId": "OrganizationsUsersController_updateOrganizationUser",
         "summary": "Update a user",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -2913,6 +4064,33 @@
         "summary": "Delete a user",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "orgId",
             "required": true,
             "in": "path",
@@ -2949,6 +4127,33 @@
         "operationId": "OrganizationsUsersOOOController_getOrganizationUserOOO",
         "summary": "Get all ooo entries of a user",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "userId",
             "required": true,
@@ -3012,6 +4217,33 @@
         "summary": "Create an ooo entry for user",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "userId",
             "required": true,
             "in": "path",
@@ -3043,6 +4275,33 @@
         "operationId": "OrganizationsUsersOOOController_updateOrganizationUserOOO",
         "summary": "Update ooo entry of a user",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "userId",
             "required": true,
@@ -3082,6 +4341,33 @@
         "summary": "Delete ooo entry of a user",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "oooId",
             "required": true,
             "in": "path",
@@ -3103,6 +4389,33 @@
         "operationId": "OrganizationsUsersOOOController_getOrganizationUsersOOO",
         "summary": "Get all OOO entries of org users",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -3172,11 +4485,356 @@
         "tags": ["Orgs / Users / OOO"]
       }
     },
+    "/v2/organizations/{orgId}/users/{userId}/schedules": {
+      "post": {
+        "operationId": "OrganizationsSchedulesController_createUserSchedule",
+        "summary": "Create a schedule",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateScheduleInput_2024_06_11"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateScheduleOutput_2024_06_11"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Users / Schedules"]
+      },
+      "get": {
+        "operationId": "OrganizationsSchedulesController_getUserSchedules",
+        "summary": "Get all schedules",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSchedulesOutput_2024_06_11"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Users / Schedules"]
+      }
+    },
+    "/v2/organizations/{orgId}/users/{userId}/schedules/{scheduleId}": {
+      "get": {
+        "operationId": "OrganizationsSchedulesController_getUserSchedule",
+        "summary": "Get a schedule",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "scheduleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetScheduleOutput_2024_06_11"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Users / Schedules"]
+      },
+      "patch": {
+        "operationId": "OrganizationsSchedulesController_updateUserSchedule",
+        "summary": "Update a schedule",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "scheduleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateScheduleInput_2024_06_11"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateScheduleOutput_2024_06_11"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Users / Schedules"]
+      },
+      "delete": {
+        "operationId": "OrganizationsSchedulesController_deleteUserSchedule",
+        "summary": "Delete a schedule",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "scheduleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteScheduleOutput_2024_06_11"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Users / Schedules"]
+      }
+    },
     "/v2/organizations/{orgId}/webhooks": {
       "get": {
         "operationId": "OrganizationsWebhooksController_getAllOrganizationWebhooks",
         "summary": "Get all webhooks",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
@@ -3225,6 +4883,33 @@
         "summary": "Create a webhook",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "orgId",
             "required": true,
             "in": "path",
@@ -3264,6 +4949,33 @@
         "summary": "Get a webhook",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "webhookId",
             "required": true,
             "in": "path",
@@ -3291,6 +5003,33 @@
         "summary": "Delete a webhook",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "webhookId",
             "required": true,
             "in": "path",
@@ -3317,6 +5056,33 @@
         "operationId": "OrganizationsWebhooksController_updateOrgWebhook",
         "summary": "Update a webhook",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "webhookId",
             "required": true,
@@ -3360,7 +5126,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "Bearer <apiKey>",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
             "required": true,
             "schema": {
               "type": "string"
@@ -3659,7 +5425,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -3840,7 +5606,7 @@
     "/v2/bookings/{bookingUid}/mark-absent": {
       "post": {
         "operationId": "BookingsController_2024_08_13_markNoShow",
-        "summary": "Mark a booking absence",
+        "summary": "Mark a booking absence - provided authorization header refers to owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -3863,7 +5629,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -3898,7 +5664,7 @@
     "/v2/bookings/{bookingUid}/reassign": {
       "post": {
         "operationId": "BookingsController_2024_08_13_reassignBooking",
-        "summary": "Automatically reassign booking to a new host",
+        "summary": "Automatically reassign booking to a new host automatically - provided authorization header refers to person who reassigned the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -3921,7 +5687,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -3946,7 +5712,7 @@
     "/v2/bookings/{bookingUid}/reassign/{userId}": {
       "post": {
         "operationId": "BookingsController_2024_08_13_reassignBookingToUser",
-        "summary": "Reassign a booking to a specific user",
+        "summary": "Reassign a booking to a specific user specified by the :userId - provided authorization header refers to person who reassigned the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -3977,7 +5743,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -4012,7 +5778,7 @@
     "/v2/bookings/{bookingUid}/confirm": {
       "post": {
         "operationId": "BookingsController_2024_08_13_confirmBooking",
-        "summary": "Confirm booking that requires a confirmation",
+        "summary": "Confirm booking that requires a confirmation - provided authorization header refers to owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -4035,7 +5801,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -4060,7 +5826,7 @@
     "/v2/bookings/{bookingUid}/decline": {
       "post": {
         "operationId": "BookingsController_2024_08_13_declineBooking",
-        "summary": "Decline booking that requires a confirmation",
+        "summary": "Decline booking that requires a confirmation - provided authorization header refers to owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -4083,7 +5849,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -4138,6 +5904,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -4159,7 +5934,17 @@
       "post": {
         "operationId": "CalendarsController_createIcsFeed",
         "summary": "Save an ICS feed",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -4189,7 +5974,17 @@
       "get": {
         "operationId": "CalendarsController_checkIcsFeed",
         "summary": "Check an ICS feed",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -4256,6 +6051,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -4277,7 +6081,17 @@
       "get": {
         "operationId": "CalendarsController_getCalendars",
         "summary": "Get all calendars",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -4302,6 +6116,7 @@
             "name": "Authorization",
             "required": true,
             "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "schema": {
               "type": "string"
             }
@@ -4312,6 +6127,15 @@
             "in": "path",
             "schema": {
               "enum": ["office365", "google"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "redir",
+            "required": false,
+            "in": "query",
+            "description": "Redirect URL after successful calendar authorization.",
+            "schema": {
               "type": "string"
             }
           }
@@ -4383,6 +6207,15 @@
               "enum": ["apple"],
               "type": "string"
             }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -4404,6 +6237,15 @@
             "in": "path",
             "schema": {
               "enum": ["apple", "google", "office365"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
               "type": "string"
             }
           }
@@ -4434,6 +6276,15 @@
             "in": "path",
             "schema": {
               "enum": ["apple", "google", "office365"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
               "type": "string"
             }
           }
@@ -4472,6 +6323,17 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
+            "schema": {
+              "enum": ["google-meet"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -4501,6 +6363,7 @@
             "name": "Authorization",
             "required": true,
             "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "schema": {
               "type": "string"
             }
@@ -4509,7 +6372,9 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
             "schema": {
+              "enum": ["zoom", "msteams"],
               "type": "string"
             }
           },
@@ -4562,7 +6427,9 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
             "schema": {
+              "enum": ["zoom", "msteams"],
               "type": "string"
             }
           },
@@ -4587,7 +6454,17 @@
       "get": {
         "operationId": "ConferencingController_listInstalledConferencingApps",
         "summary": "List your conferencing applications",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -4612,6 +6489,17 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
+            "schema": {
+              "enum": ["google-meet", "zoom", "msteams", "daily-video"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -4636,7 +6524,17 @@
       "get": {
         "operationId": "ConferencingController_getDefault",
         "summary": "Get your default conferencing application",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -4661,6 +6559,17 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
+            "schema": {
+              "enum": ["google-meet", "zoom", "msteams"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -4685,7 +6594,17 @@
       "put": {
         "operationId": "DestinationCalendarsController_updateDestinationCalendars",
         "summary": "Update destination calendars",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -4729,7 +6648,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -4861,7 +6780,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -4907,7 +6826,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -4963,7 +6882,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -4990,6 +6909,15 @@
         "operationId": "EventTypeWebhooksController_createEventTypeWebhook",
         "summary": "Create a webhook",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "eventTypeId",
             "required": true,
@@ -5027,6 +6955,15 @@
         "operationId": "EventTypeWebhooksController_getEventTypeWebhooks",
         "summary": "Get all webhooks",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "eventTypeId",
             "required": true,
@@ -5075,6 +7012,15 @@
         "summary": "Delete all webhooks",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "eventTypeId",
             "required": true,
             "in": "path",
@@ -5103,6 +7049,15 @@
         "operationId": "EventTypeWebhooksController_updateEventTypeWebhook",
         "summary": "Update a webhook",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "webhookId",
             "required": true,
@@ -5139,7 +7094,17 @@
       "get": {
         "operationId": "EventTypeWebhooksController_getEventTypeWebhook",
         "summary": "Get a webhook",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -5157,7 +7122,17 @@
       "delete": {
         "operationId": "EventTypeWebhooksController_deleteEventTypeWebhook",
         "summary": "Delete a webhook",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -5177,7 +7152,17 @@
       "get": {
         "operationId": "MeController_getMe",
         "summary": "Get my profile",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -5195,7 +7180,17 @@
       "patch": {
         "operationId": "MeController_updateMe",
         "summary": "Update my profile",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -5224,9 +7219,18 @@
     "/v2/oauth-clients": {
       "post": {
         "operationId": "OAuthClientsController_createOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [],
+        "summary": "Create an OAuth client",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -5253,9 +7257,18 @@
       },
       "get": {
         "operationId": "OAuthClientsController_getOAuthClients",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [],
+        "summary": "Get all OAuth clients",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -5274,9 +7287,17 @@
     "/v2/oauth-clients/{clientId}": {
       "get": {
         "operationId": "OAuthClientsController_getOAuthClientById",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
+        "summary": "Get an OAuth client",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "clientId",
             "required": true,
@@ -5302,9 +7323,17 @@
       },
       "patch": {
         "operationId": "OAuthClientsController_updateOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
+        "summary": "Update an OAuth client",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "clientId",
             "required": true,
@@ -5340,9 +7369,17 @@
       },
       "delete": {
         "operationId": "OAuthClientsController_deleteOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
+        "summary": "Delete an OAuth client",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "clientId",
             "required": true,
@@ -5359,56 +7396,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth Clients"]
-      }
-    },
-    "/v2/oauth-clients/{clientId}/managed-users": {
-      "get": {
-        "operationId": "OAuthClientsController_getOAuthClientManagedUsersById",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "offset",
-            "required": false,
-            "in": "query",
-            "description": "The number of items to skip",
-            "example": 0,
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedUsersOutput"
                 }
               }
             }
@@ -5442,7 +7429,9 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
             "schema": {
+              "enum": ["google-meet"],
               "type": "string"
             }
           }
@@ -5495,7 +7484,9 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
             "schema": {
+              "enum": ["zoom", "msteams"],
               "type": "string"
             }
           },
@@ -5577,7 +7568,9 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
             "schema": {
+              "enum": ["google-meet", "zoom", "msteams", "daily-video"],
               "type": "string"
             }
           }
@@ -5608,6 +7601,16 @@
             "in": "path",
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "description": "Conferencing application type",
+            "schema": {
+              "enum": ["google-meet", "zoom", "msteams", "daily-video"],
+              "type": "string"
             }
           }
         ],
@@ -5643,7 +7646,9 @@
             "name": "app",
             "required": true,
             "in": "path",
+            "description": "Conferencing application type",
             "schema": {
+              "enum": ["google-meet", "zoom", "msteams"],
               "type": "string"
             }
           }
@@ -5663,96 +7668,6 @@
         "tags": ["Organizations/Teams Conferencing"]
       }
     },
-    "/v2/organizations/{orgId}/teams/{teamId}/stripe/connect": {
-      "get": {
-        "operationId": "OrganizationsStripeController_getTeamStripeConnectUrl",
-        "summary": "Get stripe connect URL for a team",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "returnTo",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "onErrorReturnTo",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StripConnectOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Organizations/Teams Stripe"]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/stripe/check": {
-      "get": {
-        "operationId": "OrganizationsStripeController_checkTeamStripeConnection",
-        "summary": "Check team stripe connection",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StripCredentialsCheckOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Organizations/Teams Stripe"]
-      }
-    },
     "/v2/schedules": {
       "post": {
         "operationId": "SchedulesController_2024_06_11_createSchedule",
@@ -5762,7 +7677,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -5811,7 +7726,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -5852,7 +7767,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -5892,7 +7807,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -5938,7 +7853,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -5994,7 +7909,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -6038,7 +7953,17 @@
       "post": {
         "operationId": "SelectedCalendarsController_addSelectedCalendar",
         "summary": "Add a selected calendar",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -6067,6 +7992,15 @@
         "operationId": "SelectedCalendarsController_deleteSelectedCalendar",
         "summary": "Delete a selected calendar",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "integration",
             "required": true,
@@ -6298,7 +8232,7 @@
       "post": {
         "operationId": "SlotsController_2024_09_04_reserveSlot",
         "summary": "Reserve a slot",
-        "description": "Make a slot not available for others to book for a certain period of time.",
+        "description": "Make a slot not available for others to book for a certain period of time. If you authenticate using oAuth credentials, api key or access token\n    then you can also specify custom duration for how long the slot should be reserved for (defaults to 5 minutes).",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -6308,6 +8242,24 @@
             "schema": {
               "type": "string",
               "default": "2024-09-04"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -6470,6 +8422,7 @@
             "name": "Authorization",
             "required": true,
             "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "schema": {
               "type": "string"
             }
@@ -6531,7 +8484,55 @@
       "get": {
         "operationId": "StripeController_check",
         "summary": "Check stripe connection",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsCheckOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Stripe"]
+      }
+    },
+    "/v2/stripe/check/{teamId}": {
+      "get": {
+        "operationId": "StripeController_checkTeamStripeConnection",
+        "summary": "Check team stripe connection",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -6551,7 +8552,17 @@
       "post": {
         "operationId": "TeamsController_createTeam",
         "summary": "Create a team",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -6579,7 +8590,17 @@
       "get": {
         "operationId": "TeamsController_getTeams",
         "summary": "Get teams",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -6600,6 +8621,15 @@
         "operationId": "TeamsController_getTeam",
         "summary": "Get a team",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "teamId",
             "required": true,
@@ -6627,6 +8657,15 @@
         "operationId": "TeamsController_updateTeam",
         "summary": "Update a team",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "teamId",
             "required": true,
@@ -6665,6 +8704,15 @@
         "summary": "Delete a team",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "teamId",
             "required": true,
             "in": "path",
@@ -6699,6 +8747,15 @@
             "in": "path",
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -6792,6 +8849,15 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -6826,6 +8892,15 @@
             "in": "path",
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -6872,6 +8947,15 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -6909,6 +8993,15 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -6941,6 +9034,15 @@
         "operationId": "TeamsMembershipsController_createTeamMembership",
         "summary": "Create a membership",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "teamId",
             "required": true,
@@ -6978,6 +9080,15 @@
         "operationId": "TeamsMembershipsController_getTeamMemberships",
         "summary": "Get all memberships",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "teamId",
             "required": true,
@@ -7028,6 +9139,15 @@
         "summary": "Get a membership",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "teamId",
             "required": true,
             "in": "path",
@@ -7062,6 +9182,15 @@
         "operationId": "TeamsMembershipsController_updateTeamMembership",
         "summary": "Create a membership",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "teamId",
             "required": true,
@@ -7108,6 +9237,15 @@
         "summary": "Delete a membership",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "teamId",
             "required": true,
             "in": "path",
@@ -7139,31 +9277,21 @@
         "tags": ["Teams / Memberships"]
       }
     },
-    "/v2/timezones": {
-      "get": {
-        "operationId": "TimezonesController_getTimeZones",
-        "summary": "Get all timezones",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Timezones"]
-      }
-    },
     "/v2/webhooks": {
       "post": {
         "operationId": "WebhooksController_createWebhook",
         "summary": "Create a webhook",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -7193,6 +9321,15 @@
         "summary": "Get all webooks",
         "description": "Gets a paginated list of webhooks for the authenticated user.",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "take",
             "required": false,
@@ -7235,6 +9372,15 @@
         "summary": "Update a webhook",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "webhookId",
             "required": true,
             "in": "path",
@@ -7270,7 +9416,17 @@
       "get": {
         "operationId": "WebhooksController_getWebhook",
         "summary": "Get a webhook",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -7289,6 +9445,15 @@
         "operationId": "WebhooksController_deleteWebhook",
         "summary": "Delete a webhook",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "webhookId",
             "required": true,
@@ -7538,20 +9703,25 @@
       "CreateManagedUserData": {
         "type": "object",
         "properties": {
+          "accessToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+          },
+          "refreshToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+          },
           "user": {
             "$ref": "#/components/schemas/ManagedUserOutput"
           },
-          "accessToken": {
-            "type": "string"
-          },
-          "refreshToken": {
-            "type": "string"
-          },
           "accessTokenExpiresAt": {
+            "type": "number"
+          },
+          "refreshTokenExpiresAt": {
             "type": "number"
           }
         },
-        "required": ["user", "accessToken", "refreshToken", "accessTokenExpiresAt"]
+        "required": ["accessToken", "refreshToken", "user", "accessTokenExpiresAt", "refreshTokenExpiresAt"]
       },
       "CreateManagedUserOutput": {
         "type": "object",
@@ -7678,9 +9848,12 @@
           },
           "accessTokenExpiresAt": {
             "type": "number"
+          },
+          "refreshTokenExpiresAt": {
+            "type": "number"
           }
         },
-        "required": ["accessToken", "refreshToken", "accessTokenExpiresAt"]
+        "required": ["accessToken", "refreshToken", "accessTokenExpiresAt", "refreshTokenExpiresAt"]
       },
       "KeysResponseDto": {
         "type": "object",
@@ -8070,7 +10243,7 @@
           },
           "slug": {
             "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking. Special slug is `attendeePhoneNumber` - if you create\n      a phone input field with this slug for organization team event type you can create an organization team event type that can be booked using phone without requiring an email by setting {\"type\": \"email\", \"required\": false, \"hidden\": true} to the email booking field input in the request body.",
             "example": "some-slug"
           },
           "label": {
@@ -8763,7 +10936,12 @@
             "type": "string"
           },
           "required": {
-            "type": "object"
+            "type": "object",
+            "description": "Can be set to false only for organization team event types and if you also pass booking field {type: \"phone\", slug: \"attendeePhoneNumber\", required: true, hidden: false, label: \"whatever label\"} of booking field type PhoneFieldInput_2024_06_14 - this is done\n      to enable phone only bookings where during the booking attendee can provide only their phone number and not provide email, so you must pass to the email booking field {hidden: true, required: false}.\n      If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "Can be set to true only for organization team event types and if you also pass booking field {type: \"phone\", slug: \"attendeePhoneNumber\", required: true, hidden: false, label: \"whatever label\"} of booking field type PhoneFieldInput_2024_06_14 - this is done\n      to enable phone only bookings where during the booking attendee can provide only their phone number and not provide email, so you must pass to the email booking field {hidden: true, required: false}.\n      If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           },
           "placeholder": {
             "type": "string"
@@ -8773,7 +10951,7 @@
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&email=bob@gmail.com`,      the email field will be prefilled with this value and disabled."
           }
         },
-        "required": ["type", "label", "required", "placeholder"]
+        "required": ["type", "label", "placeholder"]
       },
       "TitleDefaultFieldInput_2024_06_14": {
         "type": "object",
@@ -9439,7 +11617,12 @@
           },
           "required": {
             "type": "object",
-            "default": true
+            "default": true,
+            "description": "Can be set to false only for organization team event types and if you also pass booking field {type: \"phone\", slug: \"attendeePhoneNumber\", required: true, hidden: false, label: \"whatever label\"} of booking field type PhoneFieldInput_2024_06_14 - this is done\n      to enable phone only bookings where during the booking attendee can provide only their phone number and not provide email, so you must pass to the email booking field {hidden: true, required: false}.\n      If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both. Can only be hidden\n      for organization team event types when also providing attendee phone number booking field."
           },
           "placeholder": {
             "type": "string"
@@ -9459,7 +11642,7 @@
             "default": "email"
           }
         },
-        "required": ["type", "required", "isDefault", "slug"]
+        "required": ["type", "isDefault", "slug"]
       },
       "NameDefaultFieldOutput_2024_06_14": {
         "type": "object",
@@ -10126,7 +12309,7 @@
           },
           "slug": {
             "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking. Special slug is `attendeePhoneNumber` - if you create\n      a phone input field with this slug for organization team event type you can create an organization team event type that can be booked using phone without requiring an email by setting {\"type\": \"email\", \"required\": false, \"hidden\": true} to the email booking field input in the request body.",
             "example": "some-slug"
           },
           "label": {
@@ -11473,7 +13656,8 @@
           },
           "autoAcceptCreator": {
             "type": "boolean",
-            "default": true
+            "default": true,
+            "description": "If you are a platform customer, don't pass 'false', because then team creator won't be able to create team event types."
           }
         },
         "required": ["name"]
@@ -12100,7 +14284,8 @@
           "role": {
             "type": "string",
             "default": "MEMBER",
-            "enum": ["MEMBER", "OWNER", "ADMIN"]
+            "enum": ["MEMBER", "OWNER", "ADMIN"],
+            "description": "If you are platform customer then managed users should only have MEMBER role."
           },
           "disableImpersonation": {
             "type": "boolean",
@@ -12431,9 +14616,13 @@
             "example": "https://masterchief.com/argentina/flan/video/9129412"
           },
           "schedulingType": {
-            "type": "object"
+            "type": "string",
+            "enum": ["collective", "roundRobin", "managed"],
+            "example": "collective",
+            "description": "The scheduling type for the team event - collective, roundRobin or managed."
           },
           "hosts": {
+            "description": "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Host"
@@ -12476,7 +14665,7 @@
             }
           }
         },
-        "required": ["lengthInMinutes", "title", "slug", "schedulingType", "hosts"]
+        "required": ["lengthInMinutes", "title", "slug", "schedulingType"]
       },
       "CreateTeamEventTypeOutput": {
         "type": "object",
@@ -12835,8 +15024,7 @@
           },
           "schedulingType": {
             "type": "string",
-            "nullable": true,
-            "enum": ["ROUND_ROBIN", "COLLECTIVE", "MANAGED"]
+            "enum": ["roundRobin", "collective", "managed"]
           },
           "team": {
             "$ref": "#/components/schemas/EventTypeTeam"
@@ -14031,6 +16219,15 @@
         },
         "required": ["status", "data"]
       },
+      "StripCredentialsSaveOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": ["url"]
+      },
       "StripCredentialsCheckOutputResponseDto": {
         "type": "object",
         "properties": {
@@ -14040,15 +16237,6 @@
           }
         },
         "required": ["status"]
-      },
-      "StripCredentialsSaveOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "url": {
-            "type": "string"
-          }
-        },
-        "required": ["url"]
       },
       "GetDefaultScheduleOutput_2024_06_11": {
         "type": "object",
@@ -14142,7 +16330,8 @@
           },
           "autoAcceptCreator": {
             "type": "boolean",
-            "default": true
+            "default": true,
+            "description": "If you are a platform customer, don't pass 'false', because then team creator won't be able to create team event types."
           }
         },
         "required": ["name"]
@@ -14424,313 +16613,6 @@
           },
           "data": {
             "$ref": "#/components/schemas/DelegationCredentialOutput"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "CreateOrganizationInput": {
-        "type": "object",
-        "properties": {
-          "apiKeyDaysValid": {
-            "type": "number",
-            "minimum": 1,
-            "description": "For how many days is managed organization api key valid. Defaults to 30 days.",
-            "example": 60,
-            "default": 30
-          },
-          "apiKeyNeverExpires": {
-            "type": "boolean",
-            "description": "If true, organization api key never expires.",
-            "example": true
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Name of the organization",
-            "example": "CalTeam"
-          },
-          "metadata": {
-            "type": "object",
-            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
-            "example": {
-              "key": "value"
-            }
-          }
-        },
-        "required": ["name"]
-      },
-      "ManagedOrganizationWithApiKeyOutput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1
-          },
-          "metadata": {
-            "type": "object",
-            "example": {
-              "key": "value"
-            }
-          },
-          "apiKey": {
-            "type": "string"
-          }
-        },
-        "required": ["id", "name", "apiKey"]
-      },
-      "CreateManagedOrganizationOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ManagedOrganizationWithApiKeyOutput"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "ManagedOrganizationOutput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1
-          },
-          "metadata": {
-            "type": "object",
-            "example": {
-              "key": "value"
-            }
-          }
-        },
-        "required": ["id", "name"]
-      },
-      "GetManagedOrganizationOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ManagedOrganizationOutput"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "GetManagedOrganizationsOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ManagedOrganizationOutput"
-            }
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "UpdateOrganizationInput": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Name of the organization",
-            "example": "CalTeam"
-          },
-          "metadata": {
-            "type": "object",
-            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
-            "example": {
-              "key": "value"
-            }
-          }
-        }
-      },
-      "RoutingFormResponseOutput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "formId": {
-            "type": "string"
-          },
-          "formFillerId": {
-            "type": "string"
-          },
-          "routedToBookingUid": {
-            "type": "string"
-          },
-          "response": {
-            "type": "object",
-            "example": {
-              "f00b26df-f54b-4985-8d98-17c5482c6a24": {
-                "label": "participant",
-                "value": "mamut"
-              }
-            }
-          },
-          "createdAt": {
-            "format": "date-time",
-            "type": "string"
-          }
-        },
-        "required": ["id", "formId", "formFillerId", "routedToBookingUid", "response", "createdAt"]
-      },
-      "GetRoutingFormResponsesOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/RoutingFormResponseOutput"
-            }
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "ProviderVerifyClientData": {
-        "type": "object",
-        "properties": {
-          "clientId": {
-            "type": "string"
-          },
-          "organizationId": {
-            "type": "number"
-          },
-          "name": {
-            "type": "string"
-          }
-        },
-        "required": ["clientId", "organizationId", "name"]
-      },
-      "ProviderVerifyClientOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ProviderVerifyClientData"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "ProviderVerifyAccessTokenOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          }
-        },
-        "required": ["status"]
-      },
-      "MeOrgOutput": {
-        "type": "object",
-        "properties": {
-          "isPlatform": {
-            "type": "boolean"
-          },
-          "id": {
-            "type": "number"
-          }
-        },
-        "required": ["isPlatform", "id"]
-      },
-      "MeOutput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "username": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          },
-          "timeFormat": {
-            "type": "number"
-          },
-          "defaultScheduleId": {
-            "type": "number",
-            "nullable": true
-          },
-          "weekStart": {
-            "type": "string"
-          },
-          "timeZone": {
-            "type": "string"
-          },
-          "organizationId": {
-            "type": "number",
-            "nullable": true
-          },
-          "organization": {
-            "$ref": "#/components/schemas/MeOrgOutput"
-          }
-        },
-        "required": [
-          "id",
-          "username",
-          "email",
-          "timeFormat",
-          "defaultScheduleId",
-          "weekStart",
-          "timeZone",
-          "organizationId"
-        ]
-      },
-      "GetMeOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/MeOutput"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "UpdateMeOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/MeOutput"
           }
         },
         "required": ["status", "data"]
@@ -15155,6 +17037,273 @@
         },
         "required": ["status", "data"]
       },
+      "CreateOrganizationInput": {
+        "type": "object",
+        "properties": {
+          "apiKeyDaysValid": {
+            "type": "number",
+            "minimum": 1,
+            "description": "For how many days is managed organization api key valid. Defaults to 30 days.",
+            "example": 60,
+            "default": 30
+          },
+          "apiKeyNeverExpires": {
+            "type": "boolean",
+            "description": "If true, organization api key never expires.",
+            "example": true
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name of the organization",
+            "example": "CalTeam"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
+            "example": {
+              "key": "value"
+            }
+          }
+        },
+        "required": ["name"]
+      },
+      "ManagedOrganizationWithApiKeyOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
+          },
+          "apiKey": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "name", "apiKey"]
+      },
+      "CreateManagedOrganizationOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ManagedOrganizationWithApiKeyOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "ManagedOrganizationOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
+          }
+        },
+        "required": ["id", "name"]
+      },
+      "GetManagedOrganizationOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ManagedOrganizationOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetManagedOrganizationsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManagedOrganizationOutput"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "UpdateOrganizationInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name of the organization",
+            "example": "CalTeam"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
+            "example": {
+              "key": "value"
+            }
+          }
+        }
+      },
+      "RoutingFormResponseOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "formId": {
+            "type": "string"
+          },
+          "formFillerId": {
+            "type": "string"
+          },
+          "routedToBookingUid": {
+            "type": "string"
+          },
+          "response": {
+            "type": "object",
+            "example": {
+              "f00b26df-f54b-4985-8d98-17c5482c6a24": {
+                "label": "participant",
+                "value": "mamut"
+              }
+            }
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": ["id", "formId", "formFillerId", "routedToBookingUid", "response", "createdAt"]
+      },
+      "GetRoutingFormResponsesOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoutingFormResponseOutput"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "MeOrgOutput": {
+        "type": "object",
+        "properties": {
+          "isPlatform": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "number"
+          }
+        },
+        "required": ["isPlatform", "id"]
+      },
+      "MeOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "defaultScheduleId": {
+            "type": "number",
+            "nullable": true
+          },
+          "weekStart": {
+            "type": "string"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "number",
+            "nullable": true
+          },
+          "organization": {
+            "$ref": "#/components/schemas/MeOrgOutput"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "email",
+          "timeFormat",
+          "defaultScheduleId",
+          "weekStart",
+          "timeZone",
+          "organizationId"
+        ]
+      },
+      "GetMeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/MeOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "UpdateMeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/MeOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
       "BookingInputAddressLocation_2024_08_13": {
         "type": "object",
         "properties": {
@@ -15276,6 +17425,17 @@
             "type": "string",
             "example": "phone",
             "description": "only allowed value for type is `phone` - it refers to phone defined by the organizer."
+          }
+        },
+        "required": ["type"]
+      },
+      "BookingInputOrganizersDefaultAppLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "organizersDefaultApp",
+            "description": "only available for team event types and the only allowed value for type is `organizersDefaultApp` - it refers to the default app defined by the organizer."
           }
         },
         "required": ["type"]
@@ -15423,6 +17583,9 @@
               },
               {
                 "$ref": "#/components/schemas/BookingInputPhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputOrganizersDefaultAppLocation_2024_08_13"
               }
             ]
           },
@@ -15506,6 +17669,9 @@
               },
               {
                 "$ref": "#/components/schemas/BookingInputPhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputOrganizersDefaultAppLocation_2024_08_13"
               }
             ]
           },
@@ -15594,6 +17760,9 @@
               },
               {
                 "$ref": "#/components/schemas/BookingInputPhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/BookingInputOrganizersDefaultAppLocation_2024_08_13"
               }
             ]
           },
@@ -15762,6 +17931,11 @@
             "type": "number",
             "example": 4
           },
+          "icsUid": {
+            "type": "string",
+            "example": "ics_uid_123",
+            "description": "UID of ICS event."
+          },
           "attendees": {
             "type": "array",
             "items": {
@@ -15905,6 +18079,11 @@
           "rating": {
             "type": "number",
             "example": 4
+          },
+          "icsUid": {
+            "type": "string",
+            "example": "ics_uid_123",
+            "description": "UID of ICS event."
           },
           "attendees": {
             "type": "array",
@@ -16146,6 +18325,11 @@
             "type": "number",
             "example": 4
           },
+          "icsUid": {
+            "type": "string",
+            "example": "ics_uid_123",
+            "description": "UID of ICS event."
+          },
           "seatUid": {
             "type": "string",
             "example": "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1"
@@ -16279,6 +18463,11 @@
           "rating": {
             "type": "number",
             "example": 4
+          },
+          "icsUid": {
+            "type": "string",
+            "example": "ics_uid_123",
+            "description": "UID of ICS event."
           },
           "seatUid": {
             "type": "string",
@@ -16453,6 +18642,11 @@
             "type": "number",
             "example": 4
           },
+          "icsUid": {
+            "type": "string",
+            "example": "ics_uid_123",
+            "description": "UID of ICS event."
+          },
           "attendees": {
             "type": "array",
             "items": {
@@ -16581,6 +18775,11 @@
           "rating": {
             "type": "number",
             "example": 4
+          },
+          "icsUid": {
+            "type": "string",
+            "example": "ics_uid_123",
+            "description": "UID of ICS event."
           },
           "attendees": {
             "type": "array",

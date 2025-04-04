@@ -4,8 +4,10 @@ import React from "react";
 import type { PERMISSION_MAP } from "@calcom/platform-constants";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
 import type { Avatar } from "@calcom/prisma/client";
-import { Button, Icon, showToast } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 type OAuthClientCardProps = {
   name: string;

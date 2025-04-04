@@ -37,6 +37,22 @@ export class OrganizationsUsersRepository {
     });
   }
 
+  async getOrganizationUsersByIds(orgId: number, userIds: number[]) {
+    return await this.dbRead.prisma.user.findMany({
+      where: {
+        profiles: {
+          some: {
+            organizationId: orgId,
+            userId: { in: userIds },
+          },
+        },
+      },
+      include: {
+        profiles: true,
+      },
+    });
+  }
+
   async getOrganizationUserByEmail(orgId: number, email: string) {
     return await this.dbRead.prisma.user.findFirst({
       where: {

@@ -1,6 +1,6 @@
 import { getBulkUserEventTypes } from "@calcom/lib/event-types/getBulkEventTypes";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 
 type BulkEventFetchOptions = {
   ctx: {

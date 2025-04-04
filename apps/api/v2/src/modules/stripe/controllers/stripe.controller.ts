@@ -1,4 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import {
@@ -28,7 +29,7 @@ import {
   Headers,
   Param,
 } from "@nestjs/common";
-import { ApiTags as DocsTags, ApiOperation } from "@nestjs/swagger";
+import { ApiTags as DocsTags, ApiOperation, ApiHeader } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 import { Request } from "express";
 import { stringify } from "querystring";
@@ -51,6 +52,7 @@ export class StripeController {
   @UseGuards(ApiAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get stripe connect URL" })
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   async redirect(
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
@@ -131,6 +133,7 @@ export class StripeController {
   @Get("/check")
   @UseGuards(ApiAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Check stripe connection" })
   async check(@GetUser() user: UserWithProfile): Promise<StripCredentialsCheckOutputResponseDto> {
     return await this.stripeService.checkIfIndividualStripeAccountConnected(user.id);

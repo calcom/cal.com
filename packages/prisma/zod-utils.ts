@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 import type {
   AnyZodObject,
@@ -635,6 +635,8 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   recurringEvent: true,
   customInputs: true,
   disableGuests: true,
+  disableCancelling: true,
+  disableRescheduling: true,
   requiresConfirmation: true,
   canSendCalVideoTranscriptionEmails: true,
   requiresConfirmationForFreeEmail: true,

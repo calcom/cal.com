@@ -5,12 +5,8 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { AppCategories } from "@calcom/prisma/enums";
 
-import { ssrInit } from "@server/lib/ssr";
-
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req } = context;
-
-  const ssr = await ssrInit(context);
 
   const session = await getServerSession({ req });
 
@@ -46,7 +42,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         }),
       appStore,
       userAdminTeams: userAdminTeamsIds,
-      trpcState: ssr.dehydrate(),
     },
   };
 };

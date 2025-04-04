@@ -3,7 +3,7 @@ import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.st
 import { PlatformPlanType } from "@/modules/billing/types";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { RedisService } from "@/modules/redis/redis.service";
-import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Request } from "express";
 
@@ -69,7 +69,12 @@ export class PlatformPlanGuard implements CanActivate {
     }
 
     await this.redisService.redis.set(REDIS_CACHE_KEY, String(canAccess), "EX", 300);
-    return { canAccess };
+    if (canAccess) {
+      return { canAccess };
+    }
+    throw new ForbiddenException(
+      `Platform plan - you do not have required plan for this operation. Minimum plan is ${minimumPlan}.`
+    );
   }
 }
 

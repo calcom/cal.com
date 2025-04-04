@@ -10,7 +10,8 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
-import { Badge, Icon } from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { BookedByCell } from "../components/BookedByCell";
 import { BookingAtCell } from "../components/BookingAtCell";
@@ -66,8 +67,16 @@ export const useInsightsColumns = ({
         id: "bookingUid",
         header: t("uid"),
         size: 100,
-        enableColumnFilter: false,
+        enableColumnFilter: true,
         enableSorting: false,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+            textOptions: {
+              allowedOperators: ["equals"],
+            },
+          },
+        },
         cell: (info) => {
           const bookingUid = info.getValue();
           if (!bookingUid) return null;
@@ -94,6 +103,14 @@ export const useInsightsColumns = ({
         size: 200,
         enableColumnFilter: false,
         enableSorting: false,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+            textOptions: {
+              placeholder: t("name_or_email"),
+            },
+          },
+        },
         cell: (info) => {
           return <BookedByCell attendees={info.getValue()} rowId={info.row.original.id} />;
         },
