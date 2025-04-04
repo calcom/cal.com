@@ -1,5 +1,113 @@
 ---
 title: "Tasker"
-icon: "tasks"
+icon: "bars-progress"
 ---
 
+Tasker works on a very simple fundamental idea:
+| Name     | Description                                                  |
+| -------- | ------------------------------------------------------------ |
+| Tasker   | One who performs a task, as a day-laborer                    |
+| Task     | A function to be performed; an objective                     |
+
+## Background
+
+The Tasker pattern provides a structured and reliable way to manage background tasks in an application. It abstracts the complexity of task execution while improving responsiveness, reliability, and maintainability.
+
+1. **Offload Non-Critical Work**: Many operations don’t need to run immediately within the request-response cycle—such as sending emails, generating reports, or cleaning up data. The Tasker pattern allows you to defer these tasks to run in the background, freeing up your main application to stay fast and responsive.
+
+2. **Built-In Retry Mechanism**: Tasks may fail due to temporary issues like network errors or unavailable services. To ensure more resilient and fault-tolerant systems, the Tasker pattern supports automatic retrying, allowing you to define:
+    - The number of retry attempts
+    - Custom backoff strategies
+    - Fallback behavior
+
+3. **Scheduled Task Execution**: Some tasks need to be performed at a specific time or after a certain delay. To allow you to schedule future operations without manual intervention or blocking, Tasker supports both:
+    - Delayed execution (e.g., “run this in 10 minutes”)
+    - Scheduled execution (e.g., “run this at 4:00 PM”)
+
+4. **Task Cancellation**: In cases where a previously scheduled task is no longer relevant—such as a user canceling an operation—Tasker enables you to cancel the task before it executes. This avoids unnecessary processing and adapts to changing business logic.
+
+5. **Flexible and Extensible Implementation**: Tasker is designed to be modular. You can start with a built-in InternalTasker and swap in other implementations like TriggerDevTasker, AwsSqsTasker, or your own custom handler without rewriting task logic.
+
+This makes it easy to scale or adapt based on the needs of your environment or deployment setup.
+
+## Setup
+
+To enable tasker for a specific service, you would need to enable it in the .env file. Please refer to the `.env.example` file and look for `TASKER _ENABLE` and set the specific taskers to true as per your requirements. The `.env.example`  contains the list of taskers available.
+
+For example, to enable webhooks tasker, we do
+```bash
+TASKER_ENABLE_WEBHOOKS=1
+```
+
+<Note>You need to setup a cron job to hit the $\{WEBAPP_URL\}/api/tasks/cron endpoint for tasker to work</Note>
+
+## How Does It Work?
+Since Tasker is a pattern, the exact behavior depends on its implementation. For example, `TriggerDevTasker` and `AwsSqsTasker` work quite differently.
+
+For simplicity, we'll explain how the `InternalTasker` works, which is the default in local or minimal deployments.
+
+### Scheduling a Task
+Instead of executing a non-critical task immediately, you schedule it using the Tasker.
+```ts
+const examplePayload = { example: "payload" };
+
+// Before: runs immediately
+// await sendWebhook(examplePayload);
+
+// After: scheduled via Tasker
+await tasker.create("sendWebhook", JSON.stringify(examplePayload));
+```
+This adds a new task to a queue. It will be picked up and executed during the next scheduled processing cycle.
+
+### Processing the Task Queue
+A cron job (or scheduled route) triggers the queue processing:
+
+```ts
+// /app/api/tasks/cron/route.ts
+import tasker from "@calcom/features/tasker";
+
+export async function GET() {
+  // Authenticate the call...
+  await tasker.processQueue();
+  return Response.json({ success: true });
+}
+```
+By default:
+- The cron runs once per minute
+- It processes up to 100 tasks per run
+
+### Task Lifecycle
+Each task tracks its state:
+
+- On success:
+    succeededAt is set to new Date()
+
+- On failure:
+    The attempts count is incremented
+
+- If attempts reaches maxAttempts (default: 3), the task is marked as failed and won’t be retried again
+
+<Note>You can override maxAttempts when creating a task if needed.</Note>
+
+### Cleaning Up Old Tasks
+To keep the database lean, you can periodically clean up completed and failed tasks:
+
+```ts
+// /app/api/tasks/cleanup/route.ts
+import tasker from "@calcom/features/tasker";
+
+export async function GET() {
+  // Authenticate the call...
+  await tasker.cleanup();
+  return Response.json({ success: true });
+}
+```
+This will remove all tasks that are no longer pending (either succeeded or permanently failed).
+
+### Defining a Task
+A task is simply a function that receives a JSON payload:
+
+```ts
+type TaskHandler = (payload: string) => Promise<void>;
+```
+When you register a task with the Tasker, it maps the task name (like "sendWebhook") to a handler that knows what to do with the payload.
