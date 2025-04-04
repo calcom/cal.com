@@ -1,10 +1,10 @@
 import type { DirectorySyncEvent, Group } from "@boxyhq/saml-jackson";
 
-import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import {
@@ -205,17 +205,14 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
           orgSlug: null,
         });
       }),
-      ...newOrgMembers.map((user) => {
-        return createAProfileForAnExistingUser({
-          user: {
-            id: user.id,
-            email: user.email,
-            currentUsername: user.username,
-          },
-          organizationId,
-        });
-      }),
     ]);
+
+    await ProfileRepository.createManyForExistingUsers({
+      users: newOrgMembers,
+      organizationId,
+      orgAutoAcceptEmail: org.organizationSettings?.orgAutoAcceptEmail ?? "",
+    });
+
     // Add users to team event types if assignAllTeamMembers is enabled
     await Promise.all([
       ...(newUsers?.map((newUser) => {
