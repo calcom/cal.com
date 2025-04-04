@@ -9,7 +9,7 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
 import { OrganizationUsersBookingsService } from "@/modules/organizations/users/bookings/services/organization-users-bookings.service";
-import { Controller, UseGuards, Get, Query } from "@nestjs/common";
+import { Controller, UseGuards, Get, Query, ParseIntPipe, Param } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -31,9 +31,14 @@ export class OrganizationsUsersBookingsController {
   @ApiOperation({ summary: "Get all bookings of an organization user" })
   async getOrganizationUserBookings(
     @GetUser() user: User,
+    @Param("orgId", ParseIntPipe) orgId: number,
     @Query() query: GetBookingsInput_2024_08_13
   ): Promise<GetBookingsOutput_2024_08_13> {
-    const bookings = await this.organizationUsersBookingsService.getOrganizationUserBookings(user, query);
+    const bookings = await this.organizationUsersBookingsService.getOrganizationUserBookings(
+      orgId,
+      user,
+      query
+    );
 
     return {
       status: SUCCESS_STATUS,
