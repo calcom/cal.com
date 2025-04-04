@@ -78,9 +78,15 @@ export const ErrorPage: React.FC<Props> = (props) => {
           </div>
 
           <Button href="mailto:support@cal.com">Contact Support</Button>
-          <Button color="secondary" className="ml-2" onClick={props.reset}>
-            Try again
-          </Button>
+          {props.reset ? (
+            <Button color="secondary" className="ml-2" onClick={props.reset}>
+              Try again
+            </Button>
+          ) : (
+            <Button color="secondary" href="javascript:history.back()" className="ml-2">
+              Go back
+            </Button>
+          )}
         </div>
       </div>
       {displayDebug && (
