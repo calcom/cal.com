@@ -301,6 +301,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                         onChange(values);
                       }}
                       strictlyBottom={true}
+                      allowPastDates={true}
                     />
                   )}
                 />
