@@ -1157,47 +1157,53 @@ export default class SalesforceCRMService implements CRM {
       }
 
       // Handle different field types
-      if (fieldConfig.fieldType === field.type) {
-        if (field.type === SalesforceFieldType.TEXT || field.type === SalesforceFieldType.PHONE) {
-          const extractedText = await this.getTextFieldValue({
-            fieldValue: fieldConfig.value,
-            fieldLength: field.length,
-            calEventResponses,
-            bookingUid,
-          });
-          if (extractedText) {
-            writeOnRecordBody[field.name] = extractedText;
-            continue;
-          }
-        } else if (field.type === SalesforceFieldType.DATE && startTime && organizerEmail) {
-          const dateValue = await this.getDateFieldValue(
-            fieldConfig.value,
-            startTime,
-            bookingUid,
-            organizerEmail
-          );
-          if (dateValue) {
-            writeOnRecordBody[field.name] = dateValue;
-            continue;
-          }
-        } else if (field.type === SalesforceFieldType.PICKLIST) {
-          const picklistValue = await this.getPicklistFieldValue({
-            fieldConfigValue: fieldConfig.value,
-            salesforceField: field,
-            calEventResponses,
-            bookingUid,
-            contactId,
-          });
-          if (picklistValue) {
-            writeOnRecordBody[field.name] = picklistValue;
-            continue;
-          }
-        } else if (field.type === SalesforceFieldType.CHECKBOX) {
-          // If the checkbox field value is not a boolean for some reason, default to if it's a falsely value
-          const checkboxValue = !!fieldConfig.value;
-          writeOnRecordBody[field.name] = checkboxValue;
+      if (
+        field.type === SalesforceFieldType.TEXT ||
+        field.type === SalesforceFieldType.TEXTAREA ||
+        field.type === SalesforceFieldType.PHONE
+      ) {
+        const extractedText = await this.getTextFieldValue({
+          fieldValue: fieldConfig.value,
+          fieldLength: field.length,
+          calEventResponses,
+          bookingUid,
+        });
+        if (extractedText) {
+          writeOnRecordBody[field.name] = extractedText;
           continue;
         }
+      } else if (
+        (field.type === SalesforceFieldType.DATE || field.type === SalesforceFieldType.DATETIME) &&
+        startTime &&
+        organizerEmail
+      ) {
+        const dateValue = await this.getDateFieldValue(
+          fieldConfig.value,
+          startTime,
+          bookingUid,
+          organizerEmail
+        );
+        if (dateValue) {
+          writeOnRecordBody[field.name] = dateValue;
+          continue;
+        }
+      } else if (field.type === SalesforceFieldType.PICKLIST) {
+        const picklistValue = await this.getPicklistFieldValue({
+          fieldConfigValue: fieldConfig.value,
+          salesforceField: field,
+          calEventResponses,
+          bookingUid,
+          contactId,
+        });
+        if (picklistValue) {
+          writeOnRecordBody[field.name] = picklistValue;
+          continue;
+        }
+      } else if (field.type === SalesforceFieldType.CHECKBOX) {
+        // If the checkbox field value is not a boolean for some reason, default to if it's a falsely value
+        const checkboxValue = !!fieldConfig.value;
+        writeOnRecordBody[field.name] = checkboxValue;
+        continue;
       }
 
       log.error(
@@ -1206,7 +1212,6 @@ export default class SalesforceCRMService implements CRM {
         }, field config ${JSON.stringify(fieldConfig)} and Salesforce config ${JSON.stringify(field)}`
       );
     }
-
     return writeOnRecordBody;
   }
 
