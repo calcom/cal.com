@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -433,6 +434,7 @@ export function generateNewChildEventTypeDataForDB({
   eventType: Prisma.EventTypeGetPayload<{ select: typeof allManagedEventTypeProps & { id: true } }>;
   userId: number;
   includeWorkflow?: boolean;
+  includeUserConnect?: boolean;
 }) {
   const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps).extend({
     bookingFields: _EventTypeModel.shape.bookingFields.nullish(),
@@ -592,6 +594,7 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
     },
     select: {
       id: true,
+      userId: true,
       workflows: {
         select: {
           id: true,
@@ -624,5 +627,37 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
           );
         }),
     ]);
+    // Connect children event types to users
+    for (let i = 0; i < createdChildrenEventTypes.length; i += DATABASE_CHUNK_SIZE) {
+      const childrenEventTypeBatch = createdChildrenEventTypes.slice(i, i + DATABASE_CHUNK_SIZE);
+
+      await Promise.allSettled([
+        childrenEventTypeBatch.map((childEventType) => {
+          if (!childEventType.userId) return;
+          return prisma.eventType
+            .update({
+              where: {
+                id: childEventType.id,
+              },
+              data: {
+                users: {
+                  connect: [{ id: childEventType.userId }],
+                },
+              },
+            })
+            .catch((error) => {
+              log.error(
+                `Failed to connect new children event types to users`,
+                safeStringify({
+                  teamId,
+                  childEventTypeId: childEventType.id,
+                  userId: childEventType.userId,
+                  error,
+                })
+              );
+            });
+        }),
+      ]);
+    }
   }
 }
