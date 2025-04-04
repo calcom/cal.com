@@ -15,12 +15,17 @@ type ResponseDataType =
       appLink?: string;
     }
   | undefined;
-export const useGetDefaultConferencingApp = () => {
-  const pathname = `/conferencing/default`;
-  const { isInit, accessToken } = useAtomsContext();
+export const useGetDefaultConferencingApp = (teamId?: number) => {
+  const { isInit, accessToken, organizationId } = useAtomsContext();
+
+  let pathname = `/conferencing/default`;
+
+  if (teamId) {
+    pathname = `/organizations/${organizationId}/teams/${teamId}/conferencing/default`;
+  }
 
   return useQuery({
-    queryKey: [QUERY_KEY],
+    queryKey: [QUERY_KEY, teamId, organizationId],
     queryFn: () => {
       return http?.get<ApiResponse<ResponseDataType>>(pathname).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
