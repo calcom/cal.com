@@ -213,7 +213,14 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
     ) {
       try {
-        await twilio.sendSMS(reminderPhone, smsMessage, senderID, userId, teamId);
+        await twilio.sendSMS({
+          phoneNumber: reminderPhone,
+          body: smsMessage,
+          sender: senderID,
+          bookingUid: "todo: bookingUid",
+          userId,
+          teamId,
+        });
       } catch (error) {
         log.error(`Error sending SMS with error ${error}`);
       }
@@ -222,20 +229,21 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
         triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) &&
       scheduledDate
     ) {
-      // Can only schedule at least 60 minutes in advance and at most 7 days in advance
+      // schedule at least 15 minutes in advance and at most 2 hours in advance
       if (
-        currentDate.isBefore(scheduledDate.subtract(1, "hour")) &&
-        !scheduledDate.isAfter(currentDate.add(7, "day"))
+        currentDate.isBefore(scheduledDate.subtract(15, "minute")) &&
+        !scheduledDate.isAfter(currentDate.add(2, "hour"))
       ) {
         try {
-          const scheduledSMS = await twilio.scheduleSMS(
-            reminderPhone,
-            smsMessage,
-            scheduledDate.toDate(),
-            senderID,
+          const scheduledSMS = await twilio.scheduleSMS({
+            phoneNumber: reminderPhone,
+            body: smsMessage,
+            scheduledDate: scheduledDate.toDate(),
+            sender: senderID,
+            bookingUid: "todo: bookingUid",
             userId,
-            teamId
-          );
+            teamId,
+          });
 
           if (scheduledSMS) {
             await prisma.workflowReminder.create({
@@ -253,8 +261,8 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
         } catch (error) {
           log.error(`Error scheduling SMS with error ${error}`);
         }
-      } else if (scheduledDate.isAfter(currentDate.add(7, "day"))) {
-        // Write to DB and send to CRON if scheduled reminder date is past 7 days
+      } else if (scheduledDate.isAfter(currentDate.add(2, "hour"))) {
+        // Write to DB and send to CRON if scheduled reminder date is past 2 hours from now
         await prisma.workflowReminder.create({
           data: {
             bookingUid: uid,

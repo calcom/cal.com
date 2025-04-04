@@ -1,4 +1,4 @@
-/* Schedule any workflow reminder that falls within 7 days for WHATSAPP */
+/* Schedule any workflow reminder that falls within the next 2 hours for WHATSAPP */
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -35,7 +35,7 @@ export async function handler(req: NextRequest) {
       method: WorkflowMethods.WHATSAPP,
       scheduled: false,
       scheduledDate: {
-        lte: dayjs().add(7, "day").toISOString(),
+        lte: dayjs().add(2, "hour").toISOString(),
       },
     },
     select,
@@ -87,15 +87,16 @@ export async function handler(req: NextRequest) {
       );
 
       if (message?.length && message?.length > 0 && sendTo) {
-        const scheduledSMS = await twilio.scheduleSMS(
-          sendTo,
-          message,
-          reminder.scheduledDate,
-          "",
+        const scheduledSMS = await twilio.scheduleSMS({
+          phoneNumber: sendTo,
+          body: message,
+          scheduledDate: reminder.scheduledDate,
+          sender: "",
+          bookingUid: reminder.booking.uid,
           userId,
           teamId,
-          true
-        );
+          isWhatsapp: true,
+        });
 
         if (scheduledSMS) {
           await prisma.workflowReminder.update({

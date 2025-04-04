@@ -159,7 +159,15 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
     ) {
       try {
-        await twilio.sendSMS(reminderPhone, textMessage, "", userId, teamId, true);
+        await twilio.sendSMS({
+          phoneNumber: reminderPhone,
+          body: textMessage,
+          sender: "",
+          bookingUid: "todo: bookingUid",
+          userId,
+          teamId,
+          isWhatsapp: true,
+        });
       } catch (error) {
         console.log(`Error sending WHATSAPP with error ${error}`);
       }
@@ -168,21 +176,22 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
         triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) &&
       scheduledDate
     ) {
-      // Can only schedule at least 60 minutes in advance and at most 7 days in advance
+      // schedule at least 15 minutes in advance and at most 2 hours in advance
       if (
-        currentDate.isBefore(scheduledDate.subtract(1, "hour")) &&
-        !scheduledDate.isAfter(currentDate.add(7, "day"))
+        currentDate.isBefore(scheduledDate.subtract(15, "minute")) &&
+        !scheduledDate.isAfter(currentDate.add(2, "hour"))
       ) {
         try {
-          const scheduledWHATSAPP = await twilio.scheduleSMS(
-            reminderPhone,
-            textMessage,
-            scheduledDate.toDate(),
-            "",
+          const scheduledWHATSAPP = await twilio.scheduleSMS({
+            phoneNumber: reminderPhone,
+            body: textMessage,
+            scheduledDate: scheduledDate.toDate(),
+            sender: "",
+            bookingUid: evt.uid ?? "", // is uid given here?
             userId,
             teamId,
-            true
-          );
+            isWhatsapp: true,
+          });
 
           if (scheduledWHATSAPP) {
             await prisma.workflowReminder.create({
@@ -200,8 +209,8 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
         } catch (error) {
           console.log(`Error scheduling WHATSAPP with error ${error}`);
         }
-      } else if (scheduledDate.isAfter(currentDate.add(7, "day"))) {
-        // Write to DB and send to CRON if scheduled reminder date is past 7 days
+      } else if (scheduledDate.isAfter(currentDate.add(2, "hour"))) {
+        // Write to DB and send to CRON if scheduled reminder date is past 2 hours from now
         await prisma.workflowReminder.create({
           data: {
             bookingUid: uid,

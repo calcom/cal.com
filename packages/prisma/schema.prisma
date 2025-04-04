@@ -384,6 +384,7 @@ model User {
   creationSource                 CreationSource?
   createdOrganizationOnboardings OrganizationOnboarding[]     @relation("CreatedOrganizationOnboardings")
   filterSegments                 FilterSegment[]
+  creditBalance                  CreditBalance?
 
   @@unique([email])
   @@unique([email, username])
@@ -499,6 +500,7 @@ model Team {
   bookingLimits                Json?
   includeManagedEventsInLimits Boolean                 @default(false)
   internalNotePresets          InternalNotePreset[]
+  credits                      CreditBalance?
   organizationOnboarding       OrganizationOnboarding?
 
   // note(Lauris): if a Team has parentId it is a team, if parentId is null it is an organization, but if parentId is null and managedOrganization is set,
@@ -509,6 +511,34 @@ model Team {
 
   @@unique([slug, parentId])
   @@index([parentId])
+}
+
+model CreditBalance {
+  id                String             @id @unique @default(uuid())
+  team              Team?              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId            Int?               @unique
+  user              User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            Int?               @unique
+  additionalCredits Int                @default(0)
+  limitReachedAt    DateTime?
+  warningSentAt     DateTime?
+  expenseLogs       CreditExpenseLog[]
+}
+
+model CreditExpenseLog {
+  id              String        @id @unique @default(uuid())
+  creditBalanceId String
+  creditBalance   CreditBalance @relation(fields: [creditBalanceId], references: [id], onDelete: Cascade)
+  details         String
+  credits         Int
+  creditType      CreditType
+  date            DateTime
+  // maybe add user id here
+}
+
+enum CreditType {
+  MONTHLY
+  ADDITIONAL
 }
 
 model OrganizationSettings {
