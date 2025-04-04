@@ -81,4 +81,5 @@ module.exports = {
       },
     },
   },
+  darkMode: "class",
 };
