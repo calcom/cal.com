@@ -186,7 +186,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
     const newOrgMembers = users.filter(
       (user) => !user.profiles.find((profile) => profile.organizationId === organizationId)
     );
-    await Promise.all([
+    await Promise.allSettled([
       ...newMembers.map(async (user) => {
         const translation = await getTranslation(user.locale || "en", "common");
         return sendExistingUserTeamInviteEmails({
@@ -203,6 +203,16 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
           isAutoJoin: true,
           currentUserParentTeamName: org.name,
           orgSlug: null,
+        }).catch((error) => {
+          log.error(
+            "Failed to send team invite to existing user",
+            safeStringify({
+              email: user.email,
+              organizationId,
+              teamId: group.teamId,
+            }),
+            error
+          );
         });
       }),
     ]);
