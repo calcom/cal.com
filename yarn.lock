@@ -3018,6 +3018,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/greetmate-ai@workspace:packages/app-store/greetmate-ai":
+  version: 0.0.0-use.local
+  resolution: "@calcom/greetmate-ai@workspace:packages/app-store/greetmate-ai"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/gtm@workspace:packages/app-store/gtm":
   version: 0.0.0-use.local
   resolution: "@calcom/gtm@workspace:packages/app-store/gtm"
