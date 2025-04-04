@@ -368,19 +368,19 @@ export default function Success(props: PageProps) {
   const isRescheduled = bookingInfo?.rescheduled;
 
   const isWithinCancellationRestrictionTime = () => {
-    if (!eventType?.cancellationRestrictionTime || !date) return false;
+    if (!eventType?.metadata?.cancellationRestrictionTime || !date) return false;
     if (isHost) return false;
 
     const hoursToStart = date.diff(dayjs(), "hours");
-    return hoursToStart <= (eventType.cancellationRestrictionTime as number);
+    return hoursToStart <= (eventType.metadata.cancellationRestrictionTime as number);
   };
 
   const isWithinReschedulingRestrictionTime = () => {
-    if (!eventType?.reschedulingRestrictionTime || !date) return false;
+    if (!eventType?.metadata?.reschedulingRestrictionTime || !date) return false;
     if (isHost) return false;
 
     const hoursToStart = date.diff(dayjs(), "hours");
-    return hoursToStart <= (eventType.reschedulingRestrictionTime as number);
+    return hoursToStart <= (eventType.metadata.reschedulingRestrictionTime as number);
   };
 
   const canCancelOrReschedule =
@@ -746,12 +746,12 @@ export default function Success(props: PageProps) {
                             </span>
 
                             <>
-                              {eventType?.reschedulingRestrictionTime &&
+                              {eventType?.metadata?.reschedulingRestrictionTime &&
                                 isWithinReschedulingRestrictionTime() &&
                                 !isHost && (
                                   <div className="text-error mb-2 mt-2">
                                     {t("time_based_restriction_message", {
-                                      hours: eventType.reschedulingRestrictionTime as number,
+                                      hours: eventType.metadata.reschedulingRestrictionTime as number,
                                     })}
                                   </div>
                                 )}
@@ -813,7 +813,7 @@ export default function Success(props: PageProps) {
                             internalNotePresets={props.internalNotePresets}
                             cancellationRestrictionTime={
                               isWithinCancellationRestrictionTime()
-                                ? (eventType.cancellationRestrictionTime as number)
+                                ? (eventType.metadata.cancellationRestrictionTime as number)
                                 : undefined
                             }
                           />
