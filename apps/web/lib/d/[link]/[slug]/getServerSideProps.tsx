@@ -11,7 +11,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
-import { publicViewerRouter } from "@calcom/trpc/server/routers/publicViewer/_router";
+import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -114,9 +114,9 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const caller = await createRouterCaller(publicViewerRouter);
+  const caller = await createRouterCaller(eventTypesRouter);
 
-  const eventData = await caller.event({
+  const eventData = await caller.getPublicEvent({
     username: name,
     eventSlug: slug,
     isTeamEvent,

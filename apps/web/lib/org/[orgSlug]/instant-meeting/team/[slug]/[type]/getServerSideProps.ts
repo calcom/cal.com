@@ -7,7 +7,7 @@ import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/or
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { publicViewerRouter } from "@calcom/trpc/server/routers/publicViewer/_router";
+import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
 
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
@@ -39,9 +39,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const org = isValidOrgDomain ? currentOrgDomain : null;
 
-  const caller = await createRouterCaller(publicViewerRouter);
+  const caller = await createRouterCaller(eventTypesRouter);
 
-  const eventData = await caller.event({
+  const eventData = await caller.getPublicEvent({
     username: teamSlug,
     eventSlug: meetingSlug,
     isTeamEvent: true,
