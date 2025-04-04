@@ -1,30 +1,26 @@
-// import { ZodValidationPipe } from "@/lib/zod-validation-pipe";
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 
 import type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "@calcom/platform-libraries";
 
 export class FindTeamMembersMatchingAttributeQueryDto {
-  @ApiProperty({
-    required: false,
+  @ApiPropertyOptional({
     nullable: true,
   })
   attributesQueryValue: TFindTeamMembersMatchingAttributeLogicInputSchema["attributesQueryValue"];
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: Boolean,
-    required: false,
   })
   isPreview?: boolean;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: Boolean,
     required: false,
   })
   enablePerf?: boolean;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: Number,
-    required: false,
   })
   concurrency?: number;
 }
