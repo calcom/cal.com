@@ -6,8 +6,6 @@ import { ZConnectAndJoinInputSchema } from "./connectAndJoin.schema";
 import { ZConnectedCalendarsInputSchema } from "./connectedCalendars.schema";
 import { ZDeleteCredentialInputSchema } from "./deleteCredential.schema";
 import { ZEventTypeOrderInputSchema } from "./eventTypeOrder.schema";
-import { ZGetCalVideoRecordingsInputSchema } from "./getCalVideoRecordings.schema";
-import { ZGetDownloadLinkOfCalVideoRecordingsInputSchema } from "./getDownloadLinkOfCalVideoRecordings.schema";
 import { ZNoShowInputSchema } from "./markNoShow.schema";
 import { teamsAndUserProfilesQuery } from "./procedures/teamsAndUserProfilesQuery";
 import { ZRemoveNotificationsSubscriptionInputSchema } from "./removeNotificationsSubscription.schema";
@@ -29,8 +27,6 @@ type AppsRouterHandlerCache = {
   routingFormOrder?: typeof import("./routingFormOrder.handler").routingFormOrderHandler;
   submitFeedback?: typeof import("./submitFeedback.handler").submitFeedbackHandler;
   deleteCredential?: typeof import("./deleteCredential.handler").deleteCredentialHandler;
-  getCalVideoRecordings?: typeof import("./getCalVideoRecordings.handler").getCalVideoRecordingsHandler;
-  getDownloadLinkOfCalVideoRecordings?: typeof import("./getDownloadLinkOfCalVideoRecordings.handler").getDownloadLinkOfCalVideoRecordingsHandler;
   teamsAndUserProfilesQuery?: typeof import("./teamsAndUserProfilesQuery.handler").teamsAndUserProfilesQuery;
   connectAndJoin?: typeof import("./connectAndJoin.handler").Handler;
   addSecondaryEmail?: typeof import("./addSecondaryEmail.handler").addSecondaryEmailHandler;
@@ -170,40 +166,6 @@ export const loggedInViewerRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.deleteCredential({ ctx, input });
   }),
-
-  getCalVideoRecordings: authedProcedure
-    .input(ZGetCalVideoRecordingsInputSchema)
-    .query(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.getCalVideoRecordings) {
-        UNSTABLE_HANDLER_CACHE.getCalVideoRecordings = (
-          await import("./getCalVideoRecordings.handler")
-        ).getCalVideoRecordingsHandler;
-      }
-
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.getCalVideoRecordings) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.getCalVideoRecordings({ ctx, input });
-    }),
-
-  getDownloadLinkOfCalVideoRecordings: authedProcedure
-    .input(ZGetDownloadLinkOfCalVideoRecordingsInputSchema)
-    .query(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.getDownloadLinkOfCalVideoRecordings) {
-        UNSTABLE_HANDLER_CACHE.getDownloadLinkOfCalVideoRecordings = (
-          await import("./getDownloadLinkOfCalVideoRecordings.handler")
-        ).getDownloadLinkOfCalVideoRecordingsHandler;
-      }
-
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.getDownloadLinkOfCalVideoRecordings) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.getDownloadLinkOfCalVideoRecordings({ ctx, input });
-    }),
   teamsAndUserProfilesQuery,
   connectAndJoin: authedProcedure.input(ZConnectAndJoinInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.connectAndJoin) {

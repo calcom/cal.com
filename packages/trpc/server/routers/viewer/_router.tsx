@@ -15,6 +15,7 @@ import { attributesRouter } from "./attributes/_router";
 import { authRouter } from "./auth/_router";
 import { availabilityRouter } from "./availability/_router";
 import { bookingsRouter } from "./bookings/_router";
+import { calVideoRouter } from "./calVideo/_router";
 import { delegationCredentialRouter } from "./delegationCredential/_router";
 import { deploymentSetupRouter } from "./deploymentSetup/_router";
 import { dsyncRouter } from "./dsync/_router";
@@ -46,6 +47,7 @@ export const viewerRouter = mergeRouters(
     auth: authRouter,
     deploymentSetup: deploymentSetupRouter,
     bookings: bookingsRouter,
+    calVideo: calVideoRouter,
     eventTypes: eventTypesRouter,
     availability: availabilityRouter,
     teams: viewerTeamsRouter,
