@@ -358,12 +358,25 @@ function BookingListItem(booking: BookingItemProps) {
     },
   ];
 
+  const isDisabledCancelling = booking.eventType.disableCancelling;
+  const isDisabledRescheduling = booking.eventType.disableRescheduling;
+
   if (isTabRecurring && isRecurring) {
     bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
   }
 
-  if (isBookingInPast && isPending && !isConfirmed) {
+  if (isDisabledCancelling || (isBookingInPast && isPending && !isConfirmed)) {
     bookedActions = bookedActions.filter((action) => action.id !== "cancel");
+  }
+
+  if (isDisabledRescheduling) {
+    bookedActions.forEach((action) => {
+      if (action.id === "edit_booking") {
+        action.actions = action.actions?.filter(
+          ({ id }) => id !== "reschedule" && id !== "reschedule_request"
+        );
+      }
+    });
   }
 
   const RequestSentMessage = () => {
