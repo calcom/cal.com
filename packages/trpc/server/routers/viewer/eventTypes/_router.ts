@@ -196,7 +196,7 @@ export const eventTypesRouter = router({
       throw new Error("Failed to load handler");
     }
 
-    const timer = logP(`getByViewer(${ctx.user.id})`);
+    const timer = logP(`getPublicEvent(${ctx.user.id})`);
 
     const result = await UNSTABLE_HANDLER_CACHE.getPublicEvent({
       ctx,
