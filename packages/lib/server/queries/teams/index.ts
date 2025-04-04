@@ -545,17 +545,20 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
       }),
     prisma.host
       .createMany({
-        data: teamEventTypes.map((eventType) => {
-          userIds.map((userId) => {
-            return {
-              userId,
-              eventTypeId: eventType.id,
-              isFixed: eventType.schedulingType === "COLLECTIVE",
-            };
-          });
-        }),
+        data: teamEventTypes
+          .map((eventType) => {
+            return userIds.map((userId) => {
+              return {
+                userId,
+                eventTypeId: eventType.id,
+                isFixed: eventType.schedulingType === "COLLECTIVE",
+              };
+            });
+          })
+          .flat(),
         skipDuplicates: true,
       })
+
       .catch((error) => {
         log.error(
           `Failed to add new members as hosts`,
