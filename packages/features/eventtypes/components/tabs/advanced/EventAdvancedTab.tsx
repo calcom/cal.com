@@ -502,11 +502,11 @@ export const EventAdvancedTab = ({
   const [disableRescheduling, setDisableRescheduling] = useState(eventType.disableRescheduling || false);
 
   const [cancellationRestrictionTime, setCancellationRestrictionTime] = useState(
-    eventType.cancellationRestrictionTime || 0
+    eventType.metadata?.cancellationRestrictionTime || 0
   );
 
   const [reschedulingRestrictionTime, setReschedulingRestrictionTime] = useState(
-    eventType.reschedulingRestrictionTime || 0
+    eventType.metadata?.reschedulingRestrictionTime || 0
   );
 
   const closeEventNameTip = () => setShowEventNameTip(false);
@@ -619,14 +619,14 @@ export const EventAdvancedTab = ({
                     onChange(val);
                     if (val) {
                       setCancellationRestrictionTime(0);
-                      formMethods.setValue("cancellationRestrictionTime", 0, { shouldDirty: true });
+                      formMethods.setValue("metadata.cancellationRestrictionTime", 0, { shouldDirty: true });
                     }
                   }}
                 />
                 {!disableCancelling && (
                   <div className="ml-10 mt-4 flex items-center space-x-2">
                     <Controller
-                      name="cancellationRestrictionTime"
+                      name="metadata.cancellationRestrictionTime"
                       render={({ field: { onChange } }) => (
                         <>
                           <Label htmlFor="cancellationRestrictionTime">
@@ -674,14 +674,14 @@ export const EventAdvancedTab = ({
                     onChange(val);
                     if (val) {
                       setReschedulingRestrictionTime(0);
-                      formMethods.setValue("reschedulingRestrictionTime", 0, { shouldDirty: true });
+                      formMethods.setValue("metadata.reschedulingRestrictionTime", 0, { shouldDirty: true });
                     }
                   }}
                 />
                 {!disableRescheduling && (
                   <div className="ml-10 mt-4 flex items-center space-x-2">
                     <Controller
-                      name="reschedulingRestrictionTime"
+                      name="metadata.reschedulingRestrictionTime"
                       render={({ field: { onChange } }) => (
                         <>
                           <Label htmlFor="reschedulingRestrictionTime">

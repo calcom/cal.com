@@ -104,7 +104,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   bookingInfo["endTime"] = (bookingInfo?.endTime as Date)?.toISOString() as unknown as Date;
 
   eventTypeRaw.users = !!eventTypeRaw.hosts?.length
-    ? eventTypeRaw.hosts.map((host) => host.user)
+    ? eventTypeRaw.hosts.map((host: any) => host.user)
     : eventTypeRaw.users;
 
   if (!eventTypeRaw.users.length) {

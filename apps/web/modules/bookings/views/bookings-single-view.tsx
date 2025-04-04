@@ -368,7 +368,7 @@ export default function Success(props: PageProps) {
   const isRescheduled = bookingInfo?.rescheduled;
 
   const isWithinCancellationRestrictionTime = () => {
-    if (!eventType?.metadata?.cancellationRestrictionTime || !date) return false;
+    if (!eventType?.metadata || !eventType.metadata.cancellationRestrictionTime || !date) return false;
     if (isHost) return false;
 
     const hoursToStart = date.diff(dayjs(), "hours");
@@ -376,7 +376,7 @@ export default function Success(props: PageProps) {
   };
 
   const isWithinReschedulingRestrictionTime = () => {
-    if (!eventType?.metadata?.reschedulingRestrictionTime || !date) return false;
+    if (!eventType?.metadata || !eventType.metadata.reschedulingRestrictionTime || !date) return false;
     if (isHost) return false;
 
     const hoursToStart = date.diff(dayjs(), "hours");
