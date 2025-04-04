@@ -18,6 +18,7 @@ type DatePickerWithRangeProps = {
   withoutPopover?: boolean;
   "data-testid"?: string;
   strictlyBottom?: boolean;
+  allowPastDates?: boolean;
 };
 
 export function DatePickerWithRange({
@@ -30,41 +31,52 @@ export function DatePickerWithRange({
   withoutPopover,
   "data-testid": testId,
   strictlyBottom,
+  allowPastDates = false,
 }: React.HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
   function handleDayClick(date: Date) {
-    if (!dates.startDate || !dates.endDate) {
-      // If no range exists, set clicked date as both start and end
-      onDatesChange({ startDate: date, endDate: date });
-    } else {
-      const startTime = dates.startDate.getTime();
-      const endTime = dates.endDate.getTime();
-      const clickedTime = date.getTime();
-
-      if (clickedTime === startTime || clickedTime === endTime) {
-        onDatesChange({ startDate: date, endDate: date });
-      } else if (clickedTime < startTime) {
-        onDatesChange({ startDate: date, endDate: dates.endDate });
-      } else if (clickedTime > endTime) {
-        onDatesChange({ startDate: dates.startDate, endDate: date });
+    if (allowPastDates) {
+      // for Out of Office (past dates allowed)
+      if (dates?.endDate) {
+        onDatesChange({ startDate: date, endDate: undefined });
       } else {
-        // Clicking between start and end adjust the nearer boundary
-        const startDiff = clickedTime - startTime;
-        const endDiff = endTime - clickedTime;
-        if (startDiff < endDiff) {
+        const startDate = dates.startDate ? (date < dates.startDate ? date : dates.startDate) : date;
+        const endDate = dates.startDate ? (date < dates.startDate ? dates.startDate : date) : undefined;
+        onDatesChange({ startDate, endDate });
+      }
+    } else {
+      // for Limit Future Booking (no past dates)
+      if (!dates.startDate || !dates.endDate) {
+        onDatesChange({ startDate: date, endDate: date });
+      } else {
+        const startTime = dates.startDate.getTime();
+        const endTime = dates.endDate.getTime();
+        const clickedTime = date.getTime();
+
+        if (clickedTime === startTime || clickedTime === endTime) {
+          onDatesChange({ startDate: date, endDate: date });
+        } else if (clickedTime < startTime) {
           onDatesChange({ startDate: date, endDate: dates.endDate });
-        } else {
+        } else if (clickedTime > endTime) {
           onDatesChange({ startDate: dates.startDate, endDate: date });
+        } else {
+          const startDiff = clickedTime - startTime;
+          const endDiff = endTime - clickedTime;
+          if (startDiff < endDiff) {
+            onDatesChange({ startDate: date, endDate: dates.endDate });
+          } else {
+            onDatesChange({ startDate: dates.startDate, endDate: date });
+          }
         }
       }
     }
   }
 
-  const fromDate = minDate ?? new Date();
+  const fromDate = allowPastDates && minDate === null ? undefined : minDate ?? new Date();
 
   const calendar = (
     <Calendar
       initialFocus
-      fromDate={minDate === null ? undefined : fromDate}
+      fromDate={fromDate}
       toDate={maxDate}
       mode="range"
       defaultMonth={dates?.startDate}
