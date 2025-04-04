@@ -324,9 +324,9 @@ describe("Organizations Event Types Endpoints", () => {
           const data = responseBody.data;
           expect(data.title).toEqual(body.title);
           expect(data.hosts.length).toEqual(2);
-          expect(data.schedulingType).toEqual("COLLECTIVE");
-          evaluateHost(body.hosts[0], data.hosts[0]);
-          evaluateHost(body.hosts[1], data.hosts[1]);
+          expect(data.schedulingType).toEqual("collective");
+          evaluateHost(body.hosts?.[0] || { userId: -1 }, data.hosts[0]);
+          evaluateHost(body.hosts?.[1] || { userId: -1 }, data.hosts[1]);
           expect(data.bookingLimitsCount).toEqual(body.bookingLimitsCount);
           expect(data.onlyShowFirstAvailableSlot).toEqual(body.onlyShowFirstAvailableSlot);
           expect(data.bookingLimitsDuration).toEqual(body.bookingLimitsDuration);
@@ -457,8 +457,8 @@ describe("Organizations Event Types Endpoints", () => {
           const data = responseBody.data;
           expect(data.length).toEqual(2);
 
-          const eventTypeCollective = data.find((eventType) => eventType.schedulingType === "COLLECTIVE");
-          const eventTypeManaged = data.find((eventType) => eventType.schedulingType === "MANAGED");
+          const eventTypeCollective = data.find((eventType) => eventType.schedulingType === "collective");
+          const eventTypeManaged = data.find((eventType) => eventType.schedulingType === "managed");
 
           expect(eventTypeCollective?.title).toEqual(collectiveEventType.title);
           expect(eventTypeCollective?.hosts.length).toEqual(2);
@@ -564,7 +564,7 @@ describe("Organizations Event Types Endpoints", () => {
           ).toEqual(newTitle);
 
           const responseTeamEvent = responseBody.data.find(
-            (eventType) => eventType.schedulingType === "MANAGED"
+            (eventType) => eventType.schedulingType === "managed"
           );
           expect(responseTeamEvent).toBeDefined();
           expect(responseTeamEvent?.title).toEqual(newTitle);
@@ -823,7 +823,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(managedTeamEventTypes[0].assignAllTeamMembers).toEqual(true);
 
           const responseTeamEvent = responseBody.data.find(
-            (eventType) => eventType.schedulingType === "MANAGED"
+            (eventType) => eventType.schedulingType === "managed"
           );
           expect(responseTeamEvent).toBeDefined();
           expect(responseTeamEvent?.teamId).toEqual(team.id);
@@ -951,6 +951,117 @@ describe("Organizations Event Types Endpoints", () => {
               hidden: false,
             },
           ]);
+        });
+    });
+
+    it("should create a round robin team event-type", async () => {
+      const body: CreateTeamEventTypeInput_2024_06_14 = {
+        successRedirectUrl: "https://masterchief.com/argentina/flan/video/1234",
+        title: "Coding consultation round robin",
+        slug: `organizations-event-types-round-robin-${randomString()}`,
+        description: "Our team will review your codebase.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        bookingFields: [
+          {
+            type: "select",
+            label: "select which language is your codebase in",
+            slug: "select-language",
+            required: true,
+            placeholder: "select language",
+            options: ["javascript", "python", "cobol"],
+          },
+        ],
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        schedulingType: "roundRobin",
+        hosts: [
+          {
+            userId: teammate1.id,
+            mandatory: true,
+            priority: "high",
+          },
+          {
+            userId: teammate2.id,
+            mandatory: false,
+            priority: "medium",
+          },
+        ],
+        bookingLimitsCount: {
+          day: 2,
+          week: 5,
+        },
+        onlyShowFirstAvailableSlot: true,
+        bookingLimitsDuration: {
+          day: 60,
+          week: 100,
+        },
+        offsetStart: 30,
+        bookingWindow: {
+          type: BookingWindowPeriodInputTypeEnum_2024_06_14.calendarDays,
+          value: 30,
+          rolling: true,
+        },
+        bookerLayouts: {
+          enabledLayouts: [
+            BookerLayoutsInputEnum_2024_06_14.column,
+            BookerLayoutsInputEnum_2024_06_14.month,
+            BookerLayoutsInputEnum_2024_06_14.week,
+          ],
+          defaultLayout: BookerLayoutsInputEnum_2024_06_14.month,
+        },
+
+        confirmationPolicy: {
+          type: ConfirmationPolicyEnum.TIME,
+          noticeThreshold: {
+            count: 60,
+            unit: NoticeThresholdUnitEnum.MINUTES,
+          },
+          blockUnconfirmedBookingsInBooker: true,
+        },
+        requiresBookerEmailVerification: true,
+        hideCalendarNotes: true,
+        hideCalendarEventDetails: true,
+        lockTimeZoneToggleOnBookingPage: true,
+        color: {
+          darkThemeHex: "#292929",
+          lightThemeHex: "#fafafa",
+        },
+      };
+
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/teams/${team.id}/event-types`)
+        .send(body)
+        .expect(201)
+        .then((response) => {
+          const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          const data = responseBody.data;
+          expect(data.title).toEqual(body.title);
+          expect(data.hosts.length).toEqual(2);
+          expect(data.schedulingType).toEqual("roundRobin");
+          evaluateHost(body.hosts?.[0] || { userId: -1 }, data.hosts[0]);
+          evaluateHost(body.hosts?.[1] || { userId: -1 }, data.hosts[1]);
+          expect(data.bookingLimitsCount).toEqual(body.bookingLimitsCount);
+          expect(data.onlyShowFirstAvailableSlot).toEqual(body.onlyShowFirstAvailableSlot);
+          expect(data.bookingLimitsDuration).toEqual(body.bookingLimitsDuration);
+          expect(data.offsetStart).toEqual(body.offsetStart);
+          expect(data.bookingWindow).toEqual(body.bookingWindow);
+          expect(data.bookerLayouts).toEqual(body.bookerLayouts);
+          expect(data.confirmationPolicy).toEqual(body.confirmationPolicy);
+          expect(data.requiresBookerEmailVerification).toEqual(body.requiresBookerEmailVerification);
+          expect(data.hideCalendarNotes).toEqual(body.hideCalendarNotes);
+          expect(data.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
+          expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
+          expect(data.color).toEqual(body.color);
+          expect(data.successRedirectUrl).toEqual("https://masterchief.com/argentina/flan/video/1234");
+          collectiveEventType = responseBody.data;
         });
     });
 

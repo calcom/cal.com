@@ -8,7 +8,8 @@ import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
-import { submitAndWaitForResponse, localize } from "./lib/testUtils";
+import { localize } from "./lib/localize";
+import { submitAndWaitForResponse } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
@@ -675,7 +676,6 @@ test.describe("Out of office", () => {
       );
       await page.locator('[data-testid="add-filter-button"]').click();
       await page.locator('[data-testid="add-filter-item-dateRange"]').click();
-      await page.locator('[data-testid="add-filter-button"]').click();
       await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
 
       await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeVisible(); //Today
@@ -760,8 +760,8 @@ test.describe("Out of office", () => {
         (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
       );
       await page.goto("/settings/my-account/out-of-office");
-      await page.waitForLoadState("domcontentloaded");
       await entriesListRespPromise;
+      await page.waitForLoadState("domcontentloaded");
 
       //By Default future OOO will be displayed
       //1 OOO record should be visible for member3, end=currentDate+4days
@@ -771,11 +771,11 @@ test.describe("Out of office", () => {
       //Default filter 'Last 7 Days' when DateRange Filter is selected
       await test.step("Default filter - 'Last 7 Days'", async () => {
         await page.locator('[data-testid="add-filter-button"]').click();
-        await page.locator('[data-testid="add-filter-item-dateRange"]').click();
-        await page.waitForResponse(
+        const entriesListRespPromise = page.waitForResponse(
           (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
         );
-        await page.locator('[data-testid="add-filter-button"]').click();
+        await page.locator('[data-testid="add-filter-item-dateRange"]').click();
+        await entriesListRespPromise;
 
         //1 OOO record should be visible for member3, end=currentDate-4days
         expect(await page.locator('[data-testid^="table-redirect-"]').count()).toBe(1);
@@ -787,11 +787,11 @@ test.describe("Out of office", () => {
       //Select 'Last 30 Days'
       await test.step("select 'Last 30 Days'", async () => {
         await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
-        await page.locator(`[data-testid="date-range-options-t"]`).click();
-        await page.waitForResponse(
+        const entriesListRespPromise = page.waitForResponse(
           (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
         );
-        await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
+        await page.locator(`[data-testid="date-range-options-t"]`).click();
+        await entriesListRespPromise;
 
         //2 OOO records should be visible end=currentDate-4days, end=currentDate-12days
         expect(await page.locator('[data-testid^="table-redirect-"]').count()).toBe(2);
@@ -807,7 +807,7 @@ test.describe("Out of office", () => {
 });
 
 async function saveAndWaitForResponse(page: Page, expectedStatusCode = 200) {
-  await submitAndWaitForResponse(page, "/api/trpc/viewer/outOfOfficeCreateOrUpdate?batch=1", {
+  await submitAndWaitForResponse(page, "/api/trpc/ooo/outOfOfficeCreateOrUpdate?batch=1", {
     action: () => page.getByTestId("create-or-edit-entry-ooo-redirect").click(),
     expectedStatusCode,
   });

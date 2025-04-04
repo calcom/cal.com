@@ -30,7 +30,12 @@ import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import type { fieldSchema } from "@calcom/features/form-builder/schema";
 import type { EditableSchema } from "@calcom/features/form-builder/schema";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
-import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, APP_NAME } from "@calcom/lib/constants";
+import {
+  DEFAULT_LIGHT_BRAND_COLOR,
+  DEFAULT_DARK_BRAND_COLOR,
+  APP_NAME,
+  MAX_SEATS_PER_TIME_SLOT,
+} from "@calcom/lib/constants";
 import type { EventNameObjectType } from "@calcom/lib/event";
 import { getEventName } from "@calcom/lib/event";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
@@ -278,19 +283,19 @@ const destinationCalendarComponents = {
       <div className="border-subtle space-y-6 rounded-lg border p-6">
         <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
           <div className="flex w-full flex-col">
-            <div className="h-4 w-32 animate-pulse rounded-md bg-gray-200" />
-            <div className="mt-2 h-10 w-full animate-pulse rounded-md bg-gray-200" />
-            <div className="mt-2 h-4 w-48 animate-pulse rounded-md bg-gray-200" />
+            <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />
+            <div className="bg-emphasis mt-2 h-10 w-full animate-pulse rounded-md" />
+            <div className="bg-emphasis mt-2 h-4 w-48 animate-pulse rounded-md" />
           </div>
           <div className="w-full">
-            <div className="h-4 w-32 animate-pulse rounded-md bg-gray-200" />
-            <div className="mt-2 h-10 w-full animate-pulse rounded-md bg-gray-200" />
+            <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />
+            <div className="bg-emphasis mt-2 h-10 w-full animate-pulse rounded-md" />
           </div>
         </div>
         <div className="space-y-2">
-          <div className="h-6 w-64 animate-pulse rounded-md bg-gray-200" />
-          <div className="h-10 w-full animate-pulse rounded-md bg-gray-200" />
-          <div className="h-4 w-48 animate-pulse rounded-md bg-gray-200" />
+          <div className="bg-emphasis h-6 w-64 animate-pulse rounded-md" />
+          <div className="bg-emphasis h-10 w-full animate-pulse rounded-md" />
+          <div className="bg-emphasis h-4 w-48 animate-pulse rounded-md" />
         </div>
       </div>
     );
@@ -326,6 +331,7 @@ const calendarComponents = {
      * a team event. Since we don't have logic to handle each attendee calendar (for now).
      */
 
+    const isPlatform = useIsPlatform();
     const isConnectedCalendarSettingsApplicable = !isTeamEventType || isChildrenManagedEventType;
     const isConnectedCalendarSettingsLoading = calendarsQuery.isPending;
     const showConnectedCalendarSettings =
@@ -359,19 +365,21 @@ const calendarComponents = {
             ? showConnectedCalendarSettings && (
                 <div className="mt-4">
                   <Suspense fallback={<SelectedCalendarsSettingsWebWrapperSkeleton />}>
-                    <SelectedCalendarsSettingsWebWrapper
-                      eventTypeId={eventType.id}
-                      disabledScope={SelectedCalendarSettingsScope.User}
-                      disableConnectionModification={true}
-                      scope={selectedCalendarSettingsScope}
-                      destinationCalendarId={destinationCalendar?.externalId}
-                      setScope={(scope) => {
-                        const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
-                        formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
-                          shouldDirty: true,
-                        });
-                      }}
-                    />
+                    {!isPlatform && (
+                      <SelectedCalendarsSettingsWebWrapper
+                        eventTypeId={eventType.id}
+                        disabledScope={SelectedCalendarSettingsScope.User}
+                        disableConnectionModification={true}
+                        scope={selectedCalendarSettingsScope}
+                        destinationCalendarId={destinationCalendar?.externalId}
+                        setScope={(scope) => {
+                          const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
+                          formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
+                            shouldDirty: true,
+                          });
+                        }}
+                      />
+                    )}
                   </Suspense>
                 </div>
               )
@@ -479,11 +487,19 @@ export const EventAdvancedTab = ({
   const lockTimeZoneToggleOnBookingPageLocked = shouldLockDisableProps("lockTimeZoneToggleOnBookingPage");
   const multiplePrivateLinksLocked = shouldLockDisableProps("multiplePrivateLinks");
   const reschedulingPastBookingsLocked = shouldLockDisableProps("allowReschedulingPastBookings");
+
+  const disableCancellingLocked = shouldLockDisableProps("disableCancelling");
+  const disableReschedulingLocked = shouldLockDisableProps("disableRescheduling");
+
   const { isLocked, ...eventNameLocked } = shouldLockDisableProps("eventName");
 
   if (isManagedEventType) {
     multiplePrivateLinksLocked.disabled = true;
   }
+
+  const [disableCancelling, setDisableCancelling] = useState(eventType.disableCancelling || false);
+
+  const [disableRescheduling, setDisableRescheduling] = useState(eventType.disableRescheduling || false);
 
   const closeEventNameTip = () => setShowEventNameTip(false);
 
@@ -521,21 +537,19 @@ export const EventAdvancedTab = ({
 
   return (
     <div className="flex flex-col space-y-4">
-      {!isPlatform && (
-        <calendarComponents.CalendarSettings
-          verifiedSecondaryEmails={verifiedSecondaryEmails}
-          userEmail={userEmail}
-          calendarsQuery={calendarsQuery}
-          isTeamEventType={!!team}
-          isChildrenManagedEventType={isChildrenManagedEventType}
-          customClassNames={customClassNames}
-          eventNameLocked={eventNameLocked}
-          eventNamePlaceholder={eventNamePlaceholder}
-          setShowEventNameTip={setShowEventNameTip}
-          showToast={showToast}
-          eventType={eventType}
-        />
-      )}
+      <calendarComponents.CalendarSettings
+        verifiedSecondaryEmails={verifiedSecondaryEmails}
+        userEmail={userEmail}
+        calendarsQuery={calendarsQuery}
+        isTeamEventType={!!team}
+        isChildrenManagedEventType={isChildrenManagedEventType}
+        customClassNames={customClassNames}
+        eventNameLocked={eventNameLocked}
+        eventNamePlaceholder={eventNamePlaceholder}
+        setShowEventNameTip={setShowEventNameTip}
+        showToast={showToast}
+        eventType={eventType}
+      />
       {showBookerLayoutSelector && (
         <BookerLayoutSelector
           fallbackToUserSettings
@@ -576,6 +590,51 @@ export const EventAdvancedTab = ({
         onRequiresConfirmation={setRequiresConfirmation}
         customClassNames={customClassNames?.requiresConfirmation}
       />
+
+      {!isPlatform && (
+        <>
+          <Controller
+            name="disableCancelling"
+            render={({ field: { onChange } }) => (
+              <SettingsToggle
+                labelClassName="text-sm"
+                toggleSwitchAtTheEnd={true}
+                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+                title={t("disable_cancelling")}
+                data-testid="disable-cancelling-toggle"
+                {...disableCancellingLocked}
+                description={t("description_disable_cancelling")}
+                checked={disableCancelling}
+                onCheckedChange={(val) => {
+                  setDisableCancelling(val);
+                  onChange(val);
+                }}
+              />
+            )}
+          />
+
+          <Controller
+            name="disableRescheduling"
+            render={({ field: { onChange } }) => (
+              <SettingsToggle
+                labelClassName="text-sm"
+                toggleSwitchAtTheEnd={true}
+                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+                title={t("disable_rescheduling")}
+                data-testid="disable-rescheduling-toggle"
+                {...disableReschedulingLocked}
+                description={t("description_disable_rescheduling")}
+                checked={disableRescheduling}
+                onCheckedChange={(val) => {
+                  setDisableRescheduling(val);
+                  onChange(val);
+                }}
+              />
+            )}
+          />
+        </>
+      )}
+
       <Controller
         name="canSendCalVideoTranscriptionEmails"
         render={({ field: { value, onChange } }) => (
@@ -830,8 +889,10 @@ export const EventAdvancedTab = ({
                         label={t("number_of_seats")}
                         type="number"
                         disabled={seatsLocked.disabled}
-                        defaultValue={value}
+                        //For old events if value > MAX_SEATS_PER_TIME_SLOT
+                        value={value > MAX_SEATS_PER_TIME_SLOT ? MAX_SEATS_PER_TIME_SLOT : value ?? 1}
                         min={1}
+                        max={MAX_SEATS_PER_TIME_SLOT}
                         containerClassName={classNames(
                           "max-w-80",
                           customClassNames?.seatsOptions?.seatsInput.container
@@ -839,9 +900,11 @@ export const EventAdvancedTab = ({
                         addOnClassname={customClassNames?.seatsOptions?.seatsInput.addOn}
                         className={customClassNames?.seatsOptions?.seatsInput?.input}
                         labelClassName={customClassNames?.seatsOptions?.seatsInput?.label}
-                        addOnSuffix={<>{t("seats")}</>}
+                        addOnSuffix={t("seats")}
                         onChange={(e) => {
-                          onChange(Math.abs(Number(e.target.value)));
+                          let enteredValue = Number(e.target.value);
+                          if (enteredValue < 1) enteredValue = 1;
+                          onChange(Math.min(enteredValue, MAX_SEATS_PER_TIME_SLOT));
                         }}
                         data-testid="seats-per-time-slot"
                       />

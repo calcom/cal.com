@@ -310,6 +310,7 @@ export async function getTeamWithoutMembers(args: {
       bio: true,
       hideBranding: true,
       hideBookATeamMember: true,
+      hideTeamProfileLink: true,
       isPrivate: true,
       metadata: true,
       bookingLimits: true,
