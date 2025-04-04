@@ -1,7 +1,7 @@
 import * as z from "zod"
 import * as imports from "../zod-utils"
 import { PeriodType, SchedulingType } from "@prisma/client"
-import { CompleteHost, HostModel, CompleteUser, UserModel, CompleteProfile, ProfileModel, CompleteTeam, TeamModel, CompleteHashedLink, HashedLinkModel, CompleteBooking, BookingModel, CompleteAvailability, AvailabilityModel, CompleteWebhook, WebhookModel, CompleteDestinationCalendar, DestinationCalendarModel, CompleteEventTypeCustomInput, EventTypeCustomInputModel, CompleteSchedule, ScheduleModel, CompleteWorkflowsOnEventTypes, WorkflowsOnEventTypesModel, CompleteAIPhoneCallConfiguration, AIPhoneCallConfigurationModel, CompleteEventTypeTranslation, EventTypeTranslationModel, CompleteSecondaryEmail, SecondaryEmailModel } from "./index"
+import { CompleteHost, HostModel, CompleteUser, UserModel, CompleteProfile, ProfileModel, CompleteTeam, TeamModel, CompleteHashedLink, HashedLinkModel, CompleteBooking, BookingModel, CompleteAvailability, AvailabilityModel, CompleteWebhook, WebhookModel, CompleteDestinationCalendar, DestinationCalendarModel, CompleteEventTypeCustomInput, EventTypeCustomInputModel, CompleteSchedule, ScheduleModel, CompleteWorkflowsOnEventTypes, WorkflowsOnEventTypesModel, CompleteAIPhoneCallConfiguration, AIPhoneCallConfigurationModel, CompleteEventTypeTranslation, EventTypeTranslationModel, CompleteSelectedCalendar, SelectedCalendarModel, CompleteSecondaryEmail, SecondaryEmailModel } from "./index"
 
 // Helper schema for JSON fields
 type Literal = boolean | number | string
@@ -22,6 +22,7 @@ export const _EventTypeModel = z.object({
   userId: z.number().int().nullish(),
   profileId: z.number().int().nullish(),
   teamId: z.number().int().nullish(),
+  useEventLevelSelectedCalendars: z.boolean(),
   eventName: z.string().nullish(),
   parentId: z.number().int().nullish(),
   bookingFields: imports.eventTypeBookingFields,
@@ -34,7 +35,9 @@ export const _EventTypeModel = z.object({
   lockTimeZoneToggleOnBookingPage: z.boolean(),
   requiresConfirmation: z.boolean(),
   requiresConfirmationWillBlockSlot: z.boolean(),
+  requiresConfirmationForFreeEmail: z.boolean(),
   requiresBookerEmailVerification: z.boolean(),
+  canSendCalVideoTranscriptionEmails: z.boolean(),
   autoTranslateDescriptionEnabled: z.boolean(),
   recurringEvent: imports.recurringEventType,
   disableGuests: z.boolean(),
@@ -71,6 +74,7 @@ export const _EventTypeModel = z.object({
   useEventTypeDestinationCalendarEmail: z.boolean(),
   isRRWeightsEnabled: z.boolean(),
   maxLeadThreshold: z.number().int().nullish(),
+  allowReschedulingPastBookings: z.boolean(),
   eventTypeColor: imports.eventTypeColor,
   rescheduleWithSameRoundRobinHost: z.boolean(),
   secondaryEmailId: z.number().int().nullish(),
@@ -95,6 +99,7 @@ export interface CompleteEventType extends z.infer<typeof _EventTypeModel> {
   instantMeetingSchedule?: CompleteSchedule | null
   aiPhoneCallConfig?: CompleteAIPhoneCallConfiguration | null
   fieldTranslations: CompleteEventTypeTranslation[]
+  selectedCalendars: CompleteSelectedCalendar[]
   secondaryEmail?: CompleteSecondaryEmail | null
 }
 
@@ -122,5 +127,6 @@ export const EventTypeModel: z.ZodSchema<CompleteEventType> = z.lazy(() => _Even
   instantMeetingSchedule: ScheduleModel.nullish(),
   aiPhoneCallConfig: AIPhoneCallConfigurationModel.nullish(),
   fieldTranslations: EventTypeTranslationModel.array(),
+  selectedCalendars: SelectedCalendarModel.array(),
   secondaryEmail: SecondaryEmailModel.nullish(),
 }))
