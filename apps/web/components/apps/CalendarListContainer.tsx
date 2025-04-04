@@ -84,16 +84,16 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
           exact: true,
         }
       ),
-      utils.viewer.connectedCalendars.invalidate(),
+      utils.viewer.calendars.connectedCalendars.invalidate(),
     ]);
-  const query = trpc.viewer.connectedCalendars.useQuery();
+  const query = trpc.viewer.calendars.connectedCalendars.useQuery();
   const installedCalendars = trpc.viewer.apps.integrations.useQuery({
     variant: "calendar",
     onlyInstalled: true,
   });
-  const mutation = trpc.viewer.setDestinationCalendar.useMutation({
+  const mutation = trpc.viewer.calendars.setDestinationCalendar.useMutation({
     onSuccess: () => {
-      utils.viewer.connectedCalendars.invalidate();
+      utils.viewer.calendars.connectedCalendars.invalidate();
     },
   });
   return (

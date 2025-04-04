@@ -115,7 +115,7 @@ export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "te
 
 export type EventAdvancedTabProps = EventAdvancedBaseProps & {
   calendarsQuery: {
-    data?: RouterOutputs["viewer"]["connectedCalendars"];
+    data?: RouterOutputs["viewer"]["calendars"]["connectedCalendars"];
     isPending: boolean;
     error: unknown;
   };
