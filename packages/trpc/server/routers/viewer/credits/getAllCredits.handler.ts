@@ -1,5 +1,5 @@
 import { prisma } from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TGetAllCreditsSchema } from "./getAllCredits.schema";
 import { getAllCreditsForTeam, getAllCreditsForUser } from "./util";
@@ -14,7 +14,7 @@ type GetAllCreditsOptions = {
 export const getAllCreditsHandler = async ({ ctx, input }: GetAllCreditsOptions) => {
   const { teamId } = input;
 
-  let userCredits = await getAllCreditsForUser(ctx.user.id);
+  let userCredits: { additionalCredits: number } | undefined = await getAllCreditsForUser(ctx.user.id);
 
   const teamOrOrgId = ctx.user.organizationId ?? teamId;
 
