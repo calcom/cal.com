@@ -8,7 +8,7 @@ import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
-import { EventRepository } from "@calcom/lib/server/repository/event";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
@@ -116,7 +116,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
 
-  const eventData = await EventRepository.getPublicEvent(
+  const eventData = await EventTypeRepository.getPublicEvent(
     {
       username: usernames.join("+"),
       eventSlug: slug,
@@ -199,7 +199,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const org = isValidOrgDomain ? currentOrgDomain : null;
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we can show a 404 otherwise.
-  const eventData = await EventRepository.getPublicEvent(
+  const eventData = await EventTypeRepository.getPublicEvent(
     {
       username,
       eventSlug: slug,
