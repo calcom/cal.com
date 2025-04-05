@@ -9,14 +9,9 @@ const getBookingInfo = async (uid: string) => {
     return { bookingInfoRaw: undefined, bookingInfo: undefined };
   }
 
-  let previousBooking = null;
-  if (bookingInfoRaw.fromReschedule) {
-    previousBooking = await getUserBooking(bookingInfoRaw.fromReschedule);
-  }
-
   const bookingInfo = getBookingWithResponses(bookingInfoRaw);
 
-  return { bookingInfoRaw, bookingInfo, previousBooking };
+  return { bookingInfoRaw, bookingInfo };
 };
 
 export default getBookingInfo;

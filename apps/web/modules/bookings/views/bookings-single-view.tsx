@@ -107,9 +107,6 @@ export default function Success(props: PageProps) {
 
   const { eventType, bookingInfo, previousBooking, requiresLoginToUpdate, rescheduledToUid } = props;
 
-
-
-
   const {
     allRemainingBookings,
     isSuccessBookingPage,

@@ -66,7 +66,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (maybeBookingUidFromSeat.uid) uid = maybeBookingUidFromSeat.uid;
   if (maybeBookingUidFromSeat.seatReferenceUid) seatReferenceUid = maybeBookingUidFromSeat.seatReferenceUid;
 
-  const { bookingInfoRaw, bookingInfo, previousBooking } = await getBookingInfo(uid);
+  const { bookingInfoRaw, bookingInfo } = await getBookingInfo(uid);
 
   if (!bookingInfoRaw) {
     return {
@@ -80,6 +80,17 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       originalBookingUid: bookingInfo.uid,
     });
     rescheduledToUid = rescheduledTo?.uid ?? null;
+  }
+
+  let previousBooking: {
+    rescheduledBy: string | null;
+    uid: string;
+  } | null = null;
+
+  if (bookingInfo.fromReschedule) {
+    previousBooking = await BookingRepository.findRescheduledByUid({
+      uid: bookingInfo.fromReschedule,
+    });
   }
 
   const eventTypeRaw = !bookingInfoRaw.eventTypeId

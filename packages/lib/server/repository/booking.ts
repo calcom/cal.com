@@ -138,6 +138,18 @@ export class BookingRepository {
     });
   }
 
+  static async findRescheduledByUid({ uid }: { uid: string }) {
+    return await prisma.booking.findFirst({
+      where: {
+        uid,
+      },
+      select: {
+        rescheduledBy: true,
+        uid: true,
+      },
+    });
+  }
+
   static async groupByActiveBookingCounts({
     users,
     eventTypeId,
