@@ -132,6 +132,7 @@ export async function getBookings({
         email: true,
       },
     },
+    fromReschedule: true,
     rescheduled: true,
     references: true,
     isRecorded: true,
@@ -437,8 +438,25 @@ export async function getBookings({
         booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
       }
 
+      let previousBooking = null;
+
+      if (booking.fromReschedule) {
+        const rescheduledBooking = await prisma.booking.findUnique({
+          where: {
+            uid: booking.fromReschedule,
+          },
+          select: {
+            rescheduledBy: true,
+          },
+        });
+        if (rescheduledBooking) {
+          previousBooking = rescheduledBooking;
+        }
+      }
+
       return {
         ...booking,
+        previousBooking,
         eventType: {
           ...booking.eventType,
           recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
