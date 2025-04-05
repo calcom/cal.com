@@ -81,7 +81,7 @@ const ProfileView = () => {
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useUtils();
-  const session = useSession();
+  const { data: session, status } = useSession();
 
   useLayoutEffect(() => {
     document.body.focus();
@@ -148,10 +148,10 @@ const ProfileView = () => {
   }
 
   function leaveTeam() {
-    if (team?.id && session.data)
+    if (team?.id && status === "authenticated")
       removeMemberMutation.mutate({
         teamIds: [team.id],
-        memberIds: [session.data.user.id],
+        memberIds: [session.user.id],
       });
   }
 

@@ -4,13 +4,13 @@ import { useSession } from "next-auth/react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { showToast } from "@calcom/ui/components/toast";
 import { Button } from "@calcom/ui/components/button";
+import { showToast } from "@calcom/ui/components/toast";
 
 export const AdminOnboardingHandover = () => {
   const { t } = useLocale();
-  const session = useSession();
-  const isAdmin = session.data?.user.role === "ADMIN";
+  const { data: session } = useSession();
+  const isAdmin = session?.user.role === "ADMIN";
 
   if (!isAdmin) {
     return null;

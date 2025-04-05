@@ -1,9 +1,10 @@
 "use client";
 
-import type { SessionContextValue } from "next-auth/react";
+import type { Session } from "next-auth";
 import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import type { UseFormSetError } from "react-hook-form";
 import { Controller, useForm } from "react-hook-form";
 import { uuid } from "short-uuid";
 
@@ -13,52 +14,50 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import slugify from "@calcom/lib/slugify";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
-import { UserPermissionRole } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import type { Ensure } from "@calcom/types/utils";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
 
-export const CreateANewPlatformForm = () => {
-  const session = useSession();
-  if (!session.data) {
-    return null;
-  }
-  return <CreateANewPlatformFormChild session={session} />;
+type FormValues = {
+  name: string;
+  slug: string;
+  orgOwnerEmail: string;
+  isPlatform: boolean;
 };
 
-const CreateANewPlatformFormChild = ({ session }: { session: Ensure<SessionContextValue, "data"> }) => {
+export const CreateANewPlatformForm = () => {
+  const { data: session, status } = useSession();
+  if (status !== "authenticated") {
+    return null;
+  }
+  return <CreateANewPlatformFormChild user={session.user} />;
+};
+
+const useCreateOrganizationMutation = ({
+  user,
+  setServerErrorMessage,
+  setFormError,
+}: {
+  setServerErrorMessage: React.Dispatch<React.SetStateAction<string | null>>;
+  setFormError: UseFormSetError<FormValues>;
+  user: Session["user"];
+}) => {
   const { t } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
-  const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
-  const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
-  const defaultOrgOwnerEmail = session.data.user.email ?? "";
-  const newOrganizationFormMethods = useForm<{
-    name: string;
-    slug: string;
-    orgOwnerEmail: string;
-    isPlatform: boolean;
-  }>({
-    defaultValues: {
-      slug: !isAdmin ? deriveSlugFromEmail(defaultOrgOwnerEmail) : undefined,
-      orgOwnerEmail: !isAdmin ? defaultOrgOwnerEmail : undefined,
-      name: !isAdmin ? deriveOrgNameFromEmail(defaultOrgOwnerEmail) : undefined,
-      isPlatform: true,
-    },
-  });
+  const { update } = useSession();
 
   const createOrganizationMutation = trpc.viewer.organizations.create.useMutation({
     onSuccess: async (data) => {
       telemetry.event(telemetryEventTypes.org_created);
       // This is necessary so that server token has the updated upId
-      await session.update({
+      await update({
         upId: data.upId,
       });
-      if (isAdmin && data.userId !== session.data?.user.id) {
+      if (user.role === "ADMIN" && data.userId !== user.id) {
         // Impersonate the user chosen as the organization owner(if the admin user isn't the owner himself), so that admin can now configure the organisation on his behalf.
         // He won't need to have access to the org directly in this way.
         signIn("impersonation-auth", {
@@ -70,10 +69,10 @@ const CreateANewPlatformFormChild = ({ session }: { session: Ensure<SessionConte
     },
     onError: (err) => {
       if (err.message === "organization_url_taken") {
-        newOrganizationFormMethods.setError("slug", { type: "custom", message: t("url_taken") });
+        setFormError("slug", { type: "custom", message: t("url_taken") });
         setServerErrorMessage(err.message);
       } else if (err.message === "domain_taken_team" || err.message === "domain_taken_project") {
-        newOrganizationFormMethods.setError("slug", {
+        setFormError("slug", {
           type: "custom",
           message: t("problem_registering_domain"),
         });
@@ -82,6 +81,32 @@ const CreateANewPlatformFormChild = ({ session }: { session: Ensure<SessionConte
         setServerErrorMessage(err.message);
       }
     },
+  });
+
+  return {
+    createOrganizationMutation,
+  };
+};
+
+const CreateANewPlatformFormChild = ({ user }: { user: Session["user"] }) => {
+  const { t } = useLocale();
+  const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
+  const isAdmin = user.role === "ADMIN";
+  const defaultOrgOwnerEmail = user.email ?? "";
+
+  const newOrganizationFormMethods = useForm<FormValues>({
+    defaultValues: {
+      slug: !isAdmin ? deriveSlugFromEmail(defaultOrgOwnerEmail) : undefined,
+      orgOwnerEmail: !isAdmin ? defaultOrgOwnerEmail : undefined,
+      name: !isAdmin ? deriveOrgNameFromEmail(defaultOrgOwnerEmail) : undefined,
+      isPlatform: true,
+    },
+  });
+
+  const { createOrganizationMutation } = useCreateOrganizationMutation({
+    setServerErrorMessage,
+    setFormError: newOrganizationFormMethods.setError,
+    user,
   });
 
   return (

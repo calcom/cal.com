@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useState } from "react";
@@ -52,7 +51,6 @@ const OtherTeamProfileView = () => {
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useUtils();
-  const session = useSession();
   const [firstRender, setFirstRender] = useState(true);
 
   useLayoutEffect(() => {
@@ -149,14 +147,6 @@ const OtherTeamProfileView = () => {
 
   function deleteTeam() {
     if (team?.id) deleteTeamMutation.mutate({ teamId: team.id });
-  }
-
-  function leaveTeam() {
-    if (team?.id && session.data)
-      removeMemberMutation.mutate({
-        teamIds: [team.id],
-        memberIds: [session.data.user.id],
-      });
   }
 
   if (!team) return null;

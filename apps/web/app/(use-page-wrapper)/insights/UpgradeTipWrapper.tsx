@@ -11,7 +11,7 @@ import { Icon } from "@calcom/ui/components/icon";
 
 export default function UpgradeTipWrapper({ children }: { children: React.ReactNode }) {
   const { t } = useLocale();
-  const session = useSession();
+  const { data: session } = useSession();
   const features = [
     {
       icon: <Icon name="users" className="h-5 w-5" />,
@@ -49,7 +49,7 @@ export default function UpgradeTipWrapper({ children }: { children: React.ReactN
           </ButtonGroup>
         </div>
       }>
-      {!session.data?.user ? null : children}
+      {!session?.user ? null : children}
     </UpgradeTip>
   );
 }

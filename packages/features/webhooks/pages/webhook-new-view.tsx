@@ -17,7 +17,7 @@ export const NewWebhookView = () => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const router = useRouter();
-  const session = useSession();
+  const { data: session, status } = useSession();
 
   const teamId = searchParams?.get("teamId") ? Number(searchParams.get("teamId")) : undefined;
   const platform = searchParams?.get("platform") ? Boolean(searchParams.get("platform")) : false;
@@ -26,12 +26,12 @@ export const NewWebhookView = () => {
     { variant: "other", onlyInstalled: true },
     {
       suspense: true,
-      enabled: session.status === "authenticated",
+      enabled: status === "authenticated",
     }
   );
   const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
     suspense: true,
-    enabled: session.status === "authenticated",
+    enabled: status === "authenticated",
   });
 
   const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
@@ -52,7 +52,7 @@ export const NewWebhookView = () => {
         id: values.id,
         webhooks,
         teamId,
-        userId: session.data?.user.id,
+        userId: session?.user.id,
         platform,
       })
     ) {

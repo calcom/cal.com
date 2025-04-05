@@ -69,19 +69,17 @@ type EditSchema = z.infer<typeof editSchema>;
 export function EditForm({
   selectedUser,
   avatarUrl,
-  domainUrl,
   dispatch,
 }: {
   selectedUser: RouterOutputs["viewer"]["organizations"]["getUser"];
   avatarUrl: string;
-  domainUrl: string;
   dispatch: Dispatch<UserTableAction>;
 }) {
   const setEditMode = useEditMode((state) => state.setEditMode);
-  const [mutationLoading, setMutationLoading] = useState(false);
+  const [_, setMutationLoading] = useState(false);
   const { t } = useLocale();
-  const session = useSession();
-  const org = session?.data?.user?.org;
+  const { data: session } = useSession();
+  const org = session?.user?.org;
   const utils = trpc.useUtils();
   const form = useForm({
     resolver: zodResolver(editSchema),
