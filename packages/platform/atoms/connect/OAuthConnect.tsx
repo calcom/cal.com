@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import type { FC } from "react";
 
 import type { CALENDARS } from "@calcom/platform-constants";
-import { Button } from "@calcom/ui/components/button";
+import { Button } from "@calcom/ui";
 
 import type { OnCheckErrorType, UseCheckProps } from "../hooks/connect/useCheck";
 import { useCheck } from "../hooks/connect/useCheck";
@@ -26,6 +26,7 @@ export type OAuthConnectProps = {
   tooltipSide?: "top" | "bottom" | "left" | "right";
   isClickable?: boolean;
   onSuccess?: () => void;
+  icon?: string; // New prop for custom icon
 };
 
 export const OAuthConnect: FC<
@@ -46,6 +47,7 @@ export const OAuthConnect: FC<
   tooltipSide = "bottom",
   isClickable,
   onSuccess,
+  icon = "calendar-days", // Default to calendar-days if no icon provided
 }) => {
   const { connect } = useConnect(calendar, redir);
   const { allowConnect, checked } = useCheck({
@@ -69,14 +71,19 @@ export const OAuthConnect: FC<
     return (
       <AtomsWrapper>
         <Button
-          StartIcon="calendar-days"
+          StartIcon={icon}
           color="primary"
           disabled={isClickable ? false : isChecking}
           tooltip={tooltip ? tooltip : <ConnectedCalendarsTooltip calendarInstance={calendar} />}
           tooltipSide={tooltipSide}
           tooltipOffset={10}
           tooltipClassName="p-0 text-inherit bg-inherit"
-          className={cn("", !isDisabled && "cursor-pointer", "border-none md:rounded-md", className)}
+          className={cn(
+            "",
+            !isDisabled && "cursor-pointer",
+            "border-none dark:bg-white dark:text-black md:rounded-md",
+            className
+          )}
           onTouchEnd={() => {
             connect();
             onSuccess?.();
@@ -94,14 +101,14 @@ export const OAuthConnect: FC<
   return (
     <AtomsWrapper>
       <Button
-        StartIcon="calendar-days"
+        StartIcon={icon}
         color="primary"
         disabled={isDisabled}
         className={cn(
           "",
           isDisabled && "cursor-not-allowed",
           !isDisabled && "cursor-pointer",
-          "border-none md:rounded-md",
+          "border-none dark:bg-white dark:text-black md:rounded-md",
           className
         )}
         onTouchEnd={() => {

@@ -20,21 +20,11 @@ export default function Home(props: { calUsername: string; calEmail: string }) {
             To get started, connect your google calendar.
           </p>
           <div className="flex flex-row gap-4">
-            <Connect.GoogleCalendar
-              redir="http://localhost:4321/calendars"
-              className="h-[40px] bg-gradient-to-r from-[#8A2387] via-[#E94057] to-[#F27121] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700"
-            />
-            <Connect.OutlookCalendar
-              isMultiCalendar={true}
-              redir="http://localhost:4321/calendars"
-              className="h-[40px] bg-gradient-to-r from-[#8A2387] via-[#E94057] to-[#F27121] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700"
-            />
-            <Connect.AppleCalendar
-              isMultiCalendar={true}
-              className="h-[40px] bg-gradient-to-r from-[#8A2387] via-[#E94057] to-[#F27121] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700"
-            />
+            <Connect.GoogleCalendar redir="http://localhost:4321/calendars" className="h-[40px]" />
+            <Connect.OutlookCalendar redir="http://localhost:4321/calendars" className="h-[40px]" />
+            <Connect.AppleCalendar isMultiCalendar={true} className="h-[40px]" />
             <StripeConnect
-              className="h-[40px] bg-gradient-to-r from-[#E94057] via-[#E94057] to-[#E94057] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700"
+              className="h-[40px]"
               errorRedir="http://localhost:4321/availability"
               onCheckSuccess={() => {
                 console.log("stripe account connected successfully".toLocaleUpperCase());

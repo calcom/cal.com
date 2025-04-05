@@ -20,6 +20,7 @@ export const GcalConnect: FC<Partial<OAuthConnectProps>> = ({
   tooltipSide,
   tooltip,
   isClickable,
+  icon = "google", // Default to Google icon
 }) => {
   const { t } = useLocale();
   return (
@@ -36,6 +37,7 @@ export const GcalConnect: FC<Partial<OAuthConnectProps>> = ({
       tooltipSide={tooltipSide}
       tooltip={tooltip}
       isClickable={isClickable}
+      icon={icon}
     />
   );
 };

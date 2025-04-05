@@ -13,7 +13,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
+import { Button } from "@calcom/ui";
 import { Form } from "@calcom/ui/components/form";
 import { PasswordField } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
@@ -38,6 +38,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
   tooltipSide = "bottom",
   isClickable,
   onSuccess,
+  icon = "apple", // Default to Apple icon
 }) => {
   const { t } = useLocale();
   const form = useForm({
@@ -90,28 +91,33 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
           <>
             {isMultiCalendar && (
               <Button
-                StartIcon="calendar-days"
+                StartIcon={icon}
                 color="primary"
                 disabled={isClickable ? false : isChecking}
                 tooltip={tooltip ? tooltip : <ConnectedCalendarsTooltip calendarInstance="apple" />}
                 tooltipSide={tooltipSide}
                 tooltipOffset={10}
                 tooltipClassName="p-0 text-inherit bg-inherit"
-                className={cn("", !isDisabled && "cursor-pointer", "border-none md:rounded-md", className)}
+                className={cn(
+                  "",
+                  !isDisabled && "cursor-pointer",
+                  "border-none dark:bg-white dark:text-black md:rounded-md",
+                  className
+                )}
                 onClick={() => setIsDialogOpen(true)}>
                 {displayedLabel}
               </Button>
             )}
             {!isMultiCalendar && (
               <Button
-                StartIcon="calendar-days"
+                StartIcon={icon}
                 color="primary"
                 disabled={isDisabled}
                 className={cn(
                   "",
                   isDisabled && "cursor-not-allowed",
                   !isDisabled && "cursor-pointer",
-                  "border-none md:rounded-md",
+                  "border-none dark:bg-white dark:text-black md:rounded-md",
                   className
                 )}
                 onClick={() => setIsDialogOpen(true)}>
