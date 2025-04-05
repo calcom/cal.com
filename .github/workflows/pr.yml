@@ -195,6 +195,13 @@ jobs:
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
 
+  flaky-e2e-check:
+    name: Flaky E2E Check
+    needs: [changes, check-label, build, build-api-v1, build-api-v2]
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/flaky-e2e-check.yml
+    secrets: inherit
+
   analyze:
     name: Analyze Build
     needs: [build]
