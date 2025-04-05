@@ -84,7 +84,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventTypeRaw = !bookingInfoRaw.eventTypeId
     ? getDefaultEvent(eventTypeSlug || "")
-    : await getEventTypesFromDB(bookingInfoRaw.eventTypeId);
+    : await getEventTypesFromDB(bookingInfoRaw.eventTypeId, [
+        "cancellationRestrictionTime",
+        "reschedulingRestrictionTime",
+      ]);
   if (!eventTypeRaw) {
     return {
       notFound: true,
@@ -101,7 +104,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   bookingInfo["endTime"] = (bookingInfo?.endTime as Date)?.toISOString() as unknown as Date;
 
   eventTypeRaw.users = !!eventTypeRaw.hosts?.length
-    ? eventTypeRaw.hosts.map((host) => host.user)
+    ? eventTypeRaw.hosts.map((host: any) => host.user)
     : eventTypeRaw.users;
 
   if (!eventTypeRaw.users.length) {
@@ -173,10 +176,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         (user) =>
           user.id === userId && bookingInfo.attendees.some((attendee) => attendee.email === user.email)
       ) ||
-      eventType.hosts.some(
-        ({ user }) =>
-          user.id === userId && bookingInfo.attendees.some((attendee) => attendee.email === user.email)
-      )
+      (eventType.hosts
+        ? eventType.hosts.some(
+            (host: any) =>
+              host.user.id === userId &&
+              bookingInfo.attendees.some((attendee) => attendee.email === host.user.email)
+          )
+        : false)
     );
   };
 
