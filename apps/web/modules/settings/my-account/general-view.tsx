@@ -103,7 +103,7 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
   const [isUpdateBtnLoading, setIsUpdateBtnLoading] = useState<boolean>(false);
   const [isTZScheduleOpen, setIsTZScheduleOpen] = useState<boolean>(false);
 
-  const mutation = trpc.viewer.updateProfile.useMutation({
+  const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (res) => {
       await utils.viewer.me.invalidate();
       reset(getValues());

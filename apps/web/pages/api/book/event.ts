@@ -25,12 +25,17 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
   const session = await getServerSession({ req });
   /* To mimic API behavior and comply with types */
-  req.userId = session?.user?.id || -1;
   req.body = {
     ...req.body,
     creationSource: CreationSource.WEBAPP,
   };
-  const booking = await handleNewBooking(req);
+
+  const booking = await handleNewBooking({
+    bookingData: req.body,
+    userId: session?.user?.id || -1,
+    hostname: req.headers.host || "",
+    forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
+  });
   return booking;
 }
 
