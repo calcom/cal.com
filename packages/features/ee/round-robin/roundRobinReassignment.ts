@@ -50,12 +50,14 @@ export const roundRobinReassignment = async ({
   orgId,
   emailsEnabled = true,
   platformClientParams,
+  teamMemberEmail,
   reassignedById,
 }: {
   bookingId: number;
   orgId: number | null;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
+  teamMemberEmail?: string;
   reassignedById: number;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
@@ -138,8 +140,33 @@ export const roundRobinReassignment = async ({
     return availableUsers;
   }, [] as IsFixedAwareUser[]);
 
+  let requestedHost: IsFixedAwareUser | undefined;
+
+  if (teamMemberEmail) {
+    roundRobinReassignLogger.info(`Looking for host with email: ${teamMemberEmail}`);
+    requestedHost = availableEventTypeUsers.find(
+      (user) => user.email.toLowerCase() === teamMemberEmail.toLowerCase()
+    );
+
+    if (requestedHost) {
+      roundRobinReassignLogger.info(`Found requested host: ${requestedHost.id}`);
+      await prisma.booking.update({
+        where: { id: bookingId },
+        data: {
+          userId: requestedHost.id,
+        },
+      });
+      return;
+    } else {
+      roundRobinReassignLogger.warn(
+        `Requested host with email ${teamMemberEmail} not found or not available`
+      );
+    }
+  }
+  const usersToCheck = requestedHost ? [requestedHost] : availableEventTypeUsers;
+
   const availableUsers = await ensureAvailableUsers(
-    { ...eventType, users: availableEventTypeUsers },
+    { ...eventType, users: usersToCheck },
     {
       dateFrom: dayjs(booking.startTime).format(),
       dateTo: dayjs(booking.endTime).format(),
@@ -148,12 +175,17 @@ export const roundRobinReassignment = async ({
     roundRobinReassignLogger
   );
 
-  const reassignedRRHost = await getLuckyUser({
-    availableUsers,
-    eventType,
-    allRRHosts: eventTypeHosts.filter((host) => !host.isFixed), // todo: only use hosts from virtual queue
-    routingFormResponse: null,
-  });
+  // If a specific host was requested and they're available, use them
+  // Otherwise fall back to regular round-robin selection
+  const reassignedRRHost =
+    requestedHost && availableUsers.some((user) => user.id === requestedHost?.id)
+      ? requestedHost
+      : await getLuckyUser({
+          availableUsers,
+          eventType,
+          allRRHosts: eventTypeHosts.filter((host) => !host.isFixed),
+          routingFormResponse: null,
+        });
 
   const hasOrganizerChanged = !previousRRHost || booking.userId === previousRRHost?.id;
   const organizer = hasOrganizerChanged ? reassignedRRHost : booking.user;
