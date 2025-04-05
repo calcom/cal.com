@@ -3,7 +3,9 @@ import { expect } from "@playwright/test";
 import dayjs from "@calcom/dayjs";
 
 import { test } from "./lib/fixtures";
-import { gotoAndWaitForIdle, localize, submitAndWaitForResponse } from "./lib/testUtils";
+
+import { gotoAndWaitForIdle, submitAndWaitForResponse } from "./lib/testUtils";
+import { localize } from "./lib/localize";
 
 test.describe.configure({ mode: "parallel" });
 

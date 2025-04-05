@@ -3,6 +3,7 @@ import React from "react";
 
 import AppListCard from "@calcom/features/apps/components/AppListCard";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
+import AdditionalCalendarSelector from "@calcom/features/calendars/AdditionalCalendarSelector";
 import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -10,7 +11,6 @@ import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Select } from "@calcom/ui/components/form";
 import { List } from "@calcom/ui/components/list";
-import AdditionalCalendarSelector from "@calcom/web/components/apps/AdditionalCalendarSelector";
 
 import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";
 
@@ -44,7 +44,7 @@ const ConnectedCalendarList = ({
 }: {
   fromOnboarding?: boolean;
   scope: SelectedCalendarSettingsScope;
-  items: RouterOutputs["viewer"]["connectedCalendars"]["connectedCalendars"];
+  items: RouterOutputs["viewer"]["calendars"]["connectedCalendars"]["connectedCalendars"];
   disableConnectionModification?: boolean;
   eventTypeId: number | null;
   onChanged?: () => unknown | Promise<unknown>;
@@ -152,7 +152,7 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
     eventTypeId = null,
   } = props;
 
-  const query = trpc.viewer.connectedCalendars.useQuery(
+  const query = trpc.viewer.calendars.connectedCalendars.useQuery(
     {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       eventTypeId: scope === SelectedCalendarSettingsScope.EventType ? eventTypeId! : null,

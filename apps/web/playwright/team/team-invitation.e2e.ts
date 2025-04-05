@@ -5,7 +5,8 @@ import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "../lib/fixtures";
-import { getInviteLink, gotoAndWaitForIdle, localize } from "../lib/testUtils";
+import { getInviteLink, gotoAndWaitForIdle } from "../lib/testUtils";
+import { localize } from "../lib/localize";
 import { expectInvitationEmailToBeReceived } from "./expects";
 
 test.describe.configure({ mode: "parallel" });

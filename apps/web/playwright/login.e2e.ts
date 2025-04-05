@@ -2,7 +2,8 @@ import { expect } from "@playwright/test";
 
 import { login } from "./fixtures/users";
 import { test } from "./lib/fixtures";
-import { gotoAndWaitForIdle, localize } from "./lib/testUtils";
+import { gotoAndWaitForIdle } from "./lib/testUtils";
+import { localize } from "./lib/localize";
 
 test.describe.configure({ mode: "parallel" });
 

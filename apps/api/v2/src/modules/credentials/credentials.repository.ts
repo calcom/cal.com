@@ -10,7 +10,7 @@ import { credentialForCalendarServiceSelect } from "@calcom/platform-libraries";
 export class CredentialsRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async upsertAppCredential(
+  async upsertUserAppCredential(
     type: keyof typeof APPS_TYPE_ID_MAPPING,
     key: Prisma.InputJsonValue,
     userId: number,
@@ -33,12 +33,43 @@ export class CredentialsRepository {
     });
   }
 
-  getByTypeAndUserId(type: string, userId: number) {
+  async upsertTeamAppCredential(
+    type: keyof typeof APPS_TYPE_ID_MAPPING,
+    key: Prisma.InputJsonValue,
+    teamId: number,
+    credentialId?: number | null
+  ) {
+    return this.dbWrite.prisma.credential.upsert({
+      create: {
+        type,
+        key,
+        teamId,
+        appId: APPS_TYPE_ID_MAPPING[type],
+      },
+      update: {
+        key,
+        invalid: false,
+      },
+      where: {
+        id: credentialId ?? 0,
+      },
+    });
+  }
+
+  findCredentialByTypeAndUserId(type: string, userId: number) {
     return this.dbWrite.prisma.credential.findFirst({ where: { type, userId } });
   }
 
-  getByTypeAndTeamId(type: string, teamId: number) {
+  findAllCredentialsByTypeAndUserId(type: string, userId: number) {
+    return this.dbWrite.prisma.credential.findMany({ where: { type, userId } });
+  }
+
+  findCredentialByTypeAndTeamId(type: string, teamId: number) {
     return this.dbWrite.prisma.credential.findFirst({ where: { type, teamId } });
+  }
+
+  findAllCredentialsByTypeAndTeamId(type: string, teamId: number) {
+    return this.dbWrite.prisma.credential.findMany({ where: { type, teamId } });
   }
 
   getAllUserCredentialsByTypeAndId(type: string, userId: number) {
