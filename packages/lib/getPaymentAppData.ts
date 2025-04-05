@@ -4,11 +4,14 @@ import { getEventTypeAppData } from "@calcom/app-store/_utils/getEventTypeAppDat
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import type { appDataSchema, paymentOptionEnum } from "@calcom/app-store/stripepayment/zod";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
+import type { BookerEvent } from "@calcom/features/bookings/types";
+import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
-import type { RouterOutputs } from "@calcom/trpc";
 
 export function getPaymentAppData(
-  _eventType: Pick<RouterOutputs["viewer"]["eventTypes"]["get"], "price" | "currency" | "metadata">,
+  _eventType: Pick<BookerEvent, "price" | "currency"> & {
+    metadata: z.infer<typeof EventTypeMetaDataSchema>;
+  },
   forcedGet?: boolean
 ) {
   const eventType = {
