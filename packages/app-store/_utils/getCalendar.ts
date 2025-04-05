@@ -2,7 +2,7 @@ import logger from "@calcom/lib/logger";
 import type { Calendar, CalendarClass } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
-import appStore from "..";
+import { CalendarServiceMap } from "../calendar.services.generated";
 
 interface CalendarApp {
   lib: {
@@ -11,17 +11,6 @@ interface CalendarApp {
 }
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
-
-/**
- * @see [Using type predicates](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates)
- */
-const isCalendarService = (x: unknown): x is CalendarApp =>
-  !!x &&
-  typeof x === "object" &&
-  "lib" in x &&
-  typeof x.lib === "object" &&
-  !!x.lib &&
-  "CalendarService" in x.lib;
 
 export const getCalendar = async (
   credential: CredentialForCalendarService | null
@@ -36,20 +25,17 @@ export const getCalendar = async (
     calendarType = calendarType.split("_crm")[0];
   }
 
-  const calendarAppImportFn = appStore[calendarType.split("_").join("") as keyof typeof appStore];
+  console.log("calendarType", calendarType);
+  console.log("CalendarServiceMap", CalendarServiceMap);
+  const calendarService =
+    CalendarServiceMap[calendarType.split("_").join("") as keyof typeof CalendarServiceMap];
 
-  if (!calendarAppImportFn) {
+  if (!calendarService.default) {
     log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;
   }
-
-  const calendarApp = await calendarAppImportFn();
-
-  if (!isCalendarService(calendarApp)) {
-    log.warn(`calendar of type ${calendarType} is not implemented`);
-    return null;
-  }
-  log.info("Got calendarApp", calendarApp.lib.CalendarService);
-  const CalendarService = calendarApp.lib.CalendarService;
-  return new CalendarService(credential);
+  // INFO: Casting this as any because unfortunately
+  // the office365calendar service was changed to take different params than the rest of the services.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return new calendarService.default(credential as any);
 };

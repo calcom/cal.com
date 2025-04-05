@@ -10,7 +10,6 @@
     "downgrade": "ts-node ./downgrade.ts"
   },
   "dependencies": {
-    "@calcom/app-store": "*",
     "@calcom/dayjs": "*",
     "@calcom/emails": "*",
     "@calcom/features": "*",
