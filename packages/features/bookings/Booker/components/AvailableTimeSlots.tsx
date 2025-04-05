@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
-import type { BookerEvent } from "@calcom/features/bookings/types";
+import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings/components/AvailableTimes";
+import type { SlotItemProps } from "@calcom/features/bookings/components/AvailableTimes";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import type { Slot } from "@calcom/features/schedules";
 import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
@@ -23,9 +23,7 @@ type AvailableTimeSlotsProps = {
   isLoading: boolean;
   seatsPerTimeSlot?: number | null;
   showAvailableSeatsCount?: boolean | null;
-  event: {
-    data?: Pick<BookerEvent, "length" | "price" | "currency" | "metadata"> | null;
-  };
+  event: SlotItemProps["event"];
   customClassNames?: {
     availableTimeSlotsContainer?: string;
     availableTimeSlotsTitle?: string;

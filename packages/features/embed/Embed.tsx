@@ -10,9 +10,10 @@ import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { AvailableTimes, AvailableTimesHeader } from "@calcom/features/bookings";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
+import { AvailableTimes } from "@calcom/features/bookings/components/AvailableTimes";
+import { AvailableTimesHeader } from "@calcom/features/bookings/components/AvailableTimesHeader";
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
@@ -366,7 +367,7 @@ const EmailEmbed = ({
               locale={i18n.language}
               browsingDate={month ? dayjs(month) : undefined}
               selected={dayjs(selectedDate)}
-              weekStart={weekdayToWeekIndex(eventTypeData?.users?.[0]?.weekStart)}
+              weekStart={weekdayToWeekIndex(eventTypeData?.users?.[0].weekStart)}
               eventSlug={eventType?.slug}
             />
           </CollapsibleContent>
@@ -442,7 +443,7 @@ const EmailEmbedPreview = ({
   selectedDuration,
   userSettingsTimezone,
 }: {
-  eventType: EventType;
+  eventType: RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
   timezone?: string;
   emailContentRef: RefObject<HTMLDivElement>;
   username?: string;
