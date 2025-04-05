@@ -5,9 +5,9 @@ import { getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
+import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilderField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { SystemField } from "../../../lib/SystemField";
 
@@ -18,7 +18,7 @@ export const BookingFields = ({
   isDynamicGroupBooking,
   bookingData,
 }: {
-  fields: NonNullable<RouterOutputs["viewer"]["eventTypes"]["getPublicEvent"]>["bookingFields"];
+  fields: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>["bookingFields"];
   locations: LocationObject[];
   rescheduleUid?: string;
   bookingData?: GetBookingType | null;
