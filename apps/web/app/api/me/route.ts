@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { performance } from "@calcom/lib/server/perfObserver";
+import { prisma } from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -11,7 +12,6 @@ let isCold = true;
 
 async function getHandler() {
   const prePrismaDate = performance.now();
-  const prisma = (await import("@calcom/prisma")).default;
   const preSessionDate = performance.now();
 
   // Create a legacy request object for compatibility

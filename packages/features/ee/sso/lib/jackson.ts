@@ -1,3 +1,4 @@
+import { controllers } from "@boxyhq/saml-jackson";
 import type {
   IConnectionAPIController,
   IOAuthController,
@@ -52,7 +53,7 @@ export default async function init() {
     !globalThis.samlSPConfig ||
     !globalThis.dsyncController
   ) {
-    const ret = await (await import("@boxyhq/saml-jackson")).controllers(opts);
+    const ret = await controllers(opts);
     globalThis.connectionController = ret.connectionAPIController;
     globalThis.oauthController = ret.oauthController;
     globalThis.samlSPConfig = ret.spConfig;
