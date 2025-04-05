@@ -11,6 +11,7 @@ export default function Availability(props: { calUsername: string; calEmail: str
       <Navbar username={props.calUsername} />
       <div>
         <AvailabilitySettings
+          // isDryRun={true}
           enableOverrides={true}
           customClassNames={{
             subtitlesClassName: "text-red-500",
