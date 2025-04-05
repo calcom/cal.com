@@ -2,9 +2,8 @@ import { expect, type Page } from "@playwright/test";
 
 import type { MembershipRole } from "@calcom/prisma/enums";
 
-import { gotoAndWaitForIdle, submitAndWaitForResponse } from "../lib/testUtils";
 import { localize } from "../lib/localize";
-
+import { gotoAndWaitForIdle, submitAndWaitForResponse } from "../lib/testUtils";
 import type { createUsersFixture } from "./users";
 
 export const scheduleSuccessfullyText = "This meeting is scheduled";

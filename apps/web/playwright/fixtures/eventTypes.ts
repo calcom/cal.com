@@ -1,7 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
-import { gotoAndWaitForIdle} from "../lib/testUtils";
 import { localize } from "../lib/localize";
+import { gotoAndWaitForIdle } from "../lib/testUtils";
 
 export function createEventTypeFixture(page: Page) {
   return {

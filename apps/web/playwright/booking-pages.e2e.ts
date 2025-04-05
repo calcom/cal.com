@@ -68,13 +68,13 @@ todo("check SSR and OG - Team Event Type");
 test.describe("user with a special character in the username", () => {
   test("/[user] page shouldn't 404", async ({ page, users }) => {
     const user = await users.create({ username: "franz-janßen" });
-    const response = await gotoAndWaitForIdle(page, `/${user.username}`);
+    const response = await page.goto(`/${user.username}`);
     expect(response?.status()).not.toBe(404);
   });
 
   test("/[user]/[type] page shouldn't 404", async ({ page, users }) => {
     const user = await users.create({ username: "franz-janßen" });
-    const response = await gotoAndWaitForIdle(page, `/${user.username}/30-min`);
+    const response = await page.goto(`/${user.username}/30-min`);
     expect(response?.status()).not.toBe(404);
   });
 
@@ -94,7 +94,7 @@ test.describe("user with a special character in the username", () => {
       overrideDefaultEventTypes: true,
     });
     // This redirects to /[user]/[type] because this user has only 1 event-type
-    const response = await gotoAndWaitForIdle(page, `/${benny.username}`);
+    const response = await page.goto(`/${benny.username}`);
     expect(response?.status()).not.toBe(500);
   });
 });
@@ -190,7 +190,7 @@ test.describe("pro user", () => {
   test("it returns a 404 when a requested event type does not exist", async ({ page, users }) => {
     const [pro] = users.get();
     const unexistingPageUrl = new URL(`${pro.username}/invalid-event-type`, WEBAPP_URL);
-    const response = await gotoAndWaitForIdle(page, unexistingPageUrl.href);
+    const response = await page.goto(unexistingPageUrl.href);
     expect(response?.status()).toBe(404);
   });
 
