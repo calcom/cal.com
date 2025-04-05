@@ -237,6 +237,9 @@ function BookingListItem(booking: BookingItemProps) {
       : []),
   ];
 
+  // Check if the logged-in user is also an attendee of the booking (i.e., they created the booking)
+  const isLoggedInUserAttendee = booking.attendees.some((attendee) => attendee.email === userEmail);
+
   const editBookingActions: ActionType[] = [
     ...(isBookingInPast && !booking.eventType.allowReschedulingPastBookings
       ? []
@@ -700,7 +703,36 @@ function BookingListItem(booking: BookingItemProps) {
           <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
             {isUpcoming && !isCancelled ? (
               <>
-                {isPending && <TableActions actions={pendingActions} />}
+                {isPending &&
+                // Show Accept/Reject IF:
+                // 1. User IS the host
+                // OR
+                // 2. User is NOT a booker AND Event is Team/Collective/RR
+                (booking.user?.email === userEmail || // Is Host?
+                  (!booking.attendees.some((attendee) => attendee.email === userEmail) && // Is NOT Booker?
+                    (booking.eventType?.team || // AND Is Team?
+                      booking.eventType?.schedulingType === SchedulingType.COLLECTIVE || // OR Is Collective?
+                      booking.eventType?.schedulingType === SchedulingType.ROUND_ROBIN))) ? ( // OR Is RR?
+                  // Show Accept/Reject Actions
+                  <TableActions actions={pendingActions} />
+                ) : (
+                  // ELSE show Cancel Action IF user is a booker AND is NOT the host
+                  booking.attendees.some((attendee) => attendee.email === userEmail) &&
+                  booking.user?.email !== userEmail && (
+                    <TableActions
+                      actions={[
+                        {
+                          id: "cancel",
+                          label: t("cancel_event"),
+                          href: `/booking/${booking.uid}?cancel=true${
+                            booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""
+                          }`,
+                          icon: "x",
+                        },
+                      ]}
+                    />
+                  )
+                )}
                 {isConfirmed && <TableActions actions={bookedActions} />}
                 {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
               </>
