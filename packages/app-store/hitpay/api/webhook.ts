@@ -1,5 +1,6 @@
 import { createHmac } from "crypto";
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import type z from "zod";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
@@ -9,12 +10,6 @@ import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import prisma from "@calcom/prisma";
 
 import type { hitpayCredentialKeysSchema } from "../lib/hitpayCredentialKeysSchema";
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
 
 interface WebhookReturn {
   payment_id: string;
@@ -42,12 +37,9 @@ function generateSignatureArray<T>(secret: string, vals: T) {
   return signed;
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextRequest) {
   try {
-    if (req.method !== "POST") {
-      throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
-    }
-    const obj: WebhookReturn = req.body as WebhookReturn;
+    const obj: WebhookReturn = (await req.json()) as WebhookReturn;
     const excluded = { ...obj } as Partial<WebhookReturn>;
     delete excluded.hmac;
 
@@ -105,9 +97,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
-    return res.status(200).send({
-      message: err.message,
-      stack: IS_PRODUCTION ? undefined : err.stack,
-    });
+    return NextResponse.json(
+      {
+        message: err.message,
+        stack: IS_PRODUCTION ? undefined : err.stack,
+      },
+      { status: 200 }
+    );
   }
 }
