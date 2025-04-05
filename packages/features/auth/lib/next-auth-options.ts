@@ -950,7 +950,7 @@ export const getOptions = ({
               return true;
             }
           } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
-            return "/auth/error?error=use-password-login";
+            return `/auth/error?error=use-identity-login&provider=${existingUserWithEmail.identityProvider}`;
           } else if (
             existingUserWithEmail.identityProvider === IdentityProvider.GOOGLE &&
             idP === IdentityProvider.SAML
@@ -972,7 +972,7 @@ export const getOptions = ({
             }
           }
 
-          return "/auth/error?error=use-identity-login";
+          return `auth/error?error=use-identity-login&provider=${existingUserWithEmail.identityProvider}`;
         }
 
         // Associate with organization if enabled by flag and idP is Google (for now)

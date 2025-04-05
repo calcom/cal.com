@@ -3072,5 +3072,6 @@
   "most_cancelled_bookings": "Most Cancelled Bookings",
   "name_or_email": "Name or Email",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "If no contact is found, fallback to lead owner if it exists",
+  "identity_provider_error": "Oops! Looks like you need to sign in using ",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
