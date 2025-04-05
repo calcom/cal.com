@@ -9,6 +9,7 @@ import getFieldIdentifier from "@calcom/app-store/routing-forms/lib/getFieldIden
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
 import { getServerTimingHeader } from "@calcom/app-store/routing-forms/lib/getServerTimingHeader";
 import { handleResponse } from "@calcom/app-store/routing-forms/lib/handleResponse";
+import type { HandleResponseResult } from "@calcom/app-store/routing-forms/lib/handleResponse";
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
 import { getFieldResponseForJsonLogic } from "@calcom/app-store/routing-forms/lib/transformResponse";
@@ -111,7 +112,22 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     };
   });
 
-  const matchingRoute = findMatchingRoute({ form: serializableForm, response });
+  let matchingRoute;
+  try {
+    matchingRoute = findMatchingRoute({ form: serializableForm, response });
+  } catch (e) {
+    if (e instanceof TRPCError) {
+      return {
+        props: {
+          ...pageProps,
+          form: serializableForm,
+          message: e.message,
+        },
+      };
+    }
+
+    throw e;
+  }
 
   if (!matchingRoute) {
     throw new Error("No matching route could be found");
@@ -120,22 +136,22 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   const decidedAction = matchingRoute.action;
 
   const { v4: uuidv4 } = await import("uuid");
-  let teamMembersMatchingAttributeLogic = null;
+  let teamMembersMatchingAttributeLogic: number[] | null = null;
   let formResponseId = null;
   let attributeRoutingConfig = null;
   let crmContactOwnerEmail: string | null = null;
   let crmContactOwnerRecordType: string | null = null;
   let crmAppSlug: string | null = null;
   try {
-    const result = await handleResponse({
+    const result: HandleResponseResult = await handleResponse({
+      response,
       form: serializableForm,
       formFillerId: uuidv4(),
-      response: response,
       chosenRouteId: matchingRoute.id,
       isPreview: isBookingDryRun,
     });
     teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
-    formResponseId = result.formResponse.id;
+    formResponseId = result.formResponse?.id ? Number(result.formResponse.id) : null;
     attributeRoutingConfig = result.attributeRoutingConfig;
     timeTaken = {
       ...timeTaken,
@@ -186,8 +202,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
               stringify({ ...paramsToBeForwardedAsIs, "cal.action": "eventTypeRedirectUrl" })
             ),
             teamMembersMatchingAttributeLogic,
-            // formResponseId is guaranteed to be set because in catch block of trpc request we return from the function and otherwise it would have been set
-            formResponseId: formResponseId!,
+            formResponseId: formResponseId,
             attributeRoutingConfig: attributeRoutingConfig ?? null,
             teamId: form?.teamId,
             orgId: form.team?.parentId,
