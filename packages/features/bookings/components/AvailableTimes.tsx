@@ -7,12 +7,12 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { OutOfOfficeInSlots } from "@calcom/features/bookings/Booker/components/OutOfOfficeInSlots";
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
-import type { BookerEvent } from "@calcom/features/bookings/types";
 import type { Slot } from "@calcom/features/schedules";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import type { IOutOfOfficeData } from "@calcom/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
@@ -60,9 +60,7 @@ type SlotItemProps = {
   onTimeSelect?: TOnTimeSelect;
   onTentativeTimeSelect?: TOnTentativeTimeSelect;
   showAvailableSeatsCount?: boolean | null;
-  event: {
-    data?: Pick<BookerEvent, "length" | "bookingFields" | "price" | "currency" | "metadata"> | null;
-  };
+  eventData: Pick<RouterOutputs["viewer"]["eventTypes"]["get"], "price" | "currency" | "length" | "metadata">;
   customClassNames?: string;
   confirmStepClassNames?: {
     confirmButton?: string;
@@ -84,7 +82,7 @@ const SlotItem = ({
   selectedSlots,
   onTimeSelect,
   showAvailableSeatsCount,
-  event,
+  eventData,
   customClassNames,
   loadingStates,
   renderConfirmNotVerifyEmailButtonCond,
@@ -99,8 +97,6 @@ const SlotItem = ({
   confirmStepClassNames,
 }: SlotItemProps) => {
   const { t } = useLocale();
-
-  const { data: eventData } = event;
 
   const isPaidEvent = useMemo(() => {
     if (!eventData?.price) return false;
