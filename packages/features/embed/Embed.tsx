@@ -390,16 +390,7 @@ const EmailEmbed = ({
                 handleSlotClick={handleSlotClick}
                 slots={slots}
                 showAvailableSeatsCount={eventType.seatsShowAvailabilityCount}
-                eventTypeData={
-                  eventTypeData
-                    ? {
-                        price: eventTypeData.price,
-                        currency: eventTypeData.currency,
-                        metadata: eventTypeData.metadata,
-                        length: eventTypeData.length,
-                      }
-                    : undefined
-                }
+                event={eventData}
               />
             </div>
           ) : null}
