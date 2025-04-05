@@ -391,7 +391,7 @@ const EmailEmbed = ({
                 handleSlotClick={handleSlotClick}
                 slots={slots}
                 showAvailableSeatsCount={eventType.seatsShowAvailabilityCount}
-                event={eventData}
+                event={eventTypeData}
               />
             </div>
           ) : null}
