@@ -511,11 +511,10 @@ export async function confirmBooking(page: Page, url = "/api/book/event") {
 }
 
 export async function gotoAndWaitForIdle(page: Page, url: string) {
-  const response = await page.goto(url);
+  page.goto(url);
   await page.waitForResponse((res) =>
-    res.url().includes("/api/trpc/i18n/get")
+    res.url().includes("/api/trpc/i18n/get") && res.status() === 200
   );
-  return response;
 }
 
 export async function bookTeamEvent({
