@@ -2028,6 +2028,7 @@ model FilterSegment {
   columnVisibility Json?
   columnSizing     Json?
   perPage          Int
+  searchTerm       String?            @db.Text
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   // Creator of the segment

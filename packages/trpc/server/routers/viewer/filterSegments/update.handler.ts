@@ -14,7 +14,7 @@ export const updateHandler = async ({
   };
   input: TUpdateFilterSegmentInputSchema;
 }) => {
-  const { id, name, activeFilters, sorting, columnVisibility, columnSizing, perPage } = input;
+  const { id, name, activeFilters, sorting, columnVisibility, columnSizing, perPage, searchTerm } = input;
   const userId = ctx.user.id;
 
   // First, fetch the existing segment to check permissions
@@ -64,6 +64,7 @@ export const updateHandler = async ({
       columnVisibility,
       columnSizing,
       perPage,
+      searchTerm,
     },
   });
 

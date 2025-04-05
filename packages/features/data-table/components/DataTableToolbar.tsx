@@ -1,7 +1,7 @@
 "use client";
 
 import type { Table } from "@tanstack/react-table";
-import { forwardRef } from "react";
+import { forwardRef, useEffect } from "react";
 import type { ComponentPropsWithoutRef } from "react";
 import { useState, type Ref, type ChangeEvent } from "react";
 
@@ -39,6 +39,10 @@ function SearchBarComponent({ className }: SearchBarProps, ref: Ref<HTMLInputEle
   const { t } = useLocale();
   const [localValue, setLocalValue] = useState(searchTerm);
 
+  useEffect(() => {
+    setLocalValue(searchTerm);
+  }, [searchTerm]);
+
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     setLocalValue(value);
@@ -48,7 +52,7 @@ function SearchBarComponent({ className }: SearchBarProps, ref: Ref<HTMLInputEle
   return (
     <Input
       ref={ref}
-      className={classNames("max-w-48" ,className)}
+      className={classNames("max-w-48", className)}
       placeholder={t("search")}
       value={localValue}
       onChange={handleSearchChange}
