@@ -1,3 +1,5 @@
+import { gotoAndWaitForIdle } from "playwright/lib/testUtils";
+
 import { test } from "./lib/fixtures";
 
 test.afterEach(({ users }) => users.deleteAll());
@@ -29,7 +31,7 @@ test.describe("Insights > Routing", () => {
       ],
     });
 
-    await page.goto(`/insights/routing`);
+    await gotoAndWaitForIdle(page, `/insights/routing`);
     await page.locator('[data-testid="filter-popover-trigger-formId"]').getByText(formName).waitFor();
 
     // The routing form filter is persisted

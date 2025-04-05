@@ -244,14 +244,14 @@ export async function gotoRoutingLink({
     previewLink = `/forms/${formId}`;
   }
 
-  await page.goto(`${previewLink}${queryString ? `?${queryString}` : ""}`);
+  await gotoAndWaitForIdle(page, `${previewLink}${queryString ? `?${queryString}` : ""}`);
 
   // HACK: There seems to be some issue with the inputs to the form getting reset if we don't wait.
   await new Promise((resolve) => setTimeout(resolve, 2000));
 }
 
 export async function installAppleCalendar(page: Page) {
-  await page.goto("/apps/categories/calendar");
+  await gotoAndWaitForIdle(page, "/apps/categories/calendar");
   await page.click('[data-testid="app-store-app-card-apple-calendar"]');
   await page.waitForURL("/apps/apple-calendar");
   await page.click('[data-testid="install-app-button"]');
@@ -410,7 +410,7 @@ export function goToUrlWithErrorHandling({ page, url }: { page: Page; url: strin
     };
     page.on("requestfailed", onRequestFailed);
     try {
-      await page.goto(url);
+      await gotoAndWaitForIdle(page, url);
     } catch (e) {}
     page.off("requestfailed", onRequestFailed);
     resolve({ success: true, url: page.url() });
@@ -464,7 +464,7 @@ export async function gotoFirstEventType(page: Page) {
 export async function gotoBookingPage(page: Page) {
   const previewLink = await page.locator("[data-testid=preview-button]").getAttribute("href");
 
-  await page.goto(previewLink ?? "");
+  await gotoAndWaitForIdle(page, previewLink ?? "");
 }
 
 export async function saveEventType(page: Page) {
@@ -510,6 +510,13 @@ export async function confirmBooking(page: Page, url = "/api/book/event") {
   });
 }
 
+export async function gotoAndWaitForIdle(page: Page, url: string) {
+  page.goto(url);
+  await page.waitForResponse((res) =>
+    res.url().includes("/api/trpc/i18n/get") && res.status() === 200
+  );
+}
+
 export async function bookTeamEvent({
   page,
   team,
@@ -530,7 +537,7 @@ export async function bookTeamEvent({
   // So, we are using /team in the URL to access the team booking
   // There are separate tests to verify that the next.config.js rewrites are working
   // Also there are additional checkly tests that verify absolute e2e flow. They are in __checks__/organization.spec.ts
-  await page.goto(`/team/${team.slug}/${event.slug}`);
+  await gotoAndWaitForIdle(page, `/team/${team.slug}/${event.slug}`);
 
   await selectFirstAvailableTimeSlotNextMonth(page);
   await bookTimeSlot(page, opts);
@@ -555,6 +562,6 @@ export async function bookTeamEvent({
 }
 
 export async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
-  await page.goto(`${url}`);
+  await gotoAndWaitForIdle(page, `${url}`);
   await expect(page.getByTestId(`404-page`)).toBeVisible();
 }

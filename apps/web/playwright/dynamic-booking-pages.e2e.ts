@@ -7,6 +7,7 @@ import {
   bookTimeSlot,
   confirmReschedule,
   doOnOrgDomain,
+  gotoAndWaitForIdle,
   selectFirstAvailableTimeSlotNextMonth,
   selectSecondAvailableTimeSlotNextMonth,
 } from "./lib/testUtils";
@@ -18,7 +19,7 @@ test("dynamic booking", async ({ page, users }) => {
   await pro.apiLogin();
 
   const free = await users.create({ username: "free.example" });
-  await page.goto(`/${pro.username}+${free.username}`);
+  await gotoAndWaitForIdle(page, `/${pro.username}+${free.username}`);
 
   await test.step("book an event first day in next month", async () => {
     await selectFirstAvailableTimeSlotNextMonth(page);
@@ -33,7 +34,7 @@ test("dynamic booking", async ({ page, users }) => {
 
   await test.step("can reschedule a booking", async () => {
     // Logged in
-    await page.goto("/bookings/upcoming");
+    await gotoAndWaitForIdle(page, "/bookings/upcoming");
     await page.locator('[data-testid="edit_booking"]').nth(0).click();
     await page.locator('[data-testid="reschedule"]').click();
     await page.waitForURL((url) => {
@@ -51,7 +52,7 @@ test("dynamic booking", async ({ page, users }) => {
   });
 
   await test.step("Can cancel the recently created booking", async () => {
-    await page.goto("/bookings/upcoming");
+    await gotoAndWaitForIdle(page, "/bookings/upcoming");
     await page.locator('[data-testid="cancel"]').click();
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking");
@@ -70,7 +71,7 @@ test("dynamic booking info prefilled by query params", async ({ page, users }) =
 
   let duration = 15;
   const free = await users.create({ username: "free.example" });
-  await page.goto(`/${pro.username}+${free.username}?duration=${duration}`);
+  await gotoAndWaitForIdle(page, `/${pro.username}+${free.username}?duration=${duration}`);
 
   const listItemByDurationTestId = (duration: number) => `multiple-choice-${duration}mins`;
 
@@ -80,7 +81,7 @@ test("dynamic booking info prefilled by query params", async ({ page, users }) =
   expect(activeState).toEqual("true");
 
   duration = 30;
-  await page.goto(`/${pro.username}+${free.username}?duration=${duration}`);
+  await gotoAndWaitForIdle(page, `/${pro.username}+${free.username}?duration=${duration}`);
   listItemLocator = await page.getByTestId(listItemByDurationTestId(duration));
   activeState = await listItemLocator.getAttribute("data-active");
 
@@ -129,7 +130,7 @@ test.describe("Organization:", () => {
         page,
       },
       async () => {
-        await page.goto(`/${user1.username}+${user2.username}`);
+        await gotoAndWaitForIdle(page, `/${user1.username}+${user2.username}`);
         await selectFirstAvailableTimeSlotNextMonth(page);
         await bookTimeSlot(page, {
           title: "Test meeting",
