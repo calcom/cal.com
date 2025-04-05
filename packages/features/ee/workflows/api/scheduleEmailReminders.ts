@@ -1,4 +1,6 @@
-/* Schedule any workflow reminder that falls within 72 hours for email */
+/**
+ * @deprecated use smtp with tasker instead
+ */
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
@@ -323,30 +325,28 @@ export async function handler(req: NextRequest) {
           };
 
           sendEmailPromises.push(
-            sendSendgridMail(
-              {
-                to: sendTo,
-                subject: emailContent.emailSubject,
-                html: emailContent.emailBody,
-                batchId: batchId,
-                sendAt: dayjs(reminder.scheduledDate).unix(),
-                replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
-                attachments: reminder.workflowStep.includeCalendarEvent
-                  ? [
-                      {
-                        content: Buffer.from(
-                          generateIcsString({ event, status: "CONFIRMED" }) || ""
-                        ).toString("base64"),
-                        filename: "event.ics",
-                        type: "text/calendar; method=REQUEST",
-                        disposition: "attachment",
-                        contentId: uuidv4(),
-                      },
-                    ]
-                  : undefined,
-              },
-              { sender: reminder.workflowStep.sender }
-            )
+            sendSendgridMail({
+              to: sendTo,
+              subject: emailContent.emailSubject,
+              html: emailContent.emailBody,
+              batchId: batchId,
+              sendAt: dayjs(reminder.scheduledDate).unix(),
+              replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
+              attachments: reminder.workflowStep.includeCalendarEvent
+                ? [
+                    {
+                      content: Buffer.from(generateIcsString({ event, status: "CONFIRMED" }) || "").toString(
+                        "base64"
+                      ),
+                      filename: "event.ics",
+                      type: "text/calendar; method=REQUEST",
+                      disposition: "attachment",
+                      contentId: uuidv4(),
+                    },
+                  ]
+                : undefined,
+              sender: reminder.workflowStep.sender,
+            })
           );
 
           await prisma.workflowReminder.update({
@@ -399,17 +399,15 @@ export async function handler(req: NextRequest) {
           const batchId = await getBatchId();
 
           sendEmailPromises.push(
-            sendSendgridMail(
-              {
-                to: sendTo,
-                subject: emailContent.emailSubject,
-                html: emailContent.emailBody,
-                batchId: batchId,
-                sendAt: dayjs(reminder.scheduledDate).unix(),
-                replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
-              },
-              { sender: reminder.workflowStep?.sender }
-            )
+            sendSendgridMail({
+              to: sendTo,
+              subject: emailContent.emailSubject,
+              html: emailContent.emailBody,
+              batchId: batchId,
+              sendAt: dayjs(reminder.scheduledDate).unix(),
+              replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
+              sender: reminder.workflowStep?.sender,
+            })
           );
 
           await prisma.workflowReminder.update({
