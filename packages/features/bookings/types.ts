@@ -1,13 +1,13 @@
 import type { SchedulingType } from "@prisma/client";
 import type { ErrorOption, FieldPath } from "react-hook-form";
 
-import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import type { BookingCreateBody } from "@calcom/prisma/zod/custom/booking";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
 import type { DatePickerProps } from "../calendars/DatePicker";
 
-type PublicEvent = NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
+export type PublicEvent = NonNullable<RouterOutputs["viewer"]["public"]["event"]>;
 
 export type BookerEventQuery = {
   isSuccess: boolean;
