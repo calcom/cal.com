@@ -61,7 +61,7 @@ type SlotItemProps = {
   onTentativeTimeSelect?: TOnTentativeTimeSelect;
   showAvailableSeatsCount?: boolean | null;
   event: {
-    data?: Pick<BookerEvent, "length" | "price" | "currency" | "metadata"> | null;
+    data?: Pick<BookerEvent, "length" | "bookingFields" | "price" | "currency" | "metadata"> | null;
   };
   customClassNames?: string;
   confirmStepClassNames?: {
@@ -100,11 +100,13 @@ const SlotItem = ({
 }: SlotItemProps) => {
   const { t } = useLocale();
 
+  const { data: eventData } = event;
+
   const isPaidEvent = useMemo(() => {
-    if (!event.data?.price) return false;
-    const paymentAppData = getPaymentAppData(event.data);
-    return event.data?.price > 0 && !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
-  }, [event.data]);
+    if (!eventData?.price) return false;
+    const paymentAppData = getPaymentAppData(eventData);
+    return eventData?.price > 0 && !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
+  }, [eventData]);
 
   const overlayCalendarToggled =
     getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
@@ -129,7 +131,7 @@ const SlotItem = ({
 
   const { isOverlapping, overlappingTimeEnd, overlappingTimeStart } = useCheckOverlapWithOverlay({
     start: computedDateWithUsersTimezone,
-    selectedDuration: event.data?.length ?? 0,
+    selectedDuration: eventData?.length ?? 0,
     offset,
   });
 
