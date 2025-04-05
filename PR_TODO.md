@@ -4,6 +4,7 @@
 - [ ] What happens if SelectedCalendar has googleChannelId set through delegation credential and DelegationCredential is disabled ?
 - [ ] Per user quota with Google Service Account
 - [ ] Do we need to update corresponding timezone fns like getAvailabilityForTimezone and similar ones in CalendarManager
+- [ ] Toggle Delegation Credential on/off and see that same SelectedCalendar is used for watching/unwatching
 
 How to Test:
 - Enable Calendar Cache and Delegation Credential feature for acme org

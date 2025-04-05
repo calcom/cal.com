@@ -4,7 +4,7 @@ import { describe, expect, it, beforeEach, vi } from "vitest";
 
 import type { Calendar } from "@calcom/types/Calendar";
 
-import { CalendarCacheRepository, _validatedCredential, _validatedCredential } from "./calendar-cache.repository";
+import { CalendarCacheRepository } from "./calendar-cache.repository";
 
 vi.mock("./lib/datesForCache", () => ({
   getTimeMin: vi.fn().mockImplementation((timeMin) => timeMin),
@@ -446,52 +446,6 @@ describe("CalendarCacheRepository", () => {
         },
       });
       expect(remainingEntries2).toHaveLength(1);
-    });
-  });
-
-  describe("_validatedCredential", () => {
-    it("should return null if credentialId and delegationCredentialId are both null", () => {
-      const result = _validatedCredential({
-        credentialId: null,
-        delegationCredentialId: null,
-        userId: 1,
-      });
-      expect(result).toBeNull();
-    });
-
-    it("should return delegation credential if delegationCredentialId and userId are provided", () => {
-      const result = _validatedCredential({
-        credentialId: null,
-        delegationCredentialId: "delegation-123",
-        userId: 1,
-      });
-      expect(result).toEqual({
-        type: "delegation",
-        userId: 1,
-        delegationCredentialId: "delegation-123",
-      });
-    });
-
-    it("should return regular credential if credentialId is provided", () => {
-      const result = _validatedCredential({
-        credentialId: 1,
-        delegationCredentialId: null,
-        userId: null,
-      });
-      expect(result).toEqual({
-        type: "credential",
-        userId: null,
-        credentialId: 1,
-      });
-    });
-
-    it("should return null if credentialId is negative and delegationCredentialId is null", () => {
-      const result = _validatedCredential({
-        credentialId: -1,
-        delegationCredentialId: null,
-        userId: null,
-      });
-      expect(result).toBeNull();
     });
   });
 });

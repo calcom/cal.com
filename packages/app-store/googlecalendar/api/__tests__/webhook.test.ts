@@ -106,7 +106,8 @@ describe("Google Calendar Webhook Handler", () => {
     });
 
     const mockFetchAvailabilityAndSetCache = vi.fn();
-    getCalendar.mockResolvedValue({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (getCalendar as unknown as any).mockResolvedValue({
       fetchAvailabilityAndSetCache: mockFetchAvailabilityAndSetCache,
     });
 

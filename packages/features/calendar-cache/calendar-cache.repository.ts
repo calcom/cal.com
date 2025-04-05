@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { uniqueBy } from "@calcom/lib/array";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getUserCredential } from "@calcom/lib/service/credential/getUserCredential";
 import prisma from "@calcom/prisma";
 import type { Calendar, SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
@@ -27,51 +28,6 @@ function parseKeyForCache(args: FreeBusyArgs): string {
 }
 
 type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
-
-export const _validatedCredential = ({
-  userId,
-  delegationCredentialId,
-  credentialId,
-}: CredentialArgs):
-  | {
-      type: "delegation";
-      userId: number;
-      delegationCredentialId: string;
-    }
-  | {
-      type: "credential";
-      userId: number | null;
-      credentialId: number;
-    }
-  | null => {
-  const log = logger.getSubLogger({ prefix: ["_validatedCredential"] });
-  if (delegationCredentialId) {
-    if (!userId) {
-      log.error(`DelegationCredential: userId is invalid: ${userId}`);
-      return null;
-    }
-    return {
-      type: "delegation",
-      userId,
-      delegationCredentialId,
-    };
-  }
-
-  if (credentialId) {
-    if (credentialId <= 0) {
-      log.error(`Regular Credential: credentialId is invalid: ${credentialId}`);
-      return null;
-    }
-    return {
-      type: "credential",
-      userId,
-      credentialId,
-    };
-  }
-
-  log.error("_validatedCredential: No credentialId or delegationCredentialId provided");
-  return null;
-};
 
 export class CalendarCacheRepository implements ICalendarCacheRepository {
   calendar: Calendar | null;
@@ -114,7 +70,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     key: string;
   }) {
     log.debug("findUnexpiredUnique", safeStringify({ credentialId, delegationCredentialId, userId, key }));
-    const credential = _validatedCredential({ userId, delegationCredentialId, credentialId });
+    const credential = getUserCredential({ userId, delegationCredentialId, credentialId });
     if (!credential) {
       return null;
     }
@@ -171,7 +127,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
       safeStringify({ delegationCredentialId, userId, credentialId, args, value })
     );
     const key = parseKeyForCache(args);
-    const credential = _validatedCredential({ userId, delegationCredentialId, credentialId });
+    const credential = getUserCredential({ userId, delegationCredentialId, credentialId });
     if (!credential) {
       return;
     }
@@ -223,7 +179,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
   }
 
   async deleteManyByCredential({ delegationCredentialId, credentialId, userId }: CredentialArgs) {
-    const credential = _validatedCredential({ userId, delegationCredentialId, credentialId });
+    const credential = getUserCredential({ userId, delegationCredentialId, credentialId });
     if (!credential) {
       return;
     }

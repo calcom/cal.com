@@ -1,10 +1,14 @@
 import { Prisma } from "@prisma/client";
 
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import { buildCredentialPayloadForPrisma } from "../buildCredentialPayloadForCalendar";
+
+const log = logger.getSubLogger({ prefix: ["SelectedCalendarRepository"] });
 
 export type UpdateArguments = {
   where: FindManyArgs["where"];
@@ -51,6 +55,7 @@ export class SelectedCalendarRepository {
     // We restrict it at app level by ensuring that an entry doesn't exist already before creating a new one
     return await SelectedCalendarRepository.findFirst({
       where: {
+        // We don't check for credentialId or delegationCredentialId because considering that Delegation Credential could be toggled on/off, we should get the relevant SelectedCalendar always
         userId: data.userId,
         integration: data.integration,
         externalId: data.externalId,
@@ -78,6 +83,7 @@ export class SelectedCalendarRepository {
   }
 
   static async upsert(data: Prisma.SelectedCalendarUncheckedCreateInput) {
+    log.debug("upsert", safeStringify({ data }));
     // userId_integration_externalId_eventTypeId is a unique constraint but with eventTypeId being nullable
     // So, this unique constraint can't be used in upsert. Prisma doesn't allow that, So, we do create and update separately
     const credentialPayload = buildCredentialPayloadForPrisma({
