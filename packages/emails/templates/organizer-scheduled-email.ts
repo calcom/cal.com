@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+// eslint-disable-next-line no-restricted-imports
 import { default as cloneDeep } from "lodash/cloneDeep";
 
 import { getRichDescription } from "@calcom/lib/CalEventParser";
@@ -39,7 +40,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
 
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const clonedCalEvent = cloneDeep(this.calEvent);
-    const toAddresses = [this.teamMember?.email || this.calEvent.organizer.email];
+    const toAddresses = [this.teamMember?.email ?? this.calEvent.organizer.email];
 
     return {
       icalEvent: generateIcsFile({

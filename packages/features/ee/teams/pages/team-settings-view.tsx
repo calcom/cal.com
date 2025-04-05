@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
@@ -143,6 +143,39 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
   );
 };
 
+const HideOrganizerEmail = ({ team }: ProfileViewProps) => {
+  const { t } = useLocale();
+  const utils = trpc.useUtils();
+
+  const [hideOrganizerEmailValue, setHideOrganizerEmailValue] = useState(team?.hideOrganizerEmail ?? false);
+
+  const mutation = trpc.viewer.teams.updateHideOrganizerEmail.useMutation({
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+    async onSuccess(res) {
+      await utils.viewer.teams.get.invalidate();
+      showToast(t("hide_organizer_email_updated_successfully"), "success");
+    },
+  });
+
+  return (
+    <div className="mt-6 flex flex-col gap-6">
+      <SettingsToggle
+        toggleSwitchAtTheEnd={true}
+        title={t("hide_organizer_email")}
+        disabled={mutation?.isPending}
+        description={t("hide_organizer_email_description")}
+        checked={hideOrganizerEmailValue}
+        onCheckedChange={(checked) => {
+          setHideOrganizerEmailValue(checked);
+          mutation.mutate({ id: team.id, hideOrganizerEmail: checked });
+        }}
+      />
+    </div>
+  );
+};
+
 const TeamSettingsViewWrapper = () => {
   const router = useRouter();
   const params = useParamsWithFallback();
@@ -174,6 +207,7 @@ const TeamSettingsViewWrapper = () => {
   return (
     <>
       <BookingLimitsView team={team} />
+      <HideOrganizerEmail team={team} />
       <InternalNotePresetsView team={team} />
       <RoundRobinResetInterval team={team} />
     </>

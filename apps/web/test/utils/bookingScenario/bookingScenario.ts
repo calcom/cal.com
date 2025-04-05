@@ -178,6 +178,7 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
       slug: string;
       parentId?: number;
       isPrivate?: boolean;
+      hideOrganizerEmail?: boolean;
     };
   }[];
   schedules: {
@@ -2172,11 +2173,12 @@ export function getMockBookingReference(
 }
 
 export function getMockBookingAttendee(
-  attendee: Omit<Attendee, "bookingId" | "phoneNumber" | "email" | "noShow"> & {
+  attendee: Omit<Attendee, "bookingId" | "phoneNumber" | "email" | "noShow" | "maskedEmail"> & {
     bookingSeat?: AttendeeBookingSeatInput;
     phoneNumber?: string | null;
     email: string;
     noShow?: boolean;
+    maskedEmail?: string | null;
   }
 ) {
   return {
@@ -2188,6 +2190,7 @@ export function getMockBookingAttendee(
     bookingSeat: attendee.bookingSeat || null,
     phoneNumber: attendee.phoneNumber ?? undefined,
     noShow: attendee.noShow ?? false,
+    maskedEmail: attendee.maskedEmail ?? null,
   };
 }
 
