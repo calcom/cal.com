@@ -1,5 +1,4 @@
 import type { EmbedProps } from "app/WithEmbedSSR";
-import { createRouterCaller } from "app/_trpc/context";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
@@ -7,11 +6,11 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
-import { publicViewerRouter } from "@calcom/trpc/server/routers/publicViewer/_router";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -20,6 +19,11 @@ export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
 async function getUserPageProps(context: GetServerSidePropsContext) {
   const session = await getServerSession({ req: context.req });
+  if (!session?.user?.id) {
+    return { redirect: { permanent: false, destination: "/auth/login" } };
+  }
+  const sessionUserId = session.user.id;
+
   const { link, slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, duration: queryDuration } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
@@ -107,22 +111,23 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
-    booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
+    booking = await getBookingForReschedule(`${rescheduleUid}`, sessionUserId);
   }
 
   const isTeamEvent = !!hashedLink.eventType?.team?.id;
 
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const caller = await createRouterCaller(publicViewerRouter);
-
-  const eventData = await caller.event({
-    username: name,
-    eventSlug: slug,
-    isTeamEvent,
-    org,
-    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-  });
+  const eventData = await EventTypeRepository.getPublicEvent(
+    {
+      username: name,
+      eventSlug: slug,
+      isTeamEvent,
+      org,
+      fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
+    },
+    sessionUserId
+  );
 
   if (!eventData) {
     return notFound;
