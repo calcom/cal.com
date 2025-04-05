@@ -439,7 +439,7 @@ test.describe("Routing Forms", () => {
       const user = await createUserAndLogin({ users, page });
       const routingForm = user.routingForms[0];
       await gotoRoutingLink({ page, formId: routingForm.id });
-      page.click('button[type="submit"]');
+      await page.click('button[type="submit"]');
       const firstInputMissingValue = await page.evaluate(() => {
         return document.querySelectorAll("input")[0].validity.valueMissing;
       });
@@ -828,8 +828,10 @@ async function addAllTypesOfFieldsAndSaveForm(
   page: Page,
   form: { description: string; label: string }
 ) {
-  const appRoutingFormsRespPromise = page.waitForResponse((response) =>
-    /\/api\/trpc\/appRoutingForms*/.test(response.url())
+  const appRoutingFormsRespPromise = page.waitForResponse(
+    (response) =>
+      response.url().includes("/api/trpc/appRoutingForms/formQuery,getIncompleteBookingSettings?batch=1") &&
+      response.status() === 200
   );
   await page.goto(`apps/routing-forms/form-edit/${formId}`);
   await appRoutingFormsRespPromise;
