@@ -63,7 +63,7 @@ export class PlatformPlanGuard implements CanActivate {
         canAccess = hasMinimumPlan({
           currentPlan: team.platformBilling?.plan as PlatformPlanType,
           minimumPlan: minimumPlan,
-          plans: ["FREE", "STARTER", "ESSENTIALS", "SCALE", "ENTERPRISE"],
+          plans: ["FREE", "STARTER", "ESSENTIALS", "SCALE", "ENTERPRISE", "CUSTOM"],
         });
       }
     }
