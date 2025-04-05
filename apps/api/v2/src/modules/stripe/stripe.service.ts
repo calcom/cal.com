@@ -2,6 +2,7 @@ import { AppConfig } from "@/config/type";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { OAuthCallbackState } from "@/modules/organizations/stripe/services/organizations-stripe.service";
 import { getReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturnToValueFromQueryState";
 import { stripeInstance } from "@/modules/stripe/utils/newStripeInstance";
 import { StripeData } from "@/modules/stripe/utils/stripeDataSchemas";
@@ -45,8 +46,7 @@ export class StripeService {
     configService: ConfigService<AppConfig>,
     private readonly config: ConfigService,
     private readonly appsRepository: AppsRepository,
-    private readonly credentialRepository: CredentialsRepository,
-    private readonly tokensRepository: TokensRepository,
+    private readonly credentialsRepository: CredentialsRepository,
     private readonly membershipRepository: MembershipsRepository,
     private readonly usersRepository: UsersRepository
   ) {
@@ -59,7 +59,7 @@ export class StripeService {
     return this.stripe;
   }
 
-  async getStripeRedirectUrl(state: string, userEmail?: string, userName?: string | null) {
+  async getStripeRedirectUrl(state: OAuthCallbackState, userEmail?: string, userName?: string | null) {
     const { client_id } = await this.getStripeAppKeys();
 
     const stripeConnectParams: Stripe.OAuthAuthorizeUrlParams = {
@@ -73,7 +73,7 @@ export class StripeService {
         country: process.env.NEXT_PUBLIC_IS_E2E ? "US" : undefined,
       },
       redirect_uri: this.redirectUri,
-      state: state,
+      state: JSON.stringify(state),
     };
 
     const params = z.record(z.any()).parse(stripeConnectParams);
@@ -99,10 +99,12 @@ export class StripeService {
     return { client_id, client_secret };
   }
 
-  async saveStripeAccount(state: string, code: string, accessToken: string): Promise<{ url: string }> {
-    const userId = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
-    const oAuthCallbackState: IntegrationOAuthCallbackState = JSON.parse(state);
-
+  async saveStripeAccount(
+    state: OAuthCallbackState,
+    code: string,
+    userId: number,
+    teamId: number | null
+  ): Promise<{ url: string }> {
     if (!userId) {
       throw new UnauthorizedException("Invalid Access token.");
     }
@@ -111,6 +113,7 @@ export class StripeService {
       grant_type: "authorization_code",
       code: code?.toString(),
     });
+    console.log("responseeeeeeee: ", response);
 
     const data: StripeData = { ...response, default_currency: "" };
     if (response["stripe_user_id"]) {
@@ -118,42 +121,38 @@ export class StripeService {
       data["default_currency"] = account.default_currency;
     }
 
-    if (oAuthCallbackState.teamId) {
-      await this.checkIfUserHasAdminAccessToTeam(oAuthCallbackState.teamId, userId);
+    const existingCredentials = teamId
+      ? await this.credentialsRepository.findAllCredentialsByTypeAndTeamId("stripe_payment", teamId)
+      : await this.credentialsRepository.findAllCredentialsByTypeAndUserId("stripe_payment", userId);
 
-      await this.appsRepository.createTeamAppCredential(
-        "stripe_payment",
-        data as unknown as Prisma.InputJsonObject,
-        oAuthCallbackState.teamId,
-        "stripe"
-      );
-
-      return { url: getReturnToValueFromQueryState(state) };
+    const credentialIdsToDelete = existingCredentials.map((item) => item.id);
+    if (credentialIdsToDelete.length > 0) {
+      teamId
+        ? await this.appsRepository.deleteTeamAppCredentials(credentialIdsToDelete, teamId)
+        : await this.appsRepository.deleteAppCredentials(credentialIdsToDelete, userId);
     }
 
-    await this.appsRepository.createAppCredential(
-      "stripe_payment",
-      data as unknown as Prisma.InputJsonObject,
-      userId,
-      "stripe"
-    );
+    teamId
+      ? await this.appsRepository.createTeamAppCredential(
+          "stripe_payment",
+          data as unknown as Prisma.InputJsonObject,
+          teamId,
+          "stripe"
+        )
+      : await this.appsRepository.createAppCredential(
+          "stripe_payment",
+          data as unknown as Prisma.InputJsonObject,
+          userId,
+          "stripe"
+        );
 
-    return { url: getReturnToValueFromQueryState(state) };
+    return { url: state.returnTo ?? "" };
   }
 
   async checkIfIndividualStripeAccountConnected(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
-    const stripeCredentials = await this.credentialRepository.findCredentialByTypeAndUserId(
+    const stripeCredentials = await this.credentialsRepository.findCredentialByTypeAndUserId(
       "stripe_payment",
       userId
-    );
-
-    return await this.validateStripeCredentials(stripeCredentials);
-  }
-
-  async checkIfTeamStripeAccountConnected(teamId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
-    const stripeCredentials = await this.credentialRepository.findCredentialByTypeAndTeamId(
-      "stripe_payment",
-      teamId
     );
 
     return await this.validateStripeCredentials(stripeCredentials);
@@ -183,6 +182,7 @@ export class StripeService {
     const stripeKeyObject = JSON.parse(stripeKey);
 
     const stripeAccount = await stripeInstance.accounts.retrieve(stripeKeyObject?.stripe_user_id);
+    console.log("stripeAccounstripeAccountt: ", stripeAccount);
 
     // both of these should be true for an account to be fully active
     if (!stripeAccount.payouts_enabled || !stripeAccount.charges_enabled) {
