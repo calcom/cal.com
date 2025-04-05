@@ -136,14 +136,22 @@ export const pageObject = {
       pageObject.dialog.openFieldTypeDropdown({ dialog });
       fireEvent.click(dialog.getByTestId(`select-option-${fieldType}`));
     },
-    fillInFieldIdentifier: ({
+    fillInFieldIdentifier: async ({
       dialog,
       identifier,
     }: {
       dialog: TestingLibraryElement;
       identifier: string;
     }) => {
-      fireEvent.change(dialog.getAllByRole("textbox")[0], { target: { value: identifier } });
+      fireEvent.click(dialog.getByTestId("field-identifier"));
+
+      await waitFor(() => {
+        expect(dialog.getByTestId("name")).toBeInTheDocument();
+      });
+
+      fireEvent.change(dialog.getByTestId("name"), { target: { value: identifier } });
+
+      await expect(input).toHaveValue(identifier);
     },
     fillInFieldLabel: ({
       dialog,
@@ -192,8 +200,8 @@ export const verifier = {
   verifyFieldAddition: async (props: FieldProps) => {
     const dialog = pageObject.openAddFieldDialog();
     pageObject.dialog.selectFieldType({ dialog, fieldType: props.fieldType });
-    pageObject.dialog.fillInFieldIdentifier({ dialog, identifier: props.identifier });
     pageObject.dialog.fillInFieldLabel({ dialog, label: props.label, fieldType: props.fieldType });
+    await pageObject.dialog.fillInFieldIdentifier({ dialog, identifier: props.identifier });
     pageObject.dialog.saveField({ dialog: getEditDialogForm() });
 
     await waitFor(() => {
@@ -202,7 +210,7 @@ export const verifier = {
   },
   verifyIdentifierChange: async (props: { newIdentifier: string; existingIdentifier: string }) => {
     const dialog = pageObject.openEditFieldDialog({ identifier: props.existingIdentifier });
-    pageObject.dialog.fillInFieldIdentifier({ dialog, identifier: props.newIdentifier });
+    await pageObject.dialog.fillInFieldIdentifier({ dialog, identifier: props.newIdentifier });
     pageObject.dialog.saveField({ dialog });
 
     await waitFor(() => {
