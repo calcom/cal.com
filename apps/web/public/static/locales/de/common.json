@@ -706,7 +706,7 @@
   "account_deletion_cannot_be_undone": "Seien Sie vorsichtig. Die Kontolöschung kann nicht rückgängig gemacht werden.",
   "team_deletion_cannot_be_undone": "Seien Sie vorsichtig. Die Teamlöschung kann nicht rückgängig gemacht werden.",
   "back": "Zurück",
-  "cancel": "Abbrechen",
+  "cancel": "Stornieren",
   "cancel_all_remaining": "Alle verbleibenden absagen",
   "apply": "Anwenden",
   "cancel_event": "Termin absagen",
