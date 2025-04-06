@@ -7,7 +7,7 @@ import { prisma, availabilityUserSelect } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
-import type { TEventInputSchema } from "@calcom/trpc/server/routers/viewer/eventTypes/getPublicEvent.schema";
+import type { TEventInputSchema } from "@calcom/trpc/server/routers/publicViewer/event.schema";
 import type { Ensure } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
