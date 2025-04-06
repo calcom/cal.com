@@ -33,7 +33,7 @@ If you run it on localhost, check out the [additional information](https://githu
 
 ## Triggers
 
-Booking created, Booking rescheduled, Booking cancelled, Meeting ended, Out Of Office Created
+Booking created, Booking rescheduled, Booking cancelled, Meeting ended, Out Of Office Created, Booking No-Show Updated
 
 ### Booking created
 
@@ -75,6 +75,25 @@ Create the other triggers (booking rescheduled, booking cancelled and meeting en
    - PerformList: GET `<baseUrl>`/api/integrations/zapier/listOOOEntries
 3. Test your API request
 4. Note: When creating the ZAP you need to remember that data is stored in the { payload: { oooEntry: { ... } } }
+
+### Booking No-Show Updated
+
+1. Settings
+   - Key: booking_no_show_updated
+   - Name: Booking No-Show Updated
+   - Noun: Booking
+   - Description: Triggers when an attendee or host is marked as no-show
+2. API Configuration (apiKey is set automatically, leave it like it is):
+   - Trigger Type: REST Hook
+   - Subscribe: POST `<baseUrl>`/api/integrations/zapier/addSubscription
+     - Request Body
+       - subscriberUrl: {{bundle.targetUrl}}
+       - triggerEvent: BOOKING_NO_SHOW_UPDATED
+   - Unsubscribe: DELETE `<baseUrl>`/api/integrations/zapier/deleteSubscription
+     - URL Params (in addition to apiKey)
+       - id: {{bundle.subscribeData.id}}
+   - PerformList: GET `<baseUrl>`/api/integrations/zapier/listBookings
+3. Test your API request
 
 ### Set ZAPIER_INVITE_LINK
 
