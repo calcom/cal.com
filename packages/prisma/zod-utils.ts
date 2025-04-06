@@ -375,6 +375,7 @@ export enum BillingPeriod {
 
 export const teamMetadataSchema = z
   .object({
+    defaultConferencingApp: schemaDefaultConferencingApp.optional(),
     requestedSlug: z.string().or(z.null()),
     paymentId: z.string(),
     subscriptionId: z.string().nullable(),
@@ -635,6 +636,8 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   recurringEvent: true,
   customInputs: true,
   disableGuests: true,
+  disableCancelling: true,
+  disableRescheduling: true,
   requiresConfirmation: true,
   canSendCalVideoTranscriptionEmails: true,
   requiresConfirmationForFreeEmail: true,

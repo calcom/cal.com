@@ -1,4 +1,3 @@
-import { getTRPCContext } from "app/_trpc/context";
 import { type GetServerSidePropsContext } from "next";
 import type { Session } from "next-auth";
 import { z } from "zod";
@@ -9,34 +8,16 @@ import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { EventRepository } from "@calcom/lib/server/repository/event";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
-import { publicViewerRouter } from "@calcom/trpc/server/routers/publicViewer/_router";
-import { createCallerFactory } from "@calcom/trpc/server/trpc";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 type Props = {
-  eventData: Omit<
-    Pick<
-      NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>,
-      "id" | "length" | "metadata" | "entity" | "profile" | "title" | "subsetOfUsers" | "hidden"
-    >,
-    "profile" | "subsetOfUsers"
-  > & {
-    profile: {
-      image: string | undefined;
-      name: string | null;
-      username: string | null;
-    };
-    users: {
-      username: string;
-      name: string;
-    }[];
-  };
-
+  eventData: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
   booking?: GetBookingType;
   rescheduleUid: string | null;
   bookingUid: string | null;
@@ -58,7 +39,18 @@ async function processReschedule({
   rescheduleUid: string | string[] | undefined;
 }) {
   if (!rescheduleUid) return;
+
   const booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
+
+  if (booking?.eventType?.disableRescheduling) {
+    return {
+      redirect: {
+        destination: `/booking/${rescheduleUid}`,
+        permanent: false,
+      },
+    };
+  }
+
   // if no booking found, no eventTypeId (dynamic) or it matches this eventData - return void (success).
   if (booking === null || !booking.eventTypeId || booking?.eventTypeId === props.eventData?.id) {
     props.booking = booking;
@@ -134,15 +126,16 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const trpcContext = await getTRPCContext();
-  const createCaller = createCallerFactory(publicViewerRouter);
-  const caller = createCaller(trpcContext);
-  const eventData = await caller.event({
-    username: usernames.join("+"),
-    eventSlug: slug,
-    org,
-    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-  });
+
+  const eventData = await EventRepository.getPublicEvent(
+    {
+      username: usernames.join("+"),
+      eventSlug: slug,
+      org,
+      fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
+    },
+    session?.user?.id
+  );
 
   if (!eventData) {
     return {
@@ -152,24 +145,11 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
 
   const props: Props = {
     eventData: {
-      id: eventData.id,
-      entity: eventData.entity,
-      length: eventData.length,
+      ...eventData,
       metadata: {
         ...eventData.metadata,
         multipleDuration: [15, 30, 45, 60, 90],
       },
-      profile: {
-        image: eventData.profile.image,
-        name: eventData.profile.name ?? null,
-        username: eventData.profile.username ?? null,
-      },
-      title: eventData.title,
-      users: eventData.subsetOfUsers.map((user) => ({
-        username: user.username ?? "",
-        name: user.name ?? "",
-      })),
-      hidden: eventData.hidden,
     },
     user: usernames.join("+"),
     slug,
@@ -230,15 +210,15 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const org = isValidOrgDomain ? currentOrgDomain : null;
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we can show a 404 otherwise.
-  const trpcContext = await getTRPCContext();
-  const createCaller = createCallerFactory(publicViewerRouter);
-  const caller = createCaller(trpcContext);
-  const eventData = await caller.event({
-    username,
-    eventSlug: slug,
-    org,
-    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-  });
+  const eventData = await EventRepository.getPublicEvent(
+    {
+      username,
+      eventSlug: slug,
+      org,
+      fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
+    },
+    session?.user?.id
+  );
 
   if (!eventData) {
     return {
@@ -253,23 +233,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     : user?.allowSEOIndexing;
 
   const props: Props = {
-    eventData: {
-      id: eventData.id,
-      entity: eventData.entity,
-      length: eventData.length,
-      metadata: eventData.metadata,
-      profile: {
-        image: eventData.profile.image,
-        name: eventData.profile.name ?? null,
-        username: eventData.profile.username ?? null,
-      },
-      title: eventData.title,
-      users: eventData.subsetOfUsers.map((user) => ({
-        username: user.username ?? "",
-        name: user.name ?? "",
-      })),
-      hidden: eventData.hidden,
-    },
+    eventData: eventData,
     user: username,
     slug,
     isBrandingHidden: user?.hideBranding,

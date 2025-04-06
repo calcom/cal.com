@@ -1,4 +1,4 @@
-import { getTRPCContext } from "app/_trpc/context";
+import { createRouterCaller } from "app/_trpc/context";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
@@ -13,7 +13,6 @@ import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
-import { createCallerFactory } from "@calcom/trpc/server/trpc";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -51,9 +50,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   let userTimeFormat: number | null = null;
   let requiresLoginToUpdate = false;
   if (session) {
-    const trpcContext = await getTRPCContext();
-    const createCaller = createCallerFactory(meRouter);
-    const caller = createCaller(trpcContext);
+    const caller = await createRouterCaller(meRouter);
     const user = await caller.get();
     tz = user.timeZone;
     userTimeFormat = user.timeFormat;

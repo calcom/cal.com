@@ -126,7 +126,6 @@ function Success(props: PageProps) {
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
   const { eventType, bookingInfo, requiresLoginToUpdate, rescheduledToUid } = props;
-
   const {
     allRemainingBookings,
     isSuccessBookingPage,
@@ -137,6 +136,7 @@ function Success(props: PageProps) {
     noShow,
     rating,
   } = querySchema.parse(routerQuery);
+
   const attendeeTimeZone = bookingInfo?.attendees.find((attendee) => attendee.email === email)?.timeZone;
 
   const isFeedbackMode = !!(noShow || rating);
@@ -387,6 +387,12 @@ function Success(props: PageProps) {
   const isPastBooking = isBookingInPast;
   const isRerouting = searchParams?.get("cal.rerouting") === "true";
   const isRescheduled = bookingInfo?.rescheduled;
+
+  const canCancelOrReschedule = !eventType?.disableCancelling || !eventType?.disableRescheduling;
+  const canCancelAndReschedule = !eventType?.disableCancelling && !eventType?.disableRescheduling;
+
+  const canCancel = !eventType?.disableCancelling;
+  const canReschedule = !eventType?.disableRescheduling;
 
   const successPageHeadline = (() => {
     if (needsConfirmationAndReschedulable) {
@@ -729,6 +735,7 @@ function Success(props: PageProps) {
                       (!needsConfirmation || !userIsOwner) &&
                       isReschedulable &&
                       !isRerouting &&
+                      canCancelOrReschedule &&
                       (!isCancellationMode ? (
                         <>
                           <hr className="border-subtle mb-8" />
@@ -739,7 +746,8 @@ function Success(props: PageProps) {
 
                             <>
                               {!props.recurringBookings &&
-                                (!isBookingInPast || eventType.allowReschedulingPastBookings) && (
+                                (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
+                                canReschedule && (
                                   <span className="text-default inline">
                                     <span className="underline" data-testid="reschedule-link">
                                       <Link
@@ -752,19 +760,23 @@ function Success(props: PageProps) {
                                         {t("reschedule")}
                                       </Link>
                                     </span>
-                                    <span className="mx-2">{t("or_lowercase")}</span>
+                                    {canCancelAndReschedule && (
+                                      <span className="mx-2">{t("or_lowercase")}</span>
+                                    )}
                                   </span>
                                 )}
 
-                              <button
-                                data-testid="cancel"
-                                className={classNames(
-                                  "text-default underline",
-                                  props.recurringBookings && "ltr:mr-2 rtl:ml-2"
-                                )}
-                                onClick={() => setIsCancellationMode(true)}>
-                                {t("cancel")}
-                              </button>
+                              {canCancel && (
+                                <button
+                                  data-testid="cancel"
+                                  className={classNames(
+                                    "text-default underline",
+                                    props.recurringBookings && "ltr:mr-2 rtl:ml-2"
+                                  )}
+                                  onClick={() => setIsCancellationMode(true)}>
+                                  {t("cancel")}
+                                </button>
+                              )}
                             </>
                           </div>
                         </>

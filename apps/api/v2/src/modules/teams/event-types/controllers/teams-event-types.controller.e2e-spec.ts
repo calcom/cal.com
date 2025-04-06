@@ -17,7 +17,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
 import {
   BookingWindowPeriodInputTypeEnum_2024_06_14,
   BookerLayoutsInputEnum_2024_06_14,
@@ -27,6 +27,7 @@ import {
 import {
   ApiSuccessResponse,
   CreateTeamEventTypeInput_2024_06_14,
+  EventTypeOutput_2024_06_14,
   Host,
   TeamEventTypeOutput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
@@ -217,6 +218,32 @@ describe("Organizations Event Types Endpoints", () => {
       );
     });
 
+    it("should not allow creating an event type with integration not installed on team", async () => {
+      const body: CreateTeamEventTypeInput_2024_06_14 = {
+        title: "Coding consultation",
+        slug: "coding-consultation",
+        description: "Our team will review your codebase.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "zoom",
+          },
+        ],
+        schedulingType: "COLLECTIVE",
+        hosts: [
+          {
+            userId: teamMember1.id,
+          },
+          {
+            userId: teamMember2.id,
+          },
+        ],
+      };
+
+      return request(app.getHttpServer()).post(`/v2/teams/${team.id}/event-types`).send(body).expect(400);
+    });
+
     it("should create a collective team event-type", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
         title: `teams-event-types-collective-${randomString()}`,
@@ -390,6 +417,40 @@ describe("Organizations Event Types Endpoints", () => {
         });
     });
 
+    it("managed team event types should be returned when fetching event types of users", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/event-types?username=${teamMember1.username}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          const data = responseBody.data;
+          expect(data.length).toEqual(1);
+          expect(data[0].slug).toEqual(managedEventType.slug);
+          expect(data[0].ownerId).toEqual(teamMember1.id);
+          expect(data[0].id).not.toEqual(managedEventType.id);
+        });
+    });
+
+    it("managed team event type should be returned when fetching event types of users", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/event-types?username=${teamMember1.username}&eventSlug=${managedEventType.slug}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          const data = responseBody.data;
+          expect(data.length).toEqual(1);
+          expect(data[0].slug).toEqual(managedEventType.slug);
+          expect(data[0].ownerId).toEqual(teamMember1.id);
+          expect(data[0].id).not.toEqual(managedEventType.id);
+        });
+    });
+
     it("should not get a non existing event-type", async () => {
       return request(app.getHttpServer()).get(`/v2/teams/${team.id}/event-types/999999`).expect(404);
     });
@@ -443,6 +504,22 @@ describe("Organizations Event Types Endpoints", () => {
 
       return request(app.getHttpServer())
         .patch(`/v2/teams/${team.id}/event-types/999999`)
+        .send(body)
+        .expect(400);
+    });
+
+    it("should not allow to update event type with integration not installed on team", async () => {
+      const body: UpdateTeamEventTypeInput_2024_06_14 = {
+        locations: [
+          {
+            type: "integration",
+            integration: "office365-video",
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/v2/teams/${team.id}/event-types/${collectiveEventType.id}`)
         .send(body)
         .expect(400);
     });

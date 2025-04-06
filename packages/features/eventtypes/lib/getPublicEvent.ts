@@ -82,6 +82,8 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
     price: true,
     currency: true,
     seatsPerTimeSlot: true,
+    disableCancelling: true,
+    disableRescheduling: true,
     seatsShowAvailabilityCount: true,
     bookingFields: true,
     teamId: true,
@@ -517,6 +519,8 @@ export const getPublicEvent = async (
     instantMeetingParameters: eventWithUserProfiles.instantMeetingParameters,
     aiPhoneCallConfig: eventWithUserProfiles.aiPhoneCallConfig,
     assignAllTeamMembers: event.assignAllTeamMembers,
+    disableCancelling: event.disableCancelling,
+    disableRescheduling: event.disableRescheduling,
     interfaceLanguage: event.interfaceLanguage,
   };
 };
