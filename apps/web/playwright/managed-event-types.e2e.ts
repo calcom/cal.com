@@ -31,6 +31,8 @@ test.describe("Managed Event Types", () => {
     // Let's create a team
     // Going to create an event type
     await page.goto("/event-types");
+    const tabItem = page.getByTestId(`horizontal-tab-${adminUser?.name}`);
+    await expect(tabItem).toBeVisible();
     await page.getByTestId("new-event-type").click();
     await page.getByTestId("option-team-1").click();
     // Expecting we can add a managed event type as team owner

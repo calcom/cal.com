@@ -765,7 +765,10 @@ test.describe("Out of office", () => {
 
       //By Default future OOO will be displayed
       //1 OOO record should be visible for member3, end=currentDate+4days
-      expect(await page.locator('[data-testid^="table-redirect-"]').count()).toBe(1);
+      const oooEntries = page.locator('[data-testid="ooo-actions"]');
+      const oooEntriesCount = await oooEntries.count();
+
+      expect(oooEntriesCount).toBe(1);
       await expect(page.locator(`data-testid=table-redirect-n-a`).nth(0)).toBeVisible();
 
       //Default filter 'Last 7 Days' when DateRange Filter is selected

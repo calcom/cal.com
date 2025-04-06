@@ -829,7 +829,7 @@ async function addAllTypesOfFieldsAndSaveForm(
   form: { description: string; label: string }
 ) {
   await page.goto(`apps/routing-forms/form-edit/${formId}`);
-  await expect(page.locator('text="Send Email to"')).toBeVisible();
+  await expect(page.locator('text="Test Preview"')).toBeVisible();
   await page.click('[data-testid="add-field"]');
 
   const { optionsInUi: fieldTypesList } = await verifySelectOptions(
