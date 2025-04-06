@@ -511,10 +511,8 @@ export async function confirmBooking(page: Page, url = "/api/book/event") {
 }
 
 export async function gotoAndWaitForIdle(page: Page, url: string) {
-  page.goto(url);
-  await page.waitForResponse((res) =>
-    res.url().includes("/api/trpc/i18n/get") && res.status() === 200
-  );
+  await page.goto(url);
+  await page.locator("html[lang=en]").waitFor({ state: "attached" });
 }
 
 export async function bookTeamEvent({
