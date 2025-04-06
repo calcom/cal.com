@@ -94,7 +94,7 @@ const ProfileView = () => {
   const { update } = useSession();
   const { data: user, isPending } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
 
-  const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
+  const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
       utils.viewer.me.invalidate();

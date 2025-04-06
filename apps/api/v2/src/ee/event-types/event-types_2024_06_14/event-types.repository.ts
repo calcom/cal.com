@@ -111,6 +111,18 @@ export class EventTypesRepository_2024_06_14 {
     });
   }
 
+  async getUserEventTypeBySlugWithOwnerAndTeam(userId: number, slug: string) {
+    return this.dbRead.prisma.eventType.findUnique({
+      where: {
+        userId_slug: {
+          userId: userId,
+          slug: slug,
+        },
+      },
+      include: { owner: true, team: true },
+    });
+  }
+
   async deleteEventType(eventTypeId: number) {
     return this.dbWrite.prisma.eventType.delete({ where: { id: eventTypeId } });
   }
