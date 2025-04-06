@@ -429,7 +429,7 @@ export default class GoogleCalendarService implements Calendar {
     this.log.debug("Creating event");
     const formattedCalEvent = formatCalEvent(calEventRaw);
 
-    // const participants = await this.getMeetParticipants(null, "testss@cal.com");
+    // const participants = await this.getMeetParticipants(null, "udit@cal.com");
     // console.log("participants", participants);
 
     const payload: calendar_v3.Schema$Event = {
@@ -757,18 +757,7 @@ export default class GoogleCalendarService implements Calendar {
         throw new Error("Invalid meeting URL");
       }
 
-      const spaceInfo = await meetService.getSpace(meetingCode);
-      console.log("spaceInfo", spaceInfo);
-      const spaceName = spaceInfo.name;
-      const conferenceRecords = [];
-
-      const allConferenceRecords = await meetService.listConferenceRecordsAsync();
-      console.log("allConferenceRecords", allConferenceRecords);
-      for (const conferenceRecord of allConferenceRecords) {
-        if (conferenceRecord.space === spaceName) {
-          conferenceRecords.push(conferenceRecord);
-        }
-      }
+      const conferenceRecords = await meetService.listConferenceRecordsByMeetingCode(meetingCode);
 
       const participantsByConferenceRecord = await Promise.all(
         conferenceRecords.map(async (conferenceRecord) => {
@@ -779,6 +768,8 @@ export default class GoogleCalendarService implements Calendar {
           return participants;
         })
       );
+
+      // return participantsByConferenceRecord;
 
       const participantsWithEmails = await Promise.all(
         participantsByConferenceRecord.map(async (participants) => {

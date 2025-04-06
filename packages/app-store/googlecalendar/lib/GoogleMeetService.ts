@@ -28,6 +28,8 @@ export class GoogleMeetService {
   private auth: JWT;
   private baseUrl = "https://meet.googleapis.com/v2";
   private adminDirectoryService: GoogleAdminDirectoryService;
+  private accessToken: string | null = null;
+  private tokenExpiry: number | null = null;
 
   constructor(credentials: { client_email: string; private_key: string }, emailToImpersonate: string) {
     this.auth = new JWT({
@@ -49,13 +51,28 @@ export class GoogleMeetService {
     await this.auth.authorize();
   }
 
+  private async getAccessToken(): Promise<string> {
+    // If we have a valid token, return it
+    if (this.accessToken && this.tokenExpiry && Date.now() < this.tokenExpiry) {
+      return this.accessToken;
+    }
+
+    const { token } = await this.auth.getAccessToken();
+    if (!token) {
+      throw new Error("Failed to get access token");
+    }
+    this.accessToken = token;
+    this.tokenExpiry = this.auth.credentials.expiry_date || null;
+    return token;
+  }
+
   private async makeRequest<T>(endpoint: string, method = "GET"): Promise<T> {
-    const token = await this.auth.getAccessToken();
+    const token = await this.getAccessToken();
     console.log("token", token);
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method,
       headers: {
-        Authorization: `Bearer ${token.token}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
     });
@@ -79,6 +96,12 @@ export class GoogleMeetService {
     return this.makeRequest<{ conferenceRecords: MeetConferenceRecord[] }>("/conferenceRecords").then(
       (response) => response.conferenceRecords
     );
+  }
+
+  async listConferenceRecordsByMeetingCode(meetingCode: string) {
+    return this.makeRequest<{ conferenceRecords: MeetConferenceRecord[] }>(
+      `/conferenceRecords?filter=space.meeting_code="${meetingCode}"`
+    ).then((response) => response.conferenceRecords);
   }
 
   async getParticipants(conferenceRecordId: string): Promise<MeetParticipant[]> {
