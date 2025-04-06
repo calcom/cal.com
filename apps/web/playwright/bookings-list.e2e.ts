@@ -364,6 +364,7 @@ test.describe("Bookings", () => {
       .locator(`[data-testid="multi-select-options-userId"] [role="option"]:has-text("${thirdUser.name}")`)
       .click();
     await bookingsGetResponse2;
+    await expect(page.locator('text="Cancel event"')).toBeVisible();
 
     //expect only 3 bookings (out of 4 total) to be shown in list.
     //where ThirdUser is either organizer or attendee

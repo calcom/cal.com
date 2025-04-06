@@ -1,4 +1,4 @@
-import type { Locator, Page } from "@playwright/test";
+saveCurrentFormimport type { Locator, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import { prisma } from "@calcom/prisma";
@@ -828,13 +828,8 @@ async function addAllTypesOfFieldsAndSaveForm(
   page: Page,
   form: { description: string; label: string }
 ) {
-  const appRoutingFormsRespPromise = page.waitForResponse(
-    (response) =>
-      response.url().includes("/api/trpc/appRoutingForms/formQuery") &&
-      response.status() === 200
-  );
   await page.goto(`apps/routing-forms/form-edit/${formId}`);
-  await appRoutingFormsRespPromise;
+  await expect(page.locator('text="Send Email to"')).toBeVisible();
   await page.click('[data-testid="add-field"]');
 
   const { optionsInUi: fieldTypesList } = await verifySelectOptions(
