@@ -203,6 +203,10 @@ export class BillingService implements OnModuleDestroy {
       if (existingUserSubscription.status === "past_due") {
         await this.billingRepository.updateBillingOverdue(subscriptionId, customerId, true);
       }
+
+      if (existingUserSubscription.status === "active") {
+        await this.billingRepository.updateBillingOverdue(subscriptionId, customerId, false);
+      }
     }
   }
 
