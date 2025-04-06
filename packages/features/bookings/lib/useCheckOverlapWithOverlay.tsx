@@ -28,11 +28,14 @@ export function useCheckOverlapWithOverlay({
     overlayBusyDates.some((busyDate) => {
       const busyDateStart = dayjs(busyDate.start);
       const busyDateEnd = dayjs(busyDate.end);
-      const selectedEndTime = dayjs(start.add(offset, "hours")).add(selectedDuration ?? 0, "minute");
+
+      // Use the offset parameter if provided, otherwise use 0
+      const adjustedStart = offset !== 0 ? start.add(offset, "hours") : start;
+      const selectedEndTime = adjustedStart.add(selectedDuration ?? 0, "minute");
 
       const isOverlapping =
         (selectedEndTime.isSame(busyDateStart) || selectedEndTime.isAfter(busyDateStart)) &&
-        start.add(offset, "hours") < busyDateEnd &&
+        adjustedStart < busyDateEnd &&
         selectedEndTime > busyDateStart;
 
       overlappingTimeStart = isOverlapping ? getCurrentTime(busyDateStart.toDate()) : null;

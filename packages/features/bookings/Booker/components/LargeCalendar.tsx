@@ -39,12 +39,17 @@ export const LargeCalendar = ({
     if (!schedule) return availableTimeslots;
     if (!schedule.slots) return availableTimeslots;
 
+    // Get the user's timezone
+    const userTimezone = dayjs.tz.guess();
+
     for (const day in schedule.slots) {
       availableTimeslots[day] = schedule.slots[day].map((slot) => {
         const { time, ...rest } = slot;
+        // Convert UTC time to user's timezone
+        const slotTime = dayjs.utc(time).tz(userTimezone);
         return {
-          start: dayjs(time).toDate(),
-          end: dayjs(time).add(eventDuration, "minutes").toDate(),
+          start: slotTime.toDate(),
+          end: slotTime.add(eventDuration, "minutes").toDate(),
           ...rest,
         };
       });

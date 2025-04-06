@@ -1,0 +1,24 @@
+{
+  "extends": "@calcom/tsconfig/react-library.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "@calcom/*": ["../../../packages/*"]
+    },
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "types": ["react", "node"],
+    "typeRoots": ["../../../node_modules/@types", "../../../packages/types"]
+  },
+  "include": [
+    ".",
+    "../../../packages/types/next-auth.d.ts",
+    "../../../packages/types/tanstack-table.d.ts",
+    "../../../packages/types/next.d.ts",
+    "../../../packages/types/Calendar.d.ts",
+    "../../../packages/types/schedule.d.ts"
+  ],
+  "exclude": ["dist", "build", "node_modules", "**/*.test.*", "**/__mocks__/*", "**/__tests__/*"]
+}
