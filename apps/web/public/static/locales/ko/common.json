@@ -3064,5 +3064,6 @@
   "meeting_satisfaction_question": "최근 미팅에 얼마나 만족하셨나요?",
   "meeting_not_joined_question": "미팅에 참여하지 않으셨나요?",
   "reschedule_cta_short": "여기서 재예약하세요.",
-  "you_and_conjunction": "당신 &"
+  "you_and_conjunction": "당신 &",
+  "email_survey_triggered_by_workflow": "이 설문은 Cal의 워크플로우에 의해 트리거되었습니다."
 }

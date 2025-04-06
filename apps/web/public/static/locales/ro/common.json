@@ -3064,5 +3064,6 @@
   "meeting_satisfaction_question": "Cât de mulțumit ai fost de ultima întâlnire?",
   "meeting_not_joined_question": "nu ai participat la întâlnire?",
   "reschedule_cta_short": "Reprogramează aici.",
-  "you_and_conjunction": "Tu &"
+  "you_and_conjunction": "Tu &",
+  "email_survey_triggered_by_workflow": "Acest sondaj a fost declanșat de un Workflow în Cal."
 }

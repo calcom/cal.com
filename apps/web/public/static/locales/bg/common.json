@@ -3064,5 +3064,6 @@
   "meeting_satisfaction_question": "Колко сте доволни от последната си среща?",
   "meeting_not_joined_question": "не присъствахте на срещата?",
   "reschedule_cta_short": "Пренасрочете тук.",
-  "you_and_conjunction": "Вие &"
+  "you_and_conjunction": "Вие &",
+  "email_survey_triggered_by_workflow": "Тази анкета беше стартирана от Workflow в Cal."
 }

@@ -3064,5 +3064,6 @@
   "meeting_satisfaction_question": "ما مدى رضاك عن اجتماعك الأخير؟",
   "meeting_not_joined_question": "لم تحضر الاجتماع؟",
   "reschedule_cta_short": "أعد الجدولة من هنا",
-  "you_and_conjunction": "& أنت"
+  "you_and_conjunction": "& أنت",
+  "email_survey_triggered_by_workflow": "تم تشغيل هذا الاستبيان بواسطة سير العمل في كال."
 }

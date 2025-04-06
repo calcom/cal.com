@@ -3064,5 +3064,6 @@
   "meeting_satisfaction_question": "Kuinka tyytyväinen olit viime kokoukseen?",
   "meeting_not_joined_question": "et osallistunut kokoukseen?",
   "reschedule_cta_short": "Uudelleenaikatauluta tästä.",
-  "you_and_conjunction": "Sinä &"
+  "you_and_conjunction": "Sinä &",
+  "email_survey_triggered_by_workflow": "Tämä kysely käynnistettiin Workflow-ohjelmalla Cal-palvelussa."
 }

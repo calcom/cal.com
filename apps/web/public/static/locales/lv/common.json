@@ -160,5 +160,6 @@
   "meeting_satisfaction_question": "Cik apmierināts bijāt ar savu pēdējo tikšanos?",
   "meeting_not_joined_question": "nepiedalījāties sanāksmē?",
   "reschedule_cta_short": "Pārzīmēt šeit.",
-  "you_and_conjunction": "Jūs &"
+  "you_and_conjunction": "Jūs &",
+  "email_survey_triggered_by_workflow": "Šo aptauju aktivizēja darbplūsma Cal."
 }

@@ -65,5 +65,6 @@
   "meeting_satisfaction_question": "Ako spokojní ste boli s posledným stretnutím?",
   "meeting_not_joined_question": "nezúčastnili ste sa stretnutia?",
   "reschedule_cta_short": "Preplánujte tu.",
-  "you_and_conjunction": "Vy &"
+  "you_and_conjunction": "Vy &",
+  "email_survey_triggered_by_workflow": "Tento prieskum bol spustený pracovným postupom v Cal."
 }

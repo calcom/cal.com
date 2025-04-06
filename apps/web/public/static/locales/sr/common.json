@@ -3064,5 +3064,6 @@
   "meeting_satisfaction_question": "Колико сте задовољни последњим састанком?",
   "meeting_not_joined_question": "нисте присуствовали састанку?",
   "reschedule_cta_short": "Презакажите овде.",
-  "you_and_conjunction": "Ви &"
+  "you_and_conjunction": "Ви &",
+  "email_survey_triggered_by_workflow": "Ова анкета је покренута Воркфловом у Цал-у."
 }

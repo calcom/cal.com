@@ -3064,5 +3064,6 @@
   "meeting_satisfaction_question": "¿Qué tan satisfecho estuvo con su última reunión?",
   "meeting_not_joined_question": "¿no asististe a la reunión?",
   "reschedule_cta_short": "Reprogramar aquí.",
-  "you_and_conjunction": "Tú &"
+  "you_and_conjunction": "Tú &",
+  "email_survey_triggered_by_workflow": "Esta encuesta fue activada por un Workflow en Cal."
 }

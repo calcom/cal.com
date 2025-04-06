@@ -3064,5 +3064,6 @@
   "meeting_satisfaction_question": "Наскільки ви задоволені останньою зустріччю?",
   "meeting_not_joined_question": "не приєдналися до зустрічі?",
   "reschedule_cta_short": "Перенести тут.",
-  "you_and_conjunction": "Ви &"
+  "you_and_conjunction": "Ви &",
+  "email_survey_triggered_by_workflow": "Це опитування було запущено робочим процесом у Cal."
 }

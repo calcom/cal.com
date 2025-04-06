@@ -3064,5 +3064,6 @@
   "meeting_satisfaction_question": "Hoe tevreden was u met uw laatste vergadering?",
   "meeting_not_joined_question": "heeft u niet deelgenomen aan de vergadering?",
   "reschedule_cta_short": "Hier opnieuw plannen.",
-  "you_and_conjunction": "U &"
+  "you_and_conjunction": "U &",
+  "email_survey_triggered_by_workflow": "Deze enquête is geactiveerd door een Workflow in Cal."
 }

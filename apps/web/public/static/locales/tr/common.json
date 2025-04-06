@@ -3064,5 +3064,6 @@
   "meeting_satisfaction_question": "Son toplantınızdan ne kadar memnun kaldınız?",
   "meeting_not_joined_question": "toplantıya katılmadınız mı?",
   "reschedule_cta_short": "Buradan yeniden planla.",
-  "you_and_conjunction": "Sen &"
+  "you_and_conjunction": "Sen &",
+  "email_survey_triggered_by_workflow": "Bu anket, Cal'da bir İş Akışı tarafından tetiklendi."
 }

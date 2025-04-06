@@ -3064,5 +3064,6 @@
   "meeting_satisfaction_question": "តើអ្នកពេញចិត្តប៉ុណ្ណាជាមួយការប្រជុំថ្មីៗរបស់អ្នក?",
   "meeting_not_joined_question": "មិនបានចូលរួមការប្រជុំ?",
   "reschedule_cta_short": "កំណត់ពេលវេលាថ្មីនៅទីនេះ។",
-  "you_and_conjunction": "អ្នក &"
+  "you_and_conjunction": "អ្នក &",
+  "email_survey_triggered_by_workflow": "ការស្ទង់មតិនេះត្រូវបានបង្កើតឡើងដោយលំហូរការងារនៅក្នុង Cal។"
 }

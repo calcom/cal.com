@@ -3064,5 +3064,6 @@
   "meeting_satisfaction_question": "Kui rahul olite oma viimase kohtumisega?",
   "meeting_not_joined_question": "ei osalenud koosolekul?",
   "reschedule_cta_short": "Broneeri uuesti siit.",
-  "you_and_conjunction": "Sina &"
+  "you_and_conjunction": "Sina &",
+  "email_survey_triggered_by_workflow": "See küsitlus käivitati Cali töövooga."
 }

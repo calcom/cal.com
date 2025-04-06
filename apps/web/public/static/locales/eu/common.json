@@ -3064,5 +3064,6 @@
   "meeting_satisfaction_question": "Zenbat pozik zaude azken bilerarekin?",
   "meeting_not_joined_question": "ez zenuen bileran parte hartu?",
   "reschedule_cta_short": "Berriz programatu hemen.",
-  "you_and_conjunction": "Zu &"
+  "you_and_conjunction": "Zu &",
+  "email_survey_triggered_by_workflow": "Galdeketa hau Cal-eko Workflow baten bidez aktibatu da."
 }

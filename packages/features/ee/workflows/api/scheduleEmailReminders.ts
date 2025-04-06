@@ -243,10 +243,10 @@ export async function handler(req: NextRequest) {
           const brandingDisabled = reminder.booking.eventType?.team
             ? !!reminder.booking.eventType?.team?.hideBranding
             : !!reminder.booking.user?.hideBranding;
-
           emailContent = emailReminderTemplate({
             isEditingMode: false,
             locale: reminder.booking.user?.locale || "en",
+            t: await getTranslation(reminder.booking.user?.locale ?? "en", "common"),
             action: reminder.workflowStep.action,
             timeFormat: getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
             startTime: reminder.booking.startTime.toISOString() || "",
@@ -274,6 +274,7 @@ export async function handler(req: NextRequest) {
             isEditingMode: true,
             locale: reminder.booking.user?.locale || "en",
             action: reminder.workflowStep.action || WorkflowActions.EMAIL_ADDRESS,
+            t: await getTranslation(reminder.booking.user?.locale ?? "en", "common"),
             timeFormat: getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
             startTime: reminder.booking.startTime.toISOString() || "",
             endTime: reminder.booking.endTime.toISOString() || "",
@@ -383,6 +384,7 @@ export async function handler(req: NextRequest) {
         emailContent = emailReminderTemplate({
           isEditingMode: false,
           locale: reminder.booking.user?.locale || "en",
+          t: await getTranslation(reminder.booking.user?.locale ?? "en", "common"),
           action: WorkflowActions.EMAIL_ATTENDEE,
           timeFormat: getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
           startTime: reminder.booking.startTime.toISOString() || "",

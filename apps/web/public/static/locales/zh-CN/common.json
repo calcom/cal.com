@@ -3064,5 +3064,6 @@
   "meeting_satisfaction_question": "您对最近的会议满意吗？",
   "meeting_not_joined_question": "没有参加会议？",
   "reschedule_cta_short": "在此重新安排。",
-  "you_and_conjunction": "你 &"
+  "you_and_conjunction": "你 &",
+  "email_survey_triggered_by_workflow": "该调查由 Cal 中的工作流触发。"
 }

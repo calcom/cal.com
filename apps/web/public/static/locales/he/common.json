@@ -3064,5 +3064,6 @@
   "meeting_satisfaction_question": "?עד כמה היית מרוצה מהפגישה האחרונה שלך",
   "meeting_not_joined_question": "?לא הצטרפת לפגישה",
   "reschedule_cta_short": ".קבע מחדש כאן",
-  "you_and_conjunction": "את/ה &"
+  "you_and_conjunction": "את/ה &",
+  "email_survey_triggered_by_workflow": "הסקר הזה הופעל על ידי Workflow ב-Cal."
 }

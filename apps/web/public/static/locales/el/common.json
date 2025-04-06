@@ -3064,5 +3064,6 @@
   "meeting_satisfaction_question": "Πόσο ικανοποιημένοι ήσασταν με την τελευταία σας συνάντηση;",
   "meeting_not_joined_question": "δεν συμμετείχατε στη συνάντηση;",
   "reschedule_cta_short": "Επαναπρογραμματίστε εδώ.",
-  "you_and_conjunction": "Εσείς &"
+  "you_and_conjunction": "Εσείς &",
+   "email_survey_triggered_by_workflow": "Αυτή η έρευνα ενεργοποιήθηκε από μια ροή εργασίας στο Cal."
 }

@@ -3064,5 +3064,6 @@
   "meeting_satisfaction_question": "Què satisfet esteu amb la vostra última reunió?",
   "meeting_not_joined_question": "no vas assistir a la reunió?",
   "reschedule_cta_short": "Reprograma aquí.",
-  "you_and_conjunction": "Vosaltres &"
+  "you_and_conjunction": "Vosaltres &",
+  "email_survey_triggered_by_workflow": "Aquesta enquesta va ser activada per un Workflow a Cal."
 }

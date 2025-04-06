@@ -3064,5 +3064,6 @@
   "meeting_satisfaction_question": "Bạn hài lòng thế nào với cuộc họp gần đây?",
   "meeting_not_joined_question": "không tham gia cuộc họp?",
   "reschedule_cta_short": "Đặt lại lịch tại đây.",
-  "you_and_conjunction": "Bạn &"
+  "you_and_conjunction": "Bạn &",
+  "email_survey_triggered_by_workflow": "Khảo sát này được kích hoạt bởi Quy trình làm việc trong Cal."
 }

@@ -3063,5 +3063,6 @@
   "improve_customer_experience_message": "Həmişə müştəri təcrübəsini yaxşılaşdırmağa çalışırıq.",
   "meeting_not_joined_question": "görüşə qoşulmadınız?",
   "reschedule_cta_short": "Buradan yenidən təyin edin.",
-  "you_and_conjunction": "Siz &"
+  "you_and_conjunction": "Siz &",
+  "email_survey_triggered_by_workflow": "Bu sorğu Cal-da Workflow tərəfindən başladıldı."
 }

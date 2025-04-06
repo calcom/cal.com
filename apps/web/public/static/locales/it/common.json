@@ -3064,5 +3064,6 @@
   "meeting_satisfaction_question": "Quanto sei soddisfatto del tuo ultimo incontro?",
   "meeting_not_joined_question": "non hai partecipato all'incontro?",
   "reschedule_cta_short": "Riprogramma qui.",
-  "you_and_conjunction": "Tu &"
+  "you_and_conjunction": "Tu &",
+  "email_survey_triggered_by_workflow": "Questo sondaggio è stato attivato da un Workflow in Cal."
 }
