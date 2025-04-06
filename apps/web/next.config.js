@@ -391,6 +391,11 @@ const nextConfig = {
         source: "/icons/sprite.svg",
         destination: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/icons/sprite.svg`,
       },
+      // for @dub/analytics, @see: https://d.to/reverse-proxy
+      {
+        source: "/_proxy/dub/track/:path",
+        destination: "https://api.dub.co/track/:path",
+      },
 
       // When updating this also update pagesAndRewritePaths.js
       ...[

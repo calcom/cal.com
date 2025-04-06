@@ -35,6 +35,7 @@ function Type({ slug, user, isEmbed, booking, isBrandingHidden, eventData, orgBa
           eventSlug={slug}
           bookingData={booking}
           hideBranding={isBrandingHidden}
+          eventData={eventData}
           entity={{ ...eventData.entity, eventTypeId: eventData?.id }}
           durationConfig={eventData.metadata?.multipleDuration}
           orgBannerUrl={orgBannerUrl}

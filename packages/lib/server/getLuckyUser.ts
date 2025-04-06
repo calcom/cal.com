@@ -408,6 +408,7 @@ async function getCalendarBusyTimesOfInterval(
         getIntervalStartDate(interval).toISOString(),
         new Date().toISOString(),
         user.userLevelSelectedCalendars,
+        true,
         true
       ).then((busyTimes) => ({
         userId: user.id,
