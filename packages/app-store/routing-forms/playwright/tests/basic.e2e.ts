@@ -830,7 +830,7 @@ async function addAllTypesOfFieldsAndSaveForm(
 ) {
   const appRoutingFormsRespPromise = page.waitForResponse(
     (response) =>
-      response.url().includes("/api/trpc/appRoutingForms/formQuery,getIncompleteBookingSettings?batch=1") &&
+      response.url().includes("/api/trpc/appRoutingForms/formQuery?batch=1") &&
       response.status() === 200
   );
   await page.goto(`apps/routing-forms/form-edit/${formId}`);
