@@ -1,4 +1,5 @@
 import { wrapApiHandlerWithSentry } from "@sentry/nextjs";
+import { captureException } from "@sentry/nextjs";
 import type { Params } from "app/_types";
 import { ApiError } from "next/dist/server/api-utils";
 import type { NextRequest } from "next/server";
@@ -48,7 +49,6 @@ export const defaultResponderForAppDir = <T extends NextResponse | Response = Ne
       // Don't report 400-499 errors to Sentry/console
       if (!(serverError.statusCode >= 400 && serverError.statusCode < 500)) {
         console.error(serverError);
-        const captureException = (await import("@sentry/nextjs")).captureException;
         captureException(error);
       }
 

@@ -1,9 +1,11 @@
 "use client";
 
 import type { SortingState, OnChangeFn, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
+// eslint-disable-next-line no-restricted-imports
+import debounce from "lodash/debounce";
 import { usePathname } from "next/navigation";
-import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger } from "nuqs";
-import { createContext, useCallback, useEffect, useRef } from "react";
+import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger, parseAsString } from "nuqs";
+import { createContext, useCallback, useEffect, useRef, useMemo } from "react";
 
 import { useSegments } from "./lib/segments";
 import {
@@ -15,10 +17,11 @@ import {
   type FilterSegmentOutput,
   type ActiveFilters,
 } from "./lib/types";
+import { CTA_CONTAINER_CLASS_NAME } from "./lib/utils";
 
 export type DataTableContextType = {
   tableIdentifier: string;
-  ctaContainerRef?: React.RefObject<HTMLDivElement>;
+  ctaContainerRef: React.RefObject<HTMLDivElement>;
 
   activeFilters: ActiveFilters;
   clearAll: (exclude?: string[]) => void;
@@ -48,6 +51,9 @@ export type DataTableContextType = {
   segmentId: number | undefined;
   setSegmentId: (id: number | null) => void;
   canSaveSegment: boolean;
+
+  searchTerm: string;
+  setSearchTerm: (searchTerm: string | null) => void;
 };
 
 export const DataTableContext = createContext<DataTableContextType | null>(null);
@@ -69,7 +75,7 @@ export function DataTableProvider({
   tableIdentifier: _tableIdentifier,
   children,
   defaultPageSize = DEFAULT_PAGE_SIZE,
-  ctaContainerClassName,
+  ctaContainerClassName = CTA_CONTAINER_CLASS_NAME,
 }: DataTableProviderProps) {
   const [activeFilters, setActiveFilters] = useQueryState(
     "activeFilters",
@@ -90,6 +96,12 @@ export function DataTableProvider({
   const [segmentId, setSegmentId] = useQueryState("segment", parseAsInteger.withDefault(-1));
   const [pageIndex, setPageIndex] = useQueryState("page", parseAsInteger.withDefault(0));
   const [pageSize, setPageSize] = useQueryState("size", parseAsInteger.withDefault(defaultPageSize));
+  const [searchTerm, setSearchTerm] = useQueryState("q", parseAsString.withDefault(""));
+
+  const setDebouncedSearchTerm = useMemo(
+    () => debounce((value: string | null) => setSearchTerm(value ? value.trim() : null), 500),
+    [setSearchTerm]
+  );
 
   const pathname = usePathname() as string | null;
   const tableIdentifier = _tableIdentifier ?? pathname ?? undefined;
@@ -106,17 +118,6 @@ export function DataTableProvider({
       }
     },
     [activeFilters, setActiveFilters]
-  );
-
-  const clearAll = useCallback(
-    (exclude?: string[]) => {
-      setPageIndex(null);
-      setActiveFilters((prev) => {
-        const remainingFilters = prev.filter((filter) => exclude?.includes(filter.f));
-        return remainingFilters.length === 0 ? null : remainingFilters;
-      });
-    },
-    [setActiveFilters, setPageIndex]
   );
 
   const setPageIndexWrapper = useCallback(
@@ -158,10 +159,10 @@ export function DataTableProvider({
 
   const setPageSizeAndGoToFirstPage = useCallback(
     (newPageSize: number | null) => {
-      setPageSize(newPageSize === DEFAULT_PAGE_SIZE ? null : newPageSize);
+      setPageSize(newPageSize === defaultPageSize ? null : newPageSize);
       setPageIndex(null);
     },
-    [setPageSize, setPageIndex]
+    [setPageSize, setPageIndex, defaultPageSize]
   );
 
   const { segments, selectedSegment, canSaveSegment, setSegmentIdAndSaveToLocalStorage } = useSegments({
@@ -181,6 +182,18 @@ export function DataTableProvider({
     setPageSize,
     setPageIndex,
   });
+
+  const clearAll = useCallback(
+    (exclude?: string[]) => {
+      setSegmentIdAndSaveToLocalStorage(null);
+      setPageIndex(null);
+      setActiveFilters((prev) => {
+        const remainingFilters = prev.filter((filter) => exclude?.includes(filter.f));
+        return remainingFilters.length === 0 ? null : remainingFilters;
+      });
+    },
+    [setActiveFilters, setPageIndex, setSegmentIdAndSaveToLocalStorage]
+  );
 
   const ctaContainerRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -217,6 +230,8 @@ export function DataTableProvider({
         segmentId: segmentId || undefined,
         setSegmentId: setSegmentIdAndSaveToLocalStorage,
         canSaveSegment,
+        searchTerm,
+        setSearchTerm: setDebouncedSearchTerm,
       }}>
       {children}
     </DataTableContext.Provider>
