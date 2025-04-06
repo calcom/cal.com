@@ -3053,5 +3053,16 @@
   "most_cancelled_bookings": "Bertan behera utzitako erreserba gehienak",
   "name_or_email": "Izena edo helbide elektronikoa",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Kontakturik aurkitzen ez bada, itzuli bezeroen arduradunera existitzen bada",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time" : "Data eta ordua",
+  "email_reminder_upcoming_event_notice" : "Hau zure hurrengo ekitaldiari buruzko abisua da.",
+  "email_reminder_triggered_by_workflow" : "Abisu hau Cal-eko lan-fluxu batek abiarazi zuen.",
+  "event_upper_case": "Gertaera",
+  "scheduling_by": "Antolatzailea",
+  "experience_review_prompt": "Zein izan da zure azken esperientzia?",
+  "improve_customer_experience_message": "Bezeroaren esperientzia hobetzen saiatzen gara beti.",
+  "meeting_satisfaction_question": "Zenbat pozik zaude azken bilerarekin?",
+  "meeting_not_joined_question": "ez zenuen bileran parte hartu?",
+  "reschedule_cta_short": "Berriz programatu hemen.",
+  "you_and_conjunction": "Zu &"
 }

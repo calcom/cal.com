@@ -3053,5 +3053,16 @@
   "most_cancelled_bookings": "Najviše otkazanih rezervacija",
   "name_or_email": "Ime ili email",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Ako kontakt nije pronađen, vrati se na vlasnika potencijalnog klijenta ako postoji",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time": "Датум и време",
+  "email_reminder_upcoming_event_notice": "Ово је подсетник за ваш предстојећи догађај.",
+  "email_reminder_triggered_by_workflow": "Овај подсетник је покренут путем Workflow-а у Cal-у.",
+  "event_upper_case": "Догађај",
+  "scheduling_by": "Планирање до",
+  "experience_review_prompt": "Како је било ваше последње искуство?",
+  "improve_customer_experience_message": "Стално побољшавамо клијентско искуство.",
+  "meeting_satisfaction_question": "Колико сте задовољни последњим састанком?",
+  "meeting_not_joined_question": "нисте присуствовали састанку?",
+  "reschedule_cta_short": "Презакажите овде.",
+  "you_and_conjunction": "Ви &"
 }

@@ -3053,5 +3053,16 @@
   "most_cancelled_bookings": "En çok iptal edilen rezervasyonlar",
   "name_or_email": "İsim veya E-posta",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Hiçbir kişi bulunamazsa, eğer varsa müşteri adayı sahibine geri dön",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time": "Tarih ve saat",
+  "email_reminder_upcoming_event_notice": "Bu, yaklaşan etkinliğinizle ilgili bir hatırlatmadır.",
+  "email_reminder_triggered_by_workflow": "Bu hatırlatma, Cal'daki bir İş Akışı tarafından tetiklendi.",
+  "event_upper_case": "Etkinlik",
+  "scheduling_by": "Planlayan",
+  "experience_review_prompt": "Son deneyiminiz nasıldı?",
+  "improve_customer_experience_message": "Müşteri deneyimini sürekli iyileştiriyoruz.",
+  "meeting_satisfaction_question": "Son toplantınızdan ne kadar memnun kaldınız?",
+  "meeting_not_joined_question": "toplantıya katılmadınız mı?",
+  "reschedule_cta_short": "Buradan yeniden planla.",
+  "you_and_conjunction": "Sen &"
 }

@@ -3053,5 +3053,16 @@
   "most_cancelled_bookings": "Reserves més cancel·lades",
   "name_or_email": "Nom o correu electrònic",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Si no es troba cap contacte, recorre al propietari del lead si existeix",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time" : "Data i hora",
+  "email_reminder_upcoming_event_notice" : "Aquest és un recordatori del vostre proper esdeveniment.",
+  "email_reminder_triggered_by_workflow" : "Aquest recordatori s'ha activat per un flux de treball a Cal.",
+  "event_upper_case": "Esdeveniment",
+  "scheduling_by": "Planificat per",
+  "experience_review_prompt": "Com ha estat la vostra experiència recent?",
+  "improve_customer_experience_message": "Sempre millorem l'experiència dels nostres clients.",
+  "meeting_satisfaction_question": "Què satisfet esteu amb la vostra última reunió?",
+  "meeting_not_joined_question": "no vas assistir a la reunió?",
+  "reschedule_cta_short": "Reprograma aquí.",
+  "you_and_conjunction": "Vosaltres &"
 }

@@ -3053,5 +3053,16 @@
   "most_cancelled_bookings": "Наиболее часто отменяемые бронирования",
   "name_or_email": "Имя или электронная почта",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Если контакт не найден, использовать владельца лида, если он существует",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time": "Дата и время",
+  "email_reminder_upcoming_event_notice": "Это напоминание о вашем предстоящем мероприятии.",
+  "email_reminder_triggered_by_workflow": "Это напоминание было активировано Workflow в Cal.",
+  "event_upper_case": "Событие",
+  "scheduling_by": "Запланировано",
+  "experience_review_prompt": "Как прошёл ваш последний опыт?",
+  "improve_customer_experience_message": "Мы постоянно улучшаем клиентский опыт.",
+  "meeting_satisfaction_question": "Насколько вы довольны последней встречей?",
+  "meeting_not_joined_question": "не присоединились к встрече?",
+  "reschedule_cta_short": "Перенести здесь.",
+  "you_and_conjunction": "Вы &"
 }

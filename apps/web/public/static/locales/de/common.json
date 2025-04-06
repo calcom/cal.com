@@ -3053,5 +3053,16 @@
   "most_cancelled_bookings": "Am häufigsten abgesagte Termine",
   "name_or_email": "Name oder E-Mail",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Wenn kein Kontakt gefunden wird, auf den Lead-Eigentümer zurückgreifen, falls vorhanden",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time" : "Datum und Uhrzeit",
+  "email_reminder_upcoming_event_notice" : "Dies ist eine Erinnerung an Ihre bevorstehende Veranstaltung.",
+  "email_reminder_triggered_by_workflow" : "Diese Erinnerung wurde durch einen Workflow in Cal ausgelöst.",
+  "event_upper_case": "Ereignis",
+  "scheduling_by": "Terminplanung durch",
+  "experience_review_prompt": "Wie war Ihre letzte Erfahrung?",
+  "improve_customer_experience_message": "Wir arbeiten ständig daran, das Kundenerlebnis zu verbessern.",
+  "meeting_satisfaction_question": "Wie zufrieden waren Sie mit Ihrer letzten Besprechung?",
+  "meeting_not_joined_question": "nicht am Meeting teilgenommen?",
+  "reschedule_cta_short": "Hier neu planen.",
+  "you_and_conjunction": "Sie &"
 }

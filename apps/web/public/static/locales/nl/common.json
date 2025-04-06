@@ -3053,5 +3053,16 @@
   "most_cancelled_bookings": "Meest geannuleerde boekingen",
   "name_or_email": "Naam of e-mail",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Als er geen contactpersoon wordt gevonden, val dan terug op de lead-eigenaar als deze bestaat",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time": "Datum en tijd",
+  "email_reminder_upcoming_event_notice": "Dit is een herinnering voor je aankomende evenement.",
+  "email_reminder_triggered_by_workflow": "Deze herinnering is geactiveerd door een Workflow in Cal.",
+  "event_upper_case": "Evenement",
+  "scheduling_by": "Gepland door",
+  "experience_review_prompt": "Hoe was uw recente ervaring?",
+  "improve_customer_experience_message": "We werken continu aan betere klantervaringen.",
+  "meeting_satisfaction_question": "Hoe tevreden was u met uw laatste vergadering?",
+  "meeting_not_joined_question": "heeft u niet deelgenomen aan de vergadering?",
+  "reschedule_cta_short": "Hier opnieuw plannen.",
+  "you_and_conjunction": "U &"
 }

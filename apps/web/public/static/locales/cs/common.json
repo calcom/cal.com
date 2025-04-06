@@ -3053,5 +3053,16 @@
   "most_cancelled_bookings": "Nejčastěji zrušené rezervace",
   "name_or_email": "Jméno nebo e-mail",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Pokud není nalezen žádný kontakt, použít vlastníka leadu, pokud existuje",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time" : "Datum a čas",
+  "email_reminder_upcoming_event_notice" : "Toto je připomínka vaší nadcházející události.",
+  "email_reminder_triggered_by_workflow" : "Toto připomenutí bylo spuštěno pracovním postupem v Cal.",
+  "event_upper_case": "Událost",
+  "scheduling_by": "Plánování podle",
+  "experience_review_prompt": "Jaké byly vaše nedávné zkušenosti?",
+  "improve_customer_experience_message": "Neustále pracujeme na zlepšování zákaznických zkušeností.",
+  "meeting_satisfaction_question": "Jak jste spokojeni s vaším posledním jednáním?",
+  "meeting_not_joined_question": "nejste se zúčastnili schůzky?",
+  "reschedule_cta_short": "Přeplánujte zde.",
+  "you_and_conjunction": "Vy &"
 }

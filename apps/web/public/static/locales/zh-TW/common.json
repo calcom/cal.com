@@ -3053,5 +3053,16 @@
   "most_cancelled_bookings": "最多取消的預約",
   "name_or_email": "姓名或電子郵件",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "如果找不到聯絡人，則回退到潛在客戶擁有者（如果存在）",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time": "日期和時間",
+  "email_reminder_upcoming_event_notice": "這是關於您即將到來的活動的提醒。",
+  "email_reminder_triggered_by_workflow": "此提醒由 Cal 中的工作流程觸發。",
+  "event_upper_case": "活動",
+  "scheduling_by": "由...安排",
+  "experience_review_prompt": "您最近的體驗如何？",
+  "improve_customer_experience_message": "我們始終致力於改善客戶體驗。",
+  "meeting_satisfaction_question": "您對最近的會議滿意嗎？",
+  "meeting_not_joined_question": "沒有參加會議？",
+  "reschedule_cta_short": "在此重新安排。",
+  "you_and_conjunction": "你 &"
 }

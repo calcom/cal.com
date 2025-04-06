@@ -3053,5 +3053,16 @@
   "most_cancelled_bookings": "Flest avbokade bokningar",
   "name_or_email": "Namn eller e-post",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Om ingen kontakt hittas, återgå till lead-ägaren om sådan finns",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time": "Datum och tid",
+  "email_reminder_upcoming_event_notice": "Det här är en påminnelse om ditt kommande evenemang.",
+  "email_reminder_triggered_by_workflow": "Den här påminnelsen utlöstes av ett Workflow i Cal.",
+  "event_upper_case": "Evenemang",
+  "scheduling_by": "Schemalagt av",
+  "experience_review_prompt": "Hur var din senaste upplevelse?",
+  "improve_customer_experience_message": "Vi förbättrar ständigt kundupplevelsen.",
+  "meeting_satisfaction_question": "Hur nöjd var du med ditt senaste möte?",
+  "meeting_not_joined_question": "deltog inte i mötet?",
+  "reschedule_cta_short": "Boka om här.",
+  "you_and_conjunction": "Du &"
 }

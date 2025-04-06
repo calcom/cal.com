@@ -3053,5 +3053,16 @@
   "most_cancelled_bookings": "Lịch hẹn bị hủy nhiều nhất",
   "name_or_email": "Tên hoặc email",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Nếu không tìm thấy liên hệ, chuyển sang chủ sở hữu khách hàng tiềm năng nếu tồn tại",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time": "Ngày và giờ",
+  "email_reminder_upcoming_event_notice": "Đây là lời nhắc về sự kiện sắp tới của bạn.",
+  "email_reminder_triggered_by_workflow": "Lời nhắc này được kích hoạt bởi Quy trình làm việc trong Cal.",
+  "event_upper_case": "Sự kiện",
+  "scheduling_by": "Được lập lịch bởi",
+  "experience_review_prompt": "Trải nghiệm gần đây của bạn thế nào?",
+  "improve_customer_experience_message": "Chúng tôi luôn cải thiện trải nghiệm khách hàng.",
+  "meeting_satisfaction_question": "Bạn hài lòng thế nào với cuộc họp gần đây?",
+  "meeting_not_joined_question": "không tham gia cuộc họp?",
+  "reschedule_cta_short": "Đặt lại lịch tại đây.",
+  "you_and_conjunction": "Bạn &"
 }

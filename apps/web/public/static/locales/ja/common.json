@@ -3053,5 +3053,16 @@
   "most_cancelled_bookings": "最もキャンセルされた予約",
   "name_or_email": "名前またはメールアドレス",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "連絡先が見つからない場合、リード所有者が存在すればそちらにフォールバックする",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time": "日付と時刻",
+  "email_reminder_upcoming_event_notice": "これは今後のイベントについてのお知らせです。",
+  "email_reminder_triggered_by_workflow": "このリマインダーはCalのワークフローによってトリガーされました。",
+  "event_upper_case": "イベント",
+  "scheduling_by": "スケジュール担当",
+  "experience_review_prompt": "最近の体験はいかがでしたか？",
+  "improve_customer_experience_message": "私たちは常にお客様の体験向上に努めています。",
+  "meeting_satisfaction_question": "直近のミーティングに満足されましたか？",
+  "meeting_not_joined_question": "ミーティングに参加していませんか？",
+  "reschedule_cta_short": "こちらから再スケジュール",
+  "you_and_conjunction": "あなた &"
 }

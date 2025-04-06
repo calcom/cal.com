@@ -3053,5 +3053,16 @@
   "most_cancelled_bookings": "Περισσότερες ακυρωμένες κρατήσεις",
   "name_or_email": "Όνομα ή Email",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Αν δεν βρεθεί επαφή, επιστροφή στον ιδιοκτήτη του lead εάν υπάρχει",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time" : "Ημερομηνία & Ώρα",
+  "email_reminder_upcoming_event_notice" : "Αυτή είναι μια υπενθύμιση για την επερχόμενη εκδήλωσή σας.",
+  "email_reminder_triggered_by_workflow" : "Αυτή η υπενθύμιση ενεργοποιήθηκε από μια ροή εργασίας στο Cal.",
+  "event_upper_case": "Γεγονός",
+  "scheduling_by": "Προγραμματισμός από",
+  "experience_review_prompt": "Πώς ήταν η πρόσφατη εμπειρία σας;",
+  "improve_customer_experience_message": "Προσπαθούμε συνεχώς να βελτιώνουμε την εμπειρία των πελατών.",
+  "meeting_satisfaction_question": "Πόσο ικανοποιημένοι ήσασταν με την τελευταία σας συνάντηση;",
+  "meeting_not_joined_question": "δεν συμμετείχατε στη συνάντηση;",
+  "reschedule_cta_short": "Επαναπρογραμματίστε εδώ.",
+  "you_and_conjunction": "Εσείς &"
 }

@@ -3053,5 +3053,15 @@
   "most_cancelled_bookings": "Ən çox ləğv edilmiş rezervasiyalar",
   "name_or_email": "Ad və ya E-poçt",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Əgər əlaqə tapılmazsa, mövcud olduğu təqdirdə potensial müştəri sahibinə qayıt",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time" : "Tarix & Saat",
+  "email_reminder_upcoming_event_notice" : "Bu, qarşıdan gələn tədbiriniz haqqında xatırlatmadır.",
+  "email_reminder_triggered_by_workflow" : "Bu xatırladıcı Calda iş axını ilə işə salınıb.",
+  "event_upper_case": "Hadisə",
+  "scheduling_by": "Təqvimləşdirmə edən",
+  "experience_review_prompt": "Son təcrübəniz necə oldu?",
+  "improve_customer_experience_message": "Həmişə müştəri təcrübəsini yaxşılaşdırmağa çalışırıq.",
+  "meeting_not_joined_question": "görüşə qoşulmadınız?",
+  "reschedule_cta_short": "Buradan yenidən təyin edin.",
+  "you_and_conjunction": "Siz &"
 }
