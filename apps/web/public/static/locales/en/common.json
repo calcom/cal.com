@@ -1981,6 +1981,7 @@
   "booking_with_payment_cancelled": "Paying for this event is no longer possible",
   "booking_with_payment_cancelled_already_paid": "A refund for this booking payment is on its way.",
   "booking_with_payment_cancelled_refunded": "This booking payment has been refunded.",
+  "booking_with_payment_cancelled_no_refund": "This booking payment will not be refunded.",
   "booking_confirmation_failed": "Booking confirmation failed",
   "not_enough_seats": "Not enough seats",
   "form_builder_field_already_exists": "A field with this name already exists",

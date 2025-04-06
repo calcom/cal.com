@@ -42,6 +42,7 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { RefundPolicy } from "@calcom/lib/payment/types";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
@@ -505,7 +506,18 @@ export default function Success(props: PageProps) {
                               t("booking_with_payment_cancelled")}
                             {props.paymentStatus.success &&
                               !props.paymentStatus.refunded &&
-                              t("booking_with_payment_cancelled_already_paid")}
+                              (() => {
+                                const refundPolicy = eventType?.metadata?.apps?.stripe?.refundPolicy;
+                                if (
+                                  refundPolicy === RefundPolicy.DAYS ||
+                                  refundPolicy === RefundPolicy.ALWAYS
+                                ) {
+                                  return t("booking_with_payment_cancelled_already_paid");
+                                }
+                                if (refundPolicy === RefundPolicy.NEVER) {
+                                  return t("booking_with_payment_cancelled_no_refund");
+                                }
+                              })()}
                             {props.paymentStatus.refunded && t("booking_with_payment_cancelled_refunded")}
                           </h4>
                         )}
