@@ -88,7 +88,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   } | null = null;
 
   if (bookingInfo.fromReschedule) {
-    previousBooking = await BookingRepository.findRescheduledByUid({
+    previousBooking = await BookingRepository.findReschedulerByUid({
       uid: bookingInfo.fromReschedule,
     });
   }

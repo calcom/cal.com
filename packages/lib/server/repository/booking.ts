@@ -138,7 +138,7 @@ export class BookingRepository {
     });
   }
 
-  static async findRescheduledByUid({ uid }: { uid: string }) {
+  static async findReschedulerByUid({ uid }: { uid: string }) {
     return await prisma.booking.findFirst({
       where: {
         uid,

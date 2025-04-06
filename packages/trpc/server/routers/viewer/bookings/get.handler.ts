@@ -438,8 +438,7 @@ export async function getBookings({
         booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
       }
 
-      let previousBooking = null;
-
+      let rescheduler = null;
       if (booking.fromReschedule) {
         const rescheduledBooking = await prisma.booking.findUnique({
           where: {
@@ -450,13 +449,13 @@ export async function getBookings({
           },
         });
         if (rescheduledBooking) {
-          previousBooking = rescheduledBooking;
+          rescheduler = rescheduledBooking.rescheduledBy;
         }
       }
 
       return {
         ...booking,
-        previousBooking,
+        rescheduler,
         eventType: {
           ...booking.eventType,
           recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),

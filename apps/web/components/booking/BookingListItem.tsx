@@ -771,7 +771,7 @@ const BookingItemBadges = ({
         </Badge>
       )}
       {isRescheduled && (
-        <Tooltip content={`${t("rescheduled_by")} ${booking.previousBooking?.rescheduledBy}`}>
+        <Tooltip content={`${t("rescheduled_by")} ${booking.rescheduler}`}>
           <Badge variant="orange" className="ltr:mr-2 rtl:ml-2">
             {t("rescheduled")}
           </Badge>
