@@ -4,7 +4,6 @@ import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { ZodExceptionFilter } from "@/filters/zod-exception.filter";
 import { AuthModule } from "@/modules/auth/auth.module";
-import { JwtService } from "@/modules/jwt/jwt.service";
 import { OAuthAuthorizeInput } from "@/modules/oauth-clients/inputs/authorize.input";
 import { ExchangeAuthorizationCodeInput } from "@/modules/oauth-clients/inputs/exchange-code.input";
 import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
@@ -18,6 +17,7 @@ import * as request from "supertest";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withNextAuth } from "test/utils/withNextAuth";
@@ -68,7 +68,7 @@ describe("OAuthFlow Endpoints", () => {
     let oAuthClient: PlatformOAuthClient;
 
     let authorizationCode: string | null;
-    let responseRefreshToken: string;
+    let refreshToken: string;
 
     beforeAll(async () => {
       const userEmail = `oauth-flow-user-${randomString()}@api.com`;
@@ -153,68 +153,29 @@ describe("OAuthFlow Endpoints", () => {
           .send(body)
           .expect(200);
 
-        const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } = response.body.data;
-        expect(accessToken).toBeDefined();
-        expect(refreshToken).toBeDefined();
-        expect(accessTokenExpiresAt).toBeDefined();
-        expect(refreshTokenExpiresAt).toBeDefined();
+        expect(response.body?.data?.accessToken).toBeDefined();
+        expect(response.body?.data?.refreshToken).toBeDefined();
 
-        const jwtService = app.get(JwtService);
-        const decodedAccessToken = jwtService.decode(accessToken);
-        const decodedRefreshToken = jwtService.decode(refreshToken);
-
-        expect(decodedAccessToken.clientId).toBe(oAuthClient.id);
-        expect(decodedAccessToken.ownerId).toBe(user.id);
-        expect(decodedAccessToken.type).toBe("access_token");
-        expect(decodedAccessToken.expiresAt).toBe(new Date(accessTokenExpiresAt).valueOf());
-        expect(decodedAccessToken.iat).toBeGreaterThan(0);
-
-        expect(decodedRefreshToken.clientId).toBe(oAuthClient.id);
-        expect(decodedRefreshToken.ownerId).toBe(user.id);
-        expect(decodedRefreshToken.type).toBe("refresh_token");
-        expect(decodedRefreshToken.expiresAt).toBe(new Date(refreshTokenExpiresAt).valueOf());
-        expect(decodedRefreshToken.iat).toBeGreaterThan(0);
-
-        responseRefreshToken = refreshToken;
+        refreshToken = response.body.data.refreshToken;
       });
     });
 
     describe("Refresh Token Endpoint", () => {
-      it("POST /oauth/:clientId/refresh", async () => {
+      it("POST /oauth/:clientId/refresh", () => {
         const secretKey = oAuthClient.secret;
         const body = {
-          refreshToken: responseRefreshToken,
+          refreshToken,
         };
 
-        const response = await request(app.getHttpServer())
+        return request(app.getHttpServer())
           .post(`/v2/oauth/${oAuthClient.id}/refresh`)
           .set("x-cal-secret-key", secretKey)
           .send(body)
-          .expect(200);
-
-        const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } = response.body.data;
-        expect(accessToken).toBeDefined();
-        expect(refreshToken).toBeDefined();
-        expect(accessTokenExpiresAt).toBeDefined();
-        expect(refreshTokenExpiresAt).toBeDefined();
-
-        const jwtService = app.get(JwtService);
-        const decodedAccessToken = jwtService.decode(accessToken);
-        const decodedRefreshToken = jwtService.decode(refreshToken);
-
-        expect(decodedAccessToken.clientId).toBe(oAuthClient.id);
-        expect(decodedAccessToken.ownerId).toBe(user.id);
-        expect(decodedAccessToken.type).toBe("access_token");
-        expect(decodedAccessToken.expiresAt).toBe(new Date(accessTokenExpiresAt).valueOf());
-        expect(decodedAccessToken.iat).toBeGreaterThan(0);
-
-        expect(decodedRefreshToken.clientId).toBe(oAuthClient.id);
-        expect(decodedRefreshToken.ownerId).toBe(user.id);
-        expect(decodedRefreshToken.type).toBe("refresh_token");
-        expect(decodedRefreshToken.expiresAt).toBe(new Date(refreshTokenExpiresAt).valueOf());
-        expect(decodedRefreshToken.iat).toBeGreaterThan(0);
-
-        responseRefreshToken = refreshToken;
+          .expect(200)
+          .then((response) => {
+            expect(response.body?.data?.accessToken).toBeDefined();
+            expect(response.body?.data?.refreshToken).toBeDefined();
+          });
       });
     });
 

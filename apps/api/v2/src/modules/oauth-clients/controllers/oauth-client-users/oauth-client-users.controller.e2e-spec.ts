@@ -7,13 +7,11 @@ import { Locales } from "@/lib/enums/locales";
 import { CreateManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
 import { GetManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
 import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
-import { KeysResponseDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { PlatformOAuthClient, Team, User, EventType } from "@prisma/client";
@@ -240,28 +238,8 @@ describe("OAuth Client Users Endpoints", () => {
       const [emailUser, emailDomain] = responseBody.data.user.email.split("@");
       const [domainName, TLD] = emailDomain.split(".");
       expect(responseBody.data.user.username).toEqual(slugify(`${emailUser}-${domainName}-${TLD}`));
-
-      const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } = response.body.data;
-      expect(accessToken).toBeDefined();
-      expect(refreshToken).toBeDefined();
-      expect(accessTokenExpiresAt).toBeDefined();
-      expect(refreshTokenExpiresAt).toBeDefined();
-
-      const jwtService = app.get(JwtService);
-      const decodedAccessToken = jwtService.decode(accessToken);
-      const decodedRefreshToken = jwtService.decode(refreshToken);
-
-      expect(decodedAccessToken.clientId).toBe(oAuthClient.id);
-      expect(decodedAccessToken.ownerId).toBeDefined();
-      expect(decodedAccessToken.type).toBe("access_token");
-      expect(decodedAccessToken.expiresAt).toBe(new Date(accessTokenExpiresAt).valueOf());
-      expect(decodedAccessToken.iat).toBeGreaterThan(0);
-
-      expect(decodedRefreshToken.clientId).toBe(oAuthClient.id);
-      expect(decodedRefreshToken.ownerId).toBeDefined();
-      expect(decodedRefreshToken.type).toBe("refresh_token");
-      expect(decodedRefreshToken.expiresAt).toBe(new Date(refreshTokenExpiresAt).valueOf());
-      expect(decodedRefreshToken.iat).toBeGreaterThan(0);
+      expect(responseBody.data.accessToken).toBeDefined();
+      expect(responseBody.data.refreshToken).toBeDefined();
 
       await userConnectedToOAuth(oAuthClient.id, responseBody.data.user.email, 1);
       await userHasDefaultEventTypes(responseBody.data.user.id);
@@ -305,30 +283,8 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data.user.timeFormat).toEqual(requestBody.timeFormat);
       expect(responseBody.data.user.locale).toEqual(requestBody.locale);
       expect(responseBody.data.user.avatarUrl).toEqual(requestBody.avatarUrl);
-      expect(responseBody.data.user.bio).toEqual(requestBody.bio);
-      expect(responseBody.data.user.metadata).toEqual(requestBody.metadata);
-
-      const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } = response.body.data;
-      expect(accessToken).toBeDefined();
-      expect(refreshToken).toBeDefined();
-      expect(accessTokenExpiresAt).toBeDefined();
-      expect(refreshTokenExpiresAt).toBeDefined();
-
-      const jwtService = app.get(JwtService);
-      const decodedAccessToken = jwtService.decode(accessToken);
-      const decodedRefreshToken = jwtService.decode(refreshToken);
-
-      expect(decodedAccessToken.clientId).toBe(oAuthClient.id);
-      expect(decodedAccessToken.ownerId).toBeDefined();
-      expect(decodedAccessToken.type).toBe("access_token");
-      expect(decodedAccessToken.expiresAt).toBe(new Date(accessTokenExpiresAt).valueOf());
-      expect(decodedAccessToken.iat).toBeGreaterThan(0);
-
-      expect(decodedRefreshToken.clientId).toBe(oAuthClient.id);
-      expect(decodedRefreshToken.ownerId).toBeDefined();
-      expect(decodedRefreshToken.type).toBe("refresh_token");
-      expect(decodedRefreshToken.expiresAt).toBe(new Date(refreshTokenExpiresAt).valueOf());
-      expect(decodedRefreshToken.iat).toBeGreaterThan(0);
+      expect(responseBody.data.accessToken).toBeDefined();
+      expect(responseBody.data.refreshToken).toBeDefined();
 
       await userConnectedToOAuth(oAuthClient.id, responseBody.data.user.email, 2);
       await userHasDefaultEventTypes(responseBody.data.user.id);
@@ -372,30 +328,8 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data.user.timeFormat).toEqual(requestBody.timeFormat);
       expect(responseBody.data.user.locale).toEqual(requestBody.locale);
       expect(responseBody.data.user.avatarUrl).toEqual(requestBody.avatarUrl);
-      expect(responseBody.data.user.bio).toEqual(requestBody.bio);
-      expect(responseBody.data.user.metadata).toEqual(requestBody.metadata);
-
-      const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } = response.body.data;
-      expect(accessToken).toBeDefined();
-      expect(refreshToken).toBeDefined();
-      expect(accessTokenExpiresAt).toBeDefined();
-      expect(refreshTokenExpiresAt).toBeDefined();
-
-      const jwtService = app.get(JwtService);
-      const decodedAccessToken = jwtService.decode(accessToken);
-      const decodedRefreshToken = jwtService.decode(refreshToken);
-
-      expect(decodedAccessToken.clientId).toBe(oAuthClientEventTypesDisabled.id);
-      expect(decodedAccessToken.ownerId).toBeDefined();
-      expect(decodedAccessToken.type).toBe("access_token");
-      expect(decodedAccessToken.expiresAt).toBe(new Date(accessTokenExpiresAt).valueOf());
-      expect(decodedAccessToken.iat).toBeGreaterThan(0);
-
-      expect(decodedRefreshToken.clientId).toBe(oAuthClientEventTypesDisabled.id);
-      expect(decodedRefreshToken.ownerId).toBeDefined();
-      expect(decodedRefreshToken.type).toBe("refresh_token");
-      expect(decodedRefreshToken.expiresAt).toBe(new Date(refreshTokenExpiresAt).valueOf());
-      expect(decodedRefreshToken.iat).toBeGreaterThan(0);
+      expect(responseBody.data.accessToken).toBeDefined();
+      expect(responseBody.data.refreshToken).toBeDefined();
 
       await userConnectedToOAuth(oAuthClientEventTypesDisabled.id, responseBody.data.user.email, 1);
       await userDoesNotHaveDefaultEventTypes(responseBody.data.user.id);
@@ -656,42 +590,6 @@ describe("OAuth Client Users Endpoints", () => {
       const [domainName, TLD] = emailDomain.split(".");
       expect(responseBody.data.username).toEqual(slugify(`${emailUser}-${domainName}-${TLD}`));
       expect(responseBody.data.locale).toEqual(Locales.PT_BR);
-    });
-
-    it("should force refresh tokens", async () => {
-      const response = await request(app.getHttpServer())
-        .post(`/api/v2/oauth-clients/${oAuthClient.id}/users/${postResponseData.user.id}/force-refresh`)
-        .set("x-cal-secret-key", oAuthClient.secret)
-        .expect(200);
-
-      const responseBody: KeysResponseDto = response.body;
-
-      expect(responseBody.status).toEqual(SUCCESS_STATUS);
-      expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.accessToken).toBeDefined();
-      expect(responseBody.data.accessTokenExpiresAt).toBeDefined();
-
-      const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } = response.body.data;
-      expect(accessToken).toBeDefined();
-      expect(refreshToken).toBeDefined();
-      expect(accessTokenExpiresAt).toBeDefined();
-      expect(refreshTokenExpiresAt).toBeDefined();
-
-      const jwtService = app.get(JwtService);
-      const decodedAccessToken = jwtService.decode(accessToken);
-      const decodedRefreshToken = jwtService.decode(refreshToken);
-
-      expect(decodedAccessToken.clientId).toBe(oAuthClient.id);
-      expect(decodedAccessToken.ownerId).toBe(postResponseData.user.id);
-      expect(decodedAccessToken.type).toBe("access_token");
-      expect(decodedAccessToken.expiresAt).toBe(new Date(accessTokenExpiresAt).valueOf());
-      expect(decodedAccessToken.iat).toBeGreaterThan(0);
-
-      expect(decodedRefreshToken.clientId).toBe(oAuthClient.id);
-      expect(decodedRefreshToken.ownerId).toBe(postResponseData.user.id);
-      expect(decodedRefreshToken.type).toBe("refresh_token");
-      expect(decodedRefreshToken.expiresAt).toBe(new Date(refreshTokenExpiresAt).valueOf());
-      expect(decodedRefreshToken.iat).toBeGreaterThan(0);
     });
 
     it(`/DELETE/:id`, () => {

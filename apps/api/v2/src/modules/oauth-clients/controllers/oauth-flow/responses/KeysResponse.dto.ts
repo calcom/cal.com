@@ -4,7 +4,7 @@ import { ValidateNested, IsEnum, IsString, IsNotEmptyObject, IsNumber } from "cl
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
-export class KeysDto {
+class KeysDto {
   @ApiProperty({
     example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
   })
@@ -19,9 +19,6 @@ export class KeysDto {
 
   @IsNumber()
   accessTokenExpiresAt!: number;
-
-  @IsNumber()
-  refreshTokenExpiresAt!: number;
 }
 
 export class KeysResponseDto {
