@@ -51,11 +51,11 @@ export function SideBarContainer({ bannersHeight, isPlatformUser = false }: Side
 }
 
 export function SideBar({ bannersHeight, user }: SideBarProps) {
-  const session = useSession();
+  const { data: session } = useSession();
   const { t, isLocaleReady } = useLocale();
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
-  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
+  const isAdmin = session?.user.role === UserPermissionRole.ADMIN;
 
   const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${user?.orgAwareUsername}`;
 

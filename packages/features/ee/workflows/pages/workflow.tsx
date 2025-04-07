@@ -55,7 +55,7 @@ function WorkflowPage({
   verifiedEmails: verifiedEmailsProp,
 }: PageProps) {
   const { t, i18n } = useLocale();
-  const session = useSession();
+  const { data: session } = useSession();
 
   const [selectedOptions, setSelectedOptions] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
@@ -127,7 +127,7 @@ function WorkflowPage({
   }
 
   const readOnly =
-    workflow?.team?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
+    workflow?.team?.members?.find((member) => member.userId === session?.user.id)?.role ===
     MembershipRole.MEMBER;
 
   const isPending = isPendingWorkflow || isPendingEventTypes;
@@ -228,7 +228,7 @@ function WorkflowPage({
     },
   });
 
-  return session.data ? (
+  return session ? (
     <Shell withoutMain backPath="/workflows">
       <LicenseRequired>
         <Form

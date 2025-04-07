@@ -1,27 +1,22 @@
 "use client";
 
-import type { SessionContextValue } from "next-auth/react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import type { Ensure } from "@calcom/types/utils";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { Label, TextField, ToggleGroup, Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { UserPermissionRole } from "../../../../prisma/enums";
-
 export const CreateANewLicenseKeyForm = () => {
-  const session = useSession();
-  if (session.data?.user.role !== "ADMIN") {
+  const { data: session, status } = useSession();
+  if (status !== "authenticated") {
     return null;
   }
-  // @ts-expect-error session can't be null due to the early return
-  return <CreateANewLicenseKeyFormChild session={session} />;
+  return <CreateANewLicenseKeyFormChild isAdmin={session.user.role === "ADMIN"} />;
 };
 
 enum BillingType {
@@ -43,11 +38,10 @@ interface FormValues {
   billingEmail: string;
 }
 
-const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionContextValue, "data"> }) => {
+const CreateANewLicenseKeyFormChild = ({ isAdmin }: { isAdmin: boolean }) => {
   const { t } = useLocale();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const [stripeCheckoutUrl, setStripeCheckoutUrl] = useState<string | null>(null);
-  const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
   const newLicenseKeyFormMethods = useForm<FormValues>({
     defaultValues: {
       billingType: BillingType.PER_BOOKING,

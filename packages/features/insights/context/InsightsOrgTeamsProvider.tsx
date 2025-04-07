@@ -17,9 +17,9 @@ export type InsightsOrgTeamsContextType = {
 export const InsightsOrgTeamsContext = createContext<InsightsOrgTeamsContextType | null>(null);
 
 export function InsightsOrgTeamsProvider({ children }: { children: React.ReactNode }) {
-  const session = useSession();
-  const currentOrgId = session.data?.user.org?.id;
-  const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
+  const { data: session } = useSession();
+  const currentOrgId = session?.user.org?.id;
+  const isAdminOrOwner = checkAdminOrOwner(session?.user?.org?.role);
 
   const [orgTeamsType, setOrgTeamsType] = useState<OrgTeamsType>(
     isAdminOrOwner && currentOrgId ? "org" : "yours"

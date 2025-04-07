@@ -46,10 +46,9 @@ interface GeneralViewProps {
 }
 
 const OrgGeneralView = () => {
-  const { t } = useLocale();
   const router = useRouter();
-  const session = useSession();
-  const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
+  const { data: session } = useSession();
+  const isAdminOrOwner = checkAdminOrOwner(session?.user?.org?.role);
 
   const {
     data: currentOrg,

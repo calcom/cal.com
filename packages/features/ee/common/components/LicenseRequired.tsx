@@ -18,10 +18,11 @@ type LicenseRequiredProps = {
 };
 
 const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) => {
-  const session = useSession();
+  const { data: session } = useSession();
   const { t } = useLocale();
   const Component = as || Fragment;
-  const hasValidLicense = session.data ? session.data.hasValidLicense : null;
+  // TODO: Keeping this this way, but needs proper status checks.
+  const hasValidLicense = session ? session.hasValidLicense : null;
 
   useEffect(() => {
     if (process.env.NODE_ENV === "development" && hasValidLicense === false) {

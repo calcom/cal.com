@@ -678,7 +678,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const dialogContentRef = useRef<HTMLDivElement>(null);
   const emailContentRef = useRef<HTMLDivElement>(null);
-  const { data } = useSession();
+  const { data: session } = useSession();
 
   const [month, selectedDatesAndTimes] = useBookerStore(
     (state) => [state.month, state.selectedDatesAndTimes],
@@ -918,9 +918,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
           {eventTypeData?.eventType && embedType === "email" ? (
             <EmailEmbed
               eventType={eventTypeData?.eventType}
-              username={teamSlug ?? (data?.user.username as string)}
+              username={teamSlug ?? (session?.user.username as string)}
               userSettingsTimezone={userSettings?.timeZone}
-              orgSlug={data?.user?.org?.slug}
+              orgSlug={session?.user?.org?.slug}
               isTeamEvent={!!teamSlug}
               selectedDuration={selectedDuration}
               setSelectedDuration={setSelectedDuration}
@@ -1271,7 +1271,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         calLink={calLink}
                         eventType={eventTypeData?.eventType}
                         emailContentRef={emailContentRef}
-                        username={teamSlug ?? (data?.user.username as string)}
+                        username={teamSlug ?? (session?.user.username as string)}
                         userSettingsTimezone={userSettings?.timeZone}
                         month={month as string}
                         selectedDateAndTime={

@@ -1,6 +1,6 @@
 "use client";
 
-import type { SessionContextValue } from "next-auth/react";
+import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -13,7 +13,6 @@ import slugify from "@calcom/lib/slugify";
 import { CreationSource } from "@calcom/prisma/enums";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import type { Ensure } from "@calcom/types/utils";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
@@ -35,10 +34,10 @@ function extractDomainFromEmail(email: string) {
 }
 
 export const CreateANewOrganizationForm = () => {
-  const session = useSession();
+  const { data: session, status } = useSession();
 
   const { isLoadingOrgOnboarding } = useOnboarding({ step: "start" });
-  if (!session.data || isLoadingOrgOnboarding) {
+  if (status !== "authenticated" || isLoadingOrgOnboarding) {
     return null;
   }
 
@@ -50,12 +49,12 @@ enum BillingPeriod {
   ANNUALLY = "ANNUALLY",
 }
 
-const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionContextValue, "data"> }) => {
+const CreateANewOrganizationFormChild = ({ session }: { session: Session }) => {
   const { t } = useLocale();
   const router = useRouter();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
-  const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
-  const defaultOrgOwnerEmail = session.data.user.email ?? "";
+  const isAdmin = session.user.role === UserPermissionRole.ADMIN;
+  const defaultOrgOwnerEmail = session.user.email ?? "";
   const { useOnboardingStore } = useOnboarding({ step: "start" });
   const { slug, name, orgOwnerEmail, billingPeriod, pricePerSeat, seats, onboardingId, reset } =
     useOnboardingStore();

@@ -50,7 +50,7 @@ const SkeletonLoader = () => {
 };
 
 const PasswordView = ({ user }: PasswordViewProps) => {
-  const { data } = useSession();
+  const { data: session } = useSession();
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const metadata = userMetadataSchema.safeParse(user?.metadata);
@@ -93,7 +93,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
       formMethods.resetField("oldPassword");
       formMethods.resetField("newPassword");
 
-      if (data?.user.role === "INACTIVE_ADMIN") {
+      if (session?.user.role === "INACTIVE_ADMIN") {
         /*
       AdminPasswordBanner component relies on the role returned from the session.
       Next-Auth doesn't provide a way to revalidate the session cookie,
@@ -160,8 +160,8 @@ const PasswordView = ({ user }: PasswordViewProps) => {
 
   const isDisabled = formMethods.formState.isSubmitting || !formMethods.formState.isDirty;
 
-  const passwordMinLength = data?.user.role === "USER" ? 7 : 15;
-  const isUser = data?.user.role === "USER";
+  const passwordMinLength = session?.user.role === "USER" ? 7 : 15;
+  const isUser = session?.user.role === "USER";
 
   return (
     <>

@@ -69,13 +69,13 @@ const CustomI18nextProvider = (props: { children: React.ReactElement; i18n?: SSR
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
    **/
 
-  const session = useSession();
+  const { data: session } = useSession();
   const fallbackLocale =
     typeof window !== "undefined" && window.document.documentElement.lang
       ? window.document.documentElement.lang
       : "en";
   const newLocale = typeof window !== "undefined" && window.calNewLocale ? window.calNewLocale : null;
-  const locale = session?.data?.user.locale ?? newLocale ?? fallbackLocale;
+  const locale = session?.user.locale ?? newLocale ?? fallbackLocale;
 
   useEffect(() => {
     try {
@@ -162,8 +162,8 @@ function FeatureFlagsProvider({ children }: { children: React.ReactNode }) {
 }
 
 function useOrgBrandingValues() {
-  const session = useSession();
-  return session?.data?.user.org;
+  const { data: session } = useSession();
+  return session?.user.org;
 }
 
 function OrgBrandProvider({ children }: { children: React.ReactNode }) {

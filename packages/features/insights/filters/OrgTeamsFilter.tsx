@@ -21,11 +21,11 @@ export type OrgTeamsType = "org" | "team" | "yours";
 export const OrgTeamsFilter = () => {
   const { orgTeamsType, selectedTeamId, setOrgTeamsType, setSelectedTeamId } = useInsightsOrgTeams();
   const { t } = useLocale();
-  const session = useSession();
-  const currentOrgId = session.data?.user.org?.id;
-  const currentUserName = session.data?.user.name;
+  const { data: session } = useSession();
+  const currentOrgId = session?.user.org?.id;
+  const currentUserName = session?.user.name;
 
-  const [query, setQuery] = useState<string>("");
+  const [query, setQuery] = useState("");
 
   const { data } = trpc.viewer.insights.teamListForUser.useQuery(undefined, {
     // Teams don't change that frequently
@@ -46,7 +46,7 @@ export const OrgTeamsFilter = () => {
     if (orgTeamsType === "org") {
       return { text: t("all"), placeholder: undefined, imageUrl: data?.[0]?.logoUrl };
     } else if (orgTeamsType === "yours") {
-      return { text: t("yours"), placeholder: currentUserName, imageUrl: session.data?.user.avatarUrl };
+      return { text: t("yours"), placeholder: currentUserName, imageUrl: session?.user.avatarUrl };
     } else if (orgTeamsType === "team") {
       const selectedTeam = data?.find((item) => {
         return item.id === selectedTeamId;
@@ -119,7 +119,7 @@ export const OrgTeamsFilter = () => {
           icon={
             <Avatar
               alt={`${currentUserName} avatar`}
-              imageSrc={getPlaceholderAvatar(session.data?.user.avatarUrl, currentUserName)}
+              imageSrc={getPlaceholderAvatar(session?.user.avatarUrl, currentUserName)}
               size="xsm"
             />
           }
