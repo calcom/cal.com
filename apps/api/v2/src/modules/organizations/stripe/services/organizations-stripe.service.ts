@@ -5,7 +5,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Logger } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { ApiResponseWithoutData } from "@calcom/platform-types";
 
 export type OAuthCallbackState = {
   accessToken: string;
@@ -74,7 +74,7 @@ export class OrganizationsStripeService {
     return await this.stripeService.saveStripeAccount(state, code, userId, validatedTeamId);
   }
 
-  async checkIfTeamStripeAccountConnected(teamId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
+  async checkIfTeamStripeAccountConnected(teamId: number): Promise<ApiResponseWithoutData> {
     const stripeCredentials = await this.credentialRepository.findCredentialByTypeAndTeamId(
       "stripe_payment",
       teamId
