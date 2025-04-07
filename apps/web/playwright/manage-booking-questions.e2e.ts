@@ -754,7 +754,7 @@ test.describe("Text area min and max characters text", () => {
     await page.waitForSelector('[data-testid="event-types"]');
     await createNewEventType(page, { eventTitle });
     await page.waitForSelector('[data-testid="event-title"]');
-    await expect(page.locator('text="Event Setup"').nth(0)).toBeVisible(); //fix the race condition
+    await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveText("Event Setup"); //fix the race condition
     await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
       "aria-current",
       "page"
