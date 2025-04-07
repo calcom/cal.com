@@ -1,4 +1,3 @@
-import { calendarServicesMapMock } from "../../../../../tests/libs/__mocks__/app-store";
 import {
   crmServicesMapMock,
   paymentAppMapMock,
@@ -36,12 +35,7 @@ import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { userMetadataType } from "@calcom/prisma/zod-utils";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { AppMeta } from "@calcom/types/App";
-import type {
-  CalendarEvent,
-  IntegrationCalendar,
-  NewCalendarEventType,
-  EventBusyDate,
-} from "@calcom/types/Calendar";
+import type { CalendarEvent, IntegrationCalendar } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { getMockPaymentService } from "./MockPaymentService";
@@ -1646,203 +1640,7 @@ export type CalendarServiceMethodMock = {
  * @param metadataLookupKey
  * @param calendarData Specify uids and other data to be faked to be returned by createEvent and updateEvent
  */
-export function mockCalendar(
-  metadataLookupKey: keyof typeof appStoreMetadata,
-  calendarData?: {
-    create?: {
-      id?: string;
-      uid?: string;
-      iCalUID?: string;
-      appSpecificData?: {
-        googleCalendar?: {
-          hangoutLink?: string;
-        };
-        office365Calendar?: {
-          url?: string;
-        };
-      };
-    };
-    update?: {
-      id?: string;
-      uid: string;
-      iCalUID?: string;
-      appSpecificData?: {
-        googleCalendar?: {
-          hangoutLink?: string;
-        };
-        office365Calendar?: {
-          url?: string;
-        };
-      };
-    };
-    busySlots?: { start: `${string}Z`; end: `${string}Z` }[];
-    creationCrash?: boolean;
-    updationCrash?: boolean;
-    getAvailabilityCrash?: boolean;
-    credential?: CredentialForCalendarService;
-  }
-): CalendarServiceMethodMock {
-  const appStoreLookupKey = metadataLookupKey;
-  const normalizedCalendarData = calendarData || {
-    create: {
-      uid: "MOCK_ID",
-    },
-    update: {
-      uid: "UPDATED_MOCK_ID",
-    },
-  };
-  log.silly(`Mocking ${appStoreLookupKey} on calendarServicesMapMock`);
-
-  const createEventCalls: CreateEventMethodMockCall[] = [];
-  const updateEventCalls: UpdateEventMethodMockCall[] = [];
-  const deleteEventCalls: DeleteEventMethodMockCall[] = [];
-  const getAvailabilityCalls: GetAvailabilityMethodMockCall[] = [];
-  const app = appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata];
-  const credential = calendarData?.credential || {
-    id: 1,
-    type: "oauth",
-    key: "MOCK_CREDENTIAL",
-    userId: 1,
-    teamId: null,
-    appId: app.slug,
-    user: {
-      email: "MOCK_USER_EMAIL",
-    },
-    invalid: false,
-    delegatedTo: null,
-  };
-
-  const appMock = calendarServicesMapMock[
-    appStoreLookupKey as keyof typeof calendarServicesMapMock
-  ].mockImplementation(() => {
-    return new Promise((resolve) => {
-      resolve({
-        lib: {
-          CalendarService: (credential) => {
-            return {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              createEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
-                if (calendarData?.creationCrash) {
-                  throw new Error("MockCalendarService.createEvent fake error");
-                }
-                const [calEvent, credentialId, externalCalendarId] = rest;
-                log.debug(
-                  "mockCalendar.createEvent",
-                  JSON.stringify({ calEvent, credentialId, externalCalendarId })
-                );
-                createEventCalls.push({
-                  args: {
-                    calEvent,
-                    credentialId,
-                    externalCalendarId,
-                  },
-                  calendarServiceConstructorArgs: {
-                    credential,
-                  },
-                });
-                const isGoogleMeetLocation = calEvent?.location === BookingLocations.GoogleMeet;
-                return Promise.resolve({
-                  type: app.type,
-                  additionalInfo: {},
-                  uid: "PROBABLY_UNUSED_UID",
-                  hangoutLink:
-                    (isGoogleMeetLocation
-                      ? normalizedCalendarData.create?.appSpecificData?.googleCalendar?.hangoutLink
-                      : null) || "https://UNUSED_URL",
-                  // A Calendar is always expected to return an id.
-                  id: normalizedCalendarData.create?.id || "FALLBACK_MOCK_CALENDAR_EVENT_ID",
-                  iCalUID: normalizedCalendarData.create?.iCalUID,
-                  // Password and URL seems useless for CalendarService, plan to remove them if that's the case
-                  password: "MOCK_PASSWORD",
-                  url: "https://UNUSED_URL",
-                });
-              },
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              updateEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
-                if (calendarData?.updationCrash) {
-                  throw new Error("MockCalendarService.updateEvent fake error");
-                }
-                const [uid, event, externalCalendarId] = rest;
-                log.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
-                // eslint-disable-next-line prefer-rest-params
-                updateEventCalls.push({
-                  args: {
-                    uid,
-                    event,
-                    externalCalendarId,
-                  },
-                  calendarServiceConstructorArgs: {
-                    credential,
-                  },
-                });
-                const isGoogleMeetLocation = event.location === BookingLocations.GoogleMeet;
-                return Promise.resolve({
-                  type: app.type,
-                  additionalInfo: {},
-                  uid: "PROBABLY_UNUSED_UID",
-                  iCalUID: normalizedCalendarData.update?.iCalUID,
-                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                  id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
-                  // Password and URL seems useless for CalendarService, plan to remove them if that's the case
-                  password: "MOCK_PASSWORD",
-                  url: "https://UNUSED_URL",
-                  location: isGoogleMeetLocation ? "https://UNUSED_URL" : undefined,
-                  hangoutLink:
-                    (isGoogleMeetLocation
-                      ? normalizedCalendarData.update?.appSpecificData?.googleCalendar?.hangoutLink
-                      : null) || "https://UNUSED_URL",
-                  conferenceData: isGoogleMeetLocation ? event.conferenceData : undefined,
-                });
-              },
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              deleteEvent: async (...rest: any[]) => {
-                log.silly("mockCalendar.deleteEvent", JSON.stringify({ rest }));
-                // eslint-disable-next-line prefer-rest-params
-                deleteEventCalls.push({
-                  args: {
-                    uid: rest[0],
-                    event: rest[1],
-                    externalCalendarId: rest[2],
-                  },
-                  calendarServiceConstructorArgs: {
-                    credential,
-                  },
-                });
-              },
-              getAvailability: async (...rest: any[]): Promise<EventBusyDate[]> => {
-                if (calendarData?.getAvailabilityCrash) {
-                  throw new Error("MockCalendarService.getAvailability fake error");
-                }
-                const [dateFrom, dateTo, selectedCalendars, shouldServeCache] = rest;
-                getAvailabilityCalls.push({
-                  args: {
-                    dateFrom,
-                    dateTo,
-                    selectedCalendars,
-                    shouldServeCache,
-                  },
-                  calendarServiceConstructorArgs: {
-                    credential,
-                  },
-                });
-                return new Promise((resolve) => {
-                  resolve(calendarData?.busySlots || []);
-                });
-              },
-            };
-          },
-        },
-      });
-    });
-  });
-
-  return {
-    createEventCalls,
-    deleteEventCalls,
-    updateEventCalls,
-    getAvailabilityCalls,
-  };
-}
+export { mockCalendar } from "./mockCalendar";
 
 export function mockCalendarToHaveNoBusySlots(
   metadataLookupKey: keyof typeof appStoreMetadata,
@@ -1897,71 +1695,63 @@ export function mockVideoApp({
   const updateMeetingCalls: any[] = [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const deleteMeetingCalls: any[] = [];
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
-  console.log(
-    "🚀 ~ file: bookingScenario.ts:1899 ~ videoAdaptersMapMock[appStoreLookupKeyaskeyoftypeofvideoAdaptersMapMock].mockImplementation ~ videoAdaptersMapMock:",
-    videoAdaptersMapMock
-  );
-  videoAdaptersMapMock[appStoreLookupKey as keyof typeof videoAdaptersMapMock].mockImplementation(() => {
-    return new Promise((resolve) => {
-      resolve({
-        lib: {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
-          VideoApiAdapter: (credential) => {
-            return {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              createMeeting: (...rest: any[]) => {
-                if (creationCrash) {
-                  throw new Error("MockVideoApiAdapter.createMeeting fake error");
-                }
-                createMeetingCalls.push({
-                  credential,
-                  args: rest,
-                });
 
-                return Promise.resolve({
-                  type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
-                  ...videoMeetingData,
-                });
-              },
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              updateMeeting: async (...rest: any[]) => {
-                if (updationCrash) {
-                  throw new Error("MockVideoApiAdapter.updateMeeting fake error");
-                }
-                const [bookingRef, calEvent] = rest;
-                updateMeetingCalls.push({
-                  credential,
-                  args: rest,
-                });
-                if (!bookingRef.type) {
-                  throw new Error("bookingRef.type is not defined");
-                }
-                if (!calEvent.organizer) {
-                  throw new Error("calEvent.organizer is not defined");
-                }
-                log.silly("MockVideoApiAdapter.updateMeeting", JSON.stringify({ bookingRef, calEvent }));
-                return Promise.resolve({
-                  type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
-                  ...videoMeetingData,
-                });
-              },
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              deleteMeeting: async (...rest: any[]) => {
-                log.silly("MockVideoApiAdapter.deleteMeeting", JSON.stringify(rest));
-                deleteMeetingCalls.push({
-                  credential,
-                  args: rest,
-                });
-              },
-            };
+  videoAdaptersMapMock[appStoreLookupKey as keyof typeof videoAdaptersMapMock] = {
+    lib: {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      VideoApiAdapter: (credential) => {
+        return {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          createMeeting: (...rest: any[]) => {
+            if (creationCrash) {
+              throw new Error("MockVideoApiAdapter.createMeeting fake error");
+            }
+            createMeetingCalls.push({
+              credential,
+              args: rest,
+            });
+
+            return Promise.resolve({
+              type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
+              ...videoMeetingData,
+            });
           },
-        },
-      });
-    });
-  });
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          updateMeeting: async (...rest: any[]) => {
+            if (updationCrash) {
+              throw new Error("MockVideoApiAdapter.updateMeeting fake error");
+            }
+            const [bookingRef, calEvent] = rest;
+            updateMeetingCalls.push({
+              credential,
+              args: rest,
+            });
+            if (!bookingRef.type) {
+              throw new Error("bookingRef.type is not defined");
+            }
+            if (!calEvent.organizer) {
+              throw new Error("calEvent.organizer is not defined");
+            }
+            log.silly("MockVideoApiAdapter.updateMeeting", JSON.stringify({ bookingRef, calEvent }));
+            return Promise.resolve({
+              type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
+              ...videoMeetingData,
+            });
+          },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          deleteMeeting: async (...rest: any[]) => {
+            log.silly("MockVideoApiAdapter.deleteMeeting", JSON.stringify(rest));
+            deleteMeetingCalls.push({
+              credential,
+              args: rest,
+            });
+          },
+        };
+      },
+    },
+  };
+
   return {
     createMeetingCalls,
     updateMeetingCalls,
@@ -2069,39 +1859,35 @@ export function mockCrmApp(
     ownerEmail: string;
   }[] = [];
   const eventsCreated: boolean[] = [];
-  const appMock = crmServicesMapMock[metadataLookupKey as keyof typeof crmServicesMapMock] as any;
-  appMock &&
-    `mockResolvedValue` in appMock &&
-    appMock.mockResolvedValue({
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
-      CrmService: class {
-        constructor() {
-          log.debug("Create CrmSerive");
-        }
 
-        createContact() {
-          if (crmData?.createContacts) {
-            contactsCreated = crmData.createContacts;
-            return Promise.resolve(crmData?.createContacts);
-          }
-        }
+  crmServicesMapMock[metadataLookupKey as keyof typeof crmServicesMapMock] = {
+    CrmService: class {
+      constructor() {
+        log.debug("Create CrmSerive");
+      }
 
-        getContacts(email: string) {
-          if (crmData?.getContacts) {
-            contactsQueried = crmData?.getContacts;
-            const contactsOfEmail = contactsQueried.filter((contact) => contact.email === email);
-
-            return Promise.resolve(contactsOfEmail);
-          }
+      createContact() {
+        if (crmData?.createContacts) {
+          contactsCreated = crmData.createContacts;
+          return Promise.resolve(crmData?.createContacts);
         }
+      }
 
-        createEvent() {
-          eventsCreated.push(true);
-          return Promise.resolve({});
+      getContacts(email: string) {
+        if (crmData?.getContacts) {
+          contactsQueried = crmData?.getContacts;
+          const contactsOfEmail = contactsQueried.filter((contact) => contact.email === email);
+
+          return Promise.resolve(contactsOfEmail);
         }
-      },
-    });
+      }
+
+      createEvent() {
+        eventsCreated.push(true);
+        return Promise.resolve({});
+      }
+    },
+  };
 
   return {
     contactsCreated,
