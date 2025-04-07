@@ -36,6 +36,9 @@ import {
 } from "./location.input";
 import { ValidateMetadata } from "./validators/validate-metadata";
 
+export const FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE =
+  "Either eventTypeId or eventTypeSlug + username or eventTypeSlug + teamSlug must be provided";
+
 function RequireEventTypeIdentification(validationOptions?: ValidationOptions) {
   return function (object: any) {
     registerDecorator({
@@ -57,7 +60,7 @@ function RequireEventTypeIdentification(validationOptions?: ValidationOptions) {
           return hasEventTypeId || hasSlugAndUsername || hasSlugAndTeamSlug;
         },
         defaultMessage(): string {
-          return "Either eventTypeId or eventTypeSlug + username or eventTypeSlug + teamSlug must be provided";
+          return FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE;
         },
       },
     });
