@@ -80,6 +80,7 @@ export default class SalesforceCRMService implements CRM {
   private fallbackToContact = false;
 
   constructor(credential: CredentialPayload, appOptions: z.infer<typeof appDataSchema>, testMode = false) {
+    console.log("🚀 ~ constructor ~ appOptions:", appOptions);
     this.integrationName = "salesforce_other_calendar";
     if (!testMode) {
       this.conn = this.getClient(credential).then((c) => c);
@@ -295,12 +296,31 @@ export default class SalesforceCRMService implements CRM {
     });
   };
 
-  private salesforceDeleteEvent = async (uid: string) => {
+  private salesforceDeleteEvent = async (uid: string, event: CalendarEvent) => {
     const appOptions = this.getAppOptions();
+    console.log("🚀 ~ privatesalesforceDeleteEvent ~ appOptions:", appOptions);
     const conn = await this.conn;
 
+    console.log(
+      "🚀 ~ privatesalesforceDeleteEvent ~ appOptions?.onCancelWriteToEventRecord:",
+      appOptions?.onCancelWriteToEventRecord
+    );
     if (appOptions?.onCancelWriteToEventRecord) {
-      return;
+      const fieldsToWriteTo = appOptions?.onCancelWriteToEventRecordFields;
+
+      // If the option is enabled then don't delete the event record
+      if (!fieldsToWriteTo || !fieldsToWriteTo.length) {
+        return Promise.resolve();
+      }
+
+      return await this.writeToRecord({
+        recordId: uid,
+        fieldsToWriteTo,
+        startTime: event.startTime,
+        organizerEmail: event.organizer?.email,
+        calEventResponses: event.responses,
+        bookingUid: event?.uid,
+      });
     }
     return await conn.sobject("Event").delete(uid);
   };
@@ -359,8 +379,8 @@ export default class SalesforceCRMService implements CRM {
     }
   }
 
-  public async deleteEvent(uid: string) {
-    const deletedEvent = await this.salesforceDeleteEvent(uid);
+  public async deleteEvent(uid: string, event: CalendarEvent) {
+    const deletedEvent = await this.salesforceDeleteEvent(uid, event);
     if (deletedEvent.success) {
       Promise.resolve();
     } else {
