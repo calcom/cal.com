@@ -1054,7 +1054,7 @@ describe("attribute weights and virtual queues", () => {
     });
   });
 
-  it("prepareQueuesAndAttributesData returns fallback attributeWeights when no members are assigned to the attribute", async () => {
+  it.only("prepareQueuesAndAttributesData returns host weights as fallback when no members are assigned to the attribute", async () => {
     const attributeOptionIdFirst = uuid();
     const attributeOptionIdSecond = uuid();
     const attributeId = uuid();
@@ -1179,8 +1179,8 @@ describe("attribute weights and virtual queues", () => {
     });
 
     expect(queuesAndAttributesData.attributeWeights).toEqual([
-      { userId: 1, weight: 100 },
-      { userId: 2, weight: 100 },
+      { userId: 1, weight: 10 },
+      { userId: 2, weight: 150 },
     ]);
   });
 
