@@ -18,7 +18,7 @@ import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 import { default as appMeta } from "../config.json";
-import type { writeToRecordDataSchema, appDataSchema } from "../zod";
+import type { writeToRecordDataSchema, appDataSchema, writeToBookingEntry } from "../zod";
 import {
   SalesforceRecordEnum,
   SalesforceFieldType,
@@ -255,7 +255,7 @@ export default class SalesforceCRMService implements CRM {
       });
     });
     // Check to see if we also need to change the record owner
-    if (appOptions.onBookingChangeRecordOwner && appOptions.onBookingChangeRecordOwnerName) {
+    if (appOptions?.onBookingChangeRecordOwner && appOptions?.onBookingChangeRecordOwnerName) {
       if (ownerId) {
         // TODO: firstContact id is assumed to not be undefined. But current code doesn't check for it.
         await this.checkRecordOwnerNameFromRecordId(firstContact.id, ownerId);
@@ -265,15 +265,16 @@ export default class SalesforceCRMService implements CRM {
         );
       }
     }
-    if (appOptions.onBookingWriteToRecord && appOptions.onBookingWriteToRecordFields) {
-      await this.writeToPersonRecord(
+    if (appOptions?.onBookingWriteToRecord && appOptions?.onBookingWriteToRecordFields) {
+      await this.writeToRecord({
         // TODO: firstContact id is assumed to not be undefined. But current code doesn't check for it.
-        firstContact.id,
-        event.startTime,
-        event.organizer?.email,
-        event.responses,
-        event?.uid
-      );
+        recordId: firstContact.id,
+        fieldsToWriteTo: appOptions.onBookingWriteToRecordFields,
+        startTime: event.startTime,
+        organizerEmail: event.organizer?.email,
+        calEventResponses: event.responses,
+        bookingUid: event?.uid,
+      });
     }
     return createdEvent;
   };
@@ -296,8 +297,11 @@ export default class SalesforceCRMService implements CRM {
 
   private salesforceDeleteEvent = async (uid: string) => {
     const appOptions = this.getAppOptions();
-
     const conn = await this.conn;
+
+    if (appOptions?.onCancelWriteToEventRecord) {
+      return;
+    }
     return await conn.sobject("Event").delete(uid);
   };
 
@@ -1047,84 +1051,91 @@ export default class SalesforceCRMService implements CRM {
     return this.fallbackToContact;
   }
 
-  private async writeToPersonRecord(
-    contactId: string,
-    startTime: string,
-    organizerEmail?: string,
-    calEventResponses?: CalEventResponses | null,
-    bookingUid?: string | null
-  ) {
+  private async writeToRecord({
+    recordId,
+    startTime,
+    fieldsToWriteTo,
+    organizerEmail,
+    calEventResponses,
+    bookingUid,
+  }: {
+    recordId: string;
+    startTime: string;
+    fieldsToWriteTo: Record<string, z.infer<typeof writeToBookingEntry>>;
+    organizerEmail?: string;
+    calEventResponses?: CalEventResponses | null;
+    bookingUid?: string | null;
+  }) {
     const conn = await this.conn;
-    const { onBookingWriteToRecordFields = {} } = this.getAppOptions();
-    // Determine record type (Contact or Lead)
-    const personRecordType = this.determineRecordTypeById(contactId);
+    // Determine record type (Contact, Lead, etc)
+    const personRecordType = this.determineRecordTypeById(recordId);
     // Search the fields and ensure 1. they exist 2. they're the right type
-    const fieldsToWriteOn = Object.keys(onBookingWriteToRecordFields);
+    const fieldsToWriteOn = Object.keys(fieldsToWriteTo);
     const existingFields = await this.ensureFieldsExistOnObject(fieldsToWriteOn, personRecordType);
     if (!existingFields.length) {
       this.log.warn(`No fields found for record type ${personRecordType}`);
       return;
     }
 
-    const personRecord = await this.fetchPersonRecord(contactId, existingFields, personRecordType);
+    const personRecord = await this.fetchPersonRecord(recordId, existingFields, personRecordType);
     if (!personRecord) {
-      this.log.warn(`No personRecord found for contactId ${contactId}`);
+      this.log.warn(`No personRecord found for contactId ${recordId}`);
       return;
     }
 
-    this.log.info(`Writing to recordId ${contactId} on fields ${fieldsToWriteOn}`);
+    this.log.info(`Writing to recordId ${recordId} on fields ${fieldsToWriteOn}`);
 
     const writeOnRecordBody = await this.buildRecordUpdatePayload({
       existingFields,
       personRecord,
-      onBookingWriteToRecordFields,
+      fieldsToWriteTo,
       startTime,
       bookingUid,
       organizerEmail,
       calEventResponses,
-      contactId,
+      recordId,
     });
 
     this.log.info(
-      `Final writeOnRecordBody contains fields ${Object.keys(writeOnRecordBody)} for record ${contactId}`
+      `Final writeOnRecordBody contains fields ${Object.keys(writeOnRecordBody)} for record ${recordId}`
     );
 
     // Update the person record
     await conn
       .sobject(personRecordType)
       .update({
-        Id: contactId,
+        Id: recordId,
         ...writeOnRecordBody,
       })
       .catch((e) => {
-        this.log.error(`Error updating person record for contactId ${contactId}`, e);
+        this.log.error(`Error updating person record for contactId ${recordId}`, e);
       });
   }
 
   private async buildRecordUpdatePayload({
     existingFields,
     personRecord,
-    onBookingWriteToRecordFields,
+    fieldsToWriteTo,
     startTime,
     bookingUid,
     organizerEmail,
     calEventResponses,
-    contactId,
+    recordId,
   }: {
     existingFields: Field[];
     personRecord: Record<string, any>;
-    onBookingWriteToRecordFields: Record<string, any>;
+    fieldsToWriteTo: Record<string, any>;
     startTime?: string;
     bookingUid?: string | null;
     organizerEmail?: string;
     calEventResponses?: CalEventResponses | null;
-    contactId: string;
+    recordId: string;
   }): Promise<Record<string, any>> {
-    const log = logger.getSubLogger({ prefix: [`[buildRecordUpdatePayload] ${contactId}`] });
+    const log = logger.getSubLogger({ prefix: [`[buildRecordUpdatePayload] ${recordId}`] });
     const writeOnRecordBody: Record<string, any> = {};
 
     for (const field of existingFields) {
-      const fieldConfig = onBookingWriteToRecordFields[field.name];
+      const fieldConfig = fieldsToWriteTo[field.name];
 
       if (!fieldConfig) {
         log.error(`No field config found for field ${field.name}`);
@@ -1195,7 +1206,7 @@ export default class SalesforceCRMService implements CRM {
           salesforceField: field,
           calEventResponses,
           bookingUid,
-          contactId,
+          recordId,
         });
         if (picklistValue) {
           writeOnRecordBody[field.name] = picklistValue;
@@ -1354,15 +1365,15 @@ export default class SalesforceCRMService implements CRM {
     salesforceField,
     calEventResponses,
     bookingUid,
-    contactId,
+    recordId,
   }: {
     fieldConfigValue: string;
     salesforceField: Field;
     calEventResponses?: CalEventResponses | null;
     bookingUid?: string | null;
-    contactId: string;
+    recordId: string;
   }) {
-    const log = logger.getSubLogger({ prefix: [`[getPicklistFieldValue] ${contactId}`] });
+    const log = logger.getSubLogger({ prefix: [`[getPicklistFieldValue] ${recordId}`] });
 
     const picklistOptions = salesforceField.picklistValues;
     if (!picklistOptions || !picklistOptions.length) {
