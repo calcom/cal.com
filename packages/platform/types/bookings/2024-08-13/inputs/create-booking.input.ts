@@ -48,16 +48,16 @@ function RequireEventTypeIdentification(validationOptions?: ValidationOptions) {
         validate(_value: any, args: ValidationArguments) {
           const obj = args.object as CreateBookingInput_2024_08_13;
 
-          // Check if eventTypeId is provided
           const hasEventTypeId = !!obj?.eventTypeId;
 
-          // Check if we have both eventTypeSlug and username
           const hasSlugAndUsername = !!obj?.eventTypeSlug && !!obj?.username;
 
-          return hasEventTypeId || hasSlugAndUsername;
+          const hasSlugAndTeamSlug = !!obj?.eventTypeSlug && !!obj?.teamSlug;
+
+          return hasEventTypeId || hasSlugAndUsername || hasSlugAndTeamSlug;
         },
         defaultMessage(): string {
-          return "Either eventTypeId OR (eventTypeSlug + username) must be provided";
+          return "Either eventTypeId or eventTypeSlug + username or eventTypeSlug + teamSlug must be provided";
         },
       },
     });
@@ -182,7 +182,7 @@ export class CreateBookingInput_2024_08_13 {
   @ApiPropertyOptional({
     type: String,
     description:
-      "The slug of the event type. Required along with username and optionally organizationSlug if eventTypeId is not provided.",
+      "The slug of the event type. Required along with username / teamSlug and optionally organizationSlug if eventTypeId is not provided.",
     example: "my-event-type",
   })
   @IsOptional()
@@ -201,7 +201,18 @@ export class CreateBookingInput_2024_08_13 {
 
   @ApiPropertyOptional({
     type: String,
-    description: "The organization slug. Optional, only used when booking with eventTypeSlug + username.",
+    description:
+      "Team slug for team that owns event type for which slots are fetched. Required along with eventTypeSlug and optionally organizationSlug if the team is part of organization",
+    example: "john-doe",
+  })
+  @IsOptional()
+  @IsString()
+  teamSlug?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description:
+      "The organization slug. Optional, only used when booking with eventTypeSlug + username or eventTypeSlug + teamSlug.",
     example: "acme-corp",
   })
   @IsOptional()
