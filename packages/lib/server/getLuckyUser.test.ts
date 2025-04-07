@@ -1054,7 +1054,7 @@ describe("attribute weights and virtual queues", () => {
     });
   });
 
-  it.only("prepareQueuesAndAttributesData returns host weights as fallback when no members are assigned to the attribute", async () => {
+  it("prepareQueuesAndAttributesData returns host weights as fallback when no members are assigned to the attribute", async () => {
     const attributeOptionIdFirst = uuid();
     const attributeOptionIdSecond = uuid();
     const attributeId = uuid();
