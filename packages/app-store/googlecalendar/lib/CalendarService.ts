@@ -959,6 +959,9 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   /**
+   *
+   * calendarId is the externalId for the SelectedCalendar
+   *
    * It doesn't check if the subscription has expired or not.
    * It just creates a new subscription.
    */
@@ -992,6 +995,7 @@ export default class GoogleCalendarService implements Calendar {
       },
     });
 
+    // Because there could be different eventTypes which have enabled conflicts for same externalId
     const otherCalendarsWithSameSubscription = allCalendarsWithSubscription.filter(
       (sc) => !eventTypeIds?.includes(sc.eventTypeId)
     );
@@ -1058,12 +1062,12 @@ export default class GoogleCalendarService implements Calendar {
       userId: this.credential.userId,
       delegationCredentialId: this.credential.delegatedToId ?? null,
     });
-    const calendarsWithSameCredentialId = await SelectedCalendarRepository.findMany({
+    const calendarsWithSameCredential = await SelectedCalendarRepository.findMany({
       where,
     });
 
-    const calendarWithSameExternalId = calendarsWithSameCredentialId.filter(
-      (sc) => sc.externalId === calendarId
+    const calendarWithSameExternalId = calendarsWithSameCredential.filter(
+      (sc) => sc.externalId === calendarId && sc.integration === this.integrationName
     );
 
     const calendarsWithSameExternalIdThatAreBeingWatched = calendarWithSameExternalId.filter(
@@ -1127,7 +1131,9 @@ export default class GoogleCalendarService implements Calendar {
 
     // Populate the cache back for the remaining calendars, if any
     const remainingCalendars =
-      calendarsWithSameCredentialId.filter((sc) => sc.externalId !== calendarId) || [];
+      calendarsWithSameCredential.filter(
+        (sc) => sc.externalId !== calendarId && sc.integration === this.integrationName
+      ) || [];
     if (remainingCalendars.length > 0) {
       await this.fetchAvailabilityAndSetCache(remainingCalendars);
     }
