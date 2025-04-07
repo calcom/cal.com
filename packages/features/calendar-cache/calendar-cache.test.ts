@@ -33,14 +33,18 @@ async function createOrganizationWithMember({ userId }: { userId: number }) {
   return { org };
 }
 
-async function createDelegationCredential() {
+async function createDelegationCredential({ enabled = true }: { enabled?: boolean } = {}) {
   return await prismock.delegationCredential.create({
     data: {
       domain: "acme.com",
+      enabled,
       workspacePlatform: {
         create: {
           slug: "google",
           enabled: true,
+          name: "Google",
+          description: "Google",
+          defaultServiceAccountKey: "{}",
         },
       },
     },
@@ -241,13 +245,13 @@ describe("CalendarCache", () => {
     });
   });
 
-  describe("initFromDelegationCredentialOrRegularCredential", () => {
+  describe("initFromDelegationOrRegularCredential", () => {
     test("Regular Credential", async () => {
       const { CalendarCache } = await import("./calendar-cache");
       await enableFeature("calendar-cache");
       const user1 = await createUser({ email: "user1@acme.com" });
       const regularCredential = await createRegularGoogleCalendarCredential({ userId: user1.id });
-      const calendarCache = await CalendarCache.initFromDelegationCredentialOrRegularCredential({
+      const calendarCache = await CalendarCache.initFromDelegationOrRegularCredential({
         delegationCredentialId: null,
         credentialId: regularCredential.id,
         userId: user1.id,
@@ -264,29 +268,74 @@ describe("CalendarCache", () => {
       });
     });
 
-    test("Delegation Credential", async () => {
-      const { CalendarCache } = await import("./calendar-cache");
-      await enableFeature("calendar-cache");
-      const delegationCredential = await createDelegationCredential();
-      const user1 = await createUser({ email: "user1@acme.com" });
-      await createOrganizationWithMember({ userId: user1.id });
+    describe("Delegation Credential", () => {
+      test("Enabled", async () => {
+        const { CalendarCache } = await import("./calendar-cache");
+        await enableFeature("calendar-cache");
+        const delegationCredential = await createDelegationCredential();
+        const user1 = await createUser({ email: "user1@acme.com" });
+        await createOrganizationWithMember({ userId: user1.id });
 
-      const calendarCache = await CalendarCache.initFromDelegationCredentialOrRegularCredential({
-        delegationCredentialId: delegationCredential.id,
-        credentialId: null,
-        userId: user1.id,
+        const calendarCache = await CalendarCache.initFromDelegationOrRegularCredential({
+          delegationCredentialId: delegationCredential.id,
+          credentialId: null,
+          userId: user1.id,
+        });
+
+        expect(calendarCache).toBeDefined();
+        calendarCache.watchCalendar({ calendarId: "calendarId", eventTypeIds: [] });
+        expect(googleCalendarServiceWatchCalendarLastCallArgs).toEqual({
+          calendarId: "calendarId",
+          eventTypeIds: [],
+        });
+
+        expectToBeDelegationCredential({
+          credential: calendarServiceCredential,
+          expected: { delegatedToId: delegationCredential.id, email: user1.email },
+        });
       });
 
-      expect(calendarCache).toBeDefined();
-      calendarCache.watchCalendar({ calendarId: "calendarId", eventTypeIds: [] });
-      expect(googleCalendarServiceWatchCalendarLastCallArgs).toEqual({
-        calendarId: "calendarId",
-        eventTypeIds: [],
+      test("Disabled and credentialId not set - should throw error", async () => {
+        const { CalendarCache } = await import("./calendar-cache");
+        await enableFeature("calendar-cache");
+        const delegationCredential = await createDelegationCredential({ enabled: false });
+        const user1 = await createUser({ email: "user1@acme.com" });
+        await createOrganizationWithMember({ userId: user1.id });
+
+        expect(
+          CalendarCache.initFromDelegationOrRegularCredential({
+            delegationCredentialId: delegationCredential.id,
+            credentialId: null,
+            userId: user1.id,
+          })
+        ).rejects.toThrow("Could not initialize calendar cache");
       });
 
-      expectToBeDelegationCredential({
-        credential: calendarServiceCredential,
-        expected: { delegatedToId: delegationCredential.id, email: user1.email },
+      test("Disabled and credentialId set - should fallback to regular credential", async () => {
+        const { CalendarCache } = await import("./calendar-cache");
+        await enableFeature("calendar-cache");
+        const delegationCredential = await createDelegationCredential({ enabled: false });
+        const user1 = await createUser({ email: "user1@acme.com" });
+        const regularCredential = await createRegularGoogleCalendarCredential({ userId: user1.id });
+        await createOrganizationWithMember({ userId: user1.id });
+
+        const calendarCache = await CalendarCache.initFromDelegationOrRegularCredential({
+          delegationCredentialId: delegationCredential.id,
+          credentialId: regularCredential.id,
+          userId: user1.id,
+        });
+
+        expect(calendarCache).toBeDefined();
+        calendarCache.watchCalendar({ calendarId: "calendarId", eventTypeIds: [] });
+        expect(googleCalendarServiceWatchCalendarLastCallArgs).toEqual({
+          calendarId: "calendarId",
+          eventTypeIds: [],
+        });
+
+        expectToBeRegularCredential({
+          credential: calendarServiceCredential,
+          expected: { id: regularCredential.id, email: user1.email },
+        });
       });
     });
   });

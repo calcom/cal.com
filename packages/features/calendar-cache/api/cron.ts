@@ -71,18 +71,31 @@ const handleCalendarsToUnwatch = async () => {
       async ([externalId, { eventTypeIds, credentialId, userId, delegationCredentialId, id }]) => {
         if (!credentialId && !delegationCredentialId) {
           // So we don't retry on next cron run
+
+          // FIXME: There could actually be multiple calendars with the same externalId and thus we need to technically update error for all of them
           await SelectedCalendarRepository.updateById(id, {
             error: "Missing credentialId and delegationCredentialId",
           });
           log.error("no credentialId and delegationCredentialId for SelectedCalendar: ", id);
           return;
         }
-        const cc = await CalendarCache.initFromDelegationCredentialOrRegularCredential({
-          credentialId,
-          delegationCredentialId,
-          userId,
-        });
-        await cc.unwatchCalendar({ calendarId: externalId, eventTypeIds });
+
+        try {
+          const cc = await CalendarCache.initFromDelegationOrRegularCredential({
+            credentialId,
+            delegationCredentialId,
+            userId,
+          });
+          await cc.unwatchCalendar({ calendarId: externalId, eventTypeIds });
+        } catch (error) {
+          let errorMessage = "Unknown error";
+          if (error instanceof Error) {
+            errorMessage = error.message;
+          }
+          await SelectedCalendarRepository.updateById(id, {
+            error: `Error unwatching calendar: ${errorMessage}`,
+          });
+        }
       }
     )
   );
@@ -105,12 +118,23 @@ const handleCalendarsToWatch = async () => {
           log.error("no credentialId and delegationCredentialId for SelectedCalendar: ", id);
           return;
         }
-        const cc = await CalendarCache.initFromDelegationCredentialOrRegularCredential({
-          credentialId,
-          delegationCredentialId,
-          userId,
-        });
-        await cc.watchCalendar({ calendarId: externalId, eventTypeIds });
+
+        try {
+          const cc = await CalendarCache.initFromDelegationOrRegularCredential({
+            credentialId,
+            delegationCredentialId,
+            userId,
+          });
+          await cc.watchCalendar({ calendarId: externalId, eventTypeIds });
+        } catch (error) {
+          let errorMessage = "Unknown error";
+          if (error instanceof Error) {
+            errorMessage = error.message;
+          }
+          await SelectedCalendarRepository.updateById(id, {
+            error: `Error watching calendar: ${errorMessage}`,
+          });
+        }
       }
     )
   );

@@ -533,6 +533,11 @@ export async function findUniqueDelegationCalendarCredential({
   if (!delegationCredential) {
     throw new Error("Delegation Credential not found");
   }
+
+  if (!delegationCredential.enabled) {
+    return null;
+  }
+
   if (!user) {
     throw new Error("User not found");
   }
