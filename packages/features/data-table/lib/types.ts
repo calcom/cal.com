@@ -1,4 +1,4 @@
-import type { SortingState, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
+import type { SortingState, ColumnSort, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
 import { z } from "zod";
 
 import type { IconName } from "@calcom/ui/components/icon";
@@ -201,11 +201,7 @@ export type TypedColumnFilter<T extends ColumnFilterType> = {
   value: FilterValue<T>;
 };
 
-export type Sorting = {
-  id: string;
-  desc: boolean;
-};
-export type SortingState = Sorting[];
+export type Sorting = ColumnSort;
 
 export const ZSorting = z.object({
   id: z.string(),
