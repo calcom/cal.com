@@ -368,6 +368,11 @@ function UserListTableContent() {
         cell: ({ row }) => <div>{row.original.lastActiveAt}</div>,
       },
       {
+        id: "createdAt",
+        header: "Member Since",
+        cell: ({ row }) => <div>{row.original.createdAt}</div>,
+      },
+      {
         id: "actions",
         enableHiding: false,
         enableSorting: false,

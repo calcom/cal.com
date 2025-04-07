@@ -548,6 +548,7 @@ model Membership {
   user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   disableImpersonation Boolean           @default(false)
   AttributeToUser      AttributeToUser[]
+  createdAt            DateTime          @default(now())
 
   @@unique([userId, teamId])
   @@index([teamId])
