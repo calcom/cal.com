@@ -36,6 +36,8 @@ test.describe("Managed Event Types", () => {
     await page.goto("/event-types");
     const tabItem = page.getByTestId(`horizontal-tab-Owner`);
     await expect(tabItem).toBeVisible();
+    // We wait until loading is finished
+    await page.waitForSelector('[data-testid="event-types"]');
     await page.getByTestId("new-event-type").click();
     await page.getByTestId("option-team-1").click();
     // Expecting we can add a managed event type as team owner

@@ -842,7 +842,7 @@ test.describe("Text area min and max characters text", () => {
       );
       await cancelQuestion();
       // Save the event type
-      await page.locator("[data-testid=update-eventtype]").click();
+      await saveEventType(page);
 
       // Get the url of data-testid="preview-button"
       const previewButton = await page.locator('[data-testid="preview-button"]');
