@@ -618,7 +618,7 @@ async function fetchAllDataNeededForCalculations<
       interval
     ).then((results) => {
       return results.reduce((fulfilledPromises, result) => {
-        if (result.status === "fulfilled") {
+        if (result.status === "fulfilled" && result.value) {
           fulfilledPromises.push(result.value);
         }
 
