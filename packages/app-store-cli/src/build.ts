@@ -146,7 +146,18 @@ function generateFiles() {
     const getLocalImportName = (
       app: { name: string },
       chosenConfig: ReturnType<typeof getChosenImportConfig>
-    ) => `${getVariableName(app.name)}_${getVariableName(chosenConfig.fileToBeImported)}`;
+    ) => {
+      const appName = app.name;
+      const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
+
+      if (chosenConfig.importName && chosenConfig.importName !== "default") {
+        const importName = chosenConfig.importName;
+        const importNameCapitalized = importName.charAt(0).toUpperCase() + importName.slice(1);
+        return `${capitalizedAppName}${importNameCapitalized}`;
+      } else {
+        return capitalizedAppName;
+      }
+    };
 
     const fileToBeImportedExists = (
       app: { path: string },
@@ -163,52 +174,39 @@ function generateFiles() {
         const chosenConfig = getChosenImportConfig(importConfig, app);
         if (fileToBeImportedExists(app, chosenConfig) && chosenConfig.importName) {
           const importName = chosenConfig.importName;
-          if (!lazyImport) {
-            if (importName !== "default") {
-              // Import with local alias that will be used by createExportObject
-              output.push(
-                `import { ${importName} as ${getLocalImportName(app, chosenConfig)} } from "${getModulePath(
-                  app.path,
-                  chosenConfig.fileToBeImported
-                )}"`
-              );
-            } else {
-              // Default Import
-              output.push(
-                `import ${getLocalImportName(app, chosenConfig)} from "${getModulePath(
-                  app.path,
-                  chosenConfig.fileToBeImported
-                )}"`
-              );
-            }
+          const appName = app.name;
+          const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
+
+          if (importName !== "default") {
+            const importNameCapitalized = importName.charAt(0).toUpperCase() + importName.slice(1);
+            output.push(
+              `import * as ${capitalizedAppName}${importNameCapitalized} from "${getModulePath(
+                app.path,
+                chosenConfig.fileToBeImported
+              )}"`
+            );
+          } else {
+            output.push(
+              `import * as ${capitalizedAppName} from "${getModulePath(
+                app.path,
+                chosenConfig.fileToBeImported
+              )}"`
+            );
           }
         }
       }, filter);
     }
 
     function createExportObject() {
+      output.push(`// Static imports for dynamic imports`);
       output.push(`export const ${objectName} = {`);
 
       forEachAppDir((app) => {
         const chosenConfig = getChosenImportConfig(importConfig, app);
 
         if (fileToBeImportedExists(app, chosenConfig)) {
-          if (!lazyImport) {
-            const key = entryObjectKeyGetter(app);
-            output.push(`"${key}": ${getLocalImportName(app, chosenConfig)},`);
-          } else {
-            const key = entryObjectKeyGetter(app);
-            if (chosenConfig.fileToBeImported.endsWith(".tsx")) {
-              output.push(
-                `"${key}": dynamic(() => import("${getModulePath(
-                  app.path,
-                  chosenConfig.fileToBeImported
-                )}")),`
-              );
-            } else {
-              output.push(`"${key}": import("${getModulePath(app.path, chosenConfig.fileToBeImported)}"),`);
-            }
-          }
+          const key = entryObjectKeyGetter(app);
+          output.push(`"${key}": ${getLocalImportName(app, chosenConfig)},`);
         }
       }, filter);
 
@@ -345,7 +343,7 @@ function generateFiles() {
           fileToBeImported: "lib/CrmService.ts",
           importName: "default",
         },
-        lazyImport: true,
+        lazyImport: false,
       },
       isCrmApp
     )
@@ -359,7 +357,7 @@ function generateFiles() {
           fileToBeImported: "index.ts",
           importName: "default",
         },
-        lazyImport: true,
+        lazyImport: false,
       },
       isPaymentApp
     )
@@ -373,7 +371,7 @@ function generateFiles() {
           fileToBeImported: "lib/CalendarService.ts",
           importName: "default",
         },
-        lazyImport: true,
+        lazyImport: false,
       },
       isCalendarApp
     )
@@ -387,7 +385,7 @@ function generateFiles() {
           fileToBeImported: "lib/VideoApiAdapter.ts",
           importName: "default",
         },
-        lazyImport: true,
+        lazyImport: false,
       },
       isConferencingApp
     )
