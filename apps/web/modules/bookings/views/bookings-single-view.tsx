@@ -508,14 +508,33 @@ export default function Success(props: PageProps) {
                               !props.paymentStatus.refunded &&
                               (() => {
                                 const refundPolicy = eventType?.metadata?.apps?.stripe?.refundPolicy;
-                                if (
-                                  refundPolicy === RefundPolicy.DAYS ||
-                                  refundPolicy === RefundPolicy.ALWAYS
-                                ) {
-                                  return t("booking_with_payment_cancelled_already_paid");
-                                }
-                                if (refundPolicy === RefundPolicy.NEVER) {
+                                const refundDaysCount = eventType?.metadata?.apps?.stripe?.refundDaysCount;
+
+                                // Handle missing team or event type owner
+                                if (!eventType?.teamId && !eventType?.owner) {
                                   return t("booking_with_payment_cancelled_no_refund");
+                                }
+
+                                // Handle DAYS policy with expired refund window
+                                else if (refundPolicy === RefundPolicy.DAYS && refundDaysCount) {
+                                  const startTime = new Date(bookingInfo.startTime);
+                                  const cancelTime = new Date();
+                                  const daysDiff = Math.floor(
+                                    (cancelTime.getTime() - startTime.getTime()) / (1000 * 60 * 60 * 24)
+                                  );
+
+                                  if (daysDiff > refundDaysCount) {
+                                    return t("booking_with_payment_cancelled_no_refund");
+                                  }
+                                }
+                                // Handle NEVER policy
+                                else if (refundPolicy === RefundPolicy.NEVER) {
+                                  return t("booking_with_payment_cancelled_no_refund");
+                                }
+
+                                // Handle ALWAYS policy
+                                else {
+                                  return t("booking_with_payment_cancelled_already_paid");
                                 }
                               })()}
                             {props.paymentStatus.refunded && t("booking_with_payment_cancelled_refunded")}
