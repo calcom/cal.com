@@ -415,10 +415,18 @@ async function getCalendarBusyTimesOfInterval(
         user.userLevelSelectedCalendars,
         true,
         true
-      ).then((busyTimes) => ({
-        userId: user.id,
-        busyTimes,
-      }))
+      )
+        .then((busyTimes) => ({
+          userId: user.id,
+          busyTimes,
+        }))
+        .catch((error) => {
+          log.error(
+            "getCalendarBusyTimesOfInterval",
+            `Error getting busy calendar times for ${user.id}`,
+            safeStringify(error)
+          );
+        })
     )
   );
 }
