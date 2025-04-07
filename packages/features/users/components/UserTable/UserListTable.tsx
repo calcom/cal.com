@@ -370,12 +370,12 @@ function UserListTableContent() {
       {
         id: "createdAt",
         header: "Member Since",
-        cell: ({ row }) => <div>{row.original.createdAt}</div>,
+        cell: ({ row }) => <div>{row.original.createdAt || "N/A"}</div>,
       },
       {
         id: "updatedAt",
         header: "Last Updated",
-        cell: ({ row }) => <div>{row.original.updatedAt}</div>,
+        cell: ({ row }) => <div>{row.original.updatedAt || "N/A"}</div>,
       },
       {
         id: "actions",
