@@ -51,7 +51,7 @@ import { getGoogleAppKeys } from "./getGoogleAppKeys";
 
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
 
-interface ParticipantWithEmail extends MeetParticipant {
+export interface GoogleMeetParticipantWithEmail extends MeetParticipant {
   email?: string;
 }
 
@@ -738,7 +738,7 @@ export default class GoogleCalendarService implements Calendar {
   async getMeetParticipants(
     videoCallUrl: string | null,
     emailToImpersonate: string
-  ): Promise<ParticipantWithEmail[][] | null> {
+  ): Promise<GoogleMeetParticipantWithEmail[][] | null> {
     try {
       // videoCallUrl = "https://meet.google.com/nvt-uufv-omy";
       if (!this.credential.delegatedTo?.serviceAccountKey) {
@@ -761,39 +761,36 @@ export default class GoogleCalendarService implements Calendar {
 
       const participantsByConferenceRecord = await Promise.all(
         conferenceRecords.map(async (conferenceRecord) => {
-          const participants = [];
-          for await (const participant of await meetService.getParticipants(conferenceRecord.name)) {
-            participants.push(participant);
-          }
+          const participants = await meetService.getParticipants(conferenceRecord.name);
           return participants;
         })
       );
 
-      // return participantsByConferenceRecord;
-
       const participantsWithEmails = await Promise.all(
-        participantsByConferenceRecord.map(async (participants) => {
-          return Promise.all(
-            participants.map(async (participant) => {
-              try {
-                const userId = participant.signedinUser?.user?.split("/")[1];
-                if (!userId) {
+        participantsByConferenceRecord
+          .filter((participants) => participants.length > 0)
+          .map(async (participants) => {
+            return Promise.all(
+              participants.map(async (participant) => {
+                try {
+                  const userId = participant.signedinUser?.user?.split("/")[1];
+                  if (!userId) {
+                    return participant;
+                  }
+                  const user = await meetService.getUser(userId);
+                  console.log("user", user);
+
+                  return {
+                    ...participant,
+                    email: user.primaryEmail ? user.primaryEmail : undefined,
+                  };
+                } catch (err) {
+                  console.error("Error fetching email for participant:", err);
                   return participant;
                 }
-                const user = await meetService.getUser(userId);
-                console.log("user", user);
-
-                return {
-                  ...participant,
-                  email: user.primaryEmail ? user.primaryEmail : undefined,
-                };
-              } catch (err) {
-                console.error("Error fetching email for participant:", err);
-                return participant;
-              }
-            })
-          );
-        })
+              })
+            );
+          })
       );
 
       return participantsWithEmails;

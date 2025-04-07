@@ -1,10 +1,15 @@
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import type { GoogleMeetParticipantWithEmail } from "@calcom/app-store/googlecalendar/lib/CalendarService";
+import { DailyLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getBooking } from "./getBooking";
 import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName";
@@ -53,12 +58,46 @@ export function getHosts(booking: Booking): Host[] {
   return filteredHosts;
 }
 
+export const getGoogleDwdCredentialsWithServiceAccountKeyKey = async ({
+  user,
+  delegationCredentialId,
+}: {
+  user: { id: number; email: string };
+  delegationCredentialId: string;
+}) => {
+  const credential = await DelegationCredentialRepository.findUniqueByIdIncludeSensitiveServiceAccountKey({
+    id: delegationCredentialId,
+  });
+  if (!credential) {
+    throw new Error(`Delegation credential not found for user ${user.email} or it is disabled`);
+  }
+  const serviceAccountKey = credential.serviceAccountKey;
+  if (!serviceAccountKey) {
+    throw new Error(`Invalid service account key for user ${user.email}`);
+  }
+  return {
+    type: "google_calendar",
+    appId: "google-calendar",
+    id: -1,
+    delegatedToId: delegationCredentialId,
+    userId: user.id,
+    user: { email: user.email },
+    key: { access_token: "NOOP_UNUSED_DELEGATION_TOKEN" },
+    invalid: false,
+    teamId: null,
+    team: null,
+    delegatedTo: {
+      serviceAccountKey: serviceAccountKey,
+    },
+  };
+};
+
 export function sendWebhookPayload(
   webhook: Webhook,
   triggerEvent: WebhookTriggerEvents,
   booking: Booking,
   maxStartTime: number,
-  participants: ParticipantsWithEmail,
+  participants: ParticipantsWithEmail | GoogleMeetParticipantWithEmail[],
   originalRescheduledBooking?: OriginalRescheduledBooking,
   hostEmail?: string
 ): Promise<any> {
@@ -150,9 +189,10 @@ export const prepareNoShowTrigger = async (
   numberOfHostsThatJoined: number;
   didGuestJoinTheCall: boolean;
   originalRescheduledBooking?: OriginalRescheduledBooking;
-  participants: ParticipantsWithEmail;
+  participants: ParticipantsWithEmail | GoogleMeetParticipantWithEmail[];
+  triggerEvent: WebhookTriggerEvents;
 } | void> => {
-  const { bookingId, webhook } = ZSendNoShowWebhookPayloadSchema.parse(JSON.parse(payload));
+  const { bookingId, webhook, triggerEvent } = ZSendNoShowWebhookPayloadSchema.parse(JSON.parse(payload));
 
   const booking = await getBooking(bookingId);
   let originalRescheduledBooking = null;
@@ -186,48 +226,105 @@ export const prepareNoShowTrigger = async (
   const dailyVideoReference =
     booking.references?.filter((reference) => reference.type === "daily_video")?.pop() ?? null;
 
-  if (!dailyVideoReference) {
+  if (
+    !!dailyVideoReference &&
+    (booking.location === DailyLocationType || booking.location?.trim() === "" || !booking.location)
+  ) {
+    const meetingDetails = await getMeetingSessionsFromRoomName(dailyVideoReference.uid);
+
+    const hosts = getHosts(booking);
+    const allParticipants = meetingDetails.data.flatMap((meeting) => meeting.participants);
+
+    const hostsThatJoinedTheCall: Host[] = [];
+    const hostsThatDidntJoinTheCall: Host[] = [];
+
+    for (const host of hosts) {
+      if (checkIfUserJoinedTheCall(host.id, allParticipants)) {
+        hostsThatJoinedTheCall.push(host);
+      } else {
+        hostsThatDidntJoinTheCall.push(host);
+      }
+    }
+
+    const numberOfHostsThatJoined = hosts.length - hostsThatDidntJoinTheCall.length;
+
+    const didGuestJoinTheCall = meetingDetails.data.some(
+      (meeting) => meeting.max_participants > numberOfHostsThatJoined
+    );
+
+    const participantsWithEmail = await getParticipantsWithEmail(allParticipants);
+
+    return {
+      hostsThatDidntJoinTheCall,
+      hostsThatJoinedTheCall,
+      booking,
+      numberOfHostsThatJoined,
+      webhook,
+      didGuestJoinTheCall,
+      originalRescheduledBooking,
+      participants: participantsWithEmail,
+      triggerEvent,
+    };
+  } else if (booking.location === "integrations:google:meet") {
+    const hosts = getHosts(booking);
+
+    const organizer = booking.user ?? booking.destinationCalendar?.user;
+    if (!organizer || !booking.destinationCalendar?.delegationCredentialId) {
+      log.error(
+        "No organizer found or delegation credential id not found in triggerNoShowWebhook",
+        safeStringify({ bookingId, webhook: { id: webhook.id } })
+      );
+      return;
+    }
+    const googleCalendarCredentials = await getGoogleDwdCredentialsWithServiceAccountKeyKey({
+      user: { id: organizer.id, email: organizer.email },
+      delegationCredentialId: booking.destinationCalendar?.delegationCredentialId,
+    });
+
+    const calendar = await getCalendar(googleCalendarCredentials);
+    const videoCallUrl = bookingMetadataSchema.parse(booking.metadata ?? null)?.videoCallUrl ?? null;
+
+    const allParticipantGroups = (await calendar?.getMeetParticipants?.(videoCallUrl, organizer.email)) ?? [];
+    const allParticipants: GoogleMeetParticipantWithEmail[] = allParticipantGroups.flat();
+
+    const hostsThatJoinedTheCall: Host[] = [];
+    const hostsThatDidntJoinTheCall: Host[] = [];
+
+    for (const host of hosts) {
+      if (allParticipants?.some((participant) => participant.email === host.email)) {
+        hostsThatJoinedTheCall.push(host);
+      } else {
+        hostsThatDidntJoinTheCall.push(host);
+      }
+    }
+
+    const numberOfHostsThatJoined = hosts.length - hostsThatDidntJoinTheCall.length;
+
+    const maxParticipants = allParticipantGroups.reduce((max, participantGroup) => {
+      return Math.max(max, participantGroup.length);
+    }, 0);
+
+    const didGuestJoinTheCall = maxParticipants < numberOfHostsThatJoined;
+
+    return {
+      hostsThatJoinedTheCall,
+      hostsThatDidntJoinTheCall,
+      booking,
+      numberOfHostsThatJoined,
+      webhook,
+      didGuestJoinTheCall,
+      triggerEvent,
+      participants: allParticipants,
+    };
+  } else {
     log.error(
-      "Daily video reference not found",
+      "No valid location found in triggerNoShowWebhook",
       safeStringify({
         bookingId,
         webhook: { id: webhook.id },
       })
     );
-    throw new Error(`Daily video reference not found in triggerHostNoShow with bookingId ${bookingId}`);
+
+    throw new Error(`No valid location found in triggerNoShowWebhook with bookingId ${bookingId}`);
   }
-  const meetingDetails = await getMeetingSessionsFromRoomName(dailyVideoReference.uid);
-
-  const hosts = getHosts(booking);
-  const allParticipants = meetingDetails.data.flatMap((meeting) => meeting.participants);
-
-  const hostsThatJoinedTheCall: Host[] = [];
-  const hostsThatDidntJoinTheCall: Host[] = [];
-
-  for (const host of hosts) {
-    if (checkIfUserJoinedTheCall(host.id, allParticipants)) {
-      hostsThatJoinedTheCall.push(host);
-    } else {
-      hostsThatDidntJoinTheCall.push(host);
-    }
-  }
-
-  const numberOfHostsThatJoined = hosts.length - hostsThatDidntJoinTheCall.length;
-
-  const didGuestJoinTheCall = meetingDetails.data.some(
-    (meeting) => meeting.max_participants > numberOfHostsThatJoined
-  );
-
-  const participantsWithEmail = await getParticipantsWithEmail(allParticipants);
-
-  return {
-    hostsThatDidntJoinTheCall,
-    hostsThatJoinedTheCall,
-    booking,
-    numberOfHostsThatJoined,
-    webhook,
-    didGuestJoinTheCall,
-    originalRescheduledBooking,
-    participants: participantsWithEmail,
-  };
 };

@@ -101,12 +101,12 @@ export class GoogleMeetService {
   async listConferenceRecordsByMeetingCode(meetingCode: string) {
     return this.makeRequest<{ conferenceRecords: MeetConferenceRecord[] }>(
       `/conferenceRecords?filter=space.meeting_code="${meetingCode}"`
-    ).then((response) => response.conferenceRecords);
+    ).then((response) => response.conferenceRecords ?? []);
   }
 
   async getParticipants(conferenceRecordId: string): Promise<MeetParticipant[]> {
     return this.makeRequest<{ participants: MeetParticipant[] }>(`/${conferenceRecordId}/participants`).then(
-      (response) => response.participants
+      (response) => response.participants ?? []
     );
   }
 

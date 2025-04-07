@@ -19,6 +19,18 @@ export const getBooking = async (bookingId: number) => {
       eventTypeId: true,
       references: true,
       fromReschedule: true,
+      destinationCalendar: {
+        select: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              timeZone: true,
+            },
+          },
+          delegationCredentialId: true,
+        },
+      },
       eventType: {
         select: {
           id: true,
