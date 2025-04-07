@@ -18,7 +18,7 @@ import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 import { default as appMeta } from "../config.json";
-import type { writeToRecordDataSchema } from "../zod";
+import type { writeToRecordDataSchema, appDataSchema } from "../zod";
 import {
   SalesforceRecordEnum,
   SalesforceFieldType,
@@ -75,11 +75,11 @@ export default class SalesforceCRMService implements CRM {
   private conn!: Promise<Connection>;
   private log: typeof logger;
   private calWarnings: string[] = [];
-  private appOptions: any;
+  private appOptions: z.infer<typeof appDataSchema>;
   private doNotCreateEvent = false;
   private fallbackToContact = false;
 
-  constructor(credential: CredentialPayload, appOptions: any, testMode = false) {
+  constructor(credential: CredentialPayload, appOptions: z.infer<typeof appDataSchema>, testMode = false) {
     this.integrationName = "salesforce_other_calendar";
     if (!testMode) {
       this.conn = this.getClient(credential).then((c) => c);
@@ -295,6 +295,8 @@ export default class SalesforceCRMService implements CRM {
   };
 
   private salesforceDeleteEvent = async (uid: string) => {
+    const appOptions = this.getAppOptions();
+
     const conn = await this.conn;
     return await conn.sobject("Event").delete(uid);
   };
@@ -724,7 +726,7 @@ export default class SalesforceCRMService implements CRM {
           // Update the event with the no show data
           await conn.sobject("Event").update({
             Id: event.uid,
-            [sendNoShowAttendeeDataField]: noShowData.noShow,
+            [sendNoShowAttendeeDataField as string]: noShowData.noShow,
           });
         }
       }
@@ -1223,8 +1225,10 @@ export default class SalesforceCRMService implements CRM {
 
     if (!customFieldInputsEnabled) return {};
 
+    if (!appOptions?.onBookingWriteToEventObjectMap) return {};
+
     const customFieldInputs = customFieldInputsEnabled
-      ? await this.ensureFieldsExistOnObject(Object.keys(appOptions?.onBookingWriteToEventObjectMap), "Event")
+      ? await this.ensureFieldsExistOnObject(Object.keys(appOptions.onBookingWriteToEventObjectMap), "Event")
       : [];
 
     const confirmedCustomFieldInputs: {
@@ -1498,12 +1502,12 @@ export default class SalesforceCRMService implements CRM {
     if (!(companyFieldName in onBookingWriteToRecordFields)) return;
 
     const companyValue = await this.getTextFieldValue({
-      fieldValue: onBookingWriteToRecordFields[companyFieldName].value,
+      fieldValue: onBookingWriteToRecordFields[companyFieldName].value as string,
       fieldLength: defaultTextValueLength,
       calEventResponses,
     });
 
-    if (companyValue === onBookingWriteToRecordFields[companyFieldName]) return;
+    if (companyValue && companyValue === onBookingWriteToRecordFields[companyFieldName].value) return;
     return companyValue;
   }
 
