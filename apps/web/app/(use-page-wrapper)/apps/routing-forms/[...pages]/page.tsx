@@ -45,7 +45,7 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
     </FormProvider>
   );
 
-  if (mainPage === "routing-link") {
+  if (mainPage === "routing-link" || mainPage === "form-edit") {
     return <FinalComponent />;
   }
 

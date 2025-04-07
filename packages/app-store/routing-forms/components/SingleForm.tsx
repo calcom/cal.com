@@ -24,7 +24,6 @@ import { VerticalDivider } from "@calcom/ui/components/divider";
 import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
 import { Form } from "@calcom/ui/components/form";
 import { TextAreaField } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -41,6 +40,7 @@ import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActi
 import FormInputFields from "./FormInputFields";
 import { InfoLostWarningDialog } from "./InfoLostWarningDialog";
 import RoutingNavBar from "./RoutingNavBar";
+import { Header } from "./_components/Header";
 import { getServerSidePropsForSingleFormView } from "./getServerSidePropsSingleForm";
 
 const Actions = ({
@@ -718,28 +718,34 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           appUrl={appUrl}
           newFormDialogState={newFormDialogState}
           setNewFormDialogState={setNewFormDialogState}>
+          {/* JUMP TO HERE */}
           <ShellMain
-            heading={
-              <div className="flex">
-                <div>{form.name}</div>
-                {form.team && (
-                  <Badge className="ml-4 mt-1" variant="gray">
-                    {form.team.name}
-                  </Badge>
-                )}
-              </div>
-            }
-            subtitle={form.description || ""}
-            backPath={`${appUrl}/forms`}
-            CTA={<Actions form={form} mutation={mutation} />}>
+          // heading={
+          //   <div className="flex bg-red-500">
+          //     <div>{form.name}</div>
+          //     {form.team && (
+          //       <Badge className="ml-4 mt-1" variant="gray">
+          //         {form.team.name}
+          //       </Badge>
+          //     )}
+          //   </div>
+          // }
+          // subtitle={form.description || ""}
+          // backPath={`${appUrl}/forms`}
+          // CTA={<Actions form={form} mutation={mutation} />}>
+          >
+            <Header
+              routingForm={form}
+              onTitleChange={(title) => hookForm.setValue("name", title, { shouldDirty: true })}
+            />
             <div className="flex flex-col items-center items-baseline px-3 md:flex-row md:items-start md:p-0">
-              <div className="lg:min-w-72 lg:max-w-72 md:max-w-56 mb-6 w-full md:mr-6">
-                <TextField
+              <div className="lg:min-w-72 lg:max-w-72 md:max-w-56 mb-6 w-full bg-red-200 md:mr-6">
+                {/* <TextField
                   type="text"
                   containerClassName="mb-6"
                   placeholder={t("title")}
                   {...hookForm.register("name")}
-                />
+                /> */}
                 <TextAreaField
                   rows={3}
                   id="description"
