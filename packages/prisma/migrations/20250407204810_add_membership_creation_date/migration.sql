@@ -1,1 +1,2 @@
-ALTER TABLE "Membership" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "Membership" ADD COLUMN "createdAt" TIMESTAMP(3),
+                         ADD COLUMN "updatedAt" TIMESTAMP(3);

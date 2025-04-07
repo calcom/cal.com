@@ -159,10 +159,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
 
   const teamMembersPromise = prisma.membership.findMany({
     where: whereClause,
-    select: {
-      id: true,
-      role: true,
-      accepted: true,
+    include: {
       user: {
         select: {
           id: true,
@@ -249,13 +246,8 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
               .format(membership.user.lastActiveAt)
               .toLowerCase()
           : null,
-        createdAt: membership.createdAt
-          ? new Intl.DateTimeFormat(ctx.user.locale, {
-              timeZone: ctx.user.timeZone,
-            })
-              .format(membership.createdAt)
-              .toLowerCase()
-          : null,
+        createdAt: null,
+        updatedAt: null,
         avatarUrl: user.avatarUrl,
         teams: user.teams
           .filter((team) => team.team.id !== organizationId) // In this context we dont want to return the org team
