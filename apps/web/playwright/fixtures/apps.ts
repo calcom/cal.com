@@ -123,7 +123,7 @@ export function createAppsFixture(page: Page) {
     },
     verifyAppsInfoNew: async (app: string, eventTypeId: number) => {
       await page.goto(`event-types/${eventTypeId}?tabName=apps`);
-      await page.waitForLoadState("domcontentloaded");
+      await expect(page.locator('text="Event Setup"')).toBeVisible(); // fix the race condition
       await expect(page.locator(`[data-testid='${app}-app-switch'][data-state="checked"]`)).toBeVisible();
     },
   };

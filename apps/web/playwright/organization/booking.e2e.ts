@@ -625,7 +625,7 @@ const markPhoneNumberAsRequiredAndEmailAsOptional = async (page: Page, eventId: 
 
 const markPhoneNumberAsRequiredField = async (page: Page, eventId: number) => {
   await page.goto(`/event-types/${eventId}?tabName=advanced`);
-  await expect(page.locator('text="event_advanced_tab_title"')).toBeHidden(); // fix the race condition
+  await expect(page.locator('text="Event Setup"')).toBeVisible(); // fix the race condition
 
   await page.locator('[data-testid="field-attendeePhoneNumber"] [data-testid="toggle-field"]').click();
   await page.locator('[data-testid="field-attendeePhoneNumber"] [data-testid="edit-field-action"]').click();

@@ -81,7 +81,7 @@ test.describe("Managed Event Types", () => {
       "aria-current",
       "page"
     ); // fix the race condition
-    await expect(page.locator('text="event_setup_tab_title"')).toBeHidden();
+    await expect(page.locator('text="Event Setup"')).toBeVisible(); //fix the race condition
     await page.locator("#location-select").click();
     const optionText = await getByKey(page, "organizer_default_conferencing_app");
     await expect(optionText).toBeVisible();
