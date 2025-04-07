@@ -68,7 +68,6 @@ export class OrganizationsConferencingService {
     await this.ensureOrganizationAccess(orgId);
     await this.ensureAdminAPIEnabled(orgId);
 
-    // Only validate team if a teamId is provided
     if (teamId && teamId.trim() !== "") {
       await this.ensureTeamBelongsToOrg(orgId, teamId);
     }
@@ -189,11 +188,9 @@ export class OrganizationsConferencingService {
       throw new BadRequestException("user not found");
     }
 
-    // Determine if this is a team-level or organization-level operation
     const isTeamLevel = !!teamId;
     const requiredRole = isTeamLevel ? "TEAM_ADMIN" : "ORG_ADMIN";
 
-    // Verify access with appropriate parameters
     const { orgId: validatedOrgId, teamId: validatedTeamId } = await this.verifyAccess({
       user,
       orgId,

@@ -113,7 +113,6 @@ export class StripeService {
       grant_type: "authorization_code",
       code: code?.toString(),
     });
-    console.log("responseeeeeeee: ", response);
 
     const data: StripeData = { ...response, default_currency: "" };
     if (response["stripe_user_id"]) {

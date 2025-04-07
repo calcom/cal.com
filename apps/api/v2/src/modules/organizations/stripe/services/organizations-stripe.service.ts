@@ -48,10 +48,8 @@ export class OrganizationsStripeService {
     code: string;
     userId: number;
   }): Promise<{ url: string }> {
-    // Parse the state string to get OAuthCallbackState
     const { orgId, teamId } = state;
 
-    // Fetch user from repository
     const user = await this.usersRepository.findByIdWithProfile(userId);
 
     if (!orgId) {
@@ -62,7 +60,6 @@ export class OrganizationsStripeService {
       throw new BadRequestException("user not found");
     }
 
-    // Determine if this is a team-level or organization-level operation
     const isTeamLevel = !!teamId;
     const requiredRole = isTeamLevel ? "TEAM_ADMIN" : "ORG_ADMIN";
 
@@ -83,7 +80,6 @@ export class OrganizationsStripeService {
       teamId
     );
 
-    console.log("stripeCredentials: ", stripeCredentials);
     return await this.stripeService.validateStripeCredentials(stripeCredentials);
   }
 }
