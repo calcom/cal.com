@@ -21,17 +21,20 @@ test.describe("Managed Event Types", () => {
   /** We don't use setupManagedEvent here to test the actual creation flow */
   test("Can create managed event type", async ({ page, users }) => {
     // Creating the owner user of the team
-    const adminUser = await users.create(null, {
-      hasTeam: true,
-      teammates: [{ name: "teammate-1" }],
-    });
+    const adminUser = await users.create(
+      { name: "Owner" },
+      {
+        hasTeam: true,
+        teammates: [{ name: "teammate-1" }],
+      }
+    );
     // Creating the member user of the team
     // First we work with owner user, logging in
     await adminUser.apiLogin();
     // Let's create a team
     // Going to create an event type
     await page.goto("/event-types");
-    const tabItem = page.getByTestId(`horizontal-tab-${adminUser?.name}`);
+    const tabItem = page.getByTestId(`horizontal-tab-Owner`);
     await expect(tabItem).toBeVisible();
     await page.getByTestId("new-event-type").click();
     await page.getByTestId("option-team-1").click();
@@ -78,6 +81,7 @@ test.describe("Managed Event Types", () => {
       "aria-current",
       "page"
     ); // fix the race condition
+    await expect(page.locator('text="event_setup_tab_title"')).toBeHidden();
     await page.locator("#location-select").click();
     const optionText = await getByKey(page, "organizer_default_conferencing_app");
     await expect(optionText).toBeVisible();
