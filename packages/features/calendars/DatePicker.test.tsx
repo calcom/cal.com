@@ -1,5 +1,4 @@
 import { render } from "@testing-library/react";
-import * as React from "react";
 
 import dayjs from "@calcom/dayjs";
 import { PeriodType } from "@calcom/prisma/enums";
