@@ -246,8 +246,20 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
               .format(membership.user.lastActiveAt)
               .toLowerCase()
           : null,
-        createdAt: null,
-        updatedAt: null,
+        createdAt: (membership as any).createdAt
+          ? new Intl.DateTimeFormat(ctx.user.locale, {
+              timeZone: ctx.user.timeZone,
+            })
+              .format((membership as any).createdAt)
+              .toLowerCase()
+          : null,
+        updatedAt: (membership as any).updatedAt
+          ? new Intl.DateTimeFormat(ctx.user.locale, {
+              timeZone: ctx.user.timeZone,
+            })
+              .format((membership as any).updatedAt)
+              .toLowerCase()
+          : null,
         avatarUrl: user.avatarUrl,
         teams: user.teams
           .filter((team) => team.team.id !== organizationId) // In this context we dont want to return the org team
