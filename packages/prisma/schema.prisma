@@ -1458,7 +1458,7 @@ view BookingTimeStatus {
 
 model CalendarCache {
   // To be made required in a followup
-  id String? @default(uuid())
+  id String @id @default(uuid())
 
   // The key would be the unique URL that is requested by the user
   key          String
@@ -1467,7 +1467,6 @@ model CalendarCache {
   credentialId Int
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
 
-  @@id([credentialId, key])
   @@unique([credentialId, key])
 }
 
