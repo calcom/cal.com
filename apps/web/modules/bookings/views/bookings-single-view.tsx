@@ -58,6 +58,7 @@ import { EmailInput, TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
+import { useViewerI18n } from "@calcom/web/components/I18nLanguageHandler";
 import { BookerI18nextProvider } from "@calcom/web/components/bookerI18nextProvider";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
@@ -105,11 +106,12 @@ export default function SuccessWrapper(props: PageProps) {
   const interfaceLanguage = props.eventType.interfaceLanguage;
 
   const shouldUseCustomInterfaceLanguage = interfaceLanguage && interfaceLanguage !== session?.user.locale;
+  const { data } = useViewerI18n(interfaceLanguage || "");
 
   return (
     <>
       {shouldUseCustomInterfaceLanguage ? (
-        <BookerI18nextProvider locale={interfaceLanguage}>
+        <BookerI18nextProvider locale={interfaceLanguage} i18nSSRConfig={data?.i18n}>
           <Success {...props} />
         </BookerI18nextProvider>
       ) : (
