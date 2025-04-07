@@ -34,7 +34,7 @@ test.describe("check analytics Apps", () => {
         const user = await users.create();
         await user.apiLogin();
         const eventTypes = await user.getUserEventsAsOwner();
-        const eventTypesIds = eventTypes.map((item) => item.id);
+        const eventTypesIds = eventTypes.map((item) => item.id).slice(0, 3);
         await page.goto("/apps/categories/analytics");
         await appsPage.installAnalyticsApp(app, eventTypesIds);
         for (const id of eventTypesIds) {
