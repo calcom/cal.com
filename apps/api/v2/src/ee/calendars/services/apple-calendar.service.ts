@@ -30,7 +30,7 @@ export class AppleCalendarService implements CredentialSyncCalendarApp {
   }
 
   async checkIfCalendarConnected(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
-    const appleCalendarCredentials = await this.credentialRepository.getByTypeAndUserId(
+    const appleCalendarCredentials = await this.credentialRepository.findCredentialByTypeAndUserId(
       APPLE_CALENDAR_TYPE,
       userId
     );
@@ -94,7 +94,7 @@ export class AppleCalendarService implements CredentialSyncCalendarApp {
       }
 
       if (!!hasCalendarWithGivenCredentials && !hasMatchingUsernameAndPassword) {
-        await this.credentialRepository.upsertAppCredential(
+        await this.credentialRepository.upsertUserAppCredential(
           APPLE_CALENDAR_TYPE,
           symmetricEncrypt(JSON.stringify({ username, password }), process.env.CALENDSO_ENCRYPTION_KEY || ""),
           userId,
@@ -126,7 +126,7 @@ export class AppleCalendarService implements CredentialSyncCalendarApp {
         user: { email: userEmail },
       });
       await dav?.listCalendars();
-      await this.credentialRepository.upsertAppCredential(APPLE_CALENDAR_TYPE, data.key, userId);
+      await this.credentialRepository.upsertUserAppCredential(APPLE_CALENDAR_TYPE, data.key, userId);
     } catch (reason) {
       throw new BadRequestException(`Could not add this apple calendar account: ${reason}`);
     }

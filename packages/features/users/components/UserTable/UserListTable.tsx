@@ -13,13 +13,11 @@ import {
   DataTableToolbar,
   DataTableSelectionBar,
   DataTableFilters,
+  DataTableSegment,
   useColumnFilters,
   ColumnFilterType,
   convertFacetedValuesToMap,
-  SaveFilterSegmentButton,
-  FilterSegmentSelect,
   useDataTable,
-  CTA_CONTAINER_CLASS_NAME,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -105,7 +103,7 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 
 export function UserListTable() {
   return (
-    <DataTableProvider defaultPageSize={25} ctaContainerClassName={CTA_CONTAINER_CLASS_NAME}>
+    <DataTableProvider defaultPageSize={25}>
       <UserListTableContent />
     </DataTableProvider>
   );
@@ -136,19 +134,18 @@ function UserListTableContent() {
   });
 
   const [state, dispatch] = useReducer(reducer, initialState);
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
   const [rowSelection, setRowSelection] = useState({});
 
   const columnFilters = useColumnFilters();
 
-  const { limit, offset, ctaContainerRef } = useDataTable();
+  const { limit, offset, searchTerm, ctaContainerRef } = useDataTable();
 
   const { data, isPending } = trpc.viewer.organizations.listMembers.useQuery(
     {
       limit,
       offset,
-      searchTerm: debouncedSearchTerm,
+      searchTerm,
       expand: ["attributes"],
       filters: columnFilters,
     },
@@ -485,7 +482,7 @@ function UserListTableContent() {
         const result = await utils.viewer.organizations.listMembers.fetch({
           limit,
           offset,
-          searchTerm: debouncedSearchTerm,
+          searchTerm,
           expand: ["attributes"],
           filters: columnFilters,
         });
@@ -533,18 +530,16 @@ function UserListTableContent() {
         paginationMode="standard"
         ToolbarLeft={
           <>
-            <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
+            <DataTableToolbar.SearchBar />
             <DataTableFilters.ColumnVisibilityButton table={table} />
-            <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
-            <DataTableFilters.ActiveFilters table={table} />
-            <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
+            <DataTableFilters.FilterBar table={table} />
           </>
         }
         ToolbarRight={
           <>
             <DataTableFilters.ClearFiltersButton />
-            <SaveFilterSegmentButton />
-            <FilterSegmentSelect />
+            <DataTableSegment.SaveButton />
+            <DataTableSegment.Select />
           </>
         }>
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
@@ -586,7 +581,7 @@ function UserListTableContent() {
       {state.changeMemberRole.showModal && <ChangeUserRoleModal dispatch={dispatch} state={state} />}
       {state.editSheet.showModal && <EditUserSheet dispatch={dispatch} state={state} />}
 
-      {ctaContainerRef?.current &&
+      {ctaContainerRef.current &&
         createPortal(
           <div className="flex items-center gap-2">
             <DataTableToolbar.CTA

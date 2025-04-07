@@ -15,6 +15,9 @@ export enum SalesforceFieldType {
   PHONE = "phone",
   CUSTOM = "custom",
   PICKLIST = "picklist",
+  CHECKBOX = "boolean",
+  DATETIME = "datetime",
+  TEXTAREA = "textarea",
 }
 
 export enum DateFieldTypeData {
