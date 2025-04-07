@@ -29,10 +29,12 @@ import { OrganizationsMembershipsController } from "@/modules/organizations/memb
 import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import { OrganizationsOrganizationsModule } from "@/modules/organizations/organizations/organizations-organizations.module";
+import { PlatformSubscriptionModule } from "@/modules/organizations/platform-subscription/platform-subscription.module";
+import { PlatformSubscriptionService } from "@/modules/organizations/platform-subscription/services/platform-subscription.service";
 import { OrganizationsSchedulesController } from "@/modules/organizations/schedules/organizations-schedules.controller";
 import { OrganizationSchedulesRepository } from "@/modules/organizations/schedules/organizations-schedules.repository";
 import { OrganizationsSchedulesService } from "@/modules/organizations/schedules/services/organizations-schedules.service";
-import { OrganizationsStripeController } from "@/modules/organizations/stripe/organizations-stripe.controller";
+import { OrganizationsStripeModule } from "@/modules/organizations/stripe/organizations-stripe.module";
 import { OrganizationsStripeService } from "@/modules/organizations/stripe/services/organizations-stripe.service";
 import { OrganizationsTeamsController } from "@/modules/organizations/teams/index/organizations-teams.controller";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
@@ -76,7 +78,9 @@ import { forwardRef, Module } from "@nestjs/common";
     forwardRef(() => AuthModule),
     OrganizationsDelegationCredentialModule,
     OrganizationsOrganizationsModule,
+    OrganizationsStripeModule,
     OrganizationsTeamsRoutingFormsModule,
+    PlatformSubscriptionModule,
   ],
   providers: [
     OrganizationsRepository,
@@ -113,6 +117,7 @@ import { forwardRef, Module } from "@nestjs/common";
     OrganizationsConferencingService,
     OrganizationsStripeService,
     CredentialsRepository,
+    PlatformSubscriptionService,
   ],
   exports: [
     OrganizationsService,
@@ -135,6 +140,7 @@ import { forwardRef, Module } from "@nestjs/common";
     OrganizationsEventTypesService,
     OrganizationsConferencingService,
     OrganizationsStripeService,
+    PlatformSubscriptionService,
   ],
   controllers: [
     OrganizationsTeamsController,
@@ -149,7 +155,6 @@ import { forwardRef, Module } from "@nestjs/common";
     OrganizationsTeamsSchedulesController,
     OrganizationsUsersOOOController,
     OrganizationsConferencingController,
-    OrganizationsStripeController,
   ],
 })
 export class OrganizationsModule {}

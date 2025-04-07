@@ -1,15 +1,10 @@
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
-import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { PlatformPlanType } from "@/modules/billing/types";
 import { OAuthCallbackState } from "@/modules/conferencing/controllers/conferencing.controller";
 import { DefaultConferencingAppsOutputDto } from "@/modules/conferencing/outputs/get-default-conferencing-app.output";
 import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
 import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
+import { PlatformSubscriptionService } from "@/modules/organizations/platform-subscription/services/platform-subscription.service";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
@@ -36,126 +31,8 @@ export class OrganizationsConferencingService {
     private usersRepository: UsersRepository,
     private readonly googleMeetService: GoogleMeetService,
     private readonly conferencingService: ConferencingService,
-    private readonly platformPlanGuard: PlatformPlanGuard,
-    private readonly isAdminAPIEnabledGuard: IsAdminAPIEnabledGuard,
-    private readonly isOrgGuard: IsOrgGuard,
-    private readonly isTeamInOrg: IsTeamInOrg,
-    private readonly rolesGuard: RolesGuard
+    private readonly platformSubscriptionService: PlatformSubscriptionService
   ) {}
-
-  async verifyAccess({
-    user,
-    orgId,
-    teamId,
-    requiredRole,
-    minimumPlan,
-  }: {
-    user: UserWithProfile;
-    orgId: string;
-    teamId?: string;
-    requiredRole?: string;
-    minimumPlan?: PlatformPlanType;
-  }): Promise<{ orgId: number; teamId: number | null }> {
-    const userWithAdminFlag = {
-      ...user,
-      isSystemAdmin: user.role === "ADMIN",
-    };
-
-    if (!orgId) {
-      throw new BadRequestException("Organization ID is required");
-    }
-
-    await this.ensureOrganizationAccess(orgId);
-    await this.ensureAdminAPIEnabled(orgId);
-
-    if (teamId && teamId.trim() !== "") {
-      await this.ensureTeamBelongsToOrg(orgId, teamId);
-    }
-
-    await this.ensureUserRoleAccess(userWithAdminFlag, orgId, teamId, requiredRole);
-    await this.ensurePlatformPlanAccess({ teamId, orgId, user: userWithAdminFlag, minimumPlan });
-
-    const parsedOrgId = parseInt(orgId, 10);
-    // For organization-level operations, teamId might be empty or null
-    const parsedTeamId = teamId && teamId.trim() !== "" ? parseInt(teamId, 10) : null;
-
-    return {
-      orgId: parsedOrgId,
-      teamId: parsedTeamId,
-    };
-  }
-
-  private async ensureOrganizationAccess(orgId: string): Promise<void> {
-    const { canAccess } = await this.isOrgGuard.checkOrgAccess(orgId);
-    if (!canAccess) {
-      throw new ForbiddenException("Organization validation failed.");
-    }
-  }
-
-  private async ensureAdminAPIEnabled(orgId: string): Promise<void> {
-    const { canAccess } = await this.isAdminAPIEnabledGuard.checkAdminAPIEnabled(orgId);
-    if (!canAccess) {
-      throw new ForbiddenException("Admin API is not enabled for this organization.");
-    }
-  }
-
-  private async ensureTeamBelongsToOrg(orgId: string, teamId: string): Promise<void> {
-    const { canAccess } = await this.isTeamInOrg.checkIfTeamIsInOrg(orgId, teamId);
-    if (!canAccess) {
-      throw new ForbiddenException("Team is not part of the organization.");
-    }
-  }
-
-  private async ensureUserRoleAccess(
-    user: ApiAuthGuardUser,
-    orgId: string,
-    teamId?: string,
-    requiredRole?: string
-  ): Promise<void> {
-    if (!requiredRole) return;
-
-    // For team-level roles, we need both orgId and teamId
-    if (requiredRole.startsWith("TEAM_") && (!teamId || teamId.trim() === "")) {
-      throw new ForbiddenException("Team ID is required for team-level role access");
-    }
-
-    // Use empty string for teamId if it's an org-level operation
-    const effectiveTeamId = teamId && teamId.trim() !== "" ? teamId : "";
-
-    const { canAccess } = await this.rolesGuard.checkUserRoleAccess(
-      user,
-      orgId,
-      effectiveTeamId,
-      requiredRole
-    );
-    if (!canAccess) {
-      throw new ForbiddenException("User does not have the required role.");
-    }
-  }
-
-  private async ensurePlatformPlanAccess({
-    teamId,
-    orgId,
-    user,
-    minimumPlan,
-  }: {
-    teamId?: string;
-    orgId?: string;
-    user: ApiAuthGuardUser;
-    minimumPlan?: PlatformPlanType;
-  }): Promise<void> {
-    if (!minimumPlan) return;
-
-    const { canAccess } = await this.platformPlanGuard.checkPlatformPlanAccess({
-      teamId,
-      orgId,
-      user,
-      minimumPlan,
-    });
-    if (!canAccess) {
-      throw new ForbiddenException("User's organization does not meet the required subscription plan.");
-    }
-  }
 
   async connectTeamNonOauthApps({ teamId, app }: { teamId: number; app: string }): Promise<any> {
     switch (app) {
@@ -191,13 +68,14 @@ export class OrganizationsConferencingService {
     const isTeamLevel = !!teamId;
     const requiredRole = isTeamLevel ? "TEAM_ADMIN" : "ORG_ADMIN";
 
-    const { orgId: validatedOrgId, teamId: validatedTeamId } = await this.verifyAccess({
-      user,
-      orgId,
-      teamId,
-      requiredRole,
-      minimumPlan: "ESSENTIALS",
-    });
+    const { orgId: validatedOrgId, teamId: validatedTeamId } =
+      await this.platformSubscriptionService.verifyAccess({
+        user,
+        orgId,
+        teamId,
+        requiredRole,
+        minimumPlan: "ESSENTIALS",
+      });
 
     const entityId = isTeamLevel && validatedTeamId !== null ? validatedTeamId : validatedOrgId;
 

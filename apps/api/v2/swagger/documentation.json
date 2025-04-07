@@ -17788,6 +17788,17 @@
           "data"
         ]
       },
+      "StripCredentialsSaveOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
       "StripCredentialsCheckOutputResponseDto": {
         "type": "object",
         "properties": {
@@ -17798,17 +17809,6 @@
         },
         "required": [
           "status"
-        ]
-      },
-      "StripCredentialsSaveOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "url": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "url"
         ]
       },
       "GetDefaultScheduleOutput_2024_06_11": {

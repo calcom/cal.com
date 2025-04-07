@@ -1,5 +1,5 @@
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
+import { PlatformSubscriptionService } from "@/modules/organizations/platform-subscription/services/platform-subscription.service";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Logger } from "@nestjs/common";
@@ -22,9 +22,9 @@ export class OrganizationsStripeService {
 
   constructor(
     private readonly stripeService: StripeService,
-    private readonly conferencingService: OrganizationsConferencingService,
     private readonly usersRepository: UsersRepository,
-    private readonly credentialRepository: CredentialsRepository
+    private readonly credentialRepository: CredentialsRepository,
+    private readonly platformSubscriptionService: PlatformSubscriptionService
   ) {}
 
   async getStripeTeamRedirectUrl({
@@ -63,7 +63,7 @@ export class OrganizationsStripeService {
     const isTeamLevel = !!teamId;
     const requiredRole = isTeamLevel ? "TEAM_ADMIN" : "ORG_ADMIN";
 
-    const { teamId: validatedTeamId } = await this.conferencingService.verifyAccess({
+    const { teamId: validatedTeamId } = await this.platformSubscriptionService.verifyAccess({
       user,
       orgId,
       teamId,
