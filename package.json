@@ -107,7 +107,7 @@
     "resize-observer-polyfill": "^1.5.1",
     "tsc-absolute": "^1.0.0",
     "typescript": "^4.9.4",
-    "vitest": "^3.0.8",
+    "vitest": "^3.1.1",
     "vitest-fetch-mock": "^0.3.0",
     "vitest-mock-extended": "^2.0.2"
   },

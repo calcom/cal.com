@@ -21127,7 +21127,7 @@ __metadata:
     tsc-absolute: ^1.0.0
     turbo: ^1.10.1
     typescript: ^4.9.4
-    vitest: ^3.0.8
+    vitest: ^3.1.1
     vitest-fetch-mock: ^0.3.0
     vitest-mock-extended: ^2.0.2
   languageName: unknown
@@ -46461,7 +46461,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vitest@npm:^3.0.8":
+"vitest@npm:^3.1.1":
   version: 3.1.1
   resolution: "vitest@npm:3.1.1"
   dependencies:
