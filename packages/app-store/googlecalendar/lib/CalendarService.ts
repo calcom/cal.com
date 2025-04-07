@@ -429,9 +429,6 @@ export default class GoogleCalendarService implements Calendar {
     this.log.debug("Creating event");
     const formattedCalEvent = formatCalEvent(calEventRaw);
 
-    // const participants = await this.getMeetParticipants(null, "udit@cal.com");
-    // console.log("participants", participants);
-
     const payload: calendar_v3.Schema$Event = {
       summary: formattedCalEvent.title,
       description: getRichDescription(formattedCalEvent),
