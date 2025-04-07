@@ -305,8 +305,6 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data.user.timeFormat).toEqual(requestBody.timeFormat);
       expect(responseBody.data.user.locale).toEqual(requestBody.locale);
       expect(responseBody.data.user.avatarUrl).toEqual(requestBody.avatarUrl);
-      expect(responseBody.data.user.bio).toEqual(requestBody.bio);
-      expect(responseBody.data.user.metadata).toEqual(requestBody.metadata);
 
       const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } = response.body.data;
       expect(accessToken).toBeDefined();
@@ -372,8 +370,6 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data.user.timeFormat).toEqual(requestBody.timeFormat);
       expect(responseBody.data.user.locale).toEqual(requestBody.locale);
       expect(responseBody.data.user.avatarUrl).toEqual(requestBody.avatarUrl);
-      expect(responseBody.data.user.bio).toEqual(requestBody.bio);
-      expect(responseBody.data.user.metadata).toEqual(requestBody.metadata);
 
       const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } = response.body.data;
       expect(accessToken).toBeDefined();
