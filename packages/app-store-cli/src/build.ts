@@ -177,21 +177,40 @@ function generateFiles() {
           const appName = app.name;
           const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
 
-          if (importName !== "default") {
-            const importNameCapitalized = importName.charAt(0).toUpperCase() + importName.slice(1);
-            output.push(
-              `import * as ${capitalizedAppName}${importNameCapitalized} from "${getModulePath(
-                app.path,
-                chosenConfig.fileToBeImported
-              )}"`
-            );
+          if (lazyImport) {
+            if (importName !== "default") {
+              const importNameCapitalized = importName.charAt(0).toUpperCase() + importName.slice(1);
+              output.push(
+                `const ${capitalizedAppName}${importNameCapitalized} = dynamic(() => import("${getModulePath(
+                  app.path,
+                  chosenConfig.fileToBeImported
+                )}").then((mod) => mod.${importName}))`
+              );
+            } else {
+              output.push(
+                `const ${capitalizedAppName} = dynamic(() => import("${getModulePath(
+                  app.path,
+                  chosenConfig.fileToBeImported
+                )}"))`
+              );
+            }
           } else {
-            output.push(
-              `import * as ${capitalizedAppName} from "${getModulePath(
-                app.path,
-                chosenConfig.fileToBeImported
-              )}"`
-            );
+            if (importName !== "default") {
+              const importNameCapitalized = importName.charAt(0).toUpperCase() + importName.slice(1);
+              output.push(
+                `import { ${importName} as ${capitalizedAppName}${importNameCapitalized} } from "${getModulePath(
+                  app.path,
+                  chosenConfig.fileToBeImported
+                )}"`
+              );
+            } else {
+              output.push(
+                `import ${capitalizedAppName} from "${getModulePath(
+                  app.path,
+                  chosenConfig.fileToBeImported
+                )}"`
+              );
+            }
           }
         }
       }, filter);
