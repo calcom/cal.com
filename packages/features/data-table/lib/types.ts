@@ -1,3 +1,4 @@
+import type { SortingState, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
 import { z } from "zod";
 
 import type { IconName } from "@calcom/ui/components/icon";
@@ -267,3 +268,33 @@ export const ZSegmentStorage = z.record(
     segmentId: z.number(),
   })
 ) satisfies z.ZodType<SegmentStorage>;
+
+export type UseSegments = (props: UseSegmentsProps) => UseSegmentsReturn;
+
+type UseSegmentsProps = {
+  tableIdentifier: string;
+  activeFilters: ActiveFilters;
+  sorting: SortingState;
+  columnVisibility: VisibilityState;
+  columnSizing: ColumnSizingState;
+  pageSize: number;
+  searchTerm: string;
+  defaultPageSize: number;
+  segmentId: number;
+  setSegmentId: (segmentId: number | null) => void;
+  setActiveFilters: (activeFilters: ActiveFilters) => void;
+  setSorting: (sorting: SortingState) => void;
+  setColumnVisibility: (columnVisibility: VisibilityState) => void;
+  setColumnSizing: (columnSizing: ColumnSizingState) => void;
+  setPageSize: (pageSize: number) => void;
+  setPageIndex: (pageIndex: number) => void;
+  setSearchTerm: (searchTerm: string | null) => void;
+};
+
+type UseSegmentsReturn = {
+  segments: FilterSegmentOutput[];
+  selectedSegment: FilterSegmentOutput | undefined;
+  canSaveSegment: boolean;
+  setAndPersistSegmentId: (segmentId: number | null) => void;
+  isSegmentEnabled: boolean;
+};

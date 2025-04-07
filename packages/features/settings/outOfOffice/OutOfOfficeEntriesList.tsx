@@ -22,6 +22,7 @@ import {
   DataTableFilters,
   DataTableSegment,
 } from "@calcom/features/data-table";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -63,7 +64,7 @@ interface OutOfOfficeEntry {
 
 export default function OutOfOfficeEntriesList() {
   return (
-    <DataTableProvider>
+    <DataTableProvider useSegments={useSegments}>
       <OutOfOfficeEntriesListContent />
     </DataTableProvider>
   );
