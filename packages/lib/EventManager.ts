@@ -1100,11 +1100,11 @@ export default class EventManager {
     return updatedEvents;
   }
 
-  private async deleteCRMEvent({ reference }: { reference: PartialReference }) {
+  private async deleteCRMEvent({ reference, event }: { reference: PartialReference; event: CalendarEvent }) {
     const credential = this.crmCredentials.find((cred) => cred.id === reference.credentialId);
     if (credential) {
       const crm = new CrmManager(credential);
-      await crm.deleteEvent(reference.uid);
+      await crm.deleteEvent(reference.uid, event);
     }
   }
 
