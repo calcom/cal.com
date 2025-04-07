@@ -216,13 +216,7 @@ function Field({
               //This change has the same effects that already existed in relation to this field,
               // but written in a different way.
               // The identifier field will have the same value as the label field until it is changed
-              value={
-                identifier ||
-                routerField?.identifier ||
-                getDefaultIdentifierFromLabel(label) ||
-                routerField?.label ||
-                ""
-              }
+              value={ identifier || routerField?.identifier || getDefaultIdentifierFromLabel(label) || routerField?.label || "" }
               onChange={(e) => {
                 hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value, { shouldDirty: true });
               }}
