@@ -56,6 +56,7 @@ export default function WebhookListItem(props: {
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
+      revalidateWebhooksList();
     },
   });
 
