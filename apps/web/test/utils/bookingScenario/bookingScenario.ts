@@ -2014,11 +2014,11 @@ export function mockPaymentApp({
   const { paymentUid, externalId, MockPaymentService } = getMockPaymentService();
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
-  paymentAppMapMock[appStoreLookupKey as keyof typeof paymentAppMapMock].mockImplementation({
+  paymentAppMapMock[appStoreLookupKey as keyof typeof paymentAppMapMock] = {
     lib: {
       PaymentService: MockPaymentService,
     },
-  });
+  };
 
   return {
     paymentUid,
@@ -2036,15 +2036,13 @@ export function mockErrorOnVideoMeetingCreation({
   appStoreLookupKey = appStoreLookupKey || metadataLookupKey;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
-  videoAdaptersMapMock.default[appStoreLookupKey].mockImplementation(() => {
-    return {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
-      createMeeting: () => {
-        throw new MockError("Error creating Video meeting");
-      },
-    };
-  });
+  videoAdaptersMapMock[appStoreLookupKey as keyof typeof videoAdaptersMapMock] = {
+    createMeeting: () => {
+      throw new MockError("Error creating Video meeting");
+    },
+    updateMeeting: vi.fn(),
+    deleteMeeting: vi.fn(),
+  };
 }
 
 export function mockCrmApp(
