@@ -80,9 +80,10 @@ class GetAvailableSlotsInput_2024_09_04 {
   format?: SlotFormat;
 }
 
+export const ById_2024_09_04_type = "byEventTypeId";
 export class ById_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
   @IsString()
-  type = "byEventTypeId";
+  type = ById_2024_09_04_type;
 
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
@@ -94,9 +95,10 @@ export class ById_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
   eventTypeId!: number;
 }
 
+export const ByUsernameAndEventTypeSlug_2024_09_04_type = "byUsernameAndEventTypeSlug";
 export class ByUsernameAndEventTypeSlug_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
   @IsString()
-  type = "byUsernameAndEventTypeSlug";
+  type = ByUsernameAndEventTypeSlug_2024_09_04_type;
 
   @IsString()
   @ApiProperty({
@@ -126,9 +128,10 @@ export class ByUsernameAndEventTypeSlug_2024_09_04 extends GetAvailableSlotsInpu
   organizationSlug?: string;
 }
 
+export const ByTeamSlugAndEventTypeSlug_2024_09_04_type = "byTeamSlugAndEventTypeSlug";
 export class ByTeamSlugAndEventTypeSlug_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
   @IsString()
-  type = "byTeamSlugAndEventTypeSlug";
+  type = ByTeamSlugAndEventTypeSlug_2024_09_04_type;
 
   @IsString()
   @ApiProperty({
@@ -158,9 +161,10 @@ export class ByTeamSlugAndEventTypeSlug_2024_09_04 extends GetAvailableSlotsInpu
   organizationSlug?: string;
 }
 
+export const ByUsernames_2024_09_04_type = "byUsernames";
 export class ByUsernames_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
   @IsString()
-  type = "byUsernames";
+  type = ByUsernames_2024_09_04_type;
 
   @Transform(({ value }) => {
     if (typeof value === "string") {

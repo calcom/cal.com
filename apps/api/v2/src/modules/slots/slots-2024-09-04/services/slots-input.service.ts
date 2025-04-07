@@ -14,6 +14,9 @@ import {
   ByUsernameAndEventTypeSlug_2024_09_04,
   ByTeamSlugAndEventTypeSlug_2024_09_04,
   GetSlotsInput_2024_09_04,
+  ById_2024_09_04_type,
+  ByUsernameAndEventTypeSlug_2024_09_04_type,
+  ByTeamSlugAndEventTypeSlug_2024_09_04_type,
 } from "@calcom/platform-types";
 
 @Injectable()
@@ -82,19 +85,19 @@ export class SlotsInputService_2024_09_04 {
   }
 
   private isInputByEventTypeId(input: GetSlotsInput_2024_09_04): input is ById_2024_09_04 {
-    return input.type === "byEventTypeId";
+    return input.type === ById_2024_09_04_type;
   }
 
   private isInputByUsernameAndEventTypeSlug(
     input: GetSlotsInput_2024_09_04
   ): input is ByUsernameAndEventTypeSlug_2024_09_04 {
-    return input.type === "byUsernameAndEventTypeSlug";
+    return input.type === ByUsernameAndEventTypeSlug_2024_09_04_type;
   }
 
   private isInputByTeamSlugAndEventTypeSlug(
     input: GetSlotsInput_2024_09_04
   ): input is ByTeamSlugAndEventTypeSlug_2024_09_04 {
-    return input.type === "byTeamAndEventTypeSlug";
+    return input.type === ByTeamSlugAndEventTypeSlug_2024_09_04_type;
   }
 
   private async getEventTypeUser(input: ByUsernameAndEventTypeSlug_2024_09_04) {
