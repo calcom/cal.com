@@ -392,6 +392,11 @@ function filterUsersBasedOnWeights<
   };
 }
 
+interface CalendarBusyTimeOfInterval {
+  userId: number;
+  busyTimes: (EventBusyDate & { timeZone?: string })[];
+}
+
 async function getCalendarBusyTimesOfInterval(
   usersWithCredentials: {
     id: number;
@@ -400,8 +405,8 @@ async function getCalendarBusyTimesOfInterval(
     userLevelSelectedCalendars: SelectedCalendar[];
   }[],
   interval: RRResetInterval
-): Promise<{ userId: number; busyTimes: (EventBusyDate & { timeZone?: string })[] }[]> {
-  return Promise.all(
+) {
+  return Promise.allSettled(
     usersWithCredentials.map((user) =>
       getBusyCalendarTimes(
         user.credentials,
@@ -603,7 +608,15 @@ async function fetchAllDataNeededForCalculations<
     getCalendarBusyTimesOfInterval(
       allRRHosts.map((host) => host.user),
       interval
-    ),
+    ).then((results) => {
+      return results.reduce((fulfilledPromises, result) => {
+        if (result.status === "fulfilled") {
+          fulfilledPromises.push(result.value);
+        }
+
+        return fulfilledPromises;
+      }, [] as CalendarBusyTimeOfInterval[]);
+    }),
     getBookingsOfInterval({
       eventTypeId: eventType.id,
       users: availableUsers.map((user) => {
