@@ -81,6 +81,7 @@ class GetAvailableSlotsInput_2024_09_04 {
 }
 
 export class ById_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
+  @IsString()
   type = "byEventTypeId";
 
   @Transform(({ value }: { value: string }) => value && parseInt(value))
@@ -94,6 +95,7 @@ export class ById_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
 }
 
 export class ByUsernameAndEventTypeSlug_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
+  @IsString()
   type = "byUsernameAndEventTypeSlug";
 
   @IsString()
@@ -125,6 +127,7 @@ export class ByUsernameAndEventTypeSlug_2024_09_04 extends GetAvailableSlotsInpu
 }
 
 export class ByTeamSlugAndEventTypeSlug_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
+  @IsString()
   type = "byTeamSlugAndEventTypeSlug";
 
   @IsString()
@@ -156,6 +159,7 @@ export class ByTeamSlugAndEventTypeSlug_2024_09_04 extends GetAvailableSlotsInpu
 }
 
 export class ByUsernames_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
+  @IsString()
   type = "byUsernames";
 
   @Transform(({ value }) => {
