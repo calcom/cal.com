@@ -162,10 +162,18 @@ export function SaveFilterSegmentButton() {
     setIsOpen(open);
   };
 
+  if (!isSegmentEnabled) {
+    return (
+      <Button StartIcon="bookmark" color="secondary" disabled>
+        {t("save")}
+      </Button>
+    );
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button StartIcon="bookmark" color="secondary" disabled={!canSaveSegment || !isSegmentEnabled}>
+        <Button StartIcon="bookmark" color="secondary" disabled={!canSaveSegment}>
           {t("save")}
         </Button>
       </DialogTrigger>
