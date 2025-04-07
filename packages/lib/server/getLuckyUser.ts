@@ -1062,9 +1062,9 @@ function getAverageAttributeWeights<
             );
 
             if (allRRHostsWeights.has(rrHost.user.id)) {
-              allRRHostsWeights.get(rrHost.user.id)?.push(assignedUser?.weight ?? 100);
+              allRRHostsWeights.get(rrHost.user.id)?.push(assignedUser?.weight ?? rrHost.weight ?? 100);
             } else {
-              allRRHostsWeights.set(rrHost.user.id, [assignedUser?.weight ?? 100]);
+              allRRHostsWeights.set(rrHost.user.id, [assignedUser?.weight ?? rrHost.weight ?? 100]);
             }
           });
         });
