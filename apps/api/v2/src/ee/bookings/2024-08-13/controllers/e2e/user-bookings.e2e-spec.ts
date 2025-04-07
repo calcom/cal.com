@@ -34,7 +34,6 @@ import {
 } from "@calcom/platform-constants";
 import {
   CreateEventTypeInput_2024_06_14,
-  FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE,
   GetBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
@@ -1693,9 +1692,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(400);
 
-        expect(response.body.error.message.includes(FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE)).toBe(
-          true
-        );
+        expect(
+          response.body.error.message.includes(
+            "Either eventTypeId OR (eventTypeSlug + username) must be provided"
+          )
+        ).toBe(true);
       });
 
       it("should create a booking by username and event type slug", async () => {
