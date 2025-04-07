@@ -1,4 +1,4 @@
-import prisma from "../../../../../tests/libs/__mocks__/prisma";
+import prisma from "../../../../../../tests/libs/__mocks__/prisma";
 
 import {
   createBookingScenario,
@@ -17,7 +17,7 @@ import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../types";
+import type { TrpcSessionUser } from "../../../types";
 import { setDestinationCalendarHandler } from "./setDestinationCalendar.handler";
 
 vi.mock("@calcom/lib/CalendarManager", () => ({

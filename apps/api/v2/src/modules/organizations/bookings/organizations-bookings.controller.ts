@@ -31,7 +31,7 @@ export class OrganizationsBookingsController {
   ) {}
 
   @Get("/")
-  @ApiOperation({ summary: "Get organization team bookings" })
+  @ApiOperation({ summary: "Get Organization Bookings" })
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @HttpCode(HttpStatus.OK)

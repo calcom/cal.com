@@ -266,7 +266,7 @@
       "post": {
         "operationId": "OAuthClientUsersController_forceRefresh",
         "summary": "Force refresh tokens",
-        "description": "If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
+        "description": "If you have lost managed user access or refresh token or the refresh token has expired, then you can get new ones by using OAuth credentials. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.\nTo learn about managing refresh tokens expiring after 1 year follow [this guide](https://cal.com/docs/platform/quickstart#5-managing-refresh-token-expiry)",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -313,7 +313,7 @@
       "post": {
         "operationId": "OAuthFlowController_refreshTokens",
         "summary": "Refresh managed user tokens",
-        "description": "If managed user access token is expired then get a new one using this endpoint - it will also refresh the refresh token, because we use\n    \"refresh token rotation\" mechanism. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
+        "description": "If managed user access token is expired then get a new one using this endpoint - it will also refresh the refresh token, because we use\n    \"refresh token rotation\" mechanism. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.\nTo learn about managing refresh tokens expiring after 1 year follow [this guide](https://cal.com/docs/platform/quickstart#5-managing-refresh-token-expiry)",
         "parameters": [
           {
             "name": "clientId",
@@ -1223,7 +1223,7 @@
     "/v2/organizations/{orgId}/bookings": {
       "get": {
         "operationId": "OrganizationsBookingsController_getAllOrgTeamBookings",
-        "summary": "Get organization team bookings",
+        "summary": "Get Organization Bookings",
         "parameters": [
           {
             "name": "status",

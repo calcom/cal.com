@@ -162,7 +162,7 @@ export class OAuthClientUsersController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Force refresh tokens",
-    description: `If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials. ${TOKENS_DOCS}`,
+    description: `If you have lost managed user access or refresh token or the refresh token has expired, then you can get new ones by using OAuth credentials. ${TOKENS_DOCS}`,
   })
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async forceRefresh(

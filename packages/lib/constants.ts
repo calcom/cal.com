@@ -217,3 +217,5 @@ export const IS_DUB_REFERRALS_ENABLED =
   !!process.env.NEXT_PUBLIC_DUB_PROGRAM_ID && process.env.NEXT_PUBLIC_DUB_PROGRAM_ID !== "";
 
 export const CAL_VIDEO_MEETING_LINK_FOR_TESTING = process.env.CAL_VIDEO_MEETING_LINK_FOR_TESTING;
+
+export const DATABASE_CHUNK_SIZE = parseInt(process.env.DATABASE_CHUNK_SIZE || "25", 10);
