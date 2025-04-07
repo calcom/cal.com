@@ -49,6 +49,11 @@ export async function delegationCredentialSelectedCalendars(payload: string): Pr
       throw new Error(`DelegationCredential not found for id: ${delegationCredentialId}`);
     }
 
+    if (!delegationCredential.enabled) {
+      log.info(`DelegationCredential is disabled for id: ${delegationCredentialId}, task completed`);
+      return { status: TaskResultStatus.Completed };
+    }
+
     const { organization } = delegationCredential;
     const members = organization.members.filter((member) => member.accepted);
 

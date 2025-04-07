@@ -90,6 +90,7 @@ async function createScenario({
     data: {
       ...delegationCredentialData,
       organizationId: org.id,
+      enabled: true,
       workspacePlatform: {
         create: {
           slug: "google",
@@ -132,6 +133,7 @@ describe("delegationCredentialSelectedCalendars", () => {
       const delegationCredential = await prismock.delegationCredential.create({
         data: {
           id: "test-delegation-id",
+          enabled: true,
           organization: {
             create: {
               name: "Test Org",
@@ -149,6 +151,31 @@ describe("delegationCredentialSelectedCalendars", () => {
       );
 
       expect(result.status).toBe(TaskResultStatus.NoWorkToDo);
+    });
+
+    it("should return Completed when delegationCredential is disabled", async () => {
+      // Setup test data
+      const delegationCredential = await prismock.delegationCredential.create({
+        data: {
+          id: "test-delegation-id",
+          enabled: false,
+          organization: {
+            create: {
+              name: "Test Org",
+              slug: "test-org",
+              isOrganization: true,
+            },
+          },
+        },
+      });
+
+      const result = await delegationCredentialSelectedCalendars(
+        JSON.stringify({
+          delegationCredentialId: delegationCredential.id,
+        })
+      );
+
+      expect(result.status).toBe(TaskResultStatus.Completed);
     });
 
     it("should process members and create selected calendars", async () => {
