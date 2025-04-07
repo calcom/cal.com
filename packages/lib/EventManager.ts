@@ -1102,8 +1102,11 @@ export default class EventManager {
 
   private async deleteCRMEvent({ reference, event }: { reference: PartialReference; event: CalendarEvent }) {
     const credential = this.crmCredentials.find((cred) => cred.id === reference.credentialId);
+    console.log("🚀 ~ EventManager ~ deleteCRMEvent ~ credential:", credential);
     if (credential) {
-      const crm = new CrmManager(credential);
+      const currentAppOption = this.getAppOptionsFromEventMetadata(credential);
+      console.log("🚀 ~ EventManager ~ deleteCRMEvent ~ currentAppOption:", currentAppOption);
+      const crm = new CrmManager(credential, currentAppOption);
       await crm.deleteEvent(reference.uid, event);
     }
   }
