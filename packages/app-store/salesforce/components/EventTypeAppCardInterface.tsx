@@ -23,6 +23,7 @@ import {
   DateFieldTypeData,
 } from "../lib/enums";
 import type { appDataSchema, writeToRecordEntrySchema } from "../zod";
+import WriteToObjectSettings, { BookingActionEnum } from "./components/WriteToObjectSettings";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
   const pathname = usePathname();
@@ -48,6 +49,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const onBookingWriteToRecordFields = getAppData("onBookingWriteToRecordFields") ?? {};
   const ignoreGuests = getAppData("ignoreGuests") ?? false;
   const roundRobinSkipFallbackToLeadOwner = getAppData("roundRobinSkipFallbackToLeadOwner") ?? false;
+  const onCancelWriteToEventRecord = getAppData("onCancelWriteToEventRecord") ?? false;
+  const onCancelWriteToEventRecordFields = getAppData("onCancelWriteToEventRecordFields") ?? {};
 
   const { t } = useLocale();
 
@@ -587,6 +590,17 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             <Alert className="mt-2" severity="neutral" title={t("skip_rr_description")} />
           </div>
         ) : null}
+
+        <WriteToObjectSettings
+          bookingAction={BookingActionEnum.ON_CANCEL}
+          optionLabel={t("salesforce_on_cancel_write_to_event")}
+          optionEnabled={onCancelWriteToEventRecord}
+          writeToObjectData={onCancelWriteToEventRecordFields}
+          optionSwitchOnChange={(checked) => {
+            setAppData("onCancelWriteToEventRecord", checked);
+          }}
+          updateWriteToObjectData={(data) => setAppData("onCancelWriteToEventRecordFields", data)}
+        />
 
         <div className="ml-2 mt-4">
           <Switch

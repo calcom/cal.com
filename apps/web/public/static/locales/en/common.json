@@ -3076,5 +3076,7 @@
   "enable_delegation_credential_description": "Grant Cal.com automatic access to the calendars of all organization members by enabling delegation credential.",
   "disable_delegation_credential": "Disable Delegation Credential",
   "disable_delegation_credential_description": "Once delegation credential is disabled, organization members who haven’t connected their calendars will need to do so manually.",
+  "salesforce_on_cancel_write_to_event": "On cancelled booking, write to event record instead of deleting event",
+  "salesforce_on_every_cancellation": "On every cancellation",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
