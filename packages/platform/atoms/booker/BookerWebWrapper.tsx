@@ -209,6 +209,11 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       )
   );
 
+  useEffect(() => {
+    // Enable 'Overlay Calendar' by default for signed in users
+    if (hasSession) onOverlaySwitchStateChange(true);
+  }, [hasSession]);
+
   return (
     <BookerComponent
       {...props}

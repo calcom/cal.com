@@ -6,11 +6,23 @@ import { useRouter } from "next/navigation";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";
 import { subscriberUrlReserved } from "../lib/subscriberUrlReserved";
+
+export const SkeletonLoader = () => {
+  return (
+    <SkeletonContainer>
+      <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+      </div>
+    </SkeletonContainer>
+  );
+};
 
 export const NewWebhookView = () => {
   const searchParams = useCompatSearchParams();
