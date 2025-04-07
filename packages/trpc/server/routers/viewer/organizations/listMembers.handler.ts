@@ -246,18 +246,18 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
               .format(membership.user.lastActiveAt)
               .toLowerCase()
           : null,
-        createdAt: (membership as any).createdAt
+        createdAt: (membership as unknown as { createdAt?: Date }).createdAt
           ? new Intl.DateTimeFormat(ctx.user.locale, {
               timeZone: ctx.user.timeZone,
             })
-              .format((membership as any).createdAt)
+              .format((membership as unknown as { createdAt: Date }).createdAt)
               .toLowerCase()
           : null,
-        updatedAt: (membership as any).updatedAt
+        updatedAt: (membership as unknown as { updatedAt?: Date }).updatedAt
           ? new Intl.DateTimeFormat(ctx.user.locale, {
               timeZone: ctx.user.timeZone,
             })
-              .format((membership as any).updatedAt)
+              .format((membership as unknown as { updatedAt: Date }).updatedAt)
               .toLowerCase()
           : null,
         avatarUrl: user.avatarUrl,
