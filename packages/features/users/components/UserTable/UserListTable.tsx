@@ -373,6 +373,11 @@ function UserListTableContent() {
         cell: ({ row }) => <div>{row.original.createdAt}</div>,
       },
       {
+        id: "updatedAt",
+        header: "Last Updated",
+        cell: ({ row }) => <div>{row.original.updatedAt}</div>,
+      },
+      {
         id: "actions",
         enableHiding: false,
         enableSorting: false,
