@@ -317,32 +317,76 @@ function generateFiles() {
     })
   );
 
+  forEachAppDir((app) => {
+    const fileToBeImported = "components/InstallAppButton.tsx";
+    if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported))) {
+      const appName = app.name;
+      const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
+      browserInstallAppOutput.push(
+        `import ${capitalizedAppName} from "${getModulePath(app.path, fileToBeImported)}";`
+      );
+    }
+  });
+
   browserInstallAppOutput.push(
     ...getExportedObject("InstallAppButtonMap", {
       importConfig: {
         fileToBeImported: "components/InstallAppButton.tsx",
       },
-      lazyImport: true,
+      lazyImport: false,
     })
   );
 
   // TODO: Make a component map creator that accepts ComponentName and does the rest.
   // TODO: dailyvideo has a slug of daily-video, so that mapping needs to be taken care of. But it is an old app, so it doesn't need AppSettings
+
+  forEachAppDir((app) => {
+    const fileToBeImported = "components/AppSettingsInterface.tsx";
+    if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported))) {
+      const appName = app.name;
+      const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
+      browserAppSettingsComponentOutput.push(
+        `import ${capitalizedAppName} from "${getModulePath(app.path, fileToBeImported)}";`
+      );
+    }
+  });
+
   browserAppSettingsComponentOutput.push(
     ...getExportedObject("AppSettingsComponentsMap", {
       importConfig: {
         fileToBeImported: "components/AppSettingsInterface.tsx",
       },
-      lazyImport: true,
+      lazyImport: false,
     })
   );
+
+  forEachAppDir((app) => {
+    const fileToBeImported = "components/EventTypeAppCardInterface.tsx";
+    if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported))) {
+      const appName = app.name;
+      const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
+
+      if (appName === "templates/booking-pages-tag" || appName === "templates/event-type-app-card") {
+        const templateName = appName.split("/")[1];
+        const templateCapitalized =
+          templateName.charAt(0).toUpperCase() + templateName.slice(1).replace(/[-]/g, "");
+        browserEventTypeAddOnOutput.push(
+          `import ${templateCapitalized} from "${getModulePath(app.path, fileToBeImported)}";`
+        );
+      } else {
+        browserEventTypeAddOnOutput.push(
+          `import ${capitalizedAppName} from "${getModulePath(app.path, fileToBeImported)}";`
+        );
+      }
+    }
+  });
 
   browserEventTypeAddOnOutput.push(
     ...getExportedObject("EventTypeAddonMap", {
       importConfig: {
         fileToBeImported: "components/EventTypeAppCardInterface.tsx",
       },
-      lazyImport: true,
+      lazyImport: false,
     })
   );
   browserEventTypeSettingsOutput.push(
@@ -350,7 +394,7 @@ function generateFiles() {
       importConfig: {
         fileToBeImported: "components/EventTypeAppSettingsInterface.tsx",
       },
-      lazyImport: true,
+      lazyImport: false,
     })
   );
 
