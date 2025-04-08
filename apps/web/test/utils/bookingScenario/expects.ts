@@ -1251,9 +1251,9 @@ export function expectSuccessfulCalendarEventUpdationInCalendar(
 ) {
   expect(calendarMock.updateEventCalls.length).toBe(1);
   const call = calendarMock.updateEventCalls[0];
-  const { uid, event, externalCalendarId } = call.args;
+  const { uid, calEvent, externalCalendarId } = call.args;
   expect(uid).toBe(expected.uid);
-  expect(event).toEqual(expect.objectContaining(expected.calEvent));
+  expect(calEvent).toEqual(expect.objectContaining(expected.calEvent));
   expect(externalCalendarId).toBe(expected.externalCalendarId);
 }
 
@@ -1267,9 +1267,9 @@ export function expectSuccessfulCalendarEventDeletionInCalendar(
 ) {
   expect(calendarMock.deleteEventCalls.length).toBe(1);
   const call = calendarMock.deleteEventCalls[0];
-  const { uid, event, externalCalendarId } = call.args;
+  const { uid, calEvent, externalCalendarId } = call.args;
   expect(uid).toBe(expected.uid);
-  expect(event).toEqual(expect.objectContaining(expected.calEvent));
+  expect(calEvent).toEqual(expect.objectContaining(expected.calEvent));
   expect(externalCalendarId).toBe(expected.externalCalendarId);
 }
 

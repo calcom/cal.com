@@ -31,7 +31,7 @@ export interface UpdateEventMethodMockCall extends CalendarServiceMethodMockCall
 export interface DeleteEventMethodMockCall extends CalendarServiceMethodMockCallBase {
   args: {
     uid: any;
-    event: any;
+    calEvent: any;
     externalCalendarId: any;
   };
 }
