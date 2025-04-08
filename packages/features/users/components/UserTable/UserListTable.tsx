@@ -369,7 +369,12 @@ function UserListTableContent() {
         enableSorting: false,
         enableColumnFilter: true,
         meta: {
-          filter: { type: ColumnFilterType.DATE_RANGE },
+          filter: {
+            type: ColumnFilterType.DATE_RANGE,
+            dateRangeOptions: {
+              endOfDay: true,
+            },
+          },
         },
         cell: ({ row }) => <div>{row.original.lastActiveAt}</div>,
       },
@@ -380,7 +385,12 @@ function UserListTableContent() {
         enableSorting: false,
         enableColumnFilter: true,
         meta: {
-          filter: { type: ColumnFilterType.DATE_RANGE },
+          filter: {
+            type: ColumnFilterType.DATE_RANGE,
+            dateRangeOptions: {
+              endOfDay: true,
+            },
+          },
         },
         cell: ({ row }) => <div>{row.original.createdAt || ""}</div>,
       },
@@ -391,7 +401,12 @@ function UserListTableContent() {
         enableSorting: false,
         enableColumnFilter: true,
         meta: {
-          filter: { type: ColumnFilterType.DATE_RANGE },
+          filter: {
+            type: ColumnFilterType.DATE_RANGE,
+            dateRangeOptions: {
+              endOfDay: true,
+            },
+          },
         },
         cell: ({ row }) => <div>{row.original.updatedAt || ""}</div>,
       },

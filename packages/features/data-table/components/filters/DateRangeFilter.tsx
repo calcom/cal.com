@@ -85,6 +85,7 @@ export const DateRangeFilter = ({
   const filterValue = useFilterValue(column.id, ZDateRangeFilterValue);
   const { updateFilter, removeFilter } = useDataTable();
   const range = options?.range ?? "past";
+  const endOfDay = options?.endOfDay ?? false;
   const forceCustom = range === "custom";
   const forcePast = range === "past";
 
@@ -115,13 +116,13 @@ export const DateRangeFilter = ({
           type: ColumnFilterType.DATE_RANGE,
           data: {
             startDate: startDate.toDate().toISOString(),
-            endDate: endDate.toDate().toISOString(),
+            endDate: (endOfDay ? endDate.endOf("day") : endDate).toDate().toISOString(),
             preset: preset.value,
           },
         });
       }
     },
-    [column.id]
+    [column.id, endOfDay]
   );
 
   useEffect(() => {

@@ -106,12 +106,11 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
           },
         },
       }),
-      ...(lastActiveAtFilter && {
-        lastActiveAt: makeWhereClause({
+      ...(lastActiveAtFilter &&
+        makeWhereClause({
           columnName: "lastActiveAt",
           filterValue: lastActiveAtFilter.value,
-        }),
-      }),
+        })),
     },
     teamId: organizationId,
     ...(searchTerm && {
