@@ -1,3 +1,4 @@
+import type { TextFilterValue } from "@calcom/features/data-table/lib/types";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -12,7 +13,7 @@ type SortOptions = {
 };
 type GetOptions = {
   ctx: {
-    user: { id: number; email: string };
+    user: { id: number; email: string; orgId?: number | null };
     prisma: PrismaClient;
   };
   bookingListingByStatus: InputByStatus[];
@@ -23,8 +24,8 @@ type GetOptions = {
     teamIds?: number[] | undefined;
     userIds?: number[] | undefined;
     eventTypeIds?: number[] | undefined;
-    attendeeEmail?: string;
-    attendeeName?: string;
+    attendeeEmail?: string | TextFilterValue;
+    attendeeName?: string | TextFilterValue;
   };
   sort?: SortOptions;
 };
@@ -75,8 +76,7 @@ const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, 
   const orderBy = getOrderBy(bookingListingByStatus, sort);
 
   const combinedFilters = bookingListingByStatus.map((status) => bookingListingFilters[status]);
-
-  const { bookings, recurringInfo } = await getBookings({
+  const { bookings, recurringInfo, totalCount } = await getBookings({
     user,
     prisma,
     passedBookingsStatusFilter: {
@@ -88,18 +88,10 @@ const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, 
     skip,
   });
 
-  const bookingsFetched = bookings.length;
-  let nextCursor: typeof skip | null = skip;
-  if (bookingsFetched > take) {
-    nextCursor += bookingsFetched;
-  } else {
-    nextCursor = null;
-  }
-
   return {
     bookings,
     recurringInfo,
-    nextCursor,
+    totalCount,
   };
 };
 

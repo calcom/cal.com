@@ -7,7 +7,8 @@ import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/Calendar
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
 import { GOOGLE_CALENDAR_SCOPES, SCOPE_USERINFO_PROFILE } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -69,6 +70,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     const gCalService = new GoogleCalendarService({
       ...gcalCredential,
       user: null,
+      delegatedTo: null,
     });
 
     const calendar = new calendar_v3.Calendar({

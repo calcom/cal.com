@@ -1,3 +1,4 @@
+import { filterReqHeaders } from "@/lib/filterReqHeaders";
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from "@nestjs/common";
 import { Request } from "express";
 
@@ -13,12 +14,12 @@ export class HttpExceptionFilter implements ExceptionFilter<HttpException> {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     const statusCode = exception.getStatus();
-    const requestId = request.headers["X-Request-Id"];
-
+    const requestId = request.headers["X-Request-Id"] ?? "unknown-request-id";
+    response.setHeader("X-Request-Id", requestId.toString());
     this.logger.error(`Http Exception Filter: ${exception?.message}`, {
       exception,
       body: request.body,
-      headers: request.headers,
+      headers: filterReqHeaders(request.headers),
       url: request.url,
       method: request.method,
       requestId,

@@ -1,8 +1,10 @@
 import type { NextApiRequest } from "next";
 import { z } from "zod";
 
+import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
 import { getCalendar } from "../../_utils/getCalendar";
@@ -38,7 +40,9 @@ async function getCalendarFromChannelId(channelId: string) {
       statusCode: 404,
       message: `No credential found for selected calendar for googleChannelId: ${channelId}`,
     });
-  const calendar = await getCalendar(credential);
+
+  const calendar = await getCalendar(buildNonDelegationCredential(credential));
+
   if (!calendar) {
     // TODO: Report and unsubscribe from the channel to prevent further webhooks
     throw new HttpError({

@@ -62,7 +62,7 @@ test.describe("Update Profile", () => {
 
     await page.getByTestId("password").fill(user?.username ?? "Nameless User");
 
-    await submitAndWaitForResponse(page, "/api/trpc/viewer/updateProfile?batch=1", {
+    await submitAndWaitForResponse(page, "/api/trpc/me/updateProfile?batch=1", {
       action: () => page.getByTestId("profile-update-email-submit-button").click(),
     });
 
@@ -142,7 +142,7 @@ test.describe("Update Profile", () => {
 
     await expect(page.getByTestId("toast-success")).toContainText(email);
 
-    // After email verification is successfull. user is sent to /event-types
+    // After email verification is successful. user is sent to /event-types
     await page.waitForURL("/event-types");
 
     await page.goto("/settings/my-account/profile");

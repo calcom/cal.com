@@ -1,8 +1,8 @@
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
-import { OrganizationsUsersRepository } from "@/modules/organizations/repositories/organizations-users.repository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { DateTime } from "luxon";
 
 import { dynamicEvent } from "@calcom/platform-libraries";
@@ -24,7 +24,7 @@ export class SlotsInputService_2024_09_04 {
     }
     const isTeamEvent = !!eventType?.teamId;
 
-    const startTime = query.start;
+    const startTime = this.adjustStartTime(query.start);
     const endTime = this.adjustEndTime(query.end);
     const duration = query.duration;
     const eventTypeId = eventType.id;
@@ -82,12 +82,31 @@ export class SlotsInputService_2024_09_04 {
     }
   }
 
+  private adjustStartTime(startTime: string) {
+    let dateTime = DateTime.fromISO(startTime, { zone: "utc" });
+    if (dateTime.hour === 0 && dateTime.minute === 0 && dateTime.second === 0) {
+      dateTime = dateTime.set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+    }
+
+    const ISOStartTime = dateTime.toISO();
+    if (ISOStartTime === null) {
+      throw new BadRequestException("Invalid start date");
+    }
+
+    return ISOStartTime;
+  }
+
   private adjustEndTime(endTime: string) {
     let dateTime = DateTime.fromISO(endTime, { zone: "utc" });
     if (dateTime.hour === 0 && dateTime.minute === 0 && dateTime.second === 0) {
       dateTime = dateTime.set({ hour: 23, minute: 59, second: 59 });
     }
 
-    return dateTime.toISO();
+    const ISOEndTime = dateTime.toISO();
+    if (ISOEndTime === null) {
+      throw new BadRequestException("Invalid end date");
+    }
+
+    return ISOEndTime;
   }
 }

@@ -10,13 +10,16 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IncompleteBookingActionType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Switch, InputField, Button, Select, showToast } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Switch } from "@calcom/ui/components/form";
+import { InputField } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
-import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
-import { enabledIncompleteBookingApps } from "../../lib/enabledIncompleteBookingApps";
+import type { RoutingFormWithResponseCount } from "../../types/types";
 
 function Page({ form }: { form: RoutingFormWithResponseCount }) {
   const { t } = useLocale();
@@ -94,14 +97,6 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
   if (isLoading) {
     return <div>Loading...</div>;
   }
-
-  // Check to see if the user has any compatible credentials
-  if (
-    !data?.credentials.some((credential) => enabledIncompleteBookingApps.includes(credential?.appId ?? ""))
-  ) {
-    return <div>No apps installed that support this feature</div>;
-  }
-
   return (
     <>
       <div className="bg-default border-subtle rounded-md border p-8">
@@ -163,7 +158,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
                         />
                       </div>
                       <div>
-                        <InputField value={action.value} readOnly />
+                        <InputField value={action.value as string} readOnly />
                       </div>
                       <div>
                         <Select
@@ -294,7 +289,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
               },
               actionType: IncompleteBookingActionType.SALESFORCE,
               enabled: salesforceActionEnabled,
-              credentialId: selectedCredential?.value ?? data.credentials[0].id,
+              credentialId: selectedCredential?.value ?? data?.credentials[0].id,
             });
           }}>
           {t("save")}

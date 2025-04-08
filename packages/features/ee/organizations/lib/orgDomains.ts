@@ -43,7 +43,7 @@ export function getOrgSlug(hostname: string, forcedSlug?: string) {
     return null;
   }
   // Define which is the current domain/subdomain
-  const slug = hostname.replace(`.${currentHostname}` ?? "", "");
+  const slug = hostname.replace(currentHostname ? `.${currentHostname}` : "", "");
   const hasNoDotInSlug = slug.indexOf(".") === -1;
   if (hasNoDotInSlug) {
     return slug;
@@ -52,6 +52,34 @@ export function getOrgSlug(hostname: string, forcedSlug?: string) {
   return null;
 }
 
+export function getOrgDomainConfig({
+  hostname,
+  fallback,
+  forcedSlug,
+  isPlatform,
+}: {
+  hostname: string;
+  fallback?: string | string[];
+  forcedSlug?: string;
+  isPlatform?: boolean;
+}) {
+  if (isPlatform && forcedSlug) {
+    return {
+      isValidOrgDomain: true,
+      currentOrgDomain: forcedSlug,
+    };
+  }
+
+  return getOrgDomainConfigFromHostname({
+    hostname,
+    fallback,
+    forcedSlug,
+  });
+}
+
+/**
+ * @deprecated Use `getOrgDomainConfig` instead. To be removed in a future release. getOrgDomainConfig is more flexible and can be used without next request.
+ */
 export function orgDomainConfig(req: IncomingMessage | undefined, fallback?: string | string[]) {
   const forPlatform = isPlatformRequest(req);
   const forcedSlugHeader = req?.headers?.["x-cal-force-slug"];
