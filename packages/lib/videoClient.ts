@@ -28,10 +28,10 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
   for (const cred of withCredentials) {
     const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
     log.silly("Getting video adapter for", safeStringify({ appName, cred: getPiiFreeCredential(cred) }));
-    const videoAdapterFactory =
+    const VideoApiAdapterClass =
       ConferencingVideoAdapterMap[appName as keyof typeof ConferencingVideoAdapterMap];
 
-    if (!videoAdapterFactory) {
+    if (!VideoApiAdapterClass) {
       log.error(`Couldn't get adapter for ${appName}`);
       continue;
     }
@@ -39,7 +39,7 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
     // INFO: Casting this as CredentialForCalendarServiceWithTenantId because unfortunately
     // the office365video adapter was changed to take different params than the rest of the adapters.
     // This will leave "delegatedTo" as null which is fine for the adapters that don't need it.
-    const videoAdapter = videoAdapterFactory(cred as CredentialForCalendarServiceWithTenantId);
+    const videoAdapter = new VideoApiAdapterClass(cred as CredentialForCalendarServiceWithTenantId);
     videoAdapters.push(videoAdapter);
   }
 
