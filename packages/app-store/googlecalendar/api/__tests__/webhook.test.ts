@@ -85,7 +85,7 @@ const createSelectedCalendar = async ({
   externalId: string;
   credentialId?: number;
   delegationCredentialId?: string;
-  googleChannelId?: string;
+  googleChannelId?: string | null;
   eventTypeId?: number;
 }) => {
   return await prismock.selectedCalendar.create({

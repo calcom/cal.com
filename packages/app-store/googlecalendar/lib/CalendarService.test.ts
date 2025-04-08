@@ -1667,7 +1667,7 @@ describe("getAvailability", () => {
     });
     // Mock Once so that the getAvailability call doesn't accidentally reuse this mock result
     freebusyQueryMock.mockImplementation(({ requestBody }: { requestBody: any }) => {
-      const calendarsObject = {};
+      const calendarsObject: any = {};
       requestBody.items.forEach((item: any, index: number) => {
         calendarsObject[item.id] = {
           busy: mockedBusyTimes[index],
