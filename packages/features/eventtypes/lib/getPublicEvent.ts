@@ -81,6 +81,8 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
     price: true,
     currency: true,
     seatsPerTimeSlot: true,
+    disableCancelling: true,
+    disableRescheduling: true,
     seatsShowAvailabilityCount: true,
     bookingFields: true,
     teamId: true,
@@ -409,7 +411,7 @@ export const getPublicEvent = async (
     (await getOwnerFromUsersArray(prisma, event.id));
 
   if (users === null) {
-    throw new Error("Event has no owner");
+    throw new Error(`EventType ${event.id} has no owner or users.`);
   }
   //In case the event schedule is not defined ,use the event owner's default schedule
   if (!eventWithUserProfiles.schedule && eventWithUserProfiles.owner?.defaultScheduleId) {
@@ -516,6 +518,8 @@ export const getPublicEvent = async (
     instantMeetingParameters: eventWithUserProfiles.instantMeetingParameters,
     aiPhoneCallConfig: eventWithUserProfiles.aiPhoneCallConfig,
     assignAllTeamMembers: event.assignAllTeamMembers,
+    disableCancelling: event.disableCancelling,
+    disableRescheduling: event.disableRescheduling,
   };
 };
 

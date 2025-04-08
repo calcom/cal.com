@@ -23,7 +23,7 @@ export const useAtomsEventTypePaymentInfo = ({
   return useQuery({
     queryKey: [QUERY_KEY, uid],
     queryFn: () => {
-      return http?.get<ApiResponse<Omit<PaymentPageProps, "trpcState">>>(pathname).then((res) => {
+      return http?.get<ApiResponse<PaymentPageProps>>(pathname).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
           onEventTypePaymentInfoSuccess?.();
           return res.data.data;

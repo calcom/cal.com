@@ -445,7 +445,6 @@ export class Host {
   @DocsPropertyOptional({ enum: HostPriority })
   priority?: keyof typeof HostPriority = "medium";
 }
-
 export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @Transform(({ value }) => {
     if (value === "collective") {
@@ -470,8 +469,13 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
   @ValidateNested({ each: true })
   @Type(() => Host)
   @IsArray()
-  @DocsProperty({ type: [Host] })
-  hosts!: Host[];
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: [Host],
+    description:
+      "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users.",
+  })
+  hosts?: Host[];
 
   @IsBoolean()
   @IsOptional()
