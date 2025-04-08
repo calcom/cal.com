@@ -654,3 +654,36 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
     expect(responseBody.message).toBe("This event type does not allow cancellations");
   });
 });
+test("Should throw error when both seatsPerTimeSlot and recurringEvent are set", async ({ page, users }) => {
+  const user = await users.create({
+    name: `Test-user-${randomString(4)}`,
+    eventTypes: [
+      {
+        title: "Seats With Recurrence",
+        slug: "seats-with-recurrence",
+        length: 30,
+        seatsPerTimeSlot: 3,
+        recurringEvent: {
+          freq: 1,
+          count: 4,
+          interval: 1,
+        },
+      },
+    ],
+  });
+
+  // Way to book the event
+  await page.goto(`/${user.username}/seats-with-recurrence`);
+  await selectFirstAvailableTimeSlotNextMonth(page);
+  await page.locator('[name="name"]').fill("Test name");
+  await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
+
+  page.locator("[data-testid=confirm-book-button]").click();
+
+  // Expect an error message to be displayed
+  const alertError = page.locator("[data-testid=booking-fail]");
+  await expect(alertError).toBeVisible();
+  await expect(alertError).toContainText(
+    "Recurring events cannot Offer seats. Disable Offer seats or make the event non-recurring."
+  );
+});
