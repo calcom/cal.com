@@ -87,8 +87,35 @@ async function updateCacheForGoogleChannel(channelId: string) {
     ...selectedCalendarMatchingGoogleChannelId,
     googleChannelId: channelId,
   });
+
+  if (!credentialForCalendarService) {
+    // Could happen also if DelegationCredential is disabled
+    log.error("No credential Delegation/Regular could be found for googleChannelId: ", {
+      googleChannelId: channelId,
+      delegationCredentialId: selectedCalendarMatchingGoogleChannelId.delegationCredentialId,
+      credentialId: selectedCalendarMatchingGoogleChannelId.credentialId,
+    });
+    return;
+  }
+
   const calendar = await getCalendar(credentialForCalendarService);
-  await calendar?.fetchAvailabilityAndSetCache?.(allSelectedCalendarsForCredential);
+  if (!calendar) {
+    log.error("No calendar could be found for googleChannelId: ", {
+      googleChannelId: channelId,
+      delegationCredentialId: selectedCalendarMatchingGoogleChannelId.delegationCredentialId,
+      credentialId: selectedCalendarMatchingGoogleChannelId.credential?.id ?? null,
+    });
+    return;
+  }
+
+  if (!calendar.fetchAvailabilityAndSetCache) {
+    log.error("No fetchAvailabilityAndSetCache method defined", {
+      googleChannelId: channelId,
+      delegationCredentialId: selectedCalendarMatchingGoogleChannelId.delegationCredentialId,
+      credentialId: selectedCalendarMatchingGoogleChannelId.credential?.id ?? null,
+    });
+  }
+  await calendar.fetchAvailabilityAndSetCache(allSelectedCalendarsForCredential);
 }
 
 async function postHandler(req: NextApiRequest) {

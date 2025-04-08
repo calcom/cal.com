@@ -37,6 +37,7 @@ export const tasksConfig: Partial<
     maxAttempts: 10,
   },
   delegationCredentialSelectedCalendars: {
+    // These many members are processed at once in parallel.
     // Keep it low to avoid reaching rate limits of Calendar APIs
     take: 100,
     maxAttempts: 5,
