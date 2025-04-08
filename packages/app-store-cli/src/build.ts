@@ -459,7 +459,7 @@ function generateFiles() {
       paymentAppsOutput.push(
         `import { PaymentService as ${capitalizedAppName}PaymentService } from "${getModulePath(
           app.path,
-          fileToBeImported
+          "lib"
         )}";`
       );
     }
@@ -486,7 +486,7 @@ function generateFiles() {
       calendarAppsOutput.push(
         `import { CalendarService as ${capitalizedAppName}CalendarService } from "${getModulePath(
           app.path,
-          fileToBeImported
+          "lib"
         )}";`
       );
     }
@@ -513,7 +513,7 @@ function generateFiles() {
       conferencingVideoAdaptersOutput.push(
         `import { VideoApiAdapter as ${capitalizedAppName}VideoApiAdapter } from "${getModulePath(
           app.path,
-          fileToBeImported
+          "lib"
         )}";`
       );
     }
