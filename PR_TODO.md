@@ -17,5 +17,5 @@ How to Test:
 
 
 Tests:
-- Toggling Delegation on should create task delegationCredentialSelectedCalendars for the organization
-- Toggling Delegation off should delete task delegationCredentialSelectedCalendars for the organization
+- [x] Toggling Delegation on should create task delegationCredentialSelectedCalendars for the organization
+- [x] Toggling Delegation off should delete task delegationCredentialSelectedCalendars for the organization
