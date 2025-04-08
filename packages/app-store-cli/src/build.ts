@@ -31,10 +31,10 @@ type App = Partial<AppMeta> & {
   path: string;
 };
 function generateFiles() {
-  const browserInstallAppOutput = [`import dynamic from "next/dynamic"`];
-  const browserAppSettingsComponentOutput = [`import dynamic from "next/dynamic"`];
-  const browserEventTypeAddOnOutput = [`import dynamic from "next/dynamic"`];
-  const browserEventTypeSettingsOutput = [`import dynamic from "next/dynamic"`];
+  const browserInstallAppOutput = [];
+  const browserAppSettingsComponentOutput = [];
+  const browserEventTypeAddOnOutput = [];
+  const browserEventTypeSettingsOutput = [];
   const metadataOutput = [];
   const bookerMetadataOutput = [];
   const schemasOutput = [];
@@ -259,15 +259,18 @@ function generateFiles() {
     }
   });
 
-  serverOutput.push(
-    ...getExportedObject("apiHandlers", {
-      importConfig: {
-        fileToBeImported: "api/index.ts",
-      },
-      entryObjectKeyGetter: (app) => app.name,
-      lazyImport: false,
-    })
-  );
+  serverOutput.push(`// Static imports for server-side handlers`, `export const apiHandlers = {`);
+
+  forEachAppDir((app) => {
+    const fileToBeImported = "api/index.ts";
+    if (fs.existsSync(path.join(APP_STORE_PATH, app.path, "api"))) {
+      const appName = app.name;
+      const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
+      serverOutput.push(`  ${appName}: ${capitalizedAppName},`);
+    }
+  });
+
+  serverOutput.push(`};`);
 
   metadataOutput.push(
     ...getExportedObject("appStoreMetadata", {
@@ -427,50 +430,53 @@ function generateFiles() {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
       crmOutput.push(
-        `import * as ${capitalizedAppName} from "${getModulePath(app.path, fileToBeImported)}";`
+        `import { CrmService as ${capitalizedAppName}CrmService } from "${getModulePath(
+          app.path,
+          fileToBeImported
+        )}";`
       );
     }
   });
 
-  crmOutput.push(
-    ...getExportedObject(
-      "CrmServiceMap",
-      {
-        importConfig: {
-          fileToBeImported: "lib/CrmService.ts",
-        },
-        entryObjectKeyGetter: (app) => app.name,
-        lazyImport: false,
-      },
-      isCrmApp
-    )
-  );
+  crmOutput.push(`// Static imports for dynamic imports`, `export const CrmServiceMap = {`);
 
   forEachAppDir((app) => {
-    const fileToBeImported = "index.ts";
+    const fileToBeImported = "lib/CrmService.ts";
+    if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported)) && isCrmApp(app)) {
+      const appName = app.name;
+      const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
+      crmOutput.push(`  ${appName}: ${capitalizedAppName}CrmService,`);
+    }
+  });
+
+  crmOutput.push(`};`);
+
+  forEachAppDir((app) => {
+    const fileToBeImported = "lib/PaymentService.ts";
     if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported)) && isPaymentApp(app)) {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
       paymentAppsOutput.push(
-        `import * as ${capitalizedAppName} from "${getModulePath(app.path, fileToBeImported)}";`
+        `import { PaymentService as ${capitalizedAppName}PaymentService } from "${getModulePath(
+          app.path,
+          fileToBeImported
+        )}";`
       );
     }
   });
 
-  paymentAppsOutput.push(
-    ...getExportedObject(
-      "PaymentAppMap",
-      {
-        importConfig: {
-          fileToBeImported: "lib/index.ts",
-          importName: "PaymentService",
-        },
-        entryObjectKeyGetter: (app) => app.name,
-        lazyImport: false,
-      },
-      isPaymentApp
-    )
-  );
+  paymentAppsOutput.push(`// Static imports for dynamic imports`, `export const PaymentAppMap = {`);
+
+  forEachAppDir((app) => {
+    const fileToBeImported = "lib/PaymentService.ts";
+    if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported)) && isPaymentApp(app)) {
+      const appName = app.name;
+      const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
+      paymentAppsOutput.push(`  ${appName}: ${capitalizedAppName}PaymentService,`);
+    }
+  });
+
+  paymentAppsOutput.push(`};`);
 
   forEachAppDir((app) => {
     const fileToBeImported = "lib/CalendarService.ts";
@@ -478,25 +484,26 @@ function generateFiles() {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
       calendarAppsOutput.push(
-        `import * as ${capitalizedAppName} from "${getModulePath(app.path, fileToBeImported)}";`
+        `import { CalendarService as ${capitalizedAppName}CalendarService } from "${getModulePath(
+          app.path,
+          fileToBeImported
+        )}";`
       );
     }
   });
 
-  calendarAppsOutput.push(
-    ...getExportedObject(
-      "CalendarServiceMap",
-      {
-        importConfig: {
-          fileToBeImported: "lib/CalendarService.ts",
-          importName: "CalendarService",
-        },
-        entryObjectKeyGetter: (app) => app.name,
-        lazyImport: false,
-      },
-      isCalendarApp
-    )
-  );
+  calendarAppsOutput.push(`// Static imports for dynamic imports`, `export const CalendarServiceMap = {`);
+
+  forEachAppDir((app) => {
+    const fileToBeImported = "lib/CalendarService.ts";
+    if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported)) && isCalendarApp(app)) {
+      const appName = app.name;
+      const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
+      calendarAppsOutput.push(`  ${appName}: ${capitalizedAppName}CalendarService,`);
+    }
+  });
+
+  calendarAppsOutput.push(`};`);
 
   forEachAppDir((app) => {
     const fileToBeImported = "lib/VideoApiAdapter.ts";
@@ -504,25 +511,29 @@ function generateFiles() {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
       conferencingVideoAdaptersOutput.push(
-        `import * as ${capitalizedAppName} from "${getModulePath(app.path, fileToBeImported)}";`
+        `import { VideoApiAdapter as ${capitalizedAppName}VideoApiAdapter } from "${getModulePath(
+          app.path,
+          fileToBeImported
+        )}";`
       );
     }
   });
 
   conferencingVideoAdaptersOutput.push(
-    ...getExportedObject(
-      "ConferencingVideoAdapterMap",
-      {
-        importConfig: {
-          fileToBeImported: "lib/VideoApiAdapter.ts",
-          importName: "VideoApiAdapter",
-        },
-        entryObjectKeyGetter: (app) => app.name,
-        lazyImport: false,
-      },
-      isConferencingApp
-    )
+    `// Static imports for dynamic imports`,
+    `export const ConferencingVideoAdapterMap = {`
   );
+
+  forEachAppDir((app) => {
+    const fileToBeImported = "lib/VideoApiAdapter.ts";
+    if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported)) && isConferencingApp(app)) {
+      const appName = app.name;
+      const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
+      conferencingVideoAdaptersOutput.push(`  ${appName}: ${capitalizedAppName}VideoApiAdapter,`);
+    }
+  });
+
+  conferencingVideoAdaptersOutput.push(`};`);
 
   const banner = `/**
     This file is autogenerated using the command \`yarn app-store:build --watch\`.
