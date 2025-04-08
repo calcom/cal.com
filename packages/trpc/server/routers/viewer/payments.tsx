@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { PaymentAppMap } from "@calcom/app-store/payment.apps.generated";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
@@ -8,11 +9,9 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import type { PaymentApp } from "@calcom/types/PaymentService";
 
 import { TRPCError } from "@trpc/server";
 
-import { PaymentAppMap } from "../../app-store/payment.apps.generated";
 import authedProcedure from "../../procedures/authedProcedure";
 import { router } from "../../trpc";
 
@@ -107,19 +106,16 @@ export const paymentsRouter = router({
         throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid payment credential" });
       }
 
-      const paymentApp = PaymentAppMap[
-        paymentCredential?.app?.dirName as keyof typeof PaymentAppMap
-      ] as PaymentApp | null;
+      const PaymentService = PaymentAppMap[paymentCredential?.app?.dirName as keyof typeof PaymentAppMap];
 
-      if (!paymentApp?.lib?.PaymentService) {
+      if (!PaymentService) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Payment service not found" });
       }
 
-      const PaymentService = paymentApp.lib.PaymentService;
       const paymentInstance = new PaymentService(paymentCredential);
 
       try {
-        const paymentData = await paymentInstance.chargeCard(payment);
+        const paymentData = await paymentInstance.chargeCard(payment, 0);
 
         if (!paymentData) {
           throw new TRPCError({ code: "NOT_FOUND", message: `Could not generate payment data` });

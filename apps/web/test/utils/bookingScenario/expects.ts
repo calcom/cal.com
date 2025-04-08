@@ -1,6 +1,6 @@
 import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 
-import type { InputEventType, getOrganizer, CalendarServiceMethodMock } from "./bookingScenario";
+import type { InputEventType, getOrganizer } from "./bookingScenario";
 
 import type { WebhookTriggerEvents, Booking, BookingReference, DestinationCalendar } from "@prisma/client";
 import { parse } from "node-html-parser";
@@ -21,6 +21,7 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
 
 import { DEFAULT_TIMEZONE_BOOKER } from "./getMockRequestDataForBooking";
+import type { CalendarServiceMethodMock } from "./mockCalendar";
 
 // This is too complex at the moment, I really need to simplify this.
 // Maybe we can replace the exact match with a partial match approach that would be easier to maintain but we would still need Dayjs to do the timezone conversion
