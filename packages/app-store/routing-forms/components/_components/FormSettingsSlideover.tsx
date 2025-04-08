@@ -1,5 +1,7 @@
+"use client";
+
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { Controller } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -34,50 +36,25 @@ export const FormSettingsSlideover = ({
   const sendUpdatesTo = hookForm.watch("settings.sendUpdatesTo") || [];
   const sendToAll = hookForm.watch("settings.sendToAll") || false;
 
-  // Store initial form values when modal opens
-  const initialValuesRef = useRef<{
-    name: string;
-    description: string | null;
+  // Store initial form values
+  const initialValuesRef = useRef({
+    name: hookForm.getValues("name"),
+    description: hookForm.getValues("description"),
     settings: {
-      sendUpdatesTo: number[];
-      sendToAll: boolean;
-      emailOwnerOnSubmission: boolean;
-    };
-  } | null>(null);
-
-  // Flag to track if save was clicked
-  const saveClickedRef = useRef(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      // Store initial values when modal opens
-      initialValuesRef.current = {
-        name: hookForm.getValues("name"),
-        description: hookForm.getValues("description"),
-        settings: {
-          sendUpdatesTo: hookForm.getValues("settings.sendUpdatesTo") || [],
-          sendToAll: hookForm.getValues("settings.sendToAll") || false,
-          emailOwnerOnSubmission: hookForm.getValues("settings.emailOwnerOnSubmission") || false,
-        },
-      };
-      // Reset save clicked flag when modal opens
-      saveClickedRef.current = false;
-    } else if (!isOpen && initialValuesRef.current && !saveClickedRef.current) {
-      // If modal is closing and save was NOT clicked, revert changes
-      hookForm.reset({
-        ...initialValuesRef.current,
-      });
-    }
-  }, [isOpen, hookForm]);
-
-  const handleSave = () => {
-    // Set flag to indicate we're saving changes
-    saveClickedRef.current = true;
-    onOpenChange(false);
-  };
+      sendUpdatesTo: hookForm.getValues("settings.sendUpdatesTo") || [],
+      sendToAll: hookForm.getValues("settings.sendToAll") || false,
+      emailOwnerOnSubmission: hookForm.getValues("settings.emailOwnerOnSubmission") || false,
+    },
+  });
 
   const handleCancel = () => {
-    // Cancel will close the modal, and the useEffect will handle reverting changes
+    // Revert only the fields we edit
+    const initialValues = initialValuesRef.current;
+    hookForm.setValue("name", initialValues.name);
+    hookForm.setValue("description", initialValues.description);
+    hookForm.setValue("settings.sendUpdatesTo", initialValues.settings.sendUpdatesTo);
+    hookForm.setValue("settings.sendToAll", initialValues.settings.sendToAll);
+    hookForm.setValue("settings.emailOwnerOnSubmission", initialValues.settings.emailOwnerOnSubmission);
     onOpenChange(false);
   };
 
@@ -86,18 +63,16 @@ export const FormSettingsSlideover = ({
       open={isOpen}
       onOpenChange={(open) => {
         if (!open) {
-          // If sheet is being closed and save wasn't clicked, treat it as a cancel
-          if (!saveClickedRef.current) {
-            handleCancel();
-          }
+          handleCancel();
+        } else {
+          onOpenChange(open);
         }
-        onOpenChange(open);
       }}>
-      <SheetContent>
+      <SheetContent className="flex h-full flex-col">
         <SheetHeader>
           <SheetTitle>{t("form_settings")}</SheetTitle>
         </SheetHeader>
-        <div className="mt-6">
+        <div className="mt-6 flex-1 overflow-y-auto">
           <TextField
             type="text"
             containerClassName="mb-6"
@@ -224,11 +199,13 @@ export const FormSettingsSlideover = ({
             )}
           </div>
         </div>
-        <SheetFooter>
-          <Button color="minimal" onClick={handleCancel}>
-            {t("cancel")}
-          </Button>
-          <Button onClick={handleSave}>{t("done")}</Button>
+        <SheetFooter className="flex-shrink-0 ">
+          <div className="p-6">
+            <Button color="minimal" onClick={handleCancel}>
+              {t("cancel")}
+            </Button>
+            <Button onClick={() => onOpenChange(false)}>{t("done")}</Button>
+          </div>
         </SheetFooter>
       </SheetContent>
     </Sheet>
