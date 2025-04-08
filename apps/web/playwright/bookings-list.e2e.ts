@@ -357,13 +357,14 @@ test.describe("Bookings", () => {
     await page.locator('[data-testid="add-filter-item-userId"]').click();
     await page.locator('[data-testid="filter-popover-trigger-userId"]').click();
 
-    const bookingsGetResponse2 = page.waitForResponse((response) =>
-      /\/api\/trpc\/bookings\/get.*/.test(response.url())
+    const bookingsGetResponse2 = page.waitForResponse(
+      (response) => response.url().includes("/api/trpc/bookings/get?batch=1") && response.status() === 200
     );
     await page
       .locator(`[data-testid="multi-select-options-userId"] [role="option"]:has-text("${thirdUser.name}")`)
       .click();
     await bookingsGetResponse2;
+    await expect(page.locator('text="Cancel event"').nth(0)).toBeVisible();
 
     //expect only 3 bookings (out of 4 total) to be shown in list.
     //where ThirdUser is either organizer or attendee

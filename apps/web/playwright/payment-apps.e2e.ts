@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
-import { selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import { selectFirstAvailableTimeSlotNextMonth, submitAndWaitForResponse } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
@@ -35,7 +35,9 @@ test.describe("Payment app", () => {
     await page.getByPlaceholder("Price").click();
     await page.getByPlaceholder("Price").fill("200");
     await page.getByText("SatoshissatsCurrencyBTCPayment optionCollect payment on booking").click();
-    await page.getByTestId("update-eventtype").click();
+    await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+      action: () => page.locator("[data-testid=update-eventtype]").click(),
+    });
 
     await page.goto(`${user.username}/${paymentEvent?.slug}`);
 

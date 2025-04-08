@@ -199,9 +199,7 @@ const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnab
           (child) => isOrgAdminOrOwner || !organizationAdminKeys.includes(child.name)
         );
 
-        // TODO: figure out feature flag as it doesnt cause a re-render of the component when loaded.
-        // You have to refresh the page to see the changes.
-        if (true) {
+        if (isOrgAdminOrOwner) {
           newArray.splice(4, 0, {
             name: "attributes",
             href: "/settings/organizations/attributes",

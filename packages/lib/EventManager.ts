@@ -616,7 +616,7 @@ export default class EventManager {
 
       if (reference.type.includes("_crm") || reference.type.includes("other_calendar")) {
         crmReferences.push(reference);
-        allPromises.push(this.deleteCRMEvent({ reference }));
+        allPromises.push(this.deleteCRMEvent({ reference, event }));
       }
     }
 
@@ -1100,11 +1100,12 @@ export default class EventManager {
     return updatedEvents;
   }
 
-  private async deleteCRMEvent({ reference }: { reference: PartialReference }) {
+  private async deleteCRMEvent({ reference, event }: { reference: PartialReference; event: CalendarEvent }) {
     const credential = this.crmCredentials.find((cred) => cred.id === reference.credentialId);
     if (credential) {
-      const crm = new CrmManager(credential);
-      await crm.deleteEvent(reference.uid);
+      const currentAppOption = this.getAppOptionsFromEventMetadata(credential);
+      const crm = new CrmManager(credential, currentAppOption);
+      await crm.deleteEvent(reference.uid, event);
     }
   }
 

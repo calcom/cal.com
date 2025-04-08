@@ -218,6 +218,10 @@ export const createNewSeatedEventType = async (page: Page, args: { eventTitle: s
   const eventTitle = args.eventTitle;
   await createNewEventType(page, { eventTitle });
   await page.waitForSelector('[data-testid="event-title"]');
+  await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
+    "aria-current",
+    "page"
+  );
   await page.locator('[data-testid="vertical-tab-event_advanced_tab_title"]').click();
   await page.locator('[data-testid="offer-seats-toggle"]').click();
   await page.locator('[data-testid="update-eventtype"]').click();

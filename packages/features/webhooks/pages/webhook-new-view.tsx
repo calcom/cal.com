@@ -8,6 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
 
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";
@@ -50,7 +51,8 @@ export const NewWebhookView = () => {
     async onSuccess() {
       showToast(t("webhook_created_successfully"), "success");
       await utils.viewer.webhook.list.invalidate();
-      router.back();
+      revalidateWebhooksList();
+      router.push("/settings/developer/webhooks");
     },
     onError(error) {
       showToast(`${error.message}`, "error");

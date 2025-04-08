@@ -439,7 +439,7 @@ test.describe("Routing Forms", () => {
       const user = await createUserAndLogin({ users, page });
       const routingForm = user.routingForms[0];
       await gotoRoutingLink({ page, formId: routingForm.id });
-      page.click('button[type="submit"]');
+      await page.click('button[type="submit"]');
       const firstInputMissingValue = await page.evaluate(() => {
         return document.querySelectorAll("input")[0].validity.valueMissing;
       });
@@ -828,11 +828,8 @@ async function addAllTypesOfFieldsAndSaveForm(
   page: Page,
   form: { description: string; label: string }
 ) {
-  const appRoutingFormsRespPromise = page.waitForResponse((response) =>
-    /\/api\/trpc\/appRoutingForms*/.test(response.url())
-  );
   await page.goto(`apps/routing-forms/form-edit/${formId}`);
-  await appRoutingFormsRespPromise;
+  await expect(page.locator('text="Test Preview"')).toBeVisible();
   await page.click('[data-testid="add-field"]');
 
   const { optionsInUi: fieldTypesList } = await verifySelectOptions(

@@ -929,8 +929,8 @@ const InfiniteScrollMain = ({
   // This is to ensure that the bookerUrl is always the same as the one in the org branding settings
   // This keeps the app working for personal event types that were not migrated to the org (rare)
   if (
-    activeEventTypeGroup[0].teamId === orgBranding?.id ||
-    activeEventTypeGroup[0].parentId === orgBranding?.id
+    orgBranding &&
+    (activeEventTypeGroup[0].teamId === orgBranding.id || activeEventTypeGroup[0].parentId === orgBranding.id)
   ) {
     activeEventTypeGroup[0].bookerUrl = bookerUrl;
   }
@@ -953,15 +953,17 @@ type Props = {
 
 export const EventTypesCTA = ({ initialData, filters }: Props) => {
   const { data: user } = useMeQuery();
-  const { data: getUserEventGroupsData } = trpc.viewer.eventTypes.getUserEventGroups.useQuery(
+  const { data: userEventGroupsQuery } = trpc.viewer.eventTypes.getUserEventGroups.useQuery(
     filters && { filters },
     {
       refetchOnWindowFocus: false,
       gcTime: 1 * 60 * 60 * 1000,
       staleTime: 1 * 60 * 60 * 1000,
-      initialData,
     }
   );
+
+  const getUserEventGroupsData = userEventGroupsQuery ?? initialData;
+
   const profileOptions =
     getUserEventGroupsData?.profiles
       ?.filter((profile) => !profile.readOnly)
