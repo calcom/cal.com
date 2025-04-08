@@ -192,12 +192,10 @@ export const FormSettingsSlideover = ({
           </div>
         </div>
         <SheetFooter className="flex-shrink-0 ">
-          <div className="p-6">
-            <Button color="minimal" onClick={handleCancel}>
-              {t("cancel")}
-            </Button>
-            <Button onClick={() => onOpenChange(false)}>{t("done")}</Button>
-          </div>
+          <Button color="minimal" onClick={handleCancel}>
+            {t("cancel")}
+          </Button>
+          <Button onClick={() => onOpenChange(false)}>{t("done")}</Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>

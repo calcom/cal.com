@@ -5,12 +5,14 @@ import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RoutingFormWithResponseCount } from "@calcom/routing-forms/types/types";
+import { trpc } from "@calcom/trpc";
 import { Button } from "@calcom/ui/components/button";
 import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
+import { enabledIncompleteBookingApps } from "../../lib/enabledIncompleteBookingApps";
 import { FormAction, FormActionsDropdown } from "../FormActions";
 import { FormSettingsSlideover } from "./FormSettingsSlideover";
 
@@ -142,6 +144,29 @@ export function Header({
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(routingForm.name);
   const form = useFormContext<RoutingFormWithResponseCount>();
+  const [showInfoLostDialog, setShowInfoLostDialog] = useState(false);
+
+  const { data } = trpc.viewer.appRoutingForms.getIncompleteBookingSettings.useQuery({
+    formId: routingForm.id,
+  });
+
+  const showIncompleteBookingTab = data?.credentials.some((credential) =>
+    enabledIncompleteBookingApps.includes(credential?.appId ?? "")
+  );
+
+  const handleNavigation = (value: string) => {
+    if (!value) return;
+
+    const baseUrl = `${appUrl}/${value}/${routingForm.id}`;
+
+    if (value === "route-builder" && form.formState.isDirty) {
+      setShowInfoLostDialog(true);
+    } else if (value === "reporting") {
+      window.open(baseUrl, "_blank");
+    } else {
+      window.location.href = baseUrl;
+    }
+  };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
@@ -195,22 +220,39 @@ export function Header({
         </div>
       </div>
 
-      {/* Segment */}
-      <ToggleGroup
-        defaultValue="forms"
-        onValueChange={(value) => {
-          if (!value) return;
-          console.log("Selected:", value);
-        }}
-        options={[
-          { value: "forms", label: t("forms"), iconLeft: <Icon name="menu" className="h-3 w-3" /> },
-          {
-            value: "responses",
-            label: t("responses"),
-            iconLeft: <Icon name="waypoints" className="h-3 w-3" />,
-          },
-        ]}
-      />
+      {/* Navigation Tabs */}
+      <div className="flex items-center">
+        <ToggleGroup
+          defaultValue="form-edit"
+          onValueChange={handleNavigation}
+          options={[
+            {
+              value: "form-edit",
+              label: t("form"),
+              iconLeft: <Icon name="menu" className="h-3 w-3" />,
+            },
+            {
+              value: "route-builder",
+              label: t("routing"),
+              iconLeft: <Icon name="waypoints" className="h-3 w-3" />,
+            },
+            {
+              value: "reporting",
+              label: t("reporting"),
+              iconLeft: <Icon name="chart-bar" className="h-3 w-3" />,
+            },
+            ...(showIncompleteBookingTab
+              ? [
+                  {
+                    value: "incomplete-booking",
+                    label: t("incomplete_booking"),
+                    iconLeft: <Icon name="calendar" className="h-3 w-3" />,
+                  },
+                ]
+              : []),
+          ]}
+        />
+      </div>
 
       {/* Actions */}
       <Actions form={routingForm} isSaving={isSaving} appUrl={appUrl} />
