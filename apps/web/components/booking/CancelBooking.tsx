@@ -199,7 +199,6 @@ export default function CancelBooking(props: Props) {
                 data-testid="confirm_cancel"
                 disabled={
                   props.isHost &&
-                  !props.seatReferenceUid &&
                   (!cancellationReason || (props.internalNotePresets.length > 0 && !internalNote?.id))
                 }
                 onClick={async () => {
