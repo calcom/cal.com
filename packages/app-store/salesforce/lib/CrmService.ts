@@ -413,6 +413,36 @@ export default class SalesforceCRMService implements CRM {
 
       let records: ContactRecord[] = [];
 
+      // This combination is for searching for ownership via contacts
+      if (
+        recordToSearch === SalesforceRecordEnum.CONTACT &&
+        appOptions?.roundRobinSkipFallbackToLeadOwner &&
+        forRoundRobinSkip
+      ) {
+        const searchResult = await conn.search(
+          `FIND {${emailArray[0]}} IN EMAIL FIELDS RETURNING Lead(Id, Email, OwnerId, Owner.Email), Contact(Id, Email, OwnerId, Owner.Email)`
+        );
+
+        if (searchResult.searchRecords.length > 0) {
+          // See if a contact was found first
+          const contactQuery = searchResult.searchRecords.filter(
+            (record) => record.attributes?.type === SalesforceRecordEnum.CONTACT
+          );
+
+          if (contactQuery.length > 0) {
+            records = contactQuery as ContactRecord[];
+          } else {
+            // If not fallback to lead
+            const leadQuery = searchResult.searchRecords.filter(
+              (record) => record.attributes?.type === SalesforceRecordEnum.LEAD
+            );
+            if (leadQuery.length > 0) {
+              records = leadQuery as ContactRecord[];
+            }
+          }
+        }
+      }
+
       // If falling back to contacts, check for the contact before returning the leads or empty array
       if (
         appOptions.createEventOn === SalesforceRecordEnum.LEAD &&
@@ -941,14 +971,14 @@ export default class SalesforceCRMService implements CRM {
     return accountId;
   }
 
-  private async getAccountBasedOnEmailDomainOfContacts(email: string) {
+  public async getAccountBasedOnEmailDomainOfContacts(email: string) {
     const conn = await this.conn;
     const emailDomain = email.split("@")[1];
     const log = logger.getSubLogger({ prefix: [`[getAccountBasedOnEmailDomainOfContacts]:${email}`] });
     log.info("Querying first account matching email domain", safeStringify({ emailDomain }));
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
-      `SELECT Id, OwnerId, Owner.Email, Owner.Website FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
+      `SELECT Id, OwnerId, Owner.Email, Website FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
         emailDomain
       )}) LIMIT 1`
     );
@@ -1029,7 +1059,6 @@ export default class SalesforceCRMService implements CRM {
     // Search the fields and ensure 1. they exist 2. they're the right type
     const fieldsToWriteOn = Object.keys(onBookingWriteToRecordFields);
     const existingFields = await this.ensureFieldsExistOnObject(fieldsToWriteOn, personRecordType);
-
     if (!existingFields.length) {
       this.log.warn(`No fields found for record type ${personRecordType}`);
       return;
@@ -1128,42 +1157,53 @@ export default class SalesforceCRMService implements CRM {
       }
 
       // Handle different field types
-      if (fieldConfig.fieldType === field.type) {
-        if (field.type === SalesforceFieldType.TEXT || field.type === SalesforceFieldType.PHONE) {
-          const extractedText = await this.getTextFieldValue({
-            fieldValue: fieldConfig.value,
-            fieldLength: field.length,
-            calEventResponses,
-            bookingUid,
-          });
-          if (extractedText) {
-            writeOnRecordBody[field.name] = extractedText;
-            continue;
-          }
-        } else if (field.type === SalesforceFieldType.DATE && startTime && organizerEmail) {
-          const dateValue = await this.getDateFieldValue(
-            fieldConfig.value,
-            startTime,
-            bookingUid,
-            organizerEmail
-          );
-          if (dateValue) {
-            writeOnRecordBody[field.name] = dateValue;
-            continue;
-          }
-        } else if (field.type === SalesforceFieldType.PICKLIST) {
-          const picklistValue = await this.getPicklistFieldValue({
-            fieldConfigValue: fieldConfig.value,
-            salesforceField: field,
-            calEventResponses,
-            bookingUid,
-            contactId,
-          });
-          if (picklistValue) {
-            writeOnRecordBody[field.name] = picklistValue;
-            continue;
-          }
+      if (
+        field.type === SalesforceFieldType.TEXT ||
+        field.type === SalesforceFieldType.TEXTAREA ||
+        field.type === SalesforceFieldType.PHONE
+      ) {
+        const extractedText = await this.getTextFieldValue({
+          fieldValue: fieldConfig.value,
+          fieldLength: field.length,
+          calEventResponses,
+          bookingUid,
+        });
+        if (extractedText) {
+          writeOnRecordBody[field.name] = extractedText;
+          continue;
         }
+      } else if (
+        (field.type === SalesforceFieldType.DATE || field.type === SalesforceFieldType.DATETIME) &&
+        startTime &&
+        organizerEmail
+      ) {
+        const dateValue = await this.getDateFieldValue(
+          fieldConfig.value,
+          startTime,
+          bookingUid,
+          organizerEmail
+        );
+        if (dateValue) {
+          writeOnRecordBody[field.name] = dateValue;
+          continue;
+        }
+      } else if (field.type === SalesforceFieldType.PICKLIST) {
+        const picklistValue = await this.getPicklistFieldValue({
+          fieldConfigValue: fieldConfig.value,
+          salesforceField: field,
+          calEventResponses,
+          bookingUid,
+          contactId,
+        });
+        if (picklistValue) {
+          writeOnRecordBody[field.name] = picklistValue;
+          continue;
+        }
+      } else if (field.type === SalesforceFieldType.CHECKBOX) {
+        // If the checkbox field value is not a boolean for some reason, default to if it's a falsely value
+        const checkboxValue = !!fieldConfig.value;
+        writeOnRecordBody[field.name] = checkboxValue;
+        continue;
       }
 
       log.error(
@@ -1172,7 +1212,6 @@ export default class SalesforceCRMService implements CRM {
         }, field config ${JSON.stringify(fieldConfig)} and Salesforce config ${JSON.stringify(field)}`
       );
     }
-
     return writeOnRecordBody;
   }
 

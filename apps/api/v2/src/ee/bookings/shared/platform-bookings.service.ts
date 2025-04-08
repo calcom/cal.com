@@ -59,4 +59,28 @@ export class PlatformBookingsService {
 
     return undefined;
   }
+
+  async getOAuthClientParamsForEventType(eventType: {
+    userId: number | null | undefined;
+    teamId: number | null | undefined;
+  }) {
+    let oAuthClient: PlatformOAuthClient | null = null;
+    if (eventType.userId) {
+      oAuthClient = await this.oAuthClientRepository.getByUserId(eventType.userId);
+    } else if (eventType.teamId) {
+      oAuthClient = await this.oAuthClientRepository.getByTeamId(eventType.teamId);
+    }
+
+    if (oAuthClient) {
+      return {
+        platformClientId: oAuthClient.id,
+        platformCancelUrl: oAuthClient.bookingCancelRedirectUri,
+        platformRescheduleUrl: oAuthClient.bookingRescheduleRedirectUri,
+        platformBookingUrl: oAuthClient.bookingRedirectUri,
+        arePlatformEmailsEnabled: oAuthClient.areEmailsEnabled,
+      };
+    }
+
+    return undefined;
+  }
 }
