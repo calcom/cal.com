@@ -3,7 +3,7 @@ import { calendarServicesMapMock } from "../../../../../tests/libs/__mocks__/app
 import { BookingLocations } from "./bookingScenario";
 
 import type { CredentialForCalendarService } from "@calcom/app-store/_utils/getCalendar";
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetadata";
+import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { log } from "@calcom/lib/logger";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
 
