@@ -190,7 +190,10 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
 
   const teamMembersPromise = prisma.membership.findMany({
     where: whereClause,
-    include: {
+    select: {
+      id: true,
+      role: true,
+      accepted: true,
       user: {
         select: {
           id: true,
