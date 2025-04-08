@@ -365,16 +365,19 @@ function UserListTableContent() {
       {
         id: "lastActiveAt",
         header: t("last_active"),
+        enableSorting: false,
         cell: ({ row }) => <div>{row.original.lastActiveAt}</div>,
       },
       {
         id: "createdAt",
         header: t("member_since"),
+        enableSorting: false,
         cell: ({ row }) => <div>{row.original.createdAt || ""}</div>,
       },
       {
         id: "updatedAt",
         header: t("last_updated"),
+        enableSorting: false,
         cell: ({ row }) => <div>{row.original.updatedAt || ""}</div>,
       },
       {
