@@ -962,7 +962,6 @@ export const EventTypesCTA = ({ initialData, filters }: Props) => {
       initialData,
     }
   );
-
   const profileOptions =
     getUserEventGroupsData?.profiles
       ?.filter((profile) => !profile.readOnly)
