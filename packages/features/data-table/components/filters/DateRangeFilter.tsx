@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button, buttonClasses } from "@calcom/ui/components/button";
 import {
   Command,
@@ -33,6 +34,7 @@ import { ZDateRangeFilterValue, ColumnFilterType } from "../../lib/types";
 type DateRangeFilterProps = {
   column: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }>;
   options?: DateRangeFilterOptions;
+  showColumnName?: boolean;
   showClearButton?: boolean;
 };
 
@@ -74,7 +76,12 @@ const getDateRangeFromPreset = (val: string | null) => {
   return { startDate, endDate, preset };
 };
 
-export const DateRangeFilter = ({ column, options, showClearButton = false }: DateRangeFilterProps) => {
+export const DateRangeFilter = ({
+  column,
+  options,
+  showColumnName = false,
+  showClearButton = false,
+}: DateRangeFilterProps) => {
   const filterValue = useFilterValue(column.id, ZDateRangeFilterValue);
   const { updateFilter, removeFilter } = useDataTable();
   const range = options?.range ?? "past";
@@ -172,6 +179,10 @@ export const DateRangeFilter = ({ column, options, showClearButton = false }: Da
     customButtonLabel = `${format(startDate.toDate(), "LLL dd, y")} - ?`;
   }
 
+  const selectedValue = isCustomPreset
+    ? customButtonLabel
+    : t(selectedPreset.labelKey, selectedPreset.i18nOptions);
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -181,8 +192,15 @@ export const DateRangeFilter = ({ column, options, showClearButton = false }: Da
           StartIcon="calendar-range"
           EndIcon="chevron-down"
           data-testid={`filter-popover-trigger-${column.id}`}>
-          {!isCustomPreset && <span>{t(selectedPreset.labelKey, selectedPreset.i18nOptions)}</span>}
-          {isCustomPreset && <span>{customButtonLabel}</span>}
+          {showColumnName && (
+            <>
+              <span>{column.title}</span>
+              <Badge variant="gray" className="ml-2">
+                {selectedValue}
+              </Badge>
+            </>
+          )}
+          {!showColumnName && <span>{selectedValue}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="flex w-fit p-0" align="end">

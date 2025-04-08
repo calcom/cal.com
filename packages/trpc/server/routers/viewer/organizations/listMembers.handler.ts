@@ -84,13 +84,13 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     | TypedColumnFilter<ColumnFilterType.MULTI_SELECT>
     | undefined;
   const lastActiveAtFilter = filters.find((filter) => filter.id === "lastActiveAt") as
-    | TypedColumnFilter<ColumnFilterType.DATE>
+    | TypedColumnFilter<ColumnFilterType.DATE_RANGE>
     | undefined;
   const createdAtFilter = filters.find((filter) => filter.id === "createdAt") as
-    | TypedColumnFilter<ColumnFilterType.DATE>
+    | TypedColumnFilter<ColumnFilterType.DATE_RANGE>
     | undefined;
   const updatedAtFilter = filters.find((filter) => filter.id === "updatedAt") as
-    | TypedColumnFilter<ColumnFilterType.DATE>
+    | TypedColumnFilter<ColumnFilterType.DATE_RANGE>
     | undefined;
 
   const whereClause: Prisma.MembershipWhereInput = {
