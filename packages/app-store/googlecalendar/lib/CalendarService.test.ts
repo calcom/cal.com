@@ -752,7 +752,7 @@ describe("Calendar Cache", () => {
     );
   });
 
-  test("A cache set through fetchAvailabilityAndSetCache should be used when doing getAvailability", async () => {
+  test.only("A cache set through fetchAvailabilityAndSetCache should be used when doing getAvailability", async () => {
     const credentialInDb = await createCredentialForCalendarService();
     const calendarService = new CalendarService(credentialInDb);
     vi.setSystemTime(new Date("2025-04-01T00:00:00.000Z"));

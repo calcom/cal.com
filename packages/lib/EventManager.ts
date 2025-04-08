@@ -36,6 +36,7 @@ import type {
 
 import { createEvent, updateEvent, deleteEvent } from "./CalendarManager";
 import CrmManager from "./crmManager/crmManager";
+import { isDelegationCredential } from "./delegationCredential/clientAndServer";
 import { createMeeting, updateMeeting, deleteMeeting } from "./videoClient";
 
 const log = logger.getSubLogger({ prefix: ["EventManager"] });
@@ -200,14 +201,23 @@ export default class EventManager {
       log.warn("Falling back to cal video as no location is set");
     }
 
-    // Fallback to Cal Video if Google Meet is selected w/o a Google Cal
-    // @NOTE: destinationCalendar it's an array now so as a fallback we will only check the first one
     const [mainHostDestinationCalendar] =
       (evt.destinationCalendar as [undefined | NonNullable<typeof evt.destinationCalendar>[number]]) ?? [];
+
+    // Fallback to Cal Video if Google Meet is selected w/o a Google Calendar connection
     if (evt.location === MeetLocationType && mainHostDestinationCalendar?.integration !== "google_calendar") {
-      log.warn("Falling back to Cal Video integration as Google Calendar is not set as destination calendar");
-      evt["location"] = "integrations:daily";
-      evt["conferenceCredentialId"] = undefined;
+      const [googleCalendarCredential] = this.calendarCredentials.filter(
+        (cred) => cred.type === "google_calendar"
+      );
+      // Delegation Credential case won't normally have DestinationCalendar set and thus fallback of using Google Calendar credential would be used. Identify that case.
+      // TODO: We could extend this logic to Regular Credentials also. Having a Google Calendar credential would cause fallback to use that credential to create calendar and thus we could have Google Meet link
+      if (!isDelegationCredential({ credentialId: googleCalendarCredential?.id })) {
+        log.warn(
+          "Falling back to Cal Video integration for Regular Credential as Google Calendar is not set as destination calendar"
+        );
+        evt["location"] = "integrations:daily";
+        evt["conferenceCredentialId"] = undefined;
+      }
     }
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
@@ -663,12 +673,13 @@ export default class EventManager {
     let createdEvents: EventResult<NewCalendarEventType>[] = [];
 
     const fallbackToFirstCalendarInTheList = async () => {
-      /**
-       *  Not ideal but, if we don't find a destination calendar,
-       *  fallback to the first connected calendar - Shouldn't be a CRM calendar
-       */
       const [credential] = this.calendarCredentials.filter((cred) => !cred.type.endsWith("other_calendar"));
       if (credential) {
+        if (!isDelegationCredential({ credentialId: credential.id })) {
+          log.warn("Check the User setup, it isn't normal to fallback for regular credential.");
+        } else {
+          // It is completely normal to fallback for delegation credential as in that case by default no destination calendar would be set.
+        }
         const createdEvent = await createEvent(credential, event);
         log.silly("Created Calendar event using credential", safeStringify({ credential, createdEvent }));
         if (createdEvent) {
