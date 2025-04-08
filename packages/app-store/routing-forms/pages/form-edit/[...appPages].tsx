@@ -9,8 +9,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard } from "@calcom/ui/components/card";
-import { BooleanToggleGroupField, SelectField, TextField } from "@calcom/ui/components/form";
-import { MultiOptionInput } from "@calcom/ui/components/form";
+import {
+  BooleanToggleGroupField,
+  Label,
+  SelectField,
+  TextField,
+  MultiOptionInput,
+} from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -69,22 +74,6 @@ function Field({
   appUrl: string;
 }) {
   const { t } = useLocale();
-  const [animationRef] = useAutoAnimate<HTMLUListElement>();
-  const watchedOptions =
-    useWatch({
-      control: hookForm.control,
-      name: `${hookFieldNamespace}.options`,
-      defaultValue: [
-        { label: "", id: uuidv4() },
-        { label: "", id: uuidv4() },
-        { label: "", id: uuidv4() },
-        { label: "", id: uuidv4() },
-      ],
-    }) || [];
-
-  const setOptions = (updatedOptions: SelectOption[]) => {
-    hookForm.setValue(`${hookFieldNamespace}.options`, updatedOptions, { shouldDirty: true });
-  };
 
   const router = hookForm.getValues(`${hookFieldNamespace}.router`);
   const routerField = hookForm.getValues(`${hookFieldNamespace}.routerField`);
@@ -181,6 +170,7 @@ function Field({
           </div>
           {["select", "multiselect"].includes(fieldType) ? (
             <div className="bg-muted w-full rounded-[10px] p-2">
+              <Label className="text-subtle">{t("options")}</Label>
               <MultiOptionInput
                 fieldArrayName={`${hookFieldNamespace}.options`}
                 disabled={!!router}
@@ -190,6 +180,7 @@ function Field({
                 showMoveButtons={true}
                 minOptions={1}
                 addOptionLabel={t("add_an_option")}
+                addOptionButtonColor="minimal"
               />
             </div>
           ) : null}
