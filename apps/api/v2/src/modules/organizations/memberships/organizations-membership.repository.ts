@@ -50,7 +50,7 @@ export class OrganizationsMembershipRepository {
   }
   async updateOrgMembership(organizationId: number, membershipId: number, data: UpdateOrgMembershipDto) {
     return this.dbWrite.prisma.membership.update({
-      data: { ...data },
+      data: { ...data, updatedAt: new Date() },
       where: { id: membershipId, teamId: organizationId },
       include: { user: { select: MembershipUserSelect } },
     });

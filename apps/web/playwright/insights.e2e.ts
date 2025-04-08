@@ -32,6 +32,8 @@ const createTeamsAndMembership = async (userIdOne: number, userIdTwo: number) =>
       teamId: teamOne.id,
       accepted: true,
       role: "ADMIN",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
   });
   await prisma.membership.create({
@@ -40,6 +42,8 @@ const createTeamsAndMembership = async (userIdOne: number, userIdTwo: number) =>
       userId: userIdOne,
       accepted: true,
       role: "ADMIN",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
   });
   await prisma.membership.create({
@@ -48,6 +52,8 @@ const createTeamsAndMembership = async (userIdOne: number, userIdTwo: number) =>
       userId: userIdTwo,
       accepted: true,
       role: "MEMBER",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
   });
   await prisma.membership.create({
@@ -56,6 +62,8 @@ const createTeamsAndMembership = async (userIdOne: number, userIdTwo: number) =>
       userId: userIdTwo,
       accepted: true,
       role: "MEMBER",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
   });
   return { teamOne, teamTwo };

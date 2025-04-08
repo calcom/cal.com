@@ -234,6 +234,8 @@ test.describe("Email Signup Flow Test", async () => {
         userId: rickTeamUser.id,
         role: "ADMIN",
         accepted: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     });
 

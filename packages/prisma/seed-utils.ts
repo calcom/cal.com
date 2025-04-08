@@ -259,6 +259,8 @@ export async function createTeamAndAddUsers(
         userId: id,
         role: role,
         accepted: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     });
     console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${role}'`);

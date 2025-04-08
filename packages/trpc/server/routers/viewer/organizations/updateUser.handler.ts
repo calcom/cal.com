@@ -147,6 +147,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
       },
       data: {
         role: input.role,
+        updatedAt: new Date(),
       },
     }),
   ];

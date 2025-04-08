@@ -71,7 +71,11 @@ const getWhereForfindAllByUpId = async (upId: string, where?: Prisma.MembershipW
 export class MembershipRepository {
   static async create(data: IMembership) {
     return await prisma.membership.create({
-      data,
+      data: {
+        ...data,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
     });
   }
 

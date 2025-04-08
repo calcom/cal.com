@@ -24,7 +24,13 @@ import { membershipCreateBodySchema, schemaMembershipPublic } from "~/lib/valida
  */
 async function postHandler(req: NextApiRequest) {
   const data = membershipCreateBodySchema.parse(req.body);
-  const args: Prisma.MembershipCreateArgs = { data };
+  const args: Prisma.MembershipCreateArgs = {
+    data: {
+      ...data,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  };
 
   await checkPermissions(req);
 

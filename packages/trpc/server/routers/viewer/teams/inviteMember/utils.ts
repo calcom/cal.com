@@ -868,6 +868,8 @@ export async function handleExistingUsersInvites({
           data: {
             userId: user.id,
             teamId: team.id,
+            createdAt: new Date(),
+            updatedAt: new Date(),
             accepted: shouldAutoAccept,
             role: user.newRole,
           },
