@@ -1192,6 +1192,7 @@ export function expectBookingPaymentIntiatedWebhookToHaveBeenFired({
 
 type ExpectedForSuccessfulCalendarEventCreationInCalendar = {
   calendarId?: string | null;
+  calendarIdUsingFallbackOfFirstCalendarCredential?: string | null;
   /**
    * explciityl set to null if you don't want to match on videoCallUrl
    */

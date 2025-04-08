@@ -88,12 +88,15 @@ async function updateCacheForGoogleChannel(channelId: string) {
     googleChannelId: channelId,
   });
 
+  const credentialId = selectedCalendarMatchingGoogleChannelId.credential?.id ?? null;
+  const delegationCredentialId = selectedCalendarMatchingGoogleChannelId.delegationCredentialId ?? null;
+
   if (!credentialForCalendarService) {
     // Could happen also if DelegationCredential is disabled
     log.error("No credential Delegation/Regular could be found for googleChannelId: ", {
       googleChannelId: channelId,
-      delegationCredentialId: selectedCalendarMatchingGoogleChannelId.delegationCredentialId,
-      credentialId: selectedCalendarMatchingGoogleChannelId.credentialId,
+      delegationCredentialId,
+      credentialId,
     });
     return;
   }
@@ -102,8 +105,8 @@ async function updateCacheForGoogleChannel(channelId: string) {
   if (!calendar) {
     log.error("No calendar could be found for googleChannelId: ", {
       googleChannelId: channelId,
-      delegationCredentialId: selectedCalendarMatchingGoogleChannelId.delegationCredentialId,
-      credentialId: selectedCalendarMatchingGoogleChannelId.credential?.id ?? null,
+      delegationCredentialId,
+      credentialId,
     });
     return;
   }
@@ -111,9 +114,10 @@ async function updateCacheForGoogleChannel(channelId: string) {
   if (!calendar.fetchAvailabilityAndSetCache) {
     log.error("No fetchAvailabilityAndSetCache method defined", {
       googleChannelId: channelId,
-      delegationCredentialId: selectedCalendarMatchingGoogleChannelId.delegationCredentialId,
-      credentialId: selectedCalendarMatchingGoogleChannelId.credential?.id ?? null,
+      delegationCredentialId,
+      credentialId,
     });
+    return;
   }
   await calendar.fetchAvailabilityAndSetCache(allSelectedCalendarsForCredential);
 }

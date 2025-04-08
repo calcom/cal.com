@@ -154,10 +154,9 @@ export default class EventManager {
       // see https://github.com/calcom/cal.com/issues/11671#issue-1923600672
       // This sorting is mostly applicable for fallback which happens when there is no explicity destinationCalendar set. That could be true for really old accounts but not for new
       .sort(latestCredentialFirst)
-      // TODO: Change it to delegatedCredentialFirst in a followup PR.
-      // We are keeping delegated credentials at the end so that there is no impact on existing users connections as we still use their existing credentials
-      // Soon after DelegationCredential is released and stable, we switch it. Could be an env variable also to toggle this.
-      .sort(delegatedCredentialLast);
+      // Keep Delegation Credentials first so because those credentials never expire and are preferred.
+      // Also, those credentials have consistent permission for all the members avoiding the scenario where user doesn't give all permissions
+      .sort(delegatedCredentialFirst);
 
     this.videoCredentials = appCredentials
       .filter((cred) => cred.type.endsWith("_video") || cred.type.endsWith("_conferencing"))
