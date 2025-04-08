@@ -25,7 +25,7 @@ const useClientLocale = (namespace: Parameters<typeof useTranslation>[0] = "comm
 };
 
 // @internal
-const i18nInstances = new Map();
+const serverI18nInstances = new Map();
 
 // @internal
 const getInstanceKey = (locale: string, ns: string) => `${locale}-${ns}`;
@@ -39,7 +39,7 @@ export const useLocale = () => {
     const instanceKey = getInstanceKey(locale, ns);
 
     // Check if we already have an instance for this locale and namespace
-    if (!i18nInstances.has(instanceKey)) {
+    if (!serverI18nInstances.has(instanceKey)) {
       const i18n = createInstance();
       i18n.init({
         lng: locale,
@@ -51,14 +51,14 @@ export const useLocale = () => {
         fallbackLng: "en",
       });
 
-      i18nInstances.set(instanceKey, {
+      serverI18nInstances.set(instanceKey, {
         t: i18n.getFixedT(locale, ns),
         isLocaleReady: true,
         i18n,
       });
     }
 
-    return i18nInstances.get(instanceKey);
+    return serverI18nInstances.get(instanceKey);
   }
 
   console.warn(

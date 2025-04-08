@@ -85,7 +85,7 @@ const getInitialProps = async (url: string) => {
   const embedColorScheme = searchParams?.get("ui.color-scheme");
 
   const req = { headers: await headers(), cookies: await cookies() };
-  const newLocale = await getLocale(req);
+  const newLocale = (await getLocale(req)) ?? "en";
   const direction = dir(newLocale);
 
   return {
