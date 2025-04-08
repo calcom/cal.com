@@ -16,7 +16,7 @@ async function loadFallbackTranslations() {
   return;
 }
 
-async function loadTranslations(locale: string, ns: string) {
+export async function loadTranslations(locale: string, ns: string) {
   try {
     const url = `${WEBAPP_URL}/static/locales/${locale}/${ns}.json`;
     const response = await fetch(url);

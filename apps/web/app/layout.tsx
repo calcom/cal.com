@@ -10,7 +10,7 @@ import { IconSprites } from "@calcom/ui/components/icon";
 import { NotificationSoundHandler } from "@calcom/web/components/notification-sound-handler";
 
 import "../styles/globals.css";
-import { AppRouterI18nProvider } from "./I18nProvider";
+import { AppRouterI18nProvider } from "./AppRouterI18nProvider";
 import { SpeculationRules } from "./SpeculationRules";
 import { Providers } from "./providers";
 
