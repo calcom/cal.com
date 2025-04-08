@@ -25,7 +25,7 @@ import { User } from "@calcom/prisma/client";
   path: "/v2/organizations/:orgId/users/:userId/bookings",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsUserInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard)
 @DocsTags("Orgs / Users / Bookings")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
@@ -38,13 +38,13 @@ export class OrganizationsUsersBookingsController {
   @PlatformPlan("ESSENTIALS")
   @ApiOperation({ summary: "Get all bookings of an organization user" })
   async getOrganizationUserBookings(
-    @GetUser() user: User,
     @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("userId", ParseIntPipe) userId: number,
     @Query() query: GetBookingsInput_2024_08_13
   ): Promise<GetBookingsOutput_2024_08_13> {
     const bookings = await this.organizationUsersBookingsService.getOrganizationUserBookings(
       orgId,
-      user,
+      userId,
       query
     );
 
