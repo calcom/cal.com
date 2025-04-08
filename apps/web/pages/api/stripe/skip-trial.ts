@@ -1,13 +1,12 @@
-import { getServerSession } from "next-auth/next";
+import type { NextApiRequest } from "next";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
 
-import { authOptions } from "~/server/auth";
-
-async function handler(req: Request) {
-  const session = await getServerSession(authOptions);
+async function handler(req: NextApiRequest) {
+  const session = await getServerSession({ req });
   if (!session?.user?.id) {
     throw new HttpError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -46,4 +45,4 @@ async function handler(req: Request) {
   return { success: true };
 }
 
-export default defaultResponder(handler);
+export default defaultResponder(handler, "/api/stripe/skip-trial");
