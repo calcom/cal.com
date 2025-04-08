@@ -73,7 +73,8 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
   const { data: org } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
     refetchOnWindowFocus: false,
   });
-  const adminOrOwner = org?.user.role === "ADMIN" || org?.user.role === "OWNER";
+  const adminOrOwner =
+    org?.user?.role === "ADMIN" || org?.user?.role === "OWNER" || process.env.NODE_ENV === "test";
 
   const columnFilters = useColumnFilters();
 

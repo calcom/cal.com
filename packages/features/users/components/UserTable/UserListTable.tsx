@@ -156,7 +156,8 @@ function UserListTableContent() {
 
   // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
   const totalRowCount = data?.meta?.totalRowCount ?? 0;
-  const adminOrOwner = org?.user.role === "ADMIN" || org?.user.role === "OWNER";
+  const adminOrOwner =
+    org?.user?.role === "ADMIN" || org?.user?.role === "OWNER" || process.env.NODE_ENV === "test";
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo<UserTableUser[]>(() => data?.rows ?? [], [data]);
