@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { useAtomsContext } from "@calcom/atoms/hooks/useAtomsContext";
 import { AppRouterI18nContext } from "@calcom/web/app/AppRouterI18nProvider";
 
-// `useClientLocale` is NOT MEANT TO BE EXPORTED
 // @internal
 const useClientLocale = (namespace: Parameters<typeof useTranslation>[0] = "common") => {
   const context = useAtomsContext();
@@ -25,24 +24,41 @@ const useClientLocale = (namespace: Parameters<typeof useTranslation>[0] = "comm
   };
 };
 
+// @internal
+const i18nInstances = new Map();
+
+// @internal
+const getInstanceKey = (locale: string, ns: string) => `${locale}-${ns}`;
+
 export const useLocale = () => {
   const appRouterContext = useContext(AppRouterI18nContext);
   const clientI18n = useClientLocale();
 
   if (appRouterContext) {
     const { translations, locale, ns } = appRouterContext;
-    const i18n = createInstance();
-    i18n.init({
-      lng: locale,
-      resources: {
-        [locale]: {
-          [ns]: translations,
-        },
-      },
-      fallbackLng: "en",
-    });
+    const instanceKey = getInstanceKey(locale, ns);
 
-    return { t: i18n.getFixedT(locale, ns), isLocaleReady: true, i18n };
+    // Check if we already have an instance for this locale and namespace
+    if (!i18nInstances.has(instanceKey)) {
+      const i18n = createInstance();
+      i18n.init({
+        lng: locale,
+        resources: {
+          [locale]: {
+            [ns]: translations,
+          },
+        },
+        fallbackLng: "en",
+      });
+
+      i18nInstances.set(instanceKey, {
+        t: i18n.getFixedT(locale, ns),
+        isLocaleReady: true,
+        i18n,
+      });
+    }
+
+    return i18nInstances.get(instanceKey);
   }
 
   console.warn(
