@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
@@ -15,6 +16,43 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import { enabledIncompleteBookingApps } from "../../lib/enabledIncompleteBookingApps";
 import { FormAction, FormActionsDropdown } from "../FormActions";
 import { FormSettingsSlideover } from "./FormSettingsSlideover";
+
+const useRoutingFormNavigation = (
+  form: RoutingFormWithResponseCount,
+  appUrl: string,
+  setShowInfoLostDialog: (value: boolean) => void
+) => {
+  const pathname = usePathname();
+  const formContext = useFormContext<RoutingFormWithResponseCount>();
+
+  const getCurrentPage = () => {
+    const path = pathname || "";
+    if (path.includes("/form-edit/")) return "form-edit";
+    if (path.includes("/route-builder/")) return "route-builder";
+    if (path.includes("/reporting/")) return "reporting";
+    if (path.includes("/incomplete-booking/")) return "incomplete-booking";
+    return "form-edit"; // default to form-edit if no match
+  };
+
+  const handleNavigation = (value: string) => {
+    if (!value) return;
+
+    const baseUrl = `${appUrl}/${value}/${form.id}`;
+
+    if (value === "route-builder" && formContext.formState.isDirty) {
+      setShowInfoLostDialog(true);
+    } else if (value === "reporting") {
+      window.open(baseUrl, "_blank");
+    } else {
+      window.location.href = baseUrl;
+    }
+  };
+
+  return {
+    getCurrentPage,
+    handleNavigation,
+  };
+};
 
 const Actions = ({
   form,
@@ -135,16 +173,17 @@ export function Header({
   routingForm,
   isSaving,
   appUrl,
+  setShowInfoLostDialog,
 }: {
   routingForm: RoutingFormWithResponseCount;
   isSaving: boolean;
   appUrl: string;
+  setShowInfoLostDialog: (value: boolean) => void;
 }) {
   const { t } = useLocale();
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(routingForm.name);
   const form = useFormContext<RoutingFormWithResponseCount>();
-  const [showInfoLostDialog, setShowInfoLostDialog] = useState(false);
 
   const { data } = trpc.viewer.appRoutingForms.getIncompleteBookingSettings.useQuery({
     formId: routingForm.id,
@@ -154,19 +193,11 @@ export function Header({
     enabledIncompleteBookingApps.includes(credential?.appId ?? "")
   );
 
-  const handleNavigation = (value: string) => {
-    if (!value) return;
-
-    const baseUrl = `${appUrl}/${value}/${routingForm.id}`;
-
-    if (value === "route-builder" && form.formState.isDirty) {
-      setShowInfoLostDialog(true);
-    } else if (value === "reporting") {
-      window.open(baseUrl, "_blank");
-    } else {
-      window.location.href = baseUrl;
-    }
-  };
+  const { getCurrentPage, handleNavigation } = useRoutingFormNavigation(
+    routingForm,
+    appUrl,
+    setShowInfoLostDialog
+  );
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
@@ -223,7 +254,8 @@ export function Header({
       {/* Navigation Tabs */}
       <div className="flex items-center">
         <ToggleGroup
-          defaultValue="form-edit"
+          defaultValue={getCurrentPage()}
+          value={getCurrentPage()}
           onValueChange={handleNavigation}
           options={[
             {

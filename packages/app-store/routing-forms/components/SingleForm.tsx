@@ -561,7 +561,12 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           setNewFormDialogState={setNewFormDialogState}>
           {/* JUMP TO HERE */}
           <ShellMain>
-            <Header routingForm={form} isSaving={mutation.isPending} appUrl={appUrl} />
+            <Header
+              routingForm={form}
+              isSaving={mutation.isPending}
+              appUrl={appUrl}
+              setShowInfoLostDialog={setShowInfoLostDialog}
+            />
             <div className="flex flex-col items-center items-baseline px-3 md:flex-row md:items-start md:p-0">
               <div className="border-subtle bg-muted w-full rounded-md border p-8">
                 <RoutingNavBar
