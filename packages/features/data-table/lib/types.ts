@@ -3,6 +3,8 @@ import { z } from "zod";
 
 import type { IconName } from "@calcom/ui/components/icon";
 
+export type { SortingState } from "@tanstack/react-table";
+
 export enum ColumnFilterType {
   SINGLE_SELECT = "ss",
   MULTI_SELECT = "ms",
