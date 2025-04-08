@@ -176,7 +176,6 @@ const organizationAdminKeys = [
   "SSO",
   "directory_sync",
   "delegation_credential",
-  "attributes",
 ];
 
 const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnabled: boolean }) => {
@@ -202,7 +201,7 @@ const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnab
 
         // TODO: figure out feature flag as it doesnt cause a re-render of the component when loaded.
         // You have to refresh the page to see the changes.
-        if (true) {
+        if (isOrgAdminOrOwner) {
           newArray.splice(4, 0, {
             name: "attributes",
             href: "/settings/organizations/attributes",
