@@ -1,14 +1,8 @@
 import logger from "@calcom/lib/logger";
-import type { Calendar, CalendarClass } from "@calcom/types/Calendar";
+import type { Calendar } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { CalendarServiceMap } from "../calendar.services.generated";
-
-interface CalendarApp {
-  lib: {
-    CalendarService: CalendarClass;
-  };
-}
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
