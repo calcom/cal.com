@@ -52,6 +52,7 @@ export function SaveFilterSegmentButton() {
     canSaveSegment,
     setSegmentId,
     pageSize,
+    searchTerm,
   } = useDataTable();
 
   const [saveMode, setSaveMode] = useState<"create" | "update">(() =>
@@ -105,6 +106,7 @@ export function SaveFilterSegmentButton() {
       columnVisibility,
       columnSizing,
       perPage: pageSize,
+      searchTerm,
     };
 
     if (saveMode === "update") {
