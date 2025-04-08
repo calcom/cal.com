@@ -684,6 +684,6 @@ test("Should throw error when both seatsPerTimeSlot and recurringEvent are set",
   const alertError = page.locator("[data-testid=booking-fail]");
   await expect(alertError).toBeVisible();
   await expect(alertError).toContainText(
-    "Recurring events cannot Offer seats. Disable Offer seats or make the event non-recurring."
+    "Recurring events do not support Seats feature. Disable Offer seats or make the event non-recurring."
   );
 });

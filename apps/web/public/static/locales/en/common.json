@@ -3043,7 +3043,7 @@
   "no_team_members": "You don't have team members yet",
   "recurring_event_doesnt_support_seats": "Recurring event doesn't support seats option",
   "seats_doesnt_support_recurring": "Offer seats doesn't support recurring event",
-  "recurring_event_seats_error": "Recurring events cannot Offer seats. Disable Offer seats or make the event non-recurring.",
+  "recurring_event_seats_error": "Recurring events do not support Seats feature. Disable Offer seats or make the event non-recurring.",
   "segment": "Segment",
   "rename": "Rename",
   "rename_segment": "Rename Segment",
