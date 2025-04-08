@@ -3067,7 +3067,7 @@
       },
       "get": {
         "operationId": "OrganizationsEventTypesController_getTeamEventTypes",
-        "summary": "Get a team event type",
+        "summary": "Get team event types",
         "parameters": [
           {
             "name": "Authorization",
