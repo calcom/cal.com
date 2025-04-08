@@ -1,11 +1,153 @@
+"use client";
+
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RoutingFormWithResponseCount } from "@calcom/routing-forms/types/types";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
+import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+
+import { FormAction, FormActionsDropdown } from "../FormActions";
+
+const Actions = ({ form }: { form: RoutingFormWithResponseCount }) => {
+  const { t } = useLocale();
+  const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation();
+
+  return (
+    <div className="flex items-center">
+      {/* <div className="hidden items-center sm:inline-flex">
+        <FormAction className="self-center" data-testid="toggle-form" action="toggle" routingForm={form} />
+        <VerticalDivider />
+      </div> */}
+      <div className="hidden items-center gap-1 md:inline-flex">
+        <Tooltip sideOffset={4} content={t("preview")} side="bottom">
+          <FormAction
+            routingForm={form}
+            color="secondary"
+            target="_blank"
+            variant="icon"
+            type="button"
+            rel="noreferrer"
+            action="preview">
+            {t("preview")}
+          </FormAction>
+        </Tooltip>
+        <FormAction
+          routingForm={form}
+          action="copyLink"
+          color="secondary"
+          variant="icon"
+          type="button"
+          StartIcon="link"
+          tooltip={t("copy_link_to_form")}
+          tooltipSide="bottom"
+        />
+        <Tooltip sideOffset={4} content={t("download_responses")} side="bottom">
+          <FormAction
+            data-testid="download-responses"
+            routingForm={form}
+            action="download"
+            color="secondary"
+            variant="icon"
+            type="button"
+            StartIcon="download"
+          />
+        </Tooltip>
+        <FormAction
+          routingForm={form}
+          action="embed"
+          color="secondary"
+          variant="icon"
+          StartIcon="code"
+          tooltip={t("embed")}
+          tooltipSide="bottom"
+        />
+        <DropdownMenuSeparator />
+        <FormAction
+          routingForm={form}
+          action="_delete"
+          className="mx-1"
+          variant="icon"
+          StartIcon="trash"
+          color="secondary"
+          type="button"
+          tooltip={t("delete")}
+          tooltipSide="bottom"
+        />
+      </div>
+
+      <div className="flex gap-1 md:hidden">
+        <FormActionsDropdown>
+          <FormAction
+            routingForm={form}
+            color="minimal"
+            target="_blank"
+            type="button"
+            rel="noreferrer"
+            action="preview"
+            StartIcon="external-link">
+            {t("preview")}
+          </FormAction>
+          <FormAction
+            action="copyLink"
+            className="w-full"
+            routingForm={form}
+            color="minimal"
+            type="button"
+            StartIcon="link">
+            {t("copy_link_to_form")}
+          </FormAction>
+          <FormAction
+            action="download"
+            routingForm={form}
+            className="w-full"
+            color="minimal"
+            type="button"
+            StartIcon="download">
+            {t("download_responses")}
+          </FormAction>
+          <FormAction
+            action="embed"
+            routingForm={form}
+            color="minimal"
+            type="button"
+            className="w-full"
+            StartIcon="code">
+            {t("embed")}
+          </FormAction>
+          <DropdownMenuSeparator className="hidden sm:block" />
+          <FormAction
+            action="_delete"
+            routingForm={form}
+            className="w-full"
+            type="button"
+            color="destructive"
+            StartIcon="trash">
+            {t("delete")}
+          </FormAction>
+          <div className="block sm:hidden">
+            <DropdownMenuSeparator />
+            <FormAction
+              data-testid="toggle-form"
+              action="toggle"
+              routingForm={form}
+              label="Disable Form"
+              extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4 transition"
+            />
+          </div>
+        </FormActionsDropdown>
+      </div>
+      <Button data-testid="update-form" loading={mutation.isPending} type="submit" color="primary">
+        {t("save")}
+      </Button>
+    </div>
+  );
+};
 
 export function Header({ routingForm }: { routingForm: RoutingFormWithResponseCount }) {
   const { t } = useLocale();
@@ -83,12 +225,13 @@ export function Header({ routingForm }: { routingForm: RoutingFormWithResponseCo
       />
 
       {/* Actions */}
-      <div className="flex gap-2">
+      {/* <div className="flex gap-2">
         <Button color="secondary">{t("preview")}</Button>
         <Button color="secondary" variant="icon" StartIcon="settings" />
         <Button color="secondary" variant="icon" StartIcon="ellipsis" />
         <Button variant="icon">{t("save")}</Button>
-      </div>
+      </div> */}
+      <Actions form={routingForm} />
     </div>
   );
 }
