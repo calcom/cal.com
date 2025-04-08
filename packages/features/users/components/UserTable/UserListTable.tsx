@@ -554,7 +554,7 @@ function UserListTableContent() {
             </p>
             {!isPlatformUser ? (
               <>
-                <TeamListBulkAction table={table} />
+                {adminOrOwner && <TeamListBulkAction table={table} />}
                 {numberOfSelectedRows >= 2 && (
                   <DataTableSelectionBar.Button
                     color="secondary"
@@ -563,14 +563,16 @@ function UserListTableContent() {
                     {t("group_meeting")}
                   </DataTableSelectionBar.Button>
                 )}
-                <MassAssignAttributesBulkAction table={table} filters={columnFilters} />
-                <EventTypesList table={table} orgTeams={teams} />
+                {adminOrOwner && <MassAssignAttributesBulkAction table={table} filters={columnFilters} />}
+                {adminOrOwner && <EventTypesList table={table} orgTeams={teams} />}
               </>
             ) : null}
-            <DeleteBulkUsers
-              users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
-              onRemove={() => table.toggleAllPageRowsSelected(false)}
-            />
+            {adminOrOwner && (
+              <DeleteBulkUsers
+                users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
+                onRemove={() => table.toggleAllPageRowsSelected(false)}
+              />
+            )}
           </DataTableSelectionBar.Root>
         )}
       </DataTableWrapper>

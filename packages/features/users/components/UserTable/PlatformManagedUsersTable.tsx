@@ -70,6 +70,11 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
   const [state, dispatch] = useReducer(reducer, initialState);
   const [rowSelection, setRowSelection] = useState({});
 
+  const { data: org } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
+  const adminOrOwner = org?.user.role === "ADMIN" || org?.user.role === "OWNER";
+
   const columnFilters = useColumnFilters();
 
   const { pageIndex, pageSize, searchTerm } = useDataTable();
@@ -305,10 +310,12 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
             <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>
-            <DeleteBulkUsers
-              users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
-              onRemove={() => table.toggleAllPageRowsSelected(false)}
-            />
+            {adminOrOwner && (
+              <DeleteBulkUsers
+                users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
+                onRemove={() => table.toggleAllPageRowsSelected(false)}
+              />
+            )}
           </DataTableSelectionBar.Root>
         )}
       </DataTableWrapper>
