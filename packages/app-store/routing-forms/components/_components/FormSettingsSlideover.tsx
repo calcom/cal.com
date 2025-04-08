@@ -179,14 +179,6 @@ export const FormSettingsSlideover = ({
           ) : null}
 
           <div className="mt-6 flex gap-2">
-            <Button
-              color="secondary"
-              data-testid="test-preview"
-              onClick={() => {
-                // TODO: Implement test preview functionality
-              }}>
-              {t("test_preview")}
-            </Button>
             {IS_CALCOM && (
               <Button
                 target="_blank"
