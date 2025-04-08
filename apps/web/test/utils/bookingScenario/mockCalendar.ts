@@ -111,13 +111,25 @@ export function mockCalendar(
       email: "MOCK_USER_EMAIL",
     },
     invalid: false,
-    delegatedTo: null,
+    delegatedToId: null,
   });
 
   return {
-    createEventCalls: mockInstance.createEventCalls,
-    deleteEventCalls: mockInstance.deleteEventCalls,
-    updateEventCalls: mockInstance.updateEventCalls,
-    getAvailabilityCalls: mockInstance.getAvailabilityCalls,
+    createEventCalls: mockInstance.createEventCalls.map((call) => ({
+      calendarServiceConstructorArgs: { credential: mockInstance.credential },
+      args: call.args,
+    })),
+    deleteEventCalls: mockInstance.deleteEventCalls.map((call) => ({
+      calendarServiceConstructorArgs: { credential: mockInstance.credential },
+      args: call.args,
+    })),
+    updateEventCalls: mockInstance.updateEventCalls.map((call) => ({
+      calendarServiceConstructorArgs: { credential: mockInstance.credential },
+      args: call.args,
+    })),
+    getAvailabilityCalls: mockInstance.getAvailabilityCalls.map((call) => ({
+      calendarServiceConstructorArgs: { credential: mockInstance.credential },
+      args: call.args,
+    })),
   };
 }

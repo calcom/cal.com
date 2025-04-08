@@ -218,6 +218,9 @@ export class MockPaymentService {
   private appKey: string;
   private paymentData: any;
 
+  public chargeCardCalls: { args: any[] }[] = [];
+  public createPaymentCalls: { args: any[] }[] = [];
+
   constructor(credential: CredentialPayload) {
     this.credential = credential;
     this.appKey = credential.appId || "";
@@ -231,7 +234,16 @@ export class MockPaymentService {
     this.paymentData = paymentData;
   }
 
+  async chargeCard(payment: any, amount: number) {
+    this.chargeCardCalls.push({ args: [payment, amount] });
+    return Promise.resolve({
+      externalId: this.paymentData.externalId,
+      id: this.paymentData.paymentUid,
+    });
+  }
+
   async create(payment: any) {
+    this.createPaymentCalls.push({ args: [payment] });
     return Promise.resolve({
       externalId: this.paymentData.externalId,
       id: this.paymentData.paymentUid,
@@ -256,6 +268,10 @@ export class MockCrmService {
   private appKey: string;
   private crmData: any;
 
+  public createContactCalls: { args: any[] }[] = [];
+  public getContactsCalls: { args: any[] }[] = [];
+  public createEventCalls: { args: any[] }[] = [];
+
   constructor(credential: CredentialPayload) {
     this.credential = credential;
     this.appKey = credential.appId || "";
@@ -266,7 +282,8 @@ export class MockCrmService {
     this.crmData = crmData;
   }
 
-  async createContact() {
+  async createContact(contact: any) {
+    this.createContactCalls.push({ args: [contact] });
     if (this.crmData?.createContacts) {
       return Promise.resolve(this.crmData.createContacts);
     }
@@ -274,6 +291,7 @@ export class MockCrmService {
   }
 
   async getContacts(email: string) {
+    this.getContactsCalls.push({ args: [email] });
     if (this.crmData?.getContacts) {
       const contactsQueried = this.crmData.getContacts;
       const contactsOfEmail = contactsQueried.filter((contact: any) => contact.email === email);
@@ -282,7 +300,8 @@ export class MockCrmService {
     return Promise.resolve([]);
   }
 
-  async createEvent() {
+  async createEvent(event: any) {
+    this.createEventCalls.push({ args: [event] });
     return Promise.resolve({});
   }
 }
@@ -390,7 +409,7 @@ export function createMockPaymentService(appKey: string, paymentData?: any) {
       email: "MOCK_USER_EMAIL",
     },
     invalid: false,
-    delegatedTo: null,
+    delegatedToId: null,
   };
 
   class SpecificMockPaymentService extends MockPaymentService {
@@ -402,9 +421,15 @@ export function createMockPaymentService(appKey: string, paymentData?: any) {
     }
   }
 
-  paymentAppMapMock[appKey as keyof typeof paymentAppMapMock] = SpecificMockPaymentService as any;
+  const mockInstance = new SpecificMockPaymentService(credential);
 
-  return SpecificMockPaymentService;
+  paymentAppMapMock[appKey as keyof typeof paymentAppMapMock] = ((cred: CredentialPayload) =>
+    mockInstance) as any;
+
+  return {
+    PaymentService: SpecificMockPaymentService,
+    service: mockInstance,
+  };
 }
 
 export function createMockCrmService(appKey: string, crmData?: any) {
@@ -420,7 +445,7 @@ export function createMockCrmService(appKey: string, crmData?: any) {
       email: "MOCK_USER_EMAIL",
     },
     invalid: false,
-    delegatedTo: null,
+    delegatedToId: null,
   };
 
   class SpecificMockCrmService extends MockCrmService {
@@ -432,9 +457,15 @@ export function createMockCrmService(appKey: string, crmData?: any) {
     }
   }
 
-  crmServicesMapMock[appKey as keyof typeof crmServicesMapMock] = SpecificMockCrmService as any;
+  const mockInstance = new SpecificMockCrmService(credential);
 
-  return SpecificMockCrmService;
+  crmServicesMapMock[appKey as keyof typeof crmServicesMapMock] = ((cred: CredentialPayload) =>
+    mockInstance) as any;
+
+  return {
+    CrmService: SpecificMockCrmService,
+    service: mockInstance,
+  };
 }
 
 export class MockError extends Error {
