@@ -37,5 +37,6 @@ export const getCalendar = async (
   // INFO: Casting this as any because unfortunately
   // the office365calendar service was changed to take different params than the rest of the services.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return new calendarService(credential as any);
+  const CalendarServiceClass = calendarService;
+  return new CalendarServiceClass(credential as any);
 };
