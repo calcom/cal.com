@@ -31,7 +31,7 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
     const videoAdapterFactory =
       ConferencingVideoAdapterMap[appName as keyof typeof ConferencingVideoAdapterMap];
 
-    if (!videoAdapterFactory.default) {
+    if (!videoAdapterFactory) {
       log.error(`Couldn't get adapter for ${appName}`);
       continue;
     }
@@ -39,7 +39,9 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
     // INFO: Casting this as CredentialForCalendarServiceWithTenantId because unfortunately
     // the office365video adapter was changed to take different params than the rest of the adapters.
     // This will leave "delegatedTo" as null which is fine for the adapters that don't need it.
-    const videoAdapter = videoAdapterFactory.default(cred as CredentialForCalendarServiceWithTenantId);
+    const videoAdapter = new videoAdapterFactory.VideoApiAdapter(
+      cred as CredentialForCalendarServiceWithTenantId
+    );
     videoAdapters.push(videoAdapter);
   }
 

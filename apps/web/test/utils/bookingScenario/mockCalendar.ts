@@ -1,4 +1,4 @@
-import { calendarServicesMapMock } from "@tests/libs/__mocks__/app-store";
+import { calendarServicesMapMock } from "../../../../../tests/libs/__mocks__/app-store";
 
 import { BookingLocations } from "./bookingScenario";
 

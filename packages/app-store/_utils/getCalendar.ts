@@ -30,12 +30,12 @@ export const getCalendar = async (
   const calendarService =
     CalendarServiceMap[calendarType.split("_").join("") as keyof typeof CalendarServiceMap];
 
-  if (!calendarService.default) {
+  if (!calendarService) {
     log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;
   }
   // INFO: Casting this as any because unfortunately
   // the office365calendar service was changed to take different params than the rest of the services.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return new calendarService.default(credential as any);
+  return new calendarService.CalendarService(credential as any);
 };

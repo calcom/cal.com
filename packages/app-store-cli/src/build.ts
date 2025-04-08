@@ -250,10 +250,12 @@ function generateFiles() {
 
   forEachAppDir((app) => {
     const fileToBeImported = "api/index.ts";
-    if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported))) {
+    if (fs.existsSync(path.join(APP_STORE_PATH, app.path, "api"))) {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
-      serverOutput.push(`import ${capitalizedAppName} from "${getModulePath(app.path, fileToBeImported)}";`);
+      serverOutput.push(
+        `import * as ${capitalizedAppName} from "${getModulePath(app.path, fileToBeImported)}";`
+      );
     }
   });
 
@@ -262,6 +264,7 @@ function generateFiles() {
       importConfig: {
         fileToBeImported: "api/index.ts",
       },
+      entryObjectKeyGetter: (app) => app.name,
       lazyImport: false,
     })
   );
@@ -418,33 +421,67 @@ function generateFiles() {
     })
   );
 
+  forEachAppDir((app) => {
+    const fileToBeImported = "lib/CrmService.ts";
+    if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported)) && isCrmApp(app)) {
+      const appName = app.name;
+      const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
+      crmOutput.push(
+        `import * as ${capitalizedAppName} from "${getModulePath(app.path, fileToBeImported)}";`
+      );
+    }
+  });
+
   crmOutput.push(
     ...getExportedObject(
       "CrmServiceMap",
       {
         importConfig: {
           fileToBeImported: "lib/CrmService.ts",
-          importName: "default",
         },
+        entryObjectKeyGetter: (app) => app.name,
         lazyImport: false,
       },
       isCrmApp
     )
   );
 
+  forEachAppDir((app) => {
+    const fileToBeImported = "index.ts";
+    if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported)) && isPaymentApp(app)) {
+      const appName = app.name;
+      const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
+      paymentAppsOutput.push(
+        `import * as ${capitalizedAppName} from "${getModulePath(app.path, fileToBeImported)}";`
+      );
+    }
+  });
+
   paymentAppsOutput.push(
     ...getExportedObject(
       "PaymentAppMap",
       {
         importConfig: {
-          fileToBeImported: "index.ts",
-          importName: "default",
+          fileToBeImported: "lib/index.ts",
+          importName: "PaymentService",
         },
+        entryObjectKeyGetter: (app) => app.name,
         lazyImport: false,
       },
       isPaymentApp
     )
   );
+
+  forEachAppDir((app) => {
+    const fileToBeImported = "lib/CalendarService.ts";
+    if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported)) && isCalendarApp(app)) {
+      const appName = app.name;
+      const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
+      calendarAppsOutput.push(
+        `import * as ${capitalizedAppName} from "${getModulePath(app.path, fileToBeImported)}";`
+      );
+    }
+  });
 
   calendarAppsOutput.push(
     ...getExportedObject(
@@ -452,13 +489,25 @@ function generateFiles() {
       {
         importConfig: {
           fileToBeImported: "lib/CalendarService.ts",
-          importName: "default",
+          importName: "CalendarService",
         },
+        entryObjectKeyGetter: (app) => app.name,
         lazyImport: false,
       },
       isCalendarApp
     )
   );
+
+  forEachAppDir((app) => {
+    const fileToBeImported = "lib/VideoApiAdapter.ts";
+    if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported)) && isConferencingApp(app)) {
+      const appName = app.name;
+      const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
+      conferencingVideoAdaptersOutput.push(
+        `import * as ${capitalizedAppName} from "${getModulePath(app.path, fileToBeImported)}";`
+      );
+    }
+  });
 
   conferencingVideoAdaptersOutput.push(
     ...getExportedObject(
@@ -466,8 +515,9 @@ function generateFiles() {
       {
         importConfig: {
           fileToBeImported: "lib/VideoApiAdapter.ts",
-          importName: "default",
+          importName: "VideoApiAdapter",
         },
+        entryObjectKeyGetter: (app) => app.name,
         lazyImport: false,
       },
       isConferencingApp
