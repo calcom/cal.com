@@ -2494,6 +2494,7 @@
   "single_use": "Single use",
   "time_based_expiration": "Time-based expiration",
   "usage_based_expiration": "Usage-based expiration",
+  "number_of_uses": "Number of uses",
   "expires_on": "Expires on",
   "max_usage_count": "Maximum number of uses",
   "user_not_found": "User not found",
