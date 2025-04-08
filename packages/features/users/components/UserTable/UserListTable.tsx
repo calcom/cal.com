@@ -364,18 +364,18 @@ function UserListTableContent() {
       ...generateAttributeColumns(),
       {
         id: "lastActiveAt",
-        header: "Last Active",
+        header: t("last_active"),
         cell: ({ row }) => <div>{row.original.lastActiveAt}</div>,
       },
       {
         id: "createdAt",
-        header: "Member Since",
-        cell: ({ row }) => <div>{row.original.createdAt || "N/A"}</div>,
+        header: t("member_since"),
+        cell: ({ row }) => <div>{row.original.createdAt || ""}</div>,
       },
       {
         id: "updatedAt",
-        header: "Last Updated",
-        cell: ({ row }) => <div>{row.original.updatedAt || "N/A"}</div>,
+        header: t("last_updated"),
+        cell: ({ row }) => <div>{row.original.updatedAt || ""}</div>,
       },
       {
         id: "actions",
