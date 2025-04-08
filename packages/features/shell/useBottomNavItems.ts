@@ -21,6 +21,15 @@ export function useBottomNavItems({
 
   return [
     {
+      name: "skip_trial",
+      href: "/settings/my-account/profile", // This is a placeholder and should be updated based on clarification
+      icon: "clock", // Placeholder icon, should be updated based on clarification
+      onClick: (e: { preventDefault: () => void }) => {
+        e.preventDefault();
+        window.location.href = "/settings/my-account/profile";
+      },
+    },
+    {
       name: "view_public_page",
       href: publicPageUrl,
       icon: "external-link",
