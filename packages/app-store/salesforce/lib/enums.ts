@@ -2,6 +2,7 @@ export enum SalesforceRecordEnum {
   CONTACT = "Contact",
   LEAD = "Lead",
   ACCOUNT = "Account",
+  EVENT = "Event",
 }
 
 export enum WhenToWriteToRecord {

@@ -80,7 +80,6 @@ export default class SalesforceCRMService implements CRM {
   private fallbackToContact = false;
 
   constructor(credential: CredentialPayload, appOptions: z.infer<typeof appDataSchema>, testMode = false) {
-    console.log("🚀 ~ constructor ~ appOptions:", appOptions);
     this.integrationName = "salesforce_other_calendar";
     if (!testMode) {
       this.conn = this.getClient(credential).then((c) => c);
@@ -298,18 +297,13 @@ export default class SalesforceCRMService implements CRM {
 
   private salesforceDeleteEvent = async (uid: string, event: CalendarEvent) => {
     const appOptions = this.getAppOptions();
-    console.log("🚀 ~ privatesalesforceDeleteEvent ~ appOptions:", appOptions);
     const conn = await this.conn;
 
-    console.log(
-      "🚀 ~ privatesalesforceDeleteEvent ~ appOptions?.onCancelWriteToEventRecord:",
-      appOptions?.onCancelWriteToEventRecord
-    );
     if (appOptions?.onCancelWriteToEventRecord) {
       const fieldsToWriteTo = appOptions?.onCancelWriteToEventRecordFields;
 
       // If the option is enabled then don't delete the event record
-      if (!fieldsToWriteTo || !fieldsToWriteTo.length) {
+      if (!fieldsToWriteTo || !Object.keys(fieldsToWriteTo)) {
         return Promise.resolve();
       }
 
@@ -1377,6 +1371,10 @@ export default class SalesforceCRMService implements CRM {
       this.log.warn(`No uid for booking with organizer ${organizerEmail}`);
     }
 
+    if (fieldValue === DateFieldTypeData.BOOKING_CANCEL_DATE) {
+      return new Date().toISOString();
+    }
+
     return null;
   }
 
@@ -1603,6 +1601,8 @@ export default class SalesforceCRMService implements CRM {
         return SalesforceRecordEnum.ACCOUNT;
       case "00Q":
         return SalesforceRecordEnum.LEAD;
+      case "00U":
+        return SalesforceRecordEnum.EVENT;
       default:
         this.log.warn(`Unhandled record id type ${id}`);
         return SalesforceRecordEnum.CONTACT;
