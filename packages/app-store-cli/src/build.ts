@@ -434,7 +434,7 @@ function generateFiles() {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
       crmOutput.push(
-        `import { CrmService as ${capitalizedAppName}CrmService } from "${getModulePath(
+        `import { default as ${capitalizedAppName}CrmService } from "${getModulePath(
           app.path,
           fileToBeImported
         )}";`
@@ -496,7 +496,7 @@ function generateFiles() {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
       calendarAppsOutput.push(
-        `import { CalendarService as ${capitalizedAppName}CalendarService } from "${getModulePath(
+        `import { default as ${capitalizedAppName}CalendarService } from "${getModulePath(
           app.path,
           fileToBeImported
         )}";`
@@ -527,7 +527,7 @@ function generateFiles() {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
       conferencingVideoAdaptersOutput.push(
-        `import { VideoApiAdapter as ${capitalizedAppName}VideoApiAdapter } from "${getModulePath(
+        `import { default as ${capitalizedAppName}VideoApiAdapter } from "${getModulePath(
           app.path,
           fileToBeImported
         )}";`
