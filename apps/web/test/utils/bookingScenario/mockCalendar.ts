@@ -16,7 +16,7 @@ export interface CreateEventMethodMockCall extends CalendarServiceMethodMockCall
   args: {
     calEvent: any;
     credentialId: any;
-    externalCalendarId: any;
+    externalCalendarId?: any;
   };
 }
 
@@ -24,7 +24,7 @@ export interface UpdateEventMethodMockCall extends CalendarServiceMethodMockCall
   args: {
     uid: any;
     calEvent: any;
-    externalCalendarId: any;
+    externalCalendarId?: any;
   };
 }
 
@@ -32,7 +32,7 @@ export interface DeleteEventMethodMockCall extends CalendarServiceMethodMockCall
   args: {
     uid: any;
     calEvent: any;
-    externalCalendarId: any;
+    externalCalendarId?: any;
   };
 }
 
