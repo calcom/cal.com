@@ -255,8 +255,8 @@ function Field({
             />
           </div>
           {["select", "multiselect"].includes(hookForm.watch(`${hookFieldNamespace}.type`)) ? (
-            <div className="mt-2 w-full">
-              <Skeleton as={Label} loadingClassName="w-16" title={t("Options")}>
+            <div className="bg-muted w-full rounded-[10px] p-2">
+              <Skeleton as={Label} loadingClassName="w-16" title={t("Options")} className="text-subtle">
                 {t("options")}
               </Skeleton>
               <ul ref={animationRef}>
