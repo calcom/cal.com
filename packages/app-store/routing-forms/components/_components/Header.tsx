@@ -12,103 +12,131 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { FormAction, FormActionsDropdown } from "../FormActions";
+import { FormSettingsSlideover } from "./FormSettingsSlideover";
 
-const Actions = ({ form, isSaving }: { form: RoutingFormWithResponseCount; isSaving: boolean }) => {
+const Actions = ({
+  form,
+  isSaving,
+  appUrl,
+}: {
+  form: RoutingFormWithResponseCount;
+  isSaving: boolean;
+  appUrl: string;
+}) => {
   const { t } = useLocale();
   const formContext = useFormContext<RoutingFormWithResponseCount>();
+  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
 
   return (
-    <div className="flex items-center">
-      <div className="flex gap-2">
-        <Tooltip sideOffset={4} content={t("preview")} side="bottom">
-          <FormAction
-            routingForm={form}
-            color="secondary"
-            target="_blank"
-            type="button"
-            rel="noreferrer"
-            action="preview">
-            {t("preview")}
-          </FormAction>
-        </Tooltip>
-        <FormActionsDropdown>
-          <FormAction
-            routingForm={form}
-            color="minimal"
-            target="_blank"
-            type="button"
-            rel="noreferrer"
-            action="preview"
-            className="md:hidden"
-            StartIcon="external-link">
-            {t("preview")}
-          </FormAction>
-          <FormAction
-            action="copyLink"
-            className="w-full"
-            routingForm={form}
-            color="minimal"
-            type="button"
-            StartIcon="link">
-            {t("copy_link_to_form")}
-          </FormAction>
-          <FormAction
-            action="download"
-            routingForm={form}
-            className="w-full"
-            color="minimal"
-            type="button"
-            StartIcon="download">
-            {t("download_responses")}
-          </FormAction>
-          <FormAction
-            action="embed"
-            routingForm={form}
-            color="minimal"
-            type="button"
-            className="w-full"
-            StartIcon="code">
-            {t("embed")}
-          </FormAction>
-          <DropdownMenuSeparator className="hidden sm:block" />
-          <FormAction
-            action="_delete"
-            routingForm={form}
-            className="w-full"
-            type="button"
-            color="destructive"
-            StartIcon="trash">
-            {t("delete")}
-          </FormAction>
-          <div className="block sm:hidden">
-            <DropdownMenuSeparator />
+    <>
+      <div className="flex items-center">
+        <div className="flex gap-2">
+          <Tooltip sideOffset={4} content={t("preview")} side="bottom">
             <FormAction
-              data-testid="toggle-form"
-              action="toggle"
               routingForm={form}
-              label="Disable Form"
-              extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4 transition"
+              color="secondary"
+              target="_blank"
+              type="button"
+              rel="noreferrer"
+              action="preview">
+              {t("preview")}
+            </FormAction>
+          </Tooltip>
+          <Tooltip sideOffset={4} content={t("settings")} side="bottom">
+            <Button
+              color="secondary"
+              type="button"
+              variant="icon"
+              StartIcon="settings"
+              onClick={() => {
+                setIsSettingsDialogOpen(true);
+              }}
             />
-          </div>
-        </FormActionsDropdown>
-        <Button
-          data-testid="update-form"
-          loading={formContext.formState.isSubmitting}
-          type="submit"
-          color="primary">
-          {t("save")}
-        </Button>
+          </Tooltip>
+          <FormActionsDropdown>
+            <FormAction
+              routingForm={form}
+              color="minimal"
+              target="_blank"
+              type="button"
+              rel="noreferrer"
+              action="preview"
+              className="md:hidden"
+              StartIcon="external-link">
+              {t("preview")}
+            </FormAction>
+            <FormAction
+              action="copyLink"
+              className="w-full"
+              routingForm={form}
+              color="minimal"
+              type="button"
+              StartIcon="link">
+              {t("copy_link_to_form")}
+            </FormAction>
+            <FormAction
+              action="download"
+              routingForm={form}
+              className="w-full"
+              color="minimal"
+              type="button"
+              StartIcon="download">
+              {t("download_responses")}
+            </FormAction>
+            <FormAction
+              action="embed"
+              routingForm={form}
+              color="minimal"
+              type="button"
+              className="w-full"
+              StartIcon="code">
+              {t("embed")}
+            </FormAction>
+            <DropdownMenuSeparator className="hidden sm:block" />
+            <FormAction
+              action="_delete"
+              routingForm={form}
+              className="w-full"
+              type="button"
+              color="destructive"
+              StartIcon="trash">
+              {t("delete")}
+            </FormAction>
+            <div className="block sm:hidden">
+              <DropdownMenuSeparator />
+              <FormAction
+                data-testid="toggle-form"
+                action="toggle"
+                routingForm={form}
+                label="Disable Form"
+                extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4 transition"
+              />
+            </div>
+          </FormActionsDropdown>
+          <Button data-testid="update-form" loading={isSaving} type="submit" color="primary">
+            {t("save")}
+          </Button>
+        </div>
       </div>
-    </div>
+      <FormSettingsSlideover
+        hookForm={formContext}
+        form={form}
+        isOpen={isSettingsDialogOpen}
+        onOpenChange={setIsSettingsDialogOpen}
+        appUrl={appUrl}
+      />
+    </>
   );
 };
 
 export function Header({
   routingForm,
   isSaving,
+  appUrl,
 }: {
   routingForm: RoutingFormWithResponseCount;
   isSaving: boolean;
+  appUrl: string;
 }) {
   const { t } = useLocale();
   const [isEditing, setIsEditing] = useState(false);
@@ -185,7 +213,7 @@ export function Header({
       />
 
       {/* Actions */}
-      <Actions form={routingForm} isSaving={isSaving} />
+      <Actions form={routingForm} isSaving={isSaving} appUrl={appUrl} />
     </div>
   );
 }
