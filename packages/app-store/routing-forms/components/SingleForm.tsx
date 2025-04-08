@@ -719,22 +719,8 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           newFormDialogState={newFormDialogState}
           setNewFormDialogState={setNewFormDialogState}>
           {/* JUMP TO HERE */}
-          <ShellMain
-          // heading={
-          //   <div className="flex bg-red-500">
-          //     <div>{form.name}</div>
-          //     {form.team && (
-          //       <Badge className="ml-4 mt-1" variant="gray">
-          //         {form.team.name}
-          //       </Badge>
-          //     )}
-          //   </div>
-          // }
-          // subtitle={form.description || ""}
-          // backPath={`${appUrl}/forms`}
-          // CTA={<Actions form={form} mutation={mutation} />}>
-          >
-            <Header routingForm={form} />
+          <ShellMain>
+            <Header routingForm={form} isSaving={mutation.isPending} />
             <div className="flex flex-col items-center items-baseline px-3 md:flex-row md:items-start md:p-0">
               <div className="lg:min-w-72 lg:max-w-72 md:max-w-56 mb-6 w-full bg-red-200 md:mr-6">
                 {/* <TextField
