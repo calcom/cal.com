@@ -41,8 +41,8 @@ export function Header({
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
   const addToSelectedDate = useBookerStore((state) => state.addToSelectedDate);
   const isMonthView = layout === BookerLayouts.MONTH_VIEW;
-  const selectedDate = dayjs(selectedDateString);
   const today = dayjs();
+  const selectedDate = selectedDateString ? dayjs(selectedDateString) : today;
   const selectedDateMin3DaysDifference = useMemo(() => {
     const diff = today.diff(selectedDate, "days");
     return diff > 3 || diff < -3;
