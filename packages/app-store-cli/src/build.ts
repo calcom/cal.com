@@ -389,6 +389,17 @@ function generateFiles() {
       lazyImport: false,
     })
   );
+  forEachAppDir((app) => {
+    const fileToBeImported = "components/EventTypeAppSettingsInterface.tsx";
+    if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported))) {
+      const appName = app.name;
+      const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
+      browserEventTypeSettingsOutput.push(
+        `import ${capitalizedAppName} from "${getModulePath(app.path, fileToBeImported)}";`
+      );
+    }
+  });
+
   browserEventTypeSettingsOutput.push(
     ...getExportedObject("EventTypeSettingsMap", {
       importConfig: {
