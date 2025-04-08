@@ -72,6 +72,8 @@ const initalColumnVisibility = {
   member: true,
   role: true,
   teams: true,
+  createdAt: false,
+  updatedAt: false,
   actions: true,
 };
 
