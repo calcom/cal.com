@@ -82,7 +82,7 @@ describe("CalendarCacheRepository", () => {
       );
     });
 
-    it("should return null for expired cache", async () => {
+    it("should return null for expired cache - Regular Credential", async () => {
       const repository = new CalendarCacheRepository();
       const testData = {
         credentialId: 1,
@@ -97,6 +97,28 @@ describe("CalendarCacheRepository", () => {
       const result = await repository.findUnexpiredUnique({
         credentialId: 1,
         delegationCredentialId: null,
+        userId: 1,
+        key: "test-key",
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it("should return null for expired cache - Delegation Credential", async () => {
+      const repository = new CalendarCacheRepository();
+      const testData = {
+        delegationCredentialId: "delegation-123",
+        userId: 1,
+        key: "test-key",
+        value: { data: "test" },
+        expiresAt: new Date(Date.now() - 1000), // Expired
+      };
+
+      await prismock.calendarCache.create({ data: testData });
+
+      const result = await repository.findUnexpiredUnique({
+        credentialId: null,
+        delegationCredentialId: "delegation-123",
         userId: 1,
         key: "test-key",
       });

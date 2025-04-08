@@ -168,32 +168,36 @@ export const deduplicateCredentialsBasedOnSelectedCalendars = ({
   if (credentials.length === 0) {
     return credentials;
   }
-  // This function deduplicates credentials based on selected calendars
-  // If a delegation credential exists for a user's email, we remove the regular credential for the same integration
-  const deduplicatedCredentials = [...credentials];
 
   // Get the user email from the first credential
   const userEmail = credentials[0].user?.email;
 
+  // If no email, we can't identify which credential is duplicate
   if (!userEmail) {
-    return deduplicatedCredentials;
+    return credentials;
   }
-
-  // Find all selected calendars with externalId matching the user's email and having a regular credential
-  const selectedCalendarsWithUserEmail = selectedCalendars.filter(
-    (calendar) => calendar.externalId === userEmail && calendar.credentialId && calendar.credentialId > 0
-  );
 
   // Check if there are delegation credentials for the same integration types
   const delegationCredentials = credentials.filter((credential) => credential.delegatedToId);
 
-  // If no delegation credentials or no matching selected calendars, return original credentials
-  if (delegationCredentials.length === 0 || selectedCalendarsWithUserEmail.length === 0) {
-    return deduplicatedCredentials;
+  // Find all selected calendars with externalId matching the user's email and having a regular credential
+  const selectedCalendarsWithUserEmailConnectedWithRegularCredential = selectedCalendars.filter(
+    (calendar) => calendar.externalId === userEmail && calendar.credentialId && calendar.credentialId > 0
+  );
+
+  // If no delegation credentials or no regular credentials connected selected calendars, return original credentials
+  if (
+    delegationCredentials.length === 0 ||
+    selectedCalendarsWithUserEmailConnectedWithRegularCredential.length === 0
+  ) {
+    return credentials;
   }
 
-  // For each selected calendar with user email, check if a delegation credential exists for the same integration
-  const credentialIdsToRemove = selectedCalendarsWithUserEmail
+  const deduplicatedCredentials = [...credentials];
+
+  // For each selected calendar with user email, check if a delegation credential exists for the same integration.
+  // If yes, we remove such a regular credential as that is a duplicate
+  const credentialIdsToRemove = selectedCalendarsWithUserEmailConnectedWithRegularCredential
     .filter((calendar) =>
       delegationCredentials.some((credential) => credential.type === calendar.integration)
     )

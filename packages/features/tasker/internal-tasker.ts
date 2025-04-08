@@ -31,7 +31,7 @@ export class InternalTasker implements Tasker {
       const taskHandler = await taskHandlerGetter();
       return taskHandler(task.payload)
         .then(async (result) => {
-          // undefined result means consider completed
+          // undefined is considered completed for all legacy tasks, that don't return anything. This is for backward compatibility.
           if (!result) {
             await Task.succeed(task.id);
             return;

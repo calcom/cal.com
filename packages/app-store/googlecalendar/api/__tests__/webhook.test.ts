@@ -15,6 +15,92 @@ vi.mock("@calcom/lib/server/serviceAccountKey", () => ({
   })),
 }));
 
+vi.mock("../../../_utils/getCalendar", () => ({
+  getCalendar: vi.fn(() => ({
+    fetchAvailabilityAndSetCache: vi.fn(),
+  })),
+}));
+
+// Helper functions for creating test data
+const createUser = async ({ id, email, username }: { id: number; email: string; username: string }) => {
+  return await prismock.user.create({
+    data: {
+      id,
+      email,
+      username,
+    },
+  });
+};
+
+const createRegularCredential = async ({ id, userId }: { id: number; userId: number }) => {
+  return await prismock.credential.create({
+    data: {
+      id,
+      type: "google_calendar",
+      key: {},
+      userId,
+    },
+  });
+};
+
+const createDelegationCredential = async ({ id, domain }: { id: string; domain: string }) => {
+  return await prismock.delegationCredential.create({
+    data: {
+      id,
+      workspacePlatform: {
+        create: {
+          slug: "google",
+          name: "Google",
+          description: "Google",
+          defaultServiceAccountKey: {},
+        },
+      },
+      serviceAccountKey: {
+        create: {
+          client_email: `test@${domain}`,
+        },
+      },
+      enabled: true,
+      organization: {
+        create: {
+          id: 1,
+          name: "Test Org",
+          slug: "test-org",
+        },
+      },
+      domain,
+    },
+  });
+};
+
+const createSelectedCalendar = async ({
+  userId,
+  externalId,
+  credentialId,
+  delegationCredentialId,
+  googleChannelId,
+  eventTypeId,
+}: {
+  userId: number;
+  externalId: string;
+  credentialId?: number;
+  delegationCredentialId?: string;
+  googleChannelId?: string;
+  eventTypeId?: number;
+}) => {
+  return await prismock.selectedCalendar.create({
+    data: {
+      userId,
+      integration: "google_calendar",
+      externalId,
+      ...(credentialId && { credentialId }),
+      ...(delegationCredentialId && { delegationCredentialId }),
+      ...(googleChannelId && { googleChannelId }),
+      ...(eventTypeId && { eventTypeId }),
+    },
+  });
+};
+
 function createMockNextPostRequest(options: { headers?: Record<string, string> }) {
   // @ts-expect-error - NextApiRequest has some error
   return createMocks<NextApiRequest, NextApiResponse>({
@@ -22,11 +108,6 @@ function createMockNextPostRequest(options: { headers?: Record<string, string> }
     ...options,
   });
 }
-vi.mock("../../../_utils/getCalendar", () => ({
-  getCalendar: vi.fn(() => ({
-    fetchAvailabilityAndSetCache: vi.fn(),
-  })),
-}));
 
 describe("Google Calendar Webhook Handler", () => {
   const mockFetchAvailabilityAndSetCache = vi.fn();
@@ -74,35 +155,25 @@ describe("Google Calendar Webhook Handler", () => {
     });
   });
 
-  it("should handle non-delegation credential successfully", async () => {
-    // Create test user
-    const user = await prismock.user.create({
-      data: {
-        id: 1,
-        email: "test@example.com",
-        username: "test-user",
-      },
+  it("should process webhook for regular user credential and call fetchAvailabilityAndSetCache for the selected calendar", async () => {
+    // Create test user and credential
+    const user = await createUser({
+      id: 1,
+      email: "test@example.com",
+      username: "test-user",
     });
 
-    // Create credential
-    const credential = await prismock.credential.create({
-      data: {
-        id: 1,
-        type: "google_calendar",
-        key: {},
-        userId: user.id,
-      },
+    const credential = await createRegularCredential({
+      id: 1,
+      userId: user.id,
     });
 
     // Create selected calendar
-    const selectedCalendar1 = await prismock.selectedCalendar.create({
-      data: {
-        userId: user.id,
-        integration: "google_calendar",
-        externalId: "primary",
-        credentialId: credential.id,
-        googleChannelId: "test-channel-id",
-      },
+    const selectedCalendar1 = await createSelectedCalendar({
+      userId: user.id,
+      externalId: "primary",
+      credentialId: credential.id,
+      googleChannelId: "test-channel-id",
     });
 
     const mockFetchAvailabilityAndSetCache = vi.fn();
@@ -124,102 +195,64 @@ describe("Google Calendar Webhook Handler", () => {
     expect(JSON.parse(mockRes._getData())).toEqual({ message: "ok" });
   });
 
-  it("should handle delegation credential successfully", async () => {
+  it("should process webhook for delegation credential and call fetchAvailabilityAndSetCache for the correct selected calendars", async () => {
+    const googleChannelId = "test-channel-id";
     // Create test user
-    const member1 = await prismock.user.create({
-      data: {
-        id: 1,
-        email: "orgmember1@example.com",
-        username: "orgmember1",
-      },
+    const member1 = await createUser({
+      id: 1,
+      email: "orgmember1@example.com",
+      username: "orgmember1",
     });
 
-    const member2 = await prismock.user.create({
-      data: {
-        id: 2,
-        email: "orgmember2@example.com",
-        username: "orgmember2",
-      },
+    const member2 = await createUser({
+      id: 2,
+      email: "orgmember2@example.com",
+      username: "orgmember2",
     });
 
     // Create delegation credential
-    const delegationCredential = await prismock.delegationCredential.create({
-      data: {
-        id: "delegation-1",
-        workspacePlatform: {
-          create: {
-            slug: "google",
-            name: "Google",
-            description: "Google",
-            defaultServiceAccountKey: {},
-          },
-        },
-        serviceAccountKey: {
-          create: {
-            client_email: "test@example.com",
-          },
-        },
-        enabled: true,
-        organization: {
-          create: {
-            id: 1,
-            name: "Test Org",
-            slug: "test-org",
-          },
-        },
-        domain: "example.com",
-      },
+    const delegationCredential = await createDelegationCredential({
+      id: "delegation-1",
+      domain: "example.com",
     });
 
-    // Create selected calendar with delegation
-    const member1SelectedCalendar1 = await prismock.selectedCalendar.create({
-      data: {
-        userId: member1.id,
-        integration: "google_calendar",
-        externalId: "primary",
-        delegationCredentialId: delegationCredential.id,
-        googleChannelId: "test-channel-id",
-      },
+    const member1SelectedCalendar1 = await createSelectedCalendar({
+      userId: member1.id,
+      externalId: "primary",
+      delegationCredentialId: delegationCredential.id,
+      googleChannelId,
     });
 
-    const member1SelectedCalendar2 = await prismock.selectedCalendar.create({
-      data: {
-        userId: member1.id,
-        integration: "google_calendar",
-        externalId: "secondary",
-        delegationCredentialId: delegationCredential.id,
-        eventTypeId: 1,
-        googleChannelId: "test-channel-id",
-      },
+    // Selected calendar with same googleChannelId as above
+    const member1SelectedCalendar2 = await createSelectedCalendar({
+      userId: member1.id,
+      externalId: "secondary",
+      delegationCredentialId: delegationCredential.id,
+      googleChannelId,
+      eventTypeId: 1,
     });
 
-    const member1SelectedCalendar3 = await prismock.selectedCalendar.create({
-      data: {
-        userId: member1.id,
-        integration: "google_calendar",
-        externalId: "primary",
-        delegationCredentialId: delegationCredential.id,
-        // This selectedCalendar would also be considered even though it has googleChannelId as null because the userI and delegationCredentialId is same
-        googleChannelId: null,
-        eventTypeId: 2,
-      },
+    // Selected calendar with no googleChannelId but same delegationCredentialId and userId pair
+    const member1SelectedCalendar3 = await createSelectedCalendar({
+      userId: member1.id,
+      externalId: "primary",
+      delegationCredentialId: delegationCredential.id,
+      eventTypeId: 2,
+      googleChannelId: null,
     });
 
-    const member2SelectedCalendar1 = await prismock.selectedCalendar.create({
-      data: {
-        userId: member2.id,
-        integration: "google_calendar",
-        externalId: "primary",
-        delegationCredentialId: delegationCredential.id,
-        // This selectedCalendar would not be considered because the userId is different
-        googleChannelId: null,
-      },
+    // Selected calendar with different delegationCredentialId and userId pair
+    const member2SelectedCalendar1 = await createSelectedCalendar({
+      userId: member2.id,
+      externalId: "primary",
+      delegationCredentialId: delegationCredential.id,
+      googleChannelId: null,
     });
 
     const { req: mockReq, res: mockRes } = createMockNextPostRequest({
       headers: {
         "x-goog-channel-token": "test-webhook-token",
-        "x-goog-channel-id": "test-channel-id",
+        "x-goog-channel-id": googleChannelId,
       },
     });
 
@@ -228,6 +261,11 @@ describe("Google Calendar Webhook Handler", () => {
     expect(mockFetchAvailabilityAndSetCache.mock.calls[0][0].length).toBe(3);
     expect(mockFetchAvailabilityAndSetCache).toHaveBeenCalledWith(
       expect.arrayContaining([member1SelectedCalendar1, member1SelectedCalendar2, member1SelectedCalendar3])
+    );
+
+    expect(mockFetchAvailabilityAndSetCache).not.toHaveBeenCalledWith(
+      // This selected calendar is not considered because the userId is different
+      expect.arrayContaining([member2SelectedCalendar1])
     );
     expect(mockRes._getStatusCode()).toBe(200);
     expect(JSON.parse(mockRes._getData())).toEqual({ message: "ok" });

@@ -757,6 +757,9 @@ export default class GoogleCalendarService implements Calendar {
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[],
+    /**
+     * If true, we will fallback to the primary calendar if no valid selected calendars are found
+     */
     fallbackToPrimary?: boolean
   ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
     const calendar = await this.authedCalendar();
@@ -832,6 +835,9 @@ export default class GoogleCalendarService implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[],
     shouldServeCache?: boolean,
+    /**
+     * If true, we will fallback to the primary calendar if no valid selected calendars are found
+     */
     fallbackToPrimary?: boolean
   ): Promise<EventBusyDate[]> {
     this.log.debug("Getting availability", safeStringify({ dateFrom, dateTo, selectedCalendars }));

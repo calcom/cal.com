@@ -75,7 +75,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
       return null;
     }
     if (credential.type === "delegation") {
-      const calendarCaches = await prisma.calendarCache.findMany({
+      return prisma.calendarCache.findFirst({
         where: {
           delegationCredentialId: credential.delegationCredentialId,
           userId: credential.userId,
@@ -83,7 +83,6 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
           expiresAt: { gte: new Date(Date.now()) },
         },
       });
-      return calendarCaches[0] ?? null;
     } else {
       return prisma.calendarCache.findFirst({
         where: {

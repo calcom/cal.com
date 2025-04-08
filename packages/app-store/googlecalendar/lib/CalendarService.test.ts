@@ -3,7 +3,13 @@ import oAuthManagerMock, {
   defaultMockOAuthManager,
   setFullMockOAuthManagerRequest,
 } from "../../tests/__mocks__/OAuthManager";
-import { adminMock, calendarMock, setCredentialsMock, freebusyQueryMock } from "./__mocks__/googleapis";
+import {
+  adminMock,
+  calendarMock,
+  setCredentialsMock,
+  freebusyQueryMock,
+  calendarListMock,
+} from "./__mocks__/googleapis";
 
 import { JWT } from "googleapis-common";
 import { expect, test, beforeEach, vi, describe } from "vitest";
@@ -1623,5 +1629,75 @@ describe("GoogleCalendarService credential handling", () => {
     };
 
     expect(lastCreatedOAuth2Client).toEqual(expectedOAuth2Client);
+  });
+});
+
+describe("getAvailability", () => {
+  test("returns availability for selected calendars", async () => {
+    const credential = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credential);
+    setFullMockOAuthManagerRequest();
+    const mockedBusyTimes1 = [
+      {
+        start: "2024-01-01",
+        end: "2024-01-02",
+      },
+    ];
+    const mockedBusyTimes2 = [
+      {
+        start: "2024-01-03",
+        end: "2024-01-04",
+      },
+    ];
+
+    const mockedBusyTimes = [mockedBusyTimes1, mockedBusyTimes2];
+    calendarListMock.mockImplementation(() => {
+      return {
+        data: {
+          items: [
+            {
+              id: "calendar1@test.com",
+            },
+            {
+              id: "calendar2@test.com",
+            },
+          ],
+        },
+      };
+    });
+    // Mock Once so that the getAvailability call doesn't accidentally reuse this mock result
+    freebusyQueryMock.mockImplementation(({ requestBody }: { requestBody: any }) => {
+      const calendarsObject = {};
+      requestBody.items.forEach((item: any, index: number) => {
+        calendarsObject[item.id] = {
+          busy: mockedBusyTimes[index],
+        };
+      });
+      return {
+        data: {
+          calendars: calendarsObject,
+        },
+      };
+    });
+
+    const availabilityWithPrimaryAsFallback = await calendarService.getAvailability(
+      "2024-01-01",
+      "2024-01-02",
+      [],
+      false,
+      true
+    );
+
+    expect(availabilityWithPrimaryAsFallback).toEqual(mockedBusyTimes1);
+
+    const availabilityWithAllCalendarsAsFallback = await calendarService.getAvailability(
+      "2024-01-01",
+      "2024-01-02",
+      [],
+      false,
+      false
+    );
+
+    expect(availabilityWithAllCalendarsAsFallback).toEqual([...mockedBusyTimes1, ...mockedBusyTimes2]);
   });
 });
