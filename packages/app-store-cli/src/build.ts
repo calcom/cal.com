@@ -259,14 +259,18 @@ function generateFiles() {
     }
   });
 
-  serverOutput.push(`// Static imports for server-side handlers`, `export const apiHandlers = {`);
+  serverOutput.push(`// Static imports for dynamic imports`, `export const apiHandlers = {`);
 
   forEachAppDir((app) => {
     const fileToBeImported = "api/index.ts";
     if (fs.existsSync(path.join(APP_STORE_PATH, app.path, "api"))) {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
-      serverOutput.push(`  ${appName}: ${capitalizedAppName},`);
+      if (appName.includes("-")) {
+        serverOutput.push(`  "${appName}": ${capitalizedAppName},`);
+      } else {
+        serverOutput.push(`  ${appName}: ${capitalizedAppName},`);
+      }
     }
   });
 
@@ -445,7 +449,11 @@ function generateFiles() {
     if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported)) && isCrmApp(app)) {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
-      crmOutput.push(`  ${appName}: ${capitalizedAppName}CrmService,`);
+      if (appName.includes("-")) {
+        crmOutput.push(`  "${appName}": ${capitalizedAppName}CrmService,`);
+      } else {
+        crmOutput.push(`  ${appName}: ${capitalizedAppName}CrmService,`);
+      }
     }
   });
 
@@ -472,7 +480,11 @@ function generateFiles() {
     if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported)) && isPaymentApp(app)) {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
-      paymentAppsOutput.push(`  ${appName}: ${capitalizedAppName}PaymentService,`);
+      if (appName.includes("-")) {
+        paymentAppsOutput.push(`  "${appName}": ${capitalizedAppName}PaymentService,`);
+      } else {
+        paymentAppsOutput.push(`  ${appName}: ${capitalizedAppName}PaymentService,`);
+      }
     }
   });
 
@@ -499,7 +511,11 @@ function generateFiles() {
     if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported)) && isCalendarApp(app)) {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
-      calendarAppsOutput.push(`  ${appName}: ${capitalizedAppName}CalendarService,`);
+      if (appName.includes("-")) {
+        calendarAppsOutput.push(`  "${appName}": ${capitalizedAppName}CalendarService,`);
+      } else {
+        calendarAppsOutput.push(`  ${appName}: ${capitalizedAppName}CalendarService,`);
+      }
     }
   });
 
@@ -529,7 +545,11 @@ function generateFiles() {
     if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported)) && isConferencingApp(app)) {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
-      conferencingVideoAdaptersOutput.push(`  ${appName}: ${capitalizedAppName}VideoApiAdapter,`);
+      if (appName.includes("-")) {
+        conferencingVideoAdaptersOutput.push(`  "${appName}": ${capitalizedAppName}VideoApiAdapter,`);
+      } else {
+        conferencingVideoAdaptersOutput.push(`  ${appName}: ${capitalizedAppName}VideoApiAdapter,`);
+      }
     }
   });
 
