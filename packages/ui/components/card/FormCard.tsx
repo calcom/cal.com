@@ -7,7 +7,7 @@ import classNames from "@calcom/ui/classNames";
 
 import type { BadgeProps } from "../badge";
 import { Badge } from "../badge";
-import { Divider } from "../divider";
+import { Button } from "../button";
 import { Input } from "../form/inputs/TextField";
 import { Icon } from "../icon";
 
@@ -36,7 +36,7 @@ export default function FormCard({
 } & JSX.IntrinsicElements["div"]) {
   className = classNames(
     className,
-    "flex items-center group relative w-full rounded-md p-4 border border-subtle"
+    "flex items-center group relative w-full rounded-2xl p-1 border border-subtle bg-muted mb-2"
   );
 
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -66,8 +66,26 @@ export default function FormCard({
         ) : null}
       </div>
       <div className="w-full">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-center justify-between p-2">
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="icon"
+              color="minimal"
+              CustomStartIcon={
+                <Icon
+                  name="chevron-up"
+                  className={classNames(
+                    "text-default h-4 w-4 transition-transform",
+                    isCollapsed && "rotate-180"
+                  )}
+                />
+              }
+              onClick={() => {
+                toggleFormCard();
+              }}
+              className="text-muted"
+            />
             {isLabelEditable ? (
               <Input type="text" value={label} onChange={(e) => onLabelChange?.(e.target.value)} />
             ) : (
@@ -80,14 +98,6 @@ export default function FormCard({
             )}
           </div>
           <div>
-            <button
-              type="button"
-              onClick={() => {
-                toggleFormCard();
-              }}
-              color="secondary">
-              <Icon name="chevrons-down-up" className="text-default h-4 w-4" />
-            </button>
             {deleteField?.check() ? (
               <button
                 type="button"
@@ -101,10 +111,7 @@ export default function FormCard({
             ) : null}
           </div>
         </div>
-        <div className={isCollapsed ? "hidden" : ""}>
-          <Divider className="mb-6 mt-3" />
-          {children}
-        </div>
+        <div className={isCollapsed ? "hidden" : ""}>{children}</div>
       </div>
     </div>
   );

@@ -173,19 +173,17 @@ function Field({
   const optionsPlaceholders = ["< 10", "10 - 100", "100 - 500", "> 500"];
 
   return (
-    <div
-      data-testid="field"
-      className="bg-default group mb-4 flex w-full items-center justify-between ltr:mr-2 rtl:ml-2">
+    <div data-testid="field">
       <FormCard
-        label="Field"
+        label={label || routerField?.label || "Field"}
         moveUp={moveUp}
         moveDown={moveDown}
         badge={
           router ? { text: router.name, variant: "gray", href: `${appUrl}/form-edit/${router.id}` } : null
         }
         deleteField={router ? null : deleteField}>
-        <div className="w-full">
-          <div className="mb-6 w-full">
+        <div className="bg-default border-default w-full gap-3 rounded-2xl border p-3">
+          <div className="mb-3 w-full">
             <TextField
               data-testid={`${hookFieldNamespace}.label`}
               disabled={!!router}
@@ -196,7 +194,7 @@ function Field({
                * This is a bit of a hack to make sure that for routerField, label is shown from there.
                * For other fields, value property is used because it exists and would take precedence
                */
-              defaultValue={label || routerField?.label || ""}
+              defaultValue={label || routerField?.label || "Field"}
               required
               {...hookForm.register(`${hookFieldNamespace}.label`)}
               onChange={(e) => {
@@ -204,7 +202,7 @@ function Field({
               }}
             />
           </div>
-          <div className="mb-6 w-full">
+          <div className="mb-3 w-full">
             <TextField
               disabled={!!router}
               label="Identifier"
@@ -220,7 +218,7 @@ function Field({
               }}
             />
           </div>
-          <div className="mb-6 w-full ">
+          <div className="mb-3 w-full ">
             <Controller
               name={`${hookFieldNamespace}.type`}
               control={hookForm.control}
@@ -394,61 +392,54 @@ const FormEdit = ({
     form.fields = [];
   }
   return hookFormFields.length ? (
-    <div className="flex flex-col-reverse lg:flex-row">
-      <div className="w-full ltr:mr-2 rtl:ml-2">
-        <div ref={animationRef} className="flex w-full flex-col rounded-md">
-          {hookFormFields.map((field, key) => {
-            return (
-              <Field
-                appUrl={appUrl}
-                fieldIndex={key}
-                hookForm={hookForm}
-                hookFieldNamespace={`${fieldsNamespace}.${key}`}
-                deleteField={{
-                  check: () => hookFormFields.length > 1,
-                  fn: () => {
-                    removeHookFormField(key);
-                  },
-                }}
-                moveUp={{
-                  check: () => key !== 0,
-                  fn: () => {
-                    swapHookFormField(key, key - 1);
-                  },
-                }}
-                moveDown={{
-                  check: () => key !== hookFormFields.length - 1,
-                  fn: () => {
-                    if (key === hookFormFields.length - 1) {
-                      return;
-                    }
-                    swapHookFormField(key, key + 1);
-                  },
-                }}
-                key={key}
-              />
-            );
-          })}
-        </div>
-        {hookFormFields.length ? (
-          <div className={classNames("flex")}>
-            <Button
-              data-testid="add-field"
-              type="button"
-              StartIcon="plus"
-              color="secondary"
-              onClick={addField}>
-              Add field
-            </Button>
-          </div>
-        ) : null}
+    <div className="w-full py-4 lg:py-8">
+      <div ref={animationRef} className="flex w-full flex-col rounded-md">
+        {hookFormFields.map((field, key) => {
+          return (
+            <Field
+              appUrl={appUrl}
+              fieldIndex={key}
+              hookForm={hookForm}
+              hookFieldNamespace={`${fieldsNamespace}.${key}`}
+              deleteField={{
+                check: () => hookFormFields.length > 1,
+                fn: () => {
+                  removeHookFormField(key);
+                },
+              }}
+              moveUp={{
+                check: () => key !== 0,
+                fn: () => {
+                  swapHookFormField(key, key - 1);
+                },
+              }}
+              moveDown={{
+                check: () => key !== hookFormFields.length - 1,
+                fn: () => {
+                  if (key === hookFormFields.length - 1) {
+                    return;
+                  }
+                  swapHookFormField(key, key + 1);
+                },
+              }}
+              key={key}
+            />
+          );
+        })}
       </div>
+      {hookFormFields.length ? (
+        <div className={classNames("flex")}>
+          <Button data-testid="add-field" type="button" StartIcon="plus" color="secondary" onClick={addField}>
+            Add field
+          </Button>
+        </div>
+      ) : null}
     </div>
   ) : (
     <div className="w-full py-4 lg:py-8">
       {/* TODO: remake empty screen for V3 */}
       <div className="border-sublt bg-muted flex flex-col items-center gap-6 rounded-xl border p-11">
-        <div className="mb-6 grid">
+        <div className="mb-3 grid">
           {/* Icon card - Top */}
           <div className="bg-default border-subtle z-30 col-start-1 col-end-1 row-start-1 row-end-1 h-10 w-10 transform rounded-md border shadow-sm">
             <div className="flex h-full items-center justify-center">
