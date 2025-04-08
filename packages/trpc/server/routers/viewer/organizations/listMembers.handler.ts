@@ -83,6 +83,15 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const teamFilter = filters.find((filter) => filter.id === "teams") as
     | TypedColumnFilter<ColumnFilterType.MULTI_SELECT>
     | undefined;
+  const lastActiveAtFilter = filters.find((filter) => filter.id === "lastActiveAt") as
+    | TypedColumnFilter<ColumnFilterType.DATE>
+    | undefined;
+  const createdAtFilter = filters.find((filter) => filter.id === "createdAt") as
+    | TypedColumnFilter<ColumnFilterType.DATE>
+    | undefined;
+  const updatedAtFilter = filters.find((filter) => filter.id === "updatedAt") as
+    | TypedColumnFilter<ColumnFilterType.DATE>
+    | undefined;
 
   const whereClause: Prisma.MembershipWhereInput = {
     user: {
@@ -96,6 +105,12 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
             }),
           },
         },
+      }),
+      ...(lastActiveAtFilter && {
+        lastActiveAt: makeWhereClause({
+          columnName: "lastActiveAt",
+          filterValue: lastActiveAtFilter.value,
+        }),
       }),
     },
     teamId: organizationId,
@@ -112,10 +127,27 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         columnName: "role",
         filterValue: roleFilter.value,
       })),
+    ...(createdAtFilter &&
+      makeWhereClause({
+        columnName: "createdAt",
+        filterValue: createdAtFilter.value,
+      })),
+    ...(updatedAtFilter &&
+      makeWhereClause({
+        columnName: "updatedAt",
+        filterValue: updatedAtFilter.value,
+      })),
   };
 
   const attributeFilters: Prisma.MembershipWhereInput["AttributeToUser"][] = filters
-    .filter((filter) => filter.id !== "role" && filter.id !== "teams")
+    .filter(
+      (filter) =>
+        filter.id !== "role" &&
+        filter.id !== "teams" &&
+        filter.id !== "lastActiveAt" &&
+        filter.id !== "createdAt" &&
+        filter.id !== "updatedAt"
+    )
     .map((filter) => {
       if (filter.value.type === ColumnFilterType.MULTI_SELECT && isAllString(filter.value.data)) {
         const attributeOptionValues: string[] = [];
