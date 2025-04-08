@@ -18,9 +18,7 @@ import { Controller, UseGuards, Get, Param, ParseIntPipe, Query, HttpStatus, Htt
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
-
-import { GetOrganizationsBookingsInput } from "./inputs/get-org-bookings.input";
+import { GetBookingsOutput_2024_08_13, GetOrganizationsBookingsInput } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId/bookings",
