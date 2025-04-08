@@ -434,10 +434,7 @@ function generateFiles() {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
       crmOutput.push(
-        `import { CrmService as ${capitalizedAppName}CrmService } from "${getModulePath(
-          app.path,
-          fileToBeImported
-        )}";`
+        `import ${capitalizedAppName}CrmService from "${getModulePath(app.path, fileToBeImported)}";`
       );
     }
   });
@@ -465,10 +462,7 @@ function generateFiles() {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
       paymentAppsOutput.push(
-        `import { PaymentService as ${capitalizedAppName}PaymentService } from "${getModulePath(
-          app.path,
-          fileToBeImported
-        )}";`
+        `import ${capitalizedAppName}PaymentService from "${getModulePath(app.path, fileToBeImported)}";`
       );
     }
   });
@@ -496,10 +490,7 @@ function generateFiles() {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
       calendarAppsOutput.push(
-        `import { CalendarService as ${capitalizedAppName}CalendarService } from "${getModulePath(
-          app.path,
-          fileToBeImported
-        )}";`
+        `import ${capitalizedAppName}CalendarService from "${getModulePath(app.path, fileToBeImported)}";`
       );
     }
   });
@@ -527,10 +518,7 @@ function generateFiles() {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
       conferencingVideoAdaptersOutput.push(
-        `import { VideoApiAdapter as ${capitalizedAppName}VideoApiAdapter } from "${getModulePath(
-          app.path,
-          fileToBeImported
-        )}";`
+        `import ${capitalizedAppName}VideoApiAdapter from "${getModulePath(app.path, fileToBeImported)}";`
       );
     }
   });
