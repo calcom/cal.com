@@ -953,15 +953,17 @@ type Props = {
 
 export const EventTypesCTA = ({ initialData, filters }: Props) => {
   const { data: user } = useMeQuery();
-  const { data: getUserEventGroupsData } = trpc.viewer.eventTypes.getUserEventGroups.useQuery(
+  const { data: userEventGroupsQuery } = trpc.viewer.eventTypes.getUserEventGroups.useQuery(
     filters && { filters },
     {
       refetchOnWindowFocus: false,
       gcTime: 1 * 60 * 60 * 1000,
       staleTime: 1 * 60 * 60 * 1000,
-      initialData,
     }
   );
+
+  const getUserEventGroupsData = userEventGroupsQuery ?? initialData;
+
   const profileOptions =
     getUserEventGroupsData?.profiles
       ?.filter((profile) => !profile.readOnly)
