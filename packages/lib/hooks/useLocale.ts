@@ -27,7 +27,7 @@ const useClientLocale = (namespace: Parameters<typeof useTranslation>[0] = "comm
 
 export const useLocale = () => {
   const appRouterContext = useContext(AppRouterI18nContext);
-  const clientSideI18n = useClientLocale();
+  const clientI18n = useClientLocale();
 
   if (appRouterContext) {
     const { translations, locale, ns } = appRouterContext;
@@ -42,15 +42,15 @@ export const useLocale = () => {
       fallbackLng: "en",
     });
 
-    return { t: i18n.getFixedT(locale, ns), isLocaleReady: true, locale };
+    return { t: i18n.getFixedT(locale, ns), isLocaleReady: true, i18n };
   }
 
   console.warn(
     "useT hook is being used outside of App Router - hence this hook will use a global, client-side i18n which can cause a small flicker"
   );
   return {
-    t: clientSideI18n.t,
-    isLocaleReady: clientSideI18n.isLocaleReady,
-    locale: clientSideI18n.i18n.language,
+    t: clientI18n.t,
+    isLocaleReady: clientI18n.isLocaleReady,
+    i18n: clientI18n.i18n,
   };
 };
