@@ -248,12 +248,21 @@ function generateFiles() {
     }
   }
 
+  forEachAppDir((app) => {
+    const fileToBeImported = "api/index.ts";
+    if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported))) {
+      const appName = app.name;
+      const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
+      serverOutput.push(`import ${capitalizedAppName} from "${getModulePath(app.path, fileToBeImported)}";`);
+    }
+  });
+
   serverOutput.push(
     ...getExportedObject("apiHandlers", {
       importConfig: {
         fileToBeImported: "api/index.ts",
       },
-      lazyImport: true,
+      lazyImport: false,
     })
   );
 
