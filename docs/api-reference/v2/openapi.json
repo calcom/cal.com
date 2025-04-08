@@ -1223,7 +1223,7 @@
     "/v2/organizations/{orgId}/bookings": {
       "get": {
         "operationId": "OrganizationsBookingsController_getAllOrgTeamBookings",
-        "summary": "Get organization team bookings",
+        "summary": "Get Organization Bookings",
         "parameters": [
           {
             "name": "status",
@@ -3951,14 +3951,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
           }
         ],
         "requestBody": {
@@ -4120,6 +4112,226 @@
           }
         },
         "tags": ["Orgs / Users"]
+      }
+    },
+    "/v2/organizations/{orgId}/users/{userId}/bookings": {
+      "get": {
+        "operationId": "OrganizationsUsersBookingsController_getOrganizationUserBookings",
+        "summary": "Get all bookings of an organization user",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by status. If you want to filter by multiple statuses, separate them with a comma.",
+            "example": "?status=upcoming,past",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["upcoming", "recurring", "past", "cancelled", "unconfirmed"]
+              }
+            }
+          },
+          {
+            "name": "attendeeEmail",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's email address.",
+            "example": "example@domain.com",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "attendeeName",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's name.",
+            "example": "John Doe",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by event type ids belonging to the user. Event type ids must be separated by a comma.",
+            "example": "?eventTypeIds=100,200",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by event type id belonging to the user.",
+            "example": "?eventTypeId=100",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamsIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by team ids that user is part of. Team ids must be separated by a comma.",
+            "example": "?teamIds=50,60",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by team id that user is part of",
+            "example": "?teamId=50",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterStart",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings with start after this date string.",
+            "example": "?afterStart=2025-03-07T10:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeEnd",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings with end before this date string.",
+            "example": "?beforeEnd=2025-03-07T11:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been created after this date string.",
+            "example": "?afterCreatedAt=2025-03-07T10:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been created before this date string.",
+            "example": "?beforeCreatedAt=2025-03-14T11:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been updated after this date string.",
+            "example": "?afterUpdatedAt=2025-03-07T10:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been updated before this date string.",
+            "example": "?beforeUpdatedAt=2025-03-14T11:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortStart",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their start time in ascending or descending order.",
+            "example": "?sortStart=asc OR ?sortStart=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortEnd",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their end time in ascending or descending order.",
+            "example": "?sortEnd=asc OR ?sortEnd=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortCreated",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their creation time (when booking was made) in ascending or descending order.",
+            "example": "?sortCreated=asc OR ?sortCreated=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their updated time (for example when booking status changes) in ascending or descending order.",
+            "example": "?sortUpdated=asc OR ?sortUpdated=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Orgs / Users / Bookings"]
       }
     },
     "/v2/organizations/{orgId}/users/{userId}/ooo": {
@@ -5162,7 +5374,7 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_createBooking",
         "summary": "Create a booking",
-        "description": "\n      POST /v2/bookings is used to create regular bookings, recurring bookings and instant bookings. The request bodies for all 3 are almost the same except:\n      If eventTypeId in the request body is id of a regular event, then regular booking is created.\n\n      If it is an id of a recurring event type, then recurring booking is created.\n\n      Meaning that the request bodies are equal but the outcome depends on what kind of event type it is with the goal of making it as seamless for developers as possible.\n\n      For team event types it is possible to create instant meeting. To do that just pass `\"instant\": true` to the request body.\n\n      The start needs to be in UTC aka if the timezone is GMT+2 in Rome and meeting should start at 11, then UTC time should have hours 09:00 aka without time zone.\n      ",
+        "description": "\n      POST /v2/bookings is used to create regular bookings, recurring bookings and instant bookings. The request bodies for all 3 are almost the same except:\n      If eventTypeId in the request body is id of a regular event, then regular booking is created.\n\n      If it is an id of a recurring event type, then recurring booking is created.\n\n      Meaning that the request bodies are equal but the outcome depends on what kind of event type it is with the goal of making it as seamless for developers as possible.\n\n      For team event types it is possible to create instant meeting. To do that just pass `\"instant\": true` to the request body.\n\n      The start needs to be in UTC aka if the timezone is GMT+2 in Rome and meeting should start at 11, then UTC time should have hours 09:00 aka without time zone.\n\n      Finally, there are 2 ways to book an event type:\n      1. Provide `eventTypeId` in the request body.\n      2. Provide `eventTypeSlug` and `username` and optionally `organizationSlug` if the user with the username is within an organization.\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -8172,6 +8384,14 @@
             "schema": {}
           },
           {
+            "name": "organizationSlug",
+            "required": false,
+            "in": "query",
+            "description": "The slug of the organization to which user with username belongs.",
+            "example": "org-slug",
+            "schema": {}
+          },
+          {
             "name": "username",
             "required": false,
             "in": "query",
@@ -8183,7 +8403,7 @@
             "name": "eventTypeSlug",
             "required": false,
             "in": "query",
-            "description": "The slug of the event type for which available slots should be checked. If slug is provided then username must be provided too.",
+            "description": "The slug of the event type for which available slots should be checked. If slug is provided then username must be provided too and if relevant organizationSlug too.",
             "example": "event-type-slug",
             "schema": {}
           },
@@ -9562,6 +9782,11 @@
             "nullable": true,
             "example": "alice"
           },
+          "bio": {
+            "type": "string",
+            "nullable": true,
+            "example": "bio"
+          },
           "timeZone": {
             "type": "string",
             "example": "America/New_York"
@@ -9637,6 +9862,12 @@
             "nullable": true,
             "example": "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
             "description": "URL of the user's avatar image"
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
           }
         },
         "required": [
@@ -9644,6 +9875,7 @@
           "email",
           "username",
           "name",
+          "bio",
           "timeZone",
           "weekStart",
           "createdDate",
@@ -9748,6 +9980,18 @@
             "type": "string",
             "example": "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
             "description": "URL of the user's avatar image"
+          },
+          "bio": {
+            "type": "string",
+            "description": "Bio",
+            "example": "I am a bio"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and values up to 500 characters.",
+            "example": {
+              "key": "value"
+            }
           }
         },
         "required": ["email", "name"]
@@ -9884,6 +10128,18 @@
             "type": "string",
             "example": "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
             "description": "URL of the user's avatar image"
+          },
+          "bio": {
+            "type": "string",
+            "description": "Bio",
+            "example": "I am a bio"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and values up to 500 characters.",
+            "example": {
+              "key": "value"
+            }
           }
         }
       },
@@ -14153,6 +14409,12 @@
             "description": "The ID of the user who invited this user",
             "example": 1
           },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
+          },
           "profile": {
             "description": "organization user profile, contains user data within the organizaton context",
             "allOf": [
@@ -14203,6 +14465,18 @@
             "type": "string",
             "description": "Brand color in HEX format",
             "example": "#FFFFFF"
+          },
+          "bio": {
+            "type": "string",
+            "description": "Bio",
+            "example": "I am a bio"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and values up to 500 characters.",
+            "example": {
+              "key": "value"
+            }
           },
           "darkBrandColor": {
             "type": "string",
@@ -14284,7 +14558,34 @@
         "type": "object",
         "properties": {}
       },
-      "OrgMembershipOutputDto": {
+      "MembershipUserOutputDto": {
+        "type": "object",
+        "properties": {
+          "avatarUrl": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
+          }
+        },
+        "required": ["email"]
+      },
+      "TeamMembershipOutput": {
         "type": "object",
         "properties": {
           "id": {
@@ -14305,9 +14606,12 @@
           },
           "disableImpersonation": {
             "type": "boolean"
+          },
+          "user": {
+            "$ref": "#/components/schemas/MembershipUserOutputDto"
           }
         },
-        "required": ["id", "userId", "teamId", "accepted", "role"]
+        "required": ["id", "userId", "teamId", "accepted", "role", "user"]
       },
       "GetAllOrgMemberships": {
         "type": "object",
@@ -14318,7 +14622,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/OrgMembershipOutputDto"
+            "$ref": "#/components/schemas/TeamMembershipOutput"
           }
         },
         "required": ["status", "data"]
@@ -14355,7 +14659,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/OrgMembershipOutputDto"
+            "$ref": "#/components/schemas/TeamMembershipOutput"
           }
         },
         "required": ["status", "data"]
@@ -14369,7 +14673,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/OrgMembershipOutputDto"
+            "$ref": "#/components/schemas/TeamMembershipOutput"
           }
         },
         "required": ["status", "data"]
@@ -14383,7 +14687,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/OrgMembershipOutputDto"
+            "$ref": "#/components/schemas/TeamMembershipOutput"
           }
         },
         "required": ["status", "data"]
@@ -14412,7 +14716,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/OrgMembershipOutputDto"
+            "$ref": "#/components/schemas/TeamMembershipOutput"
           }
         },
         "required": ["status", "data"]
@@ -15529,52 +15833,6 @@
         },
         "required": ["status", "data"]
       },
-      "MembershipUserOutputDto": {
-        "type": "object",
-        "properties": {
-          "avatarUrl": {
-            "type": "string"
-          },
-          "username": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          }
-        },
-        "required": ["email"]
-      },
-      "OrgTeamMembershipOutputDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "userId": {
-            "type": "number"
-          },
-          "teamId": {
-            "type": "number"
-          },
-          "accepted": {
-            "type": "boolean"
-          },
-          "role": {
-            "type": "string",
-            "enum": ["MEMBER", "OWNER", "ADMIN"]
-          },
-          "disableImpersonation": {
-            "type": "boolean"
-          },
-          "user": {
-            "$ref": "#/components/schemas/MembershipUserOutputDto"
-          }
-        },
-        "required": ["id", "userId", "teamId", "accepted", "role", "user"]
-      },
       "OrgTeamMembershipsOutputResponseDto": {
         "type": "object",
         "properties": {
@@ -15586,7 +15844,7 @@
           "data": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/OrgTeamMembershipOutputDto"
+              "$ref": "#/components/schemas/TeamMembershipOutput"
             }
           }
         },
@@ -15601,7 +15859,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/OrgTeamMembershipOutputDto"
+            "$ref": "#/components/schemas/TeamMembershipOutput"
           }
         },
         "required": ["status", "data"]
@@ -17587,8 +17845,23 @@
           },
           "eventTypeId": {
             "type": "number",
-            "description": "The ID of the event type that is booked.",
+            "description": "The ID of the event type that is booked. Required unless eventTypeSlug and username are provided as an alternative to identifying the event type.",
             "example": 123
+          },
+          "eventTypeSlug": {
+            "type": "string",
+            "description": "The slug of the event type. Required along with username and optionally organizationSlug if eventTypeId is not provided.",
+            "example": "my-event-type"
+          },
+          "username": {
+            "type": "string",
+            "description": "The username of the event owner. Required along with eventTypeSlug and optionally organizationSlug if eventTypeId is not provided.",
+            "example": "john-doe"
+          },
+          "organizationSlug": {
+            "type": "string",
+            "description": "The organization slug. Optional, only used when booking with eventTypeSlug + username.",
+            "example": "acme-corp"
           },
           "attendee": {
             "description": "The attendee's details.",
@@ -17656,7 +17929,7 @@
             }
           }
         },
-        "required": ["start", "eventTypeId", "attendee"]
+        "required": ["start", "attendee"]
       },
       "CreateInstantBookingInput_2024_08_13": {
         "type": "object",
@@ -17673,8 +17946,23 @@
           },
           "eventTypeId": {
             "type": "number",
-            "description": "The ID of the event type that is booked.",
+            "description": "The ID of the event type that is booked. Required unless eventTypeSlug and username are provided as an alternative to identifying the event type.",
             "example": 123
+          },
+          "eventTypeSlug": {
+            "type": "string",
+            "description": "The slug of the event type. Required along with username and optionally organizationSlug if eventTypeId is not provided.",
+            "example": "my-event-type"
+          },
+          "username": {
+            "type": "string",
+            "description": "The username of the event owner. Required along with eventTypeSlug and optionally organizationSlug if eventTypeId is not provided.",
+            "example": "john-doe"
+          },
+          "organizationSlug": {
+            "type": "string",
+            "description": "The organization slug. Optional, only used when booking with eventTypeSlug + username.",
+            "example": "acme-corp"
           },
           "attendee": {
             "description": "The attendee's details.",
@@ -17747,7 +18035,7 @@
             "example": true
           }
         },
-        "required": ["start", "eventTypeId", "attendee", "instant"]
+        "required": ["start", "attendee", "instant"]
       },
       "CreateRecurringBookingInput_2024_08_13": {
         "type": "object",
@@ -17764,8 +18052,23 @@
           },
           "eventTypeId": {
             "type": "number",
-            "description": "The ID of the event type that is booked.",
+            "description": "The ID of the event type that is booked. Required unless eventTypeSlug and username are provided as an alternative to identifying the event type.",
             "example": 123
+          },
+          "eventTypeSlug": {
+            "type": "string",
+            "description": "The slug of the event type. Required along with username and optionally organizationSlug if eventTypeId is not provided.",
+            "example": "my-event-type"
+          },
+          "username": {
+            "type": "string",
+            "description": "The username of the event owner. Required along with eventTypeSlug and optionally organizationSlug if eventTypeId is not provided.",
+            "example": "john-doe"
+          },
+          "organizationSlug": {
+            "type": "string",
+            "description": "The organization slug. Optional, only used when booking with eventTypeSlug + username.",
+            "example": "acme-corp"
           },
           "attendee": {
             "description": "The attendee's details.",
@@ -17838,7 +18141,7 @@
             "example": 5
           }
         },
-        "required": ["start", "eventTypeId", "attendee"]
+        "required": ["start", "attendee"]
       },
       "BookingHost": {
         "type": "object",
@@ -19226,31 +19529,6 @@
           }
         },
         "required": ["userId"]
-      },
-      "TeamMembershipOutput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "userId": {
-            "type": "number"
-          },
-          "teamId": {
-            "type": "number"
-          },
-          "accepted": {
-            "type": "boolean"
-          },
-          "role": {
-            "type": "string",
-            "enum": ["MEMBER", "OWNER", "ADMIN"]
-          },
-          "disableImpersonation": {
-            "type": "boolean"
-          }
-        },
-        "required": ["id", "userId", "teamId", "accepted", "role"]
       },
       "CreateTeamMembershipOutput": {
         "type": "object",
