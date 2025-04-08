@@ -24,6 +24,19 @@ export class MockCalendarService implements Calendar {
   private appKey: string;
   private calendarData: any;
 
+  public createEventCalls: {
+    args: { calEvent: CalendarEvent; credentialId: number; externalCalendarId?: string };
+  }[] = [];
+  public updateEventCalls: {
+    args: { uid: string; calEvent: CalendarEvent; externalCalendarId?: string | null };
+  }[] = [];
+  public deleteEventCalls: {
+    args: { uid: string; calEvent: CalendarEvent; externalCalendarId?: string | null };
+  }[] = [];
+  public getAvailabilityCalls: {
+    args: { dateFrom: string; dateTo: string; selectedCalendars: IntegrationCalendar[] };
+  }[] = [];
+
   constructor(credential: CredentialPayload) {
     this.credential = credential;
     this.appKey = credential.appId || "";
@@ -35,10 +48,12 @@ export class MockCalendarService implements Calendar {
   }
 
   async createEvent(
-    event: CalendarEvent,
+    calEvent: CalendarEvent,
     credentialId: number,
     externalCalendarId?: string
   ): Promise<NewCalendarEventType> {
+    this.createEventCalls.push({ args: { calEvent, credentialId, externalCalendarId } });
+
     if (this.calendarData?.creationCrash) {
       throw new Error("MockCalendarService.createEvent fake error");
     }
@@ -46,7 +61,7 @@ export class MockCalendarService implements Calendar {
     const app = this.appKey
       ? appStoreMetadata[this.appKey as keyof typeof appStoreMetadata]
       : { type: "calendar" };
-    const isGoogleMeetLocation = event?.location === "GoogleMeet";
+    const isGoogleMeetLocation = calEvent?.location === "GoogleMeet";
 
     return Promise.resolve({
       id: this.calendarData.create?.id || "MOCK_ID",
@@ -67,6 +82,8 @@ export class MockCalendarService implements Calendar {
     calEvent: CalendarEvent,
     externalCalendarId?: string | null
   ): Promise<NewCalendarEventType> {
+    this.updateEventCalls.push({ args: { uid, calEvent, externalCalendarId } });
+
     if (this.calendarData?.updationCrash) {
       throw new Error("MockCalendarService.updateEvent fake error");
     }
@@ -86,6 +103,7 @@ export class MockCalendarService implements Calendar {
   }
 
   async deleteEvent(uid: string, calEvent: CalendarEvent, externalCalendarId?: string | null): Promise<void> {
+    this.deleteEventCalls.push({ args: { uid, calEvent, externalCalendarId } });
     return Promise.resolve();
   }
 
@@ -95,6 +113,8 @@ export class MockCalendarService implements Calendar {
     selectedCalendars: IntegrationCalendar[],
     shouldServeCache?: boolean
   ): Promise<EventBusyDate[]> {
+    this.getAvailabilityCalls.push({ args: { dateFrom, dateTo, selectedCalendars } });
+
     if (this.calendarData?.getAvailabilityCrash) {
       throw new Error("MockCalendarService.getAvailability fake error");
     }
@@ -113,6 +133,10 @@ export class MockVideoAdapter {
   private videoData: any;
   private shouldCrashOnCreate = false;
   private shouldCrashOnUpdate = false;
+
+  public createMeetingCalls: { args: any[] }[] = [];
+  public updateMeetingCalls: { args: any[] }[] = [];
+  public deleteMeetingCalls: { args: any[] }[] = [];
 
   constructor(credential: CredentialPayload) {
     this.credential = credential;
@@ -137,6 +161,8 @@ export class MockVideoAdapter {
   }
 
   async createMeeting(event: CalendarEvent): Promise<VideoCallData> {
+    this.createMeetingCalls.push({ args: [event] });
+
     if (this.shouldCrashOnCreate) {
       throw new Error("MockVideoAdapter.createMeeting fake error");
     }
@@ -152,6 +178,8 @@ export class MockVideoAdapter {
   }
 
   async updateMeeting(bookingRef: any, event: CalendarEvent): Promise<VideoCallData> {
+    this.updateMeetingCalls.push({ args: [bookingRef, event] });
+
     if (this.shouldCrashOnUpdate) {
       throw new Error("MockVideoAdapter.updateMeeting fake error");
     }
@@ -175,6 +203,8 @@ export class MockVideoAdapter {
   }
 
   async deleteMeeting(uid: string): Promise<unknown> {
+    this.deleteMeetingCalls.push({ args: [uid] });
+
     return Promise.resolve({});
   }
 
@@ -282,8 +312,11 @@ export function createMockCalendarService(appKey: string, calendarData?: any) {
     }
   }
 
-  calendarServicesMapMock[appKey as keyof typeof calendarServicesMapMock] =
-    SpecificMockCalendarService as any;
+  const calendarServiceFactory = (cred: CredentialPayload): Calendar => {
+    return new SpecificMockCalendarService(cred);
+  };
+
+  calendarServicesMapMock[appKey as keyof typeof calendarServicesMapMock] = calendarServiceFactory as any;
 
   return SpecificMockCalendarService;
 }
@@ -308,23 +341,40 @@ export function createMockVideoAdapter(
     delegatedTo: null,
   };
 
+  const mockAdapter = new MockVideoAdapter(credential);
+  if (videoData) {
+    mockAdapter.setVideoData(videoData);
+  }
+  if (options?.crashOnCreate) {
+    mockAdapter.setCrashOnCreate(true);
+  }
+  if (options?.crashOnUpdate) {
+    mockAdapter.setCrashOnUpdate(true);
+  }
+
   const videoAdapterFactory = (cred: CredentialPayload): VideoApiAdapter => {
-    const adapter = new MockVideoAdapter(cred);
-    if (videoData) {
-      adapter.setVideoData(videoData);
-    }
-    if (options?.crashOnCreate) {
-      adapter.setCrashOnCreate(true);
-    }
-    if (options?.crashOnUpdate) {
-      adapter.setCrashOnUpdate(true);
-    }
-    return adapter as unknown as VideoApiAdapter;
+    return {
+      createMeeting: async (event: CalendarEvent) => {
+        return mockAdapter.createMeeting(event);
+      },
+      updateMeeting: async (bookingRef: any, event: CalendarEvent) => {
+        return mockAdapter.updateMeeting(bookingRef, event);
+      },
+      deleteMeeting: async (uid: string) => {
+        return mockAdapter.deleteMeeting(uid);
+      },
+      getAvailability: async (dateFrom?: string, dateTo?: string) => {
+        return mockAdapter.getAvailability(dateFrom, dateTo);
+      },
+    } as unknown as VideoApiAdapter;
   };
 
   videoAdaptersMapMock[appKey as keyof typeof videoAdaptersMapMock] = videoAdapterFactory as any;
 
-  return videoAdapterFactory;
+  return {
+    factory: videoAdapterFactory,
+    adapter: mockAdapter,
+  };
 }
 
 export function createMockPaymentService(appKey: string, paymentData?: any) {

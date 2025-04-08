@@ -1650,12 +1650,12 @@ export function mockVideoApp({
     crashOnUpdate: updationCrash,
   };
 
-  createMockVideoAdapter(appStoreLookupKey, videoMeetingData, options);
+  const { adapter } = createMockVideoAdapter(appStoreLookupKey, videoMeetingData, options);
 
   return {
-    createMeetingCalls: [],
-    updateMeetingCalls: [],
-    deleteMeetingCalls: [],
+    createMeetingCalls: adapter.createMeetingCalls,
+    updateMeetingCalls: adapter.updateMeetingCalls,
+    deleteMeetingCalls: adapter.deleteMeetingCalls,
   };
 }
 
@@ -1707,11 +1707,13 @@ export function mockPaymentApp({
     paymentUid: "mock-payment-uid",
   };
 
-  createMockPaymentService(appStoreLookupKey, paymentData);
+  const { service } = createMockPaymentService(appStoreLookupKey, paymentData);
 
   return {
     paymentUid: paymentData.paymentUid,
     externalId: paymentData.externalId,
+    chargeCardCalls: service.chargeCardCalls,
+    createPaymentCalls: service.createPaymentCalls,
   };
 }
 
@@ -1724,7 +1726,13 @@ export function mockErrorOnVideoMeetingCreation({
 }) {
   appStoreLookupKey = appStoreLookupKey || metadataLookupKey;
 
-  createMockVideoAdapter(appStoreLookupKey, undefined, { crashOnCreate: true });
+  const { adapter } = createMockVideoAdapter(appStoreLookupKey, undefined, { crashOnCreate: true });
+
+  return {
+    createMeetingCalls: adapter.createMeetingCalls,
+    updateMeetingCalls: adapter.updateMeetingCalls,
+    deleteMeetingCalls: adapter.deleteMeetingCalls,
+  };
 }
 
 export function mockCrmApp(
@@ -1741,12 +1749,14 @@ export function mockCrmApp(
     }[];
   }
 ) {
-  createMockCrmService(metadataLookupKey, crmData);
+  const { service } = createMockCrmService(metadataLookupKey, crmData);
 
   return {
     contactsCreated: crmData?.createContacts || [],
     contactsQueried: crmData?.getContacts || [],
-    eventsCreated: [],
+    eventsCreated: service.createEventCalls,
+    createContactCalls: service.createContactCalls,
+    getContactsCalls: service.getContactsCalls,
   };
 }
 

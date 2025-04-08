@@ -98,12 +98,26 @@ export function mockCalendar(
   };
   log.silly(`Mocking ${appStoreLookupKey} on calendarServicesMapMock`);
 
-  createMockCalendarService(appStoreLookupKey, normalizedCalendarData);
+  const mockCalendarServiceClass = createMockCalendarService(appStoreLookupKey, normalizedCalendarData);
+
+  const mockInstance = new mockCalendarServiceClass({
+    id: 1,
+    type: "oauth",
+    key: "MOCK_CREDENTIAL",
+    userId: 1,
+    teamId: null,
+    appId: appStoreLookupKey,
+    user: {
+      email: "MOCK_USER_EMAIL",
+    },
+    invalid: false,
+    delegatedTo: null,
+  });
 
   return {
-    createEventCalls: [],
-    deleteEventCalls: [],
-    updateEventCalls: [],
-    getAvailabilityCalls: [],
+    createEventCalls: mockInstance.createEventCalls,
+    deleteEventCalls: mockInstance.deleteEventCalls,
+    updateEventCalls: mockInstance.updateEventCalls,
+    getAvailabilityCalls: mockInstance.getAvailabilityCalls,
   };
 }
