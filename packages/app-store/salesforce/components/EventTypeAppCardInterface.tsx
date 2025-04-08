@@ -259,16 +259,18 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           ) : null}
         </div>
 
-        <WriteToObjectSettings
-          bookingAction={BookingActionEnum.ON_BOOKING}
-          optionLabel={t("salesforce_on_booking_write_to_record", { record: createEventOn })}
-          optionEnabled={onBookingWriteToRecord}
-          writeToObjectData={onBookingWriteToRecordFields}
-          optionSwitchOnChange={(checked) => {
-            setAppData("onBookingWriteToRecord", checked);
-          }}
-          updateWriteToObjectData={(data) => setAppData("onBookingWriteToRecordFields", data)}
-        />
+        <div className="mt-4">
+          <WriteToObjectSettings
+            bookingAction={BookingActionEnum.ON_BOOKING}
+            optionLabel={t("salesforce_on_booking_write_to_record", { record: createEventOn })}
+            optionEnabled={onBookingWriteToRecord}
+            writeToObjectData={onBookingWriteToRecordFields}
+            optionSwitchOnChange={(checked) => {
+              setAppData("onBookingWriteToRecord", checked);
+            }}
+            updateWriteToObjectData={(data) => setAppData("onBookingWriteToRecordFields", data)}
+          />
+        </div>
 
         <div className="mt-4">
           <Switch
@@ -350,16 +352,18 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           </div>
         ) : null}
 
-        <WriteToObjectSettings
-          bookingAction={BookingActionEnum.ON_CANCEL}
-          optionLabel={t("salesforce_on_cancel_write_to_event")}
-          optionEnabled={onCancelWriteToEventRecord}
-          writeToObjectData={onCancelWriteToEventRecordFields}
-          optionSwitchOnChange={(checked) => {
-            setAppData("onCancelWriteToEventRecord", checked);
-          }}
-          updateWriteToObjectData={(data) => setAppData("onCancelWriteToEventRecordFields", data)}
-        />
+        <div className="mt-4">
+          <WriteToObjectSettings
+            bookingAction={BookingActionEnum.ON_CANCEL}
+            optionLabel={t("salesforce_on_cancel_write_to_event")}
+            optionEnabled={onCancelWriteToEventRecord}
+            writeToObjectData={onCancelWriteToEventRecordFields}
+            optionSwitchOnChange={(checked) => {
+              setAppData("onCancelWriteToEventRecord", checked);
+            }}
+            updateWriteToObjectData={(data) => setAppData("onCancelWriteToEventRecordFields", data)}
+          />
+        </div>
 
         <div className="ml-2 mt-4">
           <Switch

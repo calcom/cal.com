@@ -374,12 +374,14 @@ export default class SalesforceCRMService implements CRM {
   }
 
   public async deleteEvent(uid: string, event: CalendarEvent) {
-    const deletedEvent = await this.salesforceDeleteEvent(uid, event);
-    if (deletedEvent.success) {
-      Promise.resolve();
-    } else {
-      Promise.reject({ calError: "Something went wrong when deleting the event in Salesforce" });
-    }
+    await this.salesforceDeleteEvent(uid, event)
+      .then(() => {
+        return Promise.resolve();
+      })
+      .catch((error) => {
+        this.log.error(`Error canceling event ${uid} with error ${error}`);
+        return Promise.reject({ calError: "Something went wrong when deleting the event in Salesforce" });
+      });
   }
 
   async getContacts({
@@ -1571,8 +1573,8 @@ export default class SalesforceCRMService implements CRM {
     const writeOnRecordBody = await this.buildRecordUpdatePayload({
       existingFields,
       personRecord,
-      onBookingWriteToRecordFields: writeToRecordObject,
-      contactId: personRecord.Id,
+      fieldsToWriteTo: writeToRecordObject,
+      recordId: personRecord.Id,
     });
     await conn
       .sobject(recordType)
