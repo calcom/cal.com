@@ -15,6 +15,14 @@ export class BillingRepository {
       },
     });
 
+  async getBillingForTeamBySubscriptionId(subscriptionId: string) {
+    return this.dbRead.prisma.platformBilling.findFirst({
+      where: {
+        subscriptionId,
+      },
+    });
+  }
+
   async updateTeamBilling(
     teamId: number,
     billingStart: number,

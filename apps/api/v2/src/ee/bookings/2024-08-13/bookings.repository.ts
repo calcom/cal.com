@@ -2,6 +2,7 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import type { Prisma } from "@prisma/client";
+
 @Injectable()
 export class BookingsRepository_2024_08_13 {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
@@ -165,6 +166,35 @@ export class BookingsRepository_2024_08_13 {
       include: {
         attendees: true,
         user: true,
+      },
+    });
+  }
+
+  async getUserBookingsForTimeRange(userId: number, startTime: Date, endTime: Date) {
+    return this.dbRead.prisma.booking.findFirst({
+      where: {
+        userId,
+        status: "ACCEPTED",
+        startTime: {
+          gte: startTime,
+          lt: endTime,
+        },
+      },
+    });
+  }
+
+  async getBookingsWhereUserIsAttendee(userEmail: string, startTime: Date, endTime: Date) {
+    return this.dbRead.prisma.booking.findFirst({
+      where: {
+        attendees: {
+          some: {
+            email: userEmail,
+          },
+        },
+        startTime: {
+          gte: startTime,
+          lt: endTime,
+        },
       },
     });
   }
