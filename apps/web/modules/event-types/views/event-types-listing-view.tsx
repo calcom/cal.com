@@ -962,7 +962,6 @@ export const EventTypesCTA = ({ initialData, filters }: Props) => {
       initialData,
     }
   );
-  const getUserEventGroupsData = userEventGroupsQuery ?? initialData;
 
   const profileOptions =
     getUserEventGroupsData?.profiles
