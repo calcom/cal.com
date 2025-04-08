@@ -1,7 +1,6 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { ClipboardEvent } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
@@ -10,9 +9,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard } from "@calcom/ui/components/card";
-import { Label, BooleanToggleGroupField, SelectField, TextField } from "@calcom/ui/components/form";
+import { BooleanToggleGroupField, SelectField, TextField } from "@calcom/ui/components/form";
+import { MultiOptionInput } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-import { Skeleton } from "@calcom/ui/components/skeleton";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -87,36 +86,8 @@ function Field({
     hookForm.setValue(`${hookFieldNamespace}.options`, updatedOptions, { shouldDirty: true });
   };
 
-  const handleRemoveOptions = (index: number) => {
-    const updatedOptions = watchedOptions.filter((_, i) => i !== index);
-    // We can't let the user remove the last option
-    if (updatedOptions.length === 0) {
-      return;
-    }
-    setOptions(updatedOptions);
-  };
-
-  const addOption = () => {
-    setOptions([
-      ...watchedOptions,
-      {
-        label: "",
-        id: uuidv4(),
-      },
-    ]);
-  };
-
   const router = hookForm.getValues(`${hookFieldNamespace}.router`);
   const routerField = hookForm.getValues(`${hookFieldNamespace}.routerField`);
-
-  const updateLabelAtIndex = ({ label, optionIndex }: { label: string; optionIndex: number }) => {
-    const updatedOptions = watchedOptions.map((opt, index) => ({
-      ...opt,
-      ...(index === optionIndex ? { label } : {}),
-    }));
-
-    setOptions(updatedOptions);
-  };
 
   const label = useWatch({
     control: hookForm.control,
@@ -128,49 +99,10 @@ function Field({
     name: `${hookFieldNamespace}.identifier`,
   });
 
-  function move(index: number, increment: 1 | -1) {
-    const newList = [...watchedOptions];
-
-    const type = watchedOptions[index];
-    const tmp = watchedOptions[index + increment];
-    if (tmp) {
-      newList[index] = tmp;
-      newList[index + increment] = type;
-    }
-    setOptions(newList);
-  }
-
-  const handlePasteInOptionAtIndex = ({
-    event,
-    optionIndex,
-  }: {
-    event: ClipboardEvent;
-    optionIndex: number;
-  }) => {
-    const paste = event.clipboardData.getData("text");
-    // The value being pasted could be a list of options
-    const optionsBeingPasted = paste
-      .split(PASTE_OPTIONS_SEPARATOR_REGEX)
-      .map((optionLabel) => optionLabel.trim())
-      .filter((optionLabel) => optionLabel)
-      .map((optionLabel) => ({ label: optionLabel.trim(), id: uuidv4() }));
-    if (optionsBeingPasted.length === 1) {
-      // If there is only one option, we would just let that option be pasted
-      return;
-    }
-
-    // Don't allow pasting that value, as we would update the options through state update
-    event.preventDefault();
-
-    const updatedOptions = appendArray({
-      target: watchedOptions,
-      arrayToAppend: optionsBeingPasted,
-      appendAt: optionIndex,
-    });
-    setOptions(updatedOptions);
-  };
-
-  const optionsPlaceholders = ["< 10", "10 - 100", "100 - 500", "> 500"];
+  const fieldType = useWatch({
+    control: hookForm.control,
+    name: `${hookFieldNamespace}.type`,
+  });
 
   return (
     <div data-testid="field">
@@ -190,10 +122,6 @@ function Field({
               label="Label"
               className="flex-grow"
               placeholder={t("this_is_what_your_users_would_see")}
-              /**
-               * This is a bit of a hack to make sure that for routerField, label is shown from there.
-               * For other fields, value property is used because it exists and would take precedence
-               */
               defaultValue={label || routerField?.label || "Field"}
               required
               {...hookForm.register(`${hookFieldNamespace}.label`)}
@@ -209,16 +137,13 @@ function Field({
               name={`${hookFieldNamespace}.identifier`}
               required
               placeholder={t("identifies_name_field")}
-              //This change has the same effects that already existed in relation to this field,
-              // but written in a different way.
-              // The identifier field will have the same value as the label field until it is changed
               value={identifier || routerField?.identifier || label || routerField?.label || ""}
               onChange={(e) => {
                 hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value, { shouldDirty: true });
               }}
             />
           </div>
-          <div className="mb-3 w-full ">
+          <div className="mb-3 w-full">
             <Controller
               name={`${hookFieldNamespace}.type`}
               control={hookForm.control}
@@ -254,77 +179,18 @@ function Field({
               }}
             />
           </div>
-          {["select", "multiselect"].includes(hookForm.watch(`${hookFieldNamespace}.type`)) ? (
+          {["select", "multiselect"].includes(fieldType) ? (
             <div className="bg-muted w-full rounded-[10px] p-2">
-              <Skeleton as={Label} loadingClassName="w-16" title={t("Options")} className="text-subtle">
-                {t("options")}
-              </Skeleton>
-              <ul ref={animationRef}>
-                {watchedOptions.map((option, index) => (
-                  <li
-                    // We can't use option.id here as it is undefined and would make keys non-unique causing duplicate items
-                    key={`select-option-${index}`}
-                    className="group mt-2 flex items-center gap-2"
-                    onPaste={(event: ClipboardEvent) =>
-                      handlePasteInOptionAtIndex({ event, optionIndex: index })
-                    }>
-                    <div className="flex flex-col gap-2">
-                      {watchedOptions.length && index !== 0 ? (
-                        <button
-                          type="button"
-                          onClick={() => move(index, -1)}
-                          className="bg-default text-muted hover:text-emphasis invisible flex h-6 w-6 scale-0 items-center   justify-center rounded-md border p-1 transition-all hover:border-transparent  hover:shadow group-hover:visible group-hover:scale-100 ">
-                          <Icon name="arrow-up" />
-                        </button>
-                      ) : null}
-                      {watchedOptions.length && index !== watchedOptions.length - 1 ? (
-                        <button
-                          type="button"
-                          onClick={() => move(index, 1)}
-                          className="bg-default text-muted hover:text-emphasis invisible flex h-6 w-6 scale-0 items-center   justify-center rounded-md border p-1 transition-all hover:border-transparent  hover:shadow group-hover:visible group-hover:scale-100 ">
-                          <Icon name="arrow-down" />
-                        </button>
-                      ) : null}
-                    </div>
-                    <div className="w-full">
-                      <TextField
-                        disabled={!!router}
-                        containerClassName="[&>*:first-child]:border [&>*:first-child]:border-default hover:[&>*:first-child]:border-gray-400"
-                        className="border-0 focus:ring-0 focus:ring-offset-0"
-                        labelSrOnly
-                        placeholder={optionsPlaceholders[index] ?? "New Option"}
-                        value={option.label}
-                        type="text"
-                        required
-                        addOnClassname="bg-transparent border-0"
-                        onChange={(e) => updateLabelAtIndex({ label: e.target.value, optionIndex: index })}
-                        dataTestid={`${hookFieldNamespace}.options.${index}`}
-                        addOnSuffix={
-                          watchedOptions.length > 1 ? (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveOptions(index)}
-                              aria-label={t("remove")}>
-                              <Icon name="x" className="h-4 w-4" />
-                            </button>
-                          ) : null
-                        }
-                      />
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <div className={classNames("flex")}>
-                <Button
-                  data-testid="add-attribute"
-                  className="border-none"
-                  type="button"
-                  StartIcon="plus"
-                  color="secondary"
-                  onClick={addOption}>
-                  Add an option
-                </Button>
-              </div>
+              <MultiOptionInput
+                fieldArrayName={`${hookFieldNamespace}.options`}
+                disabled={!!router}
+                optionPlaceholders={["< 10", "10 - 100", "100 - 500", "> 500"]}
+                defaultNumberOfOptions={4}
+                pasteDelimiters={["\n", ","]}
+                showMoveButtons={true}
+                minOptions={1}
+                addOptionLabel={t("add_an_option")}
+              />
             </div>
           ) : null}
 
