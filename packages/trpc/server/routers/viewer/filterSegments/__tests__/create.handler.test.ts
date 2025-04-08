@@ -2,8 +2,9 @@ import prismock from "../../../../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it } from "vitest";
 
+import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { createHandler } from "../create.handler";
 import { type TCreateFilterSegmentInputSchema } from "../create.schema";
@@ -16,11 +17,20 @@ describe("createHandler", () => {
 
   const baseInput = {
     tableIdentifier: "bookings",
-    activeFilters: { f: "status" },
+    activeFilters: [
+      {
+        f: "status",
+        v: {
+          type: ColumnFilterType.SINGLE_SELECT,
+          data: "active",
+        },
+      },
+    ],
     sorting: [{ id: "date", desc: true }],
     columnVisibility: {},
     columnSizing: {},
     perPage: 10,
+    searchTerm: "test search",
   };
 
   it("should create a user-scoped filter segment", async () => {
@@ -41,6 +51,7 @@ describe("createHandler", () => {
         scope: "USER",
         tableIdentifier: "bookings",
         name: "My Bookings",
+        searchTerm: "test search",
       })
     );
   });
@@ -74,6 +85,7 @@ describe("createHandler", () => {
         scope: "TEAM",
         tableIdentifier: "bookings",
         name: "Team Bookings",
+        searchTerm: "test search",
       })
     );
   });

@@ -12,6 +12,7 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -34,7 +35,6 @@ import {
   ApiBody,
   ApiExtraModels,
 } from "@nestjs/swagger";
-import { User } from "@prisma/client";
 import { Request } from "express";
 
 import { BOOKING_READ, BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -80,7 +80,10 @@ import {
 export class BookingsController_2024_08_13 {
   private readonly logger = new Logger("BookingsController_2024_08_13");
 
-  constructor(private readonly bookingsService: BookingsService_2024_08_13) {}
+  constructor(
+    private readonly bookingsService: BookingsService_2024_08_13,
+    private readonly usersService: UsersService
+  ) {}
 
   @Post("/")
   @ApiOperation({
@@ -96,6 +99,10 @@ export class BookingsController_2024_08_13 {
       For team event types it is possible to create instant meeting. To do that just pass \`"instant": true\` to the request body.
 
       The start needs to be in UTC aka if the timezone is GMT+2 in Rome and meeting should start at 11, then UTC time should have hours 09:00 aka without time zone.
+
+      Finally, there are 2 ways to book an event type:
+      1. Provide \`eventTypeId\` in the request body.
+      2. Provide \`eventTypeSlug\` and \`username\` and optionally \`organizationSlug\` if the user with the username is within an organization.
       `,
   })
   @ApiBody({
@@ -161,9 +168,15 @@ export class BookingsController_2024_08_13 {
   @ApiOperation({ summary: "Get all bookings" })
   async getBookings(
     @Query() queryParams: GetBookingsInput_2024_08_13,
-    @GetUser() user: User
+    @GetUser() user: UserWithProfile
   ): Promise<GetBookingsOutput_2024_08_13> {
-    const bookings = await this.bookingsService.getBookings(queryParams, user);
+    const profile = this.usersService.getUserMainProfile(user);
+
+    const bookings = await this.bookingsService.getBookings(queryParams, {
+      email: user.email,
+      id: user.id,
+      orgId: profile?.organizationId,
+    });
 
     return {
       status: SUCCESS_STATUS,

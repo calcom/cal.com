@@ -1154,6 +1154,10 @@
   "enabled_after_update": "Enabled after update",
   "enabled_after_update_description": "The private link will work after saving",
   "confirm_delete_api_key": "Revoke this API key",
+  "disable_rescheduling":"Disable Rescheduling",
+  "description_disable_rescheduling":"Guests can no longer reschedule the event with calendar invite or email",
+  "disable_cancelling":"Disable Cancelling",
+  "description_disable_cancelling":"Guests can no longer cancel the event with calendar invite or email",
   "revoke_api_key": "Revoke API key",
   "api_key_copied": "API key copied!",
   "api_key_expires_on": "The API key will expire on",
@@ -3077,7 +3081,12 @@
   "display": "Display",
   "could_not_find_slug_to_publish_org": "Could not find slug to publish the organization",
   "picklist": "Picklist",
+  "most_cancelled_bookings": "Most Cancelled Bookings",
   "name_or_email": "Name or Email",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "If no contact is found, fallback to lead owner if it exists",
+  "enable_delegation_credential": "Enable Delegation Credential",
+  "enable_delegation_credential_description": "Grant Cal.com automatic access to the calendars of all organization members by enabling delegation credential.",
+  "disable_delegation_credential": "Disable Delegation Credential",
+  "disable_delegation_credential_description": "Once delegation credential is disabled, organization members who haven’t connected their calendars will need to do so manually.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
