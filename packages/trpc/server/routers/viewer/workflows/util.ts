@@ -887,7 +887,7 @@ export async function getEmailTemplateText(
       isEditingMode: true,
       locale,
       action,
-      t: undefined,
+      t: await getTranslation(locale ?? "en", "common"),
       timeFormat,
     });
 
