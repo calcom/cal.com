@@ -734,10 +734,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           // backPath={`${appUrl}/forms`}
           // CTA={<Actions form={form} mutation={mutation} />}>
           >
-            <Header
-              routingForm={form}
-              onTitleChange={(title) => hookForm.setValue("name", title, { shouldDirty: true })}
-            />
+            <Header routingForm={form} />
             <div className="flex flex-col items-center items-baseline px-3 md:flex-row md:items-start md:p-0">
               <div className="lg:min-w-72 lg:max-w-72 md:max-w-56 mb-6 w-full bg-red-200 md:mr-6">
                 {/* <TextField

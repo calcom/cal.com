@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RoutingFormWithResponseCount } from "@calcom/routing-forms/types/types";
@@ -6,34 +7,31 @@ import { Button } from "@calcom/ui/components/button";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-export function Header({
-  routingForm,
-  onTitleChange,
-}: {
-  routingForm: RoutingFormWithResponseCount;
-  onTitleChange: (title: string) => void;
-}) {
+export function Header({ routingForm }: { routingForm: RoutingFormWithResponseCount }) {
   const { t } = useLocale();
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(routingForm.name);
+  const form = useFormContext<RoutingFormWithResponseCount>();
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
   };
 
   const handleTitleSubmit = () => {
-    onTitleChange(title);
     setIsEditing(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
+      form.setValue("name", title);
       handleTitleSubmit();
     } else if (e.key === "Escape") {
-      setTitle(routingForm.name);
+      form.setValue("name", routingForm.name);
       setIsEditing(false);
     }
   };
+
+  const watchedName = form.watch("name");
 
   return (
     <div className="bg-default border-muted flex items-center justify-between border-b px-4 py-3">
@@ -47,7 +45,7 @@ export function Header({
           <span className="text-subtle mx-1 text-sm font-semibold leading-none">/</span>
           {isEditing ? (
             <input
-              value={title}
+              {...form.register("name")}
               onChange={handleTitleChange}
               onKeyDown={handleKeyDown}
               onBlur={handleTitleSubmit}
@@ -59,7 +57,7 @@ export function Header({
               <span
                 className="text-default hover:bg-muted min-w-[100px] cursor-pointer truncate whitespace-nowrap rounded px-1 text-sm font-semibold leading-none"
                 onClick={() => setIsEditing(true)}>
-                {routingForm.name}
+                {watchedName}
               </span>
               <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
             </div>
