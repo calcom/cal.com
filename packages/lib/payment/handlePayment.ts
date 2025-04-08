@@ -55,7 +55,7 @@ const handlePayment = async ({
     return null;
   }
   const PaymentService = paymentApp;
-  const paymentInstance = PaymentService(paymentAppCredentials) as IAbstractPaymentService;
+  const paymentInstance = new PaymentService(paymentAppCredentials) as IAbstractPaymentService;
 
   const apps = eventTypeAppMetadataOptionalSchema.parse(selectedEventType?.metadata?.apps);
   const paymentOption = apps?.[paymentAppCredentials.appId].paymentOption || "ON_BOOKING";
