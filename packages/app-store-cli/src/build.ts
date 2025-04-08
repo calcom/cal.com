@@ -253,9 +253,7 @@ function generateFiles() {
     if (fs.existsSync(path.join(APP_STORE_PATH, app.path, "api"))) {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
-      serverOutput.push(
-        `import * as ${capitalizedAppName} from "${getModulePath(app.path, fileToBeImported)}";`
-      );
+      serverOutput.push(`import ${capitalizedAppName} from "${getModulePath(app.path, fileToBeImported)}";`);
     }
   });
 
@@ -434,10 +432,7 @@ function generateFiles() {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
       crmOutput.push(
-        `import { CrmService as ${capitalizedAppName}CrmService } from "${getModulePath(
-          app.path,
-          fileToBeImported
-        )}";`
+        `import ${capitalizedAppName}CrmService from "${getModulePath(app.path, fileToBeImported)}";`
       );
     }
   });
@@ -465,10 +460,7 @@ function generateFiles() {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
       paymentAppsOutput.push(
-        `import { PaymentService as ${capitalizedAppName}PaymentService } from "${getModulePath(
-          app.path,
-          "lib"
-        )}";`
+        `import ${capitalizedAppName}PaymentService from "${getModulePath(app.path, fileToBeImported)}";`
       );
     }
   });
@@ -496,10 +488,7 @@ function generateFiles() {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
       calendarAppsOutput.push(
-        `import { CalendarService as ${capitalizedAppName}CalendarService } from "${getModulePath(
-          app.path,
-          "lib"
-        )}";`
+        `import ${capitalizedAppName}CalendarService from "${getModulePath(app.path, fileToBeImported)}";`
       );
     }
   });
@@ -527,10 +516,7 @@ function generateFiles() {
       const appName = app.name;
       const capitalizedAppName = appName.charAt(0).toUpperCase() + appName.slice(1).replace(/[-]/g, "");
       conferencingVideoAdaptersOutput.push(
-        `import { VideoApiAdapter as ${capitalizedAppName}VideoApiAdapter } from "${getModulePath(
-          app.path,
-          "lib"
-        )}";`
+        `import ${capitalizedAppName}VideoApiAdapter from "${getModulePath(app.path, fileToBeImported)}";`
       );
     }
   });
