@@ -1,10 +1,13 @@
 import { AppConfig } from "@/config/type";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { BILLING_QUEUE, INCREMENT_JOB, IncrementJobDataType } from "@/modules/billing/billing.processor";
 import { BillingRepository } from "@/modules/billing/billing.repository";
 import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
 import { PlatformPlan } from "@/modules/billing/types";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { StripeService } from "@/modules/stripe/stripe.service";
+import { UsersRepository } from "@/modules/users/users.repository";
 import { InjectQueue } from "@nestjs/bull";
 import {
   Injectable,
@@ -18,6 +21,8 @@ import { Queue } from "bull";
 import { DateTime } from "luxon";
 import Stripe from "stripe";
 
+import { User } from "@calcom/prisma/client";
+
 @Injectable()
 export class BillingService implements OnModuleDestroy {
   private logger = new Logger("BillingService");
@@ -29,6 +34,9 @@ export class BillingService implements OnModuleDestroy {
     private readonly billingRepository: BillingRepository,
     private readonly configService: ConfigService<AppConfig>,
     private readonly billingConfigService: BillingConfigService,
+    private readonly usersRepository: UsersRepository,
+    private readonly oAuthClientRepository: OAuthClientRepository,
+    private readonly bookingsRepository: BookingsRepository_2024_08_13,
     @InjectQueue(BILLING_QUEUE) private readonly billingQueue: Queue
   ) {
     this.webAppUrl = this.configService.get("app.baseUrl", { infer: true }) ?? "https://app.cal.com";
@@ -219,6 +227,63 @@ export class BillingService implements OnModuleDestroy {
     }
 
     return;
+  }
+
+  async handleStripeSubscriptionForActiveManagedUsers(event: Stripe.Event) {
+    const invoice = event.data.object as Stripe.Invoice;
+    const subscriptionId = this.getSubscriptionIdFromInvoice(invoice);
+
+    if (!subscriptionId) {
+      throw new NotFoundException("No subscription found for team");
+    }
+
+    const teamWithBilling = await this.billingRepository.getBillingForTeamBySubscriptionId(subscriptionId);
+
+    if (teamWithBilling?.plan === "CUSTOM") {
+      const oAuthClients = await this.oAuthClientRepository.getOrganizationOAuthClients(teamWithBilling.id);
+
+      const allManagedUsers = oAuthClients.map((client) => {
+        return this.usersRepository.findAllManagedUsers(client.id);
+      });
+      const managedUsersFlattened = (await Promise.all(allManagedUsers)).flatMap(
+        (managedUser) => managedUser
+      );
+
+      const activeManagedUsers = await this.getActiveManagedUsers(
+        managedUsersFlattened,
+        invoice.period_start,
+        invoice.period_end
+      );
+
+      await this.stripeService.getStripe().subscriptions.update(subscriptionId, {
+        items: [
+          {
+            quantity: activeManagedUsers.length > 0 ? activeManagedUsers.length : 1,
+          },
+        ],
+      });
+    }
+  }
+
+  async getActiveManagedUsers(users: User[], start: number, end: number) {
+    const activeManagedUsers = users.filter(async (managedUser) => {
+      // a managed user is only considered active if they are either the host of a booking or one of the attendees
+      const managedUserActiveBookings = await this.bookingsRepository.getUserBookingsForTimeRange(
+        managedUser.id,
+        new Date(start),
+        new Date(end)
+      );
+
+      const bookingsWhereManagedUserIsAttendee = await this.bookingsRepository.getBookingsWhereUserIsAttendee(
+        managedUser.email,
+        new Date(start),
+        new Date(end)
+      );
+
+      return !!managedUserActiveBookings || !!bookingsWhereManagedUserIsAttendee;
+    });
+
+    return activeManagedUsers;
   }
 
   async updateStripeSubscriptionForTeam(teamId: number, plan: PlatformPlan) {
