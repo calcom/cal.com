@@ -1226,6 +1226,33 @@
         "summary": "Get Organization Bookings",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "status",
             "required": false,
             "in": "query",
@@ -4119,6 +4146,33 @@
         "operationId": "OrganizationsUsersBookingsController_getOrganizationUserBookings",
         "summary": "Get all bookings of an organization user",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "orgId",
             "required": true,
