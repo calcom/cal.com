@@ -7,15 +7,15 @@ import http from "../../../lib/http";
 import { extractBookingsQueryKeys } from "../../bookings/useBookings";
 import { useAtomsContext } from "../../useAtomsContext";
 
-export const QUERY_KEY = "use-organizations-bookings";
+export const QUERY_KEY = "use-organization-bookings";
 
-export const useOrganizationsBookings = (query: GetOrganizationsBookingsInput) => {
+export const useOrganizationBookings = (query: GetOrganizationsBookingsInput) => {
   const { organizationId } = useAtomsContext();
 
   const pathname = `/organizations/${organizationId}/bookings`;
 
-  const organizationsBookingsQuery = useQuery({
-    queryKey: [QUERY_KEY, ...extractOrganizationsBookingsQueryKeys(query)],
+  const organizationBookingsQuery = useQuery({
+    queryKey: [QUERY_KEY, ...extractOrganizationBookingsQueryKeys(query)],
     queryFn: async () => {
       return http
         .get<GetBookingsOutput_2024_08_13>(pathname, {
@@ -30,9 +30,9 @@ export const useOrganizationsBookings = (query: GetOrganizationsBookingsInput) =
     },
   });
 
-  return organizationsBookingsQuery;
+  return organizationBookingsQuery;
 };
 
-function extractOrganizationsBookingsQueryKeys(query: GetOrganizationsBookingsInput) {
+function extractOrganizationBookingsQueryKeys(query: GetOrganizationsBookingsInput) {
   return [...extractBookingsQueryKeys(query), query.userIds];
 }

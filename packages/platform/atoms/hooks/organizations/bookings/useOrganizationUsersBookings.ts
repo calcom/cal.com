@@ -1,0 +1,29 @@
+import { useQuery } from "@tanstack/react-query";
+
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
+
+import http from "../../../lib/http";
+import { useAtomsContext } from "../../useAtomsContext";
+
+export const QUERY_KEY = "use-organization-user-bookings";
+
+export const useOrganizationUserBookings = (userId: number) => {
+  const { organizationId } = useAtomsContext();
+
+  const pathname = `/organizations/${organizationId}/users/${userId}/bookings`;
+
+  const organizationUserBookingsQuery = useQuery({
+    queryKey: [QUERY_KEY, userId],
+    queryFn: async () => {
+      return http.get<GetBookingsOutput_2024_08_13>(pathname).then((res) => {
+        if (res.data.status === SUCCESS_STATUS) {
+          return res.data.data;
+        }
+        throw new Error(res.data?.error?.message);
+      });
+    },
+  });
+
+  return organizationUserBookingsQuery;
+};
