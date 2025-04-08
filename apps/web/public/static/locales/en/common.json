@@ -3032,6 +3032,8 @@
   "inactive_team_plan_description": "Your team plan is inactive. Check your subcription or reach out to customer support",
   "limited_access_trial_mode": "Limited access during trial. Feature available after trial ends.",
   "skip_trial": "Skip Trial",
+  "trial_skipped_successfully": "Trial skipped successfully",
+  "error_skipping_trial": "Error skipping trial. Please try again.",
   "referral_program": "Referral Program",
   "referral_text": "Earn 20% referral",
   "dub_disabled_error_message": "You need a Dub API Key and Program Id to use this page.",
