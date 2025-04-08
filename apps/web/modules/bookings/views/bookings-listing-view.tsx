@@ -10,6 +10,7 @@ import {
   DataTableProvider,
   DataTableWrapper,
   DataTableFilters,
+  DataTableSegment,
   ColumnFilterType,
   useFilterValue,
   ZMultiSelectFilterValue,
@@ -374,10 +375,14 @@ function BookingsContent({ status }: BookingsProps) {
                 paginationMode="standard"
                 ToolbarLeft={
                   <>
-                    <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
-                    <DataTableFilters.ActiveFilters table={table} />
-                    <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
+                    <DataTableFilters.FilterBar table={table} />
+                  </>
+                }
+                ToolbarRight={
+                  <>
                     <DataTableFilters.ClearFiltersButton />
+                    <DataTableSegment.SaveButton />
+                    <DataTableSegment.Select />
                   </>
                 }
                 LoaderView={<SkeletonLoader />}

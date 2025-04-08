@@ -676,7 +676,6 @@ test.describe("Out of office", () => {
       );
       await page.locator('[data-testid="add-filter-button"]').click();
       await page.locator('[data-testid="add-filter-item-dateRange"]').click();
-      await page.locator('[data-testid="add-filter-button"]').click();
       await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
 
       await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeVisible(); //Today
@@ -766,7 +765,10 @@ test.describe("Out of office", () => {
 
       //By Default future OOO will be displayed
       //1 OOO record should be visible for member3, end=currentDate+4days
-      expect(await page.locator('[data-testid^="table-redirect-"]').count()).toBe(1);
+      const oooEntries = page.locator('[data-testid="ooo-actions"]');
+      const oooEntriesCount = await oooEntries.count();
+
+      expect(oooEntriesCount).toBe(1);
       await expect(page.locator(`data-testid=table-redirect-n-a`).nth(0)).toBeVisible();
 
       //Default filter 'Last 7 Days' when DateRange Filter is selected
@@ -777,7 +779,6 @@ test.describe("Out of office", () => {
         );
         await page.locator('[data-testid="add-filter-item-dateRange"]').click();
         await entriesListRespPromise;
-        await page.locator('[data-testid="add-filter-button"]').click(); //close popover
 
         //1 OOO record should be visible for member3, end=currentDate-4days
         expect(await page.locator('[data-testid^="table-redirect-"]').count()).toBe(1);
@@ -796,7 +797,10 @@ test.describe("Out of office", () => {
         await entriesListRespPromise;
 
         //2 OOO records should be visible end=currentDate-4days, end=currentDate-12days
-        expect(await page.locator('[data-testid^="table-redirect-"]').count()).toBe(2);
+        const oooEntries = page.locator('[data-testid="ooo-actions"]');
+        const oooEntriesCount = await oooEntries.count();
+
+        expect(oooEntriesCount).toBe(2);
         await expect(
           page.locator(`data-testid=table-redirect-${member2User?.username}`).nth(0)
         ).toBeVisible();

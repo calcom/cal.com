@@ -10,6 +10,7 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditSheet/DisplayInfo";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
@@ -25,13 +26,7 @@ import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { Alert } from "@calcom/ui/components/alert";
 import { UserAvatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogTrigger,
-  DialogClose,
-} from "@calcom/ui/components/dialog";
+import { DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { PasswordField } from "@calcom/ui/components/form";
@@ -99,7 +94,7 @@ const ProfileView = () => {
   const { update } = useSession();
   const { data: user, isPending } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
 
-  const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
+  const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
       utils.viewer.me.invalidate();

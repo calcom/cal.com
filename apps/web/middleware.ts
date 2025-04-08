@@ -18,7 +18,10 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
 
 export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/"]; // trailing slash in "/api/" is actually important to block edge cases like `/api.php`
 // Some app routes are allowed because "revalidatePath()" is used to revalidate the cache for them
-export const POST_METHODS_ALLOWED_APP_ROUTES = ["/settings/my-account/general"];
+export const POST_METHODS_ALLOWED_APP_ROUTES = [
+  "/settings/my-account/general",
+  "/settings/developer/webhooks",
+];
 
 export function checkPostMethod(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
@@ -174,6 +177,8 @@ function responseWithHeaders({ url, res, req }: { url: URL; res: NextResponse; r
 export const config = {
   // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
   // https://github.com/vercel/next.js/discussions/42458
+  // WARNING: DO NOT ADD AN ENDING SLASH "/" TO THE PATHS BELOW
+  // THIS WILL MAKE THEM NOT MATCH AND HENCE NOT HIT MIDDLEWARE
   matcher: [
     "/403",
     "/500",
@@ -204,10 +209,16 @@ export const config = {
     "/booking/:path*",
     "/payment/:path*",
     "/routing-forms/:path*",
-    "/team/:path*",
-    "/org/:path*",
-    "/:user/:type/",
-    "/:user/",
+    "/org/:orgSlug/instant-meeting/team/:slug/:type",
+    "/org/:orgSlug/team/:slug/:type",
+    "/org/:orgSlug/team/:slug",
+    "/org/:orgSlug/:user/:type",
+    "/org/:orgSlug/:user",
+    "/org/:orgSlug",
+    "/team/:slug/:type",
+    "/team/:slug",
+    "/:user/:type",
+    "/:user",
   ],
 };
 

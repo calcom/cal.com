@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useCallback, useState } from "react";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import SkeletonLoader from "@calcom/features/availability/components/SkeletonLoader";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
@@ -14,7 +15,6 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import type { OrganizationRepository } from "@calcom/lib/server/repository/organization";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
@@ -204,8 +204,7 @@ export const AvailabilityCTA = () => {
   );
 
   const { data } = trpc.viewer.organizations.listCurrent.useQuery();
-  const isOrgAdminOrOwner =
-    (data && (data.user.role === MembershipRole.OWNER || data.user.role === MembershipRole.ADMIN)) ?? false;
+  const isOrgAdminOrOwner = (data && checkAdminOrOwner(data.user.role)) ?? false;
   const isOrgAndPrivate = data?.isOrganization && data.isPrivate;
 
   const canViewTeamAvailability = isOrgAdminOrOwner || !isOrgAndPrivate;
@@ -241,8 +240,7 @@ export default function AvailabilityPage({ currentOrg }: PageProps) {
   const data = currentOrg ?? _data;
 
   const isOrg = Boolean(data);
-  const isOrgAdminOrOwner =
-    (data && (data.user.role === MembershipRole.OWNER || data.user.role === MembershipRole.ADMIN)) ?? false;
+  const isOrgAdminOrOwner = (data && checkAdminOrOwner(data.user.role)) ?? false;
   const isOrgAndPrivate = data?.isOrganization && data.isPrivate;
 
   const canViewTeamAvailability = isOrgAdminOrOwner || !isOrgAndPrivate;
