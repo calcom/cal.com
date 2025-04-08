@@ -4,7 +4,6 @@ import { useFormContext } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { ShellMain } from "@calcom/features/shell/Shell";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -28,7 +27,6 @@ import type { NewFormDialogState } from "./FormActions";
 import { FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
 import { InfoLostWarningDialog } from "./InfoLostWarningDialog";
-import RoutingNavBar from "./RoutingNavBar";
 import { Header } from "./_components/Header";
 import { getServerSidePropsForSingleFormView } from "./getServerSidePropsSingleForm";
 
@@ -559,26 +557,19 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           appUrl={appUrl}
           newFormDialogState={newFormDialogState}
           setNewFormDialogState={setNewFormDialogState}>
-          {/* JUMP TO HERE */}
-          <ShellMain>
+          <div className="flex h-full min-h-screen w-full flex-col">
             <Header
               routingForm={form}
               isSaving={mutation.isPending}
               appUrl={appUrl}
               setShowInfoLostDialog={setShowInfoLostDialog}
             />
-            <div className="flex flex-col items-center items-baseline px-3 md:flex-row md:items-start md:p-0">
-              <div className="border-subtle bg-muted w-full rounded-md border p-8">
-                <RoutingNavBar
-                  appUrl={appUrl}
-                  form={form}
-                  hookForm={hookForm}
-                  setShowInfoLostDialog={setShowInfoLostDialog}
-                />
+            <div className="bg-default flex flex-1">
+              <div className="mx-auto w-full max-w-4xl">
                 <Page hookForm={hookForm} form={form} appUrl={appUrl} />
               </div>
             </div>
-          </ShellMain>
+          </div>
         </FormActionsProvider>
       </Form>
       {showInfoLostDialog && (

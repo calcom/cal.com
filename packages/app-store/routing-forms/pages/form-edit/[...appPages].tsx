@@ -10,7 +10,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard } from "@calcom/ui/components/card";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label, BooleanToggleGroupField, SelectField, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Skeleton } from "@calcom/ui/components/skeleton";
@@ -446,17 +445,41 @@ const FormEdit = ({
       </div>
     </div>
   ) : (
-    <div className="bg-default w-full">
-      <EmptyScreen
-        Icon="file-text"
-        headline="Create your first field"
-        description="Fields are the form fields that the booker would see."
-        buttonRaw={
-          <Button data-testid="add-field" onClick={addField}>
-            Create Field
-          </Button>
-        }
-      />
+    <div className="w-full py-4 lg:py-8">
+      {/* TODO: remake empty screen for V3 */}
+      <div className="border-sublt bg-muted flex flex-col items-center gap-6 rounded-xl border p-11">
+        <div className="mb-6 grid">
+          {/* Icon card - Top */}
+          <div className="bg-default border-subtle z-30 col-start-1 col-end-1 row-start-1 row-end-1 h-10 w-10 transform rounded-md border shadow-sm">
+            <div className="flex h-full items-center justify-center">
+              <Icon name="menu" className="text-emphasis h-4 w-4" />
+            </div>
+          </div>
+          {/* Left fanned card */}
+          <div
+            className="bg-default border-subtle z-20 col-start-1 col-end-1 row-start-1 row-end-1 h-10 w-10 rounded-md border shadow-sm"
+            style={{
+              transform: "translate(-12px, 2px) rotate(-6deg)",
+            }}
+          />
+          {/* Right fanned card */}
+          <div
+            className="bg-default border-subtle z-10 col-start-1 col-end-1 row-start-1 row-end-1 h-10 w-10 rounded-md border shadow-sm"
+            style={{
+              transform: "translate(12px, 2px) rotate(6deg)",
+            }}
+          />
+        </div>
+        <div>
+          <h1 className="text-emphasis text-center text-lg font-semibold">Create your first question</h1>
+          <p className="mt-2 text-center text-sm leading-normal">
+            Fields are the form fields that the booker would see.
+          </p>
+        </div>
+        <Button data-testid="add-field" onClick={addField} StartIcon="plus" className="mt-6">
+          Add question
+        </Button>
+      </div>
     </div>
   );
 };

@@ -17,6 +17,7 @@ import { enabledIncompleteBookingApps } from "../../lib/enabledIncompleteBooking
 import { FormAction, FormActionsDropdown } from "../FormActions";
 import { FormSettingsSlideover } from "./FormSettingsSlideover";
 
+// Toggle group doesnt support HREF navigation, so we need to use this hook to handle navigation
 const useRoutingFormNavigation = (
   form: RoutingFormWithResponseCount,
   appUrl: string,
