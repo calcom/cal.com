@@ -2240,9 +2240,6 @@
   "crm": "CRM",
   "messaging": "Messaging",
   "sender_id_info": "Name or number shown as the sender of an SMS (some countries do not allow alphanumeric sender IDs)",
-  "last_active": "Last Active",
-  "member_since": "Member Since",
-  "last_updated": "Last Updated",
   "org_admins_can_create_new_teams": "Only the admin of your organization can create new teams",
   "google_new_spam_policy": "Google’s new spam policy could prevent you from receiving any email and calendar notifications about this booking.",
   "resolve": "Resolve",
@@ -3082,6 +3079,5 @@
   "last_active": "Last Active",
   "member_since": "Member Since",
   "last_updated": "Last Updated",
-  "managed_users": "Managed Users",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
