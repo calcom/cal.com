@@ -33,8 +33,7 @@ import { Response as ExpressResponse } from "express";
 import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
 export const TOKENS_DOCS = `Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model \`calAccessToken\` and \`calRefreshToken\` fields.
-Response also contains \`accessTokenExpiresAt\` and \`refreshTokenExpiresAt\` fields, but if you decode the jwt token the payload will contain \`clientId\` (OAuth client ID), \`ownerId\` (user to whom token belongs ID), \`iat\` (issued at time) and \`expiresAt\` (when does the token expire) fields.
-To learn about managing refresh tokens expiring after 1 year follow [this guide](https://cal.com/docs/platform/quickstart#5-managing-refresh-token-expiry)`;
+Response also contains \`accessTokenExpiresAt\` and \`refreshTokenExpiresAt\` fields, but if you decode the jwt token the payload will contain \`clientId\` (OAuth client ID), \`ownerId\` (user to whom token belongs ID), \`iat\` (issued at time) and \`expiresAt\` (when does the token expire) fields.`;
 
 @Controller({
   path: "/v2/oauth/:clientId",
@@ -95,7 +94,7 @@ export class OAuthFlowController {
       throw new BadRequestException("Missing 'Bearer' Authorization header.");
     }
 
-    const tokens = await this.oAuthFlowService.exchangeOAuthClientAuthorizationToken(
+    const tokens = await this.oAuthFlowService.exchangeAuthorizationToken(
       authorizeEndpointCode,
       clientId,
       body.clientSecret
@@ -126,7 +125,7 @@ export class OAuthFlowController {
     @Headers(X_CAL_SECRET_KEY) secretKey: string,
     @Body() body: RefreshTokenInput
   ): Promise<KeysResponseDto> {
-    const tokens = await this.oAuthFlowService.refreshUserTokens(clientId, secretKey, body.refreshToken);
+    const tokens = await this.oAuthFlowService.refreshToken(clientId, secretKey, body.refreshToken);
 
     return {
       status: SUCCESS_STATUS,
