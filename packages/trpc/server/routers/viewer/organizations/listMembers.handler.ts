@@ -194,6 +194,8 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
       id: true,
       role: true,
       accepted: true,
+      createdAt: true,
+      updatedAt: true,
       user: {
         select: {
           id: true,
