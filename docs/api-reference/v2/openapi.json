@@ -1228,7 +1228,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": false,
             "schema": {
               "type": "string"
@@ -4149,7 +4149,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": false,
             "schema": {
               "type": "string"

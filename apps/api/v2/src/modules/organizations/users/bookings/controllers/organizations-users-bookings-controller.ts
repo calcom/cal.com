@@ -1,11 +1,10 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
-  OPTIONAL_API_KEY_HEADER,
   OPTIONAL_X_CAL_CLIENT_ID_HEADER,
   OPTIONAL_X_CAL_SECRET_KEY_HEADER,
+  OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER,
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
@@ -19,17 +18,16 @@ import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { GetBookingsInput_2024_08_13, GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
-import { User } from "@calcom/prisma/client";
 
 @Controller({
   path: "/v2/organizations/:orgId/users/:userId/bookings",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsUserInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Users / Bookings")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
-@ApiHeader(OPTIONAL_API_KEY_HEADER)
+@ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
 export class OrganizationsUsersBookingsController {
   constructor(private readonly organizationUsersBookingsService: OrganizationUsersBookingsService) {}
 
