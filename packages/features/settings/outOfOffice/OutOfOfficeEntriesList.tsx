@@ -16,9 +16,11 @@ import {
   DataTableToolbar,
   DataTableProvider,
   ColumnFilterType,
+  useDataTable,
   useFilterValue,
   ZDateRangeFilterValue,
   DataTableFilters,
+  DataTableSegment,
 } from "@calcom/features/data-table";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -70,7 +72,6 @@ export default function OutOfOfficeEntriesList() {
 function OutOfOfficeEntriesListContent() {
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [deletedEntry, setDeletedEntry] = useState(0);
   const [currentlyEditingOutOfOfficeEntry, setCurrentlyEditingOutOfOfficeEntry] =
     useState<BookingRedirectForm | null>(null);
@@ -80,6 +81,7 @@ function OutOfOfficeEntriesListContent() {
     setOpenModal(true);
   };
 
+  const { searchTerm } = useDataTable();
   const searchParams = useCompatSearchParams();
   const selectedTab = searchParams?.get("type") ?? OutOfOfficeTab.MINE;
 
@@ -235,7 +237,7 @@ function OutOfOfficeEntriesListContent() {
           return (
             <>
               {row.original && !isPending && !isFetching ? (
-                <div className="flex flex-row items-center justify-end gap-x-2">
+                <div className="flex flex-row items-center justify-end gap-x-2" data-testid="ooo-actions">
                   <Tooltip content={t("edit")}>
                     <Button
                       className="self-center rounded-lg border"
@@ -345,12 +347,17 @@ function OutOfOfficeEntriesListContent() {
         totalRowCount={totalRowCount}
         tableContainerRef={tableContainerRef}
         paginationMode="infinite"
-        ToolbarLeft={<DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchTerm(value)} />}
+        ToolbarLeft={
+          <>
+            <DataTableToolbar.SearchBar />
+            <DataTableFilters.FilterBar table={table} />
+          </>
+        }
         ToolbarRight={
           <>
-            <DataTableFilters.AddFilterButton table={table} />
-            <DataTableFilters.ActiveFilters table={table} />
             <DataTableFilters.ClearFiltersButton />
+            <DataTableSegment.SaveButton />
+            <DataTableSegment.Select />
           </>
         }
         EmptyView={

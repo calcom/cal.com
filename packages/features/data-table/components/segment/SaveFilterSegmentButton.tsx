@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
@@ -51,11 +51,22 @@ export function SaveFilterSegmentButton() {
     selectedSegment,
     canSaveSegment,
     setSegmentId,
+    pageSize,
+    searchTerm,
   } = useDataTable();
 
   const [saveMode, setSaveMode] = useState<"create" | "update">(() =>
     selectedSegment ? "update" : "create"
   );
+
+  // When the dialog is not open,
+  // switch `saveMode` according to `selectedSegment`
+  useEffect(() => {
+    if (isOpen) {
+      return;
+    }
+    setSaveMode(selectedSegment ? "update" : "create");
+  }, [selectedSegment, isOpen]);
 
   const { data: teams } = trpc.viewer.teams.list.useQuery();
 
@@ -94,7 +105,8 @@ export function SaveFilterSegmentButton() {
       sorting,
       columnVisibility,
       columnSizing,
-      perPage: 10,
+      perPage: pageSize,
+      searchTerm,
     };
 
     if (saveMode === "update") {

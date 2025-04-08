@@ -42,7 +42,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         }),
       appStore,
       userAdminTeams: userAdminTeamsIds,
-      trpcState: undefined,
     },
   };
 };
