@@ -16,7 +16,7 @@ interface IConnectCalendarsProps {
 
 const ConnectedCalendars = (props: IConnectCalendarsProps) => {
   const { nextStep, isPageLoading } = props;
-  const queryConnectedCalendars = trpc.viewer.connectedCalendars.useQuery({
+  const queryConnectedCalendars = trpc.viewer.calendars.connectedCalendars.useQuery({
     onboarding: true,
     eventTypeId: null,
   });

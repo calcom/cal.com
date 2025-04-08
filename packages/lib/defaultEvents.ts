@@ -55,6 +55,7 @@ const user: User & { credentials: CredentialPayload[] } = {
   allowDynamicBooking: true,
   timeFormat: 12,
   travelSchedules: [],
+  locked: false,
 };
 
 const customInputs: CustomInputSchema[] = [];
@@ -87,6 +88,8 @@ const commons = {
   seatsPerTimeSlot: null,
   seatsShowAttendees: null,
   seatsShowAvailabilityCount: null,
+  disableCancelling: false,
+  disableRescheduling: false,
   onlyShowFirstAvailableSlot: false,
   allowReschedulingPastBookings: false,
   id: 0,

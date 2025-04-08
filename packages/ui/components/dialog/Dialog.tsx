@@ -133,7 +133,7 @@ export function DialogHeader(props: DialogHeaderProps) {
         {props.title}
       </h3>
       {props.subtitle && (
-        <p className="text-subtle text-sm leading-none" data-testid="dialog-subtitle">
+        <p className="text-subtle text-sm" data-testid="dialog-subtitle">
           {props.subtitle}
         </p>
       )}
@@ -151,7 +151,7 @@ export function DialogFooter(props: DialogFooterProps) {
   return (
     <div
       className={classNames(
-        "bg-muted border-subtle bottom-0 -mx-8 mt-10 rounded-b-2xl",
+        "bg-muted border-muted bottom-0 -mx-8 mt-10 rounded-b-2xl border",
         props?.noSticky ? "" : "sticky",
         props.className
       )}>
