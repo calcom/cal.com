@@ -7,6 +7,7 @@ import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import {
   DataTableProvider,
   DataTableWrapper,
@@ -156,8 +157,7 @@ function UserListTableContent() {
 
   // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
   const totalRowCount = data?.meta?.totalRowCount ?? 0;
-  const adminOrOwner =
-    org?.user?.role === "ADMIN" || org?.user?.role === "OWNER" || process.env.NODE_ENV === "test";
+  const adminOrOwner = checkAdminOrOwner(org?.user?.role);
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo<UserTableUser[]>(() => data?.rows ?? [], [data]);
