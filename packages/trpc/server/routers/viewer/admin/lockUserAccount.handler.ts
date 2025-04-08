@@ -22,6 +22,21 @@ const lockUserAccountHandler = async ({ input }: GetOptions) => {
     },
   });
 
+  // Verify unlocked user's workflows
+  if (!locked) {
+    await prisma.workflowStep.updateMany({
+      where: {
+        workflow: {
+          userId,
+        },
+        verifiedAt: null,
+      },
+      data: {
+        verifiedAt: new Date(),
+      },
+    });
+  }
+
   if (!user) {
     throw new Error("User not found");
   }
