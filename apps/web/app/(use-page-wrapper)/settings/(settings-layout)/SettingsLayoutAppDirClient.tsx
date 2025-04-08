@@ -176,6 +176,7 @@ const organizationAdminKeys = [
   "SSO",
   "directory_sync",
   "delegation_credential",
+  "attributes",
 ];
 
 const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnabled: boolean }) => {
