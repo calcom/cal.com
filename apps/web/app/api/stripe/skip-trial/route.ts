@@ -1,18 +1,19 @@
-import type { NextApiRequest } from "next";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { cookies, headers } from "next/headers";
+import { NextResponse } from "next/server";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
 
-async function handler(req: NextApiRequest) {
-  const session = await getServerSession({ req });
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+
+async function handler() {
+  const legacyReq = buildLegacyRequest(await headers(), await cookies());
+  const session = await getServerSession({ req: legacyReq });
+
   if (!session?.user?.id) {
     throw new HttpError({ statusCode: 401, message: "Unauthorized" });
-  }
-
-  if (req.method !== "POST") {
-    throw new HttpError({ statusCode: 405, message: "Method not allowed" });
   }
 
   const user = await prisma.user.findUnique({
@@ -42,7 +43,7 @@ async function handler(req: NextApiRequest) {
     },
   });
 
-  return { success: true };
+  return NextResponse.json({ success: true });
 }
 
-export default defaultResponder(handler, "/api/stripe/skip-trial");
+export const POST = defaultResponderForAppDir(handler);
