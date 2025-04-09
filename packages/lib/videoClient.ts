@@ -195,7 +195,7 @@ const deleteRecording = async (
       "Calling deleteRecording for",
       safeStringify({ credential: getPiiFreeCredential(credential), recordingId })
     );
-    if (videoAdapter && "deleteRecording" in videoAdapter) {
+    if (videoAdapter && "deleteRecording" in videoAdapter && videoAdapter.deleteRecording) {
       return videoAdapter.deleteRecording(recordingId);
     }
   }
