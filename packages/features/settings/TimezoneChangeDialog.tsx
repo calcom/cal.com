@@ -37,7 +37,7 @@ const TimezoneChangeDialogContent = () => {
   };
 
   // update timezone in db
-  const mutation = trpc.viewer.updateProfile.useMutation({
+  const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: onMutationSuccess,
     onError: onMutationError,
   });

@@ -102,7 +102,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     checkUsername(debouncedUsername);
   }, [debouncedUsername, currentUsername]);
 
-  const updateUsername = trpc.viewer.updateProfile.useMutation({
+  const updateUsername = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
       await update({ username: inputUsernameValue });
