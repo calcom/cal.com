@@ -272,7 +272,7 @@ const FormEdit = ({
       {hookFormFields.length ? (
         <div className={classNames("flex")}>
           <Button data-testid="add-field" type="button" StartIcon="plus" color="secondary" onClick={addField}>
-            Add field
+            Add question
           </Button>
         </div>
       ) : null}
