@@ -28,9 +28,9 @@ const useClientLocale = (namespace: Parameters<typeof useTranslation>[0] = "comm
 };
 
 // @internal
-const serverI18nInstances: Map<string, useLocaleReturnType> = new Map();
+const serverI18nInstances = new Map();
 
-export const useLocale = () => {
+export const useLocale = (): useLocaleReturnType => {
   const appRouterContext = useContext(AppRouterI18nContext);
   const clientI18n = useClientLocale();
 
