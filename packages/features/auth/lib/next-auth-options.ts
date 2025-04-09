@@ -971,7 +971,7 @@ export const getOptions = ({
               return true;
             }
           }
-          return `auth/error?error=use-identity-login&provider=${existingUserWithEmail.identityProvider}`;
+          return `/auth/error?error=use-identity-login&provider=${existingUserWithEmail.identityProvider}`;
         }
 
         // Associate with organization if enabled by flag and idP is Google (for now)
