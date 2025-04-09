@@ -7,6 +7,7 @@ import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.g
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
+import { GetRoutingFormResponsesOutput } from "@/modules/organizations/routing-forms/outputs/get-routing-form-responses.output";
 import { OrganizationsRoutingFormsResponsesService } from "@/modules/organizations/routing-forms/services/organizations-routing-forms-responses.service";
 import { Body, Controller, Get, Param, Patch, Query, UseGuards, ParseIntPipe } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
@@ -37,7 +38,7 @@ export class OrganizationsRoutingFormsResponsesController {
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("routingFormId") routingFormId: string,
     @Query() queryParams: GetRoutingFormResponsesParams
-  ): Promise<{ status: string; data: any[] }> {
+  ): Promise<GetRoutingFormResponsesOutput> {
     const { skip, take, ...filters } = queryParams;
 
     const responses =

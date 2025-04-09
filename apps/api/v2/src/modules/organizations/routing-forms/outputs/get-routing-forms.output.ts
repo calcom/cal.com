@@ -1,19 +1,18 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
-import { IsEnum } from "class-validator";
+import { IsEnum, IsJSON } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
 export class RoutingFormOutput {
-  @ApiProperty({ example: "string" })
   @Expose()
   id!: string;
 
-  @ApiProperty({ example: "string" })
+  @ApiProperty({ example: "My Form" })
   @Expose()
   name!: string;
 
-  @ApiProperty({ example: "string" })
+  @ApiProperty({ example: "This is the description." })
   @Expose()
   description!: string | null;
 
@@ -21,9 +20,9 @@ export class RoutingFormOutput {
   @Expose()
   position!: number;
 
-  @ApiProperty({ example: "json" })
   @Expose()
-  routes!: any;
+  @IsJSON()
+  routes!: Record<string, any> | null;
 
   @ApiProperty({ example: "2024-03-28T10:00:00.000Z" })
   @Expose()
@@ -33,15 +32,15 @@ export class RoutingFormOutput {
   @Expose()
   updatedAt!: string;
 
-  @ApiProperty({ example: "json" })
   @Expose()
-  fields!: any;
+  @IsJSON()
+  fields!: Record<string, any> | null;
 
-  @ApiProperty({ example: 0 })
+  @ApiProperty({ example: 2313 })
   @Expose()
   userId!: number;
 
-  @ApiProperty({ example: 0 })
+  @ApiProperty({ example: 4214321 })
   @Expose()
   teamId!: number | null;
 
@@ -49,9 +48,9 @@ export class RoutingFormOutput {
   @Expose()
   disabled!: boolean;
 
-  @ApiProperty({ example: "json" })
   @Expose()
-  settings!: any;
+  @IsJSON()
+  settings!: Record<string, any> | null;
 }
 
 export class GetRoutingFormsOutput {

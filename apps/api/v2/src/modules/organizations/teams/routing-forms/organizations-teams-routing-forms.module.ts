@@ -1,5 +1,7 @@
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { OrganizationsRoutingFormsRepository } from "@/modules/organizations/routing-forms/organizations-routing-forms.repository";
+import { OrganizationsRoutingFormsResponsesService } from "@/modules/organizations/routing-forms/services/organizations-routing-forms-responses.service";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
@@ -28,6 +30,8 @@ import { OrganizationsTeamsRoutingFormsService } from "./services/organizations-
     OrganizationsRepository,
     OrganizationsTeamsRepository,
     MembershipsRepository,
+    OrganizationsRoutingFormsResponsesService,
+    OrganizationsRoutingFormsRepository,
   ],
   controllers: [OrganizationsTeamsRoutingFormsResponsesController, OrganizationsTeamsRoutingFormsController],
 })

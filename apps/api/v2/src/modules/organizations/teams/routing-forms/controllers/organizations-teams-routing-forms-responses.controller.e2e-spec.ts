@@ -173,7 +173,9 @@ describe("Organizations Teams Routing Forms Responses", () => {
 
   it("should get routing form responses", async () => {
     return request(app.getHttpServer())
-      .get(`/v2/organizations/${org.id}/teams/${orgTeam.id}/routing-forms/${routingFormId}/responses`)
+      .get(
+        `/v2/organizations/${org.id}/teams/${orgTeam.id}/routing-forms/${routingFormId}/responses?skip=0&take=1`
+      )
       .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
       .expect(200)
       .then((response) => {

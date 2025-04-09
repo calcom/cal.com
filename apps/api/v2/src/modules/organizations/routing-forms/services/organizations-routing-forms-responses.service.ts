@@ -2,7 +2,7 @@ import { OrganizationsRoutingFormsRepository } from "@/modules/organizations/rou
 import { Injectable } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 
-import { RoutingFormResponseOutput } from "../outputs/update-routing-form-response.output";
+import { RoutingFormResponseOutput } from "@calcom/platform-types";
 
 @Injectable()
 export class OrganizationsRoutingFormsResponsesService {
@@ -18,7 +18,10 @@ export class OrganizationsRoutingFormsResponsesService {
       sortUpdatedAt?: "asc" | "desc";
       afterCreatedAt?: Date;
       beforeCreatedAt?: Date;
+      afterUpdatedAt?: Date;
+      beforeUpdatedAt?: Date;
       routedToBookingUid?: string;
+      teamId?: number;
     }
   ) {
     const responses = await this.organizationsRoutingFormsRepository.getOrganizationRoutingFormResponses(

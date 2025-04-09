@@ -5,7 +5,7 @@ import { IsEnum } from "class-validator";
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 import { RoutingFormResponseOutput } from "@calcom/platform-types";
 
-export class UpdateRoutingFormResponseOutput {
+export class GetRoutingFormResponsesOutput {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
@@ -13,5 +13,5 @@ export class UpdateRoutingFormResponseOutput {
   @ApiProperty({ type: RoutingFormResponseOutput })
   @Expose()
   @Type(() => RoutingFormResponseOutput)
-  data!: RoutingFormResponseOutput;
+  data!: RoutingFormResponseOutput[];
 }
