@@ -56,6 +56,8 @@ export function createWorkflowPageFixture(page: Page) {
   };
 
   const fillNameInput = async (name: string) => {
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(300);
     await page.getByTestId("workflow-name").fill(name);
   };
 
