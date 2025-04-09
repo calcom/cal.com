@@ -68,8 +68,6 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
       allData = [...firstBatch.data];
       const totalRecords = firstBatch.total;
 
-      setDownloadProgress(Math.min(Math.round((allData.length / totalRecords) * 100), 99));
-
       // Continue fetching remaining batches
       while (allData.length < totalRecords) {
         offset += BATCH_SIZE;
@@ -103,7 +101,7 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
           color="secondary"
           className="self-end sm:self-baseline"
           loading={isDownloading}>
-          {isDownloading ? `${downloadProgress}%` : t("download")}
+          {isDownloading ? `${Math.floor(downloadProgress)}%` : t("download")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
