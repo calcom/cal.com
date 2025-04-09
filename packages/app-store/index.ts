@@ -33,6 +33,7 @@ const appStore = {
   make: createCachedImport(() => import("./make")),
   exchange2013calendar: createCachedImport(() => import("./exchange2013calendar")),
   exchange2016calendar: createCachedImport(() => import("./exchange2016calendar")),
+  exchange2019calendar: createCachedImport(() => import("./exchange2019calendar")),
   exchangecalendar: createCachedImport(() => import("./exchangecalendar")),
   facetime: createCachedImport(() => import("./facetime")),
   sylapsvideo: createCachedImport(() => import("./sylapsvideo")),

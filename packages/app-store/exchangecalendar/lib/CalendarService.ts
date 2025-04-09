@@ -197,16 +197,39 @@ export default class ExchangeCalendarService implements Calendar {
   }
 
   private async getExchangeService(): Promise<ExchangeService> {
-    const service: ExchangeService = new ExchangeService(this.payload.exchangeVersion);
-    service.Credentials = new WebCredentials(this.payload.username, this.payload.password);
-    service.Url = new Uri(this.payload.url);
-    if (this.payload.authenticationMethod === ExchangeAuthentication.NTLM) {
-      const { XhrApi } = await import("@ewsjs/xhr");
-      const xhr = new XhrApi({
-        rejectUnauthorized: false,
-      }).useNtlmAuthentication(this.payload.username, this.payload.password);
-      service.XHRApi = xhr;
+    try {
+      const service: ExchangeService = new ExchangeService(this.payload.exchangeVersion);
+      service.Credentials = new WebCredentials(this.payload.username, this.payload.password);
+      service.Url = new Uri(this.payload.url);
+      
+      if (this.payload.authenticationMethod === ExchangeAuthentication.NTLM) {
+        try {
+          // Handle OpenSSL compatibility issues for NTLM
+          // Set the legacy provider for OpenSSL if needed
+          if (process.env.NODE_OPTIONS?.includes('--openssl-legacy-provider') !== true) {
+            process.env.NODE_OPTIONS = (process.env.NODE_OPTIONS || '') + ' --openssl-legacy-provider';
+            this.log.info("Added legacy OpenSSL provider for NTLM authentication");
+          }
+          
+          const { XhrApi } = await import("@ewsjs/xhr");
+          const xhr = new XhrApi({
+            rejectUnauthorized: false,
+            // Additional configuration for better compatibility
+            strictSSL: false,
+            secureOptions: 0,
+          }).useNtlmAuthentication(this.payload.username, this.payload.password);
+          
+          service.XHRApi = xhr;
+        } catch (ntlmError) {
+          this.log.error(`NTLM Authentication error: ${ntlmError}`);
+          throw new Error(`Failed to initialize NTLM authentication. Try using basic authentication instead. Error: ${ntlmError.message}`);
+        }
+      }
+      
+      return service;
+    } catch (error) {
+      this.log.error(`Exchange service initialization error: ${error}`);
+      throw new Error(`Failed to initialize Exchange service: ${error.message}`);
     }
-    return service;
   }
 }

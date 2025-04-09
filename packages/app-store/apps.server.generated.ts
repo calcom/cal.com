@@ -27,6 +27,7 @@ export const apiHandlers = {
   elevenlabs: import("./elevenlabs/api"),
   exchange2013calendar: import("./exchange2013calendar/api"),
   exchange2016calendar: import("./exchange2016calendar/api"),
+  exchange2019calendar: import("./exchange2019calendar/api"),
   exchangecalendar: import("./exchangecalendar/api"),
   facetime: import("./facetime/api"),
   fathom: import("./fathom/api"),
