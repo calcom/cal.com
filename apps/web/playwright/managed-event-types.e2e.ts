@@ -157,7 +157,7 @@ test.describe("Managed Event Types", () => {
     users,
     browser,
   }) => {
-    const { adminUser, memberUser, teamEventTitle, teamId } = await setupManagedEvent({
+    const { adminUser, memberUser, teamEventTitle, teamId, managedEvent } = await setupManagedEvent({
       users,
       unlockedFields: {
         title: true,
@@ -173,7 +173,7 @@ test.describe("Managed Event Types", () => {
 
     // We edit the managed event as original owner
     const [adminContext, adminPage] = await adminUser.apiLoginOnNewBrowser(browser);
-    await adminPage.goto(`/event-types?teamId=${teamId}`);
+    await adminPage.goto(`/event-types/${managedEvent.id}?tabName=setup`);
     await adminPage.getByTestId("event-types").locator(`a[title="${teamEventTitle}"]`).click();
     await adminPage.waitForURL("event-types/**");
     await adminPage.locator('input[name="length"]').fill(`45`);
