@@ -1310,7 +1310,7 @@ export default class SalesforceCRMService implements CRM {
         log.error(`BookingUid not passed. Cannot get form responses without it`);
         return;
       }
-      valueToWrite = await this.getTextValueFromRoutingFormResponse(fieldValue, bookingUid);
+      valueToWrite = await this.getTextValueFromRoutingFormResponse(fieldValue, bookingUid, recordId);
     } else {
       // Get the value from the booking response
       if (!calEventResponses) {
@@ -1330,7 +1330,15 @@ export default class SalesforceCRMService implements CRM {
     return fieldLength ? valueToWrite.substring(0, fieldLength) : valueToWrite;
   }
 
-  private async getTextValueFromRoutingFormResponse(fieldValue: string, bookingUid: string) {
+  private async getTextValueFromRoutingFormResponse(
+    fieldValue: string,
+    bookingUid: string,
+    recordId: string
+  ) {
+    const log = logger.getSubLogger({
+      prefix: [`[getTextValueFromRoutingFormResponse]: ${recordId} - bookingUid: ${bookingUid}}`],
+    });
+
     // Get the form response
     const routingFormResponse = await prisma.app_RoutingForms_FormResponse.findFirst({
       where: {
@@ -1340,14 +1348,23 @@ export default class SalesforceCRMService implements CRM {
         response: true,
       },
     });
-    if (!routingFormResponse) return fieldValue;
+    if (!routingFormResponse) {
+      log.error("Routing form response not found");
+      return fieldValue;
+    }
     const response = routingFormResponse.response as FormResponse;
     const regex = /\{form:(.*?)\}/;
     const regexMatch = fieldValue.match(regex);
-    if (!regexMatch) return fieldValue;
+    if (!regexMatch) {
+      log.error("Could not find regex match to {form:}");
+      return fieldValue;
+    }
 
     const identifierField = regexMatch?.[1];
-    if (!identifierField) return fieldValue;
+    if (!identifierField) {
+      log.error(`Could not find matching regex string ${regexMatch}`);
+      return fieldValue;
+    }
 
     // Search for fieldValue, only handle raw text return for now
     for (const fieldId of Object.keys(response)) {
@@ -1356,6 +1373,11 @@ export default class SalesforceCRMService implements CRM {
         return field.value.toString();
       }
     }
+    log.error(
+      `Could not find form response value for identifierField ${identifierField} in response keys ${Object.keys(
+        response
+      )}`
+    );
 
     return fieldValue;
   }
