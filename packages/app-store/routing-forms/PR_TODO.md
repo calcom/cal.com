@@ -38,6 +38,10 @@
   - [X] Move collapse and change icon
   - [X] Add index count to field title
   - [] move buttons
+-[ ] Continue without saving modal
+  * Go back 
+  * discard and continue
+  * continue and save
 
 ## Routing
 - [ ] Layout

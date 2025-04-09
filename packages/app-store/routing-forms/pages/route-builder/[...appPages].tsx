@@ -17,20 +17,23 @@ import { SchedulingType } from "@calcom/prisma/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
+import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
 import { FormCard } from "@calcom/ui/components/card";
 import { Divider } from "@calcom/ui/components/divider";
 import { SelectWithValidation as Select, TextArea } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { SelectField } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
-import { Button } from "@calcom/ui/components/button";
+import type { IconName } from "@calcom/ui/components/icon";
 
 import { routingFormAppComponents } from "../../appComponents";
 import DynamicAppComponent from "../../components/DynamicAppComponent";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
+import { EmptyState } from "../../components/_components/EmptyState";
 import {
   withRaqbSettingsAndWidgets,
   ConfigFor,
@@ -57,8 +60,6 @@ import type {
 } from "../../types/types";
 import type { zodRoutes } from "../../zod";
 import { RouteActionType } from "../../zod";
-import { EmptyState } from "../../components/_components/EmptyState";
-import { IconName } from "@calcom/ui/components/icon";
 
 type EventTypesByGroup = RouterOutputs["viewer"]["eventTypes"]["getByViewer"];
 
@@ -267,9 +268,9 @@ const WeightedAttributesSelector = ({
 
       attributesWithWeightsEnabled = attributes
         ? attributes.filter(
-          (attribute) =>
-            attribute.isWeightsEnabled && attributeIds.find((attributeId) => attributeId === attribute.id)
-        )
+            (attribute) =>
+              attribute.isWeightsEnabled && attributeIds.find((attributeId) => attributeId === attribute.id)
+          )
         : [];
     }
   }
@@ -337,7 +338,7 @@ const Route = ({
   fieldIdentifiers,
   eventTypesByGroup,
   attributes,
-  cardOptions
+  cardOptions,
 }: {
   form: Form;
   route: EditFormRoute;
@@ -484,20 +485,20 @@ const Route = ({
   const eventTypeRedirectUrlOptions =
     eventOptions.length !== 0
       ? [{ label: t("custom"), value: "custom", eventTypeId: 0, isRRWeightsEnabled: false }].concat(
-        eventOptions
-      )
+          eventOptions
+        )
       : [];
 
   const eventTypeRedirectUrlSelectedOption =
     eventOptions.length !== 0 && route.action.value !== ""
       ? eventOptions.find(
-        (eventOption) => eventOption.value === route.action.value && !customEventTypeSlug.length
-      ) || {
-        label: t("custom"),
-        value: "custom",
-        eventTypeId: 0,
-        isRRWeightsEnabled: false,
-      }
+          (eventOption) => eventOption.value === route.action.value && !customEventTypeSlug.length
+        ) || {
+          label: t("custom"),
+          value: "custom",
+          eventTypeId: 0,
+          isRRWeightsEnabled: false,
+        }
       : undefined;
 
   const formFieldsQueryBuilder = shouldShowFormFieldsQueryBuilder ? (
@@ -527,9 +528,9 @@ const Route = ({
 
   const attributesQueryBuilderConfigWithRaqbSettingsAndWidgets = attributesQueryBuilderConfig
     ? withRaqbSettingsAndWidgets({
-      config: attributesQueryBuilderConfig,
-      configFor: ConfigFor.Attributes,
-    })
+        config: attributesQueryBuilderConfig,
+        configFor: ConfigFor.Attributes,
+      })
     : null;
 
   const attributesQueryBuilder =
@@ -540,7 +541,7 @@ const Route = ({
         </span>
 
         {eventTypeRedirectUrlSelectedOption?.eventTypeAppMetadata &&
-          "salesforce" in eventTypeRedirectUrlSelectedOption.eventTypeAppMetadata ? (
+        "salesforce" in eventTypeRedirectUrlSelectedOption.eventTypeAppMetadata ? (
           <div className="mt-4 px-2.5">
             <DynamicAppComponent
               componentMap={routingFormAppComponents}
@@ -599,7 +600,7 @@ const Route = ({
 
   return (
     <FormCard
-      className="mb-6 bg-default"
+      className={classNames("mb-6", route.isFallback ? "bg-default" : "bg-muted")}
       leftIcon={cardOptions?.leftIcon}
       collapsible={cardOptions?.collapsible}
       moveUp={moveUp}
@@ -609,14 +610,22 @@ const Route = ({
       onLabelChange={(label) => {
         setRoute(route.id, { name: label });
       }}
-      deleteField={route.isFallback ? null : {
-        check: () => routes.length !== 1,
-        fn: () => {
-          const newRoutes = routes.filter((r) => r.id !== route.id);
-          setRoutes(newRoutes);
-        },
-      }}>
-      <div className="bg-muted border-subtle w-full gap-2 rounded-xl border p-2">
+      deleteField={
+        route.isFallback
+          ? null
+          : {
+              check: () => routes.length !== 1,
+              fn: () => {
+                const newRoutes = routes.filter((r) => r.id !== route.id);
+                setRoutes(newRoutes);
+              },
+            }
+      }>
+      <div
+        className={classNames(
+          "border-subtle w-full gap-2 rounded-xl border p-2",
+          route.isFallback ? "bg-muted" : "bg-default"
+        )}>
         <div className="cal-query-builder w-full ">
           {formFieldsQueryBuilder}
           <div>
@@ -708,9 +717,9 @@ const Route = ({
                       value={eventTypeRedirectUrlSelectedOption}
                     />
                     {eventOptions.length !== 0 &&
-                      route.action.value !== "" &&
-                      (!eventOptions.find((eventOption) => eventOption.value === route.action.value) ||
-                        customEventTypeSlug.length) ? (
+                    route.action.value !== "" &&
+                    (!eventOptions.find((eventOption) => eventOption.value === route.action.value) ||
+                      customEventTypeSlug.length) ? (
                       <>
                         <TextField
                           disabled={disabled}
@@ -731,8 +740,8 @@ const Route = ({
                           <p className="text-subtle text-xs">
                             {fieldIdentifiers.length
                               ? t("field_identifiers_as_variables_with_example", {
-                                variable: `{${fieldIdentifiers[0]}}`,
-                              })
+                                  variable: `{${fieldIdentifiers[0]}}`,
+                                })
                               : t("field_identifiers_as_variables")}
                           </p>
                         </div>
@@ -751,10 +760,12 @@ const Route = ({
               eventTypeRedirectUrlSelectedOption={eventTypeRedirectUrlSelectedOption}
               setRoute={setRoute}
             />
-            {fallbackAttributesQueryBuilder ? <>
-              <Divider className="mb-6 mt-6" />
-              {fallbackAttributesQueryBuilder}
-            </> : null}
+            {fallbackAttributesQueryBuilder ? (
+              <>
+                <Divider className="mb-6 mt-6" />
+                {fallbackAttributesQueryBuilder}
+              </>
+            ) : null}
           </div>
         </div>
       </div>
@@ -764,14 +775,14 @@ const Route = ({
 
 const buildState = <
   T extends
-  | {
-    queryValue: FormFieldsQueryValue;
-    config: FormFieldsQueryBuilderConfigWithRaqbFields;
-  }
-  | {
-    queryValue: AttributesQueryValue;
-    config: AttributesQueryBuilderConfigWithRaqbFields;
-  }
+    | {
+        queryValue: FormFieldsQueryValue;
+        config: FormFieldsQueryBuilderConfigWithRaqbFields;
+      }
+    | {
+        queryValue: AttributesQueryValue;
+        config: AttributesQueryBuilderConfigWithRaqbFields;
+      }
 >({
   queryValue,
   config,
@@ -792,17 +803,17 @@ const deserializeRoute = ({
   const attributesQueryBuilderState =
     route.attributesQueryValue && attributesQueryBuilderConfig
       ? buildState({
-        queryValue: route.attributesQueryValue,
-        config: attributesQueryBuilderConfig,
-      })
+          queryValue: route.attributesQueryValue,
+          config: attributesQueryBuilderConfig,
+        })
       : null;
 
   const fallbackAttributesQueryBuilderState =
     route.fallbackAttributesQueryValue && attributesQueryBuilderConfig
       ? buildState({
-        queryValue: route.fallbackAttributesQueryValue,
-        config: attributesQueryBuilderConfig,
-      })
+          queryValue: route.fallbackAttributesQueryValue,
+          config: attributesQueryBuilderConfig,
+        })
       : null;
 
   return {
@@ -917,16 +928,16 @@ const useCreateRoute = ({
         attributesQueryBuilderState:
           attributesQueryBuilderConfig && newEmptyRoute.attributesQueryValue
             ? buildState({
-              queryValue: newEmptyRoute.attributesQueryValue,
-              config: attributesQueryBuilderConfig,
-            })
+                queryValue: newEmptyRoute.attributesQueryValue,
+                config: attributesQueryBuilderConfig,
+              })
             : null,
         fallbackAttributesQueryBuilderState:
           attributesQueryBuilderConfig && newEmptyRoute.fallbackAttributesQueryValue
             ? buildState({
-              queryValue: newEmptyRoute.fallbackAttributesQueryValue,
-              config: attributesQueryBuilderConfig,
-            })
+                queryValue: newEmptyRoute.fallbackAttributesQueryValue,
+                config: attributesQueryBuilderConfig,
+              })
             : null,
       },
     ];
@@ -955,9 +966,9 @@ const Routes = ({
   const formFieldsQueryBuilderConfig = getQueryBuilderConfigForFormFields(hookForm.getValues());
   const attributesQueryBuilderConfig = attributes
     ? getQueryBuilderConfigForAttributes({
-      attributes: attributes,
-      dynamicOperandFields: hookForm.getValues().fields,
-    })
+        attributes: attributes,
+        dynamicOperandFields: hookForm.getValues().fields,
+      })
     : null;
 
   const { routes, setRoutes } = useRoutes({
@@ -1011,7 +1022,7 @@ const Routes = ({
 
   // const isConnectedForm = (id: string) => form.connectedForms.map((f) => f.id).includes(id);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const routers: any[] = [];
+  // const routers: any[] = [];
   /* Disable this feature for new forms till we get it fully working with Routing Form with Attributes. This isn't much used feature */
   // const routers = availableRouters.map((r) => {
   //   // Reset disabled state
@@ -1028,22 +1039,12 @@ const Routes = ({
   //   return r;
   // });
 
-  const routerOptions = (
-    [
-      {
-        label: "Create a New Route",
-        value: "newRoute",
-        name: null,
-        description: null,
-      },
-    ] as {
-      label: string;
-      value: string;
-      name: string | null;
-      description: string | null;
-      isDisabled?: boolean;
-    }[]
-  ).concat(routers);
+  const createRoute = useCreateRoute({
+    routes,
+    setRoutes,
+    formFieldsQueryBuilderConfig,
+    attributesQueryBuilderConfig,
+  });
 
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
@@ -1114,13 +1115,6 @@ const Routes = ({
 
   const fieldIdentifiers = fields ? fields.map((field) => field.identifier ?? field.label) : [];
 
-  const createRoute = useCreateRoute({
-    routes,
-    setRoutes,
-    formFieldsQueryBuilderConfig,
-    attributesQueryBuilderConfig,
-  });
-
   return (
     <div className="w-full py-4 lg:py-8">
       <div ref={animationRef} className="w-full ltr:mr-2 rtl:ml-2">
@@ -1166,11 +1160,7 @@ const Routes = ({
             buttonClassName="mt-6"
           />
         ) : (
-          <Button
-            color="minimal"
-            StartIcon="plus"
-            className="mb-6"
-            onClick={createRoute}>
+          <Button color="minimal" StartIcon="plus" className="mb-6" onClick={createRoute}>
             {t("add_a_new_route")}
           </Button>
         )}
