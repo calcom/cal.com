@@ -27,7 +27,8 @@ export async function loadTranslations(locale: string, ns: string) {
   }
 }
 
-export const getTranslation = async (locale: string, ns: string) => {
+export const getTranslation = async (_locale: string, ns: string) => {
+  const locale = _locale === "zh" ? "zh-CN" : _locale; // We use zh-CN for zh translations
   const cacheKey = `${locale}-${ns}`;
   if (i18nInstanceCache.has(cacheKey)) {
     return i18nInstanceCache.get(cacheKey).getFixedT(locale, ns);
@@ -43,10 +44,7 @@ export const getTranslation = async (locale: string, ns: string) => {
         [ns]: resources,
       },
     },
-    fallbackLng: {
-      default: ["en"],
-      zh: ["zh-CN"],
-    },
+    fallbackLng: "en",
   });
 
   i18nInstanceCache.set(cacheKey, _i18n);
