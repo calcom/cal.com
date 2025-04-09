@@ -3,6 +3,7 @@ import type { Booking, BookingReference } from "@prisma/client";
 import { getDelegationCredentialOrFindRegularCredential } from "@calcom/lib/delegationCredential/server";
 import logger from "@calcom/lib/logger";
 import { deleteRecording, getRecordingsOfCalVideoByRoomName } from "@calcom/lib/videoClient";
+import type { GetRecordingsResponseSchema } from "@calcom/prisma/zod-utils";
 
 const log = logger.getSubLogger({ prefix: ["[handleRecordings]"] });
 
