@@ -104,20 +104,19 @@ export const tabs = [
             style={{ resize: "none", overflow: "auto" }}
             value={`/* First make sure that you have installed the package */
 
-                    /* If you are using yarn */
-                    // yarn add @calcom/embed-react
+/* If you are using yarn */
+// yarn add @calcom/atoms
 
-                    /* If you are using npm */
-                    // npm install @calcom/embed-react
-                    ${getEmbedTypeSpecificString({
-                      embedFramework: "react",
-                      embedType,
-                      calLink,
-                      previewState,
-                      embedCalOrigin,
-                      namespace,
-                    })}
-                  `}
+/* If you are using npm */
+// npm install @calcom/atoms
+${getEmbedTypeSpecificString({
+  embedFramework: "react",
+  embedType,
+  calLink,
+  previewState,
+  embedCalOrigin,
+  namespace,
+})}`}
           />
         </>
       );
@@ -153,19 +152,20 @@ export const tabs = [
             readOnly
             style={{ resize: "none", overflow: "auto" }}
             value={`/* First make sure that you have installed the package */
-  /* If you are using yarn */
-  // yarn add @calcom/embed-react
-  /* If you are using npm */
-  // npm install @calcom/embed-react
-  ${getEmbedTypeSpecificString({
-    embedFramework: "react-atom",
-    embedType,
-    calLink,
-    previewState,
-    embedCalOrigin,
-    namespace,
-  })}
-  `}
+
+/* If you are using yarn */
+// yarn add @calcom/atoms
+
+/* If you are using npm */
+// npm install @calcom/atoms
+${getEmbedTypeSpecificString({
+  embedFramework: "react-atom" as EmbedFramework,
+  embedType,
+  calLink,
+  previewState,
+  embedCalOrigin,
+  namespace,
+})}`}
           />
         </>
       );

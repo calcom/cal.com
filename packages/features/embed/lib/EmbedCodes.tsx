@@ -32,23 +32,23 @@ export const Codes = {
       const namespaceProp = `${namespace ? `namespace="${namespace}"` : ""}`;
       const argumentForGetCalApi = getArgumentForGetCalApi(namespace);
       return code`
-  import Cal, { getCalApi } from "@calcom/embed-react";
-  import { useEffect } from "react";
-  export default function MyApp() {
-	useEffect(()=>{
-	  (async function () {
-		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
-		${uiInstructionCode}
-	  })();
-	}, [])
-	return <Cal ${namespaceProp}
-	  calLink="${calLink}"
-	  style={{width:"${width}",height:"${height}",overflow:"scroll"}}
-	  config={${JSON.stringify(previewState.config)}}
-    ${doWeNeedCalOriginProp(embedCalOrigin) ? `  calOrigin="${embedCalOrigin}"` : ""}
-	  ${IS_SELF_HOSTED ? `embedJsUrl="${embedLibUrl}"` : ""}
-	/>;
-  };`;
+import Cal, { getCalApi } from "@calcom/embed-react";
+import { useEffect } from "react";
+export default function MyApp() {
+  useEffect(() => {
+    (async function () {
+      const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
+      ${uiInstructionCode}
+    })();
+  }, [])
+  return <Cal ${namespaceProp}
+    calLink="${calLink}"
+    style={{width:"${width}",height:"${height}",overflow:"scroll"}}
+    config={${JSON.stringify(previewState.config)}}
+    ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
+    ${IS_SELF_HOSTED ? `embedJsUrl="${embedLibUrl}"` : ""}
+  />;
+};`;
     },
     "floating-popup": ({
       calLink,
@@ -70,17 +70,17 @@ export const Codes = {
         ...previewState,
       });
       return code`
-  import { getCalApi } from "@calcom/embed-react";
-  import { useEffect } from "react";
-  export default function MyApp() {
-	useEffect(()=>{
-	  (async function () {
-		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
-		${getApiNameForReactSnippet({ mainApiName: "cal" })}("floatingButton", ${floatingButtonArg});
-		${uiInstructionCode}
-	  })();
-	}, [])
-  };`;
+import { getCalApi } from "@calcom/embed-react";
+import { useEffect } from "react";
+export default function MyApp() {
+  useEffect(() => {
+    (async function () {
+      const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
+      ${getApiNameForReactSnippet({ mainApiName: "cal" })}("floatingButton", ${floatingButtonArg});
+      ${uiInstructionCode}
+    })();
+  }, [])
+};`;
     },
     "element-click": ({
       calLink,
@@ -97,21 +97,21 @@ export const Codes = {
     }) => {
       const argumentForGetCalApi = getArgumentForGetCalApi(namespace);
       return code`
-  import { getCalApi } from "@calcom/embed-react";
-  import { useEffect } from "react";
-  export default function MyApp() {
-	useEffect(()=>{
-	  (async function () {
-		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
-		${uiInstructionCode}
-	  })();
-	}, [])
-	return <button data-cal-namespace="${namespace}"
-	  data-cal-link="${calLink}"
-    ${doWeNeedCalOriginProp(embedCalOrigin) ? `  data-cal-origin="${embedCalOrigin}"` : ""}
-	  ${`data-cal-config='${JSON.stringify(previewState.config)}'`}
-	  >Click me</button>;
-  };`;
+import { getCalApi } from "@calcom/embed-react";
+import { useEffect } from "react";
+export default function MyApp() {
+  useEffect(() => {
+    (async function () {
+      const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
+      ${uiInstructionCode}
+    })();
+  }, [])
+  return <button data-cal-namespace="${namespace}"
+    data-cal-link="${calLink}"
+    ${doWeNeedCalOriginProp(embedCalOrigin) ? `data-cal-origin="${embedCalOrigin}"` : ""}
+    ${`data-cal-config='${JSON.stringify(previewState.config)}'`}
+  >Click me</button>;
+};`;
     },
   },
   "react-atom": {
@@ -133,24 +133,24 @@ export const Codes = {
       const namespaceProp = `${namespace ? `namespace="${namespace}"` : ""}`;
       const argumentForGetCalApi = getArgumentForGetCalApi(namespace);
       return code`
-  import { Cal } from "@calcom/embed-react-atom";
-  import { useEffect } from "react";
-  export default function MyCalendar() {
-    useEffect(() => {
-      // You can use the Cal object to customize the appearance of your Cal embed
-      // Visit https://cal.com/docs/atom for more info
-    }, []);
-    
-    return (
-      <Cal.Embed ${namespaceProp}
-        calLink="${calLink}"
-        style={{width:"${width}",height:"${height}",overflow:"scroll"}}
-        config={${JSON.stringify(previewState.config)}}
-        ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
-        ${IS_SELF_HOSTED ? `embedJsUrl="${embedLibUrl}"` : ""}
-      />
-    );
-  };`;
+import { Cal } from "@calcom/atoms";
+import { useEffect } from "react";
+export default function MyCalendar() {
+  useEffect(() => {
+    // You can use the Cal object to customize the appearance of your Cal embed
+    // Visit https://cal.com/docs/atom for more info
+  }, []);
+  
+  return (
+    <Cal.Embed ${namespaceProp}
+      calLink="${calLink}"
+      style={{width:"${width}",height:"${height}",overflow:"scroll"}}
+      config={${JSON.stringify(previewState.config)}}
+      ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
+      ${IS_SELF_HOSTED ? `embedJsUrl="${embedLibUrl}"` : ""}
+    />
+  );
+};`;
     },
     "floating-popup": ({
       calLink,
@@ -166,20 +166,20 @@ export const Codes = {
       previewState: PreviewState["floatingPopup"];
     }) => {
       return code`
-  import { Cal } from "@calcom/embed-react-atom";
-  export default function MyCalendar() {
-    return (
-      <Cal.FloatingButton 
-        calLink="${calLink}"
-        config={${JSON.stringify(previewState.config)}}
-        ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
-        ${previewState.hideButtonIcon ? `hideButtonIcon={true}` : ""}
-        ${previewState.buttonPosition ? `buttonPosition="${previewState.buttonPosition}"` : ""}
-        ${previewState.buttonColor ? `buttonColor="${previewState.buttonColor}"` : ""}
-        ${previewState.buttonTextColor ? `buttonTextColor="${previewState.buttonTextColor}"` : ""}
-      />
-    );
-  };`;
+import { Cal } from "@calcom/atoms";
+export default function MyCalendar() {
+  return (
+    <Cal.FloatingButton 
+      calLink="${calLink}"
+      config={${JSON.stringify(previewState.config)}}
+      ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
+      ${previewState.hideButtonIcon ? `hideButtonIcon={true}` : ""}
+      ${previewState.buttonPosition ? `buttonPosition="${previewState.buttonPosition}"` : ""}
+      ${previewState.buttonColor ? `buttonColor="${previewState.buttonColor}"` : ""}
+      ${previewState.buttonTextColor ? `buttonTextColor="${previewState.buttonTextColor}"` : ""}
+    />
+  );
+};`;
     },
     "element-click": ({
       calLink,
@@ -195,18 +195,18 @@ export const Codes = {
       namespace: string;
     }) => {
       return code`
-  import { Cal } from "@calcom/embed-react-atom";
-  export default function MyCalendar() {
-    return (
-      <Cal.Button 
-        calLink="${calLink}"
-        config={${JSON.stringify(previewState.config)}}
-        ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
-      >
-        Book my calendar
-      </Cal.Button>
-    );
-  };`;
+import { Cal } from "@calcom/atoms";
+export default function MyCalendar() {
+  return (
+    <Cal.Button 
+      calLink="${calLink}"
+      config={${JSON.stringify(previewState.config)}}
+      ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
+    >
+      Book my calendar
+    </Cal.Button>
+  );
+};`;
     },
   },
   HTML: {
