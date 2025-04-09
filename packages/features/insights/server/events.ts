@@ -382,14 +382,14 @@ class EventsInsights {
   ) => {
     // Obtain the where conditional
     const whereConditional = await this.obtainWhereConditionalForDownload(props);
-    const limit = props.limit ?? 1000; // Default batch size
+    const limit = props.limit ?? 100; // Default batch size
     const offset = props.offset ?? 0;
 
-    const totalCount = await prisma.bookingTimeStatus.count({
+    const totalCountPromise = prisma.bookingTimeStatus.count({
       where: whereConditional,
     });
 
-    const csvData = await prisma.bookingTimeStatus.findMany({
+    const csvDataPromise = prisma.bookingTimeStatus.findMany({
       select: {
         id: true,
         uid: true,
@@ -411,6 +411,8 @@ class EventsInsights {
       skip: offset,
       take: limit,
     });
+
+    const [totalCount, csvData] = await Promise.all([totalCountPromise, csvDataPromise]);
 
     const uids = csvData.filter((b) => b.uid !== null).map((b) => b.uid as string);
 
@@ -643,16 +645,6 @@ class EventsInsights {
 
     return !!isOwnerAdminOfParentTeam;
   };
-
-  static objectToCsv(data: Record<string, unknown>[]) {
-    // if empty data return empty string
-    if (!data.length) {
-      return "";
-    }
-    const header = `${Object.keys(data[0]).join(",")}\n`;
-    const rows = data.map((obj: any) => `${Object.values(obj).join(",")}\n`);
-    return header + rows.join("");
-  }
 }
 
 export { EventsInsights };

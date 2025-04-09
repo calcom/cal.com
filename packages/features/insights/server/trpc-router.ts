@@ -8,7 +8,6 @@ import {
   routingFormResponsesInputSchema,
   routingFormStatsInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
-import { randomString } from "@calcom/lib/random";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
@@ -1552,7 +1551,7 @@ export const insightsRouter = router({
 
     const isOrgAdminOrOwner = ctx.user.isOwnerAdminOfParentTeam;
     try {
-      const result = await EventsInsights.getCsvData({
+      return await EventsInsights.getCsvData({
         startDate,
         endDate,
         teamId,
@@ -1565,19 +1564,6 @@ export const insightsRouter = router({
         limit,
         offset,
       });
-
-      if (limit !== undefined || offset !== undefined) {
-        return result;
-      }
-
-      const { data: csvData } = result;
-
-      const csvAsString = EventsInsights.objectToCsv(csvData);
-      const downloadAs = `Insights-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(endDate).format(
-        "YYYY-MM-DD"
-      )}-${randomString(10)}.csv`;
-
-      return { data: csvAsString, filename: downloadAs };
     } catch (e) {
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
     }

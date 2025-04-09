@@ -1,8 +1,10 @@
 import { useState } from "react";
 
+import dayjs from "@calcom/dayjs";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
@@ -14,58 +16,9 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import { useInsightsParameters } from "../../hooks/useInsightsParameters";
 
+type RawData = RouterOutputs["viewer"]["insights"]["rawData"]["data"][number];
+
 const BATCH_SIZE = 100;
-
-type BookingRecord = {
-  id: number;
-  uid: string | null;
-  title: string | null;
-  createdAt: Date | null;
-  timeStatus: string | null;
-  eventTypeId: number | null;
-  eventLength: number | null;
-  startTime: Date | null;
-  endTime: Date | null;
-  paid: boolean | null;
-  userEmail: string | null;
-  username: string | null;
-  rating: number | null;
-  ratingFeedback: string | null;
-  noShowHost: boolean | null;
-  [key: string]: unknown;
-};
-
-type PaginatedResponse = {
-  data: BookingRecord[];
-  total: number;
-};
-
-type CsvResponse = {
-  data: string;
-  filename: string;
-};
-
-function isPaginatedResponse(response: unknown): response is PaginatedResponse {
-  return (
-    !!response &&
-    typeof response === "object" &&
-    "data" in response &&
-    Array.isArray((response as PaginatedResponse).data) &&
-    "total" in response &&
-    typeof (response as PaginatedResponse).total === "number"
-  );
-}
-
-function isCsvResponse(response: unknown): response is CsvResponse {
-  return (
-    !!response &&
-    typeof response === "object" &&
-    "data" in response &&
-    typeof (response as CsvResponse).data === "string" &&
-    "filename" in response &&
-    typeof (response as CsvResponse).filename === "string"
-  );
-}
 
 const Download = () => {
   const { t } = useLocale();
@@ -92,20 +45,18 @@ const Download = () => {
     try {
       setIsDownloading(true);
       setDownloadProgress(0); // Reset progress
-      let allData: BookingRecord[] = [];
+      let allData: RawData[] = [];
       let offset = 0;
 
+      // Get first batch to get total count
       const firstBatch = await fetchBatch(0);
-      if (!firstBatch || !isPaginatedResponse(firstBatch)) return;
-
       allData = [...firstBatch.data];
       const totalRecords = firstBatch.total;
 
+      // Continue fetching remaining batches
       while (allData.length < totalRecords) {
         offset += BATCH_SIZE;
         const result = await fetchBatch(offset);
-        if (!result || !isPaginatedResponse(result)) break;
-
         allData = [...allData, ...result.data];
 
         const currentProgress = Math.min(Math.round((allData.length / totalRecords) * 100), 99);
@@ -114,20 +65,10 @@ const Download = () => {
 
       if (allData.length > 0) {
         setDownloadProgress(100); // Set to 100% before actual download
-
-        const csvResult = await utils.viewer.insights.rawData.fetch({
-          startDate,
-          endDate,
-          teamId,
-          userId,
-          eventTypeId,
-          memberUserId,
-          isAll,
-        });
-
-        if (!csvResult || !isCsvResponse(csvResult)) return;
-
-        downloadAsCsv(csvResult.data, csvResult.filename);
+        const filename = `Insights-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(endDate).format(
+          "YYYY-MM-DD"
+        )}.csv`;
+        downloadAsCsv(allData as Record<string, unknown>[], filename);
       }
     } catch (error) {
       showToast(t("unexpected_error_try_again"), "error");
@@ -144,8 +85,9 @@ const Download = () => {
           EndIcon="file-down"
           color="secondary"
           loading={isDownloading}
+          tooltip={isDownloading ? `${Math.floor(downloadProgress)}%` : undefined}
           className="h-full self-end sm:self-baseline">
-          {isDownloading ? `${Math.floor(downloadProgress)}%` : t("download")}
+          {t("download")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
