@@ -55,6 +55,7 @@ test.describe("Can signup from a team invite", async () => {
     await newPage.fill('input[name="username"]', proUser.username); // Invalid username
     await newPage.fill('input[name="password"]', testUser.password);
     await submitAndWaitForResponse(newPage, "/api/auth/signup", { expectedStatusCode: 409 });
+    await expect(newPage.locator('text="Username or email is already taken"')).toBeVisible();
 
     // Successful signup
     // TODO: Form errors don't disappear when corrected and resubmitted, so we need to refresh
