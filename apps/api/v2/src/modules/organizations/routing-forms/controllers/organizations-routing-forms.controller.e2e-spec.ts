@@ -99,9 +99,9 @@ describe("OrganizationsRoutingFormController", () => {
         name: "Test Routing Form",
         description: "Test Description",
         disabled: false,
-        routes: JSON.stringify([]),
-        fields: JSON.stringify([]),
-        settings: JSON.stringify({}),
+        routes: [{ redirect: "http://google.com" }],
+        fields: [{ territory: "input" }],
+        settings: { test: "true" },
         teamId: team.id,
         userId: user.id,
       },
@@ -208,6 +208,9 @@ describe("OrganizationsRoutingFormController", () => {
           expect(routingForms).toBeDefined();
           expect(routingForms.length).toBeGreaterThan(0);
           expect(routingForms[0].disabled).toEqual(false);
+          expect(routingForms[0].fields?.[0]).toEqual({ territory: "input" });
+          expect(routingForms[0].routes?.[0]).toEqual({ redirect: "http://google.com" });
+          expect(routingForms[0].settings).toEqual({ test: "true" });
         });
     });
   });

@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
-import { IsEnum, IsJSON } from "class-validator";
+import { IsEnum } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
@@ -21,7 +21,6 @@ export class RoutingFormOutput {
   position!: number;
 
   @Expose()
-  @IsJSON()
   routes!: Record<string, any> | null;
 
   @ApiProperty({ example: "2024-03-28T10:00:00.000Z" })
@@ -33,7 +32,6 @@ export class RoutingFormOutput {
   updatedAt!: string;
 
   @Expose()
-  @IsJSON()
   fields!: Record<string, any> | null;
 
   @ApiProperty({ example: 2313 })
@@ -49,7 +47,6 @@ export class RoutingFormOutput {
   disabled!: boolean;
 
   @Expose()
-  @IsJSON()
   settings!: Record<string, any> | null;
 }
 
