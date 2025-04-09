@@ -32,15 +32,11 @@ const removeMember = async ({
       where: {
         userId: memberId,
         eventType: {
-          team: {
-            id: teamId,
-          },
+          teamId: teamId,
         },
       },
     }),
   ]);
-
-  log.debug(`Removed user ${memberId} as host from team ${teamId} event types`);
 
   const team = await prisma.team.findUnique({
     where: { id: teamId },
