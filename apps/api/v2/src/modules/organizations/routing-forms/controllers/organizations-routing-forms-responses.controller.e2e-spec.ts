@@ -1,59 +1,97 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { ApiKeyGuard } from "@/modules/auth/guards/api-key/api-key.guard";
-import { ApiKeyStrategy } from "@/modules/auth/strategies/api-key.strategy";
-import { OrganizationsModule } from "@/modules/organizations/organizations.module";
-import { OrganizationsRoutingFormsModule } from "@/modules/organizations/routing-forms/organizations-routing-forms.module";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { bootstrap } from "@/app";
+import { AppModule } from "@/app.module";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import request from "supertest";
+import { App_RoutingForms_Form, App_RoutingForms_FormResponse, Team, User } from "@prisma/client";
+import * as request from "supertest";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ApiKeyPermission } from "@calcom/prisma/enums";
 
 describe("OrganizationsRoutingFormsResponsesController", () => {
   let app: INestApplication;
-  let prismaReadService: PrismaReadService;
   let prismaWriteService: PrismaWriteService;
-  let org: any;
+  let org: Team;
+  let team: Team;
   let apiKeyString: string;
-  let routingForm: any;
-  let routingFormResponse: any;
+  let routingForm: App_RoutingForms_Form;
+  let routingFormResponse: App_RoutingForms_FormResponse;
+  let routingFormResponse2: App_RoutingForms_FormResponse;
 
+  let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
+  let teamRepositoryFixture: TeamRepositoryFixture;
+  let userRepositoryFixture: UserRepositoryFixture;
+  let organizationsRepositoryFixture: OrganizationRepositoryFixture;
+
+  let user: User;
+  const userEmail = `OrganizationsRoutingFormsResponsesController-key-bookings-2024-08-13-user-${randomString()}@api.com`;
+  let profileRepositoryFixture: ProfileRepositoryFixture;
+
+  let membershipsRepositoryFixture: MembershipRepositoryFixture;
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [PrismaModule, OrganizationsModule, OrganizationsRoutingFormsModule],
-      providers: [ApiKeyStrategy, ApiKeyGuard],
+      imports: [AppModule, PrismaModule, UsersModule, TokensModule],
     }).compile();
 
-    app = moduleRef.createNestApplication();
-    app.enableVersioning();
-    await app.init();
+    teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+    userRepositoryFixture = new UserRepositoryFixture(moduleRef);
 
-    prismaReadService = moduleRef.get<PrismaReadService>(PrismaReadService);
     prismaWriteService = moduleRef.get<PrismaWriteService>(PrismaWriteService);
+    apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
+    profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+    organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
 
-    org = await prismaWriteService.prisma.team.create({
-      data: {
-        name: "Test Organization",
-        slug: "test-organization",
-        metadata: {
-          isOrganization: true,
+    membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+    org = await organizationsRepositoryFixture.create({
+      name: `OrganizationsRoutingFormsResponsesController-teams-memberships-organization-${randomString()}`,
+      isOrganization: true,
+    });
+
+    team = await teamRepositoryFixture.create({
+      name: "OrganizationsRoutingFormsResponsesController orgs booking 1",
+      isOrganization: false,
+      parent: { connect: { id: org.id } },
+    });
+
+    user = await userRepositoryFixture.create({
+      email: userEmail,
+    });
+
+    await membershipsRepositoryFixture.create({
+      role: "OWNER",
+      user: { connect: { id: user.id } },
+      team: { connect: { id: org.id } },
+    });
+
+    await profileRepositoryFixture.create({
+      uid: `usr-${user.id}`,
+      username: userEmail,
+      organization: {
+        connect: {
+          id: org.id,
+        },
+      },
+      user: {
+        connect: {
+          id: user.id,
         },
       },
     });
-
-    const apiKey = await prismaWriteService.prisma.apiKey.create({
-      data: {
-        note: "Test API Key",
-        teamId: org.id,
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days
-        permissions: [ApiKeyPermission.READ_BOOKING, ApiKeyPermission.READ_FORMS],
-      },
-    });
-    apiKeyString = apiKey.key;
+    const now = new Date();
+    now.setDate(now.getDate() + 1);
+    const { keyString } = await apiKeysRepositoryFixture.createApiKey(user.id, null);
+    apiKeyString = `${keyString} `;
 
     routingForm = await prismaWriteService.prisma.app_RoutingForms_Form.create({
       data: {
@@ -63,7 +101,8 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
         routes: JSON.stringify([]),
         fields: JSON.stringify([]),
         settings: JSON.stringify({}),
-        teamId: org.id,
+        teamId: team.id,
+        userId: user.id,
       },
     });
 
@@ -73,6 +112,18 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
         response: JSON.stringify({ question1: "answer1", question2: "answer2" }),
       },
     });
+
+    routingFormResponse2 = await prismaWriteService.prisma.app_RoutingForms_FormResponse.create({
+      data: {
+        formId: routingForm.id,
+        response: JSON.stringify({ question1: "answer1", question2: "answer2" }),
+      },
+    });
+
+    app = moduleRef.createNestApplication();
+    bootstrap(app as NestExpressApplication);
+
+    await app.init();
   });
 
   afterAll(async () => {
@@ -93,9 +144,15 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
     });
     await prismaWriteService.prisma.team.delete({
       where: {
+        id: team.id,
+      },
+    });
+    await prismaWriteService.prisma.team.delete({
+      where: {
         id: org.id,
       },
     });
+
     await app.close();
   });
 
@@ -104,7 +161,7 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
       return request(app.getHttpServer())
         .get(`/v2/organizations/99999/routing-forms/${routingForm.id}/responses`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
-        .expect(404);
+        .expect(403);
     });
 
     it("should not get routing form responses for non existing form", async () => {
@@ -122,17 +179,25 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
 
     it("should get routing form responses", async () => {
       return request(app.getHttpServer())
-        .get(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
+        .get(
+          `/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?skip=0&take=2&sortUpdatedAt=asc&sortCreatedAt=desc`
+        )
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .expect(200)
         .then((response) => {
           const responseBody = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          const responses = responseBody.data;
+          const responses = responseBody.data as App_RoutingForms_FormResponse[];
           expect(responses).toBeDefined();
           expect(responses.length).toBeGreaterThan(0);
-          expect(responses[0].id).toEqual(routingFormResponse.id);
-          expect(responses[0].formId).toEqual(routingFormResponse.formId);
+          expect(responses.find((response) => response.id === routingFormResponse.id)).toBeDefined();
+          expect(responses.find((response) => response.id === routingFormResponse.id)?.formId).toEqual(
+            routingFormResponse.formId
+          );
+          expect(responses.find((response) => response.id === routingFormResponse2.id)).toBeDefined();
+          expect(responses.find((response) => response.id === routingFormResponse2.id)?.formId).toEqual(
+            routingFormResponse2.formId
+          );
         });
     });
   });
@@ -143,7 +208,7 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
         .patch(`/v2/organizations/99999/routing-forms/${routingForm.id}/responses/${routingFormResponse.id}`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({ response: JSON.stringify({ question1: "updated_answer1" }) })
-        .expect(404);
+        .expect(403);
     });
 
     it("should not update routing form response for non existing form", async () => {

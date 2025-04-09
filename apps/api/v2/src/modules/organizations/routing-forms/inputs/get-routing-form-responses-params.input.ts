@@ -50,6 +50,28 @@ export class GetRoutingFormResponsesParams {
   @IsDate()
   beforeCreatedAt?: Date;
 
+  @ApiPropertyOptional({
+    type: String,
+    format: "date-time",
+    description: "Filter by responses created after this date",
+  })
+  @IsOptional()
+  @IsISO8601()
+  @Transform(({ value }) => value && new Date(value))
+  @IsDate()
+  afterUpdatedAt?: Date;
+
+  @ApiPropertyOptional({
+    type: String,
+    format: "date-time",
+    description: "Filter by responses updated before this date",
+  })
+  @IsOptional()
+  @IsISO8601()
+  @Transform(({ value }) => value && new Date(value))
+  @IsDate()
+  beforeUpdatedAt?: Date;
+
   @ApiPropertyOptional({ type: String, description: "Filter by responses routed to a specific booking" })
   @IsOptional()
   @IsString()

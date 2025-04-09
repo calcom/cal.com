@@ -1,3 +1,4 @@
+import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
@@ -15,6 +16,7 @@ import { OrganizationsRoutingFormsService } from "./services/organizations-routi
 @Module({
   imports: [PrismaModule, StripeModule, RedisModule, RoutingFormsModule, RoutingFormsResponsesModule],
   providers: [
+    MembershipsRepository,
     OrganizationsRepository,
     OrganizationsRoutingFormsRepository,
     OrganizationsRoutingFormsService,

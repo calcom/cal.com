@@ -34,7 +34,7 @@ export class OrganizationsRoutingFormsRepository {
 
     return this.dbRead.prisma.app_RoutingForms_Form.findMany({
       where: {
-        teamId: orgId,
+        team: { parentId: orgId },
         ...(disabled !== undefined && { disabled }),
         ...(name && { name: { contains: name, mode: "insensitive" } }),
         ...(afterCreatedAt && { createdAt: { gte: afterCreatedAt } }),
@@ -109,26 +109,43 @@ export class OrganizationsRoutingFormsRepository {
     take: number,
     options?: {
       sortCreatedAt?: "asc" | "desc";
+      sortUpdatedAt?: "asc" | "desc";
       afterCreatedAt?: Date;
       beforeCreatedAt?: Date;
+      afterUpdatedAt?: Date;
+      beforeUpdatedAt?: Date;
       routedToBookingUid?: string;
     }
   ) {
-    const { sortCreatedAt, afterCreatedAt, beforeCreatedAt, routedToBookingUid } = options || {};
+    const {
+      sortCreatedAt,
+      sortUpdatedAt,
+      afterCreatedAt,
+      beforeCreatedAt,
+      routedToBookingUid,
+      afterUpdatedAt,
+      beforeUpdatedAt,
+    } = options || {};
+    await this.dbRead.prisma.app_RoutingForms_Form.findFirstOrThrow({
+      where: {
+        id: routingFormId,
+        team: { parentId: orgId },
+      },
+    });
 
     return this.dbRead.prisma.app_RoutingForms_FormResponse.findMany({
       where: {
         formId: routingFormId,
-        form: {
-          team: {
-            id: orgId,
-          },
-        },
         ...(afterCreatedAt && { createdAt: { gte: afterCreatedAt } }),
         ...(beforeCreatedAt && { createdAt: { lte: beforeCreatedAt } }),
+        ...(afterUpdatedAt && { updatedAt: { gte: afterUpdatedAt } }),
+        ...(beforeUpdatedAt && { updatedAt: { lte: beforeUpdatedAt } }),
         ...(routedToBookingUid && { routedToBookingUid }),
       },
-      orderBy: [...(sortCreatedAt ? [{ createdAt: sortCreatedAt }] : [])],
+      orderBy: [
+        ...(sortCreatedAt ? [{ createdAt: sortCreatedAt }] : []),
+        ...(sortUpdatedAt ? [{ updatedAt: sortUpdatedAt }] : []),
+      ],
       skip,
       take,
     });
@@ -148,7 +165,7 @@ export class OrganizationsRoutingFormsRepository {
         formId: routingFormId,
         form: {
           team: {
-            id: orgId,
+            parentId: orgId,
           },
         },
       },
