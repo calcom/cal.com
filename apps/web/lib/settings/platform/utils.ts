@@ -105,7 +105,7 @@ export const helpCards: HelpCardInfo[] = [
     },
   },
   {
-    icon: "bug",
+    icon: "triangle-alert",
     title: "Report issue",
     description:
       "You can submit a ticket on GitHub or upgrade your plan to receive real-time support with developer conferences",
