@@ -1345,7 +1345,7 @@ export default class SalesforceCRMService implements CRM {
     recordId: string
   ) {
     const log = logger.getSubLogger({
-      prefix: [`[getTextValueFromRoutingFormResponse]: ${recordId} - bookingUid: ${bookingUid}}`],
+      prefix: [`[getTextValueFromRoutingFormResponse]: ${recordId} - bookingUid: ${bookingUid}`],
     });
 
     // Get the form response
