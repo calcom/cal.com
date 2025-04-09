@@ -126,8 +126,6 @@ const removeMember = async ({
         },
       }),
     ]);
-
-    log.debug(`Removed user ${memberId} as host from organization ${teamId} event types`);
   }
 
   // Deleted managed event types from this team from this member
