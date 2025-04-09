@@ -32,6 +32,7 @@ const applyRoleToAllTeams = async (userId: number, teamIds: number[], role: Memb
     },
     data: {
       role,
+      updatedAt: new Date(),
     },
   });
 };

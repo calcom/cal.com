@@ -130,6 +130,8 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
           teamId: group.teamId,
           role: MembershipRole.MEMBER,
           accepted: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         })),
       });
       await Promise.allSettled(

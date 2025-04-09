@@ -280,12 +280,16 @@ test.describe("Bookings", () => {
           userId: secondUser.id,
           role: MembershipRole.MEMBER,
           accepted: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
         {
           teamId: teamId,
           userId: thirdUser.id,
           role: MembershipRole.MEMBER,
           accepted: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
       ],
     });

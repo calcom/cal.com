@@ -81,7 +81,11 @@ export class MembershipRepository {
 
   static async createMany(data: IMembership[]) {
     return await prisma.membership.createMany({
-      data,
+      data: data.map((item) => ({
+        ...item,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })),
     });
   }
 

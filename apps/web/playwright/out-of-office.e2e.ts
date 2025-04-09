@@ -67,12 +67,16 @@ test.describe("Out of office", () => {
           teamId: team.id,
           accepted: true,
           role: "ADMIN",
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
         {
           userId: userTo.id,
           teamId: team.id,
           accepted: true,
           role: "ADMIN",
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
       ],
     });
