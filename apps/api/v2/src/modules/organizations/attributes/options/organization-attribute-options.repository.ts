@@ -4,6 +4,7 @@ import { OrganizationsMembershipService } from "@/modules/organizations/membersh
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
 
 import { slugify } from "@calcom/platform-libraries";
 
@@ -155,6 +156,160 @@ export class OrganizationAttributeOptionRepository {
         throw new NotFoundException("Attribute does not belong to this user");
       }
       throw error;
+    }
+  }
+
+  async getAssignedOptionsFilteredByUserAssignments(
+    teamId: number,
+    attributeSlug: string,
+    assignedOptionIds: string[] = []
+  ) {
+    const attribute = await this.dbRead.prisma.attribute.findFirst({
+      where: {
+        teamId,
+        slug: attributeSlug,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!attribute) {
+      throw new NotFoundException(`Attribute with slug '${attributeSlug}' not found`);
+    }
+
+    let userIdsWithAssignedOptions: number[] = [];
+
+    if (assignedOptionIds.length > 0) {
+      const usersWithAssignedOptions = await this.dbRead.prisma.user.findMany({
+        where: {
+          teams: {
+            some: {
+              teamId,
+              accepted: true,
+              AttributeToUser: {
+                some: {
+                  attributeOption: {
+                    id: {
+                      in: assignedOptionIds,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      userIdsWithAssignedOptions = usersWithAssignedOptions.map((user) => user.id);
+    }
+
+    const options = await this.dbRead.prisma.attributeOption.findMany({
+      where: {
+        attributeId: attribute.id,
+        assignedUsers:
+          assignedOptionIds.length > 0
+            ? {
+                some: {
+                  member: {
+                    userId: {
+                      in: userIdsWithAssignedOptions,
+                    },
+                  },
+                },
+              }
+            : undefined,
+      },
+      include: {
+        assignedUsers: {
+          include: {
+            member: {
+              select: {
+                userId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return options.map((option) => ({
+      optionId: option.id,
+      optionValue: option.value,
+      userIds: option.assignedUsers.map((assignment) => assignment.member.userId),
+    }));
+  }
+
+  async getUsersByAttributeOptions(
+    teamId: number,
+    attributeOptionIds: string[],
+    queryOperator: "OR" | "AND" | "NONE" = "OR"
+  ) {
+    if (queryOperator === "NONE") {
+      return this.dbRead.prisma.user.findMany({
+        where: {
+          teams: {
+            some: {
+              teamId,
+              accepted: true,
+              NOT: {
+                AttributeToUser: {
+                  some: {
+                    attributeOption: {
+                      id: {
+                        in: attributeOptionIds,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        select: {
+          id: true,
+          username: true,
+        },
+      });
+    } else if (queryOperator === "AND") {
+      const usersWithCounts = await this.dbRead.prisma.$queryRaw`
+        SELECT u.id as "userId", u.username, COUNT(DISTINCT atu."attributeOptionId") as match_count
+        FROM "User" u
+        JOIN "Membership" m ON m."userId" = u.id AND m."teamId" = ${teamId} AND m.accepted = true
+        JOIN "AttributeToUser" atu ON atu."memberId" = m.id
+        WHERE atu."attributeOptionId" IN (${Prisma.join(attributeOptionIds.map((id) => id))})
+        GROUP BY u.id, u.username
+        HAVING COUNT(DISTINCT atu."attributeOptionId") = ${attributeOptionIds.length}
+      `;
+
+      return usersWithCounts;
+    } else {
+      return this.dbRead.prisma.user.findMany({
+        where: {
+          teams: {
+            some: {
+              teamId,
+              accepted: true,
+              AttributeToUser: {
+                some: {
+                  attributeOption: {
+                    id: {
+                      in: attributeOptionIds,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        select: {
+          id: true,
+          username: true,
+        },
+      });
     }
   }
 }
