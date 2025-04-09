@@ -8279,6 +8279,100 @@
         ]
       }
     },
+    "/v2/routing-forms/{routingFormId}": {
+      "get": {
+        "operationId": "RoutingFormsController_calculateSlotsBasedOnRoutingFormResponse",
+        "summary": "Calculate slots based on routing form response",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "start",
+            "required": true,
+            "in": "query",
+            "description": "\n      Time starting from which available slots should be checked.\n    \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to start of day or specify hours:\n      2024-08-13 (will have hours 00:00:00 aka at very beginning of the date) or you can specify hours manually like 2024-08-13T09:00:00Z\n      ",
+            "example": "2050-09-05",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "end",
+            "required": true,
+            "in": "query",
+            "description": "\n      Time until which available slots should be checked.\n      \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to end of day or specify hours:\n      2024-08-20 (will have hours 23:59:59 aka at the very end of the date) or you can specify hours manually like 2024-08-20T18:00:00Z",
+            "example": "2050-09-06",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "timeZone",
+            "required": false,
+            "in": "query",
+            "description": "Time zone in which the available slots should be returned. Defaults to UTC.",
+            "example": "Europe/Rome",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "duration",
+            "required": false,
+            "in": "query",
+            "description": "If event type has multiple possible durations then you can specify the desired duration here. Also, if you are fetching slots for a dynamic event then you can specify the duration her which defaults to 30, meaning that returned slots will be each 30 minutes long.",
+            "example": "60",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "description": "Format of slot times in response. Use 'range' to get start and end times.",
+            "example": "range",
+            "schema": {
+              "enum": [
+                "range",
+                "time"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "routingFormId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSlotsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Routing forms"
+        ]
+      }
+    },
     "/v2/schedules": {
       "post": {
         "operationId": "SchedulesController_2024_06_11_createSchedule",
@@ -19171,6 +19265,179 @@
           "data"
         ]
       },
+      "SlotsOutput_2024_09_04": {
+        "type": "object",
+        "properties": {}
+      },
+      "RangeSlotsOutput_2024_09_04": {
+        "type": "object",
+        "properties": {}
+      },
+      "ResponseSlotsOutputData": {
+        "type": "object",
+        "properties": {
+          "eventTypeId": {
+            "type": "number"
+          },
+          "slots": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/SlotsOutput_2024_09_04"
+              },
+              {
+                "$ref": "#/components/schemas/RangeSlotsOutput_2024_09_04"
+              }
+            ]
+          }
+        },
+        "required": [
+          "eventTypeId",
+          "slots"
+        ]
+      },
+      "ResponseSlotsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ResponseSlotsOutputData"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "ReserveSlotInput_2024_09_04": {
+        "type": "object",
+        "properties": {
+          "eventTypeId": {
+            "type": "number",
+            "example": 1,
+            "description": "The ID of the event type for which slot should be reserved."
+          },
+          "slotStart": {
+            "type": "string",
+            "example": "2024-09-04T09:00:00Z",
+            "description": "ISO 8601 datestring in UTC timezone representing available slot."
+          },
+          "slotDuration": {
+            "type": "number",
+            "example": "30",
+            "description": "By default slot duration is equal to event type length, but if you want to reserve a slot for an event type that has a variable length you can specify it here as a number in minutes. If you don't have this set explicitly that event type can have one of many lengths you can omit this."
+          },
+          "reservationDuration": {
+            "type": "number",
+            "example": 5,
+            "description": "ONLY for authenticated requests with api key, access token or OAuth credentials (ID + secret).\n      \n      For how many minutes the slot should be reserved - for this long time noone else can book this event type at `start` time. If not provided, defaults to 5 minutes."
+          }
+        },
+        "required": [
+          "eventTypeId",
+          "slotStart"
+        ]
+      },
+      "ReserveSlotOutput_2024_09_04": {
+        "type": "object",
+        "properties": {
+          "eventTypeId": {
+            "type": "number",
+            "example": 1,
+            "description": "The ID of the event type for which slot was reserved."
+          },
+          "slotStart": {
+            "type": "string",
+            "example": "2024-09-04T09:00:00Z",
+            "description": "ISO 8601 datestring in UTC timezone representing available slot."
+          },
+          "slotEnd": {
+            "type": "string",
+            "example": "2024-09-04T10:00:00Z",
+            "description": "ISO 8601 datestring in UTC timezone representing slot end."
+          },
+          "slotDuration": {
+            "type": "number",
+            "example": "30",
+            "description": "By default slot duration is equal to event type length, but if you want to reserve a slot for an event type that has a variable length you can specify it here. If you don't have this set explicitly that event type can have one of many lengths you can omit this."
+          },
+          "reservationUid": {
+            "type": "string",
+            "example": "e84be5a3-4696-49e3-acc7-b2f3999c3b94",
+            "description": "The unique identifier of the reservation. Use it to update, get or delete the reservation."
+          },
+          "reservationDuration": {
+            "type": "number",
+            "example": 5,
+            "description": "For how many minutes the slot is reserved - for this long time noone else can book this event type at `start` time."
+          },
+          "reservationUntil": {
+            "type": "string",
+            "example": "2023-09-04T10:00:00Z",
+            "description": "ISO 8601 datestring in UTC timezone representing time until which the slot is reserved."
+          }
+        },
+        "required": [
+          "eventTypeId",
+          "slotStart",
+          "slotEnd",
+          "slotDuration",
+          "reservationUid",
+          "reservationDuration",
+          "reservationUntil"
+        ]
+      },
+      "ReserveSlotOutputResponse_2024_09_04": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ReserveSlotOutput_2024_09_04"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetReservedSlotOutput_2024_09_04": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GetReservedSlotOutput_2024_09_04"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "MeOrgOutput": {
         "type": "object",
         "properties": {
@@ -21457,129 +21724,6 @@
           },
           "data": {
             "$ref": "#/components/schemas/TeamMembershipOutput"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "ReserveSlotInput_2024_09_04": {
-        "type": "object",
-        "properties": {
-          "eventTypeId": {
-            "type": "number",
-            "example": 1,
-            "description": "The ID of the event type for which slot should be reserved."
-          },
-          "slotStart": {
-            "type": "string",
-            "example": "2024-09-04T09:00:00Z",
-            "description": "ISO 8601 datestring in UTC timezone representing available slot."
-          },
-          "slotDuration": {
-            "type": "number",
-            "example": "30",
-            "description": "By default slot duration is equal to event type length, but if you want to reserve a slot for an event type that has a variable length you can specify it here as a number in minutes. If you don't have this set explicitly that event type can have one of many lengths you can omit this."
-          },
-          "reservationDuration": {
-            "type": "number",
-            "example": 5,
-            "description": "ONLY for authenticated requests with api key, access token or OAuth credentials (ID + secret).\n      \n      For how many minutes the slot should be reserved - for this long time noone else can book this event type at `start` time. If not provided, defaults to 5 minutes."
-          }
-        },
-        "required": [
-          "eventTypeId",
-          "slotStart"
-        ]
-      },
-      "ReserveSlotOutput_2024_09_04": {
-        "type": "object",
-        "properties": {
-          "eventTypeId": {
-            "type": "number",
-            "example": 1,
-            "description": "The ID of the event type for which slot was reserved."
-          },
-          "slotStart": {
-            "type": "string",
-            "example": "2024-09-04T09:00:00Z",
-            "description": "ISO 8601 datestring in UTC timezone representing available slot."
-          },
-          "slotEnd": {
-            "type": "string",
-            "example": "2024-09-04T10:00:00Z",
-            "description": "ISO 8601 datestring in UTC timezone representing slot end."
-          },
-          "slotDuration": {
-            "type": "number",
-            "example": "30",
-            "description": "By default slot duration is equal to event type length, but if you want to reserve a slot for an event type that has a variable length you can specify it here. If you don't have this set explicitly that event type can have one of many lengths you can omit this."
-          },
-          "reservationUid": {
-            "type": "string",
-            "example": "e84be5a3-4696-49e3-acc7-b2f3999c3b94",
-            "description": "The unique identifier of the reservation. Use it to update, get or delete the reservation."
-          },
-          "reservationDuration": {
-            "type": "number",
-            "example": 5,
-            "description": "For how many minutes the slot is reserved - for this long time noone else can book this event type at `start` time."
-          },
-          "reservationUntil": {
-            "type": "string",
-            "example": "2023-09-04T10:00:00Z",
-            "description": "ISO 8601 datestring in UTC timezone representing time until which the slot is reserved."
-          }
-        },
-        "required": [
-          "eventTypeId",
-          "slotStart",
-          "slotEnd",
-          "slotDuration",
-          "reservationUid",
-          "reservationDuration",
-          "reservationUntil"
-        ]
-      },
-      "ReserveSlotOutputResponse_2024_09_04": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ReserveSlotOutput_2024_09_04"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "GetReservedSlotOutput_2024_09_04": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/GetReservedSlotOutput_2024_09_04"
-              }
-            ]
           }
         },
         "required": [
