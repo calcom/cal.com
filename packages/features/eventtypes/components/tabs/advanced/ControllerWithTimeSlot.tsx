@@ -110,7 +110,7 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
                   ? undefined
                   : {
                       time: timeAndUnit.time,
-                      unit: timeAndUnit.unit,
+                      unit: timeAndUnit.unit.value,
                     },
                 {
                   shouldDirty: true,
