@@ -238,7 +238,7 @@ function OutOfOfficeEntriesListContent() {
           return (
             <>
               {row.original && !isPending && !isFetching ? (
-                <div className="flex flex-row items-center justify-end gap-x-2">
+                <div className="flex flex-row items-center justify-end gap-x-2" data-testid="ooo-actions">
                   <Tooltip content={t("edit")}>
                     <Button
                       className="self-center rounded-lg border"

@@ -7,6 +7,7 @@ import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import {
   DataTableProvider,
   DataTableWrapper,
@@ -157,7 +158,7 @@ function UserListTableContent() {
 
   // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
   const totalRowCount = data?.meta?.totalRowCount ?? 0;
-  const adminOrOwner = org?.user.role === "ADMIN" || org?.user.role === "OWNER";
+  const adminOrOwner = checkAdminOrOwner(org?.user?.role);
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo<UserTableUser[]>(() => data?.rows ?? [], [data]);
@@ -555,7 +556,7 @@ function UserListTableContent() {
             </p>
             {!isPlatformUser ? (
               <>
-                <TeamListBulkAction table={table} />
+                {adminOrOwner && <TeamListBulkAction table={table} />}
                 {numberOfSelectedRows >= 2 && (
                   <DataTableSelectionBar.Button
                     color="secondary"
@@ -564,14 +565,16 @@ function UserListTableContent() {
                     {t("group_meeting")}
                   </DataTableSelectionBar.Button>
                 )}
-                <MassAssignAttributesBulkAction table={table} filters={columnFilters} />
-                <EventTypesList table={table} orgTeams={teams} />
+                {adminOrOwner && <MassAssignAttributesBulkAction table={table} filters={columnFilters} />}
+                {adminOrOwner && <EventTypesList table={table} orgTeams={teams} />}
               </>
             ) : null}
-            <DeleteBulkUsers
-              users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
-              onRemove={() => table.toggleAllPageRowsSelected(false)}
-            />
+            {adminOrOwner && (
+              <DeleteBulkUsers
+                users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
+                onRemove={() => table.toggleAllPageRowsSelected(false)}
+              />
+            )}
           </DataTableSelectionBar.Root>
         )}
       </DataTableWrapper>
