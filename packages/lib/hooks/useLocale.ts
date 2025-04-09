@@ -28,9 +28,9 @@ const useClientLocale = (namespace: Parameters<typeof useTranslation>[0] = "comm
 };
 
 // @internal
-const serverI18nInstances = new Map();
+const serverI18nInstances: Map<string, useLocaleReturnType> = new Map();
 
-export const useLocale = (): useLocaleReturnType => {
+export const useLocale = () => {
   const appRouterContext = useContext(AppRouterI18nContext);
   const clientI18n = useClientLocale();
 
@@ -63,7 +63,7 @@ export const useLocale = (): useLocaleReturnType => {
   }
 
   console.warn(
-    "useT hook is being used outside of App Router - hence this hook will use a global, client-side i18n which can cause a small flicker"
+    "useLocale hook is being used outside of App Router - hence this hook will use a global, client-side i18n which can cause a small flicker"
   );
   return {
     t: clientI18n.t,
