@@ -35,6 +35,8 @@ test.describe("SAML tests", () => {
     });
 
     test("Submit button should be disabled without username", async ({ page }) => {
+      // eslint-disable-next-line playwright/no-wait-for-timeout
+      await page.waitForTimeout(300);
       await page.locator('input[name="email"]').fill("tester123@example.com");
       const submitButton = page.getByTestId("saml-submit-button");
       await expect(submitButton).toBeVisible();
@@ -42,6 +44,8 @@ test.describe("SAML tests", () => {
     });
 
     test("Submit button should be disabled without email", async ({ page }) => {
+      // eslint-disable-next-line playwright/no-wait-for-timeout
+      await page.waitForTimeout(300);
       await page.locator('input[name="username"]').fill("tester123");
       const submitButton = page.getByTestId("saml-submit-button");
       await expect(submitButton).toBeVisible();
@@ -54,6 +58,8 @@ test.describe("SAML tests", () => {
 
     test("Checkbox for cookie consent does not need to be checked", async ({ page }) => {
       // Fill form
+      // eslint-disable-next-line playwright/no-wait-for-timeout
+      await page.waitForTimeout(300);
       await page.locator('input[name="username"]').fill("tester123");
       await page.locator('input[name="email"]').fill("tester123@example.com");
 
@@ -73,6 +79,8 @@ test.describe("SAML tests", () => {
       test.skip(!IS_PREMIUM_USERNAME_ENABLED, "Only run on Cal.com");
 
       // Fill form
+      // eslint-disable-next-line playwright/no-wait-for-timeout
+      await page.waitForTimeout(300);
       await page.locator('input[name="username"]').fill("pro");
       await page.locator('input[name="email"]').fill("pro@example.com");
 
