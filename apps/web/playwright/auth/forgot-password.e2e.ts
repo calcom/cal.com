@@ -69,7 +69,8 @@ test.describe("Forgot password", async () => {
 
     // Wait for page to fully load
     await page.waitForSelector("text=Reset Password");
-
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(300);
     await page.fill('input[name="new_password"]', newPassword);
     await page.click('button[type="submit"]');
 
