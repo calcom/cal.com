@@ -100,8 +100,9 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
           EndIcon="file-down"
           color="secondary"
           className="self-end sm:self-baseline"
+          tooltip={isDownloading ? `${Math.floor(downloadProgress)}%` : undefined}
           loading={isDownloading}>
-          {isDownloading ? `${Math.floor(downloadProgress)}%` : t("download")}
+          {t("download")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
