@@ -1151,6 +1151,7 @@ export default class SalesforceCRMService implements CRM {
     const writeOnRecordBody: Record<string, any> = {};
 
     for (const field of existingFields) {
+      let fieldTypeHandled = false;
       const fieldConfig = fieldsToWriteTo[field.name];
 
       if (!fieldConfig) {
@@ -1173,6 +1174,7 @@ export default class SalesforceCRMService implements CRM {
       }
 
       if (fieldConfig.fieldType === SalesforceFieldType.CUSTOM) {
+        fieldTypeHandled = true;
         const extractedValue = await this.getTextFieldValue({
           fieldValue: fieldConfig.value,
           fieldLength: field.length,
@@ -1193,6 +1195,7 @@ export default class SalesforceCRMService implements CRM {
         field.type === SalesforceFieldType.TEXTAREA ||
         field.type === SalesforceFieldType.PHONE
       ) {
+        fieldTypeHandled = true;
         const extractedText = await this.getTextFieldValue({
           fieldValue: fieldConfig.value,
           fieldLength: field.length,
@@ -1210,6 +1213,7 @@ export default class SalesforceCRMService implements CRM {
         startTime &&
         organizerEmail
       ) {
+        fieldTypeHandled = true;
         const dateValue = await this.getDateFieldValue(
           fieldConfig.value,
           startTime,
@@ -1221,6 +1225,7 @@ export default class SalesforceCRMService implements CRM {
           continue;
         }
       } else if (field.type === SalesforceFieldType.PICKLIST) {
+        fieldTypeHandled = true;
         const picklistValue = await this.getPicklistFieldValue({
           fieldConfigValue: fieldConfig.value,
           salesforceField: field,
@@ -1233,12 +1238,16 @@ export default class SalesforceCRMService implements CRM {
           continue;
         }
       } else if (field.type === SalesforceFieldType.CHECKBOX) {
+        fieldTypeHandled = true;
         // If the checkbox field value is not a boolean for some reason, default to if it's a falsely value
         const checkboxValue = !!fieldConfig.value;
         writeOnRecordBody[field.name] = checkboxValue;
         continue;
       }
 
+      if (!fieldTypeHandled) {
+        log.error(`Salesforce field type ${field.type} not handled for fieldConfig ${fieldConfig}`);
+      }
       log.error(
         `No value found for field ${field.name} with value ${
           personRecord[field.name]
