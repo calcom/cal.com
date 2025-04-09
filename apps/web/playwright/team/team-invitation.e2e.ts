@@ -29,6 +29,8 @@ test.describe("Team", () => {
         domain: `domain-${Date.now()}.com`,
       });
       await page.getByTestId("new-member-button").click();
+      // eslint-disable-next-line playwright/no-wait-for-timeout
+      await page.waitForTimeout(300);
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.getByText(t("send_invite")).click();
       const inviteLink = await expectInvitationEmailToBeReceived(
@@ -58,6 +60,8 @@ test.describe("Team", () => {
       await expect(button).toBeVisible(); // email + 3 password hints
 
       // Check required fields
+      // eslint-disable-next-line playwright/no-wait-for-timeout
+      await page.waitForTimeout(300);
       await newPage.locator("input[name=password]").fill(`P4ssw0rd!`);
       await newPage.locator("button[type=submit]").click();
       await newPage.waitForURL("/getting-started?from=signup");
@@ -88,7 +92,8 @@ test.describe("Team", () => {
 
       await inviteLinkPage.locator("button[type=submit]").click();
       await expect(inviteLinkPage.locator('[data-testid="field-error"]')).toHaveCount(2);
-
+      // eslint-disable-next-line playwright/no-wait-for-timeout
+      await page.waitForTimeout(300);
       await inviteLinkPage.locator("input[name=email]").fill(user.email);
       await inviteLinkPage.locator("input[name=password]").fill(user.username || "P4ssw0rd!");
       await inviteLinkPage.locator("button[type=submit]").click();
@@ -110,6 +115,8 @@ test.describe("Team", () => {
         domain: `example.com`,
       });
       await page.getByTestId("new-member-button").click();
+      // eslint-disable-next-line playwright/no-wait-for-timeout
+      await page.waitForTimeout(300);
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.getByText(t("send_invite")).click();
       await expectInvitationEmailToBeReceived(
@@ -155,6 +162,8 @@ test.describe("Team", () => {
     await teamOwner.apiLogin();
     await page.goto(`/settings/teams/${team.id}/members`);
     await page.getByTestId("new-member-button").click();
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(300);
     await page.locator('input[name="inviteUser"]').fill(invitedMember.email);
     await page.getByText(t("send_invite")).click();
 
