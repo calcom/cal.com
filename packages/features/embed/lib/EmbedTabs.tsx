@@ -17,7 +17,7 @@ import { useEmbedCalOrigin } from "./hooks";
 
 export const tabs = [
   {
-    name: "HTML",
+    name: "HTML (iframe)",
     href: "embedTabName=embed-code",
     icon: "code" as const,
     type: "code",
@@ -74,7 +74,7 @@ export const tabs = [
     }),
   },
   {
-    name: "React (Standard)",
+    name: "React (iframe)",
     href: "embedTabName=embed-react",
     "data-testid": "react-standard",
     icon: "code" as const,
