@@ -174,7 +174,6 @@ test.describe("Managed Event Types", () => {
     // We edit the managed event as original owner
     const [adminContext, adminPage] = await adminUser.apiLoginOnNewBrowser(browser);
     await adminPage.goto(`/event-types/${managedEvent.id}?tabName=setup`);
-    await adminPage.getByTestId("event-types").locator(`a[title="${teamEventTitle}"]`).click();
     await adminPage.waitForURL("event-types/**");
     await adminPage.locator('input[name="length"]').fill(`45`);
     await saveAndWaitForResponse(adminPage);
