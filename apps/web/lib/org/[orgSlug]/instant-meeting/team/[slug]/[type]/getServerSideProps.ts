@@ -16,10 +16,6 @@ const paramsSchema = z.object({
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const session = await getServerSession({ req: context.req });
-  if (!session?.user?.id) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
-  }
-  const sessionUserId = session.user.id;
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(context.params);
   const { duration: queryDuration } = context.query;
 
@@ -52,7 +48,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       org,
       fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
     },
-    sessionUserId
+    session?.user?.id
   );
   if (!eventData || !org) {
     return {
