@@ -123,16 +123,14 @@ describe("removeMember", () => {
 
     const prisma = (await import("@calcom/prisma")).default;
 
-    prisma.team.findUnique.mockImplementationOnce(() =>
-      Promise.resolve({
-        id: orgId,
-        isOrganization: true,
-        organizationSettings: null,
-        metadata: null,
-        activeOrgWorkflows: null,
-        parentId: null,
-      })
-    );
+    vi.mocked(prisma.team.findUnique).mockReturnValueOnce({
+      id: orgId,
+      isOrganization: true,
+      organizationSettings: null,
+      metadata: null,
+      activeOrgWorkflows: null,
+      parentId: null,
+    } as any);
 
     await removeMember({
       memberId,
