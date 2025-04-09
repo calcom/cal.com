@@ -5,6 +5,11 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 const translationCache = new Map<string, Record<string, string>>();
 const i18nInstanceCache = new Map<string, any>();
 
+/**
+ * Loads English fallback translations for when requested locale translations fail
+ * Implements caching to avoid redundant network requests
+ * @returns {Promise<Record<string, string>>} English translations object or empty object on failure
+ */
 async function loadFallbackTranslations() {
   const cacheKey = "en-common";
 
@@ -32,6 +37,9 @@ async function loadFallbackTranslations() {
 
 /**
  * Loads translations for a specific locale and namespace with optimized caching
+ * @param {string} _locale - The locale code (e.g., 'en', 'fr', 'zh')
+ * @param {string} ns - The namespace for the translations
+ * @returns {Promise<Record<string, string>>} Translations object or fallback translations on failure
  */
 export async function loadTranslations(_locale: string, ns: string) {
   const locale = _locale === "zh" ? "zh-CN" : _locale;
@@ -61,6 +69,12 @@ export async function loadTranslations(_locale: string, ns: string) {
   }
 }
 
+/**
+ * Creates or retrieves a cached i18next translation function for the specified locale and namespace
+ * @param {string} locale - The locale code (e.g., 'en', 'fr')
+ * @param {string} ns - The namespace for the translations
+ * @returns {Promise<Function>} A translation function bound to the specified locale and namespace
+ */
 export const getTranslation = async (locale: string, ns: string) => {
   const cacheKey = `${locale}-${ns}`;
   if (i18nInstanceCache.has(cacheKey)) {
