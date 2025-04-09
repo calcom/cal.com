@@ -18,11 +18,23 @@ export const deletePastBookingsHandler = async ({ ctx, input }: DeletePastBookin
     where: {
       id: { in: bookingIds },
     },
+    include: {
+      references: true,
+    },
   });
 
   const unauthorized = bookings.some((booking) => booking.userId !== user.id);
   if (unauthorized) {
     throw new Error("Unauthorized: Cannot delete bookings that don't belong to you");
+  }
+
+  const { getAllDelegationCredentialsForUser } = await import("@calcom/lib/delegationCredential/server");
+  const { deleteBookingRecordings } = await import("@calcom/features/bookings/lib/handleRecordings");
+
+  const delegationCredentials = await getAllDelegationCredentialsForUser({ user });
+
+  for (const booking of bookings) {
+    await deleteBookingRecordings(booking, delegationCredentials);
   }
 
   const result = await prisma.booking.deleteMany({

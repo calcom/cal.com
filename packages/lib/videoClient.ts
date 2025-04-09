@@ -185,6 +185,24 @@ const deleteMeeting = async (credential: CredentialPayload | null, uid: string):
   return Promise.resolve({});
 };
 
+const deleteRecording = async (
+  credential: CredentialPayload | null,
+  recordingId: string
+): Promise<unknown> => {
+  if (credential) {
+    const videoAdapter = (await getVideoAdapters([credential]))[0];
+    log.debug(
+      "Calling deleteRecording for",
+      safeStringify({ credential: getPiiFreeCredential(credential), recordingId })
+    );
+    if (videoAdapter && "deleteRecording" in videoAdapter) {
+      return videoAdapter.deleteRecording(recordingId);
+    }
+  }
+
+  return Promise.resolve({});
+};
+
 // @TODO: This is a temporary solution to create a meeting with cal.com video as fallback url
 const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
@@ -412,6 +430,7 @@ export {
   createMeeting,
   updateMeeting,
   deleteMeeting,
+  deleteRecording,
   getRecordingsOfCalVideoByRoomName,
   getDownloadLinkOfCalVideoByRecordingId,
   getAllTranscriptsAccessLinkFromRoomName,

@@ -355,6 +355,15 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       await fetcher(`/rooms/${uid}`, { method: "DELETE" });
       return Promise.resolve();
     },
+    deleteRecording: async (recordingId: string): Promise<void> => {
+      try {
+        await fetcher(`/recordings/${recordingId}`, { method: "DELETE" });
+        return Promise.resolve();
+      } catch (err) {
+        console.error("Error deleting recording:", err);
+        throw new Error("Something went wrong! Unable to delete recording");
+      }
+    },
     updateMeeting: (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> =>
       createOrUpdateMeeting(`/rooms/${bookingRef.uid}`, event),
     getRecordings: async (roomName: string): Promise<GetRecordingsResponseSchema> => {

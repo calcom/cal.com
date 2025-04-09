@@ -67,6 +67,12 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     }
   }
 
+  const { getAllDelegationCredentialsForUser } = await import("@calcom/lib/delegationCredential/server");
+  const { deleteBookingRecordings } = await import("@calcom/features/bookings/lib/handleRecordings");
+
+  const delegationCredentials = await getAllDelegationCredentialsForUser({ user });
+  await deleteBookingRecordings(booking, delegationCredentials);
+
   await prisma.booking.delete({
     where: {
       id: booking.id,
