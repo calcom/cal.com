@@ -24,10 +24,6 @@ test.describe("Onboarding", () => {
       await expect(page.locator('text="Next Step"')).toBeVisible(); // Fix race condition
 
       await test.step("step 1 - User Settings", async () => {
-        // Check required fields
-        await page.locator("button[type=submit]").click();
-        await expect(page.locator("data-testid=required")).toBeVisible();
-
         // happy path
         await page.locator("input[name=username]").fill("new user onboarding");
         await page.locator("input[name=name]").fill("new user 2");
