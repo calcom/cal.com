@@ -1,21 +1,24 @@
 import { createInstance } from "i18next";
+import type { TFunction, i18n } from "i18next";
 import { useContext } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAtomsContext } from "@calcom/atoms/hooks/useAtomsContext";
 import { AppRouterI18nContext } from "@calcom/web/app/AppRouterI18nProvider";
 
+type useLocaleReturnType = {
+  i18n: i18n;
+  t: TFunction;
+  isLocaleReady: boolean;
+};
+
 // @internal
-const useClientLocale = (namespace: Parameters<typeof useTranslation>[0] = "common") => {
+const useClientLocale = (namespace: Parameters<typeof useTranslation>[0] = "common"): useLocaleReturnType => {
   const context = useAtomsContext();
   const { i18n, t } = useTranslation(namespace);
   const isLocaleReady = Object.keys(i18n).length > 0;
   if (context?.clientId) {
-    return { i18n: context.i18n, t: context.t, isLocaleReady: true } as unknown as {
-      i18n: ReturnType<typeof useTranslation>["i18n"];
-      t: ReturnType<typeof useTranslation>["t"];
-      isLocaleReady: boolean;
-    };
+    return { i18n: context.i18n, t: context.t, isLocaleReady: true } as unknown as useLocaleReturnType;
   }
   return {
     i18n,
@@ -30,7 +33,7 @@ const serverI18nInstances = new Map();
 // @internal
 const getInstanceKey = (locale: string, ns: string) => `${locale}-${ns}`;
 
-export const useLocale = () => {
+export const useLocale = (): useLocaleReturnType => {
   const appRouterContext = useContext(AppRouterI18nContext);
   const clientI18n = useClientLocale();
 
