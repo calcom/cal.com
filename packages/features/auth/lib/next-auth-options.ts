@@ -980,8 +980,6 @@ export const getOptions = ({
         const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
 
         try {
-          console.log("------trying to create new user ---------");
-
           const newUser = await prisma.user.create({
             data: {
               // Slugify the incoming name and append a few random characters to
