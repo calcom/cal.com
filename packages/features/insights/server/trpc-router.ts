@@ -1533,7 +1533,7 @@ export const insightsRouter = router({
       return result;
     }),
   rawData: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
-    const { startDate, endDate, teamId, userId, memberUserId, isAll } = input;
+    const { startDate, endDate, teamId, userId, memberUserId, isAll, limit, offset } = input;
 
     const eventTypeList = await getEventTypeList({
       prisma: ctx.prisma,
@@ -1552,8 +1552,23 @@ export const insightsRouter = router({
 
     const isOrgAdminOrOwner = ctx.user.isOwnerAdminOfParentTeam;
     try {
-      // Get the data
-      const csvData = await EventsInsights.getCsvData({
+      if (limit !== undefined || offset !== undefined) {
+        return await EventsInsights.getCsvData({
+          startDate,
+          endDate,
+          teamId,
+          userId,
+          memberUserId,
+          isAll,
+          isOrgAdminOrOwner,
+          eventTypeId,
+          organizationId: ctx.user.organizationId || null,
+          limit,
+          offset,
+        });
+      }
+
+      const { data: csvData } = await EventsInsights.getCsvData({
         startDate,
         endDate,
         teamId,
