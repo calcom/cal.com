@@ -1,3 +1,4 @@
+import { GetUsersInput } from "@/modules/users/inputs/get-users.input";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsArray, IsEnum, IsOptional, IsString } from "class-validator";
@@ -8,7 +9,7 @@ export enum AttributeQueryOperator {
   NONE = "NONE",
 }
 
-export class FilterUsersByOptionsQueryDto {
+export class FilterTeamUsersInput extends GetUsersInput {
   @IsArray()
   @IsString({ each: true })
   @ApiProperty({ type: [String], description: "Array of attribute option IDs to filter by" })

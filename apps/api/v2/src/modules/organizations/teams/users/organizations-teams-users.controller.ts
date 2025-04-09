@@ -12,7 +12,7 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
-import { FilterUsersByOptionsQueryDto } from "@/modules/organizations/attributes/options/inputs/filter-users-by-options.input";
+import { FilterTeamUsersInput } from "@/modules/organizations/attributes/options/inputs/filter-users-by-options.input";
 import { FilterUsersByOptionsOutput } from "@/modules/organizations/attributes/options/outputs/filter-users-by-options.output";
 import { UserItem } from "@/modules/organizations/attributes/options/outputs/filter-users-by-options.output";
 import { OrganizationAttributeOptionService } from "@/modules/organizations/attributes/options/services/organization-attributes-option.service";
@@ -40,7 +40,7 @@ export class OrganizationsTeamsUsersController {
   async getUsersByAttributeOptions(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Query() query: FilterUsersByOptionsQueryDto
+    @Query() query: FilterTeamUsersInput
   ): Promise<FilterUsersByOptionsOutput> {
     const users = await this.organizationsAttributesOptionsService.getUsersByAttributeOptions(
       orgId,

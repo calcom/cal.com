@@ -3,6 +3,7 @@ import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/
 import { AssignOrganizationAttributeOptionToUserInput } from "@/modules/organizations/attributes/options/inputs/organizations-attributes-options-assign.input";
 import { UpdateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/update-organizaiton-attribute-option.input.ts";
 import { OrganizationAttributeOptionRepository } from "@/modules/organizations/attributes/options/organization-attribute-options.repository";
+import { UserItem } from "@/modules/organizations/attributes/options/outputs/filter-users-by-options.output";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 
@@ -130,7 +131,7 @@ export class OrganizationAttributeOptionService {
     teamId: number,
     attributeOptionIds: string[],
     queryOperator: "OR" | "AND" | "NONE" = "OR"
-  ): Promise<Array<{ userId: number; username: string }>> {
+  ): Promise<UserItem[]> {
     return this.organizationAttributeOptionRepository.getUsersByAttributeOptions(
       teamId,
       attributeOptionIds,

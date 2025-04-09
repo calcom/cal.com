@@ -324,7 +324,7 @@ export class OrganizationAttributeOptionRepository {
         })
         .map((user) => ({
           userId: user.id,
-          username: user.username,
+          username: user.username || "",
         }));
     } else {
       const users = await this.dbRead.prisma.user.findMany({
