@@ -124,6 +124,8 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
             borderColor: "black",
             status: BookingStatus.ACCEPTED,
             "data-test-id": "troubleshooter-busy-time",
+            beforeEventBuffer: 0,
+            afterEventBuffer: 0,
           },
         });
       });
