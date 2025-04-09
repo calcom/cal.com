@@ -83,6 +83,7 @@ export type BookerLayoutSettings = z.infer<typeof bookerLayouts>;
 
 export const RequiresConfirmationThresholdUnits: z.ZodType<UnitTypeLongPlural> = z.enum(["hours", "minutes"]);
 
+export const TimeSlotUnits = z.enum(["hours", "minutes"]);
 export const EventTypeAppMetadataSchema = z.object(appDataSchemas).partial();
 export const eventTypeAppMetadataOptionalSchema = EventTypeAppMetadataSchema.optional();
 
@@ -118,6 +119,18 @@ const _eventTypeMetaDataSchemaWithoutApps = z.object({
     .object({
       time: z.number(),
       unit: RequiresConfirmationThresholdUnits,
+    })
+    .optional(),
+  disableCancellingThreshold: z
+    .object({
+      time: z.number(),
+      unit: TimeSlotUnits,
+    })
+    .optional(),
+  disableReschedulingThreshold: z
+    .object({
+      time: z.number(),
+      unit: TimeSlotUnits,
     })
     .optional(),
   config: z

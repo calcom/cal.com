@@ -59,6 +59,7 @@ import {
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
+import ControllerWithTimeSlot from "./ControllerWithTimeSlot";
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
 import type { EmailNotificationToggleCustomClassNames } from "./DisableAllEmailsSetting";
@@ -593,44 +594,30 @@ export const EventAdvancedTab = ({
 
       {!isPlatform && (
         <>
-          <Controller
+          <ControllerWithTimeSlot
             name="disableCancelling"
-            render={({ field: { onChange } }) => (
-              <SettingsToggle
-                labelClassName="text-sm"
-                toggleSwitchAtTheEnd={true}
-                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-                title={t("disable_cancelling")}
-                data-testid="disable-cancelling-toggle"
-                {...disableCancellingLocked}
-                description={t("description_disable_cancelling")}
-                checked={disableCancelling}
-                onCheckedChange={(val) => {
-                  setDisableCancelling(val);
-                  onChange(val);
-                }}
-              />
-            )}
+            metaDataName="disableCancellingThreshold"
+            title={t("disable_cancelling")}
+            description={t("description_disable_cancelling")}
+            data-testid="disable-cancelling-toggle"
+            checked={disableCancelling}
+            onCheckedChange={setDisableCancelling}
+            labelClassName="text-sm"
+            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            {...disableCancellingLocked}
           />
 
-          <Controller
+          <ControllerWithTimeSlot
             name="disableRescheduling"
-            render={({ field: { onChange } }) => (
-              <SettingsToggle
-                labelClassName="text-sm"
-                toggleSwitchAtTheEnd={true}
-                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-                title={t("disable_rescheduling")}
-                data-testid="disable-rescheduling-toggle"
-                {...disableReschedulingLocked}
-                description={t("description_disable_rescheduling")}
-                checked={disableRescheduling}
-                onCheckedChange={(val) => {
-                  setDisableRescheduling(val);
-                  onChange(val);
-                }}
-              />
-            )}
+            metaDataName="disableReschedulingThreshold"
+            title={t("disable_rescheduling")}
+            description={t("description_disable_rescheduling")}
+            data-testid="disable-cancelling-toggle"
+            checked={disableRescheduling}
+            onCheckedChange={setDisableRescheduling}
+            labelClassName="text-sm"
+            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            {...disableReschedulingLocked}
           />
         </>
       )}
