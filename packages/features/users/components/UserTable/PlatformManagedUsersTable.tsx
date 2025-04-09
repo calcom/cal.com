@@ -14,6 +14,7 @@ import {
   useColumnFilters,
   useDataTable,
 } from "@calcom/features/data-table";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -58,7 +59,10 @@ type PlatformManagedUsersTableProps = {
 
 export function PlatformManagedUsersTable(props: PlatformManagedUsersTableProps) {
   return (
-    <DataTableProvider defaultPageSize={25} tableIdentifier={`platform-managed-users-${props.oAuthClientId}`}>
+    <DataTableProvider
+      useSegments={useSegments}
+      defaultPageSize={25}
+      tableIdentifier={`platform-managed-users-${props.oAuthClientId}`}>
       <UserListTableContent {...props} />
     </DataTableProvider>
   );

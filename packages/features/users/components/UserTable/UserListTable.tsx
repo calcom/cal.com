@@ -20,6 +20,7 @@ import {
   convertFacetedValuesToMap,
   useDataTable,
 } from "@calcom/features/data-table";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import {
@@ -106,7 +107,7 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 
 export function UserListTable() {
   return (
-    <DataTableProvider defaultPageSize={25}>
+    <DataTableProvider useSegments={useSegments} defaultPageSize={25}>
       <UserListTableContent />
     </DataTableProvider>
   );
