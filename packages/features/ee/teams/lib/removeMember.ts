@@ -32,11 +32,15 @@ const removeMember = async ({
       where: {
         userId: memberId,
         eventType: {
-          teamId: teamId,
+          team: {
+            id: teamId,
+          },
         },
       },
     }),
   ]);
+
+  log.debug(`Removed user ${memberId} as host from team ${teamId} event types`);
 
   const team = await prisma.team.findUnique({
     where: { id: teamId },
@@ -120,12 +124,14 @@ const removeMember = async ({
           userId: memberId,
           eventType: {
             team: {
-              parentId: teamId,
+              OR: [{ parentId: teamId }, { id: teamId }],
             },
           },
         },
       }),
     ]);
+
+    log.debug(`Removed user ${memberId} as host from organization ${teamId} event types`);
   }
 
   // Deleted managed event types from this team from this member
