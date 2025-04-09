@@ -111,4 +111,30 @@ export class OrganizationAttributeOptionService {
       userId
     );
   }
+
+  async getAssignedOptionsFilteredByUserAssignments(
+    organizationId: number,
+    teamId: number,
+    attributeSlug: string,
+    assignedOptionIds: string[] = []
+  ) {
+    return this.organizationAttributeOptionRepository.getAssignedOptionsFilteredByUserAssignments(
+      teamId,
+      attributeSlug,
+      assignedOptionIds
+    );
+  }
+
+  async getUsersByAttributeOptions(
+    organizationId: number,
+    teamId: number,
+    attributeOptionIds: string[],
+    queryOperator: "OR" | "AND" | "NONE" = "OR"
+  ) {
+    return this.organizationAttributeOptionRepository.getUsersByAttributeOptions(
+      teamId,
+      attributeOptionIds,
+      queryOperator
+    );
+  }
 }
