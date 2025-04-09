@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
@@ -24,6 +24,7 @@ const useRoutingFormNavigation = (
   setShowInfoLostDialog: (value: boolean) => void
 ) => {
   const pathname = usePathname();
+  const router = useRouter();
   const formContext = useFormContext<RoutingFormWithResponseCount>();
 
   const getCurrentPage = () => {
@@ -45,7 +46,7 @@ const useRoutingFormNavigation = (
     } else if (value === "reporting") {
       window.open(baseUrl, "_blank");
     } else {
-      window.location.href = baseUrl;
+      router.push(baseUrl);
     }
   };
 
@@ -276,12 +277,12 @@ export function Header({
             },
             ...(showIncompleteBookingTab
               ? [
-                  {
-                    value: "incomplete-booking",
-                    label: t("incomplete_booking"),
-                    iconLeft: <Icon name="calendar" className="h-3 w-3" />,
-                  },
-                ]
+                {
+                  value: "incomplete-booking",
+                  label: t("incomplete_booking"),
+                  iconLeft: <Icon name="calendar" className="h-3 w-3" />,
+                },
+              ]
               : []),
           ]}
         />
