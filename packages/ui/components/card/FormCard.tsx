@@ -37,26 +37,12 @@ const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) 
     deleteField?.fn && {
       label: "Delete",
       icon: "trash",
-      color: "minimal",
+      color: "destructive",
       onClick: () => deleteField.fn(),
     },
   ].filter((action): action is ActionItem => !!action);
 
   if (actions.length === 0) return null;
-
-  // If we only pass in one action, we can just render an icon button, no need for a dropdown makes UX a bit nicer
-  if (actions.length === 1) {
-    const [action] = actions;
-    return (
-      <Button
-        type="button"
-        variant="icon"
-        color={action.color}
-        StartIcon={action.icon}
-        onClick={action.onClick}
-      />
-    );
-  }
 
   return (
     <Dropdown>
