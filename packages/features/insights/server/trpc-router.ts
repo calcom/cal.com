@@ -1552,23 +1552,7 @@ export const insightsRouter = router({
 
     const isOrgAdminOrOwner = ctx.user.isOwnerAdminOfParentTeam;
     try {
-      if (limit !== undefined || offset !== undefined) {
-        return await EventsInsights.getCsvData({
-          startDate,
-          endDate,
-          teamId,
-          userId,
-          memberUserId,
-          isAll,
-          isOrgAdminOrOwner,
-          eventTypeId,
-          organizationId: ctx.user.organizationId || null,
-          limit,
-          offset,
-        });
-      }
-
-      const { data: csvData } = await EventsInsights.getCsvData({
+      const result = await EventsInsights.getCsvData({
         startDate,
         endDate,
         teamId,
@@ -1578,7 +1562,15 @@ export const insightsRouter = router({
         isOrgAdminOrOwner,
         eventTypeId,
         organizationId: ctx.user.organizationId || null,
+        limit,
+        offset,
       });
+
+      if (limit !== undefined || offset !== undefined) {
+        return result;
+      }
+
+      const { data: csvData } = result;
 
       const csvAsString = EventsInsights.objectToCsv(csvData);
       const downloadAs = `Insights-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(endDate).format(
