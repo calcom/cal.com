@@ -31,7 +31,9 @@ const ServerPage = async ({ searchParams }: PageProps) => {
 
   // generate error message based on different errors
   const getErrorMessage = (error: string | undefined, provider: string | undefined) => {
-    if (error === "use-identity-login") {
+    if (error === "user-creation-error") {
+      return t("user_creation_error");
+    } else if (error === "wrong-provider") {
       // showing user their original identity provider by which account is managed.
       const providerName =
         provider === IdentityProvider.GOOGLE
@@ -39,7 +41,7 @@ const ServerPage = async ({ searchParams }: PageProps) => {
           : provider === IdentityProvider.CAL
           ? "Email and Password"
           : provider === IdentityProvider.SAML
-          ? "SAML"
+          ? "SAML (like Okta)"
           : "your original login method";
       return t("account_managed_by_identity_provider_error", { provider: providerName });
     }
