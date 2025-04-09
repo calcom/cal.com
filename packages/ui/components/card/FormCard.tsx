@@ -37,7 +37,7 @@ const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) 
     deleteField?.fn && {
       label: "Delete",
       icon: "trash",
-      color: "destructive",
+      color: "minimal",
       onClick: () => deleteField.fn(),
     },
   ].filter((action): action is ActionItem => !!action);

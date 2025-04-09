@@ -27,10 +27,10 @@ import { FieldTypes } from "../../lib/FieldTypes";
 import type { RoutingFormWithResponseCount } from "../../types/types";
 
 export { getServerSideProps };
-type SelectOption = { label: string; id: string | null };
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
 
 function Field({
+  fieldIndex,
   hookForm,
   hookFieldNamespace,
   deleteField,
@@ -75,10 +75,13 @@ function Field({
     name: `${hookFieldNamespace}.type`,
   });
 
+  const preCountFieldLabel = label || routerField?.label || "Field";
+  const fieldLabel = `${fieldIndex + 1}. ${preCountFieldLabel}`;
+
   return (
     <div data-testid="field">
       <FormCard
-        label={label || routerField?.label || "Field"}
+        label={fieldLabel}
         moveUp={moveUp}
         moveDown={moveDown}
         badge={
