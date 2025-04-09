@@ -17,6 +17,7 @@ import {
   ZDateRangeFilterValue,
   ZTextFilterValue,
 } from "@calcom/features/data-table";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -86,7 +87,7 @@ type BookingsProps = {
 
 export default function Bookings(props: BookingsProps) {
   return (
-    <DataTableProvider>
+    <DataTableProvider useSegments={useSegments}>
       <BookingsContent {...props} />
     </DataTableProvider>
   );
