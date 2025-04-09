@@ -144,6 +144,10 @@ ${getEmbedTypeSpecificString({
       return (
         <>
           <small className="text-subtle flex py-2">{t("create_update_react_component")}</small>
+          <div className="text-default bg-attention mb-3 rounded-md p-3 text-sm">
+            <strong>Note:</strong> The preview shown in the Preview tab is generated using the iframe
+            approach, not the Atom component.
+          </div>
           <TextArea
             data-testid="embed-react-atom"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
