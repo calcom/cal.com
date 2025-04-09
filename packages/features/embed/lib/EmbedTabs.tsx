@@ -76,7 +76,7 @@ export const tabs = [
   {
     name: "React (iframe)",
     href: "embedTabName=embed-react",
-    "data-testid": "react-standard",
+    "data-testid": "react",
     icon: "code" as const,
     type: "code",
     Component: forwardRef<
