@@ -100,8 +100,6 @@ test.describe("Email Signup Flow Test", async () => {
       const alertMessage = "Username or email is already taken";
 
       // Fill form
-      // eslint-disable-next-line playwright/no-wait-for-timeout
-      await page.waitForTimeout(300);
       await page.locator('input[name="username"]').fill("randomuserwhodoesntexist");
       await page.locator('input[name="email"]').fill(user.email);
       await page.locator('input[name="password"]').fill("Password99!");

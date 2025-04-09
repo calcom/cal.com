@@ -29,8 +29,6 @@ test.describe("Onboarding", () => {
         await expect(page.locator("data-testid=required")).toBeVisible();
 
         // happy path
-        // eslint-disable-next-line playwright/no-wait-for-timeout
-        await page.waitForTimeout(1000);
         await page.locator("input[name=username]").fill("new user onboarding");
         await page.locator("input[name=name]").fill("new user 2");
         await page.locator("input[role=combobox]").click();

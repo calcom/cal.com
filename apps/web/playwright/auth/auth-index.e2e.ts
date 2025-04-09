@@ -24,16 +24,12 @@ test.describe("Can signup from a team invite", async () => {
     await page.goto("/settings/teams/new");
 
     // Create a new team
-    // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(300);
     await page.locator('input[name="name"]').fill(teamName);
     await page.locator('input[name="slug"]').fill(teamName);
     await page.locator('button[type="submit"]').click();
 
     // Add new member to team
     await page.click('[data-testid="new-member-button"]');
-    // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(300);
     await page.fill('input[id="inviteUser"]', testUser.email);
     const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
     await page.getByTestId("invite-new-member-button").click();
@@ -56,8 +52,6 @@ test.describe("Can signup from a team invite", async () => {
     await newPage.locator('text="Create your account"').waitFor();
 
     // Fill in form
-    // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(300);
     await newPage.fill('input[name="username"]', proUser.username); // Invalid username
     await newPage.fill('input[name="password"]', testUser.password);
     await submitAndWaitForResponse(newPage, "/api/auth/signup", { expectedStatusCode: 409 });
@@ -66,12 +60,11 @@ test.describe("Can signup from a team invite", async () => {
     // Successful signup
     // TODO: Form errors don't disappear when corrected and resubmitted, so we need to refresh
     await newPage.reload();
-    // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(300);
     await newPage.fill('input[name="username"]', testUser.username);
     await newPage.fill('input[name="password"]', testUser.password);
     await submitAndWaitForResponse(newPage, "/api/auth/signup", { expectedStatusCode: 201 });
     // Since it's a new user, it should be redirected to the onboarding
+    await newPage.locator('text="Welcome to Cal.com!"').waitFor();
     await expect(newPage.locator('text="Welcome to Cal.com!"')).toBeVisible();
     // We don't need the new browser anymore
     await newPage.close();

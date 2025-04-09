@@ -16,8 +16,6 @@ test.describe("Forgot password", async () => {
     await page.goto("/auth/forgot-password");
     await page.waitForSelector("text=Forgot Password?");
 
-    // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(300);
     await page.fill('input[name="email"]', `${user.username}@example.com`);
     await page.press('input[name="email"]', "Enter");
     await page.waitForLoadState("networkidle");
@@ -69,8 +67,7 @@ test.describe("Forgot password", async () => {
 
     // Wait for page to fully load
     await page.waitForSelector("text=Reset Password");
-    // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(300);
+
     await page.fill('input[name="new_password"]', newPassword);
     await page.click('button[type="submit"]');
 
