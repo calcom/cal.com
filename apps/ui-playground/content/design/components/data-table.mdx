@@ -1,0 +1,230 @@
+---
+title: Data Table
+---
+import { DataTable, DataTableProvider, DataTableToolbar, DataTableFilters, DataTableSelectionBar, DataTablePagination } from "@calcom/features/data-table"
+import { RenderComponentWithSnippet } from "@/app/components/render"
+import { BasicExample } from "./data-table.basic"
+import { FilteringExample } from "./data-table.filtering"
+import { ResizableExample } from "./data-table.resizable"
+import { SelectionExample } from "./data-table.selection"
+import { PaginationExample } from "./data-table.pagination"
+import { InfiniteScrollExample } from "./data-table.infinite"
+import { CustomizationExample } from "./data-table.customization"
+
+## Basic Usage
+
+Data Table is a high-performance table component built on top of TanStack Table that provides advanced functionality like sorting, filtering, selection, and virtualization.
+
+<BasicExample/>
+
+## Filtering and Search
+
+The Data Table component provides built-in filtering capabilities, including a search bar and column-specific filters.
+
+<FilteringExample/>
+
+## Column Resizing
+
+Columns can be resized by dragging the divider between column headers. The component also supports persistent column sizing.
+
+<ResizableExample/>
+
+## Row Selection
+
+The Data Table supports row selection with a selection bar that appears when one or more rows are selected, allowing for bulk actions.
+
+<SelectionExample/>
+
+## Pagination
+
+For tables with many rows, the Data Table supports standard pagination with customizable page sizes.
+
+<PaginationExample/>
+
+## Infinite Scrolling
+
+For large datasets, the Data Table supports infinite scrolling to load more data as the user scrolls down.
+
+<InfiniteScrollExample/>
+
+## Customization
+
+The Data Table component can be fully customized with different styling options, column configurations, and integration with your data fetching logic.
+
+<CustomizationExample/>
+
+## Implementation Example
+
+Here's how to implement a basic data table with TanStack Table integration:
+
+```tsx
+import { 
+  DataTable, 
+  DataTableProvider, 
+  DataTableToolbar, 
+  DataTableFilters,
+  useDataTable,
+  useFetchMoreOnBottomReached
+} from "@calcom/features/data-table";
+import {
+  getCoreRowModel,
+  getFilteredRowModel, 
+  getSortedRowModel,
+  getFacetedUniqueValues,
+  useReactTable,
+  type ColumnDef
+} from "@tanstack/react-table";
+import { useRef, useState } from "react";
+
+// Define your data type
+type User = {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  accepted: boolean;
+};
+
+// Sample data
+const data: User[] = [
+  { id: 1, name: "John Doe", email: "john@example.com", role: "ADMIN", accepted: true },
+  { id: 2, name: "Jane Smith", email: "jane@example.com", role: "MEMBER", accepted: true },
+  { id: 3, name: "Alice Johnson", email: "alice@example.com", role: "MEMBER", accepted: false },
+  // Add more sample data as needed
+];
+
+export default function UserList() {
+  return (
+    <DataTableProvider>
+      <UserListContent />
+    </DataTableProvider>
+  );
+}
+
+function UserListContent() {
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [rowSelection, setRowSelection] = useState({});
+  
+  const { searchTerm } = useDataTable();
+  
+  // Define columns
+  const columns: ColumnDef<User>[] = [
+    {
+      id: "select",
+      enableHiding: false,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      header: ({ table }) => (
+        <Checkbox
+          checked={table.getIsAllPageRowsSelected()}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+    },
+    {
+      id: "name",
+      accessorFn: (row) => row.name,
+      header: "Name",
+      cell: ({ row }) => <div>{row.original.name}</div>,
+    },
+    {
+      id: "email",
+      accessorFn: (row) => row.email,
+      header: "Email",
+      cell: ({ row }) => <div>{row.original.email}</div>,
+    },
+    {
+      id: "role",
+      accessorFn: (row) => row.role,
+      header: "Role",
+      cell: ({ row }) => (
+        <Badge variant={row.original.role === "ADMIN" ? "blue" : "gray"}>
+          {row.original.role}
+        </Badge>
+      ),
+    },
+    {
+      id: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <Badge variant={row.original.accepted ? "green" : "orange"}>
+          {row.original.accepted ? "Active" : "Pending"}
+        </Badge>
+      ),
+    },
+    {
+      id: "actions",
+      header: "",
+      cell: ({ row }) => (
+        <Button variant="icon" color="secondary" StartIcon="more-horizontal">
+          Actions
+        </Button>
+      ),
+    },
+  ];
+  
+  // Set up TanStack table
+  const table = useReactTable({
+    data,
+    columns,
+    enableRowSelection: true,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
+    state: {
+      rowSelection,
+    },
+    onRowSelectionChange: setRowSelection,
+  });
+  
+  return (
+    <>
+      <DataTable
+        table={table}
+        tableContainerRef={tableContainerRef}
+        enableColumnResizing={true}>
+        <DataTableToolbar.Root>
+          <div className="flex w-full gap-2">
+            <DataTableToolbar.SearchBar />
+            <DataTableFilters.AddFilterButton table={table} />
+            <DataTableFilters.ColumnVisibilityButton table={table} />
+            <DataTableToolbar.CTA
+              type="button"
+              color="primary"
+              StartIcon="plus"
+              onClick={() => alert("Add new user")}>
+              Add User
+            </DataTableToolbar.CTA>
+          </div>
+          <div className="flex gap-2 justify-self-start">
+            <DataTableFilters.ActiveFilters table={table} />
+          </div>
+        </DataTableToolbar.Root>
+        
+        {/* Selection Bar appears when rows are selected */}
+        {Object.keys(rowSelection).length > 0 && (
+          <DataTableSelectionBar.Root>
+            <DataTableSelectionBar.Button
+              color="primary"
+              onClick={() => alert("Delete selected users")}
+              icon="trash">
+              Delete Selected
+            </DataTableSelectionBar.Button>
+          </DataTableSelectionBar.Root>
+        )}
+        
+        {/* Optional Pagination */}
+        <DataTablePagination table={table} />
+      </DataTable>
+    </>
+  );
+}
+``` 
