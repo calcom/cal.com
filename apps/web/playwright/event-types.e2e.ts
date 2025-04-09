@@ -75,8 +75,12 @@ test.describe("Event Types tests", () => {
       const eventTitle = `my recurring event ${nonce}`;
       await createNewEventType(page, { eventTitle });
 
-      // eslint-disable-next-line playwright/no-wait-for-timeout
-      await page.waitForTimeout(1000); // waits for 1 second
+      // fix the race condition
+      await page.waitForSelector('[data-testid="event-title"]');
+      await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
+        "aria-current",
+        "page"
+      );
 
       await page.click("[data-testid=vertical-tab-recurring]");
       await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeHidden();

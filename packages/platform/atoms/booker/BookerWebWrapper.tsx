@@ -73,7 +73,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     rescheduleUid,
     rescheduledBy,
     bookingUid: bookingUid,
-    layout: bookerLayout.defaultLayout,
+    layout: bookerLayout.isMobile ? "mobile" : bookerLayout.defaultLayout,
     org: props.entity.orgSlug,
     timezone,
   });
@@ -208,11 +208,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
         Array.from(searchParams.values()).includes(param)
       )
   );
-
-  useEffect(() => {
-    // Enable 'Overlay Calendar' by default for signed in users
-    if (hasSession) onOverlaySwitchStateChange(true);
-  }, [hasSession]);
 
   return (
     <BookerComponent
