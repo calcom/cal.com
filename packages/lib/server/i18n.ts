@@ -43,7 +43,10 @@ export const getTranslation = async (locale: string, ns: string) => {
         [ns]: resources,
       },
     },
-    fallbackLng: "en",
+    fallbackLng: {
+      default: ["en"],
+      zh: ["zh-CN"],
+    },
   });
 
   i18nInstanceCache.set(cacheKey, _i18n);

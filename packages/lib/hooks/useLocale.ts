@@ -51,7 +51,10 @@ export const useLocale = (): useLocaleReturnType => {
             [ns]: translations,
           },
         },
-        fallbackLng: "en",
+        fallbackLng: {
+          default: ["en"],
+          zh: ["zh-CN"],
+        },
       });
 
       serverI18nInstances.set(instanceKey, {
