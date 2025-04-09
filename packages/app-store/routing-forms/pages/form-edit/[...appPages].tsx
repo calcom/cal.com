@@ -30,24 +30,6 @@ export { getServerSideProps };
 type SelectOption = { label: string; id: string | null };
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
 
-const appendArray = <T,>({
-  target,
-  arrayToAppend,
-  appendAt,
-}: {
-  arrayToAppend: T[];
-  target: T[];
-  appendAt: number;
-}) => {
-  // Avoid mutating the original array
-  const copyOfTarget = [...target];
-  const numItemsToRemove = arrayToAppend.length;
-  copyOfTarget.splice(appendAt, numItemsToRemove, ...arrayToAppend);
-  return copyOfTarget;
-};
-
-const PASTE_OPTIONS_SEPARATOR_REGEX = /\n+/;
-
 function Field({
   hookForm,
   hookFieldNamespace,
