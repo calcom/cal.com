@@ -11,18 +11,13 @@ import { DialogContent } from "@calcom/ui/components/dialog";
 import { getDurationFormatted } from "../../../components/event-meta/Duration";
 import { useBookerStore } from "../../store";
 import { FromTime } from "../../utils/dates";
+import { useEvent } from "../../utils/event";
 import { useBookerTime } from "../hooks/useBookerTime";
 
-const BookEventFormWrapper = ({
-  children,
-  onCancel,
-  eventDuration,
-}: {
-  onCancel: () => void;
-  children: ReactNode;
-  eventDuration?: number;
-}) => {
-  return <BookEventFormWrapperComponent child={children} eventDuration={eventDuration} onCancel={onCancel} />;
+const BookEventFormWrapper = ({ children, onCancel }: { onCancel: () => void; children: ReactNode }) => {
+  const { data } = useEvent();
+
+  return <BookEventFormWrapperComponent child={children} eventLength={data?.length} onCancel={onCancel} />;
 };
 
 const PlatformBookEventFormWrapper = ({
@@ -36,21 +31,17 @@ const PlatformBookEventFormWrapper = ({
   const { data } = useEventTypeById(eventId);
 
   return (
-    <BookEventFormWrapperComponent
-      child={children}
-      eventDuration={data?.lengthInMinutes}
-      onCancel={onCancel}
-    />
+    <BookEventFormWrapperComponent child={children} eventLength={data?.lengthInMinutes} onCancel={onCancel} />
   );
 };
 
 export const BookEventFormWrapperComponent = ({
   child,
-  eventDuration,
+  eventLength,
 }: {
   onCancel: () => void;
   child: ReactNode;
-  eventDuration?: number;
+  eventLength?: number;
 }) => {
   const { i18n, t } = useLocale();
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
@@ -71,9 +62,9 @@ export const BookEventFormWrapperComponent = ({
             language={i18n.language}
           />
         </Badge>
-        {(selectedDuration || eventDuration) && (
+        {(selectedDuration || eventLength) && (
           <Badge variant="grayWithoutHover" startIcon="clock" size="lg">
-            <span>{getDurationFormatted(selectedDuration || eventDuration, t)}</span>
+            <span>{getDurationFormatted(selectedDuration || eventLength, t)}</span>
           </Badge>
         )}
       </div>
@@ -86,12 +77,10 @@ export const BookFormAsModal = ({
   visible,
   onCancel,
   children,
-  eventDuration,
 }: {
   visible: boolean;
   onCancel: () => void;
   children: ReactNode;
-  eventDuration?: number;
 }) => {
   const isPlatform = useIsPlatform();
 
@@ -102,9 +91,7 @@ export const BookFormAsModal = ({
         enableOverflow
         className="[&_.modalsticky]:border-t-subtle [&_.modalsticky]:bg-default max-h-[80vh] pb-0 [&_.modalsticky]:sticky [&_.modalsticky]:bottom-0 [&_.modalsticky]:left-0 [&_.modalsticky]:right-0 [&_.modalsticky]:-mx-8 [&_.modalsticky]:border-t [&_.modalsticky]:px-8 [&_.modalsticky]:py-4">
         {!isPlatform ? (
-          <BookEventFormWrapper eventDuration={eventDuration} onCancel={onCancel}>
-            {children}
-          </BookEventFormWrapper>
+          <BookEventFormWrapper onCancel={onCancel}>{children}</BookEventFormWrapper>
         ) : (
           <PlatformBookEventFormWrapper onCancel={onCancel}>{children}</PlatformBookEventFormWrapper>
         )}

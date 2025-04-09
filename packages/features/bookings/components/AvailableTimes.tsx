@@ -53,7 +53,7 @@ export type AvailableTimesProps = {
   unavailableTimeSlots?: string[];
 } & Omit<SlotItemProps, "slot">;
 
-export type SlotItemProps = {
+type SlotItemProps = {
   slot: Slot;
   seatsPerTimeSlot?: number | null;
   selectedSlots?: string[];
@@ -61,7 +61,7 @@ export type SlotItemProps = {
   onTentativeTimeSelect?: TOnTentativeTimeSelect;
   showAvailableSeatsCount?: boolean | null;
   event: {
-    data?: Pick<BookerEvent, "length" | "price" | "currency" | "metadata"> | null;
+    data?: Pick<BookerEvent, "length" | "bookingFields" | "price" | "currency" | "metadata"> | null;
   };
   customClassNames?: string;
   confirmStepClassNames?: {

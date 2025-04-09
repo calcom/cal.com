@@ -569,8 +569,7 @@ const BookerComponent = ({
 
       <BookFormAsModal
         onCancel={() => setSelectedTimeslot(null)}
-        visible={bookerState === "booking" && shouldShowFormInDialog}
-        eventDuration={event?.data?.length}>
+        visible={bookerState === "booking" && shouldShowFormInDialog}>
         {EventBooker}
       </BookFormAsModal>
       <Toaster position="bottom-right" />

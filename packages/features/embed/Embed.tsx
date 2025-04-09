@@ -10,10 +10,9 @@ import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { AvailableTimes, AvailableTimesHeader } from "@calcom/features/bookings";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
-import { useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
-import { AvailableTimes } from "@calcom/features/bookings/components/AvailableTimes";
-import { AvailableTimesHeader } from "@calcom/features/bookings/components/AvailableTimesHeader";
+import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
@@ -45,6 +44,7 @@ import { useEmbedDialogCtx } from "./lib/hooks/useEmbedDialogCtx";
 import { useEmbedParams } from "./lib/hooks/useEmbedParams";
 import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState } from "./types";
 
+type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"] | undefined;
 type EmbedDialogProps = {
   types: EmbedTypes;
   tabs: EmbedTabs;
@@ -223,7 +223,7 @@ const ChooseEmbedTypesDialogContent = ({
 };
 
 const EmailEmbed = ({
-  eventTypeData,
+  eventType,
   username,
   orgSlug,
   isTeamEvent,
@@ -231,7 +231,7 @@ const EmailEmbed = ({
   setSelectedDuration,
   userSettingsTimezone,
 }: {
-  eventTypeData?: RouterOutputs["viewer"]["eventTypes"]["get"];
+  eventType?: EventType;
   username: string;
   orgSlug?: string;
   isTeamEvent: boolean;
@@ -240,7 +240,6 @@ const EmailEmbed = ({
   userSettingsTimezone?: string;
 }) => {
   const { t, i18n } = useLocale();
-  const eventType = eventTypeData?.eventType;
   const { timezoneFromBookerStore, timezoneFromTimePreferences } = useBookerTime();
   const timezone = chooseTimezone({
     timezoneFromBookerStore,
@@ -272,6 +271,7 @@ const EmailEmbed = ({
       ],
       shallow
     );
+  const event = useEvent();
   const schedule = useScheduleForEvent({
     orgSlug,
     eventId: eventType?.id,
@@ -367,7 +367,7 @@ const EmailEmbed = ({
               locale={i18n.language}
               browsingDate={month ? dayjs(month) : undefined}
               selected={dayjs(selectedDate)}
-              weekStart={weekdayToWeekIndex(eventTypeData?.users?.[0].weekStart)}
+              weekStart={weekdayToWeekIndex(event?.data?.subsetOfUsers?.[0]?.weekStart)}
               eventSlug={eventType?.slug}
             />
           </CollapsibleContent>
@@ -391,7 +391,7 @@ const EmailEmbed = ({
                 handleSlotClick={handleSlotClick}
                 slots={slots}
                 showAvailableSeatsCount={eventType.seatsShowAvailabilityCount}
-                event={eventTypeData}
+                event={event}
               />
             </div>
           ) : null}
@@ -443,7 +443,7 @@ const EmailEmbedPreview = ({
   selectedDuration,
   userSettingsTimezone,
 }: {
-  eventType: RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
+  eventType: EventType;
   timezone?: string;
   emailContentRef: RefObject<HTMLDivElement>;
   username?: string;
@@ -917,7 +917,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
           <h4 className="text-subtle mb-6 text-sm font-normal">{embed.subtitle}</h4>
           {eventTypeData?.eventType && embedType === "email" ? (
             <EmailEmbed
-              eventTypeData={eventTypeData}
+              eventType={eventTypeData?.eventType}
               username={teamSlug ?? (data?.user.username as string)}
               userSettingsTimezone={userSettings?.timeZone}
               orgSlug={data?.user?.org?.slug}
