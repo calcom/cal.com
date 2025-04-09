@@ -131,7 +131,7 @@ export class OrganizationsRoutingFormsRepository {
     await this.dbRead.prisma.app_RoutingForms_Form.findFirstOrThrow({
       where: {
         id: routingFormId,
-        team: teamId ? { parentId: orgId } : { id: teamId, parentId: orgId },
+        team: !teamId ? { parentId: orgId } : { id: teamId, parentId: orgId },
       },
     });
 
@@ -143,7 +143,6 @@ export class OrganizationsRoutingFormsRepository {
         ...(afterUpdatedAt && { updatedAt: { gte: afterUpdatedAt } }),
         ...(beforeUpdatedAt && { updatedAt: { lte: beforeUpdatedAt } }),
         ...(routedToBookingUid && { routedToBookingUid }),
-        ...(teamId && { routedToBookingUid }),
       },
       orderBy: [
         ...(sortCreatedAt ? [{ createdAt: sortCreatedAt }] : []),

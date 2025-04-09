@@ -41,8 +41,8 @@ export class OrganizationsTeamsRoutingFormsResponsesController {
   @PlatformPlan("ESSENTIALS")
   async getRoutingFormResponses(
     @Param("routingFormId") routingFormId: string,
-    @Param("teamId", ParseIntPipe) orgId: number,
-    @Param("orgId", ParseIntPipe) teamId: number,
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: GetRoutingFormResponsesParams
   ): Promise<GetRoutingFormResponsesOutput> {
     const { skip, take, ...filters } = queryParams;
