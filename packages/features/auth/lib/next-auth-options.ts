@@ -39,6 +39,7 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
+import { _AccountModel } from "@calcom/prisma/zod";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail";
@@ -979,6 +980,8 @@ export const getOptions = ({
         const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
 
         try {
+          console.log("------trying to create new user ---------");
+
           const newUser = await prisma.user.create({
             data: {
               // Slugify the incoming name and append a few random characters to
@@ -1000,7 +1003,16 @@ export const getOptions = ({
               creationSource: CreationSource.WEBAPP,
             },
           });
-          const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
+
+          const accountData = {
+            userId: newUser.id,
+            providerEmail: user.email,
+            ...account,
+          };
+
+          // Validate account data
+          const linkAccountNewUserData = _AccountModel.omit({ id: true }).parse(accountData);
+
           await calcomAdapter.linkAccount(linkAccountNewUserData);
 
           if (account.twoFactorEnabled) {
