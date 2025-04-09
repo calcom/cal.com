@@ -1,4 +1,4 @@
-import { RoutingFormsResponsesOutputService } from "@/modules/routing-forms-responses/services/routing-forms-responses-output.service";
+import { OrganizationsTeamsRoutingFormsResponsesOutputService } from "@/modules/organizations/teams/routing-forms/services/organizations-teams-routing-forms-responses-output.service";
 import { Injectable } from "@nestjs/common";
 
 import { OrganizationsTeamsRoutingFormsResponsesRepository } from "../repositories/organizations-teams-routing-forms-responses.repository";
@@ -7,7 +7,7 @@ import { OrganizationsTeamsRoutingFormsResponsesRepository } from "../repositori
 export class OrganizationsTeamsRoutingFormsResponsesService {
   constructor(
     private readonly routingFormsRepository: OrganizationsTeamsRoutingFormsResponsesRepository,
-    private readonly routingFormsResponsesOutputService: RoutingFormsResponsesOutputService
+    private readonly routingFormsResponsesOutputService: OrganizationsTeamsRoutingFormsResponsesOutputService
   ) {}
 
   async getRoutingFormResponses(routingFormId: string) {

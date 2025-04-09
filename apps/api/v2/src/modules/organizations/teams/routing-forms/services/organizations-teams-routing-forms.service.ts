@@ -1,14 +1,10 @@
-import { RoutingFormsResponsesOutputService } from "@/modules/routing-forms-responses/services/routing-forms-responses-output.service";
 import { Injectable } from "@nestjs/common";
 
 import { OrganizationsTeamsRoutingFormsRepository } from "../repositories/organizations-teams-routing-forms.repository";
 
 @Injectable()
 export class OrganizationsTeamsRoutingFormsService {
-  constructor(
-    private readonly routingFormsRepository: OrganizationsTeamsRoutingFormsRepository,
-    private readonly routingFormsResponsesOutputService: RoutingFormsResponsesOutputService
-  ) {}
+  constructor(private readonly routingFormsRepository: OrganizationsTeamsRoutingFormsRepository) {}
 
   async getTeamRoutingForms(
     orgId: number,

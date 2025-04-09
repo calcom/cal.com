@@ -6,7 +6,6 @@ import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/inde
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { RedisService } from "@/modules/redis/redis.service";
-import { RoutingFormsResponsesModule } from "@/modules/routing-forms-responses/routing-forms-responses.module";
 import { RoutingFormsModule } from "@/modules/routing-forms/routing-forms.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
 import { Module } from "@nestjs/common";
@@ -20,7 +19,7 @@ import { OrganizationsTeamsRoutingFormsResponsesService } from "./services/organ
 import { OrganizationsTeamsRoutingFormsService } from "./services/organizations-teams-routing-forms.service";
 
 @Module({
-  imports: [PrismaModule, StripeModule, RedisModule, RoutingFormsResponsesModule, RoutingFormsModule],
+  imports: [PrismaModule, StripeModule, RedisModule, RoutingFormsModule],
   providers: [
     OrganizationsTeamsRoutingFormsService,
     OrganizationsTeamsRoutingFormsResponsesService,

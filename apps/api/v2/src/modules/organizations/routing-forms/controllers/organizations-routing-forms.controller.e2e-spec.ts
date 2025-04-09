@@ -92,7 +92,7 @@ describe("OrganizationsRoutingFormController", () => {
     const now = new Date();
     now.setDate(now.getDate() + 1);
     const { keyString } = await apiKeysRepositoryFixture.createApiKey(user.id, null);
-    apiKeyString = `${keyString} `;
+    apiKeyString = `${keyString}`;
 
     routingForm = await prismaWriteService.prisma.app_RoutingForms_Form.create({
       data: {

@@ -2368,7 +2368,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetRoutingFormResponsesOutput"
+                }
+              }
+            }
           }
         },
         "tags": ["Orgs / Routing forms"]
@@ -4040,7 +4047,7 @@
     "/v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses": {
       "get": {
         "operationId": "OrganizationsTeamsRoutingFormsResponsesController_getRoutingFormResponses",
-        "summary": "Get routing form responses",
+        "summary": "Get organization team routing form responses",
         "parameters": [
           {
             "name": "Authorization",
@@ -4055,6 +4062,109 @@
             "name": "routingFormId",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to skip",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to take",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort by creation time",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort by update time",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created after this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created before this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created after this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses updated before this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "routedToBookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses routed to a specific booking",
             "schema": {
               "type": "string"
             }
@@ -17770,10 +17880,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/RoutingFormResponseOutput"
-            }
+            "$ref": "#/components/schemas/RoutingFormResponseOutput"
           }
         },
         "required": ["status", "data"]

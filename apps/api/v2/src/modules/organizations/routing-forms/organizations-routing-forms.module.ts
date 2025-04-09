@@ -2,7 +2,6 @@ import { MembershipsRepository } from "@/modules/memberships/memberships.reposit
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
-import { RoutingFormsResponsesModule } from "@/modules/routing-forms-responses/routing-forms-responses.module";
 import { RoutingFormsModule } from "@/modules/routing-forms/routing-forms.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
 import { Module } from "@nestjs/common";
@@ -14,7 +13,7 @@ import { OrganizationsRoutingFormsResponsesService } from "./services/organizati
 import { OrganizationsRoutingFormsService } from "./services/organizations-routing-forms.service";
 
 @Module({
-  imports: [PrismaModule, StripeModule, RedisModule, RoutingFormsModule, RoutingFormsResponsesModule],
+  imports: [PrismaModule, StripeModule, RedisModule, RoutingFormsModule],
   providers: [
     MembershipsRepository,
     OrganizationsRepository,
