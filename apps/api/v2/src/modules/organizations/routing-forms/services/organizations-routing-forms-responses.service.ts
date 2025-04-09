@@ -1,12 +1,13 @@
 import { OrganizationsRoutingFormsRepository } from "@/modules/organizations/routing-forms/organizations-routing-forms.repository";
+import { OrganizationsTeamsRoutingFormsResponsesOutputService } from "@/modules/organizations/teams/routing-forms/services/organizations-teams-routing-forms-responses-output.service";
 import { Injectable } from "@nestjs/common";
-import { plainToClass } from "class-transformer";
-
-import { RoutingFormResponseOutput } from "@calcom/platform-types";
 
 @Injectable()
 export class OrganizationsRoutingFormsResponsesService {
-  constructor(private readonly organizationsRoutingFormsRepository: OrganizationsRoutingFormsRepository) {}
+  constructor(
+    private readonly organizationsRoutingFormsRepository: OrganizationsRoutingFormsRepository,
+    private readonly outputService: OrganizationsTeamsRoutingFormsResponsesOutputService
+  ) {}
 
   async getOrganizationRoutingFormResponses(
     orgId: number,
@@ -32,9 +33,7 @@ export class OrganizationsRoutingFormsResponsesService {
       options
     );
 
-    return responses.map((response) =>
-      plainToClass(RoutingFormResponseOutput, response, { strategy: "excludeAll" })
-    );
+    return this.outputService.getRoutingFormResponses(responses);
   }
 
   async updateRoutingFormResponse(
@@ -52,6 +51,6 @@ export class OrganizationsRoutingFormsResponsesService {
       data
     );
 
-    return plainToClass(RoutingFormResponseOutput, updatedResponse, { strategy: "excludeAll" });
+    return this.outputService.getRoutingFormResponses([updatedResponse])[0];
   }
 }

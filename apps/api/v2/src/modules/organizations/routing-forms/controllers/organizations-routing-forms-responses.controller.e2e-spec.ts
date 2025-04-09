@@ -116,7 +116,7 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
     routingFormResponse2 = await prismaWriteService.prisma.app_RoutingForms_FormResponse.create({
       data: {
         formId: routingForm.id,
-        response: JSON.stringify({ question1: "answer1", question2: "answer2" }),
+        response: { question1: "answer1", question2: "answer2" },
       },
     });
 
@@ -239,7 +239,7 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
     });
 
     it("should update routing form response", async () => {
-      const updatedResponse = JSON.stringify({ question1: "updated_answer1", question2: "updated_answer2" });
+      const updatedResponse = { question1: "updated_answer1", question2: "updated_answer2" };
       return request(app.getHttpServer())
         .patch(
           `/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses/${routingFormResponse.id}`
@@ -254,6 +254,7 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
           expect(data).toBeDefined();
           expect(data.id).toEqual(routingFormResponse.id);
           expect(data.formId).toEqual(routingFormResponse.formId);
+          console.log(data.response);
           expect(data.response).toEqual(updatedResponse);
         });
     });
