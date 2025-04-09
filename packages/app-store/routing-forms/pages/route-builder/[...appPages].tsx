@@ -502,10 +502,7 @@ const Route = ({
       : undefined;
 
   const formFieldsQueryBuilder = shouldShowFormFieldsQueryBuilder ? (
-    <div>
-      <span className="text-emphasis flex w-full items-center text-sm">
-        For responses matching the following criteria (matches all by default)
-      </span>
+    <div className="bg-default border-subtle rounded-2xl border">
       <Query
         {...withRaqbSettingsAndWidgets({
           config: formFieldsQueryBuilderConfig,
@@ -521,8 +518,7 @@ const Route = ({
         }}
         renderBuilder={renderBuilder}
       />
-      <Divider className="mt-6" />
-      <Divider className="mb-6 " />
+      {/* <Divider className="mb-6 " /> */}
     </div>
   ) : null;
 
@@ -600,7 +596,7 @@ const Route = ({
 
   return (
     <FormCard
-      className={classNames("mb-6", route.isFallback ? "bg-default" : "bg-muted")}
+      className={classNames("mb-6", route.isFallback && "bg-default")}
       leftIcon={cardOptions?.leftIcon}
       collapsible={cardOptions?.collapsible}
       moveUp={moveUp}
@@ -623,8 +619,8 @@ const Route = ({
       }>
       <div
         className={classNames(
-          "border-subtle w-full gap-2 rounded-xl border p-2",
-          route.isFallback ? "bg-muted" : "bg-default"
+          "w-full gap-2 p-2",
+          route.isFallback && "bg-muted border-subtle rounded-xl  border"
         )}>
         <div className="cal-query-builder w-full ">
           {formFieldsQueryBuilder}

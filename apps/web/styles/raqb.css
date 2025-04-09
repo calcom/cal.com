@@ -17,7 +17,23 @@
 
 .cal-query-builder .group--children {
   /* !important to ensure that styles added by react-query-awesome-builder are overridden */
-  padding-left: 0 !important;
+  margin: 8px;
+  margin-bottom: 0px;
+  padding: 2px !important;
+  border-radius: 12px 12px 0 0;
+  border: 1px solid var(--cal-border-muted);
+  border-bottom: none;
+  background-color: var(--cal-bg-muted)
+}
+
+.cal-query-builder .group--footer {
+  margin: 8px;
+  margin-top: 0px;
+  padding: 2px !important;
+  border-radius: 0 0 12px 12px;
+  border: 1px solid var(--cal-border-muted);
+  border-top: none;
+  background-color: var(--cal-bg-muted)
 }
 
 /* Hide "and" for between numbers */
@@ -104,21 +120,22 @@
 }
 
 .cal-query-builder .widget--valuesrc {
-  margin-right: -8px;
+  margin-right: -8px;}
+
+.cal-query-builder .group--header{
+  margin: 8px !important;
+  padding-left: 8px !important;
 }
 
-.cal-query-builder .group--header,
-.cal-query-builder .group--footer {
-  padding-left: 10px;
-  padding-right: 10px;
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
 
 .cal-query-builder .group-or-rule-container {
-  margin-top: 10px;
-  margin-bottom: 10px;
+  margin-top: 0px !important;
+  margin-bottom:0px !important;
 }
+
+.cal-query-builder .group-or-rule {
+  padding: 0px !important;
+} 
 
 .cal-query-builder .rule {
   border: 1px solid transparent;

@@ -266,11 +266,7 @@ function ButtonGroup({ children }: ButtonGroupProps) {
         if (!button) {
           return null;
         }
-        return (
-          <div key={key} className="mb-2">
-            {button}
-          </div>
-        );
+        return <div key={key}>{button}</div>;
       })}
     </>
   );
@@ -303,7 +299,7 @@ function Conjs({ not, setNot, config, conjunctionOptions, setConjunction, disabl
       value = value == "any" ? "none" : "all";
     }
     const selectValue = options.find((option) => option.value === value);
-    const summary = !config.operators.__calReporting ? "where" : "Query where";
+    const summary = !config.operators.__calReporting ? "If booker selects" : "Query where";
     return (
       <div className="flex items-center text-sm">
         <span>{summary}</span>
@@ -325,7 +321,7 @@ function Conjs({ not, setNot, config, conjunctionOptions, setConjunction, disabl
             }
           }}
         />
-        <span>match</span>
+        {/* <span>match</span> */}
       </div>
     );
   };

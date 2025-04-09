@@ -46,3 +46,9 @@
 ## Routing
 - [ ] Layout
 - [ ] 
+
+
+Really there’s only 3, and I thought they should be represented different visually - there’s not really logic behind why one is purple vs orange - but there is s rule in that…
+Attribute = always purple
+Attribute option = always grey
+Connected attribute value = always orange
