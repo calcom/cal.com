@@ -137,6 +137,23 @@ const OrgProfileView = () => {
                 <Label className="text-emphasis">{t("organization_name")}</Label>
                 <p className="text-default text-sm">{currentOrganisation?.name}</p>
               </div>
+              <div className="mt-5">
+                <Label className="text-emphasis">{t("team_id")}</Label>
+                <div className="flex">
+                  <p className="text-default text-sm">{currentOrganisation?.id}</p>
+                  <Button
+                    color="minimal"
+                    size="sm"
+                    StartIcon="clipboard"
+                    className="ml-2"
+                    onClick={() => {
+                      navigator.clipboard.writeText(currentOrganisation?.id?.toString() || "");
+                      showToast(t("copied_to_clipboard"), "success");
+                    }}>
+                    {t("copy")}
+                  </Button>
+                </div>
+              </div>
               {!isBioEmpty && (
                 <>
                   <Label className="text-emphasis mt-5">{t("about")}</Label>
@@ -172,6 +189,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
   const utils = trpc.useUtils();
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
+  const { data: currentOrganisation } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {});
 
   const form = useForm({
     defaultValues,
@@ -368,6 +386,28 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
             </div>
           )}
         />
+        {currentOrganisation && (
+          <div className="mt-8">
+            <TextField
+              name="teamId"
+              label={t("team_id")}
+              value={currentOrganisation?.id?.toString() || ""}
+              disabled
+              addOnSuffix={
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(currentOrganisation?.id?.toString() || "");
+                    showToast(t("copied_to_clipboard"), "success");
+                  }}
+                  type="button"
+                  className="rounded-l-none py-[19px] text-base">
+                  <Icon name="clipboard" className="text-muted h-5 w-5 ltr:mr-2 rtl:ml-2" />
+                  {t("copy")}
+                </Button>
+              }
+            />
+          </div>
+        )}
         <div className="mt-8">
           <Label>{t("about")}</Label>
           <Editor

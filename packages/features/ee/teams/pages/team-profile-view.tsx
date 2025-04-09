@@ -32,6 +32,7 @@ import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import {
   SkeletonButton,
@@ -169,6 +170,23 @@ const ProfileView = () => {
             <div>
               <Label className="text-emphasis">{t("team_name")}</Label>
               <p className="text-default text-sm">{team?.name}</p>
+            </div>
+            <div className="mt-5">
+              <Label className="text-emphasis">{t("team_id")}</Label>
+              <div className="flex">
+                <p className="text-default text-sm">{team?.id}</p>
+                <Button
+                  color="minimal"
+                  size="sm"
+                  StartIcon="clipboard"
+                  className="ml-2"
+                  onClick={() => {
+                    navigator.clipboard.writeText(team?.id?.toString() || "");
+                    showToast(t("copied_to_clipboard"), "success");
+                  }}>
+                  {t("copy")}
+                </Button>
+              </div>
             </div>
             {team && !isBioEmpty && (
               <>
@@ -399,6 +417,26 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
             </div>
           )}
         />
+        <div className="mt-8">
+          <TextField
+            name="teamId"
+            label={t("team_id")}
+            value={team.id.toString()}
+            disabled
+            addOnSuffix={
+              <Button
+                onClick={() => {
+                  navigator.clipboard.writeText(team.id.toString());
+                  showToast(t("copied_to_clipboard"), "success");
+                }}
+                type="button"
+                className="rounded-l-none py-[19px] text-base">
+                <Icon name="clipboard" className="text-muted h-5 w-5 ltr:mr-2 rtl:ml-2" />
+                {t("copy")}
+              </Button>
+            }
+          />
+        </div>
         <div className="mt-8">
           <Label>{t("about")}</Label>
           <Editor
