@@ -382,6 +382,12 @@ class EventsInsights {
   ) => {
     // Obtain the where conditional
     const whereConditional = await this.obtainWhereConditionalForDownload(props);
+    const limit = props.limit ?? 1000; // Default batch size
+    const offset = props.offset ?? 0;
+
+    const totalCount = await prisma.bookingTimeStatus.count({
+      where: whereConditional,
+    });
 
     const csvData = await prisma.bookingTimeStatus.findMany({
       select: {
@@ -402,12 +408,14 @@ class EventsInsights {
         noShowHost: true,
       },
       where: whereConditional,
+      skip: offset,
+      take: limit,
     });
 
     const uids = csvData.filter((b) => b.uid !== null).map((b) => b.uid as string);
 
     if (uids.length === 0) {
-      return csvData;
+      return { data: csvData, total: totalCount };
     }
 
     const bookings = await prisma.booking.findMany({
@@ -430,7 +438,7 @@ class EventsInsights {
 
     const bookingMap = new Map(bookings.map((booking) => [booking.uid, booking.attendees[0] || null]));
 
-    return csvData.map((bookingTimeStatus) => {
+    const data = csvData.map((bookingTimeStatus) => {
       if (!bookingTimeStatus.uid) {
         // should not be reached because we filtered above
         return bookingTimeStatus;
@@ -449,6 +457,8 @@ class EventsInsights {
         bookerName: booker.name,
       };
     });
+
+    return { data, total: totalCount };
   };
 
   /*
