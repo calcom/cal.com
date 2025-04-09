@@ -7,13 +7,13 @@ import { PriceIcon } from "@calcom/features/bookings/components/event-meta/Price
 import { parseRecurringEvent } from "@calcom/lib";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeModel } from "@calcom/prisma/zod";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
-import { Badge } from "@calcom/ui/components/badge";
 import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
 
 export type EventTypeDescriptionProps = {
   eventType: Pick<
@@ -57,7 +57,7 @@ export const EventTypeDescription = ({
             )}
             // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
-              __html: markdownToSafeHTMLClient(eventType.descriptionAsSafeHTML || ""),
+              __html: markdownToSafeHTML(eventType.descriptionAsSafeHTML || ""),
             }}
           />
         )}

@@ -44,7 +44,7 @@ const ConnectedCalendarList = ({
 }: {
   fromOnboarding?: boolean;
   scope: SelectedCalendarSettingsScope;
-  items: RouterOutputs["viewer"]["connectedCalendars"]["connectedCalendars"];
+  items: RouterOutputs["viewer"]["calendars"]["connectedCalendars"]["connectedCalendars"];
   disableConnectionModification?: boolean;
   eventTypeId: number | null;
   onChanged?: () => unknown | Promise<unknown>;
@@ -152,7 +152,7 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
     eventTypeId = null,
   } = props;
 
-  const query = trpc.viewer.connectedCalendars.useQuery(
+  const query = trpc.viewer.calendars.connectedCalendars.useQuery(
     {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       eventTypeId: scope === SelectedCalendarSettingsScope.EventType ? eventTypeId! : null,

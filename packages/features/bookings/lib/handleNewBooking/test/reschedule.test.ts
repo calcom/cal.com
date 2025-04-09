@@ -19,7 +19,6 @@ import {
   getMockPassingAppStatus,
   getDefaultBookingFields,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
   expectWorkflowToBeTriggered,
   expectBookingToBeInDatabase,
@@ -183,12 +182,9 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
-
-          const createdBooking = await handleNewBooking(req);
 
           const previousBooking = await prismaMock.booking.findUnique({
             where: {
@@ -424,12 +420,9 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
-
-          const createdBooking = await handleNewBooking(req);
 
           /**
            *  Booking Time should be new time
@@ -623,12 +616,9 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
-
-          const createdBooking = await handleNewBooking(req);
 
           await expectBookingInDBToBeRescheduledFromTo({
             from: {
@@ -819,12 +809,9 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
             });
-
-            const createdBooking = await handleNewBooking(req);
             expect(createdBooking.responses).toEqual(
               expect.objectContaining({
                 email: booker.email,
@@ -1052,15 +1039,10 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
+              userId: organizer.id,
             });
-
-            // Fake the request to be from organizer
-            req.userId = organizer.id;
-
-            const createdBooking = await handleNewBooking(req);
 
             /**
              *  Booking Time should be new time
@@ -1305,15 +1287,11 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
+              // Fake the request to be from organizer
+              userId: organizer.id,
             });
-
-            // Fake the request to be from organizer
-            req.userId = organizer.id;
-
-            const createdBooking = await handleNewBooking(req);
 
             /**
              *  Booking Time should be new time
@@ -1524,15 +1502,11 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
+              // Fake the request to be from organizer
+              userId: organizer.id,
             });
-
-            // Fake the request to be from organizer
-            req.userId = organizer.id;
-
-            const createdBooking = await handleNewBooking(req);
             expect(createdBooking.responses).toEqual(
               expect.objectContaining({
                 email: booker.email,
@@ -1772,15 +1746,11 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
+              // Fake the request to be from organizer
+              userId: previousOrganizerIdForTheBooking,
             });
-
-            // Fake the request to be from organizer
-            req.userId = previousOrganizerIdForTheBooking;
-
-            const createdBooking = await handleNewBooking(req);
 
             /**
              *  Booking Time should be new time
@@ -2133,12 +2103,10 @@ describe("handleNewBooking", () => {
               rescheduledBy: booker.email,
             },
           });
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
-          });
 
-          const createdBooking = await handleNewBooking(req);
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
 
           const previousBooking = await prismaMock.booking.findUnique({
             where: {
@@ -2284,12 +2252,10 @@ describe("handleNewBooking", () => {
               },
             },
           });
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
-          });
 
-          const createdBooking = await handleNewBooking(req);
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
 
           const previousBooking = await prismaMock.booking.findUnique({
             where: {
@@ -2486,12 +2452,10 @@ describe("handleNewBooking", () => {
               },
             },
           });
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
-          });
 
-          const createdBooking = await handleNewBooking(req);
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
 
           const previousBooking = await prismaMock.booking.findUnique({
             where: {
@@ -2643,12 +2607,10 @@ describe("handleNewBooking", () => {
               },
             },
           });
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
-          });
 
-          const createdBooking = await handleNewBooking(req);
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
 
           const previousBooking = await prismaMock.booking.findUnique({
             where: {
@@ -2804,12 +2766,10 @@ describe("handleNewBooking", () => {
               },
             },
           });
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
-          });
 
-          const createdBooking = await handleNewBooking(req);
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
 
           const previousBooking = await prismaMock.booking.findUnique({
             where: {

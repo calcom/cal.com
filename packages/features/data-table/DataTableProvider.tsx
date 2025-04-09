@@ -1,9 +1,11 @@
 "use client";
 
 import type { SortingState, OnChangeFn, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
+// eslint-disable-next-line no-restricted-imports
+import debounce from "lodash/debounce";
 import { usePathname } from "next/navigation";
-import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger } from "nuqs";
-import { createContext, useCallback, useEffect, useRef } from "react";
+import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger, parseAsString } from "nuqs";
+import { createContext, useCallback, useEffect, useRef, useMemo } from "react";
 
 import { useSegments } from "./lib/segments";
 import {
@@ -49,6 +51,9 @@ export type DataTableContextType = {
   segmentId: number | undefined;
   setSegmentId: (id: number | null) => void;
   canSaveSegment: boolean;
+
+  searchTerm: string;
+  setSearchTerm: (searchTerm: string | null) => void;
 };
 
 export const DataTableContext = createContext<DataTableContextType | null>(null);
@@ -91,6 +96,12 @@ export function DataTableProvider({
   const [segmentId, setSegmentId] = useQueryState("segment", parseAsInteger.withDefault(-1));
   const [pageIndex, setPageIndex] = useQueryState("page", parseAsInteger.withDefault(0));
   const [pageSize, setPageSize] = useQueryState("size", parseAsInteger.withDefault(defaultPageSize));
+  const [searchTerm, setSearchTerm] = useQueryState("q", parseAsString.withDefault(""));
+
+  const setDebouncedSearchTerm = useMemo(
+    () => debounce((value: string | null) => setSearchTerm(value ? value.trim() : null), 500),
+    [setSearchTerm]
+  );
 
   const pathname = usePathname() as string | null;
   const tableIdentifier = _tableIdentifier ?? pathname ?? undefined;
@@ -107,18 +118,6 @@ export function DataTableProvider({
       }
     },
     [activeFilters, setActiveFilters]
-  );
-
-  const clearAll = useCallback(
-    (exclude?: string[]) => {
-      setSegmentIdAndSaveToLocalStorage(null);
-      setPageIndex(null);
-      setActiveFilters((prev) => {
-        const remainingFilters = prev.filter((filter) => exclude?.includes(filter.f));
-        return remainingFilters.length === 0 ? null : remainingFilters;
-      });
-    },
-    [setActiveFilters, setPageIndex]
   );
 
   const setPageIndexWrapper = useCallback(
@@ -173,6 +172,7 @@ export function DataTableProvider({
     columnVisibility,
     columnSizing,
     pageSize,
+    searchTerm,
     defaultPageSize,
     segmentId,
     setSegmentId,
@@ -182,7 +182,20 @@ export function DataTableProvider({
     setColumnSizing,
     setPageSize,
     setPageIndex,
+    setSearchTerm,
   });
+
+  const clearAll = useCallback(
+    (exclude?: string[]) => {
+      setSegmentIdAndSaveToLocalStorage(null);
+      setPageIndex(null);
+      setActiveFilters((prev) => {
+        const remainingFilters = prev.filter((filter) => exclude?.includes(filter.f));
+        return remainingFilters.length === 0 ? null : remainingFilters;
+      });
+    },
+    [setActiveFilters, setPageIndex, setSegmentIdAndSaveToLocalStorage]
+  );
 
   const ctaContainerRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -219,6 +232,8 @@ export function DataTableProvider({
         segmentId: segmentId || undefined,
         setSegmentId: setSegmentIdAndSaveToLocalStorage,
         canSaveSegment,
+        searchTerm,
+        setSearchTerm: setDebouncedSearchTerm,
       }}>
       {children}
     </DataTableContext.Provider>
