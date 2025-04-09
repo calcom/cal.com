@@ -44,14 +44,11 @@ export class RoutingFormsService {
     }
 
     const destination = routedUrlData.redirect.destination;
-
     const routingUrl = new URL(destination);
     const routingSearchParams = routingUrl.searchParams;
     if (
       routingSearchParams.get("cal.action") === "eventTypeRedirectUrl" &&
-      routingSearchParams.has("email") &&
-      routingSearchParams.has("cal.teamId") &&
-      !routingSearchParams.has("cal.skipContactOwner")
+      routingSearchParams.has("cal.teamId")
     ) {
       const pathNameParams = routingUrl.pathname.split("/");
       const eventTypeSlug = pathNameParams[pathNameParams.length - 1];

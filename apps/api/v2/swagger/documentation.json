@@ -8279,8 +8279,8 @@
         ]
       }
     },
-    "/v2/routing-forms/{routingFormId}": {
-      "get": {
+    "/v2/routing-forms/{routingFormId}/calculate-slots": {
+      "post": {
         "operationId": "RoutingFormsController_calculateSlotsBasedOnRoutingFormResponse",
         "summary": "Calculate slots based on routing form response",
         "parameters": [
@@ -8358,6 +8358,16 @@
         ],
         "responses": {
           "200": {
+            "description": "Successfully calculated slots",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSlotsOutput"
+                }
+              }
+            }
+          },
+          "201": {
             "description": "",
             "content": {
               "application/json": {
