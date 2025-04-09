@@ -5,7 +5,8 @@ import { useCallback, useMemo, useEffect } from "react";
 import { trpc } from "@calcom/trpc/react";
 
 import { recalculateDateRange } from "../lib/dateRange";
-import { ColumnFilterType, ZSegmentStorage, type DateRangeFilterValue, type UseSegments } from "../lib/types";
+import { ZSegmentStorage, type UseSegments } from "../lib/types";
+import { isDateRangeFilterValue } from "../lib/utils";
 
 export const useSegments: UseSegments = ({
   tableIdentifier,
@@ -36,10 +37,10 @@ export const useSegments: UseSegments = ({
     return rawSegments.map((segment) => ({
       ...segment,
       activeFilters: segment.activeFilters.map((filter) => {
-        if (filter.v && filter.v.type === ColumnFilterType.DATE_RANGE) {
+        if (isDateRangeFilterValue(filter.v)) {
           return {
             ...filter,
-            v: recalculateDateRange(filter.v as DateRangeFilterValue),
+            v: recalculateDateRange(filter.v),
           };
         }
         return filter;
