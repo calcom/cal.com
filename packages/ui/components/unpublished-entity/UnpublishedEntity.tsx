@@ -30,12 +30,14 @@ export function UnpublishedEntity(props: UnpublishedEntityProps) {
     <div className="m-8 flex items-center justify-center">
       <EmptyScreen
         avatar={<Avatar alt={slug ?? ""} imageSrc={getPlaceholderAvatar(props.logoUrl, slug)} size="lg" />}
-        // Replace HTML entity for apostrophe (&#39;) with the actual character (')
-        // This is needed because React automatically escapes special characters like apostrophes
-        // for security (XSS prevention), but we want to display the actual apostrophe in the UI
         headline={t("team_is_unpublished", {
           team: props.name,
-        }).replace("&#39;", "'")}
+          interpolation: {
+            // This is needed because React automatically escapes special characters like apostrophes
+            // for security (XSS prevention), but we want to display the actual apostrophe in the UI
+            escapeValue: false,
+          },
+        })}
         description={t(`${props.orgSlug ? "org" : "team"}_is_unpublished_description`)}
       />
     </div>
