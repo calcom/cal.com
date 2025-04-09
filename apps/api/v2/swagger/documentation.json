@@ -3886,6 +3886,67 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/routing-forms": {
+      "get": {
+        "operationId": "OrganizationsTeamsRoutingFormsController_getTeamRoutingForms",
+        "summary": "Get team routing forms",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Routing forms"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses": {
       "get": {
         "operationId": "OrganizationsTeamsRoutingFormsResponsesController_getRoutingFormResponses",

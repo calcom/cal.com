@@ -22,23 +22,4 @@ export class OrganizationsRoutingFormsService {
   ) {
     return this.organizationsRoutingFormsRepository.getOrganizationRoutingForms(orgId, skip, take, options);
   }
-
-  async getTeamRoutingForms(
-    orgId: number,
-    teamId: number,
-    skip: number,
-    take: number,
-    options?: {
-      disabled?: boolean;
-      name?: string;
-      sortCreatedAt?: "asc" | "desc";
-      sortUpdatedAt?: "asc" | "desc";
-      afterCreatedAt?: Date;
-      beforeCreatedAt?: Date;
-      afterUpdatedAt?: Date;
-      beforeUpdatedAt?: Date;
-    }
-  ) {
-    return this.organizationsRoutingFormsRepository.getTeamRoutingForms(orgId, teamId, skip, take, options);
-  }
 }

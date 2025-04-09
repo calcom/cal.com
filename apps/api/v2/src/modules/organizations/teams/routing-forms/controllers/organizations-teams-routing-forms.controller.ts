@@ -8,7 +8,7 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
-import { OrganizationsRoutingFormsService } from "@/modules/organizations/routing-forms/services/organizations-routing-forms.service";
+import { OrganizationsTeamsRoutingFormsService } from "@/modules/organizations/teams/routing-forms/services/organizations-teams-routing-forms.service";
 import { Controller, Get, Param, Query, UseGuards, ParseIntPipe } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
 
@@ -23,7 +23,9 @@ import { SkipTakePagination } from "@calcom/platform-types";
 @ApiTags("Orgs / Teams / Routing forms")
 @ApiHeader(API_KEY_HEADER)
 export class OrganizationsTeamsRoutingFormsController {
-  constructor(private readonly organizationsRoutingFormsService: OrganizationsRoutingFormsService) {}
+  constructor(
+    private readonly organizationsTeamsRoutingFormsService: OrganizationsTeamsRoutingFormsService
+  ) {}
 
   @Get()
   @ApiOperation({ summary: "Get team routing forms" })
@@ -36,7 +38,7 @@ export class OrganizationsTeamsRoutingFormsController {
   ): Promise<{ status: string; data: any[] }> {
     const { skip, take, ...filters } = queryParams;
 
-    const routingForms = await this.organizationsRoutingFormsService.getTeamRoutingForms(
+    const routingForms = await this.organizationsTeamsRoutingFormsService.getTeamRoutingForms(
       orgId,
       teamId,
       skip ?? 0,
