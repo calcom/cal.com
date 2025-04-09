@@ -8,7 +8,8 @@
     "@calcom/lib": "*",
     "@calcom/prisma": "*",
     "@jetstreamapp/soql-parser-js": "^6.1.0",
-    "@jsforce/jsforce-node": "^3.6.3"
+    "@jsforce/jsforce-node": "^3.6.3",
+    "@urql/core": "^5.1.1"
   },
   "devDependencies": {
     "@calcom/types": "*"
