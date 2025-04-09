@@ -1990,43 +1990,61 @@ async function handler(
         },
       });
 
-      if (hashedLink) {
-        let shouldDeleteLink = true;
-        const now = new Date();
+      if (!hashedLink) {
+        throw new HttpError({ statusCode: 410, message: "Link is invalid or has been used" });
+      }
 
-        if (hashedLink.expiresAt && hashedLink.expiresAt < now) {
-          throw new HttpError({ statusCode: 410, message: "Link has expired" });
+      const now = new Date();
+
+      if (hashedLink.expiresAt && hashedLink.expiresAt < now) {
+        throw new HttpError({ statusCode: 410, message: "Link has expired" });
+      }
+
+      if (hashedLink.maxUsageCount && hashedLink.maxUsageCount > 0) {
+        if (hashedLink.usageCount >= hashedLink.maxUsageCount) {
+          throw new HttpError({ statusCode: 410, message: "Link usage limit reached" });
         }
 
-        if (hashedLink.maxUsageCount && hashedLink.maxUsageCount > 0) {
-          if (hashedLink.maxUsageCount > hashedLink.usageCount + 1) {
-            await prisma.hashedLink.update({
-              where: {
-                id: hashedLink.id,
-              },
-              data: {
-                usageCount: {
-                  increment: 1,
-                },
-              },
-            });
-            shouldDeleteLink = false;
-          } else {
-            shouldDeleteLink = true;
-          }
+        try {
+          await prisma.hashedLink.update({
+            where: {
+              id: hashedLink.id,
+              usageCount: { lt: hashedLink.maxUsageCount },
+            },
+            data: {
+              usageCount: { increment: 1 },
+            },
+          });
+        } catch (updateError) {
+          // If update fails, it might be because another concurrent request used the link
+          throw new HttpError({ statusCode: 410, message: "Link usage limit reached" });
         }
 
-        if (shouldDeleteLink) {
+        if (hashedLink.usageCount + 1 >= hashedLink.maxUsageCount) {
           await prisma.hashedLink.delete({
             where: {
-              link: reqBody.hashedLink as string,
+              id: hashedLink.id,
             },
           });
         }
+      } else {
+        await prisma.hashedLink.delete({
+          where: {
+            id: hashedLink.id,
+          },
+        });
       }
     }
   } catch (error) {
     loggerWithEventDetails.error("Error while updating hashed link", JSON.stringify({ error }));
+
+    // Rethrow HttpErrors (our custom errors) but handle/convert other errors
+    if (error instanceof HttpError) {
+      throw error;
+    }
+
+    // For database errors or other unexpected errors, provide a generic message
+    throw new HttpError({ statusCode: 500, message: "Failed to process booking link" });
   }
 
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
