@@ -5,7 +5,6 @@ import { cookies, headers } from "next/headers";
 
 import { routingFormsComponents } from "@calcom/app-store/routing-forms/pages/app-routing.client-config";
 import type { routingServerSidePropsConfig } from "@calcom/app-store/routing-forms/pages/app-routing.server-config";
-import Shell from "@calcom/features/shell/Shell";
 
 import { getServerSideProps } from "@lib/apps/routing-forms/[...pages]/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -45,15 +44,13 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
     </FormProvider>
   );
 
-  if (mainPage === "routing-link" || mainPage === "form-edit") {
-    return <FinalComponent />;
-  }
+  return <FinalComponent />;
 
-  return (
-    <Shell withoutMain>
-      <FinalComponent />
-    </Shell>
-  );
+  // return (
+  //   <Shell withoutMain>
+  //     <FinalComponent />
+  //   </Shell>
+  // );
 };
 
 export default ServerPage;
