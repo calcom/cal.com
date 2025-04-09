@@ -249,7 +249,7 @@ export class OrganizationAttributeOptionRepository {
     queryOperator: "OR" | "AND" | "NONE" = "OR"
   ) {
     if (queryOperator === "NONE") {
-      return this.dbRead.prisma.user.findMany({
+      const users = await this.dbRead.prisma.user.findMany({
         where: {
           teams: {
             some: {
@@ -274,20 +274,60 @@ export class OrganizationAttributeOptionRepository {
           username: true,
         },
       });
-    } else if (queryOperator === "AND") {
-      const usersWithCounts = await this.dbRead.prisma.$queryRaw`
-        SELECT u.id as "userId", u.username, COUNT(DISTINCT atu."attributeOptionId") as match_count
-        FROM "User" u
-        JOIN "Membership" m ON m."userId" = u.id AND m."teamId" = ${teamId} AND m.accepted = true
-        JOIN "AttributeToUser" atu ON atu."memberId" = m.id
-        WHERE atu."attributeOptionId" IN (${Prisma.join(attributeOptionIds.map((id) => id))})
-        GROUP BY u.id, u.username
-        HAVING COUNT(DISTINCT atu."attributeOptionId") = ${attributeOptionIds.length}
-      `;
 
-      return usersWithCounts;
+      return users.map((user) => ({
+        userId: user.id,
+        username: user.username || "",
+      }));
+    } else if (queryOperator === "AND") {
+      const users = await this.dbRead.prisma.user.findMany({
+        where: {
+          teams: {
+            some: {
+              teamId,
+              accepted: true,
+            },
+          },
+        },
+        select: {
+          id: true,
+          username: true,
+          teams: {
+            where: {
+              teamId,
+              accepted: true,
+            },
+            select: {
+              AttributeToUser: {
+                where: {
+                  attributeOption: {
+                    id: {
+                      in: attributeOptionIds,
+                    },
+                  },
+                },
+                select: {
+                  attributeOptionId: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      return users
+        .filter((user) => {
+          const assignedOptionIds = new Set(
+            user.teams.flatMap((team) => team.AttributeToUser).map((attr) => attr.attributeOptionId)
+          );
+          return attributeOptionIds.every((optionId) => assignedOptionIds.has(optionId));
+        })
+        .map((user) => ({
+          userId: user.id,
+          username: user.username,
+        }));
     } else {
-      return this.dbRead.prisma.user.findMany({
+      const users = await this.dbRead.prisma.user.findMany({
         where: {
           teams: {
             some: {
@@ -310,6 +350,11 @@ export class OrganizationAttributeOptionRepository {
           username: true,
         },
       });
+
+      return users.map((user) => ({
+        userId: user.id,
+        username: user.username || "",
+      }));
     }
   }
 }

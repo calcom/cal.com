@@ -39,6 +39,7 @@ import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations
 import { OrganizationsTeamsMembershipsService } from "@/modules/organizations/teams/memberships/services/organizations-teams-memberships.service";
 import { OrganizationsTeamsRoutingFormsModule } from "@/modules/organizations/teams/routing-forms/organizations-teams-routing-forms-responses.module";
 import { OrganizationsTeamsSchedulesController } from "@/modules/organizations/teams/schedules/organizations-teams-schedules.controller";
+import { OrganizationsTeamsUsersModule } from "@/modules/organizations/teams/users/organizations-teams-users.module";
 import { OrganizationsUsersController } from "@/modules/organizations/users/index/controllers/organizations-users.controller";
 import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
 import { OrganizationsUsersService } from "@/modules/organizations/users/index/services/organizations-users-service";
@@ -74,6 +75,7 @@ import { forwardRef, Module } from "@nestjs/common";
     OrganizationsDelegationCredentialModule,
     OrganizationsOrganizationsModule,
     OrganizationsTeamsRoutingFormsModule,
+    OrganizationsTeamsUsersModule,
   ],
   providers: [
     OrganizationsRepository,

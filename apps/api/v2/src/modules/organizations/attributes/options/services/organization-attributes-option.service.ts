@@ -130,7 +130,7 @@ export class OrganizationAttributeOptionService {
     teamId: number,
     attributeOptionIds: string[],
     queryOperator: "OR" | "AND" | "NONE" = "OR"
-  ) {
+  ): Promise<Array<{ userId: number; username: string }>> {
     return this.organizationAttributeOptionRepository.getUsersByAttributeOptions(
       teamId,
       attributeOptionIds,

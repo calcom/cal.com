@@ -214,26 +214,4 @@ export class OrganizationsAttributesOptionsController {
       data: filteredOptions,
     };
   }
-
-  @Roles("ORG_MEMBER")
-  @PlatformPlan("ESSENTIALS")
-  @Get("/teams/:teamId/users")
-  @ApiOperation({ summary: "Get users filtered by attribute options" })
-  async getUsersByAttributeOptions(
-    @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("teamId", ParseIntPipe) teamId: number,
-    @Query() query: FilterUsersByOptionsQueryDto
-  ): Promise<FilterUsersByOptionsOutput> {
-    const users = (await this.organizationsAttributesOptionsService.getUsersByAttributeOptions(
-      orgId,
-      teamId,
-      query.attributeOptionIds,
-      query.attributeQueryOperator
-    )) as { userId: number; username: string }[];
-
-    return {
-      status: SUCCESS_STATUS,
-      data: users,
-    };
-  }
 }

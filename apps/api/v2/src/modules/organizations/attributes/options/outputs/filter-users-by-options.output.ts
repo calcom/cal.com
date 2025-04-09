@@ -3,7 +3,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
 import { IsNumber, IsString, ValidateNested } from "class-validator";
 
-class UserItem {
+export class UserItem {
   @IsNumber()
   @ApiProperty({ type: Number, description: "The ID of the user" })
   userId!: number;
