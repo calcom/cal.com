@@ -8,6 +8,8 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/create-organization-attribute-option.input";
+import { FilterAssignedOptionsQueryDto } from "@/modules/organizations/attributes/options/inputs/filter-assigned-options.input";
+import { FilterUsersByOptionsQueryDto } from "@/modules/organizations/attributes/options/inputs/filter-users-by-options.input";
 import { AssignOrganizationAttributeOptionToUserInput } from "@/modules/organizations/attributes/options/inputs/organizations-attributes-options-assign.input";
 import { UpdateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/update-organizaiton-attribute-option.input.ts";
 import {
@@ -16,11 +18,24 @@ import {
 } from "@/modules/organizations/attributes/options/outputs/assign-option-user.output";
 import { CreateAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/create-option.output";
 import { DeleteAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/delete-option.output";
+import { FilterAssignedOptionsOutput } from "@/modules/organizations/attributes/options/outputs/filter-assigned-options.output";
+import { FilterUsersByOptionsOutput } from "@/modules/organizations/attributes/options/outputs/filter-users-by-options.output";
 import { GetOptionUserOutput } from "@/modules/organizations/attributes/options/outputs/get-option-user.output";
 import { GetAllAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/get-option.output";
 import { UpdateAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/update-option.output";
 import { OrganizationAttributeOptionService } from "@/modules/organizations/attributes/options/services/organization-attributes-option.service";
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -173,6 +188,52 @@ export class OrganizationsAttributesOptionsController {
     return {
       status: SUCCESS_STATUS,
       data: attributeOptions,
+    };
+  }
+
+  @Roles("ORG_MEMBER")
+  @PlatformPlan("ESSENTIALS")
+  @Get("/teams/:teamId/attributes/:attributeSlug/options/assigned")
+  @ApiOperation({ summary: "Get assigned options for an attribute filtered by user assignments" })
+  async getAssignedOptionsFilteredByUserAssignments(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @Param("attributeSlug") attributeSlug: string,
+    @Query() query: FilterAssignedOptionsQueryDto
+  ): Promise<FilterAssignedOptionsOutput> {
+    const filteredOptions =
+      await this.organizationsAttributesOptionsService.getAssignedOptionsFilteredByUserAssignments(
+        orgId,
+        teamId,
+        attributeSlug,
+        query.assignedOptionIds
+      );
+
+    return {
+      status: SUCCESS_STATUS,
+      data: filteredOptions,
+    };
+  }
+
+  @Roles("ORG_MEMBER")
+  @PlatformPlan("ESSENTIALS")
+  @Get("/teams/:teamId/users")
+  @ApiOperation({ summary: "Get users filtered by attribute options" })
+  async getUsersByAttributeOptions(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @Query() query: FilterUsersByOptionsQueryDto
+  ): Promise<FilterUsersByOptionsOutput> {
+    const users = (await this.organizationsAttributesOptionsService.getUsersByAttributeOptions(
+      orgId,
+      teamId,
+      query.attributeOptionIds,
+      query.attributeQueryOperator
+    )) as { userId: number; username: string }[];
+
+    return {
+      status: SUCCESS_STATUS,
+      data: users,
     };
   }
 }
