@@ -295,20 +295,20 @@ export class BillingService implements OnModuleDestroy {
   async getActiveManagedUsers(users: User[], start: number, end: number) {
     const activeManagedUsers = users.filter(async (managedUser) => {
       // a managed user is only considered active if they are either the host of a booking or one of the attendees
-      const managedUserActiveBookings = await this.bookingsRepository.getAcceptedUserBookingForTimeRange(
+      const managedUserActiveBooking = await this.bookingsRepository.getAcceptedUserBookingForTimeRange(
         managedUser.id,
         new Date(start),
         new Date(end)
       );
 
-      const bookingsWhereManagedUserIsAttendee =
-        await this.bookingsRepository.getBookingsAsAttendeeWithinTimeRange(
+      const bookingWhereManagedUserIsAttendee =
+        await this.bookingsRepository.getBookingAsAttendeeWithinTimeRange(
           managedUser.email,
           new Date(start),
           new Date(end)
         );
 
-      return !!managedUserActiveBookings || !!bookingsWhereManagedUserIsAttendee;
+      return !!managedUserActiveBooking || !!bookingWhereManagedUserIsAttendee;
     });
 
     return activeManagedUsers;
