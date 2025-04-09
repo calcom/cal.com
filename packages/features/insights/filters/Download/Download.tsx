@@ -18,11 +18,16 @@ const Download = () => {
   const { t } = useLocale();
   const { startDate, endDate, teamId, userId, eventTypeId, memberUserId, isAll } = useInsightsParameters();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
   const utils = trpc.useUtils();
 
   const handleDownloadClick = async () => {
     try {
       setIsDownloading(true);
+      setDownloadProgress(0); // Reset progress
+
+      setDownloadProgress(50);
+
       const data = await utils.viewer.insights.rawData.fetch({
         startDate,
         endDate,
@@ -34,12 +39,16 @@ const Download = () => {
       });
 
       if (!data) return;
+
+      setDownloadProgress(100);
+
       const { data: csvRaw, filename } = data;
       downloadAsCsv(csvRaw, filename);
     } catch (error) {
       showToast(t("unexpected_error_try_again"), "error");
     } finally {
       setIsDownloading(false);
+      setDownloadProgress(0); // Reset progress
     }
   };
 
@@ -51,7 +60,7 @@ const Download = () => {
           color="secondary"
           loading={isDownloading}
           className="h-full self-end sm:self-baseline">
-          {t("download")}
+          {isDownloading ? `${Math.floor(downloadProgress)}%` : t("download")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
