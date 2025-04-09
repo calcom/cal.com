@@ -177,19 +177,6 @@ export class UsersRepository {
     });
   }
 
-  async findAllManagedUsers(oauthClientId: string) {
-    return this.dbRead.prisma.user.findMany({
-      where: {
-        platformOAuthClients: {
-          some: {
-            id: oauthClientId,
-          },
-        },
-        isPlatformManaged: true,
-      },
-    });
-  }
-
   async findManagedUsersByOAuthClientIdAndEmails(
     oauthClientId: string,
     cursor: number,

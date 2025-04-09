@@ -126,7 +126,25 @@ export class BillingService implements OnModuleDestroy {
     return url;
   }
 
-  async setSubscriptionForTeam(teamId: number, subscriptionId: string, plan: PlatformPlan, priceId?: string) {
+  async setPerBookingSubscriptionForTeam(teamId: number, subscriptionId: string, plan: PlatformPlan) {
+    const billingCycleStart = DateTime.now().get("day");
+    const billingCycleEnd = DateTime.now().plus({ month: 1 }).get("day");
+
+    return this.billingRepository.updateTeamBilling(
+      teamId,
+      billingCycleStart,
+      billingCycleEnd,
+      plan,
+      subscriptionId
+    );
+  }
+
+  async setPerActiveUserSubscriptionForTeam(
+    teamId: number,
+    subscriptionId: string,
+    plan: PlatformPlan,
+    priceId: string
+  ) {
     const billingCycleStart = DateTime.now().get("day");
     const billingCycleEnd = DateTime.now().plus({ month: 1 }).get("day");
 
@@ -212,13 +230,22 @@ export class BillingService implements OnModuleDestroy {
       this.logger.log("Webhook received but not pertaining to Platform, discarding.");
       return;
     }
+    const isPriceIdPresent = Boolean(checkoutSession.metadata?.priceId);
 
-    if (checkoutSession.mode === "subscription") {
-      await this.setSubscriptionForTeam(
+    if (checkoutSession.mode === "subscription" && isPriceIdPresent) {
+      await this.setPerActiveUserSubscriptionForTeam(
         teamId,
         checkoutSession.subscription as string,
         PlatformPlan[plan.toUpperCase() as keyof typeof PlatformPlan],
         checkoutSession.metadata?.priceId
+      );
+    }
+
+    if (checkoutSession.mode === "subscription" && !isPriceIdPresent) {
+      await this.setPerBookingSubscriptionForTeam(
+        teamId,
+        checkoutSession.subscription as string,
+        PlatformPlan[plan.toUpperCase() as keyof typeof PlatformPlan]
       );
     }
 
@@ -239,11 +266,11 @@ export class BillingService implements OnModuleDestroy {
 
     const teamWithBilling = await this.billingRepository.getBillingForTeamBySubscriptionId(subscriptionId);
 
-    if (teamWithBilling?.plan === "CUSTOM") {
+    if (teamWithBilling?.plan === "PER_ACTIVE_USER") {
       const oAuthClients = await this.oAuthClientRepository.getOrganizationOAuthClients(teamWithBilling.id);
 
       const allManagedUsers = oAuthClients.map((client) => {
-        return this.usersRepository.findAllManagedUsers(client.id);
+        return this.oAuthClientRepository.getAllManagedUsersOfOAuthClient(client.id);
       });
       const managedUsersFlattened = (await Promise.all(allManagedUsers)).flatMap(
         (managedUser) => managedUser
@@ -268,17 +295,18 @@ export class BillingService implements OnModuleDestroy {
   async getActiveManagedUsers(users: User[], start: number, end: number) {
     const activeManagedUsers = users.filter(async (managedUser) => {
       // a managed user is only considered active if they are either the host of a booking or one of the attendees
-      const managedUserActiveBookings = await this.bookingsRepository.getUserBookingsForTimeRange(
+      const managedUserActiveBookings = await this.bookingsRepository.getAcceptedUserBookingForTimeRange(
         managedUser.id,
         new Date(start),
         new Date(end)
       );
 
-      const bookingsWhereManagedUserIsAttendee = await this.bookingsRepository.getBookingsWhereUserIsAttendee(
-        managedUser.email,
-        new Date(start),
-        new Date(end)
-      );
+      const bookingsWhereManagedUserIsAttendee =
+        await this.bookingsRepository.getBookingsAsAttendeeWithinTimeRange(
+          managedUser.email,
+          new Date(start),
+          new Date(end)
+        );
 
       return !!managedUserActiveBookings || !!bookingsWhereManagedUserIsAttendee;
     });
@@ -329,7 +357,7 @@ export class BillingService implements OnModuleDestroy {
         proration_behavior: "create_prorations",
       });
 
-    await this.setSubscriptionForTeam(
+    await this.setPerBookingSubscriptionForTeam(
       teamId,
       teamWithBilling?.platformBilling?.subscriptionId,
       PlatformPlan[plan.toUpperCase() as keyof typeof PlatformPlan]

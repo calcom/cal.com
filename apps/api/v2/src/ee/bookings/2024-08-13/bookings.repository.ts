@@ -170,7 +170,7 @@ export class BookingsRepository_2024_08_13 {
     });
   }
 
-  async getUserBookingsForTimeRange(userId: number, startTime: Date, endTime: Date) {
+  async getAcceptedUserBookingForTimeRange(userId: number, startTime: Date, endTime: Date) {
     return this.dbRead.prisma.booking.findFirst({
       where: {
         userId,
@@ -183,7 +183,7 @@ export class BookingsRepository_2024_08_13 {
     });
   }
 
-  async getBookingsWhereUserIsAttendee(userEmail: string, startTime: Date, endTime: Date) {
+  async getBookingsAsAttendeeWithinTimeRange(userEmail: string, startTime: Date, endTime: Date) {
     return this.dbRead.prisma.booking.findFirst({
       where: {
         attendees: {
