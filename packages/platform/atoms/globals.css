@@ -25,9 +25,7 @@
   --font-cal: '__calFont_a90182', '__calFont_Fallback_a90182'
 }
 
-/*!*********************************************************************************************************************************************************************************************************************************************************************!*\
-  !*** css ../../node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[12].oneOf[12].use[2]!../../node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[12].oneOf[12].use[3]!./styles/raqb.css ***!
-  \*********************************************************************************************************************************************************************************************************************************************************************/
+
 .cal-query-builder .query-builder,
 .cal-query-builder .qb-draggable,
 .cal-query-builder .qb-drag-handler {
@@ -168,16 +166,7 @@
   }
 }
 
-/*!************************************************************************************************************************************************************************************************************************************************************************!*\
-  !*** css ../../node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[12].oneOf[12].use[2]!../../node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[12].oneOf[12].use[3]!./styles/globals.css ***!
-  \************************************************************************************************************************************************************************************************************************************************************************/
-/*
-! tailwindcss v3.3.3 | MIT License | https://tailwindcss.com
-*/
-/*
-1. Prevent padding and border from affecting element width. (https://github.com/mozdevs/cssremedy/issues/4)
-2. Allow adding a border to an element by just adding a border-width. (https://github.com/tailwindcss/tailwindcss/pull/116)
-*/
+
 
 *,
 ::before,
