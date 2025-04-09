@@ -239,7 +239,7 @@ export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) =
     if (workflow.trigger !== WorkflowTriggerEvents.EVENT_CANCELLED) continue;
 
     for (const step of workflow.steps) {
-      processWorkflowStep(workflow, step, {
+      await processWorkflowStep(workflow, step, {
         smsReminderNumber,
         hideBranding,
         calendarEvent: evt,
