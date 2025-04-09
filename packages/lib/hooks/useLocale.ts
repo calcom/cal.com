@@ -30,9 +30,6 @@ const useClientLocale = (namespace: Parameters<typeof useTranslation>[0] = "comm
 // @internal
 const serverI18nInstances = new Map();
 
-// @internal
-const getInstanceKey = (locale: string, ns: string) => `${locale}-${ns}`;
-
 export const useLocale = (): useLocaleReturnType => {
   const appRouterContext = useContext(AppRouterI18nContext);
   const clientI18n = useClientLocale();
@@ -40,7 +37,7 @@ export const useLocale = (): useLocaleReturnType => {
   if (appRouterContext) {
     const { translations, locale: _locale, ns } = appRouterContext;
     const locale = _locale === "zh" ? "zh-CN" : _locale; // We use zh-CN for zh translations
-    const instanceKey = getInstanceKey(locale, ns);
+    const instanceKey = `${locale}-${ns}`;
 
     // Check if we already have an instance for this locale and namespace
     if (!serverI18nInstances.has(instanceKey)) {
