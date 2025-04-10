@@ -2449,15 +2449,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/around@workspace:packages/app-store/around":
-  version: 0.0.0-use.local
-  resolution: "@calcom/around@workspace:packages/app-store/around"
-  dependencies:
-    "@calcom/lib": "*"
-    "@calcom/types": "*"
-  languageName: unknown
-  linkType: soft
-
 "@calcom/atoms@*, @calcom/atoms@workspace:packages/platform/atoms":
   version: 0.0.0-use.local
   resolution: "@calcom/atoms@workspace:packages/platform/atoms"
