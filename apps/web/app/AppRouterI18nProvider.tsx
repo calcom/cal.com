@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext } from "react";
+import { createContext, useMemo } from "react";
 import type { ReactNode } from "react";
 
 type AppRouterI18nContextType = {
@@ -19,9 +19,15 @@ export function AppRouterI18nProvider({
 }: AppRouterI18nContextType & {
   children: ReactNode;
 }) {
-  return (
-    <AppRouterI18nContext.Provider value={{ translations, locale, ns }}>
-      {children}
-    </AppRouterI18nContext.Provider>
+  // Memoize the value to prevent re-renders unless the data changes
+  const value = useMemo(
+    () => ({
+      translations,
+      locale,
+      ns,
+    }),
+    [translations, locale, ns]
   );
+
+  return <AppRouterI18nContext.Provider value={value}>{children}</AppRouterI18nContext.Provider>;
 }
