@@ -118,6 +118,7 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
   const textValue = value || "";
   return (
     <TextField
+      size="sm"
       containerClassName="w-full"
       type={type}
       value={textValue}
@@ -134,6 +135,7 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
 function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
   return (
     <TextField
+      size="sm"
       type="number"
       labelSrOnly={remainingProps.noLabel}
       containerClassName="w-full"
@@ -175,6 +177,7 @@ const MultiSelectWidget = ({
 
   return (
     <Select
+      size="sm"
       aria-label="multi-select-dropdown"
       className="mb-2"
       onChange={(items) => {
@@ -210,6 +213,7 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
 
   return (
     <Select
+      size="sm"
       aria-label="select-dropdown"
       className="data-testid-select mb-2"
       onChange={(item) => {
@@ -245,6 +249,7 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   }
   return (
     <CalButton
+      size="sm"
       StartIcon="plus"
       data-testid={dataTestId}
       type="button"
@@ -305,6 +310,7 @@ function Conjs({ not, setNot, config, conjunctionOptions, setConjunction, disabl
         <span>{summary}</span>
         <Select
           className="flex px-2"
+          size="sm"
           defaultValue={selectValue}
           options={options}
           onChange={(option) => {
@@ -344,6 +350,7 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
 
   return (
     <Select
+      size="sm"
       className="data-testid-field-select  mb-2"
       menuPosition="fixed"
       onChange={(item) => {
