@@ -81,7 +81,7 @@ BEGIN
             RELEASE SAVEPOINT batch_savepoint;
         EXCEPTION WHEN OTHERS THEN
             -- If anything goes wrong, rollback to savepoint and continue with next batch
-            ROLLBACK TO SAVEPOINT batch_savepoint;
+            ROLLBACK TO batch_savepoint;
             RAISE NOTICE 'Error in batch % of %: %', current_batch + 1, max_batch, SQLERRM;
         END;
 
