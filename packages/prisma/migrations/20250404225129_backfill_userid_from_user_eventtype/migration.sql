@@ -15,6 +15,7 @@ DECLARE
     total_records INTEGER;
     current_batch INTEGER := 0;
     max_batch INTEGER;
+    conflict_count INTEGER := 0;
 BEGIN
     -- Get total records
     SELECT COUNT(*) INTO total_records FROM "_user_eventtype";
@@ -33,15 +34,37 @@ BEGIN
         LIMIT batch_size
         OFFSET (current_batch * batch_size);
 
-        -- Update EventType table
+        -- Update EventType table only for records that won't cause unique constraint violations
+        WITH potential_conflicts AS (
+            SELECT et.id, et.slug, mb.user_id
+            FROM "EventType" et
+            JOIN migration_batch mb ON et.id = mb.event_type_id
+            WHERE EXISTS (
+                SELECT 1 
+                FROM "EventType" et2 
+                WHERE et2."userId" = mb.user_id 
+                AND et2.slug = et.slug
+                AND et2.id != et.id
+            )
+        )
         UPDATE "EventType" et
         SET "userId" = mb.user_id
         FROM migration_batch mb
         WHERE et.id = mb.event_type_id
-        AND (et."userId" IS NULL OR et."userId" != mb.user_id);
+        AND (et."userId" IS NULL OR et."userId" != mb.user_id)
+        AND NOT EXISTS (
+            SELECT 1 
+            FROM potential_conflicts pc 
+            WHERE pc.id = et.id
+        );
 
-        -- Log progress
-        RAISE NOTICE 'Processed batch % of %', current_batch + 1, max_batch;
+        -- Count conflicts
+        SELECT COUNT(*) INTO conflict_count
+        FROM potential_conflicts;
+
+        -- Log progress and conflicts
+        RAISE NOTICE 'Processed batch % of %. Found % potential conflicts', 
+            current_batch + 1, max_batch, conflict_count;
 
         current_batch := current_batch + 1;
     END LOOP;
