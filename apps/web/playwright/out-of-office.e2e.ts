@@ -857,6 +857,7 @@ test.describe("Out of office", () => {
 
         //1 OOO record should be visible end=currentDate-12days
         const oooEntries = page.locator('[data-testid="ooo-actions"]');
+        await oooEntries.waitFor({ state: "visible" });
         const oooEntriesCount = await oooEntries.count();
 
         expect(oooEntriesCount).toBe(1);
