@@ -5,7 +5,15 @@ BEGIN;
 CREATE TEMP TABLE migration_batch (
     id SERIAL PRIMARY KEY,
     event_type_id INTEGER,
-    user_id INTEGER
+    user_id INTEGER,
+    processed BOOLEAN DEFAULT FALSE
+);
+
+-- Create a table to track processed records if it doesn't exist
+CREATE TABLE IF NOT EXISTS "_migration_progress" (
+    event_type_id INTEGER PRIMARY KEY,
+    processed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    target_user_id INTEGER
 );
 
 -- Insert records in batches
@@ -19,8 +27,12 @@ DECLARE
     updated_count INTEGER := 0;
     batch_error BOOLEAN;
 BEGIN
-    -- Get total records
-    SELECT COUNT(*) INTO total_records FROM "_user_eventtype";
+    -- Get total records that haven't been processed yet
+    SELECT COUNT(*) INTO total_records 
+    FROM "_user_eventtype" uet
+    LEFT JOIN "_migration_progress" mp ON uet."A" = mp.event_type_id
+    WHERE mp.event_type_id IS NULL;
+    
     max_batch := CEIL(total_records::float / batch_size);
 
     -- Process in batches
@@ -28,11 +40,13 @@ BEGIN
         -- Clear temporary table
         TRUNCATE TABLE migration_batch;
 
-        -- Insert next batch
+        -- Insert next batch of unprocessed records
         INSERT INTO migration_batch (event_type_id, user_id)
-        SELECT "A", "B"
-        FROM "_user_eventtype"
-        ORDER BY "A"
+        SELECT uet."A", uet."B"
+        FROM "_user_eventtype" uet
+        LEFT JOIN "_migration_progress" mp ON uet."A" = mp.event_type_id
+        WHERE mp.event_type_id IS NULL
+        ORDER BY uet."A", uet."B"  -- Consistent ordering
         LIMIT batch_size
         OFFSET (current_batch * batch_size);
 
@@ -41,7 +55,7 @@ BEGIN
         BEGIN
             -- Update EventType table with safe updates only
             WITH to_update AS (
-                SELECT DISTINCT ON (et.slug, mb.user_id) 
+                SELECT DISTINCT ON (et.id)  -- Ensure we only update each event type once
                     et.id as event_type_id,
                     mb.user_id,
                     et.slug
@@ -52,13 +66,21 @@ BEGIN
                     AND et2.id != et.id
                 WHERE et2.id IS NULL  -- No existing record with same slug and userId
                 AND (et."userId" IS NULL OR et."userId" != mb.user_id)
-                ORDER BY et.slug, mb.user_id, et.id  -- Deterministic ordering
+                ORDER BY et.id, mb.user_id  -- Consistent ordering
             )
             UPDATE "EventType" et
             SET "userId" = tu.user_id
             FROM to_update tu
             WHERE et.id = tu.event_type_id
-            AND (et."userId" IS NULL OR et."userId" != tu.user_id);
+            AND (et."userId" IS NULL OR et."userId" != tu.user_id)
+            RETURNING et.id, tu.user_id
+            INTO TEMP TABLE updated_records;
+
+            -- Mark processed records
+            INSERT INTO "_migration_progress" (event_type_id, target_user_id)
+            SELECT event_type_id, user_id
+            FROM updated_records
+            ON CONFLICT (event_type_id) DO NOTHING;
 
             GET DIAGNOSTICS updated_count = ROW_COUNT;
             
@@ -117,7 +139,9 @@ BEGIN
             END as has_conflict
         FROM "EventType" et
         JOIN "_user_eventtype" uet ON et.id = uet."A"
+        LEFT JOIN "_migration_progress" mp ON et.id = mp.event_type_id
         WHERE et."userId" != uet."B"
+        AND mp.event_type_id IS NOT NULL  -- Only check records we've processed
         LIMIT 5
     )
     SELECT string_agg(
@@ -130,10 +154,11 @@ BEGIN
     FROM mismatches
     INTO mismatch_count;
 
-    -- Count total mismatches
+    -- Count total mismatches only for processed records
     SELECT COUNT(*) INTO mismatch_count
     FROM "EventType" et
     JOIN "_user_eventtype" uet ON et.id = uet."A"
+    JOIN "_migration_progress" mp ON et.id = mp.event_type_id
     WHERE et."userId" != uet."B";
 
     -- Show sample of conflicts
@@ -150,6 +175,7 @@ BEGIN
         JOIN "EventType" et2 ON et2.slug = et.slug 
             AND et2."userId" = uet."B"
             AND et2.id != et.id
+        JOIN "_migration_progress" mp ON et.id = mp.event_type_id
         LIMIT 5
     )
     SELECT string_agg(
@@ -162,10 +188,11 @@ BEGIN
     FROM conflicts
     INTO conflict_count;
 
-    -- Count total conflicts
+    -- Count total conflicts only for processed records
     SELECT COUNT(DISTINCT et.id) INTO conflict_count
     FROM "EventType" et
     JOIN "_user_eventtype" uet ON et.id = uet."A"
+    JOIN "_migration_progress" mp ON et.id = mp.event_type_id
     WHERE EXISTS (
         SELECT 1
         FROM "EventType" et2
