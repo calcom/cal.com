@@ -9,9 +9,11 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { IsRoutingFormInTeam } from "@/modules/auth/guards/routing-forms/is-routing-form-in-team.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { GetRoutingFormResponsesParams } from "@/modules/organizations/routing-forms/inputs/get-routing-form-responses-params.input";
-import { OrganizationsRoutingFormsResponsesService } from "@/modules/organizations/routing-forms/services/organizations-routing-forms-responses.service";
+import { UpdateRoutingFormResponseInput } from "@/modules/organizations/routing-forms/inputs/update-routing-form-response.input";
+import { UpdateRoutingFormResponseOutput } from "@/modules/organizations/routing-forms/outputs/update-routing-form-response.output";
 import { GetRoutingFormResponsesOutput } from "@/modules/organizations/teams/routing-forms/outputs/get-routing-form-responses.output";
-import { Controller, Get, Param, ParseIntPipe, Query, UseGuards } from "@nestjs/common";
+import { OrganizationsTeamsRoutingFormsResponsesService } from "@/modules/organizations/teams/routing-forms/services/organizations-teams-routing-forms-responses.service";
+import { Controller, Get, Patch, Param, ParseIntPipe, Query, UseGuards, Body } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -32,7 +34,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 @ApiHeader(API_KEY_HEADER)
 export class OrganizationsTeamsRoutingFormsResponsesController {
   constructor(
-    private readonly organizationsRoutingFormsResponsesService: OrganizationsRoutingFormsResponsesService
+    private readonly organizationsTeamsRoutingFormsResponsesService: OrganizationsTeamsRoutingFormsResponsesService
   ) {}
 
   @Get()
@@ -48,17 +50,41 @@ export class OrganizationsTeamsRoutingFormsResponsesController {
     const { skip, take, ...filters } = queryParams;
 
     const routingFormResponses =
-      await this.organizationsRoutingFormsResponsesService.getOrganizationRoutingFormResponses(
-        orgId,
+      await this.organizationsTeamsRoutingFormsResponsesService.getTeamRoutingFormResponses(
+        teamId,
         routingFormId,
         skip ?? 0,
         take ?? 250,
-        { ...(filters ?? {}), teamId }
+        { ...(filters ?? {}) }
       );
 
     return {
       status: SUCCESS_STATUS,
       data: routingFormResponses,
+    };
+  }
+
+  @Patch(":responseId")
+  @ApiOperation({ summary: "Update routing form response" })
+  @Roles("TEAM_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  async updateRoutingFormResponse(
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @Param("routingFormId") routingFormId: string,
+    @Param("responseId", ParseIntPipe) responseId: number,
+    @Body() updateRoutingFormResponseInput: UpdateRoutingFormResponseInput
+  ): Promise<UpdateRoutingFormResponseOutput> {
+    const updatedResponse =
+      await this.organizationsTeamsRoutingFormsResponsesService.updateTeamRoutingFormResponse(
+        teamId,
+        routingFormId,
+        responseId,
+        updateRoutingFormResponseInput
+      );
+
+    return {
+      status: SUCCESS_STATUS,
+      data: updatedResponse,
     };
   }
 }

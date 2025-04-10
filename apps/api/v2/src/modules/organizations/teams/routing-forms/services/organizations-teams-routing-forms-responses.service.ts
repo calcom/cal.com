@@ -10,8 +10,47 @@ export class OrganizationsTeamsRoutingFormsResponsesService {
     private readonly routingFormsResponsesOutputService: OrganizationsTeamsRoutingFormsResponsesOutputService
   ) {}
 
-  async getRoutingFormResponses(routingFormId: string) {
-    const responses = await this.routingFormsRepository.getRoutingFormResponses(routingFormId);
+  async getTeamRoutingFormResponses(
+    teamId: number,
+    routingFormId: string,
+    skip: number,
+    take: number,
+    options?: {
+      sortCreatedAt?: "asc" | "desc";
+      sortUpdatedAt?: "asc" | "desc";
+      afterCreatedAt?: Date;
+      beforeCreatedAt?: Date;
+      afterUpdatedAt?: Date;
+      beforeUpdatedAt?: Date;
+      routedToBookingUid?: string;
+    }
+  ) {
+    const responses = await this.routingFormsRepository.getTeamRoutingFormResponses(
+      teamId,
+      routingFormId,
+      skip,
+      take,
+      options
+    );
+
     return this.routingFormsResponsesOutputService.getRoutingFormResponses(responses);
+  }
+
+  async updateTeamRoutingFormResponse(
+    teamId: number,
+    routingFormId: string,
+    responseId: number,
+    data: {
+      response?: Record<string, any>;
+    }
+  ) {
+    const updatedResponse = await this.routingFormsRepository.updateTeamRoutingFormResponse(
+      teamId,
+      routingFormId,
+      responseId,
+      data
+    );
+
+    return this.routingFormsResponsesOutputService.getRoutingFormResponses([updatedResponse])[0];
   }
 }

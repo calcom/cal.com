@@ -7,6 +7,7 @@ import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.g
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
+import { GetRoutingFormResponsesParams } from "@/modules/organizations/routing-forms/inputs/get-routing-form-responses-params.input";
 import {
   GetRoutingFormsOutput,
   RoutingFormOutput,
@@ -17,7 +18,6 @@ import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId/routing-forms",
@@ -35,7 +35,7 @@ export class OrganizationsRoutingFormsController {
   @PlatformPlan("ESSENTIALS")
   async getOrganizationRoutingForms(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @Query() queryParams: SkipTakePagination
+    @Query() queryParams: GetRoutingFormResponsesParams
   ): Promise<GetRoutingFormsOutput> {
     const { skip, take, ...filters } = queryParams;
 

@@ -7,7 +7,6 @@ export class OrganizationsTeamsRoutingFormsService {
   constructor(private readonly routingFormsRepository: OrganizationsTeamsRoutingFormsRepository) {}
 
   async getTeamRoutingForms(
-    orgId: number,
     teamId: number,
     skip: number,
     take: number,
@@ -22,6 +21,6 @@ export class OrganizationsTeamsRoutingFormsService {
       beforeUpdatedAt?: Date;
     }
   ) {
-    return this.routingFormsRepository.getTeamRoutingForms(orgId, teamId, skip, take, options);
+    return this.routingFormsRepository.getTeamRoutingForms(teamId, skip, take, options);
   }
 }

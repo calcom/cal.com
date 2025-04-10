@@ -7,7 +7,6 @@ export class OrganizationsTeamsRoutingFormsRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async getTeamRoutingForms(
-    orgId: number,
     teamId: number,
     skip: number,
     take: number,
@@ -36,11 +35,6 @@ export class OrganizationsTeamsRoutingFormsRepository {
     return this.dbRead.prisma.app_RoutingForms_Form.findMany({
       where: {
         teamId,
-        team: {
-          parent: {
-            id: orgId,
-          },
-        },
         ...(disabled !== undefined && { disabled }),
         ...(name && { name: { contains: name, mode: "insensitive" } }),
         ...(afterCreatedAt && { createdAt: { gte: afterCreatedAt } }),
@@ -54,62 +48,6 @@ export class OrganizationsTeamsRoutingFormsRepository {
       ],
       skip,
       take,
-    });
-  }
-
-  async getOrganizationRoutingFormResponses(
-    orgId: number,
-    routingFormId: string,
-    skip: number,
-    take: number,
-    options?: {
-      sortCreatedAt?: "asc" | "desc";
-      afterCreatedAt?: Date;
-      beforeCreatedAt?: Date;
-      routedToBookingUid?: string;
-    }
-  ) {
-    const { sortCreatedAt, afterCreatedAt, beforeCreatedAt, routedToBookingUid } = options || {};
-
-    return this.dbRead.prisma.app_RoutingForms_FormResponse.findMany({
-      where: {
-        formId: routingFormId,
-        form: {
-          team: {
-            id: orgId,
-          },
-        },
-        ...(afterCreatedAt && { createdAt: { gte: afterCreatedAt } }),
-        ...(beforeCreatedAt && { createdAt: { lte: beforeCreatedAt } }),
-        ...(routedToBookingUid && { routedToBookingUid }),
-      },
-      orderBy: [...(sortCreatedAt ? [{ createdAt: sortCreatedAt }] : [])],
-      skip,
-      take,
-    });
-  }
-
-  async updateRoutingFormResponse(
-    orgId: number,
-    routingFormId: string,
-    responseId: number,
-    data: {
-      response?: Record<string, any>;
-    }
-  ) {
-    return this.dbWrite.prisma.app_RoutingForms_FormResponse.update({
-      where: {
-        id: responseId,
-        formId: routingFormId,
-        form: {
-          team: {
-            id: orgId,
-          },
-        },
-      },
-      data: {
-        ...data,
-      },
     });
   }
 }

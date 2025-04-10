@@ -51,57 +51,6 @@ export class OrganizationsRoutingFormsRepository {
     });
   }
 
-  async getTeamRoutingForms(
-    orgId: number,
-    teamId: number,
-    skip: number,
-    take: number,
-    options?: {
-      disabled?: boolean;
-      name?: string;
-      sortCreatedAt?: "asc" | "desc";
-      sortUpdatedAt?: "asc" | "desc";
-      afterCreatedAt?: Date;
-      beforeCreatedAt?: Date;
-      afterUpdatedAt?: Date;
-      beforeUpdatedAt?: Date;
-    }
-  ) {
-    const {
-      disabled,
-      name,
-      sortCreatedAt,
-      sortUpdatedAt,
-      afterCreatedAt,
-      beforeCreatedAt,
-      afterUpdatedAt,
-      beforeUpdatedAt,
-    } = options || {};
-
-    return this.dbRead.prisma.app_RoutingForms_Form.findMany({
-      where: {
-        teamId,
-        team: {
-          parent: {
-            id: orgId,
-          },
-        },
-        ...(disabled !== undefined && { disabled }),
-        ...(name && { name: { contains: name, mode: "insensitive" } }),
-        ...(afterCreatedAt && { createdAt: { gte: afterCreatedAt } }),
-        ...(beforeCreatedAt && { createdAt: { lte: beforeCreatedAt } }),
-        ...(afterUpdatedAt && { updatedAt: { gte: afterUpdatedAt } }),
-        ...(beforeUpdatedAt && { updatedAt: { lte: beforeUpdatedAt } }),
-      },
-      orderBy: [
-        ...(sortCreatedAt ? [{ createdAt: sortCreatedAt }] : []),
-        ...(sortUpdatedAt ? [{ updatedAt: sortUpdatedAt }] : []),
-      ],
-      skip,
-      take,
-    });
-  }
-
   async getOrganizationRoutingFormResponses(
     orgId: number,
     routingFormId: string,

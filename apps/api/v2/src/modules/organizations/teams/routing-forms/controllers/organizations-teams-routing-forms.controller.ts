@@ -8,6 +8,7 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
+import { GetRoutingFormResponsesParams } from "@/modules/organizations/routing-forms/inputs/get-routing-form-responses-params.input";
 import {
   GetRoutingFormsOutput,
   RoutingFormOutput,
@@ -18,7 +19,6 @@ import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams/:teamId/routing-forms",
@@ -39,16 +39,15 @@ export class OrganizationsTeamsRoutingFormsController {
   async getTeamRoutingForms(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Query() queryParams: SkipTakePagination
+    @Query() queryParams: GetRoutingFormResponsesParams
   ): Promise<GetRoutingFormsOutput> {
     const { skip, take, ...filters } = queryParams;
 
     const routingForms = await this.organizationsTeamsRoutingFormsService.getTeamRoutingForms(
-      orgId,
       teamId,
       skip ?? 0,
       take ?? 250,
-      filters
+      { ...(filters ?? {}) }
     );
 
     return {

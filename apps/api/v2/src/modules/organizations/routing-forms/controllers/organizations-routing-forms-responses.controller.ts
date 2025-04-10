@@ -56,7 +56,7 @@ export class OrganizationsRoutingFormsResponsesController {
     };
   }
 
-  @Patch(":responseId")
+  @Patch("/:responseId")
   @ApiOperation({ summary: "Update routing form response" })
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
