@@ -3,7 +3,7 @@ export default function isBeyondThresholdTime(
   time: number,
   unit: "minutes" | "hours"
 ): boolean {
-  if (!startTime) return true;
+  if (!startTime || !time || !unit) return true;
   const now = new Date().getTime();
   const start = new Date(startTime).getTime();
 

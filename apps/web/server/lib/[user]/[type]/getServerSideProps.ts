@@ -13,8 +13,10 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
+import isBeyondThresholdTime from "@lib/isBeyondThresholdTime";
 
 type Props = {
   eventData: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
@@ -42,7 +44,23 @@ async function processReschedule({
 
   const booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
 
-  if (booking?.eventType?.disableRescheduling) {
+  // if no booking found, no eventTypeId (dynamic) or it matches this eventData - return void (success).
+  if (booking === null || !booking.eventTypeId || booking?.eventTypeId === props.eventData?.id) {
+    props.booking = booking;
+    props.rescheduleUid = Array.isArray(rescheduleUid) ? rescheduleUid[0] : rescheduleUid;
+    return;
+  }
+
+  const metaData = booking.eventType?.metadata as EventTypeMetadata;
+  const beyondThreshold =
+    metaData?.disableReschedulingThreshold &&
+    isBeyondThresholdTime(
+      booking.startTime,
+      metaData?.disableReschedulingThreshold.time,
+      metaData?.disableReschedulingThreshold.unit
+    );
+
+  if (booking?.eventType?.disableRescheduling && !beyondThreshold) {
     return {
       redirect: {
         destination: `/booking/${rescheduleUid}`,
@@ -51,12 +69,6 @@ async function processReschedule({
     };
   }
 
-  // if no booking found, no eventTypeId (dynamic) or it matches this eventData - return void (success).
-  if (booking === null || !booking.eventTypeId || booking?.eventTypeId === props.eventData?.id) {
-    props.booking = booking;
-    props.rescheduleUid = Array.isArray(rescheduleUid) ? rescheduleUid[0] : rescheduleUid;
-    return;
-  }
   // handle redirect response
   const redirectEventTypeTarget = await prisma.eventType.findUnique({
     where: {

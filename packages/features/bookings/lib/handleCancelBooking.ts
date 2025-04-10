@@ -35,6 +35,7 @@ import {
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import isBeyondThresholdTime from "@calcom/web/lib/isBeyondThresholdTime";
 
 import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingToDelete } from "./getBookingToDelete";
@@ -91,8 +92,17 @@ async function handler(input: CancelBookingInput) {
   if (!bookingToDelete.userId || !bookingToDelete.user) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
+  const metadata = bookingToDelete.eventType?.metadata as EventTypeMetadata;
 
-  if (bookingToDelete.eventType?.disableCancelling) {
+  const beyondThreshold =
+    metadata?.disableCancellingThreshold &&
+    isBeyondThresholdTime(
+      bookingToDelete.startTime,
+      metadata?.disableCancellingThreshold.time,
+      metadata.disableCancellingThreshold.unit
+    );
+
+  if (bookingToDelete.eventType?.disableCancelling && !beyondThreshold) {
     throw new HttpError({
       statusCode: 400,
       message: "This event type does not allow cancellations",

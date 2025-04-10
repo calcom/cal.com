@@ -4,6 +4,7 @@ import { URLSearchParams } from "url";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import type { EventMetadata } from "@calcom/features/bookings/lib/handleCancelBooking";
 import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { getSafe } from "@calcom/lib/getSafe";
@@ -11,6 +12,8 @@ import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUi
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
+
+import isBeyondThresholdTime from "@lib/isBeyondThresholdTime";
 
 const querySchema = z.object({
   uid: z.string(),
@@ -59,6 +62,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           slug: true,
           allowReschedulingPastBookings: true,
           disableRescheduling: true,
+          metadata: true,
           team: {
             select: {
               parentId: true,
@@ -100,8 +104,18 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   // If booking is already CANCELLED or REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.
   // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
   const isDisabledRescheduling = booking.eventType?.disableRescheduling;
+
+  const metaData = booking.eventType?.metadata as EventMetadata;
+  const beyondThreshold =
+    metaData?.disableReschedulingThreshold &&
+    isBeyondThresholdTime(
+      booking.startTime,
+      metaData?.disableReschedulingThreshold.time,
+      metaData?.disableReschedulingThreshold.unit
+    );
+
   if (
-    isDisabledRescheduling ||
+    (isDisabledRescheduling && !beyondThreshold) ||
     (!allowRescheduleForCancelledBooking &&
       (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED))
   ) {
