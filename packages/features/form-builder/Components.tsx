@@ -8,19 +8,13 @@ import type {
 import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import PhoneInput from "@calcom/features/components/phone-input";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import {
-  AddressInput,
-  Button,
-  CheckboxField,
-  EmailField,
-  Group,
-  Icon,
-  InfoBadge,
-  InputField,
-  Label,
-  RadioField,
-  Tooltip,
-} from "@calcom/ui";
+import { AddressInput } from "@calcom/ui/components/address";
+import { InfoBadge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { Label, CheckboxField, EmailField, InputField, Checkbox } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { ComponentForField } from "./FormBuilderField";
 import { propsTypes } from "./propsTypes";
@@ -340,17 +334,15 @@ export const Components: Record<FieldType, Component> = {
           {options.map((option, i) => {
             return (
               <label key={i} className="block">
-                <input
-                  type="checkbox"
+                <Checkbox
                   disabled={readOnly}
-                  onChange={(e) => {
+                  onCheckedChange={(checked) => {
                     const newValue = value.filter((v) => v !== option.value);
-                    if (e.target.checked) {
+                    if (checked) {
                       newValue.push(option.value);
                     }
                     setValue(newValue);
                   }}
-                  className="border-default dark:border-default hover:bg-subtle checked:hover:bg-brand-default checked:bg-brand-default dark:checked:bg-brand-default dark:hover:bg-subtle dark:checked:hover:bg-brand-default h-4 w-4 cursor-pointer rounded transition ltr:mr-2 rtl:ml-2"
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
@@ -366,7 +358,7 @@ export const Components: Record<FieldType, Component> = {
     propsType: propsTypes.radio,
     factory: ({ setValue, name, value, options, readOnly }) => {
       return (
-        <Group
+        <RadioGroup
           disabled={readOnly}
           value={value}
           onValueChange={(e) => {
@@ -382,7 +374,7 @@ export const Components: Record<FieldType, Component> = {
               />
             ))}
           </>
-        </Group>
+        </RadioGroup>
       );
     },
   },

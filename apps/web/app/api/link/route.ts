@@ -9,6 +9,7 @@ import prisma from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { bookingsRouter } from "@calcom/trpc/server/routers/viewer/bookings/_router";
+import { createCallerFactory } from "@calcom/trpc/server/trpc";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -79,11 +80,12 @@ async function handler(request: NextRequest) {
   try {
     /** @see https://trpc.io/docs/server-side-calls */
     // Create a legacy request object for compatibility
-    const legacyReq = buildLegacyRequest(headers(), cookies());
+    const legacyReq = buildLegacyRequest(await headers(), await cookies());
     const res = {} as any; // Response is still mocked as it's not used in this context
 
     const ctx = await createContext({ req: legacyReq, res }, sessionGetter);
-    const caller = bookingsRouter.createCaller({
+    const createCaller = createCallerFactory(bookingsRouter);
+    const caller = createCaller({
       ...ctx,
       req: legacyReq,
       res,

@@ -41,7 +41,20 @@ export class StripeBillingService implements BillingService {
   }
 
   async createSubscriptionCheckout(args: Parameters<BillingService["createSubscriptionCheckout"]>[0]) {
-    const { customerId, successUrl, cancelUrl, priceId, quantity, metadata, mode = "subscription" } = args;
+    const {
+      customerId,
+      successUrl,
+      cancelUrl,
+      priceId,
+      quantity,
+      metadata,
+      mode = "subscription",
+      allowPromotionCodes = true,
+      customerUpdate,
+      automaticTax,
+      discounts,
+      subscriptionData,
+    } = args;
 
     const session = await this.stripe.checkout.sessions.create({
       customer: customerId,
@@ -55,6 +68,11 @@ export class StripeBillingService implements BillingService {
           quantity,
         },
       ],
+      allow_promotion_codes: allowPromotionCodes,
+      customer_update: customerUpdate,
+      automatic_tax: automaticTax,
+      discounts,
+      subscription_data: subscriptionData,
     });
 
     return {
@@ -111,5 +129,33 @@ export class StripeBillingService implements BillingService {
     if (!subscription || !subscription.status) return null;
 
     return subscription.status;
+  }
+
+  async getCheckoutSession(checkoutSessionId: string) {
+    const checkoutSession = await this.stripe.checkout.sessions.retrieve(checkoutSessionId);
+    return checkoutSession;
+  }
+
+  async getCustomer(customerId: string) {
+    const customer = await this.stripe.customers.retrieve(customerId);
+    return customer;
+  }
+
+  async getSubscriptions(customerId: string) {
+    const subscriptions = await this.stripe.subscriptions.list({ customer: customerId });
+    return subscriptions.data;
+  }
+
+  async updateCustomer(args: Parameters<BillingService["updateCustomer"]>[0]) {
+    const { customerId, email, userId } = args;
+    const metadata: { email?: string; userId?: number } = {};
+    if (email) metadata.email = email;
+    if (userId) metadata.userId = userId;
+    await this.stripe.customers.update(customerId, { metadata });
+  }
+
+  async getPrice(priceId: string) {
+    const price = await this.stripe.prices.retrieve(priceId);
+    return price;
   }
 }

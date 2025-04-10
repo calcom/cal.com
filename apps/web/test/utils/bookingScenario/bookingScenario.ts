@@ -89,6 +89,7 @@ type InputWorkflow = {
   time?: number | null;
   timeUnit?: TimeUnit | null;
   sendTo?: string;
+  verifiedAt?: Date;
 };
 
 type InputPayment = {
@@ -642,6 +643,7 @@ async function addWorkflowsToDb(workflows: InputWorkflow[]) {
               id: createdWorkflow.id,
             },
           },
+          verifiedAt: workflow?.verifiedAt ?? new Date(),
         },
       });
 
@@ -1434,6 +1436,7 @@ export function getOrganizer({
   bookingLimits,
   completedOnboarding,
   username,
+  locked,
 }: {
   name: string;
   email: string;
@@ -1451,6 +1454,7 @@ export function getOrganizer({
   bookingLimits?: IntervalLimit;
   completedOnboarding?: boolean;
   username?: string;
+  locked?: boolean;
 }) {
   username = username ?? TestData.users.example.username;
   return {
@@ -1472,6 +1476,7 @@ export function getOrganizer({
     smsLockState,
     bookingLimits,
     completedOnboarding,
+    locked,
   };
 }
 
@@ -1578,7 +1583,6 @@ export function mockNoTranslations() {
   i18nMock.getTranslation.mockImplementation(() => {
     return new Promise((resolve) => {
       const identityFn = (key: string) => key;
-      // @ts-expect-error FIXME
       resolve(identityFn);
     });
   });

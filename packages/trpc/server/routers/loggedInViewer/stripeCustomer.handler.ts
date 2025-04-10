@@ -1,7 +1,7 @@
-import stripe from "@calcom/app-store/stripepayment/lib/server";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { prisma } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
@@ -16,11 +16,14 @@ export const stripeCustomerHandler = async ({ ctx }: StripeCustomerOptions) => {
     user: { id: userId },
   } = ctx;
 
+  const billingService = new StripeBillingService();
+
   const user = await prisma.user.findUnique({
     where: {
       id: userId,
     },
     select: {
+      email: true,
       metadata: true,
     },
   });
@@ -33,7 +36,8 @@ export const stripeCustomerHandler = async ({ ctx }: StripeCustomerOptions) => {
   let stripeCustomerId = metadata?.stripeCustomerId;
   if (!stripeCustomerId) {
     // Create stripe customer
-    const customer = await stripe.customers.create({
+    const customer = await billingService.createCustomer({
+      email: user.email,
       metadata: {
         userId: userId.toString(),
       },
@@ -45,15 +49,15 @@ export const stripeCustomerHandler = async ({ ctx }: StripeCustomerOptions) => {
       data: {
         metadata: {
           ...metadata,
-          stripeCustomerId: customer.id,
+          stripeCustomerId: customer.stripeCustomerId,
         },
       },
     });
-    stripeCustomerId = customer.id;
+    stripeCustomerId = customer.stripeCustomerId;
   }
 
   // Fetch stripe customer
-  const customer = await stripe.customers.retrieve(stripeCustomerId);
+  const customer = await billingService.getCustomer(stripeCustomerId);
   if (customer.deleted) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "No stripe customer found" });
   }

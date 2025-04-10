@@ -12,7 +12,8 @@ const useSkipConfirmStep = (
   bookerState: BookerState,
   isInstantMeeting: boolean,
   isWeekView: boolean,
-  bookingFields?: BookerEvent["bookingFields"]
+  bookingFields?: BookerEvent["bookingFields"],
+  locations?: BookerEvent["locations"]
 ) => {
   const bookingFormValues = bookingForm.getValues();
 
@@ -21,7 +22,7 @@ const useSkipConfirmStep = (
 
   useEffect(() => {
     const checkSkipStep = async () => {
-      if (!bookingFields) {
+      if (!bookingFields || (locations && locations.length > 1)) {
         setCanSkip(false);
         return;
       }

@@ -1,7 +1,53 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { MembershipRole } from "@prisma/client";
-import { Expose } from "class-transformer";
-import { IsBoolean, IsInt, IsOptional, IsString } from "class-validator";
+import { Expose, Transform, Type } from "class-transformer";
+import { IsBoolean, IsInt, IsObject, IsOptional, IsString, ValidateNested } from "class-validator";
+
+class MembershipUserOutputDto {
+  @IsOptional()
+  @IsString()
+  @Expose()
+  @ApiPropertyOptional()
+  readonly avatarUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  @Expose()
+  @ApiPropertyOptional()
+  readonly username?: string;
+
+  @IsOptional()
+  @IsString()
+  @Expose()
+  @ApiPropertyOptional()
+  readonly name?: string;
+
+  @IsBoolean()
+  @Expose()
+  @ApiProperty()
+  readonly email!: string;
+
+  @IsOptional()
+  @IsString()
+  @Expose()
+  @ApiPropertyOptional()
+  readonly bio?: string;
+
+  @ApiPropertyOptional({
+    type: Object,
+    example: { key: "value" },
+  })
+  @IsObject()
+  @IsOptional()
+  @Expose()
+  @Transform(
+    // note(Lauris): added this transform because without it metadata is removed for some reason
+    ({ obj }: { obj: { metadata: Record<string, unknown> | null | undefined } }) => {
+      return obj.metadata || undefined;
+    }
+  )
+  metadata?: Record<string, unknown>;
+}
 
 export class TeamMembershipOutput {
   @IsInt()
@@ -34,4 +80,10 @@ export class TeamMembershipOutput {
   @Expose()
   @ApiPropertyOptional()
   readonly disableImpersonation?: boolean;
+
+  @ValidateNested()
+  @Type(() => MembershipUserOutputDto)
+  @Expose()
+  @ApiProperty({ type: MembershipUserOutputDto })
+  user!: MembershipUserOutputDto;
 }

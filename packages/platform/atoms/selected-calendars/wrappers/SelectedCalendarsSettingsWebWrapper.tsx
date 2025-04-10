@@ -3,12 +3,14 @@ import React from "react";
 
 import AppListCard from "@calcom/features/apps/components/AppListCard";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
+import AdditionalCalendarSelector from "@calcom/features/calendars/AdditionalCalendarSelector";
 import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Select, List } from "@calcom/ui";
-import AdditionalCalendarSelector from "@calcom/web/components/apps/AdditionalCalendarSelector";
+import { Alert } from "@calcom/ui/components/alert";
+import { Select } from "@calcom/ui/components/form";
+import { List } from "@calcom/ui/components/list";
 
 import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";
 
@@ -42,7 +44,7 @@ const ConnectedCalendarList = ({
 }: {
   fromOnboarding?: boolean;
   scope: SelectedCalendarSettingsScope;
-  items: RouterOutputs["viewer"]["connectedCalendars"]["connectedCalendars"];
+  items: RouterOutputs["viewer"]["calendars"]["connectedCalendars"]["connectedCalendars"];
   disableConnectionModification?: boolean;
   eventTypeId: number | null;
   onChanged?: () => unknown | Promise<unknown>;
@@ -150,7 +152,7 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
     eventTypeId = null,
   } = props;
 
-  const query = trpc.viewer.connectedCalendars.useQuery(
+  const query = trpc.viewer.calendars.connectedCalendars.useQuery(
     {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       eventTypeId: scope === SelectedCalendarSettingsScope.EventType ? eventTypeId! : null,
@@ -197,28 +199,28 @@ export const SelectedCalendarsSettingsWebWrapperSkeleton = () => {
       <div className="border-subtle border-b p-6">
         <div className="flex items-center justify-between">
           <div>
-            <div className="h-4 w-32 animate-pulse rounded-md bg-gray-200" />
-            <div className="mt-2 h-4 w-48 animate-pulse rounded-md bg-gray-200" />
+            <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />
+            <div className="bg-emphasis mt-2 h-4 w-48 animate-pulse rounded-md" />
           </div>
-          <div className="h-8 w-32 animate-pulse rounded-md bg-gray-200" />
+          <div className="bg-emphasis h-8 w-32 animate-pulse rounded-md" />
         </div>
       </div>
       <div className="p-6 pt-2">
         <div className="border-subtle mt-4 rounded-lg border p-4">
           <div className="flex items-center">
-            <div className="h-10 w-10 animate-pulse rounded-md bg-gray-200" />
+            <div className="bg-emphasis h-10 w-10 animate-pulse rounded-md" />
             <div className="ml-4 space-y-2">
-              <div className="h-4 w-32 animate-pulse rounded-md bg-gray-200" />
-              <div className="h-4 w-48 animate-pulse rounded-md bg-gray-200" />
+              <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />
+              <div className="bg-emphasis h-4 w-48 animate-pulse rounded-md" />
             </div>
           </div>
           <div className="border-subtle mt-4 space-y-4 border-t pt-4">
-            <div className="h-4 w-64 animate-pulse rounded-md bg-gray-200" />
+            <div className="bg-emphasis h-4 w-64 animate-pulse rounded-md" />
             <div className="space-y-2">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="flex items-center justify-between">
-                  <div className="h-4 w-48 animate-pulse rounded-md bg-gray-200" />
-                  <div className="h-6 w-10 animate-pulse rounded-md bg-gray-200" />
+                  <div className="bg-emphasis h-4 w-48 animate-pulse rounded-md" />
+                  <div className="bg-emphasis h-6 w-10 animate-pulse rounded-md" />
                 </div>
               ))}
             </div>

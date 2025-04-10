@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
@@ -138,6 +138,18 @@ export class BookingRepository {
     });
   }
 
+  static async findReschedulerByUid({ uid }: { uid: string }) {
+    return await prisma.booking.findFirst({
+      where: {
+        uid,
+      },
+      select: {
+        rescheduledBy: true,
+        uid: true,
+      },
+    });
+  }
+
   static async groupByActiveBookingCounts({
     users,
     eventTypeId,
@@ -159,6 +171,117 @@ export class BookingRepository {
         _all: true,
       },
     });
+  }
+
+  static async findAllExistingBookingsForEventTypeBetween({
+    eventTypeId,
+    seatedEvent = false,
+    startDate,
+    endDate,
+    userIdAndEmailMap,
+  }: {
+    startDate: Date;
+    endDate: Date;
+    eventTypeId?: number | null;
+    seatedEvent?: boolean;
+    userIdAndEmailMap: Map<number, string>;
+  }) {
+    const sharedQuery = {
+      startTime: { lte: endDate },
+      endTime: { gte: startDate },
+      status: {
+        in: [BookingStatus.ACCEPTED],
+      },
+    };
+
+    const bookingsSelect = Prisma.validator<Prisma.BookingSelect>()({
+      id: true,
+      uid: true,
+      userId: true,
+      startTime: true,
+      endTime: true,
+      title: true,
+      attendees: true,
+      eventType: {
+        select: {
+          id: true,
+          onlyShowFirstAvailableSlot: true,
+          afterEventBuffer: true,
+          beforeEventBuffer: true,
+          seatsPerTimeSlot: true,
+          requiresConfirmationWillBlockSlot: true,
+          requiresConfirmation: true,
+          allowReschedulingPastBookings: true,
+        },
+      },
+      ...(seatedEvent && {
+        _count: {
+          select: {
+            seatsReferences: true,
+          },
+        },
+      }),
+    });
+
+    const currentBookingsAllUsersQueryOne = prisma.booking.findMany({
+      where: {
+        ...sharedQuery,
+        userId: {
+          in: Array.from(userIdAndEmailMap.keys()),
+        },
+      },
+      select: bookingsSelect,
+    });
+
+    const currentBookingsAllUsersQueryTwo = prisma.booking.findMany({
+      where: {
+        ...sharedQuery,
+        attendees: {
+          some: {
+            email: {
+              in: Array.from(userIdAndEmailMap.values()),
+            },
+          },
+        },
+      },
+      select: bookingsSelect,
+    });
+
+    const currentBookingsAllUsersQueryThree = eventTypeId
+      ? prisma.booking.findMany({
+          where: {
+            startTime: { lte: endDate },
+            endTime: { gte: startDate },
+            eventType: {
+              id: eventTypeId,
+              requiresConfirmation: true,
+              requiresConfirmationWillBlockSlot: true,
+            },
+            status: {
+              in: [BookingStatus.PENDING],
+            },
+          },
+          select: bookingsSelect,
+        })
+      : [];
+
+    const [resultOne, resultTwo, resultThree] = await Promise.all([
+      currentBookingsAllUsersQueryOne,
+      currentBookingsAllUsersQueryTwo,
+      currentBookingsAllUsersQueryThree,
+    ]);
+    // Prevent duplicate booking records when the organizer books his own event type.
+    //
+    // *Three is about PENDING, so will never overlap
+    // with the other two, which are about ACCEPTED. But ACCEPTED affects *One & *Two
+    // and WILL result in a duplicate booking if the organizer books himself.
+    const resultTwoWithOrganizersRemoved = resultTwo.filter((booking) => {
+      if (!booking.userId) return true;
+      const organizerEmail = userIdAndEmailMap.get(booking.userId);
+      return !booking.attendees.some((attendee) => attendee.email === organizerEmail);
+    });
+
+    return [...resultOne, ...resultTwoWithOrganizersRemoved, ...resultThree];
   }
 
   static async getAllBookingsForRoundRobin({

@@ -3,7 +3,7 @@ import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TAdminVerifyInput } from "./adminVerify.schema";
 
 type AdminVerifyOptions = {
@@ -117,6 +117,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
         };
       }),
       organizationId: input.orgId,
+      orgAutoAcceptEmail: acceptedEmailDomain,
     }),
   ]);
 
