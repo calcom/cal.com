@@ -35,7 +35,9 @@ BEGIN
         LIMIT batch_size
         OFFSET (current_batch * batch_size);
 
-        -- Start a subtransaction for this batch
+        -- Create a savepoint for this batch
+        SAVEPOINT batch_savepoint;
+
         BEGIN
             -- Update EventType table with safe updates only
             WITH to_update AS (
@@ -75,11 +77,11 @@ BEGIN
             RAISE NOTICE 'Processed batch % of %. Updated % records. Found % conflicts', 
                 current_batch + 1, max_batch, updated_count, conflict_count;
 
-            -- Commit this batch
-            COMMIT;
+            -- Release savepoint if successful
+            RELEASE SAVEPOINT batch_savepoint;
         EXCEPTION WHEN OTHERS THEN
-            -- If anything goes wrong, rollback this batch and continue with next
-            ROLLBACK;
+            -- If anything goes wrong, rollback to savepoint and continue with next batch
+            ROLLBACK TO SAVEPOINT batch_savepoint;
             RAISE NOTICE 'Error in batch % of %: %', current_batch + 1, max_batch, SQLERRM;
         END;
 
