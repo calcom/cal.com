@@ -304,7 +304,7 @@ export const createUsersFixture = (
       let defaultEventTypes: SupportedTestEventTypes[] = opts?.overrideDefaultEventTypes
         ? []
         : [
-            { title: "30 min", slug: "30-min", length: 30, offsetStart: 10 },
+            { title: "30 min", slug: "30-min", length: 30 },
             { title: "Paid", slug: "paid", length: 30, price: 1000 },
             { title: "Opt in", slug: "opt-in", requiresConfirmation: true, length: 30 },
             { title: "Seated", slug: "seated", seatsPerTimeSlot: 2, length: 30 },
