@@ -38,7 +38,6 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
     metaDataName,
     ...rest
   } = props;
-
   const options = [
     { label: t("minute_timeUnit"), value: "minutes" },
     { label: t("hour_timeUnit"), value: "hours" },
@@ -79,7 +78,7 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
   return (
     <Controller
       name={name}
-      render={({ field: { onChange, value } }) => (
+      render={({ field: { onChange } }) => (
         <SettingsToggle
           noIndentation
           labelClassName={labelClassName}
@@ -88,7 +87,7 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
           title={title}
           description={description}
           data-testid={dataTestId}
-          checked={value}
+          checked={checked}
           onCheckedChange={(val) => {
             onChange(val);
             onCheckedChange?.(val);
