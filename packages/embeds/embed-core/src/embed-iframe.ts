@@ -34,6 +34,7 @@ export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Rec
   // TODO: Rename layout and theme as ui.layout and ui.theme as it makes it clear that these two can be configured using `ui` instruction as well any time.
   "ui.color-scheme"?: string;
   theme?: EmbedThemeConfig;
+  pageType?: "user-event" | "team-event";
 };
 
 declare global {

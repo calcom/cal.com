@@ -629,3 +629,75 @@ Cal("on", {
   action: "bookingSuccessfulV2",
   callback: bookingSuccessfulV2Callback,
 });
+
+if (only === "all" || only === "ns:skeletonDemo") {
+  Cal("init", "skeletonDemo", {
+    debug: true,
+    origin: origin,
+  });
+
+  // Example showing booking page skeleton
+  Cal.ns.skeletonDemo("inline", {
+    elementOrSelector: "#cal-booking-place-skeletonDemo .place",
+    calLink: "pro/30min",
+    config: {
+      iframeAttrs: {
+        id: "cal-booking-place-skeletonDemo-iframe",
+      },
+      "flag.coep": "true",
+      pageType: "user-event",
+    },
+  });
+
+  Cal.ns.skeletonDemo("on", {
+    action: "*",
+    callback,
+  });
+}
+
+if (only === "all" || only === "ns:skeletonDemoElementClick") {
+  Cal("init", "skeletonDemoElementClick", {
+    debug: true,
+    origin: origin,
+  });
+
+  Cal.ns.skeletonDemoElementClick("on", {
+    action: "*",
+    callback,
+  });
+}
+
+// Keep it at the bottom
+(function ensureScrolledToCorrectIframe() {
+  let api: typeof Cal | (typeof Cal)["ns"][string];
+
+  const getNamespace = () => {
+    const url = new URL(document.URL);
+    const only = url.searchParams.get("only") || "";
+    return only !== "all" ? only.replace("ns:", "") : null;
+  };
+
+  const updateNamespace = () => {
+    const namespace = getNamespace();
+    api = namespace ? Cal.ns[namespace] : Cal;
+  };
+
+  // Initial namespace setup
+  updateNamespace();
+
+  // Update namespace on hash change
+  window.addEventListener("hashchange", updateNamespace);
+
+  api("on", {
+    action: "*",
+    callback: (e) => {
+      function scrollToIframeInPlayground() {
+        const namespace = getNamespace();
+        if (namespace) {
+          location.hash = `#cal-booking-place-${namespace}-iframe`;
+        }
+      }
+      scrollToIframeInPlayground();
+    },
+  });
+})();

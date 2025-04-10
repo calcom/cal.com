@@ -1,10 +1,19 @@
-const html = `<div id="wrapper" style="top:50%; left:50%;transform:translate(-50%,-50%)" class="absolute z-highest">
-<div class="loader border-brand-default dark:border-darkmodebrand">
-	<span class="loader-inner bg-brand dark:bg-darkmodebrand"></span>
+import { generateEventSkeletonHTML } from "../ui/skeleton";
+
+const html = `
+<div id="skeleton-container">
+	<div id="skeleton" style="left:50%; transform:translate(-50%,0%)" class="absolute z-highest transition-visibility duration-300 ease-in-out">
+		${generateEventSkeletonHTML()}
+	</div>
+  <div id="wrapper" style="top:50%; left:50%; transform:translate(-50%,-50%)" class="absolute z-highest">
+    <div class="loader border-brand-default dark:border-darkmodebrand">
+      <span class="loader-inner bg-brand dark:bg-darkmodebrand"></span>
+    </div>
+    <div id="error" style="transform:translate(-50%,-50%)" class="hidden">
+      Something went wrong.
+    </div>
+  </div>
 </div>
-<div id="error" style="transform:translate(-50%,-50%)" class="hidden">
-Something went wrong.
-</div>
-</div>
-<slot></slot>`;
+<slot></slot>
+`;
 export default html;

@@ -20,6 +20,11 @@ export class ModalBox extends HTMLElement {
     }
   }
 
+  private shouldUseSkeletonLoader() {
+    const pageType = this.dataset.calPageType;
+    return pageType === "user-event" || pageType === "team-event";
+  }
+
   show(show: boolean) {
     this.assertHasShadowRoot();
     // We can't make it display none as that takes iframe width and height calculations to 0
@@ -79,6 +84,15 @@ export class ModalBox extends HTMLElement {
     return loaderEl;
   }
 
+  getSkeletonElement() {
+    this.assertHasShadowRoot();
+    const element = this.shadowRoot.querySelector<HTMLElement>("#skeleton");
+    if (!element) {
+      throw new Error("No skeleton element");
+    }
+    return element;
+  }
+
   getErrorElement() {
     this.assertHasShadowRoot();
     const element = this.shadowRoot.querySelector<HTMLElement>("#error");
@@ -95,18 +109,28 @@ export class ModalBox extends HTMLElement {
       return;
     }
 
+    const useSkeletonLoader = this.shouldUseSkeletonLoader();
+
     if (newValue === "loading") {
       this.open();
       this.hideIframe();
-      this.getLoaderElement().style.display = "block";
+      if (useSkeletonLoader) {
+        this.getLoaderElement().style.display = "none";
+        this.getSkeletonElement().style.display = "block";
+      } else {
+        this.getLoaderElement().style.display = "block";
+        this.getSkeletonElement().style.display = "none";
+      }
     } else if (newValue == "loaded" || newValue === "reopening") {
       this.open();
       this.showIframe();
       this.getLoaderElement().style.display = "none";
+      this.getSkeletonElement().style.display = "none";
     } else if (newValue == "closed") {
       this.explicitClose();
     } else if (newValue === "failed") {
       this.getLoaderElement().style.display = "none";
+      this.getSkeletonElement().style.display = "none";
       this.getErrorElement().style.display = "inline-block";
       const errorString = getErrorString(this.dataset.errorCode);
       this.getErrorElement().innerText = errorString;
@@ -152,5 +176,23 @@ export class ModalBox extends HTMLElement {
     this.open();
     this.assertHasShadowRoot();
     this.shadowRoot.innerHTML = modalHtml;
+
+    const skeletonEl = this.getSkeletonElement();
+    const loaderEl = this.getLoaderElement();
+    const skeletonContainerEl = this.shadowRoot.querySelector<HTMLElement>("#skeleton-container");
+    if (this.shouldUseSkeletonLoader()) {
+      if (skeletonEl) {
+        skeletonEl.style.visibility = "visible";
+        loaderEl.style.display = "none";
+        setInterval(() => {
+          skeletonContainerEl.style.height = getComputedStyle(skeletonEl).height;
+        }, 100);
+      }
+    } else {
+      if (loaderEl) {
+        loaderEl.style.display = "block";
+        skeletonEl.style.visibility = "hidden";
+      }
+    }
   }
 }

@@ -573,7 +573,11 @@ class CalApi {
 
     containerEl.classList.add("cal-inline-container");
     const template = document.createElement("template");
-    template.innerHTML = `<cal-inline style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%"></cal-inline><style>.cal-inline-container::-webkit-scrollbar{display:none}.cal-inline-container{scrollbar-width:none}</style>`;
+    template.innerHTML = `<cal-inline 
+    ${config.pageType ? `data-cal-page-type="${config.pageType}"` : ""} 
+    style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%">
+    </cal-inline>
+    <style>.cal-inline-container::-webkit-scrollbar{display:none}.cal-inline-container{scrollbar-width:none}</style>`;
     this.cal.inlineEl = template.content.children[0];
     this.cal.inlineEl.appendChild(iframe);
     containerEl.appendChild(template.content);
@@ -646,11 +650,13 @@ class CalApi {
     config = {},
     calOrigin,
     __prerender = false,
+    calPageType,
   }: {
     calLink: string;
     config?: PrefillAndIframeAttrsConfig;
     calOrigin?: string;
     __prerender?: boolean;
+    calPageType?: string;
   }) {
     const uid = this.modalUid || this.preloadedModalUid || String(Date.now()) || "0";
     const isConnectingToPreloadedModal = this.preloadedModalUid && !this.modalUid;
@@ -715,7 +721,9 @@ class CalApi {
     iframe.style.height = "100%";
     iframe.style.width = "100%";
     const template = document.createElement("template");
-    template.innerHTML = `<cal-modal-box uid="${uid}"></cal-modal-box>`;
+    template.innerHTML = `<cal-modal-box ${
+      calPageType ? `data-cal-page-type="${calPageType}"` : ""
+    } uid="${uid}"></cal-modal-box>`;
     this.cal.modalBox = template.content.children[0];
     this.cal.modalBox.appendChild(iframe);
     if (__prerender) {
@@ -954,6 +962,7 @@ document.addEventListener("click", (e) => {
   const namespace = calLinkEl.dataset.calNamespace;
   const configString = calLinkEl.dataset.calConfig || "";
   const calOrigin = calLinkEl.dataset.calOrigin || "";
+  const calPageType = calLinkEl.dataset.calPageType || "";
   let config;
   try {
     config = JSON.parse(configString);
@@ -975,6 +984,7 @@ document.addEventListener("click", (e) => {
     calLink: path,
     config,
     calOrigin,
+    calPageType,
   });
 
   function getCalLinkEl(target: EventTarget | null) {
