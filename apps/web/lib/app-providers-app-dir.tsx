@@ -3,8 +3,6 @@ import { dir } from "i18next";
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
-import { appWithTranslation } from "next-i18next";
-import type { SSRConfig } from "next-i18next/dist/types/types";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import type { ReadonlyURLSearchParams } from "next/navigation";
@@ -41,7 +39,6 @@ export type AppProps = Omit<
       WithNonceProps<{
         themeBasis?: string;
         session: Session;
-        i18n?: SSRConfig;
       }>
     >
   >,
