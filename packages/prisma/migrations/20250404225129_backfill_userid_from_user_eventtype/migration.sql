@@ -46,6 +46,9 @@ BEGIN
                 AND et2.slug = et.slug
                 AND et2.id != et.id
             )
+        ),
+        conflict_count AS (
+            SELECT COUNT(*) as count FROM potential_conflicts
         )
         UPDATE "EventType" et
         SET "userId" = mb.user_id
@@ -56,11 +59,8 @@ BEGIN
             SELECT 1 
             FROM potential_conflicts pc 
             WHERE pc.id = et.id
-        );
-
-        -- Count conflicts
-        SELECT COUNT(*) INTO conflict_count
-        FROM potential_conflicts;
+        )
+        RETURNING (SELECT count FROM conflict_count) INTO conflict_count;
 
         -- Log progress and conflicts
         RAISE NOTICE 'Processed batch % of %. Found % potential conflicts', 
