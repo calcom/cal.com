@@ -17,6 +17,7 @@ DECLARE
     max_batch INTEGER;
     conflict_count INTEGER := 0;
     updated_count INTEGER := 0;
+    batch_error BOOLEAN;
 BEGIN
     -- Get total records
     SELECT COUNT(*) INTO total_records FROM "_user_eventtype";
@@ -35,9 +36,8 @@ BEGIN
         LIMIT batch_size
         OFFSET (current_batch * batch_size);
 
-        -- Create a savepoint for this batch
-        SAVEPOINT batch_savepoint;
-
+        -- Process this batch
+        batch_error := FALSE;
         BEGIN
             -- Update EventType table with safe updates only
             WITH to_update AS (
@@ -77,16 +77,19 @@ BEGIN
             RAISE NOTICE 'Processed batch % of %. Updated % records. Found % conflicts', 
                 current_batch + 1, max_batch, updated_count, conflict_count;
 
-            -- Release savepoint if successful
-            RELEASE SAVEPOINT batch_savepoint;
         EXCEPTION WHEN OTHERS THEN
-            -- If anything goes wrong, rollback to savepoint and continue with next batch
-            ROLLBACK TO batch_savepoint;
+            -- If anything goes wrong, mark the batch as failed and continue
+            batch_error := TRUE;
             RAISE NOTICE 'Error in batch % of %: %', current_batch + 1, max_batch, SQLERRM;
         END;
 
         current_batch := current_batch + 1;
     END LOOP;
+
+    -- If any batch failed, raise an exception
+    IF batch_error THEN
+        RAISE EXCEPTION 'Migration completed with errors in one or more batches';
+    END IF;
 END $$;
 
 -- Verify the update
