@@ -1,6 +1,6 @@
+import { toggleLoader } from "../custom-element-utils";
 import loaderCss from "../loader.css?inline";
 import type { BookerLayouts, EmbedPageType } from "../types";
-import { toggleLoader } from "../custom-element-utils";
 import { getErrorString } from "../utils";
 import inlineHtml from "./inlineHtml";
 
@@ -25,12 +25,10 @@ export class Inline extends HTMLElement {
 
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
     this.assertHasShadowRoot();
-    const loaderEl = this.shadowRoot.querySelector<HTMLElement>(".loader");
-    const skeletonEl = this.shadowRoot.querySelector<HTMLElement>("#skeleton");
     const errorEl = this.shadowRoot.querySelector<HTMLElement>("#error");
     const slotEl = this.shadowRoot.querySelector<HTMLElement>("slot");
-    if (!loaderEl || !slotEl || !errorEl || !skeletonEl) {
-      throw new Error("One of required elements is missing");
+    if (!slotEl || !errorEl) {
+      throw new Error("One of loaderEl, slotEl or errorEl is missing");
     }
     if (name === "loading") {
       if (newValue == "done") {
@@ -41,14 +39,12 @@ export class Inline extends HTMLElement {
         errorEl.style.display = "block";
         const errorString = getErrorString(this.dataset.errorCode);
         errorEl.innerText = errorString;
-      } else {
-        // Loading state
-        this.toggleLoader(true);
       }
     }
   }
   private getSkeletonEl(): HTMLElement {
-    const skeletonEl = this.shadowRoot?.querySelector<HTMLElement>("#skeleton");
+    this.assertHasShadowRoot();
+    const skeletonEl = this.shadowRoot.querySelector<HTMLElement>("#skeleton");
     if (!skeletonEl) {
       throw new Error("Skeleton element is not found");
     }
@@ -56,7 +52,8 @@ export class Inline extends HTMLElement {
   }
 
   private getLoaderEl(): HTMLElement {
-    const loaderEl = this.shadowRoot?.querySelector<HTMLElement>(".loader");
+    this.assertHasShadowRoot();
+    const loaderEl = this.shadowRoot.querySelector<HTMLElement>(".loader");
     if (!loaderEl) {
       throw new Error("Loader element is not found");
     }
@@ -64,7 +61,8 @@ export class Inline extends HTMLElement {
   }
 
   private getSkeletonContainerEl(): HTMLElement {
-    const skeletonContainerEl = this.shadowRoot?.querySelector<HTMLElement>("#skeleton-container");
+    this.assertHasShadowRoot();
+    const skeletonContainerEl = this.shadowRoot.querySelector<HTMLElement>("#skeleton-container");
     if (!skeletonContainerEl) {
       throw new Error("Skeleton container element is not found");
     }

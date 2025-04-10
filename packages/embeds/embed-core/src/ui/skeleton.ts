@@ -1,4 +1,4 @@
-import type { BookerLayouts, EmbedPageType } from "src/types";
+import type { BookerLayouts, EmbedPageType } from "../types";
 
 const generateEventMetaSkeleton = () => {
   return `

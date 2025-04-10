@@ -92,6 +92,7 @@ const embedStore = {
   // Store all React State setters here.
   reactStylesStateSetters: {} as Record<keyof EmbedStyles, SetStyles>,
   reactNonStylesStateSetters: {} as Record<keyof EmbedNonStylesConfig, setNonStylesConfig>,
+  // Embed can show itself only after this is set to true
   parentInformedAboutContentHeight: false,
   windowLoadEventFired: false,
   setTheme: undefined as ((arg0: EmbedThemeConfig) => void) | undefined,
@@ -510,6 +511,11 @@ function keepParentInformedAboutDimensionChanges() {
       return;
     }
 
+    if (!embedStore.windowLoadEventFired) {
+      sdkActionManager?.fire("__windowLoadComplete", {});
+    }
+    embedStore.windowLoadEventFired = true;
+
     // Use the dimensions of main element as in most places there is max-width restriction on it and we just want to show the main content.
     // It avoids the unwanted padding outside main tag.
     const mainElement =
@@ -542,7 +548,6 @@ function keepParentInformedAboutDimensionChanges() {
     const iframeHeight = isFirstTime ? documentScrollHeight : contentHeight;
     const iframeWidth = isFirstTime ? documentScrollWidth : contentWidth;
 
-    // This is important to set. Once it is set then only the embed could show up
     embedStore.parentInformedAboutContentHeight = true;
 
     if (!iframeHeight || !iframeWidth) {
