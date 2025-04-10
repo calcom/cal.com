@@ -6,6 +6,8 @@
     <script>
       const url = new URL(document.URL);
       window.only = url.searchParams.get("only")
+      window.calOrigin = url.searchParams.get("calOrigin") || "http://localhost:3000";
+
       let popupRescheduleUid = null;
       let calLink = null;
       const initialNamespace = (url.searchParams.get("only") || "").split("ns:")[1] || "";
@@ -40,7 +42,7 @@
       function addInlineEmbedInNewNamespaceWithoutReload(selector) {
         Cal("init", "withoutReloadNamespace", {
           debug: true,
-          calOrigin: "http://localhost:3000",
+          calOrigin: window.calOrigin,
         });
 
         Cal.ns.withoutReloadNamespace("inline", {
@@ -88,7 +90,7 @@
               }
               p(cal, ar);
             };
-        })(window, "//localhost:3000/embed/embed.js", "init");
+        })(window, window.calOrigin + "/embed/embed.js", "init");
       }
       embedSnippet();
       </script>
@@ -96,7 +98,7 @@
         function doubleInstallSnippetWithInlineEmbedWithNonDefaultNamespace(selector) {
           Cal("init", "doubleInstall", {
             debug: true,
-            calOrigin: "http://localhost:3000",
+            calOrigin: window.calOrigin,
           });
           Cal.ns.doubleInstall("inline", {
             elementOrSelector: selector,
@@ -108,7 +110,7 @@
           embedSnippet();
           Cal("init", "doubleInstall", {
             debug: true,
-            calOrigin: "http://localhost:3000",
+            calOrigin: window.calOrigin,
           });
           Cal.ns.doubleInstall("inline", {
             elementOrSelector: selector,
@@ -123,7 +125,7 @@
         function doubleInstallSnippetWithInlineEmbed(selector) {
           Cal("init", {
             debug: true,
-            calOrigin: "http://localhost:3000",
+            calOrigin: window.calOrigin,
           });
           Cal("inline", {
             elementOrSelector: selector,
@@ -135,7 +137,7 @@
           embedSnippet();
           Cal("init", {
             debug: true,
-            calOrigin: "http://localhost:3000",
+            calOrigin: window.calOrigin,
           });
           Cal("inline", {
             elementOrSelector: selector,
@@ -149,7 +151,7 @@
         function addTwoInlineEmbedWithTwoDifferentNamespacesWithDifferentInitConfig() {
           Cal("init", "namespace-init-test-1", {
             debug: true,
-            calOrigin: "http://localhost:3000",
+            calOrigin: window.calOrigin,
           });
           Cal("init", "namespace-init-test-2", {
             debug: true,
@@ -465,7 +467,7 @@
     </div>
     <div id="cal-booking-place-skeletonDemoElementClick">
       <a href="?only=ns:skeletonDemoElementClick">Skeleton Loader MODAL Demo</a>
-      <h3><button data-cal-namespace="skeletonDemoElementClick" data-cal-link="team/seeded-team/collective-seeded-team-event" data-cal-config='{"pageType":"team.event.booking"}'>Skeleton Loader MODAL Demo</button></h3>
+      <h3><button data-cal-namespace="skeletonDemoElementClick" data-cal-link="team/seeded-team/collective-seeded-team-event" data-cal-config='{"cal.embed.pageType":"team.event.booking.slots"}'>Skeleton Loader MODAL Demo</button></h3>
       <div class="inline-embed-container">
         <div id="cal-booking-place-skeletonDemoElementClick">
           <div class="place"></div>

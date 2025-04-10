@@ -187,6 +187,18 @@ type PrefillAndIframeAttrsConfigWithGuestAndColorScheme = PrefillAndIframeAttrsC
   "ui.color-scheme"?: string | null;
 };
 
+function getConfigProp<TProp extends keyof PrefillAndIframeAttrsConfig>(
+  config: PrefillAndIframeAttrsConfig,
+  prop: TProp
+) {
+  const knownConfigProps = ["flag.coep", "layout", "ui.color-scheme", "theme", "cal.embed.pageType"];
+  if (knownConfigProps.includes(prop)) {
+    return config[prop] ?? null;
+  }
+  console.warn(`Read unknown config prop: ${prop}`);
+  return config[prop] ?? null;
+}
+
 export class Cal {
   iframe?: HTMLIFrameElement;
 
@@ -572,13 +584,20 @@ class CalApi {
     iframe.style.width = "100%";
 
     containerEl.classList.add("cal-inline-container");
+
     const template = document.createElement("template");
+    const layout = getConfigProp(config, "layout");
+    const pageType = getConfigProp(config, "cal.embed.pageType");
+    const theme = getConfigProp(config, "theme");
+    const themeClass = getThemeClassForEmbed({
+      themeFromConfig: theme,
+    });
+
     template.innerHTML = `<cal-inline 
-    ${config.pageType ? `data-cal-page-type="${config.pageType}"` : ""} 
-    class="${getThemeClassForEmbed({
-      themeFromConfig: config.theme,
-    })}"
-    style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%">
+      ${pageType ? `data-page-type="${pageType}"` : ""} 
+      ${themeClass ? `class="${themeClass}"` : ""}
+      ${layout ? `layout="${layout}"` : ""}
+      style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%">
     </cal-inline>
     <style>.cal-inline-container::-webkit-scrollbar{display:none}.cal-inline-container{scrollbar-width:none}</style>`;
     this.cal.inlineEl = template.content.children[0];
@@ -722,13 +741,18 @@ class CalApi {
     iframe.style.height = "100%";
     iframe.style.width = "100%";
     const template = document.createElement("template");
-    template.innerHTML = `<cal-modal-box ${
-      configWithGuestKeyAndColorScheme.pageType
-        ? `data-cal-page-type="${configWithGuestKeyAndColorScheme.pageType}"`
-        : ""
-    } uid="${uid}" class="${getThemeClassForEmbed({
-      themeFromConfig: configWithGuestKeyAndColorScheme.theme,
-    })}"></cal-modal-box>`;
+    const pageType = getConfigProp(configWithGuestKeyAndColorScheme, "cal.embed.pageType");
+    const theme = getConfigProp(configWithGuestKeyAndColorScheme, "theme");
+    const layout = getConfigProp(configWithGuestKeyAndColorScheme, "layout");
+    const themeClass = getThemeClassForEmbed({
+      themeFromConfig: theme,
+    });
+    template.innerHTML = `<cal-modal-box 
+      ${pageType ? `data-page-type="${pageType}"` : ""} 
+      ${themeClass ? `class="${themeClass}"` : ""}
+      ${layout ? `layout="${layout}"` : ""}
+      uid="${uid}">
+    </cal-modal-box>`;
     this.cal.modalBox = template.content.children[0];
     this.cal.modalBox.appendChild(iframe);
     if (__prerender) {

@@ -52,7 +52,11 @@ function getClassBasedOnTheme(theme: "dark" | "light") {
   return "";
 }
 
-export function getThemeClassForEmbed({ themeFromConfig }: { themeFromConfig: EmbedThemeConfig }) {
+export function getThemeClassForEmbed({
+  themeFromConfig,
+}: {
+  themeFromConfig: EmbedThemeConfig | undefined | null;
+}) {
   const systemTheme = detectColorScheme();
   const isThemePreferenceProvided = themeFromConfig === "dark" || themeFromConfig === "light";
   if (isThemePreferenceProvided) {

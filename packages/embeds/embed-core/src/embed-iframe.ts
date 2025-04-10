@@ -41,7 +41,9 @@ export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Rec
   // TODO: Rename layout and theme as ui.layout and ui.theme as it makes it clear that these two can be configured using `ui` instruction as well any time.
   "ui.color-scheme"?: string;
   theme?: EmbedThemeConfig;
-  pageType?: EmbedPageType;
+  // Prefixing with cal.embed because there could be more query params that aren't required by embed and are used for things like prefilling booking form, configuring dry run, and some other params simply to be forwarded to the booking success redirect URL.
+  // There are some cal. prefixed query params as well, not meant for embed specifically, but in general for cal.com
+  "cal.embed.pageType"?: EmbedPageType;
 };
 
 declare global {
@@ -51,6 +53,7 @@ declare global {
       embedStore: typeof embedStore;
       applyCssVars: (cssVarsPerTheme: UiConfig["cssVarsPerTheme"]) => void;
     };
+    _embedIsBookerReady?: boolean;
   }
 }
 
@@ -94,6 +97,7 @@ const embedStore = {
   setTheme: undefined as ((arg0: EmbedThemeConfig) => void) | undefined,
   theme: undefined as UiConfig["theme"],
   uiConfig: undefined as Omit<UiConfig, "styles" | "theme"> | undefined,
+  pageType: null as EmbedPageType | null,
   /**
    * We maintain a list of all setUiConfig setters that are in use at the moment so that we can update all those components.
    */
@@ -324,21 +328,26 @@ function getEmbedPageType() {
   }
   if (isBrowser) {
     const url = new URL(document.URL);
-    const pageType = (embedStore.pageType = url.searchParams.get("pageType"));
+    const pageType = (embedStore.pageType = url.searchParams.get(
+      "cal.embed.pageType"
+    ) as EmbedPageType | null);
     if (pageType) {
-      return pageType as EmbedPageType;
+      return pageType;
     }
     return null;
   }
 }
 
 function isBookerReady() {
-  return window.isBookerReady;
+  return window._embedIsBookerReady;
 }
 
 function isBookerPage() {
   const pageType = getEmbedPageType();
-  return pageType === "team.event.booking" || pageType === "user.event.booking";
+  if (!pageType) {
+    return false;
+  }
+  return pageType.startsWith("team.event.booking") || pageType.startsWith("user.event.booking");
 }
 
 export const useIsEmbed = (embedSsr?: boolean) => {

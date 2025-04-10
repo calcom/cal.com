@@ -10,7 +10,8 @@ const callback = function (e: any) {
   console.log("Event: ", e.type, detail);
 };
 
-const origin = `${new URL(document.URL).protocol}localhost:3000`;
+// @ts-expect-error  window.calOrigin is set in index.html
+const origin = `${new URL(document.URL).protocol}//${window.calOrigin.split("//")[1]}`;
 document.addEventListener("click", (e) => {
   const target = e.target as HTMLElement;
   if ("href" in target && typeof target.href === "string") {
@@ -646,7 +647,7 @@ if (only === "all" || only === "ns:skeletonDemo") {
         id: "cal-booking-place-skeletonDemo-iframe",
       },
       "flag.coep": "true",
-      pageType: "user.event.booking",
+      "cal.embed.pageType": "user.event.booking.slots",
     },
   });
 

@@ -1,6 +1,14 @@
-import { generateEventSkeletonHTML } from "../ui/skeleton";
+import type { BookerLayouts, EmbedPageType } from "../types";
+import { generateSkeleton } from "../ui/skeleton";
 
-const html = `<style>
+const html = ({
+  layout = "month_view",
+  pageType,
+}: {
+  layout?: BookerLayouts;
+  pageType: EmbedPageType | null;
+}) => `
+<style>
 .my-backdrop {
   position:fixed;
   width:100%;
@@ -53,7 +61,7 @@ const html = `<style>
       </div>
     </div>
     <div id="skeleton" style="left:50%; transform:translate(-50%,0%)" class="absolute z-highest">
-		  ${generateEventSkeletonHTML()}
+		  ${generateSkeleton({ layout, pageType: pageType })}
 	  </div>
     <div id="error" class="hidden left-1/2 -translate-x-1/2 relative text-inverted"></div>
     <slot></slot>

@@ -1,5 +1,6 @@
+import { toggleLoader } from "../custom-element-utils";
 import loaderCss from "../loader.css";
-import { toggleLoader } from "../ui-utils";
+import type { BookerLayouts, EmbedPageType } from "../types";
 import { getErrorString } from "../utils";
 import modalBoxHtml from "./ModalBoxHtml";
 
@@ -21,9 +22,8 @@ export class ModalBox extends HTMLElement {
     }
   }
 
-  private shouldUseSkeletonLoader() {
-    const pageType = this.dataset.calPageType;
-    return pageType === "user.event.booking" || pageType === "team.event.booking";
+  private getPageType(): EmbedPageType {
+    return this.dataset.pageType as EmbedPageType;
   }
 
   show(show: boolean) {
@@ -74,7 +74,7 @@ export class ModalBox extends HTMLElement {
     }
   }
 
-  getLoaderElement() {
+  getLoaderElement(): HTMLElement {
     this.assertHasShadowRoot();
     const loaderEl = this.shadowRoot.querySelector<HTMLElement>(".loader");
 
@@ -85,7 +85,7 @@ export class ModalBox extends HTMLElement {
     return loaderEl;
   }
 
-  getSkeletonElement() {
+  getSkeletonElement(): HTMLElement {
     this.assertHasShadowRoot();
     const element = this.shadowRoot.querySelector<HTMLElement>("#skeleton");
     if (!element) {
@@ -94,7 +94,7 @@ export class ModalBox extends HTMLElement {
     return element;
   }
 
-  getErrorElement() {
+  getErrorElement(): HTMLElement {
     this.assertHasShadowRoot();
     const element = this.shadowRoot.querySelector<HTMLElement>("#error");
 
@@ -105,12 +105,21 @@ export class ModalBox extends HTMLElement {
     return element;
   }
 
+  getSkeletonContainerElement(): HTMLElement {
+    this.assertHasShadowRoot();
+    const element = this.shadowRoot.querySelector<HTMLElement>("#skeleton-container");
+    if (!element) {
+      throw new Error("No skeleton container element");
+    }
+    return element;
+  }
+
   toggleLoader(show: boolean) {
     toggleLoader({
       skeletonEl: this.getSkeletonElement(),
       loaderEl: this.getLoaderElement(),
-      skeletonContainerEl: this.shadowRoot.querySelector<HTMLElement>("#skeleton-container"),
-      useSkeletonLoader: this.shouldUseSkeletonLoader(),
+      skeletonContainerEl: this.getSkeletonContainerElement(),
+      pageType: this.getPageType(),
       show,
     });
   }
@@ -169,9 +178,16 @@ export class ModalBox extends HTMLElement {
     }
   }
 
+  private getLayout(): BookerLayouts {
+    return this.dataset.layout as BookerLayouts;
+  }
+
   constructor() {
     super();
-    const modalHtml = `<style>${window.Cal.__css}</style><style>${loaderCss}</style>${modalBoxHtml}`;
+    const modalHtml = `<style>${window.Cal.__css}</style><style>${loaderCss}</style>${modalBoxHtml({
+      layout: this.getLayout(),
+      pageType: this.getPageType() ?? null,
+    })}`;
     this.attachShadow({ mode: "open" });
     ModalBox.htmlOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";

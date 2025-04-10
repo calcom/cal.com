@@ -42,5 +42,14 @@ declare global {
   }
 }
 
-export type EmbedPageType = "team.event.booking" | "user.event.booking";
+export type EmbedPageType =
+  // First page of booker for team event
+  | "team.event.booking.slots"
+  // First page of booker for user event
+  | "user.event.booking.slots"
+  // Booking Form(Second page of booker) for team event
+  | "team.event.booking.form"
+  // Booking Form(Second page of booker) for user event
+  | "user.event.booking.form";
+
 export {};

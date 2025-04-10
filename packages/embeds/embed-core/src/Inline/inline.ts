@@ -1,5 +1,6 @@
 import loaderCss from "../loader.css?inline";
-import { toggleLoader } from "../ui-utils";
+import type { BookerLayouts, EmbedPageType } from "../types";
+import { toggleLoader } from "../custom-element-utils";
 import { getErrorString } from "../utils";
 import inlineHtml from "./inlineHtml";
 
@@ -8,15 +9,18 @@ export class Inline extends HTMLElement {
     return ["loading"];
   }
 
+  private getPageType(): EmbedPageType | undefined {
+    return this.dataset.pageType as EmbedPageType | undefined;
+  }
+
   assertHasShadowRoot(): asserts this is HTMLElement & { shadowRoot: ShadowRoot } {
     if (!this.shadowRoot) {
       throw new Error("No shadow root");
     }
   }
 
-  private shouldUseSkeletonLoader() {
-    const pageType = this.dataset.calPageType;
-    return pageType === "user.event.booking" || pageType === "team.event.booking";
+  private getLayout(): BookerLayouts {
+    return this.dataset.layout as BookerLayouts;
   }
 
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
@@ -43,16 +47,28 @@ export class Inline extends HTMLElement {
       }
     }
   }
-  private getSkeletonEl() {
-    return this.shadowRoot?.querySelector<HTMLElement>("#skeleton");
+  private getSkeletonEl(): HTMLElement {
+    const skeletonEl = this.shadowRoot?.querySelector<HTMLElement>("#skeleton");
+    if (!skeletonEl) {
+      throw new Error("Skeleton element is not found");
+    }
+    return skeletonEl;
   }
 
-  private getLoaderEl() {
-    return this.shadowRoot?.querySelector<HTMLElement>(".loader");
+  private getLoaderEl(): HTMLElement {
+    const loaderEl = this.shadowRoot?.querySelector<HTMLElement>(".loader");
+    if (!loaderEl) {
+      throw new Error("Loader element is not found");
+    }
+    return loaderEl;
   }
 
-  private getSkeletonContainerEl() {
-    return this.shadowRoot?.querySelector<HTMLElement>("#skeleton-container");
+  private getSkeletonContainerEl(): HTMLElement {
+    const skeletonContainerEl = this.shadowRoot?.querySelector<HTMLElement>("#skeleton-container");
+    if (!skeletonContainerEl) {
+      throw new Error("Skeleton container element is not found");
+    }
+    return skeletonContainerEl;
   }
 
   private toggleLoader(show: boolean) {
@@ -60,7 +76,7 @@ export class Inline extends HTMLElement {
       skeletonEl: this.getSkeletonEl(),
       loaderEl: this.getLoaderEl(),
       skeletonContainerEl: this.getSkeletonContainerEl(),
-      useSkeletonLoader: this.shouldUseSkeletonLoader(),
+      pageType: this.getPageType() ?? null,
       show,
     });
   }
@@ -69,7 +85,10 @@ export class Inline extends HTMLElement {
     super();
     this.attachShadow({ mode: "open" });
     this.assertHasShadowRoot();
-    this.shadowRoot.innerHTML = `<style>${window.Cal.__css}</style><style>${loaderCss}</style>${inlineHtml}`;
+    this.shadowRoot.innerHTML = `<style>${window.Cal.__css}</style><style>${loaderCss}</style>${inlineHtml({
+      layout: this.getLayout(),
+      pageType: this.getPageType() ?? null,
+    })}`;
     this.toggleLoader(true);
   }
 }

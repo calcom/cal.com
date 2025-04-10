@@ -180,7 +180,7 @@ const BookerComponent = ({
 
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
-    window.isBookerReady = true;
+    (window as Window & { _embedIsBookerReady?: boolean })._embedIsBookerReady = true;
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
     const isSkipConfirmStepSupported = !isInstantMeeting && layout !== BookerLayouts.WEEK_VIEW;

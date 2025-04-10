@@ -1,15 +1,4 @@
-const generateTimeslotsSkeleton = () => {
-  const timeSlots = Array(6)
-    .fill(0)
-    .map(
-      () => `
-    <div class="animate-pulse h-12 rounded-sm bg-emphasis mb-2"></div>
-  `
-    )
-    .join("");
-
-  return timeSlots;
-};
+import type { BookerLayouts, EmbedPageType } from "src/types";
 
 const generateEventMetaSkeleton = () => {
   return `
@@ -120,16 +109,37 @@ const generateBookerMainSkeleton = () => {
         </div>`;
 };
 
-const generateEventSkeletonHTML = () => {
+const generateBookingSlotsPageSkeleton = ({ layout: _layout }: { layout: BookerLayouts | null }) => {
+  // TODO: Support different layouts. Right now we show month view skeleton for all layouts
   return `
-    <div 
-      data-testid="booker-container" 
-      class="[--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px] [--booker-meta-width:240px] [--booker-main-width:480px] lg:[--booker-meta-width:280px] bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:motion-reduce:transition-none md:flex-row rounded-md sm:transition-[width] sm:duration-300 border-subtle border undefined" 
-      style="grid-template-areas: &quot;meta main main&quot; &quot;meta main main&quot;; width: calc(var(--booker-meta-width) + var(--booker-main-width)); grid-template-columns: var(--booker-meta-width) var(--booker-main-width); grid-template-rows: 1fr 0fr; min-height: 450px; height: auto;">
-      ${generateEventMetaSkeleton()}
-      ${generateBookerMainSkeleton()}
-    </div>
-  `;
+  <div 
+    data-testid="booker-container" 
+    class="[--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px] [--booker-meta-width:240px] [--booker-main-width:480px] lg:[--booker-meta-width:280px] bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:motion-reduce:transition-none md:flex-row rounded-md sm:transition-[width] sm:duration-300 border-subtle border undefined" 
+    style="grid-template-areas: &quot;meta main main&quot; &quot;meta main main&quot;; width: calc(var(--booker-meta-width) + var(--booker-main-width)); grid-template-columns: var(--booker-meta-width) var(--booker-main-width); grid-template-rows: 1fr 0fr; min-height: 450px; height: auto;">
+    ${generateEventMetaSkeleton()}
+    ${generateBookerMainSkeleton()}
+  </div>
+`;
 };
 
-export { generateEventSkeletonHTML };
+const generateSkeleton = ({
+  layout = "month_view",
+  pageType,
+}: {
+  layout?: BookerLayouts;
+  pageType: EmbedPageType | null;
+}) => {
+  if (!pageType) {
+    // Ideally we shouldn't be here if pageType is nullish, but just in case
+    return generateBookingSlotsPageSkeleton({ layout });
+  }
+
+  if (pageType === "user.event.booking.slots" || pageType === "team.event.booking.slots") {
+    return generateBookingSlotsPageSkeleton({ layout });
+  }
+
+  // TODO: Support skeletons for other pages like user.event.booking.form, team.event.booking.form and profile pages
+  return generateBookingSlotsPageSkeleton({ layout });
+};
+
+export { generateSkeleton };
