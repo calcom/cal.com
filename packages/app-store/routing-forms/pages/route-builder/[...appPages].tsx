@@ -547,9 +547,7 @@ const Route = ({
         ) : null}
 
         <div className="bg-default border-subtle mt-2 rounded-2xl border p-2">
-          <span className="text-emphasis ml-2 text-sm font-medium">
-            And connect with specific team members
-          </span>
+          <span className="text-emphasis text-sm font-medium">And connect with specific team members</span>
           {route.attributesQueryBuilderState && attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
             <Query
               {...attributesQueryBuilderConfigWithRaqbSettingsAndWidgets}
@@ -619,7 +617,7 @@ const Route = ({
       }>
       <div
         className={classNames(
-          "w-full gap-2 p-2",
+          "cal-query-builder-card w-full gap-2 p-2",
           route.isFallback && "bg-muted border-subtle rounded-xl  border"
         )}>
         <div className="cal-query-builder w-full ">
