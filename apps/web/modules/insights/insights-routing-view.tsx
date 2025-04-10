@@ -1,6 +1,7 @@
 "use client";
 
 import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import {
   RoutingFormResponsesTable,
   FailedBookingsByField,
@@ -13,7 +14,7 @@ export default function InsightsRoutingFormResponsesPage() {
   const { t } = useLocale();
 
   return (
-    <DataTableProvider>
+    <DataTableProvider useSegments={useSegments}>
       <InsightsOrgTeamsProvider>
         <div className="mb-4 space-y-4">
           <RoutingFormResponsesTable />
