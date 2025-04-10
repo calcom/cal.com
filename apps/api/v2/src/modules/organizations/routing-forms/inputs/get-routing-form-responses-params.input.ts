@@ -1,6 +1,15 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsOptional, IsString, IsEnum, IsISO8601, IsDate, IsNumber, IsArray } from "class-validator";
+import {
+  IsOptional,
+  IsString,
+  IsEnum,
+  IsISO8601,
+  IsDate,
+  IsNumber,
+  IsArray,
+  ArrayMinSize,
+} from "class-validator";
 
 enum SortOrder {
   ASC = "asc",
@@ -79,10 +88,14 @@ export class GetRoutingFormResponsesParams {
 }
 
 export class GetRoutingFormsParams extends GetRoutingFormResponsesParams {
-  @ApiPropertyOptional({ type: [Number], description: "Filter by teamIds" })
   @IsOptional()
+  @ApiPropertyOptional({
+    type: [Number],
+    description: "Filter by teamIds. Team ids must be separated by a comma.",
+    example: "?teamIds=100,200",
+  })
   @IsArray()
   @IsNumber({}, { each: true })
-  @Transform(({ value }) => (Array.isArray(value) ? value : value ? [Number(value)] : []))
+  @ArrayMinSize(1, { message: "teamIds must contain at least 1 team id" })
   teamIds?: number[];
 }
