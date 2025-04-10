@@ -8,6 +8,7 @@ import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/a
 import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import { formatTime } from "@calcom/lib/date-fns";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
@@ -24,7 +25,7 @@ import type { Ensure } from "@calcom/types/utils";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -162,6 +163,7 @@ function BookingListItem(booking: BookingItemProps) {
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
   const isRejected = booking.status === BookingStatus.REJECTED;
   const isPending = booking.status === BookingStatus.PENDING;
+  const isRescheduled = booking.fromReschedule !== null;
   const isRecurring = booking.recurringEventId !== null;
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
@@ -356,12 +358,25 @@ function BookingListItem(booking: BookingItemProps) {
     },
   ];
 
+  const isDisabledCancelling = booking.eventType.disableCancelling;
+  const isDisabledRescheduling = booking.eventType.disableRescheduling;
+
   if (isTabRecurring && isRecurring) {
     bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
   }
 
-  if (isBookingInPast && isPending && !isConfirmed) {
+  if (isDisabledCancelling || (isBookingInPast && isPending && !isConfirmed)) {
     bookedActions = bookedActions.filter((action) => action.id !== "cancel");
+  }
+
+  if (isDisabledRescheduling) {
+    bookedActions.forEach((action) => {
+      if (action.id === "edit_booking") {
+        action.actions = action.actions?.filter(
+          ({ id }) => id !== "reschedule" && id !== "reschedule_request"
+        );
+      }
+    });
   }
 
   const RequestSentMessage = () => {
@@ -716,6 +731,7 @@ function BookingListItem(booking: BookingItemProps) {
           recurringDates={recurringDates}
           userTimeFormat={userTimeFormat}
           userTimeZone={userTimeZone}
+          isRescheduled={isRescheduled}
         />
       </div>
 
@@ -736,12 +752,14 @@ const BookingItemBadges = ({
   recurringDates,
   userTimeFormat,
   userTimeZone,
+  isRescheduled,
 }: {
   booking: BookingItemProps;
   isPending: boolean;
   recurringDates: Date[] | undefined;
   userTimeFormat: number | null | undefined;
   userTimeZone: string | undefined;
+  isRescheduled: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -751,6 +769,13 @@ const BookingItemBadges = ({
         <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
           {t("unconfirmed")}
         </Badge>
+      )}
+      {isRescheduled && (
+        <Tooltip content={`${t("rescheduled_by")} ${booking.rescheduler}`}>
+          <Badge variant="orange" className="ltr:mr-2 rtl:ml-2">
+            {t("rescheduled")}
+          </Badge>
+        </Tooltip>
       )}
       {booking.eventType?.team && (
         <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">

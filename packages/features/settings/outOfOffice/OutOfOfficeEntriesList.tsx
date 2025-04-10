@@ -16,10 +16,14 @@ import {
   DataTableToolbar,
   DataTableProvider,
   ColumnFilterType,
+  useDataTable,
   useFilterValue,
   ZDateRangeFilterValue,
   DataTableFilters,
+  DataTableSegment,
 } from "@calcom/features/data-table";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -31,7 +35,6 @@ import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import ServerTrans from "@calcom/lib/components/ServerTrans";
 
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
@@ -61,7 +64,7 @@ interface OutOfOfficeEntry {
 
 export default function OutOfOfficeEntriesList() {
   return (
-    <DataTableProvider>
+    <DataTableProvider useSegments={useSegments}>
       <OutOfOfficeEntriesListContent />
     </DataTableProvider>
   );
@@ -70,7 +73,6 @@ export default function OutOfOfficeEntriesList() {
 function OutOfOfficeEntriesListContent() {
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [deletedEntry, setDeletedEntry] = useState(0);
   const [currentlyEditingOutOfOfficeEntry, setCurrentlyEditingOutOfOfficeEntry] =
     useState<BookingRedirectForm | null>(null);
@@ -80,6 +82,7 @@ function OutOfOfficeEntriesListContent() {
     setOpenModal(true);
   };
 
+  const { searchTerm } = useDataTable();
   const searchParams = useCompatSearchParams();
   const selectedTab = searchParams?.get("type") ?? OutOfOfficeTab.MINE;
 
@@ -235,7 +238,7 @@ function OutOfOfficeEntriesListContent() {
           return (
             <>
               {row.original && !isPending && !isFetching ? (
-                <div className="flex flex-row items-center justify-end gap-x-2">
+                <div className="flex flex-row items-center justify-end gap-x-2" data-testid="ooo-actions">
                   <Tooltip content={t("edit")}>
                     <Button
                       className="self-center rounded-lg border"
@@ -245,14 +248,16 @@ function OutOfOfficeEntriesListContent() {
                       data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
                       StartIcon="pencil"
                       onClick={() => {
-                        const offset = dayjs().utcOffset();
+                        const startDateOffset = -1 * item.start.getTimezoneOffset();
+                        const endDateOffset = -1 * item.end.getTimezoneOffset();
                         const outOfOfficeEntryData: BookingRedirectForm = {
                           uuid: item.uuid,
                           dateRange: {
-                            startDate: dayjs(item.start).subtract(offset, "minute").toDate(),
-                            endDate: dayjs(item.end).subtract(offset, "minute").startOf("d").toDate(),
+                            startDate: dayjs(item.start).subtract(startDateOffset, "minute").toDate(),
+                            endDate: dayjs(item.end).subtract(endDateOffset, "minute").startOf("d").toDate(),
                           },
-                          offset,
+                          startDateOffset,
+                          endDateOffset,
                           toTeamUserId: item.toUserId,
                           reasonId: item.reason?.id ?? 1,
                           notes: item.notes ?? undefined,
@@ -343,12 +348,17 @@ function OutOfOfficeEntriesListContent() {
         totalRowCount={totalRowCount}
         tableContainerRef={tableContainerRef}
         paginationMode="infinite"
-        ToolbarLeft={<DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchTerm(value)} />}
+        ToolbarLeft={
+          <>
+            <DataTableToolbar.SearchBar />
+            <DataTableFilters.FilterBar table={table} />
+          </>
+        }
         ToolbarRight={
           <>
-            <DataTableFilters.AddFilterButton table={table} />
-            <DataTableFilters.ActiveFilters table={table} />
             <DataTableFilters.ClearFiltersButton />
+            <DataTableSegment.SaveButton />
+            <DataTableSegment.Select />
           </>
         }
         EmptyView={

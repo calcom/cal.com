@@ -40,13 +40,16 @@ type IconOrDot =
   | {
       startIcon?: IconName;
       withDot?: never;
+      customDot?: never;
     }
-  | { startIcon?: never; withDot?: true };
+  | { startIcon?: never; withDot?: true; customDot?: never }
+  | { startIcon?: never; withDot?: never; customDot?: React.ReactNode };
 
 export type BadgeBaseProps = InferredBadgeStyles & {
   children: React.ReactNode;
   rounded?: boolean;
   customStartIcon?: React.ReactNode;
+  customDot?: React.ReactNode;
 } & IconOrDot;
 
 export type BadgeProps =
@@ -69,6 +72,7 @@ export const Badge = function Badge(props: BadgeProps) {
     withDot,
     children,
     rounded,
+    customDot,
     ...passThroughProps
   } = props;
   const isButton = "onClick" in passThroughProps && passThroughProps.onClick !== undefined;
@@ -81,10 +85,19 @@ export const Badge = function Badge(props: BadgeProps) {
 
   const Children = () => (
     <>
-      {withDot ? <Icon name="dot" data-testid="go-primitive-dot" className="h-3 w-3 stroke-[3px]" /> : null}
+      {withDot ? (
+        <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" data-testid="go-primitive-dot">
+          <circle cx="4" cy="4" r="4" />
+        </svg>
+      ) : null}
       {customStartIcon ||
         (StartIcon ? (
-          <Icon name={StartIcon} data-testid="start-icon" className="h-3 w-3 stroke-[3px]" />
+          <Icon
+            name={StartIcon}
+            data-testid="start-icon"
+            className="stroke-[3px]"
+            style={{ width: 12, height: 12 }}
+          />
         ) : null)}
       {children}
     </>

@@ -9,7 +9,7 @@ const querySchema = z.object({
 });
 
 export default async function SamlIdpPage({ searchParams }: PageProps) {
-  const parsed = querySchema.safeParse(searchParams);
+  const parsed = querySchema.safeParse(await searchParams);
   if (!parsed.success) {
     notFound();
   }
