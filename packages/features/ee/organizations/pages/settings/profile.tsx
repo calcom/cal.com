@@ -207,6 +207,14 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
 
   const isDisabled = isSubmitting || !isDirty;
 
+  const handleCopy = async (value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      showToast(t("organization_id_copied"), "success");
+    } catch (error) {
+      showToast(t("error_copying_to_clipboard"), "error");
+    }
+  };
   return (
     <Form
       form={form}
@@ -388,10 +396,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                       size="sm"
                       type="button"
                       aria-label="copy organization id"
-                      onClick={() => {
-                        navigator.clipboard.writeText(value.toString());
-                        showToast(t("organization_id_copied"), "success");
-                      }}>
+                      onClick={() => handleCopy(value.toString())}>
                       <Icon name="copy" className="ml-1 h-4 w-4" />
                     </Button>
                   </Tooltip>

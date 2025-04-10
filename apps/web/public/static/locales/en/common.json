@@ -670,6 +670,7 @@
   "team_updated_successfully": "Team updated successfully",
   "your_team_updated_successfully": "Your team has been updated successfully.",
   "your_org_updated_successfully": "Your Org has been updated successfully.",
+  "error_copying_to_clipboard": "Error copying to clipboard",
   "about": "About",
   "team_description": "A few sentences about your team. This will appear on your team's url page.",
   "organization_id": "Organization ID",

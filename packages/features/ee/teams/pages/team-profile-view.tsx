@@ -313,6 +313,14 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
     },
   });
 
+  const handleCopy = async (value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      showToast(t("team_id_copied"), "success");
+    } catch (error) {
+      showToast(t("error_copying_to_clipboard"), "error");
+    }
+  };
   return (
     <Form
       form={form}
@@ -420,10 +428,7 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
                   size="sm"
                   type="button"
                   aria-label="copy team id"
-                  onClick={() => {
-                    navigator.clipboard.writeText(teamId.toString());
-                    showToast(t("team_id_copied"), "success");
-                  }}>
+                  onClick={() => handleCopy(teamId.toString())}>
                   <Icon name="copy" className="ml-1 h-4 w-4" />
                 </Button>
               </Tooltip>
