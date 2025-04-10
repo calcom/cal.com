@@ -248,7 +248,7 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
       StartIcon="plus"
       data-testid={dataTestId}
       type="button"
-      color="secondary"
+      color="minimal"
       disabled={readonly}
       onClick={onClick}>
       {label}

@@ -532,10 +532,7 @@ const Route = ({
   const attributesQueryBuilder =
     route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm ? (
       <div className="mt-4">
-        <span className="text-emphasis flex w-full items-center text-sm">
-          and use only the Team Members that match the following criteria (matches all by default)
-        </span>
-
+        {/* TODO: */}
         {eventTypeRedirectUrlSelectedOption?.eventTypeAppMetadata &&
         "salesforce" in eventTypeRedirectUrlSelectedOption.eventTypeAppMetadata ? (
           <div className="mt-4 px-2.5">
@@ -549,7 +546,10 @@ const Route = ({
           </div>
         ) : null}
 
-        <div className="mt-2">
+        <div className="bg-default border-subtle mt-2 rounded-2xl border p-2">
+          <span className="text-emphasis ml-2 text-sm font-medium">
+            And connect with specific team members
+          </span>
           {route.attributesQueryBuilderState && attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
             <Query
               {...attributesQueryBuilderConfigWithRaqbSettingsAndWidgets}
@@ -625,130 +625,271 @@ const Route = ({
         <div className="cal-query-builder w-full ">
           {formFieldsQueryBuilder}
           <div>
-            <div className="flex w-full flex-col gap-2 text-sm lg:flex-row">
-              <div className="flex flex-grow items-center gap-2">
-                {/* <div className="flex flex-grow-0 whitespace-nowrap">
+            {route.isFallback ? (
+              <div className="flex w-full flex-col gap-2 text-sm lg:flex-row">
+                <div className="flex flex-grow items-center gap-2">
+                  {/* <div className="flex flex-grow-0 whitespace-nowrap">
+                      <span>{t("send_booker_to")}</span>
+                    </div> */}
+                  <Select
+                    isDisabled={disabled}
+                    className="data-testid-select-routing-action block w-full flex-grow"
+                    required
+                    value={RoutingPages.find((page) => page.value === route.action?.type)}
+                    onChange={(item) => {
+                      if (!item) {
+                        return;
+                      }
+                      const action: LocalRoute["action"] = {
+                        type: item.value,
+                        value: "",
+                      };
+
+                      if (action.type === "customPageMessage") {
+                        action.value = "We are not ready for you yet :(";
+                      } else {
+                        action.value = "";
+                      }
+
+                      setRoute(route.id, { action });
+                    }}
+                    options={RoutingPages}
+                  />
+                </div>
+                {route.action?.type ? (
+                  route.action?.type === "customPageMessage" ? (
+                    <TextArea
+                      required
+                      disabled={disabled}
+                      name="customPageMessage"
+                      className="border-default flex flex-grow lg:w-fit"
+                      style={{
+                        minHeight: "38px",
+                      }}
+                      value={route.action.value}
+                      onChange={(e) => {
+                        setRoute(route.id, { action: { ...route.action, value: e.target.value } });
+                      }}
+                    />
+                  ) : route.action?.type === "externalRedirectUrl" ? (
+                    <TextField
+                      disabled={disabled}
+                      name="externalRedirectUrl"
+                      className="border-default flex flex-grow text-sm"
+                      containerClassName="flex-grow"
+                      type="url"
+                      required
+                      labelSrOnly
+                      value={route.action.value}
+                      onChange={(e) => {
+                        setRoute(route.id, { action: { ...route.action, value: e.target.value } });
+                      }}
+                      placeholder="https://example.com"
+                    />
+                  ) : (
+                    <div className="flex-grow">
+                      <Select
+                        required
+                        className="data-testid-eventTypeRedirectUrl-select"
+                        isDisabled={disabled}
+                        options={eventTypeRedirectUrlOptions}
+                        onChange={(option) => {
+                          if (!option) {
+                            return;
+                          }
+                          if (option.value !== "custom") {
+                            setRoute(route.id, {
+                              action: {
+                                ...route.action,
+                                value: option.value,
+                                eventTypeId: option.eventTypeId,
+                              },
+                              attributeRoutingConfig: {},
+                            });
+                            setCustomEventTypeSlug("");
+                          } else {
+                            setRoute(route.id, {
+                              action: { ...route.action, value: "custom", eventTypeId: 0 },
+                              attributeRoutingConfig: {},
+                            });
+                            setCustomEventTypeSlug("");
+                          }
+                        }}
+                        value={eventTypeRedirectUrlSelectedOption}
+                      />
+                      {eventOptions.length !== 0 &&
+                      route.action.value !== "" &&
+                      (!eventOptions.find((eventOption) => eventOption.value === route.action.value) ||
+                        customEventTypeSlug.length) ? (
+                        <>
+                          <TextField
+                            disabled={disabled}
+                            className="border-default flex w-full flex-grow text-sm"
+                            containerClassName="flex-grow mt-2"
+                            addOnLeading={eventTypePrefix}
+                            required
+                            value={customEventTypeSlug}
+                            onChange={(e) => {
+                              setCustomEventTypeSlug(e.target.value);
+                              setRoute(route.id, {
+                                action: { ...route.action, value: `${eventTypePrefix}${e.target.value}` },
+                              });
+                            }}
+                            placeholder="event-url"
+                          />
+                          <div className="mt-2 ">
+                            <p className="text-subtle text-xs">
+                              {fieldIdentifiers.length
+                                ? t("field_identifiers_as_variables_with_example", {
+                                    variable: `{${fieldIdentifiers[0]}}`,
+                                  })
+                                : t("field_identifiers_as_variables")}
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        <></>
+                      )}
+                    </div>
+                  )
+                ) : null}
+              </div>
+            ) : (
+              <div className="bg-default border-subtle my-3 rounded-xl border p-2">
+                <div className="pl-2">
+                  <span className="text-emphasis text-sm font-medium leading-none">Send booker to</span>
+                </div>
+                <div className="bg-muted flex w-full flex-col gap-2 rounded-xl p-2 text-sm lg:flex-row">
+                  <div className="flex flex-grow items-center gap-2">
+                    {/* <div className="flex flex-grow-0 whitespace-nowrap">
                   <span>{t("send_booker_to")}</span>
                 </div> */}
-                <Select
-                  isDisabled={disabled}
-                  className="data-testid-select-routing-action block w-full flex-grow"
-                  required
-                  value={RoutingPages.find((page) => page.value === route.action?.type)}
-                  onChange={(item) => {
-                    if (!item) {
-                      return;
-                    }
-                    const action: LocalRoute["action"] = {
-                      type: item.value,
-                      value: "",
-                    };
-
-                    if (action.type === "customPageMessage") {
-                      action.value = "We are not ready for you yet :(";
-                    } else {
-                      action.value = "";
-                    }
-
-                    setRoute(route.id, { action });
-                  }}
-                  options={RoutingPages}
-                />
-              </div>
-              {route.action?.type ? (
-                route.action?.type === "customPageMessage" ? (
-                  <TextArea
-                    required
-                    disabled={disabled}
-                    name="customPageMessage"
-                    className="border-default flex flex-grow lg:w-fit"
-                    style={{
-                      minHeight: "38px",
-                    }}
-                    value={route.action.value}
-                    onChange={(e) => {
-                      setRoute(route.id, { action: { ...route.action, value: e.target.value } });
-                    }}
-                  />
-                ) : route.action?.type === "externalRedirectUrl" ? (
-                  <TextField
-                    disabled={disabled}
-                    name="externalRedirectUrl"
-                    className="border-default flex flex-grow text-sm"
-                    containerClassName="flex-grow"
-                    type="url"
-                    required
-                    labelSrOnly
-                    value={route.action.value}
-                    onChange={(e) => {
-                      setRoute(route.id, { action: { ...route.action, value: e.target.value } });
-                    }}
-                    placeholder="https://example.com"
-                  />
-                ) : (
-                  <div className="flex-grow">
                     <Select
-                      required
-                      className="data-testid-eventTypeRedirectUrl-select"
                       isDisabled={disabled}
-                      options={eventTypeRedirectUrlOptions}
-                      onChange={(option) => {
-                        if (!option) {
+                      className="data-testid-select-routing-action block w-full flex-grow"
+                      required
+                      value={RoutingPages.find((page) => page.value === route.action?.type)}
+                      onChange={(item) => {
+                        if (!item) {
                           return;
                         }
-                        if (option.value !== "custom") {
-                          setRoute(route.id, {
-                            action: { ...route.action, value: option.value, eventTypeId: option.eventTypeId },
-                            attributeRoutingConfig: {},
-                          });
-                          setCustomEventTypeSlug("");
+                        const action: LocalRoute["action"] = {
+                          type: item.value,
+                          value: "",
+                        };
+
+                        if (action.type === "customPageMessage") {
+                          action.value = "We are not ready for you yet :(";
                         } else {
-                          setRoute(route.id, {
-                            action: { ...route.action, value: "custom", eventTypeId: 0 },
-                            attributeRoutingConfig: {},
-                          });
-                          setCustomEventTypeSlug("");
+                          action.value = "";
                         }
+
+                        setRoute(route.id, { action });
                       }}
-                      value={eventTypeRedirectUrlSelectedOption}
+                      options={RoutingPages}
                     />
-                    {eventOptions.length !== 0 &&
-                    route.action.value !== "" &&
-                    (!eventOptions.find((eventOption) => eventOption.value === route.action.value) ||
-                      customEventTypeSlug.length) ? (
-                      <>
-                        <TextField
-                          disabled={disabled}
-                          className="border-default flex w-full flex-grow text-sm"
-                          containerClassName="flex-grow mt-2"
-                          addOnLeading={eventTypePrefix}
-                          required
-                          value={customEventTypeSlug}
-                          onChange={(e) => {
-                            setCustomEventTypeSlug(e.target.value);
-                            setRoute(route.id, {
-                              action: { ...route.action, value: `${eventTypePrefix}${e.target.value}` },
-                            });
-                          }}
-                          placeholder="event-url"
-                        />
-                        <div className="mt-2 ">
-                          <p className="text-subtle text-xs">
-                            {fieldIdentifiers.length
-                              ? t("field_identifiers_as_variables_with_example", {
-                                  variable: `{${fieldIdentifiers[0]}}`,
-                                })
-                              : t("field_identifiers_as_variables")}
-                          </p>
-                        </div>
-                      </>
-                    ) : (
-                      <></>
-                    )}
                   </div>
-                )
-              ) : null}
-            </div>
+                  {route.action?.type ? (
+                    route.action?.type === "customPageMessage" ? (
+                      <TextArea
+                        required
+                        disabled={disabled}
+                        name="customPageMessage"
+                        className="border-default flex flex-grow lg:w-fit"
+                        style={{
+                          minHeight: "38px",
+                        }}
+                        value={route.action.value}
+                        onChange={(e) => {
+                          setRoute(route.id, { action: { ...route.action, value: e.target.value } });
+                        }}
+                      />
+                    ) : route.action?.type === "externalRedirectUrl" ? (
+                      <TextField
+                        disabled={disabled}
+                        name="externalRedirectUrl"
+                        className="border-default flex flex-grow text-sm"
+                        containerClassName="flex-grow"
+                        type="url"
+                        required
+                        labelSrOnly
+                        value={route.action.value}
+                        onChange={(e) => {
+                          setRoute(route.id, { action: { ...route.action, value: e.target.value } });
+                        }}
+                        placeholder="https://example.com"
+                      />
+                    ) : (
+                      <div className="flex-grow">
+                        <Select
+                          required
+                          className="data-testid-eventTypeRedirectUrl-select"
+                          isDisabled={disabled}
+                          options={eventTypeRedirectUrlOptions}
+                          onChange={(option) => {
+                            if (!option) {
+                              return;
+                            }
+                            if (option.value !== "custom") {
+                              setRoute(route.id, {
+                                action: {
+                                  ...route.action,
+                                  value: option.value,
+                                  eventTypeId: option.eventTypeId,
+                                },
+                                attributeRoutingConfig: {},
+                              });
+                              setCustomEventTypeSlug("");
+                            } else {
+                              setRoute(route.id, {
+                                action: { ...route.action, value: "custom", eventTypeId: 0 },
+                                attributeRoutingConfig: {},
+                              });
+                              setCustomEventTypeSlug("");
+                            }
+                          }}
+                          value={eventTypeRedirectUrlSelectedOption}
+                        />
+                        {eventOptions.length !== 0 &&
+                        route.action.value !== "" &&
+                        (!eventOptions.find((eventOption) => eventOption.value === route.action.value) ||
+                          customEventTypeSlug.length) ? (
+                          <>
+                            <TextField
+                              disabled={disabled}
+                              className="border-default flex w-full flex-grow text-sm"
+                              containerClassName="flex-grow mt-2"
+                              addOnLeading={eventTypePrefix}
+                              required
+                              value={customEventTypeSlug}
+                              onChange={(e) => {
+                                setCustomEventTypeSlug(e.target.value);
+                                setRoute(route.id, {
+                                  action: { ...route.action, value: `${eventTypePrefix}${e.target.value}` },
+                                });
+                              }}
+                              placeholder="event-url"
+                            />
+                            <div className="mt-2 ">
+                              <p className="text-subtle text-xs">
+                                {fieldIdentifiers.length
+                                  ? t("field_identifiers_as_variables_with_example", {
+                                      variable: `{${fieldIdentifiers[0]}}`,
+                                    })
+                                  : t("field_identifiers_as_variables")}
+                              </p>
+                            </div>
+                          </>
+                        ) : (
+                          <></>
+                        )}
+                      </div>
+                    )
+                  ) : null}
+                </div>
+              </div>
+            )}
+
             {attributesQueryBuilder}
             <WeightedAttributesSelector
               attributes={attributes}
