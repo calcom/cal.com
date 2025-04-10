@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -19,6 +20,7 @@ export default function RoutingNavBar({
   hookForm: UseFormReturn<RoutingFormWithResponseCount>;
   setShowInfoLostDialog: Dispatch<SetStateAction<boolean>>;
 }) {
+  const router = useRouter();
   const { data } = trpc.viewer.appRoutingForms.getIncompleteBookingSettings.useQuery({
     formId: form.id,
   });
@@ -39,7 +41,7 @@ export default function RoutingNavBar({
         if (hookForm.formState.isDirty) {
           setShowInfoLostDialog(true);
         } else {
-          window.location.href = `${appUrl}/route-builder/${form?.id}`;
+          router.push(`${appUrl}/route-builder/${form?.id}`);
         }
       },
     },
