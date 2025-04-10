@@ -54,7 +54,7 @@ const Download = () => {
       const totalRecords = firstBatch.total;
 
       // Continue fetching remaining batches
-      while (allData.length < totalRecords) {
+      while (totalRecords > 0 && allData.length < totalRecords) {
         offset += BATCH_SIZE;
         const result = await fetchBatch(offset);
         allData = [...allData, ...result.data];
@@ -63,7 +63,7 @@ const Download = () => {
         setDownloadProgress(currentProgress);
       }
 
-      if (allData.length > 0) {
+      if (allData.length >= totalRecords) {
         setDownloadProgress(100); // Set to 100% before actual download
         const filename = `Insights-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(endDate).format(
           "YYYY-MM-DD"
