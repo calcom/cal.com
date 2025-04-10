@@ -7,7 +7,7 @@ import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.g
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { GetRoutingFormResponsesParams } from "@/modules/organizations/routing-forms/inputs/get-routing-form-responses-params.input";
+import { GetRoutingFormsParams } from "@/modules/organizations/routing-forms/inputs/get-routing-form-responses-params.input";
 import {
   GetRoutingFormsOutput,
   RoutingFormOutput,
@@ -35,7 +35,7 @@ export class OrganizationsRoutingFormsController {
   @PlatformPlan("ESSENTIALS")
   async getOrganizationRoutingForms(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @Query() queryParams: GetRoutingFormResponsesParams
+    @Query() queryParams: GetRoutingFormsParams
   ): Promise<GetRoutingFormsOutput> {
     const { skip, take, ...filters } = queryParams;
 

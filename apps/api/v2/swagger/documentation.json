@@ -2405,6 +2405,18 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "teamIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter by teamIds",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
           }
         ],
         "responses": {

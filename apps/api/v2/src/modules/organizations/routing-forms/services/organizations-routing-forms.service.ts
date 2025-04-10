@@ -18,6 +18,7 @@ export class OrganizationsRoutingFormsService {
       beforeCreatedAt?: Date;
       afterUpdatedAt?: Date;
       beforeUpdatedAt?: Date;
+      teamIds?: number[];
     }
   ) {
     return this.organizationsRoutingFormsRepository.getOrganizationRoutingForms(orgId, skip, take, options);

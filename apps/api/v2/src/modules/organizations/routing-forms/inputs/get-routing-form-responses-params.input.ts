@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsOptional, IsString, IsEnum, IsISO8601, IsDate } from "class-validator";
+import { IsOptional, IsString, IsEnum, IsISO8601, IsDate, IsNumber, IsArray } from "class-validator";
 
 enum SortOrder {
   ASC = "asc",
@@ -76,4 +76,13 @@ export class GetRoutingFormResponsesParams {
   @IsOptional()
   @IsString()
   routedToBookingUid?: string;
+}
+
+export class GetRoutingFormsParams extends GetRoutingFormResponsesParams {
+  @ApiPropertyOptional({ type: [Number], description: "Filter by teamIds" })
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  @Transform(({ value }) => (Array.isArray(value) ? value : value ? [Number(value)] : []))
+  teamIds?: number[];
 }

@@ -19,6 +19,7 @@ export class OrganizationsRoutingFormsRepository {
       beforeCreatedAt?: Date;
       afterUpdatedAt?: Date;
       beforeUpdatedAt?: Date;
+      teamIds?: number[];
     }
   ) {
     const {
@@ -30,11 +31,12 @@ export class OrganizationsRoutingFormsRepository {
       beforeCreatedAt,
       afterUpdatedAt,
       beforeUpdatedAt,
+      teamIds,
     } = options || {};
 
     return this.dbRead.prisma.app_RoutingForms_Form.findMany({
       where: {
-        team: { parentId: orgId },
+        teamId: !teamIds || teamIds.length === 0 ? orgId : { in: teamIds },
         ...(disabled !== undefined && { disabled }),
         ...(name && { name: { contains: name, mode: "insensitive" } }),
         ...(afterCreatedAt && { createdAt: { gte: afterCreatedAt } }),
@@ -64,7 +66,6 @@ export class OrganizationsRoutingFormsRepository {
       afterUpdatedAt?: Date;
       beforeUpdatedAt?: Date;
       routedToBookingUid?: string;
-      teamId?: number;
     }
   ) {
     const {
@@ -75,12 +76,11 @@ export class OrganizationsRoutingFormsRepository {
       routedToBookingUid,
       afterUpdatedAt,
       beforeUpdatedAt,
-      teamId,
     } = options || {};
     await this.dbRead.prisma.app_RoutingForms_Form.findFirstOrThrow({
       where: {
+        teamId: orgId,
         id: routingFormId,
-        team: !teamId ? { parentId: orgId } : { id: teamId, parentId: orgId },
       },
     });
 

@@ -22,7 +22,6 @@ export class OrganizationsRoutingFormsResponsesService {
       afterUpdatedAt?: Date;
       beforeUpdatedAt?: Date;
       routedToBookingUid?: string;
-      teamId?: number;
     }
   ) {
     const responses = await this.organizationsRoutingFormsRepository.getOrganizationRoutingFormResponses(
