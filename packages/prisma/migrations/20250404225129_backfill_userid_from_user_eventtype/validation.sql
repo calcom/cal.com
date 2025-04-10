@@ -5,9 +5,9 @@ LEFT JOIN "users" u ON uet."B" = u.id
 WHERE u.id IS NULL;
 
 -- Check for potential unique constraint violations
-SELECT userId, slug, COUNT(*) as count
+SELECT "EventType"."userId", "EventType".slug, COUNT(*) as count
 FROM "EventType"
-GROUP BY userId, slug
+GROUP BY "EventType"."userId", "EventType".slug
 HAVING COUNT(*) > 1;
 
 -- Check for data inconsistencies
