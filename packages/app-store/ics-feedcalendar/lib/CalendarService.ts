@@ -13,14 +13,6 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-class ReadOnlyICSError extends Error {
-  statusCode = 400;
-  constructor(message: string) {
-    super(message);
-    this.name = "ReadOnlyICSError";
-  }
-}
-
 // for Apple's Travel Time feature only (for now)
 const getTravelDurationInSeconds = (vevent: ICAL.Component) => {
   const travelDuration: ICAL.Duration = vevent.getFirstPropertyValue("x-apple-travel-duration");
