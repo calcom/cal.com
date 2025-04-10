@@ -1,4 +1,6 @@
-/* Schedule any workflow reminder that falls within 72 hours for email */
+/**
+ * @deprecated use smtp with tasker instead
+ */
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
@@ -244,21 +246,21 @@ export async function handler(req: NextRequest) {
             ? !!reminder.booking.eventType?.team?.hideBranding
             : !!reminder.booking.user?.hideBranding;
 
-          emailContent = emailReminderTemplate(
-            false,
-            reminder.booking.user?.locale || "en",
-            reminder.workflowStep.action,
-            getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
-            reminder.booking.startTime.toISOString() || "",
-            reminder.booking.endTime.toISOString() || "",
-            reminder.booking.eventType?.title || "",
-            timeZone || "",
-            reminder.booking.location || "",
-            bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl || "",
-            attendeeName || "",
-            name || "",
-            brandingDisabled
-          );
+          emailContent = emailReminderTemplate({
+            isEditingMode: false,
+            locale: reminder.booking.user?.locale || "en",
+            action: reminder.workflowStep.action,
+            timeFormat: getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
+            startTime: reminder.booking.startTime.toISOString() || "",
+            endTime: reminder.booking.endTime.toISOString() || "",
+            eventName: reminder.booking.eventType?.title || "",
+            timeZone: timeZone || "",
+            location: reminder.booking.location || "",
+            meetingUrl: bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl || "",
+            otherPerson: attendeeName || "",
+            name: name || "",
+            isBrandingDisabled: brandingDisabled,
+          });
         } else if (reminder.workflowStep.template === WorkflowTemplates.RATING) {
           const organizerOrganizationProfile = await prisma.profile.findFirst({
             where: {
@@ -323,30 +325,28 @@ export async function handler(req: NextRequest) {
           };
 
           sendEmailPromises.push(
-            sendSendgridMail(
-              {
-                to: sendTo,
-                subject: emailContent.emailSubject,
-                html: emailContent.emailBody,
-                batchId: batchId,
-                sendAt: dayjs(reminder.scheduledDate).unix(),
-                replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
-                attachments: reminder.workflowStep.includeCalendarEvent
-                  ? [
-                      {
-                        content: Buffer.from(
-                          generateIcsString({ event, status: "CONFIRMED" }) || ""
-                        ).toString("base64"),
-                        filename: "event.ics",
-                        type: "text/calendar; method=REQUEST",
-                        disposition: "attachment",
-                        contentId: uuidv4(),
-                      },
-                    ]
-                  : undefined,
-              },
-              { sender: reminder.workflowStep.sender }
-            )
+            sendSendgridMail({
+              to: sendTo,
+              subject: emailContent.emailSubject,
+              html: emailContent.emailBody,
+              batchId: batchId,
+              sendAt: dayjs(reminder.scheduledDate).unix(),
+              replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
+              attachments: reminder.workflowStep.includeCalendarEvent
+                ? [
+                    {
+                      content: Buffer.from(generateIcsString({ event, status: "CONFIRMED" }) || "").toString(
+                        "base64"
+                      ),
+                      filename: "event.ics",
+                      type: "text/calendar; method=REQUEST",
+                      disposition: "attachment",
+                      contentId: uuidv4(),
+                    },
+                  ]
+                : undefined,
+              sender: reminder.workflowStep.sender,
+            })
           );
 
           await prisma.workflowReminder.update({
@@ -380,36 +380,34 @@ export async function handler(req: NextRequest) {
           ? !!reminder.booking.eventType?.team?.hideBranding
           : !!reminder.booking.user?.hideBranding;
 
-        emailContent = emailReminderTemplate(
-          false,
-          reminder.booking.user?.locale || "en",
-          WorkflowActions.EMAIL_ATTENDEE,
-          getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
-          reminder.booking.startTime.toISOString() || "",
-          reminder.booking.endTime.toISOString() || "",
-          reminder.booking.eventType?.title || "",
-          timeZone || "",
-          reminder.booking.location || "",
-          bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl || "",
-          attendeeName || "",
-          name || "",
-          brandingDisabled
-        );
+        emailContent = emailReminderTemplate({
+          isEditingMode: false,
+          locale: reminder.booking.user?.locale || "en",
+          action: WorkflowActions.EMAIL_ATTENDEE,
+          timeFormat: getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
+          startTime: reminder.booking.startTime.toISOString() || "",
+          endTime: reminder.booking.endTime.toISOString() || "",
+          eventName: reminder.booking.eventType?.title || "",
+          timeZone: timeZone || "",
+          location: reminder.booking.location || "",
+          meetingUrl: bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl || "",
+          otherPerson: attendeeName || "",
+          name: name || "",
+          isBrandingDisabled: brandingDisabled,
+        });
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
           const batchId = await getBatchId();
 
           sendEmailPromises.push(
-            sendSendgridMail(
-              {
-                to: sendTo,
-                subject: emailContent.emailSubject,
-                html: emailContent.emailBody,
-                batchId: batchId,
-                sendAt: dayjs(reminder.scheduledDate).unix(),
-                replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
-              },
-              { sender: reminder.workflowStep?.sender }
-            )
+            sendSendgridMail({
+              to: sendTo,
+              subject: emailContent.emailSubject,
+              html: emailContent.emailBody,
+              batchId: batchId,
+              sendAt: dayjs(reminder.scheduledDate).unix(),
+              replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
+              sender: reminder.workflowStep?.sender,
+            })
           );
 
           await prisma.workflowReminder.update({

@@ -23,7 +23,7 @@ import {
 } from "@calcom/ui/components/table";
 
 import { useColumnSizingVars } from "../hooks";
-import { usePersistentColumnResizing } from "../lib/resizing";
+import { useColumnResizing } from "../hooks/useColumnResizing";
 
 export type DataTablePropsFromWrapper<TData> = {
   table: ReactTableType<TData>;
@@ -96,7 +96,7 @@ export function DataTable<TData>({
 
   const columnSizingVars = useColumnSizingVars({ table });
 
-  usePersistentColumnResizing({
+  useColumnResizing({
     enabled: Boolean(enableColumnResizing),
     table,
     tableContainerRef,

@@ -279,6 +279,7 @@ jobs:
         e2e-embed,
         e2e-embed-react,
         e2e-app-store,
+        risk-check,
       ]
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204

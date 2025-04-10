@@ -5,6 +5,7 @@ import { ZAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema"
 import { checkGlobalKeysSchema } from "./checkGlobalKeys.schema";
 import { ZIntegrationsInputSchema } from "./integrations.schema";
 import { ZListLocalInputSchema } from "./listLocal.schema";
+import { ZLocationOptionsInputSchema } from "./locationOptions.schema";
 import { ZQueryForDependenciesInputSchema } from "./queryForDependencies.schema";
 import { ZSaveKeysInputSchema } from "./saveKeys.schema";
 import { ZSetDefaultConferencingAppSchema } from "./setDefaultConferencingApp.schema";
@@ -18,6 +19,7 @@ type AppsRouterHandlerCache = {
   getUsersDefaultConferencingApp?: typeof import("./getUsersDefaultConferencingApp.handler").getUsersDefaultConferencingAppHandler;
   integrations?: typeof import("./integrations.handler").integrationsHandler;
   listLocal?: typeof import("./listLocal.handler").listLocalHandler;
+  locationOptions?: typeof import("./locationOptions.handler").locationOptionsHandler;
   toggle?: typeof import("./toggle.handler").toggleHandler;
   saveKeys?: typeof import("./saveKeys.handler").saveKeysHandler;
   checkForGCal?: typeof import("./checkForGCal.handler").checkForGCalHandler;
@@ -86,6 +88,7 @@ export const appsRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.integrations({ ctx, input });
   }),
+
   listLocal: authedAdminProcedure.input(ZListLocalInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.listLocal) {
       UNSTABLE_HANDLER_CACHE.listLocal = await import("./listLocal.handler").then(
@@ -102,6 +105,21 @@ export const appsRouter = router({
       ctx,
       input,
     });
+  }),
+
+  locationOptions: authedProcedure.input(ZLocationOptionsInputSchema).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.locationOptions) {
+      UNSTABLE_HANDLER_CACHE.locationOptions = (
+        await import("./locationOptions.handler")
+      ).locationOptionsHandler;
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.locationOptions) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.locationOptions({ ctx, input });
   }),
 
   toggle: authedAdminProcedure.input(ZToggleInputSchema).mutation(async ({ ctx, input }) => {

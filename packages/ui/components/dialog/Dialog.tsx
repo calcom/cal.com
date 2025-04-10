@@ -151,7 +151,7 @@ export function DialogFooter(props: DialogFooterProps) {
   return (
     <div
       className={classNames(
-        "bg-muted border-subtle bottom-0 -mx-8 mt-10 rounded-b-2xl",
+        "bg-muted border-muted bottom-0 -mx-8 mt-10 rounded-b-2xl border",
         props?.noSticky ? "" : "sticky",
         props.className
       )}>
