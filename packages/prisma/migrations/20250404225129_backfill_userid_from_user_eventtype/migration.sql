@@ -133,6 +133,7 @@ DECLARE
     mismatch_count INTEGER;
     conflict_count INTEGER;
     mismatch_details TEXT;
+    conflict_details TEXT;
 BEGIN
     -- Show sample of mismatches
     RAISE NOTICE 'Sample of mismatches (EventType.userId != _user_eventtype.B):';
@@ -205,7 +206,10 @@ BEGIN
         ''
     )
     FROM conflicts
-    INTO conflict_count;
+    INTO conflict_details;
+    
+    -- Display conflict details
+    RAISE NOTICE '%', conflict_details;
 
     -- Count total conflicts only for processed records
     SELECT COUNT(DISTINCT et.id) INTO conflict_count
