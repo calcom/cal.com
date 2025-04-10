@@ -104,19 +104,20 @@ export const tabs = [
             style={{ resize: "none", overflow: "auto" }}
             value={`/* First make sure that you have installed the package */
 
-/* If you are using yarn */
-// yarn add @calcom/atoms
+  /* If you are using yarn */
+  // yarn add @calcom/embed-react
 
-/* If you are using npm */
-// npm install @calcom/atoms
-${getEmbedTypeSpecificString({
-  embedFramework: "react",
-  embedType,
-  calLink,
-  previewState,
-  embedCalOrigin,
-  namespace,
-})}`}
+  /* If you are using npm */
+  // npm install @calcom/embed-react
+  ${getEmbedTypeSpecificString({
+    embedFramework: "react",
+    embedType,
+    calLink,
+    previewState,
+    embedCalOrigin,
+    namespace,
+  })}
+  `}
           />
         </>
       );
@@ -146,7 +147,7 @@ ${getEmbedTypeSpecificString({
           <small className="text-subtle flex py-2">{t("create_update_react_component")}</small>
           <div className="text-default bg-attention mb-3 rounded-md p-3 text-sm">
             <strong>Note:</strong> The preview shown in the Preview tab is generated using the iframe
-            approach, not the BookerEmbed component.
+            approach.
           </div>
           <TextArea
             data-testid="embed-react-atom"
