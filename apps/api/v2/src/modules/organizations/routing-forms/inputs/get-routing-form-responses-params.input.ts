@@ -89,6 +89,12 @@ export class GetRoutingFormResponsesParams {
 
 export class GetRoutingFormsParams extends GetRoutingFormResponsesParams {
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === "string") {
+      return value.split(",").map((teamId: string) => parseInt(teamId));
+    }
+    return value;
+  })
   @ApiPropertyOptional({
     type: [Number],
     description: "Filter by teamIds. Team ids must be separated by a comma.",
