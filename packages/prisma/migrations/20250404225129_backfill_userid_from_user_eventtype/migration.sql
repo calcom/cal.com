@@ -53,6 +53,12 @@ BEGIN
         -- Process this batch
         batch_error := FALSE;
         BEGIN
+            -- Create temporary table for updated records
+            CREATE TEMP TABLE updated_records (
+                event_type_id INTEGER,
+                user_id INTEGER
+            );
+
             -- Update EventType table with safe updates only
             WITH to_update AS (
                 SELECT DISTINCT ON (et.id)  -- Ensure we only update each event type once
@@ -68,21 +74,28 @@ BEGIN
                 AND (et."userId" IS NULL OR et."userId" != mb.user_id)
                 ORDER BY et.id, mb.user_id  -- Consistent ordering
             )
-            UPDATE "EventType" et
-            SET "userId" = tu.user_id
-            FROM to_update tu
-            WHERE et.id = tu.event_type_id
-            AND (et."userId" IS NULL OR et."userId" != tu.user_id)
-            RETURNING et.id, tu.user_id
-            INTO TEMP TABLE updated_records;
+            INSERT INTO updated_records
+            SELECT et.id, tu.user_id
+            FROM "EventType" et
+            JOIN to_update tu ON et.id = tu.event_type_id
+            WHERE (et."userId" IS NULL OR et."userId" != tu.user_id);
 
+            -- Update the EventType table
+            UPDATE "EventType" et
+            SET "userId" = ur.user_id
+            FROM updated_records ur
+            WHERE et.id = ur.event_type_id;
+
+            GET DIAGNOSTICS updated_count = ROW_COUNT;
+            
             -- Mark processed records
             INSERT INTO "_migration_progress" (event_type_id, target_user_id)
             SELECT event_type_id, user_id
             FROM updated_records
             ON CONFLICT (event_type_id) DO NOTHING;
 
-            GET DIAGNOSTICS updated_count = ROW_COUNT;
+            -- Drop temporary table
+            DROP TABLE updated_records;
             
             -- Count conflicts (records we couldn't update)
             SELECT COUNT(*)
