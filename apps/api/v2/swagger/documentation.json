@@ -8283,6 +8283,7 @@
       "post": {
         "operationId": "RoutingFormsController_calculateSlotsBasedOnRoutingFormResponse",
         "summary": "Calculate slots based on routing form response",
+        "description": "It will not actually save the response just return the routed event type and slots when it can be booked.",
         "parameters": [
           {
             "name": "Authorization",
@@ -8358,16 +8359,6 @@
         ],
         "responses": {
           "200": {
-            "description": "Successfully calculated slots",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSlotsOutput"
-                }
-              }
-            }
-          },
-          "201": {
             "description": "",
             "content": {
               "application/json": {
