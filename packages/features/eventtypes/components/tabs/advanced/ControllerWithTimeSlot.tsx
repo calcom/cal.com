@@ -47,7 +47,7 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
 
   const currentTimeSlotValue = metaData?.[metaDataName];
 
-  const selectedRadioOption = currentTimeSlotValue ? "notice" : "always";
+  const selectedRadioOption = currentTimeSlotValue ? "not-always" : "always";
 
   const defaultUnitValue = options.find((opt) => opt.value === (currentTimeSlotValue?.unit ?? "hours"));
 
@@ -122,13 +122,18 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
               );
             }}>
             <div className="flex items-center space-x-2">
-              <RadioField label="Always" id="always" value="always" />
+              <RadioField label={t("always")} id="always" value="always" />
             </div>
             <div className="flex items-center">
-              <RadioField label="Within" id="notice" value="notice" className="mr-5" />
+              <RadioField
+                label={t("when_time_remaining_for_the_booking_is")}
+                id="not-always"
+                value="not-always"
+                className="mr-5"
+              />
               <InputField
                 type="number"
-                disabled={selectedRadioOption !== "notice"}
+                disabled={selectedRadioOption !== "not-always"}
                 min={1}
                 className={classNames(
                   "border-default h-9! !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r"
@@ -139,7 +144,7 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
               <Select
                 options={options}
                 value={timeAndUnit.unit}
-                isDisabled={selectedRadioOption !== "notice"}
+                isDisabled={selectedRadioOption !== "not-always"}
                 innerClassNames={{
                   control: "rounded-l-none max-h-4 px-3",
                 }}
