@@ -27,7 +27,11 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { bookingMetadataSchema, EventTypeMetaDataSchema, bookingCancelInput } from "@calcom/prisma/zod-utils";
+import {
+  bookingMetadataSchema,
+  eventTypeMetaDataSchemaWithTypedApps,
+  bookingCancelInput,
+} from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -444,7 +448,7 @@ async function handler(input: CancelBookingInput) {
     allRemainingBookings
   );
 
-  const bookingToDeleteEventTypeMetadata = EventTypeMetaDataSchema.parse(
+  const bookingToDeleteEventTypeMetadata = eventTypeMetaDataSchemaWithTypedApps.parse(
     bookingToDelete.eventType?.metadata || null
   );
 
@@ -453,7 +457,10 @@ async function handler(input: CancelBookingInput) {
     metadata: bookingToDeleteEventTypeMetadata,
   });
 
-  const eventManager = new EventManager({ ...bookingToDelete.user, credentials });
+  const eventManager = new EventManager(
+    { ...bookingToDelete.user, credentials },
+    bookingToDeleteEventTypeMetadata?.apps
+  );
 
   await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
 
