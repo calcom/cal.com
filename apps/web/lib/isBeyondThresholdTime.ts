@@ -1,7 +1,7 @@
 export default function isBeyondThresholdTime(
-  startTime: string | Date,
-  time: number,
-  unit: "minutes" | "hours"
+  startTime: string | Date | undefined,
+  time: number | undefined,
+  unit: "minutes" | "hours" | undefined
 ): boolean {
   if (!startTime || !time || !unit) return true;
   const now = new Date().getTime();

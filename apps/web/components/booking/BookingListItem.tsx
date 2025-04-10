@@ -46,6 +46,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
+import isBeyondThresholdTime from "@lib/isBeyondThresholdTime";
 
 import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
@@ -357,9 +358,21 @@ function BookingListItem(booking: BookingItemProps) {
       icon: "credit-card" as const,
     },
   ];
+  const isDisabledCancelling =
+    booking.eventType.disableCancelling &&
+    !isBeyondThresholdTime(
+      booking?.startTime,
+      booking?.eventType.metadata?.disableCancellingThreshold?.time,
+      booking.eventType.metadata?.disableCancellingThreshold?.unit
+    );
 
-  const isDisabledCancelling = booking.eventType.disableCancelling;
-  const isDisabledRescheduling = booking.eventType.disableRescheduling;
+  const isDisabledRescheduling =
+    booking.eventType.disableRescheduling &&
+    !isBeyondThresholdTime(
+      booking?.startTime,
+      booking.eventType.metadata?.disableReschedulingThreshold?.time,
+      booking.eventType.metadata?.disableReschedulingThreshold?.unit
+    );
 
   if (isTabRecurring && isRecurring) {
     bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");

@@ -372,19 +372,19 @@ export default function Success(props: PageProps) {
   const isRescheduled = bookingInfo?.rescheduled;
 
   const canCancel =
-    !eventType?.disableCancelling &&
+    !eventType?.disableCancelling ||
     isBeyondThresholdTime(
       bookingInfo.startTime,
-      eventType.metaData?.disableCancellingThreshold?.time,
-      eventType.metaData?.disableCancellingThreshold?.unit
+      eventType.metadata?.disableCancellingThreshold?.time,
+      eventType.metadata?.disableCancellingThreshold?.unit
     );
 
   const canReschedule =
-    !eventType?.disableRescheduling &&
+    !eventType?.disableRescheduling ||
     isBeyondThresholdTime(
       bookingInfo.startTime,
-      eventType.metaData?.disableReschedulingThreshold?.time,
-      eventType.metaData?.disableReschedulingThreshold?.unit
+      eventType.metadata?.disableReschedulingThreshold?.time,
+      eventType.metadata?.disableReschedulingThreshold?.unit
     );
 
   const canCancelOrReschedule = canCancel || canReschedule;
