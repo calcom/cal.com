@@ -34,9 +34,9 @@ BEGIN
         LIMIT batch_size
         OFFSET (current_batch * batch_size);
 
-        -- Update EventType table only for records that won't cause unique constraint violations
+        -- Count potential conflicts first
         WITH potential_conflicts AS (
-            SELECT et.id, et.slug, mb.user_id
+            SELECT et.id
             FROM "EventType" et
             JOIN migration_batch mb ON et.id = mb.event_type_id
             WHERE EXISTS (
@@ -46,9 +46,21 @@ BEGIN
                 AND et2.slug = et.slug
                 AND et2.id != et.id
             )
-        ),
-        conflict_count AS (
-            SELECT COUNT(*) as count FROM potential_conflicts
+        )
+        SELECT COUNT(*) INTO conflict_count FROM potential_conflicts;
+
+        -- Update EventType table only for records that won't cause unique constraint violations
+        WITH potential_conflicts AS (
+            SELECT et.id
+            FROM "EventType" et
+            JOIN migration_batch mb ON et.id = mb.event_type_id
+            WHERE EXISTS (
+                SELECT 1 
+                FROM "EventType" et2 
+                WHERE et2."userId" = mb.user_id 
+                AND et2.slug = et.slug
+                AND et2.id != et.id
+            )
         )
         UPDATE "EventType" et
         SET "userId" = mb.user_id
@@ -59,8 +71,7 @@ BEGIN
             SELECT 1 
             FROM potential_conflicts pc 
             WHERE pc.id = et.id
-        )
-        RETURNING (SELECT count FROM conflict_count) INTO conflict_count;
+        );
 
         -- Log progress and conflicts
         RAISE NOTICE 'Processed batch % of %. Found % potential conflicts', 
