@@ -13,6 +13,14 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+class ReadOnlyICSError extends Error {
+  statusCode = 400;
+  constructor(message: string) {
+    super(message);
+    this.name = "ReadOnlyICSError";
+  }
+}
+
 // for Apple's Travel Time feature only (for now)
 const getTravelDurationInSeconds = (vevent: ICAL.Component) => {
   const travelDuration: ICAL.Duration = vevent.getFirstPropertyValue("x-apple-travel-duration");
@@ -55,14 +63,14 @@ export default class ICSFeedCalendarService implements Calendar {
     if (this.skipWriting) {
       return Promise.reject(new Error("Event creation is disabled for this calendar."));
     }
-    throw new Error("createEvent called on read-only ICS feed");
+    throw new ReadOnlyICSError("createEvent called on read-only ICS feed");
   }
 
   deleteEvent(_uid: string, _event: CalendarEvent, _externalCalendarId?: string): Promise<unknown> {
     if (this.skipWriting) {
       return Promise.reject(new Error("Event creation is disabled for this calendar."));
     }
-    throw new Error("deleteEvent called on read-only ICS feed");
+    throw new ReadOnlyICSError("deleteEvent called on read-only ICS feed");
   }
 
   updateEvent(
@@ -73,7 +81,7 @@ export default class ICSFeedCalendarService implements Calendar {
     if (this.skipWriting) {
       return Promise.reject(new Error("Event creation is disabled for this calendar."));
     }
-    throw new Error("updateEvent called on read-only ICS feed");
+    throw new ReadOnlyICSError("updateEvent called on read-only ICS feed");
   }
 
   fetchCalendars = async (): Promise<{ url: string; vcalendar: ICAL.Component }[]> => {
