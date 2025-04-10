@@ -133,7 +133,7 @@ export default function MyApp() {
       const namespaceProp = `${namespace ? `namespace="${namespace}"` : ""}`;
       const argumentForGetCalApi = getArgumentForGetCalApi(namespace);
       return code`
-import { Cal } from "@calcom/atoms";
+import { BookerEmbed } from "@calcom/atoms";
 import { useEffect } from "react";
 export default function MyCalendar() {
   useEffect(() => {
@@ -142,8 +142,8 @@ export default function MyCalendar() {
   }, []);
   
   return (
-    <Cal.Embed ${namespaceProp}
-      calLink="${calLink}"
+    <BookerEmbed ${namespaceProp}
+      eventSlug="${calLink}"
       style={{width:"${width}",height:"${height}",overflow:"scroll"}}
       config={${JSON.stringify(previewState.config)}}
       ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
@@ -166,11 +166,11 @@ export default function MyCalendar() {
       previewState: PreviewState["floatingPopup"];
     }) => {
       return code`
-import { Cal } from "@calcom/atoms";
+import { BookerEmbed } from "@calcom/atoms";
 export default function MyCalendar() {
   return (
-    <Cal.FloatingButton 
-      calLink="${calLink}"
+    <BookerEmbed.FloatingButton 
+      eventSlug="${calLink}"
       config={${JSON.stringify(previewState.config)}}
       ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
       ${previewState.hideButtonIcon ? `hideButtonIcon={true}` : ""}
@@ -195,16 +195,16 @@ export default function MyCalendar() {
       namespace: string;
     }) => {
       return code`
-import { Cal } from "@calcom/atoms";
+import { BookerEmbed } from "@calcom/atoms";
 export default function MyCalendar() {
   return (
-    <Cal.Button 
-      calLink="${calLink}"
+    <BookerEmbed.Button 
+      eventSlug="${calLink}"
       config={${JSON.stringify(previewState.config)}}
       ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
     >
       Book my calendar
-    </Cal.Button>
+    </BookerEmbed.Button>
   );
 };`;
     },
