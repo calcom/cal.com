@@ -4,6 +4,7 @@ import { Controller, useFormContext } from "react-hook-form";
 
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 import { InputField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
@@ -18,14 +19,10 @@ interface IControllerWithTimeSlotProps {
   "data-testid": string;
   customClassname?: string;
   toggleSwitchAtTheEnd?: boolean;
-  switchContainerClassName?: string;
   metaDataName: "disableCancellingThreshold" | "disableReschedulingThreshold";
   [key: string]: any;
 }
-type TUnit = {
-  label: string;
-  value: "hours" | "minutes";
-};
+
 export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotProps) {
   const { t } = useLocale();
   const {
@@ -54,10 +51,7 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
 
   const defaultUnitValue = options.find((opt) => opt.value === (currentTimeSlotValue?.unit ?? "hours"));
 
-  const [timeAndUnit, setTimeAndUnit] = useState<{
-    time: number;
-    unit: TUnit;
-  }>({
+  const [timeAndUnit, setTimeAndUnit] = useState({
     time: currentTimeSlotValue?.time ?? 24,
     unit: defaultUnitValue,
   });
@@ -80,7 +74,7 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
       `metadata.${metaDataName}`,
       {
         time: newState.time,
-        unit: newState?.unit?.value || "hours",
+        unit: newState?.unit?.value,
       },
       { shouldDirty: true }
     );
@@ -130,13 +124,15 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
             <div className="flex items-center space-x-2">
               <RadioField label="Always" id="always" value="always" />
             </div>
-            <div className="flex items-center space-x-2">
-              <RadioField label="Not Within" id="notice" value="notice" />
+            <div className="flex items-center">
+              <RadioField label="Within" id="notice" value="notice" className="mr-5" />
               <InputField
                 type="number"
                 disabled={selectedRadioOption !== "notice"}
                 min={1}
-                className="w-32"
+                className={classNames(
+                  "border-default h-9! !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r"
+                )}
                 value={timeAndUnit.time}
                 onChange={(e) => handleTimeUnitChange("time", Number(e.target.value))}
               />
@@ -145,7 +141,7 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
                 value={timeAndUnit.unit}
                 isDisabled={selectedRadioOption !== "notice"}
                 innerClassNames={{
-                  control: "rounded-l-none max-h-4 px-3 bg-subtle",
+                  control: "rounded-l-none max-h-4 px-3",
                 }}
                 onChange={(val) => handleTimeUnitChange("unit", val.value)}
               />
