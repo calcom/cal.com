@@ -191,7 +191,6 @@ export function createBookingPageFixture(page: Page) {
       const offsetStartTimes = (await localize("en"))("offset_toggle");
       const offsetLabel = page.getByLabel(offsetStart);
 
-      await page.locator("fieldset").filter({ hasText: offsetStartTimes }).getByRole("switch").click();
       await offsetLabel.fill("10");
       await expect(offsetLabel).toHaveValue("10");
       await expect(

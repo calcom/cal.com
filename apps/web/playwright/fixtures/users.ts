@@ -314,6 +314,7 @@ export const createUsersFixture = (
               length: 30,
               metadata: { multipleDuration: [30, 60, 90] },
             },
+            { title: "offset event", slug: "offset-event", length: 30, offsetStart: 15 },
           ];
 
       if (opts?.eventTypes) defaultEventTypes = defaultEventTypes.concat(opts.eventTypes);
