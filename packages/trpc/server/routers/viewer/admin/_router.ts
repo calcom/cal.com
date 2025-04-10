@@ -7,6 +7,7 @@ import { ZAdminRemoveTwoFactor } from "./removeTwoFactor.schema";
 import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
 import { ZSetSMSLockState } from "./setSMSLockState.schema";
 import { toggleFeatureFlag } from "./toggleFeatureFlag.procedure";
+import { ZAdminVerifyWorkflowsSchema } from "./verifyWorkflows.schema";
 import {
   workspacePlatformCreateSchema,
   workspacePlatformUpdateSchema,
@@ -68,6 +69,13 @@ export const adminRouter = router({
       );
       return handler(opts);
     }),
+  verifyWorkflows: authedAdminProcedure.input(ZAdminVerifyWorkflowsSchema).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("verifyWorkflows"),
+      () => import("./verifyWorkflows.handler")
+    );
+    return handler(opts);
+  }),
   workspacePlatform: router({
     list: authedAdminProcedure.query(async () => {
       const handler = await importHandler(
