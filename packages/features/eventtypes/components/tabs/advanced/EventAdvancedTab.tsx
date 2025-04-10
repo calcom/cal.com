@@ -602,8 +602,6 @@ export const EventAdvancedTab = ({
             data-testid="disable-cancelling-toggle"
             checked={disableCancelling}
             onCheckedChange={setDisableCancelling}
-            labelClassName="text-sm"
-            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
             {...disableCancellingLocked}
           />
 
@@ -615,8 +613,6 @@ export const EventAdvancedTab = ({
             data-testid="disable-cancelling-toggle"
             checked={disableRescheduling}
             onCheckedChange={setDisableRescheduling}
-            labelClassName="text-sm"
-            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
             {...disableReschedulingLocked}
           />
         </>

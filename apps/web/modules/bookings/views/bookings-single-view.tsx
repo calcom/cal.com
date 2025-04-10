@@ -387,9 +387,9 @@ export default function Success(props: PageProps) {
       eventType.metadata?.disableReschedulingThreshold?.unit
     );
 
-  const canCancelOrReschedule = canCancel || canReschedule;
+  const canCancelOrReschedule = !isPastBooking && (canCancel || canReschedule);
 
-  const canCancelAndReschedule = canCancel && canReschedule;
+  const canCancelAndReschedule = !isPastBooking && canCancel && canReschedule;
 
   const successPageHeadline = (() => {
     if (needsConfirmationAndReschedulable) {

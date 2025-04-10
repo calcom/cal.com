@@ -16,13 +16,16 @@ interface IControllerWithTimeSlotProps {
   checked: boolean;
   onCheckedChange: (val: boolean) => void;
   "data-testid": string;
-  labelClassName?: string;
+  customClassname?: string;
   toggleSwitchAtTheEnd?: boolean;
   switchContainerClassName?: string;
   metaDataName: "disableCancellingThreshold" | "disableReschedulingThreshold";
   [key: string]: any;
 }
-
+type TUnit = {
+  label: string;
+  value: "hours" | "minutes";
+};
 export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotProps) {
   const { t } = useLocale();
   const {
@@ -32,7 +35,6 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
     checked,
     onCheckedChange,
     "data-testid": dataTestId,
-    labelClassName = "text-sm",
     toggleSwitchAtTheEnd = true,
     switchContainerClassName = "border-subtle rounded-lg border py-6 px-4 sm:px-6",
     metaDataName,
@@ -51,27 +53,36 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
   const selectedRadioOption = currentTimeSlotValue ? "notice" : "always";
 
   const defaultUnitValue = options.find((opt) => opt.value === (currentTimeSlotValue?.unit ?? "hours"));
-  const [timeAndUnit, setTimeAndUnit] = useState({
+
+  const [timeAndUnit, setTimeAndUnit] = useState<{
+    time: number;
+    unit: TUnit;
+  }>({
     time: currentTimeSlotValue?.time ?? 24,
     unit: defaultUnitValue,
   });
 
-  const handleTimeUnitChange = (key: "time" | "unit", value: number | "hours" | "minutes" | "null") => {
+  const handleTimeUnitChange = (key: "time" | "unit", value: number | "hours" | "minutes" | null) => {
     if (!value) return;
-    setTimeAndUnit((prev) => ({
-      ...prev,
-      [key]: key === "unit" ? options.find((opt) => opt.value === value) : value,
-    }));
+
+    let newState;
+
+    if (key === "unit") {
+      const selectedUnit = options.find((opt) => opt.value === value);
+      newState = { ...timeAndUnit, unit: selectedUnit };
+    } else {
+      newState = { ...timeAndUnit, time: value as number };
+    }
+
+    setTimeAndUnit(newState);
 
     formMethods.setValue(
       `metadata.${metaDataName}`,
       {
-        ...timeAndUnit,
-        [key]: value,
+        time: newState.time,
+        unit: newState?.unit?.value || "hours",
       },
-      {
-        shouldDirty: true,
-      }
+      { shouldDirty: true }
     );
   };
 
@@ -81,7 +92,7 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
       render={({ field: { onChange } }) => (
         <SettingsToggle
           noIndentation
-          labelClassName={labelClassName}
+          labelClassName="text-sm"
           toggleSwitchAtTheEnd={toggleSwitchAtTheEnd}
           switchContainerClassName={switchContainerClassName}
           title={title}
@@ -133,7 +144,9 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
                 options={options}
                 value={timeAndUnit.unit}
                 isDisabled={selectedRadioOption !== "notice"}
-                className="!w-32"
+                innerClassNames={{
+                  control: "rounded-l-none max-h-4 px-3 bg-subtle",
+                }}
                 onChange={(val) => handleTimeUnitChange("unit", val.value)}
               />
             </div>
