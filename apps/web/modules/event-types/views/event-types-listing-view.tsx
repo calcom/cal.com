@@ -7,6 +7,7 @@ import type { FC } from "react";
 import { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { CreateButton } from "@calcom/features/ee/teams/components/createButton/CreateButton";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
@@ -17,14 +18,12 @@ import {
   InfiniteSkeletonLoader,
   EventTypesSkeletonLoader,
 } from "@calcom/features/eventtypes/components/SkeletonLoader";
-import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { parseEventTypeColor } from "@calcom/lib";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -39,7 +38,7 @@ import { UserAvatarGroup } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { Dialog, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -930,8 +929,8 @@ const InfiniteScrollMain = ({
   // This is to ensure that the bookerUrl is always the same as the one in the org branding settings
   // This keeps the app working for personal event types that were not migrated to the org (rare)
   if (
-    activeEventTypeGroup[0].teamId === orgBranding?.id ||
-    activeEventTypeGroup[0].parentId === orgBranding?.id
+    orgBranding &&
+    (activeEventTypeGroup[0].teamId === orgBranding.id || activeEventTypeGroup[0].parentId === orgBranding.id)
   ) {
     activeEventTypeGroup[0].bookerUrl = bookerUrl;
   }
@@ -947,11 +946,14 @@ const InfiniteScrollMain = ({
   );
 };
 
-export const EventTypesCTA = () => {
+type Props = {
+  initialData: RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
+  filters?: { teamIds?: number[] | undefined; userIds?: number[] | undefined; upIds?: string[] | undefined };
+};
+
+export const EventTypesCTA = ({ initialData, filters }: Props) => {
   const { data: user } = useMeQuery();
-  const routerQuery = useRouterQuery();
-  const filters = getTeamsFiltersFromQuery(routerQuery);
-  const { data: getUserEventGroupsData } = trpc.viewer.eventTypes.getUserEventGroups.useQuery(
+  const { data: userEventGroupsQuery } = trpc.viewer.eventTypes.getUserEventGroups.useQuery(
     filters && { filters },
     {
       refetchOnWindowFocus: false,
@@ -959,6 +961,9 @@ export const EventTypesCTA = () => {
       staleTime: 1 * 60 * 60 * 1000,
     }
   );
+
+  const getUserEventGroupsData = userEventGroupsQuery ?? initialData;
+
   const profileOptions =
     getUserEventGroupsData?.profiles
       ?.filter((profile) => !profile.readOnly)
@@ -976,13 +981,11 @@ export const EventTypesCTA = () => {
   return <CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />;
 };
 
-const EventTypesPage: React.FC = () => {
+const EventTypesPage = ({ initialData, filters }: Props) => {
   const { data: user } = useMeQuery();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_showProfileBanner, setShowProfileBanner] = useState(false);
   const orgBranding = useOrgBranding();
-  const routerQuery = useRouterQuery();
-  const filters = getTeamsFiltersFromQuery(routerQuery);
   const router = useRouter();
 
   // TODO: Maybe useSuspenseQuery to focus on success case only? Remember that it would crash the page when there is an error in query. Also, it won't support skeleton
@@ -994,6 +997,7 @@ const EventTypesPage: React.FC = () => {
     refetchOnWindowFocus: false,
     gcTime: 1 * 60 * 60 * 1000,
     staleTime: 1 * 60 * 60 * 1000,
+    initialData,
   });
 
   useEffect(() => {

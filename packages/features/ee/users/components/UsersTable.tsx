@@ -3,6 +3,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -11,7 +12,6 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import {
-  Dialog,
   DialogContent,
   DialogFooter,
   DialogClose,
@@ -116,6 +116,12 @@ function UsersTableBare() {
         };
       });
       utils.viewer.admin.listPaginated.invalidate();
+    },
+  });
+
+  const verifyWorkflows = trpc.viewer.admin.verifyWorkflows.useMutation({
+    onSuccess: () => {
+      showToast("Workflows verified", "success");
     },
   });
 
@@ -235,6 +241,12 @@ function UsersTableBare() {
                           label: user.locked ? "Unlock User Account" : "Lock User Account",
                           onClick: () => lockUserAccount.mutate({ userId: user.id, locked: !user.locked }),
                           icon: "lock",
+                        },
+                        {
+                          id: "verify-workflows",
+                          label: "Verify workflows",
+                          onClick: () => verifyWorkflows.mutate({ userId: user.id }),
+                          icon: "check",
                         },
                         {
                           id: "impersonation",

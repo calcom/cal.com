@@ -11,10 +11,13 @@ import {
   AverageEventDurationChart,
   BookingKPICards,
   BookingStatusLineChart,
-  LeastBookedTeamMembersTable,
-  MostBookedTeamMembersTable,
-  PopularEventsTable,
   HighestNoShowHostTable,
+  HighestRatedMembersTable,
+  LeastBookedTeamMembersTable,
+  LowestRatedMembersTable,
+  MostBookedTeamMembersTable,
+  MostCancelledBookingsTables,
+  PopularEventsTable,
   RecentFeedbackTable,
   HighestRatedMembersTable,
   LowestRatedMembersTable,
@@ -76,6 +79,9 @@ function InsightsPageContent() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <MostBookedTeamMembersTable />
           <LeastBookedTeamMembersTable />
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <MostCancelledBookingsTables />
         </div>
         <RecentFeedbackTable />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

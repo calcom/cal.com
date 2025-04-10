@@ -6,7 +6,6 @@ import type { Table as ReactTableType, Header, HeaderGroup } from "@tanstack/rea
 import { useVirtualizer, type Virtualizer, type VirtualItem } from "@tanstack/react-virtual";
 // eslint-disable-next-line no-restricted-imports
 import kebabCase from "lodash/kebabCase";
-import { usePathname } from "next/navigation";
 import { useEffect, useState, memo, useMemo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -24,7 +23,7 @@ import {
 } from "@calcom/ui/components/table";
 
 import { useColumnSizingVars } from "../hooks";
-import { usePersistentColumnResizing } from "../lib/resizing";
+import { useColumnResizing } from "../hooks/useColumnResizing";
 
 export type DataTablePropsFromWrapper<TData> = {
   table: ReactTableType<TData>;
@@ -34,6 +33,7 @@ export type DataTablePropsFromWrapper<TData> = {
   testId?: string;
   bodyTestId?: string;
   children?: React.ReactNode;
+  enableColumnResizing?: boolean;
   className?: string;
   containerClassName?: string;
   headerClassName?: string;
@@ -45,7 +45,6 @@ export type DataTableProps<TData> = DataTablePropsFromWrapper<TData> & {
   onRowMouseclick?: (row: Row<TData>) => void;
   onScroll?: (e: Pick<React.UIEvent<HTMLDivElement, UIEvent>, "target">) => void;
   tableOverlay?: React.ReactNode;
-  identifier?: string;
   enableColumnResizing?: boolean;
 };
 
@@ -57,7 +56,6 @@ export function DataTable<TData>({
   onRowMouseclick,
   onScroll,
   children,
-  identifier: _identifier,
   enableColumnResizing,
   testId,
   bodyTestId,
@@ -68,9 +66,6 @@ export function DataTable<TData>({
   paginationMode = "infinite",
   ...rest
 }: DataTableProps<TData> & React.ComponentPropsWithoutRef<"div">) {
-  const pathname = usePathname() as string | null;
-  const identifier = _identifier ?? pathname ?? undefined;
-
   const { rows } = table.getRowModel();
 
   const rowVirtualizer = useVirtualizer({
@@ -101,11 +96,10 @@ export function DataTable<TData>({
 
   const columnSizingVars = useColumnSizingVars({ table });
 
-  usePersistentColumnResizing({
-    enabled: Boolean(enableColumnResizing && identifier),
+  useColumnResizing({
+    enabled: Boolean(enableColumnResizing),
     table,
     tableContainerRef,
-    identifier,
   });
 
   return (
