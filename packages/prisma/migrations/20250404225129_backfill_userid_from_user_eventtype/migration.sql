@@ -27,9 +27,9 @@ BEGIN
 
         -- Insert next batch
         INSERT INTO migration_batch (event_type_id, user_id)
-        SELECT "eventTypeId", "userId"
+        SELECT "A", "B"
         FROM "_user_eventtype"
-        ORDER BY "eventTypeId"
+        ORDER BY "A"
         LIMIT batch_size
         OFFSET (current_batch * batch_size);
 
@@ -55,8 +55,8 @@ BEGIN
     -- Check for any mismatches
     SELECT COUNT(*) INTO mismatch_count
     FROM "EventType" et
-    JOIN "_user_eventtype" uet ON et.id = uet."eventTypeId"
-    WHERE et."userId" != uet."userId";
+    JOIN "_user_eventtype" uet ON et.id = uet."A"
+    WHERE et."userId" != uet."B";
 
     IF mismatch_count > 0 THEN
         RAISE EXCEPTION 'Found % mismatches after migration', mismatch_count;
