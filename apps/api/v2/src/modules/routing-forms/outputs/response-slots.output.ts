@@ -6,7 +6,7 @@ import { ApiResponseWithoutData, SlotsOutput_2024_09_04 } from "@calcom/platform
 import { RangeSlotsOutput_2024_09_04 } from "@calcom/platform-types";
 
 @ApiExtraModels(SlotsOutput_2024_09_04, RangeSlotsOutput_2024_09_04)
-class ResponseSlotsOutputData {
+export class ResponseSlotsOutputData {
   @IsNumber()
   @ApiProperty()
   eventTypeId!: number;

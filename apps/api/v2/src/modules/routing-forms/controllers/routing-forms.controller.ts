@@ -2,8 +2,8 @@ import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { ResponseSlotsOutput } from "@/modules/routing-forms/outputs/response-slots.output";
 import { RoutingFormsService } from "@/modules/routing-forms/services/routing-forms.service";
-import { Controller, Param, Post, Query, Req } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Controller, HttpCode, HttpStatus, Param, Post, Query, Req } from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Request } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -19,8 +19,12 @@ export class RoutingFormsController {
   constructor(private readonly routingFormsService: RoutingFormsService) {}
 
   @Post("/calculate-slots")
-  @ApiOperation({ summary: "Calculate slots based on routing form response" })
-  @ApiResponse({ status: 200, description: "Successfully calculated slots", type: ResponseSlotsOutput })
+  @ApiOperation({
+    summary: "Calculate slots based on routing form response",
+    description:
+      "It will not actually save the response just return the routed event type and slots when it can be booked.",
+  })
+  @HttpCode(HttpStatus.OK)
   async calculateSlotsBasedOnRoutingFormResponse(
     @Req() request: Request,
     @Query() query: GetAvailableSlotsInput_2024_09_04,
