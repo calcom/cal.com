@@ -1,6 +1,8 @@
 export const addAppCssVars = () => {
+  const calElements = ["cal-floating-button", "cal-modal-box", "cal-inline"];
   try {
-    const cssVarsStyle = `cal-floating-button, cal-modal-box, cal-inline {
+    const cssVarsStyle = `
+    ${calElements.join(",")} {
     /* Spacing Scale */
     --cal-spacing-0: 0px;
     --cal-spacing-px: 1px;
@@ -144,7 +146,106 @@ export const addAppCssVars = () => {
     --cal-brand: hsla(221, 39%, 11%, 1); /* Keeping existing brand color */
     --cal-brand-emphasis: hsla(0, 0%, 6%, 1); /* Keeping existing brand emphasis */
     --cal-brand-text: hsla(0, 0%, 100%, 1); /* white */
-  }`;
+  }
+  
+  ${calElements.map((element) => `${element}.dark`).join(",")} {
+  /* Background Standard */
+  --cal-bg-emphasis: hsla(0, 0%, 25%, 1); /* stone-700 */
+  --cal-bg: hsla(0, 0%, 6%, 1); /* stone-950 */
+  --cal-bg-subtle: hsla(0, 0%, 15%, 1); /* stone-800 */
+  --cal-bg-muted: hsla(0, 0%, 9%, 1); /* stone-900 */
+  --cal-bg-inverted: hsla(0, 0%, 98%, 1); /* stone-50 */
+
+  /* Background Primary */
+  --cal-bg-primary: hsla(0, 0%, 96%, 1); /* stone-100 */
+  --cal-bg-primary-emphasis: hsla(0, 0%, 64%, 1); /* stone-800 */
+  --cal-bg-primary-muted: hsla(0, 0%, 15%, 1); /* stone-400 */
+
+  /* Background Brand */
+  --cal-bg-brand: hsla(0, 0%, 98%, 1); /* gray-50 */
+  --cal-bg-brand-emphasis: hsla(0, 0%, 96%, 1); /* stone-100 */
+  --cal-bg-brand-muted: hsla(0, 0%, 96%, 1); /* stone-100 */
+
+  /* Background Semantic */
+  --cal-bg-semantic-info-subtle: hsla(236, 80%, 8%, 1); /* blue-800 */
+  --cal-bg-semantic-info-emphasis: hsla(229, 90%, 74%, 1); /* blue-500 */
+  --cal-bg-semantic-success-subtle: hsla(148, 88%, 16%, 1); /* green-800 */
+  --cal-bg-semantic-success-emphasis: hsla(158, 74%, 38%, 1); /* green-500 */
+  --cal-bg-semantic-attention-subtle: hsla(21, 86%, 8%, 1); /* orange-800 */
+  --cal-bg-semantic-attention-emphasis: hsla(27, 96%, 61%, 1); /* orange-500 */
+  --cal-bg-semantic-error-subtle: hsla(0, 70%, 8%, 1); /* red-800 */
+  --cal-bg-semantic-error-emphasis: hsla(0, 91%, 71%, 1); /* red-500 */
+
+  /* Background Visualization */
+  --cal-bg-visualization-1-subtle: hsla(336, 74%, 35%, 1); /* pink-200 */
+  --cal-bg-visualization-1-emphasis: hsla(330, 81%, 60%, 1); /* pink-500 */
+  --cal-bg-visualization-2-subtle: hsla(252, 83%, 23%, 1); /* purple-200 */
+  --cal-bg-visualization-2-emphasis: hsla(256, 85%, 57%, 1); /* purple-500 */
+  --cal-bg-visualization-3-subtle: hsla(236, 74%, 35%, 1); /* blue-200 */
+  --cal-bg-visualization-3-emphasis: hsla(235, 100%, 63%, 1); /* blue-500 */
+  --cal-bg-visualization-4-subtle: hsla(150, 84%, 22%, 1); /* green-200 */
+  --cal-bg-visualization-4-emphasis: hsla(158, 74%, 38%, 1); /* green-500 */
+  --cal-bg-visualization-5-subtle: hsla(28, 73%, 26%, 1); /* yellow-200 */
+  --cal-bg-visualization-5-emphasis: hsla(45, 93%, 47%, 1); /* yellow-500 */
+  --cal-bg-visualization-6-subtle: hsla(15, 75%, 23%, 1); /* orange-200 */
+  --cal-bg-visualization-6-emphasis: hsla(25, 95%, 53%, 1); /* orange-500 */
+  --cal-bg-visualization-7-subtle: hsla(0, 70%, 35%, 1); /* red-200 */
+  --cal-bg-visualization-7-emphasis: hsla(0, 84%, 60%, 1); /* red-500 */
+
+  /* Legacy Background Components - Consider deprecating */
+  --cal-bg-info: hsla(228, 56%, 33%, 1); /* Keeping existing info background */
+  --cal-bg-success: hsla(133, 34%, 24%, 1); /* Keeping existing success background */
+  --cal-bg-attention: hsla(16, 62%, 28%, 1); /* Keeping existing attention background */
+  --cal-bg-error: hsla(2, 55%, 30%, 1); /* Keeping existing error background */
+  --cal-bg-dark-error: hsla(2, 55%, 30%, 1); /* Keeping existing dark error */
+
+  /* Border Standard */
+  --cal-border: hsla(0, 0%, 30%, 1); /* stone-600 */
+  --cal-border-muted: hsla(0, 0%, 9%, 1); /* stone-500 */
+  --cal-border-subtle: hsla(0, 0%, 15%, 1); /* stone-700 */
+  --cal-border-emphasis: hsla(0, 0%, 45%, 1); /* stone-800 */
+  --cal-border-booker: var(--cal-border-subtle);
+  /* Border Semantic */
+  --cal-border-semantic-error: hsla(0, 63%, 24%, 1); /* red-800 */
+
+  /* Border/Semantic Subtle */
+  --cal-border-semantic-attention-subtle: hsla(15, 75%, 23%, 1);
+  --cal-border-semantic-error-subtle: hsla(0, 63%, 24%, 1);
+
+  /* Legacy Border - Consider deprecating */
+  --cal-border-error: hsla(0, 63%, 24%, 1); /* Keeping existing error border */
+
+  /* Content/Text Standard */
+  --cal-text-emphasis: hsla(0, 0%, 98%, 1); /* stone-50 */
+  --cal-text: hsla(0, 0%, 83%, 1); /* stone-300 */
+  --cal-text-subtle: hsla(0, 0%, 64%, 1); /* stone-400 */
+  --cal-text-muted: hsla(0, 0%, 64%, 1); /* stone-400 */
+  --cal-text-inverted: hsla(0, 0%, 0%, 1); /* black */
+
+  /* Content/Text Semantic */
+  --cal-text-semantic-info: hsla(229, 90%, 74%, 1); /* blue-100 */
+  --cal-text-semantic-success: hsla(161, 49%, 54%, 1); /* green-100 */
+  --cal-text-semantic-attention: hsla(27, 96%, 61%, 1); /* orange-100 */
+  --cal-text-semantic-error: hsla(0, 91%, 71%, 1); /* red-100 */
+
+  /* Content/Text Semantic Emphasis */
+  --cal-text-semantic-info-emphasis: hsla(217, 91%, 25%, 1); /* blue-800 */
+  --cal-text-semantic-success-emphasis: hsla(142, 71%, 25%, 1); /* green-800 */
+  --cal-text-semantic-attention-emphasis: hsla(24, 95%, 25%, 1); /* orange-800 */
+  --cal-text-semantic-error-emphasis: hsla(0, 84%, 25%, 1); /* red-800 */
+
+  /* Legacy Content/Text Components - Consider deprecating */
+  --cal-text-info: hsla(218, 83%, 93%, 1); /* Keeping existing info text */
+  --cal-text-success: hsla(134, 76%, 94%, 1); /* Keeping existing success text */
+  --cal-text-attention: hsla(37, 86%, 92%, 1); /* Keeping existing attention text */
+  --cal-text-error: hsla(3, 66%, 93%, 1); /* Keeping existing error text */
+
+  /* Brand */
+  --cal-brand: hsla(0, 0%, 100%, 1); /* white */
+  --cal-brand-emphasis: hsla(218, 11%, 65%, 1); /* Keeping existing brand emphasis */
+  --cal-brand-text: hsla(0, 0%, 0%, 1); /* black */
+}  
+  `;
 
     // Create a style rule for above css
     const style = document.createElement("style");

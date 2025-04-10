@@ -229,7 +229,7 @@ if (only === "all" || only === "ns:fifth") {
     //@ts-ignore
     {
       elementOrSelector: "#cal-booking-place-fifth .place",
-      calLink: "team/seeded-team/collective-seeded-team-event",
+      calLink: "team/seeded-team/collective-seeded-team.event.booking",
       config: {
         iframeAttrs: {
           id: "cal-booking-place-fifth-iframe",
@@ -641,11 +641,12 @@ if (only === "all" || only === "ns:skeletonDemo") {
     elementOrSelector: "#cal-booking-place-skeletonDemo .place",
     calLink: "pro/30min",
     config: {
+      theme: "light",
       iframeAttrs: {
         id: "cal-booking-place-skeletonDemo-iframe",
       },
       "flag.coep": "true",
-      pageType: "user-event",
+      pageType: "user.event.booking",
     },
   });
 

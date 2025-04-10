@@ -2,7 +2,7 @@ import { generateEventSkeletonHTML } from "../ui/skeleton";
 
 const html = `
 <div id="skeleton-container">
-	<div id="skeleton" style="left:50%; transform:translate(-50%,0%)" class="absolute z-highest transition-visibility duration-300 ease-in-out">
+	<div id="skeleton" style="left:50%; transform:translate(-50%,0%)" class="absolute z-highest">
 		${generateEventSkeletonHTML()}
 	</div>
   <div id="wrapper" style="top:50%; left:50%; transform:translate(-50%,-50%)" class="absolute z-highest">

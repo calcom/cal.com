@@ -1,4 +1,5 @@
 import loaderCss from "../loader.css";
+import { toggleLoader } from "../ui-utils";
 import { getErrorString } from "../utils";
 import modalBoxHtml from "./ModalBoxHtml";
 
@@ -22,7 +23,7 @@ export class ModalBox extends HTMLElement {
 
   private shouldUseSkeletonLoader() {
     const pageType = this.dataset.calPageType;
-    return pageType === "user-event" || pageType === "team-event";
+    return pageType === "user.event.booking" || pageType === "team.event.booking";
   }
 
   show(show: boolean) {
@@ -104,28 +105,29 @@ export class ModalBox extends HTMLElement {
     return element;
   }
 
+  toggleLoader(show: boolean) {
+    toggleLoader({
+      skeletonEl: this.getSkeletonElement(),
+      loaderEl: this.getLoaderElement(),
+      skeletonContainerEl: this.shadowRoot.querySelector<HTMLElement>("#skeleton-container"),
+      useSkeletonLoader: this.shouldUseSkeletonLoader(),
+      show,
+    });
+  }
+
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
     if (name !== "state") {
       return;
     }
 
-    const useSkeletonLoader = this.shouldUseSkeletonLoader();
-
     if (newValue === "loading") {
       this.open();
       this.hideIframe();
-      if (useSkeletonLoader) {
-        this.getLoaderElement().style.display = "none";
-        this.getSkeletonElement().style.display = "block";
-      } else {
-        this.getLoaderElement().style.display = "block";
-        this.getSkeletonElement().style.display = "none";
-      }
+      this.toggleLoader(true);
     } else if (newValue == "loaded" || newValue === "reopening") {
       this.open();
       this.showIframe();
-      this.getLoaderElement().style.display = "none";
-      this.getSkeletonElement().style.display = "none";
+      this.toggleLoader(false);
     } else if (newValue == "closed") {
       this.explicitClose();
     } else if (newValue === "failed") {
@@ -176,23 +178,6 @@ export class ModalBox extends HTMLElement {
     this.open();
     this.assertHasShadowRoot();
     this.shadowRoot.innerHTML = modalHtml;
-
-    const skeletonEl = this.getSkeletonElement();
-    const loaderEl = this.getLoaderElement();
-    const skeletonContainerEl = this.shadowRoot.querySelector<HTMLElement>("#skeleton-container");
-    if (this.shouldUseSkeletonLoader()) {
-      if (skeletonEl) {
-        skeletonEl.style.visibility = "visible";
-        loaderEl.style.display = "none";
-        setInterval(() => {
-          skeletonContainerEl.style.height = getComputedStyle(skeletonEl).height;
-        }, 100);
-      }
-    } else {
-      if (loaderEl) {
-        loaderEl.style.display = "block";
-        skeletonEl.style.visibility = "hidden";
-      }
-    }
+    this.toggleLoader(true);
   }
 }

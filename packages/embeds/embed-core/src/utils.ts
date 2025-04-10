@@ -1,3 +1,5 @@
+import type { EmbedThemeConfig } from "./types";
+
 export const getErrorString = (errorCode: string | undefined) => {
   if (errorCode === "404") {
     return `Error Code: 404. Cal Link seems to be wrong.`;
@@ -34,4 +36,27 @@ export function fromEntriesWithDuplicateKeys(entries: IterableIterator<[string, 
     }
   }
   return result;
+}
+
+function detectColorScheme() {
+  if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    return "dark";
+  }
+  return "light";
+}
+
+function getClassBasedOnTheme(theme: "dark" | "light") {
+  if (theme === "dark") {
+    return "dark";
+  }
+  return "";
+}
+
+export function getThemeClassForEmbed({ themeFromConfig }: { themeFromConfig: EmbedThemeConfig }) {
+  const systemTheme = detectColorScheme();
+  const isThemePreferenceProvided = themeFromConfig === "dark" || themeFromConfig === "light";
+  if (isThemePreferenceProvided) {
+    return getClassBasedOnTheme(themeFromConfig);
+  }
+  return getClassBasedOnTheme(systemTheme);
 }

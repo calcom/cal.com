@@ -52,7 +52,7 @@ const html = `<style>
         <span class="loader-inner bg-brand dark:bg-darkmodebrand"></span>
       </div>
     </div>
-    <div id="skeleton" style="left:50%; transform:translate(-50%,0%)" class="absolute z-highest transition-visibility duration-300 ease-in-out">
+    <div id="skeleton" style="left:50%; transform:translate(-50%,0%)" class="absolute z-highest">
 		  ${generateEventSkeletonHTML()}
 	  </div>
     <div id="error" class="hidden left-1/2 -translate-x-1/2 relative text-inverted"></div>

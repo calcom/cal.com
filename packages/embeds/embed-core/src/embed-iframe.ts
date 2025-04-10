@@ -5,7 +5,14 @@ import { useEffect, useRef, useState, useCallback } from "react";
 
 import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
-import type { EmbedThemeConfig, UiConfig, EmbedNonStylesConfig, BookerLayouts, EmbedStyles } from "./types";
+import type {
+  EmbedThemeConfig,
+  UiConfig,
+  EmbedNonStylesConfig,
+  BookerLayouts,
+  EmbedStyles,
+  EmbedPageType,
+} from "./types";
 import { useCompatSearchParams } from "./useCompatSearchParams";
 
 type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
@@ -34,7 +41,7 @@ export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Rec
   // TODO: Rename layout and theme as ui.layout and ui.theme as it makes it clear that these two can be configured using `ui` instruction as well any time.
   "ui.color-scheme"?: string;
   theme?: EmbedThemeConfig;
-  pageType?: "user-event" | "team-event";
+  pageType?: EmbedPageType;
 };
 
 declare global {
@@ -311,6 +318,29 @@ function getEmbedType() {
   }
 }
 
+function getEmbedPageType() {
+  if (embedStore.pageType) {
+    return embedStore.pageType;
+  }
+  if (isBrowser) {
+    const url = new URL(document.URL);
+    const pageType = (embedStore.pageType = url.searchParams.get("pageType"));
+    if (pageType) {
+      return pageType as EmbedPageType;
+    }
+    return null;
+  }
+}
+
+function isBookerReady() {
+  return window.isBookerReady;
+}
+
+function isBookerPage() {
+  const pageType = getEmbedPageType();
+  return pageType === "team.event.booking" || pageType === "user.event.booking";
+}
+
 export const useIsEmbed = (embedSsr?: boolean) => {
   const [isEmbed, setIsEmbed] = useState(embedSsr);
   useEffect(() => {
@@ -393,12 +423,21 @@ const methods = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   parentKnowsIframeReady: (_unused: unknown) => {
     log("Method: `parentKnowsIframeReady` called");
+
     runAsap(function tryInformingLinkReady() {
       // TODO: Do it by attaching a listener for change in parentInformedAboutContentHeight
       if (!embedStore.parentInformedAboutContentHeight) {
         runAsap(tryInformingLinkReady);
         return;
       }
+
+      // Let's wait for Booker to be ready before showing the embed
+      // It means that booker has loaded all its data and is ready to show
+      if (isBookerPage() && !isBookerReady()) {
+        runAsap(tryInformingLinkReady);
+        return;
+      }
+
       // No UI change should happen in sight. Let the parent height adjust and in next cycle show it.
       unhideBody();
       if (!isPrerendering()) {
@@ -461,10 +500,7 @@ function keepParentInformedAboutDimensionChanges() {
       }, 100);
       return;
     }
-    if (!embedStore.windowLoadEventFired) {
-      sdkActionManager?.fire("__windowLoadComplete", {});
-    }
-    embedStore.windowLoadEventFired = true;
+
     // Use the dimensions of main element as in most places there is max-width restriction on it and we just want to show the main content.
     // It avoids the unwanted padding outside main tag.
     const mainElement =
@@ -496,7 +532,10 @@ function keepParentInformedAboutDimensionChanges() {
     // On subsequent renders, consider html height as the height of the iframe. If we don't do this, then if iframe gets bigger in height, it would never shrink
     const iframeHeight = isFirstTime ? documentScrollHeight : contentHeight;
     const iframeWidth = isFirstTime ? documentScrollWidth : contentWidth;
+
+    // This is important to set. Once it is set then only the embed could show up
     embedStore.parentInformedAboutContentHeight = true;
+
     if (!iframeHeight || !iframeWidth) {
       runAsap(informAboutScroll);
       return;

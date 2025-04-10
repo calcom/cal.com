@@ -1,4 +1,5 @@
 import loaderCss from "../loader.css?inline";
+import { toggleLoader } from "../ui-utils";
 import { getErrorString } from "../utils";
 import inlineHtml from "./inlineHtml";
 
@@ -15,7 +16,7 @@ export class Inline extends HTMLElement {
 
   private shouldUseSkeletonLoader() {
     const pageType = this.dataset.calPageType;
-    return pageType === "user-event" || pageType === "team-event";
+    return pageType === "user.event.booking" || pageType === "team.event.booking";
   }
 
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
@@ -28,26 +29,17 @@ export class Inline extends HTMLElement {
       throw new Error("One of required elements is missing");
     }
     if (name === "loading") {
-      const useSkeletonLoader = this.shouldUseSkeletonLoader();
       if (newValue == "done") {
-        loaderEl.style.display = "none";
-        skeletonEl.style.display = "none";
+        this.toggleLoader(false);
       } else if (newValue === "failed") {
-        loaderEl.style.display = "none";
-        skeletonEl.style.display = "none";
+        this.toggleLoader(false);
         slotEl.style.visibility = "hidden";
         errorEl.style.display = "block";
         const errorString = getErrorString(this.dataset.errorCode);
         errorEl.innerText = errorString;
       } else {
         // Loading state
-        if (useSkeletonLoader) {
-          loaderEl.style.display = "none";
-          skeletonEl.style.display = "block";
-        } else {
-          loaderEl.style.display = "block";
-          skeletonEl.style.display = "none";
-        }
+        this.toggleLoader(true);
       }
     }
   }
@@ -63,27 +55,21 @@ export class Inline extends HTMLElement {
     return this.shadowRoot?.querySelector<HTMLElement>("#skeleton-container");
   }
 
+  private toggleLoader(show: boolean) {
+    toggleLoader({
+      skeletonEl: this.getSkeletonEl(),
+      loaderEl: this.getLoaderEl(),
+      skeletonContainerEl: this.getSkeletonContainerEl(),
+      useSkeletonLoader: this.shouldUseSkeletonLoader(),
+      show,
+    });
+  }
+
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
     this.assertHasShadowRoot();
     this.shadowRoot.innerHTML = `<style>${window.Cal.__css}</style><style>${loaderCss}</style>${inlineHtml}`;
-    const skeletonEl = this.getSkeletonEl();
-    const loaderEl = this.getLoaderEl();
-    const skeletonContainerEl = this.getSkeletonContainerEl();
-    if (this.shouldUseSkeletonLoader()) {
-      if (skeletonEl) {
-        skeletonEl.style.visibility = "visible";
-        loaderEl.style.display = "none";
-        setInterval(() => {
-          skeletonContainerEl.style.height = getComputedStyle(skeletonEl).height;
-        }, 100);
-      }
-    } else {
-      if (loaderEl) {
-        loaderEl.style.display = "block";
-        skeletonEl.style.visibility = "hidden";
-      }
-    }
+    this.toggleLoader(true);
   }
 }

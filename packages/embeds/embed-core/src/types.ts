@@ -42,4 +42,5 @@ declare global {
   }
 }
 
+export type EmbedPageType = "team.event.booking" | "user.event.booking";
 export {};
