@@ -524,7 +524,7 @@ export default function Success(props: PageProps) {
                                   );
 
                                   if (daysDiff > refundDaysCount) {
-                                    return t("booking_with_payment_cancelled_no_refund");
+                                    return t("booking_with_payment_cancelled_refund_window_expired");
                                   }
                                 }
                                 // Handle NEVER policy
