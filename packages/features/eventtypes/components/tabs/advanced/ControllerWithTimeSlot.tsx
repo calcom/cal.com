@@ -60,7 +60,7 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
     if (!value) return;
     setTimeAndUnit((prev) => ({
       ...prev,
-      [key]: value,
+      [key]: key === "unit" ? options.find((opt) => opt.value === value) : value,
     }));
 
     formMethods.setValue(
