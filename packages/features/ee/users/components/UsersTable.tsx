@@ -119,6 +119,12 @@ function UsersTableBare() {
     },
   });
 
+  const verifyWorkflows = trpc.viewer.admin.verifyWorkflows.useMutation({
+    onSuccess: () => {
+      showToast("Workflows verified", "success");
+    },
+  });
+
   const handleImpersonateUser = async (username: string | null) => {
     await signIn("impersonation-auth", { username: username, callbackUrl: `${WEBAPP_URL}/event-types` });
   };
@@ -235,6 +241,12 @@ function UsersTableBare() {
                           label: user.locked ? "Unlock User Account" : "Lock User Account",
                           onClick: () => lockUserAccount.mutate({ userId: user.id, locked: !user.locked }),
                           icon: "lock",
+                        },
+                        {
+                          id: "verify-workflows",
+                          label: "Verify workflows",
+                          onClick: () => verifyWorkflows.mutate({ userId: user.id }),
+                          icon: "check",
                         },
                         {
                           id: "impersonation",
