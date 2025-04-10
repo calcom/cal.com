@@ -177,7 +177,7 @@ export class BookingsRepository_2024_08_13 {
         status: "ACCEPTED",
         startTime: {
           gte: startTime,
-          lt: endTime,
+          lte: endTime,
         },
       },
     });
@@ -193,7 +193,7 @@ export class BookingsRepository_2024_08_13 {
         },
         startTime: {
           gte: startTime,
-          lt: endTime,
+          lte: endTime,
         },
       },
     });

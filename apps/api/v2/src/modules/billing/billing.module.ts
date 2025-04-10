@@ -11,7 +11,6 @@ import { OrganizationsModule } from "@/modules/organizations/organizations.modul
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { UsersRepository } from "@/modules/users/users.repository";
 import { BullModule } from "@nestjs/bull";
 import { Module } from "@nestjs/common";
 
@@ -36,7 +35,6 @@ import { Module } from "@nestjs/common";
     BillingRepository,
     BillingProcessor,
     ManagedOrganizationsBillingService,
-    UsersRepository,
     OAuthClientRepository,
     BookingsRepository_2024_08_13,
   ],
