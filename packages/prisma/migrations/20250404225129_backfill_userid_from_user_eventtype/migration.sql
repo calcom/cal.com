@@ -16,6 +16,7 @@ DECLARE
     current_batch INTEGER := 0;
     max_batch INTEGER;
     conflict_count INTEGER := 0;
+    updated_count INTEGER := 0;
 BEGIN
     -- Get total records
     SELECT COUNT(*) INTO total_records FROM "_user_eventtype";
@@ -34,48 +35,53 @@ BEGIN
         LIMIT batch_size
         OFFSET (current_batch * batch_size);
 
-        -- Count potential conflicts first
-        WITH potential_conflicts AS (
-            SELECT et.id
-            FROM "EventType" et
-            JOIN migration_batch mb ON et.id = mb.event_type_id
-            WHERE EXISTS (
-                SELECT 1 
-                FROM "EventType" et2 
-                WHERE et2."userId" = mb.user_id 
-                AND et2.slug = et.slug
-                AND et2.id != et.id
+        -- Start a subtransaction for this batch
+        BEGIN
+            -- Update EventType table with safe updates only
+            WITH to_update AS (
+                SELECT DISTINCT ON (et.slug, mb.user_id) 
+                    et.id as event_type_id,
+                    mb.user_id,
+                    et.slug
+                FROM "EventType" et
+                JOIN migration_batch mb ON et.id = mb.event_type_id
+                LEFT JOIN "EventType" et2 ON et2.slug = et.slug 
+                    AND et2."userId" = mb.user_id
+                    AND et2.id != et.id
+                WHERE et2.id IS NULL  -- No existing record with same slug and userId
+                AND (et."userId" IS NULL OR et."userId" != mb.user_id)
+                ORDER BY et.slug, mb.user_id, et.id  -- Deterministic ordering
             )
-        )
-        SELECT COUNT(*) INTO conflict_count FROM potential_conflicts;
+            UPDATE "EventType" et
+            SET "userId" = tu.user_id
+            FROM to_update tu
+            WHERE et.id = tu.event_type_id
+            AND (et."userId" IS NULL OR et."userId" != tu.user_id);
 
-        -- Update EventType table only for records that won't cause unique constraint violations
-        WITH potential_conflicts AS (
-            SELECT et.id
-            FROM "EventType" et
-            JOIN migration_batch mb ON et.id = mb.event_type_id
-            WHERE EXISTS (
-                SELECT 1 
-                FROM "EventType" et2 
-                WHERE et2."userId" = mb.user_id 
-                AND et2.slug = et.slug
-                AND et2.id != et.id
-            )
-        )
-        UPDATE "EventType" et
-        SET "userId" = mb.user_id
-        FROM migration_batch mb
-        WHERE et.id = mb.event_type_id
-        AND (et."userId" IS NULL OR et."userId" != mb.user_id)
-        AND NOT EXISTS (
-            SELECT 1 
-            FROM potential_conflicts pc 
-            WHERE pc.id = et.id
-        );
+            GET DIAGNOSTICS updated_count = ROW_COUNT;
+            
+            -- Count conflicts (records we couldn't update)
+            SELECT COUNT(*)
+            INTO conflict_count
+            FROM migration_batch mb
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM "EventType" et
+                WHERE et.id = mb.event_type_id
+                AND et."userId" = mb.user_id
+            );
 
-        -- Log progress and conflicts
-        RAISE NOTICE 'Processed batch % of %. Found % potential conflicts', 
-            current_batch + 1, max_batch, conflict_count;
+            -- Log progress
+            RAISE NOTICE 'Processed batch % of %. Updated % records. Found % conflicts', 
+                current_batch + 1, max_batch, updated_count, conflict_count;
+
+            -- Commit this batch
+            COMMIT;
+        EXCEPTION WHEN OTHERS THEN
+            -- If anything goes wrong, rollback this batch and continue with next
+            ROLLBACK;
+            RAISE NOTICE 'Error in batch % of %: %', current_batch + 1, max_batch, SQLERRM;
+        END;
 
         current_batch := current_batch + 1;
     END LOOP;
@@ -85,6 +91,7 @@ END $$;
 DO $$
 DECLARE
     mismatch_count INTEGER;
+    conflict_count INTEGER;
 BEGIN
     -- Check for any mismatches
     SELECT COUNT(*) INTO mismatch_count
@@ -92,8 +99,22 @@ BEGIN
     JOIN "_user_eventtype" uet ON et.id = uet."A"
     WHERE et."userId" != uet."B";
 
+    -- Count remaining conflicts
+    SELECT COUNT(DISTINCT et.id) INTO conflict_count
+    FROM "EventType" et
+    JOIN "_user_eventtype" uet ON et.id = uet."A"
+    WHERE EXISTS (
+        SELECT 1
+        FROM "EventType" et2
+        WHERE et2.slug = et.slug
+        AND et2."userId" = uet."B"
+        AND et2.id != et.id
+    );
+
     IF mismatch_count > 0 THEN
-        RAISE EXCEPTION 'Found % mismatches after migration', mismatch_count;
+        RAISE NOTICE 'Found % mismatches and % conflicts after migration', 
+            mismatch_count, conflict_count;
+        RAISE EXCEPTION 'Migration completed with mismatches';
     END IF;
 END $$;
 
