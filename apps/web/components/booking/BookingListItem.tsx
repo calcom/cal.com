@@ -163,6 +163,7 @@ function BookingListItem(booking: BookingItemProps) {
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
   const isRejected = booking.status === BookingStatus.REJECTED;
   const isPending = booking.status === BookingStatus.PENDING;
+  const isRescheduled = booking.fromReschedule !== null;
   const isRecurring = booking.recurringEventId !== null;
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
@@ -730,6 +731,7 @@ function BookingListItem(booking: BookingItemProps) {
           recurringDates={recurringDates}
           userTimeFormat={userTimeFormat}
           userTimeZone={userTimeZone}
+          isRescheduled={isRescheduled}
         />
       </div>
 
@@ -750,12 +752,14 @@ const BookingItemBadges = ({
   recurringDates,
   userTimeFormat,
   userTimeZone,
+  isRescheduled,
 }: {
   booking: BookingItemProps;
   isPending: boolean;
   recurringDates: Date[] | undefined;
   userTimeFormat: number | null | undefined;
   userTimeZone: string | undefined;
+  isRescheduled: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -765,6 +769,13 @@ const BookingItemBadges = ({
         <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
           {t("unconfirmed")}
         </Badge>
+      )}
+      {isRescheduled && (
+        <Tooltip content={`${t("rescheduled_by")} ${booking.rescheduler}`}>
+          <Badge variant="orange" className="ltr:mr-2 rtl:ml-2">
+            {t("rescheduled")}
+          </Badge>
+        </Tooltip>
       )}
       {booking.eventType?.team && (
         <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
