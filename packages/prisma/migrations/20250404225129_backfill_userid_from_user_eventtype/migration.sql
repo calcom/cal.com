@@ -98,13 +98,71 @@ DECLARE
     mismatch_count INTEGER;
     conflict_count INTEGER;
 BEGIN
-    -- Check for any mismatches
+    -- Show sample of mismatches
+    RAISE NOTICE 'Sample of mismatches (EventType.userId != _user_eventtype.B):';
+    WITH mismatches AS (
+        SELECT 
+            et.id,
+            et.slug,
+            et."userId" as current_user_id,
+            uet."B" as expected_user_id,
+            CASE 
+                WHEN EXISTS (
+                    SELECT 1 FROM "EventType" et2 
+                    WHERE et2.slug = et.slug 
+                    AND et2."userId" = uet."B"
+                    AND et2.id != et.id
+                ) THEN 'Yes'
+                ELSE 'No'
+            END as has_conflict
+        FROM "EventType" et
+        JOIN "_user_eventtype" uet ON et.id = uet."A"
+        WHERE et."userId" != uet."B"
+        LIMIT 5
+    )
+    SELECT string_agg(
+        format(
+            E'\nID: %s, Slug: %s, Current UserID: %s, Expected UserID: %s, Has Conflict: %s',
+            id, slug, current_user_id, expected_user_id, has_conflict
+        ),
+        ''
+    )
+    FROM mismatches
+    INTO mismatch_count;
+
+    -- Count total mismatches
     SELECT COUNT(*) INTO mismatch_count
     FROM "EventType" et
     JOIN "_user_eventtype" uet ON et.id = uet."A"
     WHERE et."userId" != uet."B";
 
-    -- Count remaining conflicts
+    -- Show sample of conflicts
+    RAISE NOTICE 'Sample of conflicts (duplicate slug for same userId):';
+    WITH conflicts AS (
+        SELECT 
+            et.id,
+            et.slug,
+            uet."B" as target_user_id,
+            et2.id as existing_event_id,
+            et2."userId" as existing_user_id
+        FROM "EventType" et
+        JOIN "_user_eventtype" uet ON et.id = uet."A"
+        JOIN "EventType" et2 ON et2.slug = et.slug 
+            AND et2."userId" = uet."B"
+            AND et2.id != et.id
+        LIMIT 5
+    )
+    SELECT string_agg(
+        format(
+            E'\nEventType ID: %s, Slug: %s, Target UserID: %s conflicts with existing EventType ID: %s (UserID: %s)',
+            id, slug, target_user_id, existing_event_id, existing_user_id
+        ),
+        ''
+    )
+    FROM conflicts
+    INTO conflict_count;
+
+    -- Count total conflicts
     SELECT COUNT(DISTINCT et.id) INTO conflict_count
     FROM "EventType" et
     JOIN "_user_eventtype" uet ON et.id = uet."A"
@@ -116,9 +174,9 @@ BEGIN
         AND et2.id != et.id
     );
 
+    RAISE NOTICE 'Found % total mismatches and % total conflicts', mismatch_count, conflict_count;
+
     IF mismatch_count > 0 THEN
-        RAISE NOTICE 'Found % mismatches and % conflicts after migration', 
-            mismatch_count, conflict_count;
         RAISE EXCEPTION 'Migration completed with mismatches';
     END IF;
 END $$;
