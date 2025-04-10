@@ -502,7 +502,7 @@ const Route = ({
       : undefined;
 
   const formFieldsQueryBuilder = shouldShowFormFieldsQueryBuilder ? (
-    <div className="bg-default border-subtle rounded-2xl border">
+    <div className="">
       <Query
         {...withRaqbSettingsAndWidgets({
           config: formFieldsQueryBuilderConfig,

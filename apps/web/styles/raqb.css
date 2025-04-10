@@ -8,13 +8,37 @@
   user-select: none;
 }
 
-.cal-query-builder .group-or-rule {
-  margin: 8px;
-  padding: 2px !important;
-  border-radius: 12px;
+.cal-query-builder .group-container {
+  padding: 8px !important;
+  border-radius: 16px;
   border: 1px solid var(--cal-border-muted);
-  background-color: var(--cal-bg-muted)
+  background-color: var(--cal-bg)
 }
+
+.cal-query-builder .group--children {
+  background-color: var(--cal-bg);
+  border: 1px solid var(--cal-border-muted);
+  border-radius: 10px;
+  padding: 8px;
+}
+
+.cal-query-builder .group .group--header { 
+  margin-left: 8px;
+}
+
+.group.group-or-rule:has(.group--header, :not(.group--header)):has(.group--children):has(.group--footer) {
+  background-color: var(--cal-bg-muted);
+  padding: 2px;
+  border-radius: 12px;
+}
+
+
+.cal-query-builder .group-children{
+/* margin: 8px;
+  padding: 2px !important;
+  border-radius: 12px; */
+  /* background-color: var(--cal-bg)  */
+ }
 
 
 /* hide connectors */
@@ -111,23 +135,19 @@
   margin-right: -8px;}
 
 .cal-query-builder .group--header{
-  margin: 8px !important;
-  padding-left: 8px !important;
+  /* margin: 8px !important;
+  padding-left: 8px !important; */
 }
 
-
-.cal-query-builder .group-or-rule-container {
-  margin-top: 0px !important;
-  margin-bottom:0px !important;
+.cal-query-builder  .group--children {
+  /* border: 1px solid var(--cal-border-muted);
+  background-color: var(--cal-bg);
+  border-radius: 12px; */
 }
-
-.cal-query-builder .group-or-rule {
-  padding: 0px !important;
-} 
 
 .cal-query-builder .rule {
-  border: 1px solid transparent;
-  padding: 10px;
+  /* border: 1px solid transparent; */
+  /* padding: 10px; */
   flex: 1;
   display: flex;
 }
