@@ -5,7 +5,8 @@ import { useForm } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc/react";
-import { Button, TextField, Label, InputError } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { TextField, Label, InputError } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/toast";
 
 export default function BillingCredits() {
