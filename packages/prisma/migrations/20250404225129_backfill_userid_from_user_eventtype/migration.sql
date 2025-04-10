@@ -132,9 +132,12 @@ DO $$
 DECLARE
     mismatch_count INTEGER;
     conflict_count INTEGER;
+    mismatch_details TEXT;
 BEGIN
     -- Show sample of mismatches
     RAISE NOTICE 'Sample of mismatches (EventType.userId != _user_eventtype.B):';
+    
+    -- Get mismatch details
     WITH mismatches AS (
         SELECT 
             et.id,
@@ -165,7 +168,10 @@ BEGIN
         ''
     )
     FROM mismatches
-    INTO mismatch_count;
+    INTO mismatch_details;
+    
+    -- Display mismatch details
+    RAISE NOTICE '%', mismatch_details;
 
     -- Count total mismatches only for processed records
     SELECT COUNT(*) INTO mismatch_count
