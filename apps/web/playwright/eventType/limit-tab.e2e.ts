@@ -5,7 +5,7 @@ test.describe("Limits Tab - Event Type", () => {
   test.beforeEach(async ({ page, users, bookingPage }) => {
     await loginUser(users);
     await page.goto("/event-types");
-    await bookingPage.goToEventType("offset-event");
+    await bookingPage.goToEventType("30 min");
     await bookingPage.goToTab("event_limit_tab_title");
   });
 
