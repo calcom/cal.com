@@ -36,6 +36,7 @@ import {
   SkeletonAvatar,
 } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { useOrgBranding } from "../../../organizations/context/provider";
 
@@ -48,6 +49,7 @@ const orgProfileFormSchema = z.object({
 });
 
 type FormValues = {
+  id: number;
   name: string;
   logoUrl: string | null;
   banner: string | null;
@@ -111,6 +113,7 @@ const OrgProfileView = () => {
     !currentOrganisation.bio.replace("<p><br></p>", "").length;
 
   const defaultValues: FormValues = {
+    id: currentOrganisation?.id,
     name: currentOrganisation?.name || "",
     logoUrl: currentOrganisation?.logoUrl,
     banner: currentOrganisation?.bannerUrl || "",
@@ -364,6 +367,35 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                 value={value}
                 disabled
                 addOnSuffix={`.${subdomainSuffix()}`}
+              />
+            </div>
+          )}
+        />
+        <Controller
+          control={form.control}
+          name="id"
+          render={({ field: { value } }) => (
+            <div className="mt-8">
+              <TextField
+                name="id"
+                label={t("organization_id")}
+                value={value}
+                disabled={true}
+                addOnSuffix={
+                  <Tooltip content={t("copy_to_clipboard")}>
+                    <Button
+                      color="minimal"
+                      size="sm"
+                      type="button"
+                      aria-label="copy organization id"
+                      onClick={() => {
+                        navigator.clipboard.writeText(value.toString());
+                        showToast(t("organization_id_copied"), "success");
+                      }}>
+                      <Icon name="copy" className="ml-1 h-4 w-4" />
+                    </Button>
+                  </Tooltip>
+                }
               />
             </div>
           )}
