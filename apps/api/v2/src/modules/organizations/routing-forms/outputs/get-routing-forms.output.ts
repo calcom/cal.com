@@ -21,7 +21,7 @@ export class RoutingFormOutput {
   position!: number;
 
   @Expose()
-  routes!: Record<string, any> | null;
+  routes!: Record<string, unknown> | null;
 
   @ApiProperty({ example: "2024-03-28T10:00:00.000Z" })
   @Expose()
@@ -32,7 +32,7 @@ export class RoutingFormOutput {
   updatedAt!: string;
 
   @Expose()
-  fields!: Record<string, any> | null;
+  fields!: Record<string, unknown> | null;
 
   @ApiProperty({ example: 2313 })
   @Expose()
@@ -47,7 +47,7 @@ export class RoutingFormOutput {
   disabled!: boolean;
 
   @Expose()
-  settings!: Record<string, any> | null;
+  settings!: Record<string, unknown> | null;
 }
 
 export class GetRoutingFormsOutput {
