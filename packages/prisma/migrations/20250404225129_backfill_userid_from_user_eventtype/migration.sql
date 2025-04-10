@@ -13,7 +13,8 @@ CREATE TEMP TABLE migration_batch (
 CREATE TABLE IF NOT EXISTS "_migration_progress" (
     event_type_id INTEGER PRIMARY KEY,
     processed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    target_user_id INTEGER
+    target_user_id INTEGER,
+    status TEXT DEFAULT 'processed'  -- 'processed', 'skipped_conflict', 'skipped_mismatch'
 );
 
 -- Insert records in batches
@@ -25,6 +26,7 @@ DECLARE
     max_batch INTEGER;
     conflict_count INTEGER := 0;
     updated_count INTEGER := 0;
+    skipped_count INTEGER := 0;
     batch_error BOOLEAN;
 BEGIN
     -- Get total records that haven't been processed yet
@@ -64,21 +66,25 @@ BEGIN
                 SELECT DISTINCT ON (et.id)  -- Ensure we only update each event type once
                     et.id as event_type_id,
                     mb.user_id,
-                    et.slug
+                    et.slug,
+                    CASE 
+                        WHEN EXISTS (
+                            SELECT 1 FROM "EventType" et2 
+                            WHERE et2.slug = et.slug 
+                            AND et2."userId" = mb.user_id
+                            AND et2.id != et.id
+                        ) THEN 'conflict'
+                        WHEN et."userId" IS NOT NULL AND et."userId" != mb.user_id THEN 'mismatch'
+                        ELSE 'safe'
+                    END as update_status
                 FROM "EventType" et
                 JOIN migration_batch mb ON et.id = mb.event_type_id
-                LEFT JOIN "EventType" et2 ON et2.slug = et.slug 
-                    AND et2."userId" = mb.user_id
-                    AND et2.id != et.id
-                WHERE et2.id IS NULL  -- No existing record with same slug and userId
-                AND (et."userId" IS NULL OR et."userId" != mb.user_id)
                 ORDER BY et.id, mb.user_id  -- Consistent ordering
             )
             INSERT INTO updated_records
-            SELECT et.id, tu.user_id
-            FROM "EventType" et
-            JOIN to_update tu ON et.id = tu.event_type_id
-            WHERE (et."userId" IS NULL OR et."userId" != tu.user_id);
+            SELECT event_type_id, user_id
+            FROM to_update
+            WHERE update_status = 'safe';
 
             -- Update the EventType table
             UPDATE "EventType" et
@@ -89,10 +95,34 @@ BEGIN
             GET DIAGNOSTICS updated_count = ROW_COUNT;
             
             -- Mark processed records
-            INSERT INTO "_migration_progress" (event_type_id, target_user_id)
-            SELECT event_type_id, user_id
-            FROM updated_records
+            WITH processed_records AS (
+                SELECT 
+                    mb.event_type_id,
+                    mb.user_id,
+                    CASE 
+                        WHEN ur.event_type_id IS NOT NULL THEN 'processed'
+                        WHEN EXISTS (
+                            SELECT 1 FROM "EventType" et2 
+                            WHERE et2.slug = et.slug 
+                            AND et2."userId" = mb.user_id
+                            AND et2.id != et.id
+                        ) THEN 'skipped_conflict'
+                        ELSE 'skipped_mismatch'
+                    END as status
+                FROM migration_batch mb
+                JOIN "EventType" et ON et.id = mb.event_type_id
+                LEFT JOIN updated_records ur ON mb.event_type_id = ur.event_type_id
+            )
+            INSERT INTO "_migration_progress" (event_type_id, target_user_id, status)
+            SELECT event_type_id, user_id, status
+            FROM processed_records
             ON CONFLICT (event_type_id) DO NOTHING;
+
+            -- Count skipped records
+            SELECT COUNT(*) INTO skipped_count
+            FROM "_migration_progress"
+            WHERE status IN ('skipped_conflict', 'skipped_mismatch')
+            AND processed_at > CURRENT_TIMESTAMP - INTERVAL '1 minute';
 
             -- Drop temporary table
             DROP TABLE updated_records;
@@ -109,8 +139,8 @@ BEGIN
             );
 
             -- Log progress
-            RAISE NOTICE 'Processed batch % of %. Updated % records. Found % conflicts', 
-                current_batch + 1, max_batch, updated_count, conflict_count;
+            RAISE NOTICE 'Processed batch % of %. Updated % records. Skipped % records. Found % conflicts', 
+                current_batch + 1, max_batch, updated_count, skipped_count, conflict_count;
 
         EXCEPTION WHEN OTHERS THEN
             -- If anything goes wrong, mark the batch as failed and continue
@@ -134,6 +164,7 @@ DECLARE
     conflict_count INTEGER;
     mismatch_details TEXT;
     conflict_details TEXT;
+    skipped_details TEXT;
 BEGIN
     -- Show sample of mismatches
     RAISE NOTICE 'Sample of mismatches (EventType.userId != _user_eventtype.B):';
@@ -156,9 +187,9 @@ BEGIN
             END as has_conflict
         FROM "EventType" et
         JOIN "_user_eventtype" uet ON et.id = uet."A"
-        LEFT JOIN "_migration_progress" mp ON et.id = mp.event_type_id
+        JOIN "_migration_progress" mp ON et.id = mp.event_type_id
         WHERE et."userId" != uet."B"
-        AND mp.event_type_id IS NOT NULL  -- Only check records we've processed
+        AND mp.status = 'processed'  -- Only check records we've processed
         LIMIT 5
     )
     SELECT string_agg(
@@ -179,7 +210,8 @@ BEGIN
     FROM "EventType" et
     JOIN "_user_eventtype" uet ON et.id = uet."A"
     JOIN "_migration_progress" mp ON et.id = mp.event_type_id
-    WHERE et."userId" != uet."B";
+    WHERE et."userId" != uet."B"
+    AND mp.status = 'processed';  -- Only count mismatches in processed records
 
     -- Show sample of conflicts
     RAISE NOTICE 'Sample of conflicts (duplicate slug for same userId):';
@@ -196,6 +228,7 @@ BEGIN
             AND et2."userId" = uet."B"
             AND et2.id != et.id
         JOIN "_migration_progress" mp ON et.id = mp.event_type_id
+        WHERE mp.status = 'skipped_conflict'  -- Only show skipped conflicts
         LIMIT 5
     )
     SELECT string_agg(
@@ -216,18 +249,27 @@ BEGIN
     FROM "EventType" et
     JOIN "_user_eventtype" uet ON et.id = uet."A"
     JOIN "_migration_progress" mp ON et.id = mp.event_type_id
-    WHERE EXISTS (
-        SELECT 1
-        FROM "EventType" et2
-        WHERE et2.slug = et.slug
-        AND et2."userId" = uet."B"
-        AND et2.id != et.id
-    );
+    WHERE mp.status = 'skipped_conflict';  -- Only count skipped conflicts
 
-    RAISE NOTICE 'Found % total mismatches and % total conflicts', mismatch_count, conflict_count;
+    -- Show summary of skipped records
+    WITH skipped_summary AS (
+        SELECT status, COUNT(*) as count
+        FROM "_migration_progress"
+        WHERE status IN ('skipped_conflict', 'skipped_mismatch')
+        GROUP BY status
+    )
+    SELECT string_agg(
+        format(E'\n%s: %s records', status, count),
+        ''
+    )
+    FROM skipped_summary
+    INTO skipped_details;
+    
+    RAISE NOTICE 'Summary of skipped records:%', skipped_details;
+    RAISE NOTICE 'Found % total mismatches in processed records and % total conflicts', mismatch_count, conflict_count;
 
     IF mismatch_count > 0 THEN
-        RAISE EXCEPTION 'Migration completed with mismatches';
+        RAISE EXCEPTION 'Migration completed with mismatches in processed records';
     END IF;
 END $$;
 
