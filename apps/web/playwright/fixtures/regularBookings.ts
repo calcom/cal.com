@@ -11,7 +11,17 @@ export const scheduleSuccessfullyText = "This meeting is scheduled";
 type UserFixture = ReturnType<typeof createUsersFixture>;
 
 export async function loginUser(users: UserFixture) {
-  const pro = await users.create({ name: "testuser" });
+  const pro = await users.create({
+    name: "testuser",
+    eventTypes: [
+      {
+        title: "Offset Event",
+        slug: "offset-event",
+        length: 30,
+        offsetStart: 10,
+      },
+    ],
+  });
   await pro.apiLogin();
 }
 
@@ -191,7 +201,6 @@ export function createBookingPageFixture(page: Page) {
       const offsetStartTimes = (await localize("en"))("offset_toggle");
       const offsetLabel = page.getByLabel(offsetStart);
 
-      await page.locator("fieldset").filter({ hasText: offsetStartTimes }).getByRole("switch").click();
       await offsetLabel.fill("10");
       await expect(offsetLabel).toHaveValue("10");
       await expect(
