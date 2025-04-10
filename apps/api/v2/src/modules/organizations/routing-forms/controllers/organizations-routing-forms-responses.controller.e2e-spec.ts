@@ -254,7 +254,6 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
           expect(data).toBeDefined();
           expect(data.id).toEqual(routingFormResponse.id);
           expect(data.formId).toEqual(routingFormResponse.formId);
-          console.log(data.response);
           expect(data.response).toEqual(updatedResponse);
         });
     });
