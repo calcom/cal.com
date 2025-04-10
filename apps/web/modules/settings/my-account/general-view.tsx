@@ -9,6 +9,7 @@ import SectionBottomActions from "@calcom/features/settings/SectionBottomActions
 import { formatLocalizedDateTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localeOptions } from "@calcom/lib/i18n";
+import { loadTranslations } from "@calcom/lib/server/i18n";
 import { nameOfDay } from "@calcom/lib/weekday";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -113,6 +114,12 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
       if (res.locale) {
         window.calNewLocale = res.locale;
         document.cookie = `calNewLocale=${res.locale}; path=/`;
+        const newLocaleI18nTranslations = await loadTranslations(res.locale, "common");
+        window.APP_ROUTER_I18N = {
+          translations: newLocaleI18nTranslations,
+          locale: res.locale,
+          ns: "common",
+        };
       }
       await revalidatePage();
     },
