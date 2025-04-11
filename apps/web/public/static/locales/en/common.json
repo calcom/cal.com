@@ -3094,6 +3094,8 @@
   "webhook_create_failed": "Failed to create webhook.",
   "invalid_link": "Invalid Link",
   "currently_subscribed_to_plan": "You are currently subscribed to {{planFirstLetter}}{{planRest}} plan",
+  "client_id": "Client Id",
+  "client_secret": "Client Secret",
   "down_for_maintenance": "Down for maintenance",
   "maintenance_message": "The Cal.com team are performing scheduled maintenance. If you have any questions, please contact support.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
