@@ -61,6 +61,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
   const timezone = searchParams?.get("cal.tz") || null;
+  const layout = (searchParams?.get("layout") as BookerLayouts | null) ?? bookerLayout.defaultLayout;
 
   useEffect(() => {
     // This event isn't processed by BookingPageTagManager because BookingPageTagManager hasn't loaded when it is fired. I think we should have a queue in fire method to handle this.
@@ -73,7 +74,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     rescheduleUid,
     rescheduledBy,
     bookingUid: bookingUid,
-    layout: bookerLayout.isMobile ? "mobile" : searchParams?.get("layout") || bookerLayout.defaultLayout,
+    layout: bookerLayout.isMobile ? "mobile" : layout,
     org: props.entity.orgSlug,
     timezone,
   });
