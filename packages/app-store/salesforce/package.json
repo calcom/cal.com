@@ -5,6 +5,7 @@
   "main": "./index.ts",
   "description": "Salesforce (Sales Cloud) is a cloud-based application designed to help your salespeople sell smarter and faster by centralizing customer information, logging their interactions with your company, and automating many of the tasks salespeople do every day.",
   "scripts": {
+    "generate:schema": "graphql-introspection-json-to-sdl ./schema.json > ./schema.graphql",
     "codegen": "graphql-codegen --config codegen.ts",
     "codegen:watch": "graphql-codegen --config codegen.ts --watch"
   },
@@ -19,6 +20,8 @@
     "@calcom/types": "*",
     "@graphql-codegen/cli": "^5.0.5",
     "@parcel/watcher": "^2.5.1",
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "graphql-config": "^5.1.3",
+    "graphql-introspection-json-to-sdl": "^1.0.3"
   }
 }
