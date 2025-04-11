@@ -611,6 +611,8 @@ model BookingReference {
   delegationCredentialId           String?
   domainWideDelegation             DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: SetNull)
   domainWideDelegationCredentialId String?
+  // note(zomars): This is used to store the raw data from the external calendar and compare in a future time with bi-directional sync.
+  rawData                          Json?
 
   @@index([bookingId])
   @@index([type])
