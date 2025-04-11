@@ -72,7 +72,6 @@ describe("SalesforceGraphQLClient", () => {
     const client = new SalesforceGraphQLClient({ accessToken: "", instanceUrl: "" });
 
     const owner = await client.GetAccountRecordsForRRSkip("test@example.com");
-    console.log(owner);
 
     expect(owner).toEqual([
       {
@@ -112,7 +111,6 @@ describe("SalesforceGraphQLClient", () => {
     const client = new SalesforceGraphQLClient({ accessToken: "", instanceUrl: "" });
 
     const owner = await client.GetAccountRecordsForRRSkip("test@example.com");
-    console.log(owner);
 
     expect(owner).toEqual([
       {
@@ -224,7 +222,6 @@ describe("SalesforceGraphQLClient", () => {
     const client = new SalesforceGraphQLClient({ accessToken: "", instanceUrl: "" });
 
     const owner = await client.GetAccountRecordsForRRSkip("test@example.com");
-    console.log(owner);
 
     expect(owner).toEqual([
       {
