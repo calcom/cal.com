@@ -177,7 +177,7 @@ import { BookerEmbed } from "@calcom/atoms";
 export default function Booker( props : BookerProps ) {
   return (
     <>
-      <BookerEmbed.FloatingButton 
+      <BookerEmbed
         // Using calLink from embed generator where docs use props.eventTypeSlug
         eventSlug="${calLink}"
         // Example using layout from config, adjust as needed
