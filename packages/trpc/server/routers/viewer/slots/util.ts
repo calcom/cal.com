@@ -14,8 +14,9 @@ import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential/server";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
-import { getBusyTimesForLimitChecks } from "@calcom/lib/getBusyTimes";
+import { getBusyTimes, getBusyTimesForLimitChecks } from "@calcom/lib/getBusyTimes";
 import type { CurrentSeats, GetAvailabilityUser, IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
 import { getUsersAvailability } from "@calcom/lib/getUserAvailability";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
@@ -35,8 +36,10 @@ import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { PeriodType, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventBusyDate } from "@calcom/types/Calendar";
+import type { EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialPayload, CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { TRPCError } from "@trpc/server";
@@ -876,7 +879,54 @@ const calculateHostsAndAvailabilities = async ({
     input.rescheduleUid && durationToUse ? endTime.add(durationToUse, "minute").toDate() : endTime.toDate();
 
   const userIdAndEmailMap = new Map(usersWithCredentials.map((user) => [user.id, user.email]));
-  const allUserIds = Array.from(userIdAndEmailMap.keys());
+
+  const allUserIds = usersWithCredentials.map((user) => user.id);
+
+  // Get the booker's busy times if this is an owner reschedule
+  let bookerBusyTimes: EventBusyDetails[] = [];
+  if (input.rescheduleUid) {
+    const booking = await prisma.booking.findFirst({
+      where: {
+        uid: input.rescheduleUid,
+        status: {
+          in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
+        },
+      },
+      select: {
+        attendees: true,
+      },
+    });
+    if (booking?.attendees?.[0]?.email) {
+      const bookerEmail = booking.attendees[0].email;
+      const bookerUser = await prisma.user.findUnique({
+        where: { email: bookerEmail },
+        select: {
+          id: true,
+          credentials: {
+            select: {
+              ...credentialForCalendarServiceSelect,
+              user: { select: { email: true } },
+            },
+          },
+          selectedCalendars: true,
+          timeZone: true,
+        },
+      });
+
+      if (bookerUser) {
+        bookerBusyTimes = await getBusyTimes({
+          credentials: buildNonDelegationCredentials(bookerUser.credentials),
+          selectedCalendars: bookerUser.selectedCalendars,
+          userId: bookerUser.id,
+          userEmail: bookerEmail,
+          username: bookerEmail.split("@")[0],
+          bypassBusyCalendarTimes: false,
+          startTime: startTime.toISOString(),
+          endTime: endTime.toISOString(),
+        });
+      }
+    }
+  }
 
   const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
     monitorCallbackAsync(BookingRepo.findAllExistingBookingsForEventTypeBetween, {
@@ -934,6 +984,7 @@ const calculateHostsAndAvailabilities = async ({
       returnDateOverrides: false,
       bypassBusyCalendarTimes,
       shouldServeCache,
+      additionalBusyTimes: bookerBusyTimes,
     },
     initialData: {
       eventType,
