@@ -27,6 +27,7 @@ import {
   RoutingReasons,
 } from "./enums";
 import { getSalesforceAppKeys } from "./getSalesforceAppKeys";
+import { SalesforceGraphQLClient } from "./graphql/SalesforceGraphQLClient";
 import getAllPossibleWebsiteValuesFromEmailDomain from "./utils/getAllPossibleWebsiteValuesFromEmailDomain";
 import getDominantAccountId from "./utils/getDominantAccountId";
 import type { GetDominantAccountIdInput } from "./utils/getDominantAccountId";
@@ -81,6 +82,8 @@ export default class SalesforceCRMService implements CRM {
   private appOptions: z.infer<typeof appDataSchema>;
   private doNotCreateEvent = false;
   private fallbackToContact = false;
+  private accessToken: string;
+  private instanceUrl: string;
 
   constructor(credential: CredentialPayload, appOptions: z.infer<typeof appDataSchema>, testMode = false) {
     this.integrationName = "salesforce_other_calendar";
@@ -89,6 +92,9 @@ export default class SalesforceCRMService implements CRM {
     }
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
     this.appOptions = appOptions;
+    const credentialKey = credential.key as unknown as ExtendedTokenResponse;
+    this.accessToken = credentialKey.access_token;
+    this.instanceUrl = credentialKey.instance_url;
   }
 
   public getAppOptions() {
@@ -397,6 +403,7 @@ export default class SalesforceCRMService implements CRM {
     forRoundRobinSkip?: boolean;
   }) {
     const log = logger.getSubLogger({ prefix: [`[getContacts]:${emails}`] });
+
     try {
       const conn = await this.conn;
       const emailArray = Array.isArray(emails) ? emails : [emails];
@@ -418,6 +425,20 @@ export default class SalesforceCRMService implements CRM {
           appOptions,
         })
       );
+
+      if (recordToSearch === SalesforceRecordEnum.ACCOUNT && forRoundRobinSkip) {
+        try {
+          const client = new SalesforceGraphQLClient({
+            accessToken: this.accessToken,
+            instanceUrl: this.instanceUrl,
+          });
+
+          return await client.GetAccountRecordsForRRSkip(emailArray[0]);
+        } catch (error) {
+          log.error("Error getting account records for round robin skip", safeStringify({ error }));
+          return [];
+        }
+      }
 
       // Handle Account record type
       if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {
@@ -495,15 +516,6 @@ export default class SalesforceCRMService implements CRM {
 
       if (!records.length && results?.records?.length) {
         records = results.records as ContactRecord[];
-      }
-
-      if (recordToSearch === SalesforceRecordEnum.ACCOUNT && forRoundRobinSkip && !results.records.length) {
-        const attendeeEmail = emailArray[0];
-        // If we can't find the exact contact, then we need to search for an account where the contacts share the same email domain
-        const account = await this.getAccountBasedOnEmailDomainOfContacts(attendeeEmail);
-        if (account) {
-          records = [account];
-        }
       }
 
       if (!records.length) {
@@ -965,72 +977,6 @@ export default class SalesforceCRMService implements CRM {
     return accountId;
   }
 
-  public async getAccountBasedOnEmailDomainOfContacts(email: string) {
-    const conn = await this.conn;
-    const emailDomain = email.split("@")[1];
-    const log = logger.getSubLogger({ prefix: [`[getAccountBasedOnEmailDomainOfContacts]:${email}`] });
-    log.info("Querying first account matching email domain", safeStringify({ emailDomain }));
-    // First check if an account has the same website as the email domain of the attendee
-    const accountQuery = await conn.query(
-      `SELECT Id, OwnerId, Owner.Email, Website FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
-        emailDomain
-      )}) LIMIT 1`
-    );
-
-    if (accountQuery.records.length > 0) {
-      const account = accountQuery.records[0] as {
-        Id?: string;
-        OwnerId?: string;
-        Owner?: { Email?: string };
-        Website?: string;
-      };
-
-      log.info(
-        "Found account matching email domain",
-        safeStringify({
-          emailDomain,
-          accountWebsite: account.Website,
-          accountOwnerEmail: account.Owner?.Email,
-          accountOwnerId: account.OwnerId,
-          accountId: account.Id,
-        })
-      );
-
-      return {
-        ...account,
-        Email: undefined,
-      };
-    }
-
-    // Fallback to querying which account the majority of contacts are under
-    const contactQuery = await conn.query(
-      `SELECT Id, Email, AccountId, Account.OwnerId, Account.Owner.Email FROM Contact WHERE Email LIKE '%@${emailDomain}' AND AccountId != null`
-    );
-
-    const contacts = contactQuery?.records as {
-      AccountId: string;
-      Account: { OwnerId?: string; Owner: { Email: string } };
-    }[];
-    if (!contacts) return;
-
-    const dominantAccountId = this.getDominantAccountId(contacts);
-
-    const contactUnderAccount = contacts.find((contact) => contact.AccountId === dominantAccountId);
-    log.info("Using dominant account's owner", safeStringify({ dominantAccountId }));
-
-    return {
-      Id: dominantAccountId,
-      Email: undefined,
-      OwnerId: contactUnderAccount?.Account?.OwnerId,
-      Owner: {
-        Email: contactUnderAccount?.Account?.Owner?.Email,
-      },
-      attributes: {
-        type: SalesforceRecordEnum.ACCOUNT,
-      },
-    };
-  }
-
   private setFallbackToContact(boolean: boolean) {
     this.fallbackToContact = boolean;
   }
@@ -1123,7 +1069,6 @@ export default class SalesforceCRMService implements CRM {
     const writeOnRecordBody: Record<string, any> = {};
 
     for (const field of existingFields) {
-      let fieldTypeHandled = false;
       const fieldConfig = fieldsToWriteTo[field.name];
 
       if (!fieldConfig) {
@@ -1146,14 +1091,11 @@ export default class SalesforceCRMService implements CRM {
       }
 
       if (fieldConfig.fieldType === SalesforceFieldType.CUSTOM) {
-        fieldTypeHandled = true;
         const extractedValue = await this.getTextFieldValue({
           fieldValue: fieldConfig.value,
           fieldLength: field.length,
           calEventResponses,
           bookingUid,
-          recordId,
-          fieldName: field.name,
         });
         if (extractedValue) {
           writeOnRecordBody[field.name] = extractedValue;
@@ -1167,14 +1109,11 @@ export default class SalesforceCRMService implements CRM {
         field.type === SalesforceFieldType.TEXTAREA ||
         field.type === SalesforceFieldType.PHONE
       ) {
-        fieldTypeHandled = true;
         const extractedText = await this.getTextFieldValue({
           fieldValue: fieldConfig.value,
           fieldLength: field.length,
           calEventResponses,
           bookingUid,
-          recordId,
-          fieldName: field.name,
         });
         if (extractedText) {
           writeOnRecordBody[field.name] = extractedText;
@@ -1185,7 +1124,6 @@ export default class SalesforceCRMService implements CRM {
         startTime &&
         organizerEmail
       ) {
-        fieldTypeHandled = true;
         const dateValue = await this.getDateFieldValue(
           fieldConfig.value,
           startTime,
@@ -1197,7 +1135,6 @@ export default class SalesforceCRMService implements CRM {
           continue;
         }
       } else if (field.type === SalesforceFieldType.PICKLIST) {
-        fieldTypeHandled = true;
         const picklistValue = await this.getPicklistFieldValue({
           fieldConfigValue: fieldConfig.value,
           salesforceField: field,
@@ -1210,16 +1147,12 @@ export default class SalesforceCRMService implements CRM {
           continue;
         }
       } else if (field.type === SalesforceFieldType.CHECKBOX) {
-        fieldTypeHandled = true;
         // If the checkbox field value is not a boolean for some reason, default to if it's a falsely value
         const checkboxValue = !!fieldConfig.value;
         writeOnRecordBody[field.name] = checkboxValue;
         continue;
       }
 
-      if (!fieldTypeHandled) {
-        log.error(`Salesforce field type ${field.type} not handled for fieldConfig ${fieldConfig}`);
-      }
       log.error(
         `No value found for field ${field.name} with value ${
           personRecord[field.name]
@@ -1253,8 +1186,6 @@ export default class SalesforceCRMService implements CRM {
         fieldLength: field.length,
         calEventResponses: event.responses,
         bookingUid: event?.uid,
-        recordId: event?.uid ?? "Cal booking",
-        fieldName: field.name,
       });
     }
 
@@ -1266,60 +1197,34 @@ export default class SalesforceCRMService implements CRM {
     fieldLength,
     calEventResponses,
     bookingUid,
-    recordId,
-    fieldName,
   }: {
     fieldValue: string;
     fieldLength?: number;
     calEventResponses?: CalEventResponses | null;
     bookingUid?: string | null;
-    recordId: string;
-    fieldName: string;
   }) {
-    const log = logger.getSubLogger({ prefix: [`[getTextFieldValue]: ${recordId} - ${fieldName}`] });
-
     // If no {} then indicates we're passing a static value
-    if (!fieldValue.startsWith("{") && !fieldValue.endsWith("}")) {
-      log.info("Returning static value");
-      return fieldValue;
-    }
+    if (!fieldValue.startsWith("{") && !fieldValue.endsWith("}")) return fieldValue;
 
     let valueToWrite = fieldValue;
     if (fieldValue.startsWith("{form:")) {
       // Get routing from response
-      if (!bookingUid) {
-        log.error(`BookingUid not passed. Cannot get form responses without it`);
-        return;
-      }
-      valueToWrite = await this.getTextValueFromRoutingFormResponse(fieldValue, bookingUid, recordId);
+      if (!bookingUid) return;
+      valueToWrite = await this.getTextValueFromRoutingFormResponse(fieldValue, bookingUid);
     } else {
       // Get the value from the booking response
-      if (!calEventResponses) {
-        log.error(`CalEventResponses not passed. Cannot get booking form responses`);
-        return;
-      }
+      if (!calEventResponses) return;
       valueToWrite = this.getTextValueFromBookingResponse(fieldValue, calEventResponses);
     }
 
     // If a value wasn't found in the responses. Don't return the field name
-    if (valueToWrite === fieldValue) {
-      log.error("No responses found returning nothing");
-      return;
-    }
+    if (valueToWrite === fieldValue) return;
 
     // Trim incase the replacement values increased the length
     return fieldLength ? valueToWrite.substring(0, fieldLength) : valueToWrite;
   }
 
-  private async getTextValueFromRoutingFormResponse(
-    fieldValue: string,
-    bookingUid: string,
-    recordId: string
-  ) {
-    const log = logger.getSubLogger({
-      prefix: [`[getTextValueFromRoutingFormResponse]: ${recordId} - bookingUid: ${bookingUid}`],
-    });
-
+  private async getTextValueFromRoutingFormResponse(fieldValue: string, bookingUid: string) {
     // Get the form response
     const routingFormResponse = await prisma.app_RoutingForms_FormResponse.findFirst({
       where: {
@@ -1329,23 +1234,14 @@ export default class SalesforceCRMService implements CRM {
         response: true,
       },
     });
-    if (!routingFormResponse) {
-      log.error("Routing form response not found");
-      return fieldValue;
-    }
+    if (!routingFormResponse) return fieldValue;
     const response = routingFormResponse.response as FormResponse;
     const regex = /\{form:(.*?)\}/;
     const regexMatch = fieldValue.match(regex);
-    if (!regexMatch) {
-      log.error("Could not find regex match to {form:}");
-      return fieldValue;
-    }
+    if (!regexMatch) return fieldValue;
 
     const identifierField = regexMatch?.[1];
-    if (!identifierField) {
-      log.error(`Could not find matching regex string ${regexMatch}`);
-      return fieldValue;
-    }
+    if (!identifierField) return fieldValue;
 
     // Search for fieldValue, only handle raw text return for now
     for (const fieldId of Object.keys(response)) {
@@ -1354,11 +1250,6 @@ export default class SalesforceCRMService implements CRM {
         return field.value.toString();
       }
     }
-    log.error(
-      `Could not find form response value for identifierField ${identifierField} in response keys ${Object.keys(
-        response
-      )}`
-    );
 
     return fieldValue;
   }
@@ -1434,8 +1325,6 @@ export default class SalesforceCRMService implements CRM {
       fieldLength: salesforceField.length,
       calEventResponses,
       bookingUid,
-      recordId,
-      fieldName: salesforceField.name,
     });
 
     if (!fieldTextValue) {
@@ -1565,8 +1454,6 @@ export default class SalesforceCRMService implements CRM {
       fieldValue: onBookingWriteToRecordFields[companyFieldName].value as string,
       fieldLength: defaultTextValueLength,
       calEventResponses,
-      recordId: "New lead",
-      fieldName: companyFieldName,
     });
 
     if (companyValue && companyValue === onBookingWriteToRecordFields[companyFieldName].value) return;
