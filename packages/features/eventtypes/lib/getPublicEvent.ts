@@ -215,16 +215,25 @@ function isAvailableInTimeSlot(
 }
 
 // TODO: Convert it to accept a single parameter with structured data
-export const getPublicEvent = async (
-  username: string,
-  eventSlug: string,
-  isTeamEvent: boolean | undefined,
-  org: string | null,
-  prisma: PrismaClient,
-  fromRedirectOfNonOrgLink: boolean,
-  currentUserId?: number,
-  fetchAllUsers = false
-) => {
+export const getPublicEvent = async ({
+  username,
+  eventSlug,
+  isTeamEvent,
+  org,
+  fromRedirectOfNonOrgLink,
+  currentUserId,
+  prisma,
+  fetchAllUsers = false,
+}: {
+  prisma: PrismaClient;
+  username: string;
+  eventSlug: string;
+  org: string | null;
+  fromRedirectOfNonOrgLink: boolean;
+  isTeamEvent?: boolean;
+  currentUserId?: number;
+  fetchAllUsers?: boolean;
+}) => {
   const usernameList = getUsernameList(username);
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
   // In case of dynamic group event, we fetch user's data and use the default event.
