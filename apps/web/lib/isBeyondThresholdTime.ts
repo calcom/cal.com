@@ -10,7 +10,7 @@ export default function isBeyondThresholdTime(
   if (isNaN(bookingStartTime)) return true; // check for invalid date string
 
   const now = new Date().getTime();
-  const thresholdMs = unit === "hours" ? time * 60 * 60 * 1000 : time * 60 * 1000;
+  const threshold = unit === "hours" ? time * 60 * 60 * 1000 : time * 60 * 1000;
 
-  return bookingStartTime - now > thresholdMs;
+  return bookingStartTime - now > threshold;
 }
