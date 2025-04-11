@@ -1,13 +1,9 @@
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { Controller, useFormContext } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
-import { ShellMain } from "@calcom/features/shell/Shell";
-import { IS_CALCOM } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -16,175 +12,23 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { Brand } from "@calcom/types/utils";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
-import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
-import { VerticalDivider } from "@calcom/ui/components/divider";
-import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
 import { Form } from "@calcom/ui/components/form";
-import { TextAreaField } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { TRPCClientError } from "@trpc/react-query";
 
 import { getAbsoluteEventTypeRedirectUrl } from "../getEventTypeRedirectUrl";
 import { RoutingPages } from "../lib/RoutingPages";
-import { isFallbackRoute } from "../lib/isFallbackRoute";
 import { findMatchingRoute } from "../lib/processRoute";
 import type { FormResponse, NonRouterRoute, RoutingFormWithResponseCount, RoutingForm } from "../types/types";
 import type { NewFormDialogState } from "./FormActions";
-import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
+import { FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
 import { InfoLostWarningDialog } from "./InfoLostWarningDialog";
-import RoutingNavBar from "./RoutingNavBar";
+import { Header } from "./_components/Header";
 import { getServerSidePropsForSingleFormView } from "./getServerSidePropsSingleForm";
-
-const Actions = ({
-  form,
-  mutation,
-}: {
-  form: RoutingFormWithResponseCount;
-  mutation: {
-    isPending: boolean;
-  };
-}) => {
-  const { t } = useLocale();
-
-  return (
-    <div className="flex items-center">
-      <div className="hidden items-center sm:inline-flex">
-        <FormAction className="self-center" data-testid="toggle-form" action="toggle" routingForm={form} />
-        <VerticalDivider />
-      </div>
-      <ButtonGroup combined containerProps={{ className: "hidden md:inline-flex items-center" }}>
-        <Tooltip sideOffset={4} content={t("preview")} side="bottom">
-          <FormAction
-            routingForm={form}
-            color="secondary"
-            target="_blank"
-            variant="icon"
-            type="button"
-            rel="noreferrer"
-            action="preview"
-            StartIcon="external-link"
-          />
-        </Tooltip>
-        <FormAction
-          routingForm={form}
-          action="copyLink"
-          color="secondary"
-          variant="icon"
-          type="button"
-          StartIcon="link"
-          tooltip={t("copy_link_to_form")}
-          tooltipSide="bottom"
-        />
-        <Tooltip sideOffset={4} content={t("download_responses")} side="bottom">
-          <FormAction
-            data-testid="download-responses"
-            routingForm={form}
-            action="download"
-            color="secondary"
-            variant="icon"
-            type="button"
-            StartIcon="download"
-          />
-        </Tooltip>
-        <FormAction
-          routingForm={form}
-          action="embed"
-          color="secondary"
-          variant="icon"
-          StartIcon="code"
-          tooltip={t("embed")}
-          tooltipSide="bottom"
-        />
-        <DropdownMenuSeparator />
-        <FormAction
-          routingForm={form}
-          action="_delete"
-          // className="mr-3"
-          variant="icon"
-          StartIcon="trash"
-          color="secondary"
-          type="button"
-          tooltip={t("delete")}
-          tooltipSide="bottom"
-        />
-      </ButtonGroup>
-
-      <div className="flex md:hidden">
-        <FormActionsDropdown>
-          <FormAction
-            routingForm={form}
-            color="minimal"
-            target="_blank"
-            type="button"
-            rel="noreferrer"
-            action="preview"
-            StartIcon="external-link">
-            {t("preview")}
-          </FormAction>
-          <FormAction
-            action="copyLink"
-            className="w-full"
-            routingForm={form}
-            color="minimal"
-            type="button"
-            StartIcon="link">
-            {t("copy_link_to_form")}
-          </FormAction>
-          <FormAction
-            action="download"
-            routingForm={form}
-            className="w-full"
-            color="minimal"
-            type="button"
-            StartIcon="download">
-            {t("download_responses")}
-          </FormAction>
-          <FormAction
-            action="embed"
-            routingForm={form}
-            color="minimal"
-            type="button"
-            className="w-full"
-            StartIcon="code">
-            {t("embed")}
-          </FormAction>
-          <DropdownMenuSeparator className="hidden sm:block" />
-          <FormAction
-            action="_delete"
-            routingForm={form}
-            className="w-full"
-            type="button"
-            color="destructive"
-            StartIcon="trash">
-            {t("delete")}
-          </FormAction>
-          <div className="block sm:hidden">
-            <DropdownMenuSeparator />
-            <FormAction
-              data-testid="toggle-form"
-              action="toggle"
-              routingForm={form}
-              label="Disable Form"
-              extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4 transition"
-            />
-          </div>
-        </FormActionsDropdown>
-      </div>
-      <VerticalDivider />
-      <Button data-testid="update-form" loading={mutation.isPending} type="submit" color="primary">
-        {t("save")}
-      </Button>
-    </div>
-  );
-};
 
 type SingleFormComponentProps = {
   form: RoutingFormWithResponseCount;
@@ -672,9 +516,6 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form]);
-
-  const sendUpdatesTo = hookForm.watch("settings.sendUpdatesTo", []) as number[];
-  const sendToAll = hookForm.watch("settings.sendToAll", false) as boolean;
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess() {
       showToast(t("form_updated_successfully"), "success");
@@ -690,8 +531,6 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
       utils.viewer.appRoutingForms.formQuery.invalidate({ id: form.id });
     },
   });
-  const connectedForms = form.connectedForms;
-
   const uptoDateForm = {
     ...hookForm.getValues(),
     routes: hookForm.watch("routes"),
@@ -718,206 +557,19 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           appUrl={appUrl}
           newFormDialogState={newFormDialogState}
           setNewFormDialogState={setNewFormDialogState}>
-          <ShellMain
-            heading={
-              <div className="flex">
-                <div>{form.name}</div>
-                {form.team && (
-                  <Badge className="ml-4 mt-1" variant="gray">
-                    {form.team.name}
-                  </Badge>
-                )}
-              </div>
-            }
-            subtitle={form.description || ""}
-            backPath={`${appUrl}/forms`}
-            CTA={<Actions form={form} mutation={mutation} />}>
-            <div className="flex flex-col items-center items-baseline px-3 md:flex-row md:items-start md:p-0">
-              <div className="lg:min-w-72 lg:max-w-72 md:max-w-56 mb-6 w-full md:mr-6">
-                <TextField
-                  type="text"
-                  containerClassName="mb-6"
-                  placeholder={t("title")}
-                  {...hookForm.register("name")}
-                />
-                <TextAreaField
-                  rows={3}
-                  id="description"
-                  data-testid="description"
-                  placeholder={t("form_description_placeholder")}
-                  {...hookForm.register("description")}
-                  defaultValue={form.description || ""}
-                />
-
-                <div className="mt-6">
-                  {form.teamId ? (
-                    <div className="flex flex-col">
-                      <span className="text-emphasis mb-3 block text-sm font-medium leading-none">
-                        {t("routing_forms_send_email_to")}
-                      </span>
-                      <AddMembersWithSwitch
-                        data-testid="routing-form-select-members"
-                        teamId={form.teamId}
-                        teamMembers={form.teamMembers.map((member) => ({
-                          value: member.id.toString(),
-                          label: member.name || member.email,
-                          avatar: member.avatarUrl || "",
-                          email: member.email,
-                          isFixed: true,
-                          defaultScheduleId: member.defaultScheduleId,
-                        }))}
-                        value={sendUpdatesTo.map((userId) => ({
-                          isFixed: true,
-                          userId: userId,
-                          priority: 2,
-                          weight: 100,
-                          scheduleId: 1,
-                        }))}
-                        onChange={(value) => {
-                          hookForm.setValue(
-                            "settings.sendUpdatesTo",
-                            value.map((teamMember) => teamMember.userId),
-                            { shouldDirty: true }
-                          );
-                          hookForm.setValue("settings.emailOwnerOnSubmission", false, {
-                            shouldDirty: true,
-                          });
-                        }}
-                        assignAllTeamMembers={sendToAll}
-                        setAssignAllTeamMembers={(value) => {
-                          hookForm.setValue("settings.sendToAll", !!value, { shouldDirty: true });
-                        }}
-                        automaticAddAllEnabled={true}
-                        isFixed={true}
-                        onActive={() => {
-                          hookForm.setValue(
-                            "settings.sendUpdatesTo",
-                            form.teamMembers.map((teamMember) => teamMember.id),
-                            { shouldDirty: true }
-                          );
-                          hookForm.setValue("settings.emailOwnerOnSubmission", false, {
-                            shouldDirty: true,
-                          });
-                        }}
-                        placeholder={t("select_members")}
-                        containerClassName="!px-0 !pb-0 !pt-0"
-                      />
-                    </div>
-                  ) : (
-                    <Controller
-                      name="settings.emailOwnerOnSubmission"
-                      control={hookForm.control}
-                      render={({ field: { value, onChange } }) => {
-                        return (
-                          <SettingsToggle
-                            title={t("routing_forms_send_email_owner")}
-                            description={t("routing_forms_send_email_owner_description")}
-                            checked={value}
-                            onCheckedChange={(val) => {
-                              onChange(val);
-                              hookForm.unregister("settings.sendUpdatesTo");
-                            }}
-                          />
-                        );
-                      }}
-                    />
-                  )}
-                </div>
-
-                {form.routers.length ? (
-                  <div className="mt-6">
-                    <div className="text-emphasis mb-2 block text-sm font-semibold leading-none ">
-                      {t("routers")}
-                    </div>
-                    <p className="text-default -mt-1 text-xs leading-normal">
-                      {t("modifications_in_fields_warning")}
-                    </p>
-                    <div className="flex">
-                      {form.routers.map((router) => {
-                        return (
-                          <div key={router.id} className="mr-2">
-                            <Link href={`${appUrl}/route-builder/${router.id}`}>
-                              <Badge variant="gray">{router.name}</Badge>
-                            </Link>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : null}
-
-                {connectedForms?.length ? (
-                  <div className="mt-6">
-                    <div className="text-emphasis mb-2 block text-sm font-semibold leading-none ">
-                      {t("connected_forms")}
-                    </div>
-                    <p className="text-default -mt-1 text-xs leading-normal">
-                      {t("form_modifications_warning")}
-                    </p>
-                    <div className="flex">
-                      {connectedForms.map((router) => {
-                        return (
-                          <div key={router.id} className="mr-2">
-                            <Link href={`${appUrl}/route-builder/${router.id}`}>
-                              <Badge variant="default">{router.name}</Badge>
-                            </Link>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : null}
-
-                <div className="mt-6 flex gap-2">
-                  <Button
-                    color="secondary"
-                    data-testid="test-preview"
-                    onClick={() => setIsTestPreviewOpen(true)}>
-                    {t("test_preview")}
-                  </Button>
-                  {IS_CALCOM && (
-                    <Tooltip content={t("contact_our_support_team")} side="right">
-                      <Button
-                        target="_blank"
-                        color="minimal"
-                        href={`https://i.cal.com/support/routing-support-session?email=${encodeURIComponent(
-                          user?.email ?? ""
-                        )}&name=${encodeURIComponent(user?.name ?? "")}&form=${encodeURIComponent(form.id)}`}>
-                        {t("need_help")}
-                      </Button>
-                    </Tooltip>
-                  )}
-                </div>
-                {form.routes?.every(isFallbackRoute) && (
-                  <Alert
-                    className="mt-6 !bg-orange-100 font-semibold text-orange-900"
-                    iconClassName="!text-orange-900"
-                    severity="neutral"
-                    title={t("no_routes_defined")}
-                  />
-                )}
-                {!form._count?.responses && (
-                  <>
-                    <Alert
-                      className="mt-2 px-4 py-3"
-                      severity="neutral"
-                      title={t("no_responses_yet")}
-                      CustomIcon="message-circle"
-                    />
-                  </>
-                )}
-              </div>
-              <div className="border-subtle bg-muted w-full rounded-md border p-8">
-                <RoutingNavBar
-                  appUrl={appUrl}
-                  form={form}
-                  hookForm={hookForm}
-                  setShowInfoLostDialog={setShowInfoLostDialog}
-                />
+          <div className="flex h-full min-h-screen w-full flex-col">
+            <Header
+              routingForm={form}
+              isSaving={mutation.isPending}
+              appUrl={appUrl}
+              setShowInfoLostDialog={setShowInfoLostDialog}
+            />
+            <div className="bg-default flex flex-1">
+              <div className="mx-auto w-full max-w-4xl">
                 <Page hookForm={hookForm} form={form} appUrl={appUrl} />
               </div>
             </div>
-          </ShellMain>
+          </div>
         </FormActionsProvider>
       </Form>
       {showInfoLostDialog && (
