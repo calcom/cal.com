@@ -64,6 +64,7 @@ export async function joinAnyChildTeamOnOrgInvite({
       },
       data: {
         accepted: true,
+        updatedAt: new Date(),
       },
     }),
     prisma.membership.updateMany({
@@ -73,6 +74,7 @@ export async function joinAnyChildTeamOnOrgInvite({
           parentId: org.id,
         },
         accepted: false,
+        updatedAt: new Date(),
       },
       data: {
         accepted: true,

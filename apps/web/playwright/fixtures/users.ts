@@ -231,6 +231,8 @@ const createTeamAndAddUser = async (
       userId,
       role: role,
       accepted: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
   });
 

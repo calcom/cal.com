@@ -69,6 +69,8 @@ export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => 
         teamId,
         role: MembershipRole.MEMBER,
         accepted: accepted || false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       } as Prisma.MembershipCreateManyInput;
     })
   );

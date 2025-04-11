@@ -254,6 +254,8 @@ export class TeamRepository {
           userId: userId,
           role: MembershipRole.MEMBER,
           accepted: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
       });
     } catch (e) {

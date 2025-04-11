@@ -21,7 +21,7 @@ export class TeamsMembershipsRepository {
 
   async createTeamMembership(teamId: number, data: CreateTeamMembershipInput) {
     return this.dbWrite.prisma.membership.create({
-      data: { ...data, teamId: teamId },
+      data: { ...data, teamId: teamId, createdAt: new Date(), updatedAt: new Date() },
       include: { user: { select: MembershipUserSelect } },
     });
   }
@@ -69,7 +69,7 @@ export class TeamsMembershipsRepository {
 
   async updateTeamMembershipById(teamId: number, membershipId: number, data: UpdateTeamMembershipInput) {
     return this.dbWrite.prisma.membership.update({
-      data: { ...data },
+      data: { ...data, updatedAt: new Date() },
       where: {
         id: membershipId,
         teamId: teamId,

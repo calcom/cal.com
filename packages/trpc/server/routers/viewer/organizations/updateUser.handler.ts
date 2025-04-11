@@ -32,6 +32,7 @@ const applyRoleToAllTeams = async (userId: number, teamIds: number[], role: Memb
     },
     data: {
       role,
+      updatedAt: new Date(),
     },
   });
 };
@@ -147,6 +148,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
       },
       data: {
         role: input.role,
+        updatedAt: new Date(),
       },
     }),
   ];

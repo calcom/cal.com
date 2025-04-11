@@ -20,6 +20,7 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
       },
       data: {
         accepted: true,
+        updatedAt: new Date(),
       },
       include: {
         team: true,
@@ -35,6 +36,7 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
         },
         data: {
           accepted: true,
+          updatedAt: new Date(),
         },
         include: {
           team: true,
