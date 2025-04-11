@@ -100,6 +100,7 @@ type Props = {
   };
   isHost: boolean;
   internalNotePresets: { id: number; name: string; cancellationReason: string | null }[];
+  cancellationRestrictionTime?: number;
 };
 
 export default function CancelBooking(props: Props) {
@@ -142,7 +143,19 @@ export default function CancelBooking(props: Props) {
           </div>
         </div>
       )}
-      {!error && (
+      {props.cancellationRestrictionTime && !props.isHost && (
+        <div className="mt-8">
+          <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
+            <Icon name="clock" className="h-6 w-6 text-red-600" />
+          </div>
+          <div className="mt-3 text-center sm:mt-5">
+            <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
+              {t("time_based_restriction_message", { hours: props.cancellationRestrictionTime })}
+            </h3>
+          </div>
+        </div>
+      )}
+      {!error && !props.cancellationRestrictionTime && (
         <div className="mt-5 sm:mt-6">
           {props.isHost && props.internalNotePresets.length > 0 && (
             <>

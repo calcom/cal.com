@@ -134,6 +134,8 @@ model EventType {
   onlyShowFirstAvailableSlot              Boolean                   @default(false)
   disableCancelling                       Boolean?                  @default(false)
   disableRescheduling                     Boolean?                  @default(false)
+  cancellationRestrictionTime             Int?
+  reschedulingRestrictionTime             Int?
   seatsShowAttendees                      Boolean?                  @default(false)
   seatsShowAvailabilityCount              Boolean?                  @default(true)
   schedulingType                          SchedulingType?
