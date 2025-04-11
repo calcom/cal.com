@@ -90,6 +90,24 @@ export class OrganizationAttributeOptionRepository {
     return options;
   }
 
+  async getOrganizationAttributeAssignedOptions(organizationId: number, attributeId: string) {
+    const options = await this.dbRead.prisma.attributeOption.findMany({
+      where: {
+        attribute: {
+          id: attributeId,
+          teamId: organizationId,
+        },
+        assignedUsers: { some: {} }, // empty some to check whether there is at least one related record
+      },
+      include: { assignedUsers: { include: { member: true } } },
+    });
+
+    return options.map((opt) => ({
+      ...opt,
+      assignedUserIds: opt.assignedUsers.map((attributeToUser) => attributeToUser.member.userId),
+    }));
+  }
+
   async assignOrganizationAttributeOptionToUser({
     organizationId,
     membershipId,

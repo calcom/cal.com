@@ -3,6 +3,7 @@ import { AppModule } from "@/app.module";
 import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/create-organization-attribute-option.input";
 import { AssignOrganizationAttributeOptionToUserInput } from "@/modules/organizations/attributes/options/inputs/organizations-attributes-options-assign.input";
 import { UpdateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/update-organizaiton-attribute-option.input.ts";
+import { AssignedOptionOutput } from "@/modules/organizations/attributes/options/outputs/assigned-options.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -218,6 +219,23 @@ describe("Organizations Attributes Options Endpoints", () => {
           const userOptions = response.body.data;
           expect(userOptions.length).toEqual(1);
           expect(userOptions[0].id).toEqual(createdOption.id);
+        });
+    });
+
+    it("should get attribute all assigned options", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/attributes/${attributeId}/options/assigned`)
+        .expect(200)
+        .then((response) => {
+          expect(response.body.status).toEqual(SUCCESS_STATUS);
+          const assignedOptions = response.body.data as AssignedOptionOutput[];
+          expect(assignedOptions?.length).toEqual(1);
+          expect(assignedOptions.find((opt) => createdOption.id === opt.id)).toBeDefined();
+          expect(
+            assignedOptions
+              .find((opt) => createdOption.id === opt.id)
+              ?.assignedUserIds.find((id) => id === user.id)
+          ).toBeDefined();
         });
     });
 

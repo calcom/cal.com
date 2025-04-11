@@ -14,6 +14,7 @@ import {
   AssignOptionUserOutput,
   UnassignOptionUserOutput,
 } from "@/modules/organizations/attributes/options/outputs/assign-option-user.output";
+import { GetAllAttributeAssignedOptionOutput } from "@/modules/organizations/attributes/options/outputs/assigned-options.output";
 import { CreateAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/create-option.output";
 import { DeleteAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/delete-option.output";
 import { GetOptionUserOutput } from "@/modules/organizations/attributes/options/outputs/get-option-user.output";
@@ -112,6 +113,25 @@ export class OrganizationsAttributesOptionsController {
       orgId,
       attributeId
     );
+    return {
+      status: SUCCESS_STATUS,
+      data: attributeOptions,
+    };
+  }
+
+  @Roles("ORG_MEMBER")
+  @PlatformPlan("ESSENTIALS")
+  @Get("/attributes/:attributeId/options/assigned")
+  @ApiOperation({ summary: "Get all attribute options that are assigned to users" })
+  async getOrganizationAttributeAssignedOptions(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("attributeId") attributeId: string
+  ): Promise<GetAllAttributeAssignedOptionOutput> {
+    const attributeOptions =
+      await this.organizationsAttributesOptionsService.getOrganizationAttributeAssignedOptions(
+        orgId,
+        attributeId
+      );
     return {
       status: SUCCESS_STATUS,
       data: attributeOptions,
