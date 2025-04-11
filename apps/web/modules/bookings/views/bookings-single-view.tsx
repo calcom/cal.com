@@ -371,19 +371,23 @@ export default function Success(props: PageProps) {
   const isRerouting = searchParams?.get("cal.rerouting") === "true";
   const isRescheduled = bookingInfo?.rescheduled;
 
-  let canCancel = false;
+  let canCancel = true;
   if (eventType?.disableCancelling) {
     const threshold = eventType.metadata?.disableCancellingThreshold;
     if (threshold) {
       canCancel = isBeyondThresholdTime(bookingInfo.startTime, threshold.time, threshold.unit);
+    } else {
+      canCancel = false; // If there's no threshold, canceling is not allowed
     }
   }
 
-  let canReschedule = false;
+  let canReschedule = true;
   if (eventType?.disableRescheduling) {
     const threshold = eventType.metadata?.disableReschedulingThreshold;
     if (threshold) {
       canReschedule = isBeyondThresholdTime(bookingInfo.startTime, threshold.time, threshold.unit);
+    } else {
+      canReschedule = false; // If there's no threshold, rescheduling is not allowed
     }
   }
 
