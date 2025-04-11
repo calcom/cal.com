@@ -1361,6 +1361,8 @@
   "custom": "Aangepast",
   "reminder": "Herinnering",
   "rescheduled": "Opnieuw gepland",
+  "rescheduled_by": "Opnieuw gepland door",
+  "original_booking": "Oorspronkelijke boeking",
   "completed": "Voltooid",
   "rating": "Beoordeling",
   "reminder_email": "Herinnering: {{eventType}} met {{name}} op {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Meest geannuleerde boekingen",
   "name_or_email": "Naam of e-mail",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Als er geen contactpersoon wordt gevonden, val dan terug op de lead-eigenaar als deze bestaat",
+  "enable_delegation_credential": "Delegatiereferentie inschakelen",
+  "enable_delegation_credential_description": "Geef Cal.com automatisch toegang tot de agenda's van alle organisatieleden door delegatiereferentie in te schakelen.",
+  "disable_delegation_credential": "Delegatiereferentie uitschakelen",
+  "disable_delegation_credential_description": "Zodra delegatiereferentie is uitgeschakeld, moeten organisatieleden die hun agenda's nog niet hebben gekoppeld dit handmatig doen.",
+  "salesforce_on_cancel_write_to_event": "Bij geannuleerde boeking, schrijf naar gebeurtenisrecord in plaats van gebeurtenis verwijderen",
+  "salesforce_on_every_cancellation": "Bij elke annulering",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -1361,6 +1361,8 @@
   "custom": "Egyedi",
   "reminder": "Emlékeztető",
   "rescheduled": "Átütemezve",
+  "rescheduled_by": "Átütemezte",
+  "original_booking": "Eredeti foglalás",
   "completed": "Befejezve",
   "rating": "Értékelés",
   "reminder_email": "Emlékeztető: {{eventType}}, {{name}}, {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Legtöbbször lemondott foglalások",
   "name_or_email": "Név vagy e-mail",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Ha nem található kapcsolat, visszalépés a lead tulajdonoshoz, ha létezik",
+  "enable_delegation_credential": "Delegálási hitelesítő adat engedélyezése",
+  "enable_delegation_credential_description": "A delegálási hitelesítő adat engedélyezésével automatikus hozzáférést biztosít a Cal.com számára a szervezet összes tagjának naptárához.",
+  "disable_delegation_credential": "Delegálási hitelesítő adat letiltása",
+  "disable_delegation_credential_description": "A delegálási hitelesítő adat letiltása után a szervezet azon tagjainak, akik még nem csatlakoztatták naptáraikat, manuálisan kell ezt megtenniük.",
+  "salesforce_on_cancel_write_to_event": "Lemondott foglalás esetén az esemény rekord módosítása az esemény törlése helyett",
+  "salesforce_on_every_cancellation": "Minden lemondás esetén",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

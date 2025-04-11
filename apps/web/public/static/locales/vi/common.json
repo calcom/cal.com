@@ -1361,6 +1361,8 @@
   "custom": "Tuỳ chỉnh",
   "reminder": "Lời nhắc",
   "rescheduled": "Thay đổi lịch hẹn",
+  "rescheduled_by": "Thay đổi lịch hẹn bởi",
+  "original_booking": "Đặt lịch ban đầu",
   "completed": "Đã hoàn thành",
   "rating": "Đánh giá",
   "reminder_email": "Lời nhắc: {{eventType}} với {{name}} vào {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Lịch hẹn bị hủy nhiều nhất",
   "name_or_email": "Tên hoặc email",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Nếu không tìm thấy liên hệ, chuyển sang chủ sở hữu khách hàng tiềm năng nếu tồn tại",
+  "enable_delegation_credential": "Bật thông tin xác thực ủy quyền",
+  "enable_delegation_credential_description": "Cấp cho Cal.com quyền truy cập tự động vào lịch của tất cả thành viên tổ chức bằng cách bật thông tin xác thực ủy quyền.",
+  "disable_delegation_credential": "Tắt thông tin xác thực ủy quyền",
+  "disable_delegation_credential_description": "Khi thông tin xác thực ủy quyền bị tắt, các thành viên tổ chức chưa kết nối lịch của họ sẽ cần phải làm điều đó theo cách thủ công.",
+  "salesforce_on_cancel_write_to_event": "Khi hủy đặt lịch, ghi vào bản ghi sự kiện thay vì xóa sự kiện",
+  "salesforce_on_every_cancellation": "Với mỗi lần hủy",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

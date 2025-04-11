@@ -1361,6 +1361,8 @@
   "custom": "Benutzerdefiniert",
   "reminder": "Erinnerung",
   "rescheduled": "Neu geplant",
+  "rescheduled_by": "Neu geplant von",
+  "original_booking": "Ursprüngliche Buchung",
   "completed": "Erledigt",
   "rating": "Bewertung",
   "reminder_email": "Erinnerung: {{eventType}} mit {{name}} bei {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Am häufigsten abgesagte Termine",
   "name_or_email": "Name oder E-Mail",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Wenn kein Kontakt gefunden wird, auf den Lead-Eigentümer zurückgreifen, falls vorhanden",
+  "enable_delegation_credential": "Delegierungsnachweis aktivieren",
+  "enable_delegation_credential_description": "Gewähren Sie Cal.com automatischen Zugriff auf die Kalender aller Organisationsmitglieder durch Aktivierung des Delegierungsnachweises.",
+  "disable_delegation_credential": "Delegierungsnachweis deaktivieren",
+  "disable_delegation_credential_description": "Sobald der Delegierungsnachweis deaktiviert ist, müssen Organisationsmitglieder, die ihre Kalender noch nicht verbunden haben, dies manuell tun.",
+  "salesforce_on_cancel_write_to_event": "Bei stornierter Buchung in den Ereignisdatensatz schreiben, anstatt das Ereignis zu löschen",
+  "salesforce_on_every_cancellation": "Bei jeder Stornierung",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

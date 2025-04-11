@@ -1361,6 +1361,8 @@
   "custom": "Özel",
   "reminder": "Hatırlatıcı",
   "rescheduled": "Yeniden planlandı",
+  "rescheduled_by": "Yeniden planlayan",
+  "original_booking": "Orijinal rezervasyon",
   "completed": "Tamamlandı",
   "rating": "Derecelendirme",
   "reminder_email": "Hatırlatma: {{date}} tarihinde {{name}} ile {{eventType}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "En çok iptal edilen rezervasyonlar",
   "name_or_email": "İsim veya E-posta",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Hiçbir kişi bulunamazsa, eğer varsa müşteri adayı sahibine geri dön",
+  "enable_delegation_credential": "Yetki Devri Kimlik Bilgisini Etkinleştir",
+  "enable_delegation_credential_description": "Yetki devri kimlik bilgisini etkinleştirerek Cal.com'a tüm organizasyon üyelerinin takvimlerine otomatik erişim izni verin.",
+  "disable_delegation_credential": "Yetki Devri Kimlik Bilgisini Devre Dışı Bırak",
+  "disable_delegation_credential_description": "Yetki devri kimlik bilgisi devre dışı bırakıldığında, takvimlerini bağlamamış olan organizasyon üyeleri bunu manuel olarak yapmaları gerekecektir.",
+  "salesforce_on_cancel_write_to_event": "İptal edilen rezervasyonda, etkinliği silmek yerine etkinlik kaydına yaz",
+  "salesforce_on_every_cancellation": "Her iptal işleminde",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -1361,6 +1361,8 @@
   "custom": "Personalizado",
   "reminder": "Recordatorio",
   "rescheduled": "Reprogramado",
+  "rescheduled_by": "Reprogramado por",
+  "original_booking": "Reserva original",
   "completed": "Completado",
   "rating": "Calificación",
   "reminder_email": "Recordatorio: {{eventType}} con {{name}} a las {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Reservas más canceladas",
   "name_or_email": "Nombre o correo electrónico",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Si no se encuentra ningún contacto, recurrir al propietario del lead si existe",
+  "enable_delegation_credential": "Habilitar credencial de delegación",
+  "enable_delegation_credential_description": "Otorga a Cal.com acceso automático a los calendarios de todos los miembros de la organización al habilitar la credencial de delegación.",
+  "disable_delegation_credential": "Deshabilitar credencial de delegación",
+  "disable_delegation_credential_description": "Una vez que la credencial de delegación esté deshabilitada, los miembros de la organización que no hayan conectado sus calendarios deberán hacerlo manualmente.",
+  "salesforce_on_cancel_write_to_event": "Al cancelar una reserva, escribir en el registro del evento en lugar de eliminar el evento",
+  "salesforce_on_every_cancellation": "En cada cancelación",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agrega tus nuevas cadenas arriba de esta línea ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

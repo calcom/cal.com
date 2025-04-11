@@ -1361,6 +1361,8 @@
   "custom": "Brugerdefineret",
   "reminder": "Påmindelse",
   "rescheduled": "Omplanlagt",
+  "rescheduled_by": "Omplanlagt af",
+  "original_booking": "Oprindelig booking",
   "completed": "Fuldført",
   "rating": "Bedømmelse",
   "reminder_email": "Påmindelse: {{eventType}} med {{name}} den {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Flest annullerede bookinger",
   "name_or_email": "Navn eller e-mail",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Hvis ingen kontakt findes, fald tilbage til lead-ejeren, hvis denne eksisterer",
+  "enable_delegation_credential": "Aktivér delegationslegitimation",
+  "enable_delegation_credential_description": "Giv Cal.com automatisk adgang til alle organisationsmedlemmers kalendere ved at aktivere delegationslegitimation.",
+  "disable_delegation_credential": "Deaktivér delegationslegitimation",
+  "disable_delegation_credential_description": "Når delegationslegitimation er deaktiveret, skal organisationsmedlemmer, der ikke har forbundet deres kalendere, gøre det manuelt.",
+  "salesforce_on_cancel_write_to_event": "Ved annulleret booking, skriv til begivenhedsposten i stedet for at slette begivenheden",
+  "salesforce_on_every_cancellation": "Ved hver annullering",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

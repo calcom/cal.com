@@ -1361,6 +1361,8 @@
   "custom": "התאמה אישית",
   "reminder": "תזכורת",
   "rescheduled": "נקבע מועד חדש",
+  "rescheduled_by": "נקבע מועד חדש על ידי",
+  "original_booking": "הזמנה מקורית",
   "completed": "הושלמה",
   "rating": "דירוג",
   "reminder_email": "תזכורת: {{eventType}} עם {{name}} בתאריך {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "הזמנות שבוטלו הכי הרבה",
   "name_or_email": "שם או אימייל",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "אם לא נמצא איש קשר, חזור לבעל הליד אם הוא קיים",
+  "enable_delegation_credential": "הפעל אישור האצלה",
+  "enable_delegation_credential_description": "העניק ל-Cal.com גישה אוטומטית ליומנים של כל חברי הארגון על ידי הפעלת אישור האצלה.",
+  "disable_delegation_credential": "השבת אישור האצלה",
+  "disable_delegation_credential_description": "לאחר שאישור ההאצלה מושבת, חברי ארגון שלא חיברו את היומנים שלהם יצטרכו לעשות זאת באופן ידני.",
+  "salesforce_on_cancel_write_to_event": "בעת ביטול הזמנה, כתוב לרשומת האירוע במקום למחוק את האירוע",
+  "salesforce_on_every_cancellation": "בכל ביטול",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

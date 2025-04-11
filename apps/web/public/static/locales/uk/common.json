@@ -1361,6 +1361,8 @@
   "custom": "Користувацький",
   "reminder": "Нагадування",
   "rescheduled": "Перенесено",
+  "rescheduled_by": "Перенесено користувачем",
+  "original_booking": "Початкове бронювання",
   "completed": "Завершено",
   "rating": "Рейтинг",
   "reminder_email": "Нагадування: {{eventType}} з користувачем {{name}}, {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Найбільше скасованих бронювань",
   "name_or_email": "Ім'я або електронна пошта",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Якщо контакт не знайдено, використовувати власника ліда, якщо він існує",
+  "enable_delegation_credential": "Увімкнути облікові дані делегування",
+  "enable_delegation_credential_description": "Надайте Cal.com автоматичний доступ до календарів усіх членів організації, увімкнувши облікові дані делегування.",
+  "disable_delegation_credential": "Вимкнути облікові дані делегування",
+  "disable_delegation_credential_description": "Після вимкнення облікових даних делегування, члени організації, які не підключили свої календарі, повинні будуть зробити це вручну.",
+  "salesforce_on_cancel_write_to_event": "При скасуванні бронювання, записувати в запис події замість видалення події",
+  "salesforce_on_every_cancellation": "При кожному скасуванні",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

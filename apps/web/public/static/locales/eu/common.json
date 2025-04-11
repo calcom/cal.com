@@ -1361,6 +1361,8 @@
   "custom": "Pertsonalizatua",
   "reminder": "Gogorarazlea",
   "rescheduled": "Berrantolatua",
+  "rescheduled_by": "Honek berrantolatua",
+  "original_booking": "Jatorrizko erreserba",
   "completed": "Osatuta",
   "rating": "Balorazioa",
   "reminder_email": "Gogorarazpena: {{eventType}} {{name}}(r)ekin {{date}}(e)an",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Bertan behera utzitako erreserba gehienak",
   "name_or_email": "Izena edo helbide elektronikoa",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Kontakturik aurkitzen ez bada, itzuli bezeroen arduradunera existitzen bada",
+  "enable_delegation_credential": "Gaitu Eskuordetze Kredentzialak",
+  "enable_delegation_credential_description": "Eman Cal.com-i erakundeko kide guztien egutegietarako sarbide automatikoa eskuordetze kredentzialak gaituz.",
+  "disable_delegation_credential": "Desgaitu Eskuordetze Kredentzialak",
+  "disable_delegation_credential_description": "Eskuordetze kredentzialak desgaitzen direnean, beren egutegiak konektatu ez dituzten erakundeko kideek eskuz egin beharko dute.",
+  "salesforce_on_cancel_write_to_event": "Erreserba bertan behera uzterakoan, idatzi gertaera erregistroan gertaera ezabatu beharrean",
+  "salesforce_on_every_cancellation": "Bertan behera uzte bakoitzean",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

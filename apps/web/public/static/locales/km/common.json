@@ -1361,6 +1361,8 @@
   "custom": "តាមបំណង",
   "reminder": "ការរំលឹក",
   "rescheduled": "បានកែប្រែពេលវេលា",
+  "rescheduled_by": "កែប្រែពេលវេលាដោយ",
+  "original_booking": "ការកក់ដើម",
   "completed": "បានបញ្ចប់",
   "rating": "ការវាយតម្លៃ",
   "reminder_email": "ការរំលឹក៖ {{eventType}} ជាមួយ {{name}} នៅ {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "ការកក់ដែលត្រូវបានលុបចោលច្រើនបំផុត",
   "name_or_email": "ឈ្មោះ ឬអ៊ីមែល",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "ប្រសិនបើមិនមានទំនាក់ទំនងត្រូវបានរកឃើញទេ ត្រឡប់ទៅម្ចាស់ Lead ប្រសិនបើមាន",
+  "enable_delegation_credential": "បើកដំណើរការលិខិតសម្គាល់ប្រគល់សិទ្ធិ",
+  "enable_delegation_credential_description": "ផ្តល់សិទ្ធិឱ្យ Cal.com ចូលប្រើប្រតិទិនរបស់សមាជិកអង្គភាពទាំងអស់ដោយស្វ័យប្រវត្តិ តាមរយៈការបើកដំណើរការលិខិតសម្គាល់ប្រគល់សិទ្ធិ។",
+  "disable_delegation_credential": "បិទដំណើរការលិខិតសម្គាល់ប្រគល់សិទ្ធិ",
+  "disable_delegation_credential_description": "នៅពេលលិខិតសម្គាល់ប្រគល់សិទ្ធិត្រូវបានបិទដំណើរការ សមាជិកអង្គភាពដែលមិនទាន់បានភ្ជាប់ប្រតិទិនរបស់ពួកគេ នឹងត្រូវធ្វើដោយដៃ។",
+  "salesforce_on_cancel_write_to_event": "នៅពេលការកក់ត្រូវបានលុបចោល សរសេរទៅកាន់កំណត់ត្រាព្រឹត្តិការណ៍ជំនួសឱ្យការលុបព្រឹត្តិការណ៍",
+  "salesforce_on_every_cancellation": "នៅរាល់ពេលលុបចោល",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

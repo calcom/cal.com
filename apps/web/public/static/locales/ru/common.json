@@ -1361,6 +1361,8 @@
   "custom": "Пользовательский",
   "reminder": "Напоминание",
   "rescheduled": "Перенесено",
+  "rescheduled_by": "Перенесено пользователем",
+  "original_booking": "Исходная бронь",
   "completed": "Завершено",
   "rating": "Рейтинг",
   "reminder_email": "Напоминание: {{eventType}} с {{name}} {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Наиболее часто отменяемые бронирования",
   "name_or_email": "Имя или электронная почта",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Если контакт не найден, использовать владельца лида, если он существует",
+  "enable_delegation_credential": "Включить делегированные учетные данные",
+  "enable_delegation_credential_description": "Предоставьте Cal.com автоматический доступ к календарям всех членов организации, включив делегированные учетные данные.",
+  "disable_delegation_credential": "Отключить делегированные учетные данные",
+  "disable_delegation_credential_description": "После отключения делегированных учетных данных, члены организации, не подключившие свои календари, должны будут сделать это вручную.",
+  "salesforce_on_cancel_write_to_event": "При отмене бронирования записывать в запись события вместо удаления события",
+  "salesforce_on_every_cancellation": "При каждой отмене",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

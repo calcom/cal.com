@@ -1361,6 +1361,8 @@
   "custom": "Προσαρμοσμένο",
   "reminder": "Υπενθύμιση",
   "rescheduled": "Επαναπρογραμματίστηκε",
+  "rescheduled_by": "Επαναπρογραμματίστηκε από",
+  "original_booking": "Αρχική κράτηση",
   "completed": "Ολοκληρώθηκε",
   "rating": "Αξιολόγηση",
   "reminder_email": "Υπενθύμιση: {{eventType}} με {{name}} στις {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Περισσότερες ακυρωμένες κρατήσεις",
   "name_or_email": "Όνομα ή Email",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Αν δεν βρεθεί επαφή, επιστροφή στον ιδιοκτήτη του lead εάν υπάρχει",
+  "enable_delegation_credential": "Ενεργοποίηση διαπιστευτηρίου εξουσιοδότησης",
+  "enable_delegation_credential_description": "Παραχωρήστε στο Cal.com αυτόματη πρόσβαση στα ημερολόγια όλων των μελών του οργανισμού ενεργοποιώντας το διαπιστευτήριο εξουσιοδότησης.",
+  "disable_delegation_credential": "Απενεργοποίηση διαπιστευτηρίου εξουσιοδότησης",
+  "disable_delegation_credential_description": "Μόλις απενεργοποιηθεί το διαπιστευτήριο εξουσιοδότησης, τα μέλη του οργανισμού που δεν έχουν συνδέσει τα ημερολόγιά τους θα πρέπει να το κάνουν χειροκίνητα.",
+  "salesforce_on_cancel_write_to_event": "Σε ακύρωση κράτησης, εγγραφή στο αρχείο συμβάντος αντί για διαγραφή συμβάντος",
+  "salesforce_on_every_cancellation": "Σε κάθε ακύρωση",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

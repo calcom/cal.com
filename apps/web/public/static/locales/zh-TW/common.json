@@ -1361,6 +1361,8 @@
   "custom": "自訂",
   "reminder": "提醒",
   "rescheduled": "已重新預定",
+  "rescheduled_by": "重新預定者",
+  "original_booking": "原始預約",
   "completed": "已完成",
   "rating": "評分",
   "reminder_email": "提醒：{{date}} 與 {{name}} 的 {{eventType}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "最多取消的預約",
   "name_or_email": "姓名或電子郵件",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "如果找不到聯絡人，則回退到潛在客戶擁有者（如果存在）",
+  "enable_delegation_credential": "啟用委派憑證",
+  "enable_delegation_credential_description": "啟用委派憑證，授予 Cal.com 自動存取所有組織成員日曆的權限。",
+  "disable_delegation_credential": "停用委派憑證",
+  "disable_delegation_credential_description": "一旦停用委派憑證，尚未連接日曆的組織成員將需要手動進行連接。",
+  "salesforce_on_cancel_write_to_event": "預約取消時，寫入事件記錄而非刪除事件",
+  "salesforce_on_every_cancellation": "每次取消時",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
