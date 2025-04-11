@@ -498,7 +498,7 @@ async function handler(input: CancelBookingInput) {
 
     await Promise.allSettled([...webhookTriggerPromises, ...workflowReminderPromises]).then((results) => {
       const rejectedReasons = results
-        .filter((result) => result.status === "rejected")
+        .filter((result): result is PromiseRejectedResult => result.status === "rejected")
         .map((result) => result.reason);
 
       if (rejectedReasons.length > 0) {
