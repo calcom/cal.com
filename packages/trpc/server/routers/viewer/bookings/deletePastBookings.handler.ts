@@ -1,0 +1,60 @@
+import { prisma } from "@calcom/prisma";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+
+import type { TDeletePastBookingsSchema } from "./deletePastBookings.schema";
+
+type DeletePastBookingsOptions = {
+  ctx: {
+    user: NonNullable<TrpcSessionUser>;
+  };
+  input: TDeletePastBookingsSchema;
+};
+
+export const deletePastBookingsHandler = async ({ ctx, input }: DeletePastBookingsOptions) => {
+  const { user } = ctx;
+  const { bookingIds } = input;
+
+  const bookings = await prisma.booking.findMany({
+    where: {
+      id: { in: bookingIds },
+    },
+    include: {
+      references: true,
+    },
+  });
+
+  const unauthorized = bookings.some((booking) => booking.userId !== user.id);
+  if (unauthorized) {
+    throw new Error("Unauthorized: Cannot delete bookings that don't belong to you");
+  }
+
+  const { getAllDelegationCredentialsForUser } = await import("@calcom/lib/delegationCredential/server");
+  const { deleteBookingRecordings } = await import("@calcom/features/bookings/lib/handleRecordings");
+
+  const delegationCredentials = await getAllDelegationCredentialsForUser({ user });
+
+  for (const booking of bookings) {
+    await deleteBookingRecordings(booking, delegationCredentials);
+  }
+
+  const result = await prisma.booking.deleteMany({
+    where: {
+      id: { in: bookingIds },
+      OR: [
+        { userId: user.id },
+        {
+          attendees: {
+            some: { email: user.email },
+          },
+        },
+      ],
+      status: { notIn: ["CANCELLED", "REJECTED"] },
+      endTime: { lt: new Date() },
+    },
+  });
+
+  return {
+    count: result.count,
+    message: `${result.count} bookings deleted successfully`,
+  };
+};

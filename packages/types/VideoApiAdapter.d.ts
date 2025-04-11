@@ -24,6 +24,8 @@ export type VideoApiAdapter =
 
       deleteMeeting(uid: string): Promise<unknown>;
 
+      deleteRecording?(recordingId: string): Promise<void>;
+
       getAvailability(dateFrom?: string, dateTo?: string): Promise<EventBusyDate[]>;
 
       getRecordings?(roomName: string): Promise<GetRecordingsResponseSchema>;
