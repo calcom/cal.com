@@ -10,10 +10,10 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
-import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 import Loader from "@components/Loader";
 
@@ -166,7 +166,7 @@ export default function Verify({ EMAIL_FROM }: { EMAIL_FROM?: string }) {
   }
 
   if (!stripeCustomerId && !sessionId) {
-    return <div>Invalid Link</div>;
+    return <div>{t("invalid_link")}</div>;
   }
 
   return (
