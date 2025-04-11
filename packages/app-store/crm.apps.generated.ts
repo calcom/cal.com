@@ -3,6 +3,7 @@
     Don't modify this file manually.
 **/
 export const CrmServiceMap = {
+  attio: import("./attio/lib/CrmService"),
   closecom: import("./closecom/lib/CrmService"),
   hubspot: import("./hubspot/lib/CrmService"),
   "pipedrive-crm": import("./pipedrive-crm/lib/CrmService"),

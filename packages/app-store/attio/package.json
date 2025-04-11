@@ -5,7 +5,8 @@
   "version": "0.0.0",
   "main": "./index.ts",
   "dependencies": {
-    "@calcom/lib": "*"
+    "@calcom/lib": "*",
+    "@calcom/prisma": "*"
   },
   "devDependencies": {
     "@calcom/types": "*"
