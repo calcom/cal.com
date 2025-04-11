@@ -71,11 +71,11 @@ type AddonProps = {
   className?: string;
   error?: boolean;
   onClickAddon?: () => void;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
   position?: "start" | "end";
 };
 
-const Addon = ({ children, className, error, onClickAddon, size = "md", position = "start" }: AddonProps) => (
+const Addon = ({ children, className, error, onClickAddon }: AddonProps) => (
   <div
     onClick={onClickAddon && onClickAddon}
     className={classNames(
