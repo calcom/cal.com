@@ -9,6 +9,7 @@ import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billlin
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
+import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
@@ -42,7 +43,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const locale = input.locale || user.locale;
   const emailVerification = await getFeatureFlag(prisma, "email-verification");
 
-  const { travelSchedules, ...rest } = input;
+  const { travelSchedules, bookingLimits, ...rest } = input;
 
   const secondaryEmails = input?.secondaryEmails || [];
   delete input.secondaryEmails;
@@ -213,6 +214,14 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
           };
         }),
     });
+  }
+
+  if (bookingLimits) {
+    const isValid = validateIntervalLimitOrder(bookingLimits);
+    if (!isValid)
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
+
+    data.bookingLimits = bookingLimits;
   }
 
   const updatedUserSelect = Prisma.validator<Prisma.UserDefaultArgs>()({

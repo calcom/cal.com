@@ -385,6 +385,9 @@ model User {
   createdOrganizationOnboardings OrganizationOnboarding[]     @relation("CreatedOrganizationOnboardings")
   filterSegments                 FilterSegment[]
 
+  /// @zod.custom(imports.intervalLimitsType)
+  bookingLimits Json?
+
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])
