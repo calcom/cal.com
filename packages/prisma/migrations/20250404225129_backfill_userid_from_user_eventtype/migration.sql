@@ -80,17 +80,21 @@ BEGIN
                 FROM "EventType" et
                 JOIN migration_batch mb ON et.id = mb.event_type_id
                 ORDER BY et.id, mb.user_id  -- Consistent ordering
+            ),
+            new_slugs AS (
+                SELECT 
+                    event_type_id,
+                    user_id,
+                    CASE 
+                        WHEN update_status = 'conflict' THEN 
+                            slug || '-dup-' || event_type_id  -- Use event_type_id instead of timestamp for uniqueness
+                        ELSE NULL
+                    END as new_slug
+                FROM to_update
             )
             INSERT INTO updated_records (event_type_id, user_id, new_slug)
-            SELECT 
-                event_type_id, 
-                user_id,
-                CASE 
-                    WHEN update_status = 'conflict' THEN 
-                        slug || '-dup-' || to_char(CURRENT_TIMESTAMP, 'YYYYMMDDHH24MISS')
-                    ELSE NULL
-                END
-            FROM to_update;
+            SELECT event_type_id, user_id, new_slug
+            FROM new_slugs;
 
             -- First update the slugs for conflicting records
             UPDATE "EventType" et
