@@ -22,14 +22,27 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
   translateEventTypeData: () =>
     import("./translateEventTypeData").then((module) => module.translateEventTypeData),
   createCRMEvent: () => import("./crm/createCRMEvent").then((module) => module.createCRMEvent),
+  delegationCredentialSelectedCalendars: () =>
+    import("./delegationCredentialSelectedCalendars/createSelectedCalendars").then(
+      (module) => module.delegationCredentialSelectedCalendars
+    ),
   sendWorkflowEmails: () => import("./sendWorkflowEmails").then((module) => module.sendWorkflowEmails),
   scanWorkflowBody: () => import("./scanWorkflowBody").then((module) => module.scanWorkflowBody),
 };
 
-export const tasksConfig = {
+export const tasksConfig: Partial<
+  Record<TaskTypes, { minRetryIntervalMins?: number; maxAttempts: number; take?: number }>
+> = {
   createCRMEvent: {
     minRetryIntervalMins: IS_PRODUCTION ? 10 : 1,
     maxAttempts: 10,
   },
+  delegationCredentialSelectedCalendars: {
+    // These many members are processed at once in parallel.
+    // Keep it low to avoid reaching rate limits of Calendar APIs
+    take: 100,
+    maxAttempts: 5,
+  },
 };
+
 export default tasks;
