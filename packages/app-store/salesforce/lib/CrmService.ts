@@ -27,6 +27,7 @@ import {
   RoutingReasons,
 } from "./enums";
 import { getSalesforceAppKeys } from "./getSalesforceAppKeys";
+import getAllPossibleWebsiteValuesFromEmailDomain from "./utils/getAllPossibleWebsiteValuesFromEmailDomain";
 import getDominantAccountId from "./utils/getDominantAccountId";
 import type { GetDominantAccountIdInput } from "./utils/getDominantAccountId";
 
@@ -923,14 +924,8 @@ export default class SalesforceCRMService implements CRM {
   }
 
   public getAllPossibleAccountWebsiteFromEmailDomain(emailDomain: string) {
-    const websites = [
-      emailDomain,
-      `www.${emailDomain}`,
-      `http://www.${emailDomain}`,
-      `http://${emailDomain}`,
-      `https://www.${emailDomain}`,
-      `https://${emailDomain}`,
-    ];
+    const websites = getAllPossibleWebsiteValuesFromEmailDomain(emailDomain);
+    // Format for SOQL query
     return websites.map((website) => `'${website}'`).join(", ");
   }
 
