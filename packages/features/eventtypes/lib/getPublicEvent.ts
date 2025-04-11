@@ -222,8 +222,8 @@ export const getPublicEvent = async ({
   org,
   fromRedirectOfNonOrgLink,
   currentUserId,
-  fetchAllUsers,
   prisma,
+  fetchAllUsers = false,
 }: {
   prisma: PrismaClient;
   username: string;
