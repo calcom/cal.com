@@ -6,9 +6,14 @@ import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/components/dropdown";
-import { showToast } from "@calcom/ui/components/toast";
 import { Button } from "@calcom/ui/components/button";
+import {
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@calcom/ui/components/dropdown";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { useInsightsParameters } from "../../hooks/useInsightsParameters";
 
@@ -25,6 +30,7 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
   const { teamId, userId, memberUserIds, routingFormId, isAll, startDate, endDate, columnFilters } =
     useInsightsParameters();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
 
   const utils = trpc.useUtils();
 
@@ -53,6 +59,7 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
   const handleDownloadClick = async () => {
     try {
       setIsDownloading(true);
+      setDownloadProgress(0); // Reset progress
       let allData: RoutingData[] = [];
       let offset = 0;
 
@@ -62,13 +69,17 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
       const totalRecords = firstBatch.total;
 
       // Continue fetching remaining batches
-      while (allData.length < totalRecords) {
+      while (totalRecords > 0 && allData.length < totalRecords) {
         offset += BATCH_SIZE;
         const result = await fetchBatch(offset);
         allData = [...allData, ...result.data];
+
+        const currentProgress = Math.min(Math.round((allData.length / totalRecords) * 100), 99);
+        setDownloadProgress(currentProgress);
       }
 
-      if (allData.length > 0) {
+      if (allData.length >= totalRecords) {
+        setDownloadProgress(100); // Set to 100% before actual download
         const filename = `RoutingFormResponses-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(
           endDate
         ).format("YYYY-MM-DD")}.csv`;
@@ -78,6 +89,7 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
       showToast(t("error_downloading_data"), "error");
     } finally {
       setIsDownloading(false);
+      setDownloadProgress(0); // Reset progress
     }
   };
 
@@ -88,6 +100,7 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
           EndIcon="file-down"
           color="secondary"
           className="self-end sm:self-baseline"
+          tooltip={isDownloading ? `${Math.floor(downloadProgress)}%` : undefined}
           loading={isDownloading}>
           {t("download")}
         </Button>
