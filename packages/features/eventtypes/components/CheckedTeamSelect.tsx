@@ -7,12 +7,12 @@ import type { Props } from "react-select";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/components/icon";
-import { Select } from "@calcom/ui/components/form";
-import { Tooltip } from "@calcom/ui/components/tooltip";
+import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
-import classNames from "@calcom/ui/classNames";
+import { Select } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "./HostEditDialogs";
 import { PriorityDialog, WeightDialog } from "./HostEditDialogs";
@@ -24,6 +24,7 @@ export type CheckedSelectOption = {
   priority?: number;
   weight?: number;
   isFixed?: boolean;
+  isOrganizer?: boolean;
   disabled?: boolean;
   defaultScheduleId?: number | null;
 };
@@ -105,13 +106,16 @@ export const CheckedTeamSelect = ({
                   )}
                 />
               )}
-              <p
-                className={classNames(
-                  "text-emphasis my-auto ms-3 text-sm",
-                  customClassNames?.selectedHostList?.listItem?.name
-                )}>
-                {option.label}
-              </p>
+              <div className="my-auto ms-3 flex items-center gap-2">
+                <p
+                  className={classNames(
+                    "text-emphasis text-sm",
+                    customClassNames?.selectedHostList?.listItem?.name
+                  )}>
+                  {option.label}
+                </p>
+                {option.isOrganizer && <span className="text-muted text-xs">(Organizer)</span>}
+              </div>
               <div className="ml-auto flex items-center">
                 {option && !option.isFixed ? (
                   <>

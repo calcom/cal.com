@@ -157,6 +157,7 @@ const FixedHosts = ({
 }) => {
   const { t } = useLocale();
   const { getValues, setValue } = useFormContext<FormValues>();
+  console.log("FixedHosts - Initial data from backend:", { value, teamMembers });
 
   const hasActiveFixedHosts = isRoundRobinEvent && getValues("hosts").some((host) => host.isFixed);
 
@@ -197,10 +198,13 @@ const FixedHosts = ({
                 const currentHosts = getValues("hosts");
                 setValue(
                   "hosts",
-                  teamMembers.map((teamMember) => {
+                  teamMembers.map((teamMember, index) => {
                     const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
+                    const existingOrganizer = currentHosts.find((h) => h.isOrganizer);
                     return {
                       isFixed: true,
+                      // First host becomes organizer if no organizer exists
+                      isOrganizer: !existingOrganizer && index === 0,
                       userId: parseInt(teamMember.value, 10),
                       priority: host?.priority ?? 2,
                       weight: host?.weight ?? 100,
@@ -252,10 +256,13 @@ const FixedHosts = ({
                 const currentHosts = getValues("hosts");
                 setValue(
                   "hosts",
-                  teamMembers.map((teamMember) => {
+                  teamMembers.map((teamMember, index) => {
                     const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
+                    const existingOrganizer = currentHosts.find((h) => h.isOrganizer);
                     return {
                       isFixed: true,
+                      // First host becomes organizer if no organizer exists
+                      isOrganizer: !existingOrganizer && index === 0,
                       userId: parseInt(teamMember.value, 10),
                       priority: host?.priority ?? 2,
                       weight: host?.weight ?? 100,
@@ -389,6 +396,7 @@ const RoundRobinHosts = ({
                 const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
                 return {
                   isFixed: false,
+                  isOrganizer: false,
                   userId: parseInt(teamMember.value, 10),
                   priority: host?.priority ?? 2,
                   weight: host?.weight ?? 100,

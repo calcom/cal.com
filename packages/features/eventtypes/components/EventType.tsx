@@ -21,6 +21,7 @@ import { EventTypeSingleLayout } from "./EventTypeLayout";
 
 export type Host = {
   isFixed: boolean;
+  isOrganizer: boolean;
   userId: number;
   priority: number;
   weight: number;

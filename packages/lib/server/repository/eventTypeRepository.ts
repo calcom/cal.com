@@ -668,6 +668,7 @@ export class EventTypeRepository {
       hosts: {
         select: {
           isFixed: true,
+          isOrganizer: true,
           userId: true,
           priority: true,
           weight: true,
