@@ -144,6 +144,14 @@ export class DelegationCredentialRepository {
     return DelegationCredentialRepository.withParsedServiceAccountKey(delegationCredential);
   }
 
+  static async findUniqueByIdIncludeSensitiveServiceAccountKey({ id }: { id: string }) {
+    const delegationCredential = await prisma.delegationCredential.findUnique({
+      where: { id, enabled: true },
+      select: delegationCredentialSelectIncludesServiceAccountKey,
+    });
+    return DelegationCredentialRepository.withParsedServiceAccountKey(delegationCredential);
+  }
+
   static async findAllByDomain({ domain }: { domain: string }) {
     return await prisma.delegationCredential.findMany({
       where: { domain },

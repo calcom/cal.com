@@ -1285,6 +1285,8 @@
   "event_cancelled_trigger": "when event is canceled",
   "after_hosts_cal_video_no_show": "After hosts didn't join cal video",
   "after_guests_cal_video_no_show": "After guests didn't join cal video",
+  "after_hosts_google_meet_no_show": "After hosts don't join google meet",
+  "after_guests_google_meet_no_show": "After guests don't join google meet",
   "new_event_trigger": "when new event is booked",
   "email_host_action": "send email to host",
   "email_attendee_action": "send email to attendees",

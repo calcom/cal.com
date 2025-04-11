@@ -1,4 +1,4 @@
-import { DailyLocationType } from "@calcom/app-store/locations";
+import { DailyLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import tasker from "@calcom/features/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -19,6 +19,18 @@ type ScheduleNoShowTriggersArgs = {
   isDryRun?: boolean;
 };
 
+const getHostsTriggerEvent = (isCalVideoLocation: boolean, isGoogleMeetLocation: boolean) => {
+  if (isCalVideoLocation) return WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW;
+  else if (isGoogleMeetLocation) return WebhookTriggerEvents.AFTER_HOSTS_GOOGLE_MEET_NO_SHOW;
+  else throw new Error("Invalid location");
+};
+
+const getGuestsTriggerEvent = (isCalVideoLocation: boolean, isGoogleMeetLocation: boolean) => {
+  if (isCalVideoLocation) return WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW;
+  else if (isGoogleMeetLocation) return WebhookTriggerEvents.AFTER_GUESTS_GOOGLE_MEET_NO_SHOW;
+  else throw new Error("Invalid location");
+};
+
 export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
   const {
     booking,
@@ -32,8 +44,14 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
   } = args;
 
   const isCalVideoLocation = booking.location === DailyLocationType || booking.location?.trim() === "";
+  const isGoogleMeetLocation = booking.location === MeetLocationType;
 
-  if (isDryRun || !isCalVideoLocation) return;
+  const isValidLocation = isCalVideoLocation || isGoogleMeetLocation;
+
+  if (isDryRun || !isValidLocation) return;
+
+  const hostsTriggerEvent = getHostsTriggerEvent(isCalVideoLocation, isGoogleMeetLocation);
+  const guestsTriggerEvent = getGuestsTriggerEvent(isCalVideoLocation, isGoogleMeetLocation);
 
   // Add task for automatic no show in cal video
   const noShowPromises: Promise<any>[] = [];
@@ -41,7 +59,7 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
   const subscribersHostsNoShowStarted = await getWebhooks({
     userId: triggerForUser ? organizerUser.id : null,
     eventTypeId,
-    triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+    triggerEvent: hostsTriggerEvent,
     teamId,
     orgId,
     oAuthClientId,
@@ -56,7 +74,7 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
         return tasker.create(
           "triggerHostNoShowWebhook",
           {
-            triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+            triggerEvent: hostsTriggerEvent,
             bookingId: booking.id,
             // Prevents null values from being serialized
             webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },
@@ -71,7 +89,7 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
   const subscribersGuestsNoShowStarted = await getWebhooks({
     userId: triggerForUser ? organizerUser.id : null,
     eventTypeId,
-    triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+    triggerEvent: guestsTriggerEvent,
     teamId,
     orgId,
     oAuthClientId,
@@ -87,7 +105,7 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
         return tasker.create(
           "triggerGuestNoShowWebhook",
           {
-            triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+            triggerEvent: guestsTriggerEvent,
             bookingId: booking.id,
             // Prevents null values from being serialized
             webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },

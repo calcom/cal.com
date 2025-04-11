@@ -66,6 +66,11 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
       value: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
       label: "after_guests_cal_video_no_show",
     },
+    { value: WebhookTriggerEvents.AFTER_HOSTS_GOOGLE_MEET_NO_SHOW, label: "after_hosts_google_meet_no_show" },
+    {
+      value: WebhookTriggerEvents.AFTER_GUESTS_GOOGLE_MEET_NO_SHOW,
+      label: "after_guests_google_meet_no_show",
+    },
   ],
   "routing-forms": [
     { value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" },
@@ -135,7 +140,9 @@ const WebhookForm = (props: {
     ?.find(
       (trigger) =>
         trigger === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
-        trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+        trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW ||
+        trigger === WebhookTriggerEvents.AFTER_HOSTS_GOOGLE_MEET_NO_SHOW ||
+        trigger === WebhookTriggerEvents.AFTER_GUESTS_GOOGLE_MEET_NO_SHOW
     );
 
   const [useCustomTemplate, setUseCustomTemplate] = useState(
@@ -217,7 +224,9 @@ const WebhookForm = (props: {
                     const noShowWebhookTriggerExists = !!event.find(
                       (trigger) =>
                         trigger.value === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
-                        trigger.value === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+                        trigger.value === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW ||
+                        trigger.value === WebhookTriggerEvents.AFTER_HOSTS_GOOGLE_MEET_NO_SHOW ||
+                        trigger.value === WebhookTriggerEvents.AFTER_GUESTS_GOOGLE_MEET_NO_SHOW
                     );
 
                     if (noShowWebhookTriggerExists) {

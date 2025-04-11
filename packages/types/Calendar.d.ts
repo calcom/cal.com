@@ -11,6 +11,7 @@ import type { Time } from "ical.js";
 import type { Frequency } from "rrule";
 import type z from "zod";
 
+import type { GoogleMeetParticipantWithEmail } from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import type { bookingResponse } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
@@ -285,6 +286,11 @@ export interface Calendar {
   fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown>;
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
+
+  getMeetParticipants?(
+    videoCallUrl: string | null,
+    emailToImpersonate: string
+  ): Promise<GoogleMeetParticipantWithEmail[][] | null>;
 
   testDelegationCredentialSetup?(): Promise<boolean>;
 
