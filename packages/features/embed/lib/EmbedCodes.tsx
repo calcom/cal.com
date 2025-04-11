@@ -32,23 +32,23 @@ export const Codes = {
       const namespaceProp = `${namespace ? `namespace="${namespace}"` : ""}`;
       const argumentForGetCalApi = getArgumentForGetCalApi(namespace);
       return code`
-  import Cal, { getCalApi } from "@calcom/embed-react";
-  import { useEffect } from "react";
-  export default function MyApp() {
-	useEffect(()=>{
-	  (async function () {
-		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
-		${uiInstructionCode}
-	  })();
-	}, [])
-	return <Cal ${namespaceProp}
-	  calLink="${calLink}"
-	  style={{width:"${width}",height:"${height}",overflow:"scroll"}}
-	  config={${JSON.stringify(previewState.config)}}
-    ${doWeNeedCalOriginProp(embedCalOrigin) ? `  calOrigin="${embedCalOrigin}"` : ""}
-	  ${IS_SELF_HOSTED ? `embedJsUrl="${embedLibUrl}"` : ""}
-	/>;
-  };`;
+import Cal, { getCalApi } from "@calcom/embed-react";
+import { useEffect } from "react";
+export default function MyApp() {
+  useEffect(() => {
+    (async function () {
+      const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
+      ${uiInstructionCode}
+    })();
+  }, [])
+  return <Cal ${namespaceProp}
+    calLink="${calLink}"
+    style={{width:"${width}",height:"${height}",overflow:"scroll"}}
+    config={${JSON.stringify(previewState.config)}}
+    ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
+    ${IS_SELF_HOSTED ? `embedJsUrl="${embedLibUrl}"` : ""}
+  />;
+};`;
     },
     "floating-popup": ({
       calLink,
@@ -70,17 +70,17 @@ export const Codes = {
         ...previewState,
       });
       return code`
-  import { getCalApi } from "@calcom/embed-react";
-  import { useEffect } from "react";
-  export default function MyApp() {
-	useEffect(()=>{
-	  (async function () {
-		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
-		${getApiNameForReactSnippet({ mainApiName: "cal" })}("floatingButton", ${floatingButtonArg});
-		${uiInstructionCode}
-	  })();
-	}, [])
-  };`;
+import { getCalApi } from "@calcom/embed-react";
+import { useEffect } from "react";
+export default function MyApp() {
+  useEffect(() => {
+    (async function () {
+      const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
+      ${getApiNameForReactSnippet({ mainApiName: "cal" })}("floatingButton", ${floatingButtonArg});
+      ${uiInstructionCode}
+    })();
+  }, [])
+};`;
     },
     "element-click": ({
       calLink,
@@ -97,21 +97,143 @@ export const Codes = {
     }) => {
       const argumentForGetCalApi = getArgumentForGetCalApi(namespace);
       return code`
-  import { getCalApi } from "@calcom/embed-react";
-  import { useEffect } from "react";
-  export default function MyApp() {
-	useEffect(()=>{
-	  (async function () {
-		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
-		${uiInstructionCode}
-	  })();
-	}, [])
-	return <button data-cal-namespace="${namespace}"
-	  data-cal-link="${calLink}"
-    ${doWeNeedCalOriginProp(embedCalOrigin) ? `  data-cal-origin="${embedCalOrigin}"` : ""}
-	  ${`data-cal-config='${JSON.stringify(previewState.config)}'`}
-	  >Click me</button>;
-  };`;
+import { getCalApi } from "@calcom/embed-react";
+import { useEffect } from "react";
+export default function MyApp() {
+  useEffect(() => {
+    (async function () {
+      const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
+      ${uiInstructionCode}
+    })();
+  }, [])
+  return <button data-cal-namespace="${namespace}"
+    data-cal-link="${calLink}"
+    ${doWeNeedCalOriginProp(embedCalOrigin) ? `data-cal-origin="${embedCalOrigin}"` : ""}
+    ${`data-cal-config='${JSON.stringify(previewState.config)}'`}
+  >Click me</button>;
+};`;
+    },
+  },
+  "react-atom": {
+    inline: ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+      embedCalOrigin,
+      namespace,
+    }: {
+      calLink: string;
+      uiInstructionCode: string;
+      previewState: PreviewState["inline"];
+      embedCalOrigin: string;
+      namespace: string;
+    }) => {
+      const width = getDimension(previewState.width);
+      const height = getDimension(previewState.height);
+      return code`
+import { BookerEmbed } from "@calcom/atoms";
+
+// You might need to define or import BookerProps depending on your setup
+// For example: type BookerProps = { eventTypeSlug: string; calUsername: string; /* other props */ };
+export default function Booker( props : BookerProps ) { 
+  return (
+    <>
+      <BookerEmbed
+        // Using calLink from embed generator where docs use props.eventTypeSlug
+        eventSlug="${calLink}"
+        // Example using layout from config, adjust as needed
+        ${previewState.config?.layout ? `view="${previewState.config.layout}"` : ""}
+        // Props like username can be added if needed and available in your component
+        // username={props.calUsername}
+        style={{width:"${width}",height:"${height}",overflow:"scroll"}}
+        config={${JSON.stringify(previewState.config)}}
+        ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
+        ${IS_SELF_HOSTED ? `embedJsUrl="${embedLibUrl}"` : ""}
+        onCreateBookingSuccess={() => {
+          console.log("booking created successfully");
+        }}
+      />
+    </>
+  );
+};`;
+    },
+    "floating-popup": ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+      embedCalOrigin,
+      namespace,
+    }: {
+      calLink: string;
+      embedCalOrigin: string;
+      uiInstructionCode: string;
+      namespace: string;
+      previewState: PreviewState["floatingPopup"];
+    }) => {
+      return code`
+import { BookerEmbed } from "@calcom/atoms";
+
+// You might need to define or import BookerProps depending on your setup
+export default function Booker( props : BookerProps ) {
+  return (
+    <>
+      <BookerEmbed
+        // Using calLink from embed generator where docs use props.eventTypeSlug
+        eventSlug="${calLink}"
+        // Example using layout from config, adjust as needed
+        ${previewState.config?.layout ? `view="${previewState.config.layout}"` : ""}
+        // username={props.calUsername}
+        config={${JSON.stringify(previewState.config)}}
+        ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
+        ${previewState.hideButtonIcon ? `hideButtonIcon={true}` : ""}
+        ${previewState.buttonPosition ? `buttonPosition="${previewState.buttonPosition}"` : ""}
+        ${previewState.buttonColor ? `buttonColor="${previewState.buttonColor}"` : ""}
+        ${previewState.buttonTextColor ? `buttonTextColor="${previewState.buttonTextColor}"` : ""}
+        onCreateBookingSuccess={() => {
+          console.log("booking created successfully");
+        }}
+      />
+    </>
+  );
+};`;
+    },
+    "element-click": ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+      embedCalOrigin,
+      namespace,
+    }: {
+      calLink: string;
+      uiInstructionCode: string;
+      previewState: PreviewState["elementClick"];
+      embedCalOrigin: string;
+      namespace: string;
+    }) => {
+      return code`
+import { BookerEmbed } from "@calcom/atoms";
+
+// You might need to define or import BookerProps depending on your setup
+export default function Booker( props : BookerProps ) {
+  return (
+    <>
+      <BookerEmbed.Button 
+        // Using calLink from embed generator where docs use props.eventTypeSlug
+        eventSlug="${calLink}"
+        // Example using layout from config, adjust as needed
+        ${previewState.config?.layout ? `view="${previewState.config.layout}"` : ""}
+        // username={props.calUsername}
+        config={${JSON.stringify(previewState.config)}}
+        ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
+        onCreateBookingSuccess={() => {
+          console.log("booking created successfully");
+        }}
+      >
+        Book my calendar
+      </BookerEmbed.Button>
+    </>
+  );
+};`;
     },
   },
   HTML: {

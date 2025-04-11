@@ -42,7 +42,7 @@ import { EmbedTheme } from "./lib/constants";
 import { getDimension } from "./lib/getDimension";
 import { useEmbedDialogCtx } from "./lib/hooks/useEmbedDialogCtx";
 import { useEmbedParams } from "./lib/hooks/useEmbedParams";
-import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState } from "./types";
+import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState, EmbedConfig } from "./types";
 
 type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"] | undefined;
 type EmbedDialogProps = {
@@ -1119,30 +1119,27 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                               return;
                             }
                             setPreviewState((previewState) => {
+                              // Ensure layout is updated in config for all embed types
+                              const newConfig = (currentConfig?: EmbedConfig) => ({
+                                ...(currentConfig ?? {}),
+                                layout: option.value,
+                              });
                               return {
                                 ...previewState,
                                 inline: {
                                   ...previewState.inline,
-                                  config: {
-                                    ...(previewState.inline.config ?? {}),
-                                    theme: option.value,
-                                  },
+                                  config: newConfig(previewState.inline.config),
                                 },
                                 floatingPopup: {
                                   ...previewState.floatingPopup,
-                                  config: {
-                                    ...(previewState.floatingPopup.config ?? {}),
-                                    theme: option.value,
-                                  },
+                                  config: newConfig(previewState.floatingPopup.config),
                                 },
                                 elementClick: {
                                   ...previewState.elementClick,
-                                  config: {
-                                    ...(previewState.elementClick.config ?? {}),
-                                    theme: option.value,
-                                  },
+                                  config: newConfig(previewState.elementClick.config),
                                 },
-                                theme: option.value,
+                                // Keep updating top-level layout for preview iframe
+                                layout: option.value,
                               };
                             });
                           }}
@@ -1200,16 +1197,26 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                               return;
                             }
                             setPreviewState((previewState) => {
-                              const config = {
-                                ...(previewState.floatingPopup.config ?? {}),
+                              // Ensure layout is updated in config for all embed types
+                              const newConfig = (currentConfig?: EmbedConfig) => ({
+                                ...(currentConfig ?? {}),
                                 layout: option.value,
-                              };
+                              });
                               return {
                                 ...previewState,
+                                inline: {
+                                  ...previewState.inline,
+                                  config: newConfig(previewState.inline.config),
+                                },
                                 floatingPopup: {
                                   ...previewState.floatingPopup,
-                                  config,
+                                  config: newConfig(previewState.floatingPopup.config),
                                 },
+                                elementClick: {
+                                  ...previewState.elementClick,
+                                  config: newConfig(previewState.elementClick.config),
+                                },
+                                // Keep updating top-level layout for preview iframe
                                 layout: option.value,
                               };
                             });

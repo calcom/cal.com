@@ -17,7 +17,7 @@ import { useEmbedCalOrigin } from "./hooks";
 
 export const tabs = [
   {
-    name: "HTML",
+    name: "HTML (iframe)",
     href: "embedTabName=embed-code",
     icon: "code" as const,
     type: "code",
@@ -74,7 +74,7 @@ export const tabs = [
     }),
   },
   {
-    name: "React",
+    name: "React (iframe)",
     href: "embedTabName=embed-react",
     "data-testid": "react",
     icon: "code" as const,
@@ -118,6 +118,59 @@ export const tabs = [
     namespace,
   })}
   `}
+          />
+        </>
+      );
+    }),
+  },
+  {
+    name: "React (Atom)",
+    href: "embedTabName=embed-react-atom",
+    "data-testid": "react-atom",
+    icon: "code" as const,
+    type: "code",
+    Component: forwardRef<
+      HTMLTextAreaElement | HTMLIFrameElement | null,
+      { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string }
+    >(function EmbedReactAtom({ embedType, calLink, previewState, namespace }, ref) {
+      const { t } = useLocale();
+      const embedCalOrigin = useEmbedCalOrigin();
+
+      if (ref instanceof Function || !ref) {
+        return null;
+      }
+      if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
+        return null;
+      }
+      return (
+        <>
+          <small className="text-subtle flex py-2">{t("create_update_react_component")}</small>
+          <div className="text-default bg-attention mb-3 rounded-md p-3 text-sm">
+            <strong>Note:</strong> The preview shown in the Preview tab is generated using the iframe
+            approach.
+          </div>
+          <TextArea
+            data-testid="embed-react-atom"
+            ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
+            name="embed-react-atom"
+            className="text-default bg-default h-[calc(100%-50px)] font-mono"
+            readOnly
+            style={{ resize: "none", overflow: "auto" }}
+            value={`/* First make sure that you have installed the package */
+
+/* If you are using yarn */
+// yarn add @calcom/atoms
+
+/* If you are using npm */
+// npm install @calcom/atoms
+${getEmbedTypeSpecificString({
+  embedFramework: "react-atom" as EmbedFramework,
+  embedType,
+  calLink,
+  previewState,
+  embedCalOrigin,
+  namespace,
+})}`}
           />
         </>
       );
