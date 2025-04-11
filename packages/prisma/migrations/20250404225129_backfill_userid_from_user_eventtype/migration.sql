@@ -74,7 +74,6 @@ BEGIN
                             WHERE et2.slug = et.slug 
                             AND et2."userId" = mb.user_id
                             AND et2.id != et.id
-                            AND et2.id < et.id  -- Keep the older event type
                         ) THEN 'conflict'
                         ELSE 'safe'
                     END as update_status
