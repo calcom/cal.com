@@ -10,7 +10,7 @@ export class AssignedOptionOutput extends OptionOutput {
   @ApiProperty({
     type: Array,
     required: true,
-    description: "users assigned to the option",
+    description: "Ids of the users assigned to the attribute option.",
     example: [124, 224],
   })
   assignedUserIds!: number[];

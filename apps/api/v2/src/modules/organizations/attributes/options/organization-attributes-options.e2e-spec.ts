@@ -4,6 +4,7 @@ import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/
 import { AssignOrganizationAttributeOptionToUserInput } from "@/modules/organizations/attributes/options/inputs/organizations-attributes-options-assign.input";
 import { UpdateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/update-organizaiton-attribute-option.input.ts";
 import { AssignedOptionOutput } from "@/modules/organizations/attributes/options/outputs/assigned-options.output";
+import { OptionOutput } from "@/modules/organizations/attributes/options/outputs/option.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -100,15 +101,24 @@ describe("Organizations Attributes Options Endpoints", () => {
     let attributeRepositoryFixture: AttributeRepositoryFixture;
 
     const userEmail = `organization-attributes-options-admin-${randomString()}@api.com`;
+    const userEmail2 = `organization-attributes-options-member-${randomString()}@api.com`;
+
     let user: User;
+    let user2: User;
     let org: Team;
     let membership: Membership;
     let attributeId: string;
     let createdOption: any;
+    let createdOption2: any;
 
     const createOptionInput: CreateOrganizationAttributeOptionInput = {
       value: "option1",
       slug: "option1",
+    };
+
+    const createOption2Input: CreateOrganizationAttributeOptionInput = {
+      value: "option2",
+      slug: "option2",
     };
 
     beforeAll(async () => {
@@ -135,7 +145,14 @@ describe("Organizations Attributes Options Endpoints", () => {
         organization: { connect: { id: org.id } },
       });
 
+      user2 = await userRepositoryFixture.create({
+        email: userEmail2,
+        username: userEmail2,
+        organization: { connect: { id: org.id } },
+      });
+
       membership = await membershipFixtures.addUserToOrg(user, org, "ADMIN", true);
+      membership = await membershipFixtures.addUserToOrg(user2, org, "ADMIN", true);
 
       // Create an attribute for testing
       const attribute = await attributeRepositoryFixture.create({
@@ -165,16 +182,31 @@ describe("Organizations Attributes Options Endpoints", () => {
         });
     });
 
+    it("should create attribute option", async () => {
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/attributes/${attributeId}/options`)
+        .send(createOption2Input)
+        .expect(201)
+        .then((response) => {
+          expect(response.body.status).toEqual(SUCCESS_STATUS);
+          createdOption2 = response.body.data;
+          expect(createdOption2.value).toEqual(createOption2Input.value);
+          expect(createdOption2.slug).toEqual(createOption2Input.slug);
+        });
+    });
+
     it("should get attribute options", async () => {
       return request(app.getHttpServer())
         .get(`/v2/organizations/${org.id}/attributes/${attributeId}/options`)
         .expect(200)
         .then((response) => {
           expect(response.body.status).toEqual(SUCCESS_STATUS);
-          const options = response.body.data;
-          expect(options.length).toEqual(1);
-          expect(options[0].value).toEqual(createOptionInput.value);
-          expect(options[0].slug).toEqual(createOptionInput.slug);
+          const options = response.body.data as OptionOutput[];
+          expect(options.length).toEqual(2);
+          expect(options.find((opt) => opt.value === createOptionInput.value)).toBeDefined();
+          expect(options.find((opt) => opt.slug === createOptionInput.slug)).toBeDefined();
+          expect(options.find((opt) => opt.value === createOption2Input.value)).toBeDefined();
+          expect(options.find((opt) => opt.slug === createOption2Input.slug)).toBeDefined();
         });
     });
 
@@ -210,6 +242,22 @@ describe("Organizations Attributes Options Endpoints", () => {
         });
     });
 
+    it("should assign attribute option to user2", async () => {
+      const assignInput: AssignOrganizationAttributeOptionToUserInput = {
+        attributeId: attributeId,
+        attributeOptionId: createdOption2.id,
+      };
+
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/attributes/options/${user2.id}`)
+        .send(assignInput)
+        .expect(201)
+        .then((response) => {
+          expect(response.body.status).toEqual(SUCCESS_STATUS);
+          expect(response.body.data).toBeTruthy();
+        });
+    });
+
     it("should get attribute options for user", async () => {
       return request(app.getHttpServer())
         .get(`/v2/organizations/${org.id}/attributes/options/${user.id}`)
@@ -222,6 +270,18 @@ describe("Organizations Attributes Options Endpoints", () => {
         });
     });
 
+    it("should get attribute options for user2", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/attributes/options/${user2.id}`)
+        .expect(200)
+        .then((response) => {
+          expect(response.body.status).toEqual(SUCCESS_STATUS);
+          const userOptions = response.body.data;
+          expect(userOptions.length).toEqual(1);
+          expect(userOptions[0].id).toEqual(createdOption2.id);
+        });
+    });
+
     it("should get attribute all assigned options", async () => {
       return request(app.getHttpServer())
         .get(`/v2/organizations/${org.id}/attributes/${attributeId}/options/assigned`)
@@ -229,12 +289,20 @@ describe("Organizations Attributes Options Endpoints", () => {
         .then((response) => {
           expect(response.body.status).toEqual(SUCCESS_STATUS);
           const assignedOptions = response.body.data as AssignedOptionOutput[];
-          expect(assignedOptions?.length).toEqual(1);
+          expect(assignedOptions?.length).toEqual(2);
+
           expect(assignedOptions.find((opt) => createdOption.id === opt.id)).toBeDefined();
           expect(
             assignedOptions
               .find((opt) => createdOption.id === opt.id)
               ?.assignedUserIds.find((id) => id === user.id)
+          ).toBeDefined();
+
+          expect(assignedOptions.find((opt) => createdOption2.id === opt.id)).toBeDefined();
+          expect(
+            assignedOptions
+              .find((opt) => createdOption2.id === opt.id)
+              ?.assignedUserIds.find((id) => id === user2.id)
           ).toBeDefined();
         });
     });
@@ -262,6 +330,7 @@ describe("Organizations Attributes Options Endpoints", () => {
     afterAll(async () => {
       await membershipFixtures.delete(membership.id);
       await userRepositoryFixture.deleteByEmail(user.email);
+      await userRepositoryFixture.deleteByEmail(user2.email);
       await organizationsRepositoryFixture.delete(org.id);
       await app.close();
     });
