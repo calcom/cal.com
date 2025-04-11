@@ -405,6 +405,14 @@ async function handler(
 
   const dynamicUserList = Array.isArray(reqBody.user) ? reqBody.user : getUsernameList(reqBody.user);
   if (!eventType) throw new HttpError({ statusCode: 404, message: "event_type_not_found" });
+
+  if (eventType.seatsPerTimeSlot && eventType.recurringEvent) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "recurring_event_seats_error",
+    });
+  }
+
   const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
 
   const isTeamEventType =
