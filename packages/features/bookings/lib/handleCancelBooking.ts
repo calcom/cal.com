@@ -109,7 +109,7 @@ async function handler(input: CancelBookingInput) {
       : false;
   }
 
-  if (bookingToDelete.eventType?.disableCancelling && !beyondThreshold) {
+  if (isDisabledCancelling && !beyondThreshold) {
     throw new HttpError({
       statusCode: 400,
       message: "This event type does not allow cancellations",
