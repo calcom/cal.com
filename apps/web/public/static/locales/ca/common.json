@@ -1361,6 +1361,8 @@
   "custom": "Personalitzat",
   "reminder": "Recordatori",
   "rescheduled": "Reprogramat",
+  "rescheduled_by": "Reprogramat per",
+  "original_booking": "Reserva original",
   "completed": "Completat",
   "rating": "Valoració",
   "reminder_email": "Recordatori: {{eventType}} amb {{name}} el {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Reserves més cancel·lades",
   "name_or_email": "Nom o correu electrònic",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Si no es troba cap contacte, recorre al propietari del lead si existeix",
+  "enable_delegation_credential": "Activar credencial de delegació",
+  "enable_delegation_credential_description": "Concedeix a Cal.com accés automàtic als calendaris de tots els membres de l'organització activant la credencial de delegació.",
+  "disable_delegation_credential": "Desactivar credencial de delegació",
+  "disable_delegation_credential_description": "Un cop desactivada la credencial de delegació, els membres de l'organització que no hagin connectat els seus calendaris hauran de fer-ho manualment.",
+  "salesforce_on_cancel_write_to_event": "En cancel·lar una reserva, escriure al registre d'esdeveniments en lloc d'eliminar l'esdeveniment",
+  "salesforce_on_every_cancellation": "En cada cancel·lació",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

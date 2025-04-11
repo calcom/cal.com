@@ -1361,6 +1361,8 @@
   "custom": "Personalizat",
   "reminder": "Memento",
   "rescheduled": "Reprogramat",
+  "rescheduled_by": "Reprogramat de",
+  "original_booking": "Rezervarea inițială",
   "completed": "Finalizat",
   "rating": "Evaluare",
   "reminder_email": "Memento: {{eventType}} cu {{name}} la {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Cele mai multe rezervări anulate",
   "name_or_email": "Nume sau email",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Dacă nu este găsit niciun contact, se revine la proprietarul lead-ului dacă acesta există",
+  "enable_delegation_credential": "Activează credențialul de delegare",
+  "enable_delegation_credential_description": "Acordă Cal.com acces automat la calendarele tuturor membrilor organizației prin activarea credențialului de delegare.",
+  "disable_delegation_credential": "Dezactivează credențialul de delegare",
+  "disable_delegation_credential_description": "Odată ce credențialul de delegare este dezactivat, membrii organizației care nu și-au conectat calendarele vor trebui să facă acest lucru manual.",
+  "salesforce_on_cancel_write_to_event": "La anularea rezervării, scrie în înregistrarea evenimentului în loc să ștergi evenimentul",
+  "salesforce_on_every_cancellation": "La fiecare anulare",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

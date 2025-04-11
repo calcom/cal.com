@@ -1362,6 +1362,8 @@ checksums:
     custom: b7b89901f46267f532600a23cfc54ae2
     reminder: 4e93cab74d138fe56b452f8eb9731924
     rescheduled: 2937af5d7cd4ab933106f48fa44e0ce9
+    rescheduled_by: e6f3cb93eb1607f6a0234c3b479c2ea1
+    original_booking: 97ad64bca0b1bece6736dc1936dcda68
     completed: 0e4bbce9985f25eb673d9a054c8d5334
     rating: c9fa231054678af1362b7f9c6ab35e23
     reminder_email: 2b6f2e4a961529ff10c54bc45aa201fa
@@ -3050,4 +3052,10 @@ checksums:
     most_cancelled_bookings: ad8362bfa418808b784435e1b3f013c8
     name_or_email: d6e1cc7612211a2f7080b5096510f282
     salesforce_round_robin_skip_fallback_to_lead_owner: 95ba66cdc5f1422c48d907e9d4d442b9
+    enable_delegation_credential: 444d27809dd4b53d6d4159361109fc69
+    enable_delegation_credential_description: c713439db9cc156b5a381f60b58b83c7
+    disable_delegation_credential: 3e2100b538dc75842cb06842eec4ac19
+    disable_delegation_credential_description: b67550484bad853480945b0d59725cc0
+    salesforce_on_cancel_write_to_event: 5d82dd4959cc2ae009a750f096ad74e0
+    salesforce_on_every_cancellation: a54453f804195b3747564b1ceb0d60b4
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850

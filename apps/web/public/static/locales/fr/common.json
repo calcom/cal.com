@@ -1361,6 +1361,8 @@
   "custom": "Personnalisé",
   "reminder": "Rappel",
   "rescheduled": "Replanifié",
+  "rescheduled_by": "Replanifié par",
+  "original_booking": "Réservation initiale",
   "completed": "Terminé",
   "rating": "Évaluation",
   "reminder_email": "Rappel : {{eventType}} avec {{name}} le {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Réservations les plus annulées",
   "name_or_email": "Nom ou e-mail",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Si aucun contact n'est trouvé, se rabattre sur le propriétaire du lead s'il existe",
+  "enable_delegation_credential": "Activer l'identifiant de délégation",
+  "enable_delegation_credential_description": "Accordez à Cal.com un accès automatique aux calendriers de tous les membres de l'organisation en activant l'identifiant de délégation.",
+  "disable_delegation_credential": "Désactiver l'identifiant de délégation",
+  "disable_delegation_credential_description": "Une fois l'identifiant de délégation désactivé, les membres de l'organisation qui n'ont pas connecté leurs calendriers devront le faire manuellement.",
+  "salesforce_on_cancel_write_to_event": "Lors de l'annulation d'une réservation, écrire dans l'enregistrement de l'événement au lieu de le supprimer",
+  "salesforce_on_every_cancellation": "À chaque annulation",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

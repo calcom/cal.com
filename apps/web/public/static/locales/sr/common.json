@@ -1361,6 +1361,8 @@
   "custom": "Prilagođeno",
   "reminder": "Podsetnik",
   "rescheduled": "Odloženo",
+  "rescheduled_by": "Odložio/la",
+  "original_booking": "Originalna rezervacija",
   "completed": "Završeno",
   "rating": "Ocena",
   "reminder_email": "Podsetnik: {{eventType}} sa {{name}} datuma {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Najviše otkazanih rezervacija",
   "name_or_email": "Ime ili email",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Ako kontakt nije pronađen, vrati se na vlasnika potencijalnog klijenta ako postoji",
+  "enable_delegation_credential": "Omogući delegirani kredencijal",
+  "enable_delegation_credential_description": "Omogućite Cal.com automatski pristup kalendarima svih članova organizacije aktiviranjem delegiranog kredencijala.",
+  "disable_delegation_credential": "Onemogući delegirani kredencijal",
+  "disable_delegation_credential_description": "Kada se delegirani kredencijal onemogući, članovi organizacije koji nisu povezali svoje kalendare moraće to da urade ručno.",
+  "salesforce_on_cancel_write_to_event": "Prilikom otkazivanja rezervacije, upiši u zapis događaja umesto brisanja događaja",
+  "salesforce_on_every_cancellation": "Pri svakom otkazivanju",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

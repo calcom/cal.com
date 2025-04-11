@@ -1361,6 +1361,8 @@
   "custom": "Niestandard.",
   "reminder": "Przypomnienie",
   "rescheduled": "Przełożono",
+  "rescheduled_by": "Przełożone przez",
+  "original_booking": "Oryginalna rezerwacja",
   "completed": "Ukończono",
   "rating": "Ocena",
   "reminder_email": "Przypomnienie: {{eventType}} z {{name}} w dniu {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Najczęściej anulowane rezerwacje",
   "name_or_email": "Imię lub email",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Jeśli nie znaleziono kontaktu, powróć do właściciela leada, jeśli istnieje",
+  "enable_delegation_credential": "Włącz poświadczenie delegacji",
+  "enable_delegation_credential_description": "Przyznaj Cal.com automatyczny dostęp do kalendarzy wszystkich członków organizacji, włączając poświadczenie delegacji.",
+  "disable_delegation_credential": "Wyłącz poświadczenie delegacji",
+  "disable_delegation_credential_description": "Po wyłączeniu poświadczenia delegacji, członkowie organizacji, którzy nie połączyli swoich kalendarzy, będą musieli zrobić to ręcznie.",
+  "salesforce_on_cancel_write_to_event": "Przy anulowanej rezerwacji, zapisz do rekordu wydarzenia zamiast usuwać wydarzenie",
+  "salesforce_on_every_cancellation": "Przy każdym anulowaniu",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

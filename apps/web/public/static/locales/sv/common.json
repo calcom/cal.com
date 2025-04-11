@@ -1361,6 +1361,8 @@
   "custom": "Anpassad",
   "reminder": "Påminnelse",
   "rescheduled": "Ombokad",
+  "rescheduled_by": "Ombokad av",
+  "original_booking": "Ursprunglig bokning",
   "completed": "Slutförd",
   "rating": "Betyg",
   "reminder_email": "Påminnelse: {{eventType}} med {{name}} den {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Flest avbokade bokningar",
   "name_or_email": "Namn eller e-post",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Om ingen kontakt hittas, återgå till lead-ägaren om sådan finns",
+  "enable_delegation_credential": "Aktivera delegationsautentiseringsuppgift",
+  "enable_delegation_credential_description": "Ge Cal.com automatisk åtkomst till kalendrarna för alla organisationsmedlemmar genom att aktivera delegationsautentiseringsuppgift.",
+  "disable_delegation_credential": "Inaktivera delegationsautentiseringsuppgift",
+  "disable_delegation_credential_description": "När delegationsautentiseringsuppgift inaktiveras måste organisationsmedlemmar som inte har anslutit sina kalendrar göra det manuellt.",
+  "salesforce_on_cancel_write_to_event": "Vid avbokad bokning, skriv till händelseposten istället för att radera händelsen",
+  "salesforce_on_every_cancellation": "Vid varje avbokning",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

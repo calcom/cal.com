@@ -1361,6 +1361,8 @@
   "custom": "مخصص",
   "reminder": "تذكير",
   "rescheduled": "تمت إعادة الجدولة",
+  "rescheduled_by": "تمت إعادة الجدولة بواسطة",
+  "original_booking": "الحجز الأصلي",
   "completed": "تمّ",
   "rating": "التقييم",
   "reminder_email": "تذكر {{eventType}} مع {{name}} في {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "الحجوزات الأكثر إلغاءً",
   "name_or_email": "الاسم أو البريد الإلكتروني",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "إذا لم يتم العثور على جهة اتصال، يتم الرجوع إلى مالك العميل المحتمل إذا كان موجودًا",
+  "enable_delegation_credential": "تفعيل بيانات اعتماد التفويض",
+  "enable_delegation_credential_description": "امنح Cal.com وصولاً تلقائياً إلى تقويمات جميع أعضاء المؤسسة من خلال تفعيل بيانات اعتماد التفويض.",
+  "disable_delegation_credential": "تعطيل بيانات اعتماد التفويض",
+  "disable_delegation_credential_description": "بمجرد تعطيل بيانات اعتماد التفويض، سيحتاج أعضاء المؤسسة الذين لم يقوموا بربط تقويماتهم إلى القيام بذلك يدوياً.",
+  "salesforce_on_cancel_write_to_event": "عند إلغاء الحجز، اكتب في سجل الحدث بدلاً من حذف الحدث",
+  "salesforce_on_every_cancellation": "عند كل إلغاء",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

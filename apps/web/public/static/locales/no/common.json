@@ -1361,6 +1361,8 @@
   "custom": "Egendefinert",
   "reminder": "Påminnelse",
   "rescheduled": "Omberammet",
+  "rescheduled_by": "Omberammet av",
+  "original_booking": "Opprinnelig booking",
   "completed": "Fullført",
   "rating": "Vurdering",
   "reminder_email": "Påminnelse: {{eventType}} med {{name}} kl. {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Flest kansellerte bestillinger",
   "name_or_email": "Navn eller e-post",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Hvis ingen kontakt blir funnet, fall tilbake til leadeier hvis den eksisterer",
+  "enable_delegation_credential": "Aktiver delegeringslegitimasjon",
+  "enable_delegation_credential_description": "Gi Cal.com automatisk tilgang til kalenderne til alle organisasjonsmedlemmer ved å aktivere delegeringslegitimasjon.",
+  "disable_delegation_credential": "Deaktiver delegeringslegitimasjon",
+  "disable_delegation_credential_description": "Når delegeringslegitimasjon er deaktivert, må organisasjonsmedlemmer som ikke har koblet til kalenderne sine, gjøre dette manuelt.",
+  "salesforce_on_cancel_write_to_event": "Ved kansellert booking, skriv til hendelsesposten i stedet for å slette hendelsen",
+  "salesforce_on_every_cancellation": "Ved hver kansellering",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

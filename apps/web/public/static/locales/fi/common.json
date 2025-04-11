@@ -1361,6 +1361,8 @@
   "custom": "Mukautettu",
   "reminder": "Muistutus",
   "rescheduled": "Uudelleenajoitettu",
+  "rescheduled_by": "Uudelleenajoittaja",
+  "original_booking": "Alkuperäinen varaus",
   "completed": "Valmis",
   "rating": "Arvostelu",
   "reminder_email": "Muistutus: {{eventType}} henkilön {{name}} kanssa {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Eniten perutut varaukset",
   "name_or_email": "Nimi tai sähköposti",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Jos yhteyshenkilöä ei löydy, käytä liidin omistajaa, jos sellainen on olemassa",
+  "enable_delegation_credential": "Ota delegointitunniste käyttöön",
+  "enable_delegation_credential_description": "Myönnä Cal.comille automaattinen pääsy kaikkien organisaation jäsenten kalentereihin ottamalla delegointitunniste käyttöön.",
+  "disable_delegation_credential": "Poista delegointitunniste käytöstä",
+  "disable_delegation_credential_description": "Kun delegointitunniste on poistettu käytöstä, organisaation jäsenten, jotka eivät ole yhdistäneet kalentereitaan, on tehtävä se manuaalisesti.",
+  "salesforce_on_cancel_write_to_event": "Peruutetun varauksen yhteydessä kirjoita tapahtumatietueeseen tapahtuman poistamisen sijaan",
+  "salesforce_on_every_cancellation": "Jokaisessa peruutuksessa",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

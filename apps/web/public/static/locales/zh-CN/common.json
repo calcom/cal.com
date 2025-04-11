@@ -1361,6 +1361,8 @@
   "custom": "自定义",
   "reminder": "提醒",
   "rescheduled": "已重新安排",
+  "rescheduled_by": "重新安排者",
+  "original_booking": "原始预约",
   "completed": "已完成",
   "rating": "评分",
   "reminder_email": "提醒: 和 {{name}} 在 {{date}} 的 {{eventType}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "最多取消的预约",
   "name_or_email": "姓名或电子邮箱",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "如果未找到联系人，则在存在潜在客户所有者的情况下回退到潜在客户所有者",
+  "enable_delegation_credential": "启用委托凭证",
+  "enable_delegation_credential_description": "通过启用委托凭证，授予Cal.com自动访问所有组织成员日历的权限。",
+  "disable_delegation_credential": "禁用委托凭证",
+  "disable_delegation_credential_description": "一旦委托凭证被禁用，尚未连接日历的组织成员将需要手动进行连接。",
+  "salesforce_on_cancel_write_to_event": "预约取消时，写入事件记录而不是删除事件",
+  "salesforce_on_every_cancellation": "每次取消时",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

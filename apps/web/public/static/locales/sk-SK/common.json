@@ -1361,6 +1361,8 @@
   "custom": "Vlastné",
   "reminder": "Pripomienka",
   "rescheduled": "Preplánované",
+  "rescheduled_by": "Preplánované používateľom",
+  "original_booking": "Pôvodná rezervácia",
   "completed": "Dokončené",
   "rating": "Hodnotenie",
   "reminder_email": "Pripomienka: {{eventType}} s {{name}} o {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Najviac zrušených rezervácií",
   "name_or_email": "Meno alebo email",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Ak sa nenájde žiadny kontakt, použije sa vlastník leadu, ak existuje",
+  "enable_delegation_credential": "Povoliť delegované poverenie",
+  "enable_delegation_credential_description": "Povoľte delegované poverenie, aby ste Cal.com poskytli automatický prístup ku kalendárom všetkých členov organizácie.",
+  "disable_delegation_credential": "Zakázať delegované poverenie",
+  "disable_delegation_credential_description": "Po zakázaní delegovaného poverenia budú členovia organizácie, ktorí si nepripojili svoje kalendáre, musieť tak urobiť manuálne.",
+  "salesforce_on_cancel_write_to_event": "Pri zrušenej rezervácii zapísať do záznamu udalosti namiesto vymazania udalosti",
+  "salesforce_on_every_cancellation": "Pri každom zrušení",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

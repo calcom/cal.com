@@ -1361,6 +1361,8 @@
   "custom": "사용자 정의",
   "reminder": "미리 알림",
   "rescheduled": "일정 변경됨",
+  "rescheduled_by": "일정 변경자",
+  "original_booking": "원래 예약",
   "completed": "완료됨",
   "rating": "평점",
   "reminder_email": "미리 알림: {{eventType}} - 이름 {{name}} 날짜 {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "가장 많이 취소된 예약",
   "name_or_email": "이름 또는 이메일",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "연락처를 찾을 수 없는 경우, 리드 소유자가 있으면 대체",
+  "enable_delegation_credential": "위임 자격 증명 활성화",
+  "enable_delegation_credential_description": "위임 자격 증명을 활성화하여 Cal.com이 모든 조직 구성원의 캘린더에 자동으로 접근할 수 있도록 허용합니다.",
+  "disable_delegation_credential": "위임 자격 증명 비활성화",
+  "disable_delegation_credential_description": "위임 자격 증명이 비활성화되면, 캘린더를 연결하지 않은 조직 구성원들은 수동으로 연결해야 합니다.",
+  "salesforce_on_cancel_write_to_event": "예약 취소 시, 이벤트 삭제 대신 이벤트 기록에 작성",
+  "salesforce_on_every_cancellation": "모든 취소 시",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

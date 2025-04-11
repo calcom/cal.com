@@ -1361,6 +1361,8 @@
   "custom": "По избор",
   "reminder": "Напомняне",
   "rescheduled": "Пренасрочено",
+  "rescheduled_by": "Пренасрочено от",
+  "original_booking": "Първоначална резервация",
   "completed": "Завършено",
   "rating": "Оценка",
   "reminder_email": "Напомняне: {{eventType}} с {{name}} на {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Най-много отменени резервации",
   "name_or_email": "Име или имейл",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Ако не е намерен контакт, връщане към собственика на лийда, ако съществува",
+  "enable_delegation_credential": "Активиране на делегирани идентификационни данни",
+  "enable_delegation_credential_description": "Предоставете на Cal.com автоматичен достъп до календарите на всички членове на организацията чрез активиране на делегирани идентификационни данни.",
+  "disable_delegation_credential": "Деактивиране на делегирани идентификационни данни",
+  "disable_delegation_credential_description": "След деактивиране на делегираните идентификационни данни, членовете на организацията, които не са свързали календарите си, ще трябва да го направят ръчно.",
+  "salesforce_on_cancel_write_to_event": "При отменена резервация, запиши в записа на събитието вместо да изтриеш събитието",
+  "salesforce_on_every_cancellation": "При всяка отмяна",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

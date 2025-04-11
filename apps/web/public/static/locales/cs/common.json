@@ -1361,6 +1361,8 @@
   "custom": "Vlastní",
   "reminder": "Upomínka",
   "rescheduled": "Změna termínu",
+  "rescheduled_by": "Změnu termínu provedl",
+  "original_booking": "Původní rezervace",
   "completed": "Dokončeno",
   "rating": "Hodnocení",
   "reminder_email": "Upomínka: událost {{eventType}} s uživatelem {{name}} dne {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Nejčastěji zrušené rezervace",
   "name_or_email": "Jméno nebo e-mail",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Pokud není nalezen žádný kontakt, použít vlastníka leadu, pokud existuje",
+  "enable_delegation_credential": "Povolit delegované pověření",
+  "enable_delegation_credential_description": "Povolením delegovaného pověření udělíte Cal.com automatický přístup ke kalendářům všech členů organizace.",
+  "disable_delegation_credential": "Zakázat delegované pověření",
+  "disable_delegation_credential_description": "Jakmile je delegované pověření zakázáno, členové organizace, kteří nepropojili své kalendáře, to budou muset udělat ručně.",
+  "salesforce_on_cancel_write_to_event": "Při zrušené rezervaci zapsat do záznamu události místo smazání události",
+  "salesforce_on_every_cancellation": "Při každém zrušení",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

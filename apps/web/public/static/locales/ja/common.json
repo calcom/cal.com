@@ -1361,6 +1361,8 @@
   "custom": "カスタム",
   "reminder": "リマインダー",
   "rescheduled": "スケジュールが変更されました",
+  "rescheduled_by": "スケジュール変更者",
+  "original_booking": "元の予約",
   "completed": "完了しました",
   "rating": "評価",
   "reminder_email": "リマインダー：{{date}} の {{name}} との {{eventType}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "最もキャンセルされた予約",
   "name_or_email": "名前またはメールアドレス",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "連絡先が見つからない場合、リード所有者が存在すればそちらにフォールバックする",
+  "enable_delegation_credential": "委任認証情報を有効にする",
+  "enable_delegation_credential_description": "委任認証情報を有効にすることで、Cal.comに組織のすべてのメンバーのカレンダーへの自動アクセスを許可します。",
+  "disable_delegation_credential": "委任認証情報を無効にする",
+  "disable_delegation_credential_description": "委任認証情報が無効になると、カレンダーを接続していない組織のメンバーは手動で接続する必要があります。",
+  "salesforce_on_cancel_write_to_event": "予約がキャンセルされた場合、イベントを削除せずにイベントレコードに書き込む",
+  "salesforce_on_every_cancellation": "すべてのキャンセル時",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

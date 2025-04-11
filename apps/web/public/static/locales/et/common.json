@@ -1361,6 +1361,8 @@
   "custom": "Kohandatud",
   "reminder": "Meeldetuletus",
   "rescheduled": "Ümber ajastatud",
+  "rescheduled_by": "Ümber ajastanud",
+  "original_booking": "Algne broneering",
   "completed": "Lõpetatud",
   "rating": "Hinnang",
   "reminder_email": "Meeldetuletus: {{eventType}} kasutajaga {{name}} kell {{date}}",
@@ -3053,5 +3055,11 @@
   "most_cancelled_bookings": "Enim tühistatud broneeringud",
   "name_or_email": "Nimi või e-post",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Kui kontakti ei leita, kasuta võimalusel liidi omanikku",
+  "enable_delegation_credential": "Luba delegeerimise volitus",
+  "enable_delegation_credential_description": "Anna Cal.com-ile automaatne juurdepääs kõigi organisatsiooni liikmete kalendritele, lubades delegeerimise volituse.",
+  "disable_delegation_credential": "Keela delegeerimise volitus",
+  "disable_delegation_credential_description": "Kui delegeerimise volitus on keelatud, peavad organisatsiooni liikmed, kes pole oma kalendreid ühendanud, tegema seda käsitsi.",
+  "salesforce_on_cancel_write_to_event": "Tühistatud broneeringu korral kirjuta sündmuse kirjesse selle kustutamise asemel",
+  "salesforce_on_every_cancellation": "Iga tühistamise korral",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
