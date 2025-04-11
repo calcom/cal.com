@@ -64,18 +64,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const isDisabledRescheduling = eventData.disableRescheduling;
   const metaData = eventData.metadata as EventTypeMetadata;
 
-  let beyondThreshold = true;
-  if (isDisabledRescheduling) {
-    beyondThreshold = metaData?.disableReschedulingThreshold
-      ? isBeyondThresholdTime(
-          booking?.startTime,
-          metaData?.disableReschedulingThreshold.time,
-          metaData?.disableReschedulingThreshold.unit
-        )
-      : false;
+  const threshold = metaData?.disableReschedulingThreshold;
+
+  let isBeyond = false;
+
+  if (isDisabledRescheduling && threshold) {
+    isBeyond = isBeyondThresholdTime(booking?.startTime, threshold.time, threshold.unit);
   }
 
-  if (rescheduleUid && isDisabledRescheduling && !beyondThreshold) {
+  if (rescheduleUid && isDisabledRescheduling && (!threshold || !isBeyond)) {
     return { redirect: { destination: `/booking/${rescheduleUid}`, permanent: false } };
   }
   const fromRedirectOfNonOrgLink = context.query.orgRedirection === "true";

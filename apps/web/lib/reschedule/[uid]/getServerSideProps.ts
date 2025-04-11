@@ -105,22 +105,18 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
 
   const isDisabledRescheduling = booking.eventType?.disableRescheduling;
-
   const metaData = booking.eventType?.metadata as EventTypeMetadata;
-  let beyondThreshold = true;
 
-  if (isDisabledRescheduling) {
-    beyondThreshold = metaData?.disableReschedulingThreshold
-      ? isBeyondThresholdTime(
-          booking.startTime,
-          metaData.disableReschedulingThreshold.time,
-          metaData.disableReschedulingThreshold.unit
-        )
-      : false;
+  const threshold = metaData?.disableReschedulingThreshold;
+
+  let isBeyond = false;
+
+  if (isDisabledRescheduling && threshold) {
+    isBeyond = isBeyondThresholdTime(booking.startTime, threshold.time, threshold.unit);
   }
 
   if (
-    (isDisabledRescheduling && !beyondThreshold) ||
+    (isDisabledRescheduling && (!threshold || !isBeyond)) ||
     (!allowRescheduleForCancelledBooking &&
       (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED))
   ) {
