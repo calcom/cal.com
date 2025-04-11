@@ -17,10 +17,9 @@ interface IControllerWithTimeSlotProps {
   checked: boolean;
   onCheckedChange: (val: boolean) => void;
   "data-testid": string;
-  customClassname?: string;
   toggleSwitchAtTheEnd?: boolean;
   metaDataName: "disableCancellingThreshold" | "disableReschedulingThreshold";
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotProps) {

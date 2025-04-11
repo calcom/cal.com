@@ -610,7 +610,7 @@ export const EventAdvancedTab = ({
             metaDataName="disableReschedulingThreshold"
             title={t("disable_rescheduling")}
             description={t("description_disable_rescheduling")}
-            data-testid="disable-cancelling-toggle"
+            data-testid="disable-rescheduling-toggle"
             checked={disableRescheduling}
             onCheckedChange={setDisableRescheduling}
             {...disableReschedulingLocked}
