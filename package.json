@@ -116,6 +116,7 @@
     "@vercel/functions": "^1.4.0",
     "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",
+    "sharp": "^0.34.1",
     "turbo": "^1.10.1"
   },
   "resolutions": {
