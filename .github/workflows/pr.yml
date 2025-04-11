@@ -174,11 +174,11 @@ jobs:
     uses: ./.github/workflows/e2e-api-v2.yml
     secrets: inherit
 
-  e2e-app-store:
+  e2e-routing-forms:
     name: Tests
     needs: [changes, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/e2e-app-store.yml
+    uses: ./.github/workflows/e2e-routing-forms.yml
     secrets: inherit
 
   e2e-embed:
@@ -204,7 +204,7 @@ jobs:
   merge-reports:
     name: Merge reports
     if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    needs: [changes, check-label, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    needs: [changes, check-label, e2e, e2e-embed, e2e-embed-react, e2e-routing-forms]
     uses: ./.github/workflows/merge-reports.yml
     secrets: inherit
 
@@ -237,7 +237,7 @@ jobs:
         e2e-api-v2,
         e2e-embed,
         e2e-embed-react,
-        e2e-app-store,
+        e2e-routing-forms,
       ]
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
