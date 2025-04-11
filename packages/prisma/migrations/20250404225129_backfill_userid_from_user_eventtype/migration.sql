@@ -58,7 +58,8 @@ BEGIN
             -- Create temporary table for updated records
             CREATE TEMP TABLE updated_records (
                 event_type_id INTEGER,
-                user_id INTEGER
+                user_id INTEGER,
+                new_slug TEXT
             );
 
             -- Update EventType table with safe updates only
@@ -81,12 +82,25 @@ BEGIN
                 JOIN migration_batch mb ON et.id = mb.event_type_id
                 ORDER BY et.id, mb.user_id  -- Consistent ordering
             )
-            INSERT INTO updated_records
-            SELECT event_type_id, user_id
-            FROM to_update
-            WHERE update_status = 'safe';
+            INSERT INTO updated_records (event_type_id, user_id, new_slug)
+            SELECT 
+                event_type_id, 
+                user_id,
+                CASE 
+                    WHEN update_status = 'conflict' THEN 
+                        slug || '-dup-' || to_char(CURRENT_TIMESTAMP, 'YYYYMMDDHH24MISS')
+                    ELSE NULL
+                END
+            FROM to_update;
 
-            -- Update the EventType table
+            -- First update the slugs for conflicting records
+            UPDATE "EventType" et
+            SET slug = ur.new_slug
+            FROM updated_records ur
+            WHERE et.id = ur.event_type_id
+            AND ur.new_slug IS NOT NULL;
+
+            -- Then update the user IDs
             UPDATE "EventType" et
             SET "userId" = ur.user_id
             FROM updated_records ur
@@ -101,13 +115,6 @@ BEGIN
                     mb.user_id,
                     CASE 
                         WHEN ur.event_type_id IS NOT NULL THEN 'processed'
-                        WHEN EXISTS (
-                            SELECT 1 FROM "EventType" et2 
-                            WHERE et2.slug = et.slug 
-                            AND et2."userId" = mb.user_id
-                            AND et2.id != et.id
-                            AND et2.id < et.id  -- Keep the older event type
-                        ) THEN 'skipped_conflict'
                         ELSE 'skipped_mismatch'
                     END as status
                 FROM migration_batch mb
@@ -183,7 +190,6 @@ BEGIN
                     WHERE et2.slug = et.slug 
                     AND et2."userId" = uet."B"
                     AND et2.id != et.id
-                    AND et2.id < et.id  -- Keep the older event type
                 ) THEN 'Yes'
                 ELSE 'No'
             END as has_conflict
@@ -229,7 +235,6 @@ BEGIN
         JOIN "EventType" et2 ON et2.slug = et.slug 
             AND et2."userId" = uet."B"
             AND et2.id != et.id
-            AND et2.id < et.id  -- Keep the older event type
         JOIN "_migration_progress" mp ON et.id = mp.event_type_id
         WHERE mp.status = 'skipped_conflict'  -- Only show skipped conflicts
         LIMIT 5
