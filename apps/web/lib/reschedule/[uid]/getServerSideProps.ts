@@ -4,7 +4,6 @@ import { URLSearchParams } from "url";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import type { EventMetadata } from "@calcom/features/bookings/lib/handleCancelBooking";
 import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { getSafe } from "@calcom/lib/getSafe";
@@ -12,6 +11,7 @@ import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUi
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 
 import isBeyondThresholdTime from "@lib/isBeyondThresholdTime";
 
@@ -106,7 +106,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const isDisabledRescheduling = booking.eventType?.disableRescheduling;
 
-  const metaData = booking.eventType?.metadata as EventMetadata;
+  const metaData = booking.eventType?.metadata as EventTypeMetadata;
   let beyondThreshold = true;
 
   if (isDisabledRescheduling) {

@@ -44,9 +44,9 @@ async function processReschedule({
 
   const booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
 
-  const isDisabledRescheduling = booking.eventType?.disableRescheduling;
+  const isDisabledRescheduling = booking?.eventType?.disableRescheduling;
 
-  const metaData = booking.eventType?.metadata as EventTypeMetadata;
+  const metaData = booking?.eventType?.metadata as EventTypeMetadata;
   let beyondThreshold = true;
 
   if (isDisabledRescheduling) {

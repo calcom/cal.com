@@ -203,7 +203,6 @@ const getTeamWithEventsData = async (
           hidden: true,
           disableCancelling: true,
           disableRescheduling: true,
-          metadata: true,
           hosts: {
             take: 3,
             select: {
