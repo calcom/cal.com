@@ -1,1 +1,1 @@
-export { default as add } from "./add";
+export { GET, POST } from "./add";
