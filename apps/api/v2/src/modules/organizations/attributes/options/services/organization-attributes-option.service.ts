@@ -3,8 +3,10 @@ import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/
 import { AssignOrganizationAttributeOptionToUserInput } from "@/modules/organizations/attributes/options/inputs/organizations-attributes-options-assign.input";
 import { UpdateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/update-organizaiton-attribute-option.input.ts";
 import { OrganizationAttributeOptionRepository } from "@/modules/organizations/attributes/options/organization-attribute-options.repository";
+import { AssignedOptionOutput } from "@/modules/organizations/attributes/options/outputs/assigned-options.output";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { plainToClass } from "class-transformer";
 
 const TYPE_SUPPORTS_VALUE = new Set(["TEXT", "NUMBER"]);
 
@@ -110,5 +112,13 @@ export class OrganizationAttributeOptionService {
       organizationId,
       userId
     );
+  }
+
+  async getOrganizationAttributeAssignedOptions(organizationId: number, attributeId: string) {
+    const options = await this.organizationAttributeOptionRepository.getOrganizationAttributeAssignedOptions(
+      organizationId,
+      attributeId
+    );
+    return options.map((opt) => plainToClass(AssignedOptionOutput, opt, { strategy: "excludeAll" }));
   }
 }
