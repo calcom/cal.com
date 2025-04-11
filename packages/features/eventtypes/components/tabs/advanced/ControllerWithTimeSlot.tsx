@@ -32,7 +32,6 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
     onCheckedChange,
     "data-testid": dataTestId,
     toggleSwitchAtTheEnd = true,
-    switchContainerClassName = "border-subtle rounded-lg border py-6 px-4 sm:px-6",
     metaDataName,
     ...rest
   } = props;
@@ -87,7 +86,7 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
           noIndentation
           labelClassName="text-sm"
           toggleSwitchAtTheEnd={toggleSwitchAtTheEnd}
-          switchContainerClassName={switchContainerClassName}
+          switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
           title={title}
           description={description}
           data-testid={dataTestId}
