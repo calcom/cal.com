@@ -21,12 +21,12 @@ import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard } from "@calcom/ui/components/card";
-import { Divider } from "@calcom/ui/components/divider";
 import { SelectWithValidation as Select, TextArea } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { SelectField } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import type { IconName } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { routingFormAppComponents } from "../../appComponents";
 import DynamicAppComponent from "../../components/DynamicAppComponent";
@@ -503,7 +503,13 @@ const Route = ({
       : undefined;
 
   const formFieldsQueryBuilder = shouldShowFormFieldsQueryBuilder ? (
-    <div className="">
+    <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
+      <div className="ml-2 flex items-center gap-0.5">
+        <div className="border-subtle rounded-lg border p-1">
+          <Icon name="zap" className="text-subtle h-4 w-4" />
+        </div>
+        <span className="text-emphasis ml-2 text-sm font-medium">Conditions</span>
+      </div>
       <Query
         {...withRaqbSettingsAndWidgets({
           config: formFieldsQueryBuilderConfig,
@@ -519,7 +525,6 @@ const Route = ({
         }}
         renderBuilder={renderBuilder}
       />
-      {/* <Divider className="mb-6 " /> */}
     </div>
   ) : null;
 
@@ -548,9 +553,14 @@ const Route = ({
         ) : null}
 
         <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
-          <span className="text-emphasis ml-2 text-sm font-medium">
-            And connect with specific team members
-          </span>
+          <div className="ml-2 flex items-center gap-0.5">
+            <div className="border-subtle rounded-lg border p-1">
+              <Icon name="user-check" className="text-subtle h-4 w-4" />
+            </div>
+            <span className="text-emphasis ml-2 text-sm font-medium">
+              And connect with specific team members
+            </span>
+          </div>
           {route.attributesQueryBuilderState && attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
             <Query
               {...attributesQueryBuilderConfigWithRaqbSettingsAndWidgets}
@@ -571,27 +581,28 @@ const Route = ({
 
   const fallbackAttributesQueryBuilder =
     route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm ? (
-      <div className="mt-4">
-        <span className="text-emphasis flex w-full items-center text-sm">
-          {t("fallback_attribute_logic_description")}
-        </span>
-        <div className="mt-2">
-          {route.fallbackAttributesQueryBuilderState &&
-            attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
-              <Query
-                {...attributesQueryBuilderConfigWithRaqbSettingsAndWidgets}
-                value={route.fallbackAttributesQueryBuilderState.tree}
-                onChange={(immutableTree, attributesQueryBuilderConfig) => {
-                  onChangeFallbackTeamMembersQuery(
-                    route,
-                    immutableTree,
-                    attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields
-                  );
-                }}
-                renderBuilder={renderBuilder}
-              />
-            )}
+      <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
+        <div className="ml-2 flex items-center gap-0.5">
+          <div className="border-subtle rounded-lg border p-1">
+            <Icon name="blocks" className="text-subtle h-4 w-4" />
+          </div>
+          <span className="text-emphasis ml-2 text-sm font-medium">Fallback</span>
         </div>
+        {route.fallbackAttributesQueryBuilderState &&
+          attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
+            <Query
+              {...attributesQueryBuilderConfigWithRaqbSettingsAndWidgets}
+              value={route.fallbackAttributesQueryBuilderState.tree}
+              onChange={(immutableTree, attributesQueryBuilderConfig) => {
+                onChangeFallbackTeamMembersQuery(
+                  route,
+                  immutableTree,
+                  attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields
+                );
+              }}
+              renderBuilder={renderBuilder}
+            />
+          )}
       </div>
     ) : null;
 
@@ -759,14 +770,14 @@ const Route = ({
               </div>
             ) : (
               <div className="bg-default border-subtle my-3 rounded-xl border p-2">
-                <div className="pl-2">
-                  <span className="text-emphasis text-sm font-medium leading-none">Send booker to</span>
+                <div className="mb-2 ml-2 flex items-center gap-0.5">
+                  <div className="border-subtle rounded-lg border p-1">
+                    <Icon name="arrow-right" className="text-subtle h-4 w-4" />
+                  </div>
+                  <span className="text-emphasis ml-2 text-sm font-medium">Send booker to</span>
                 </div>
                 <div className="bg-muted flex w-full flex-col gap-2 rounded-xl p-2 text-sm lg:flex-row">
                   <div className="flex flex-grow items-center gap-2">
-                    {/* <div className="flex flex-grow-0 whitespace-nowrap">
-                  <span>{t("send_booker_to")}</span>
-                </div> */}
                     <Select
                       size="sm"
                       isDisabled={disabled}
@@ -796,7 +807,6 @@ const Route = ({
                   {route.action?.type ? (
                     route.action?.type === "customPageMessage" ? (
                       <TextArea
-                        size="sm"
                         required
                         disabled={disabled}
                         name="customPageMessage"
@@ -904,12 +914,7 @@ const Route = ({
               eventTypeRedirectUrlSelectedOption={eventTypeRedirectUrlSelectedOption}
               setRoute={setRoute}
             />
-            {fallbackAttributesQueryBuilder ? (
-              <>
-                <Divider className="mb-6 mt-6" />
-                {fallbackAttributesQueryBuilder}
-              </>
-            ) : null}
+            {fallbackAttributesQueryBuilder ? <>{fallbackAttributesQueryBuilder}</> : null}
           </div>
         </div>
       </div>
