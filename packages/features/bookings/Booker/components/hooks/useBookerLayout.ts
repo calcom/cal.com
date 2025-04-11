@@ -4,7 +4,6 @@ import { shallow } from "zustand/shallow";
 import { useEmbedType, useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
-import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
 
 import { extraDaysConfig } from "../../config";
@@ -16,11 +15,20 @@ import { getQueryParam } from "../../utils/query-param";
 export type UseBookerLayoutType = ReturnType<typeof useBookerLayout>;
 
 export const useBookerLayout = (event: Pick<BookerEvent, "profile"> | undefined | null) => {
-  const [_layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const isEmbed = useIsEmbed();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const embedUiConfig = useEmbedUiConfig();
+  const bookerLayouts = event?.profile?.bookerLayouts || defaultBookerLayoutSettings;
+  const defaultLayout = isEmbed
+    ? validateLayout(embedUiConfig.layout) || bookerLayouts.defaultLayout
+    : bookerLayouts.defaultLayout;
+  const [layoutState, setLayout, initialLayout] = useBookerStore(
+    (state) => [state.layout, state.setLayout, state.initialLayout],
+    shallow
+  );
+  const layoutFromQuery = getQueryParam("layout");
+  const _layout = layoutFromQuery || (initialLayout ? layoutState : defaultLayout);
   // In Embed we give preference to embed configuration for the layout.If that's not set, we use the App configuration for the event layout
   // But if it's mobile view, there is only one layout supported which is 'mobile'
   const layout = isEmbed ? (isMobile ? "mobile" : validateLayout(embedUiConfig.layout) || _layout) : _layout;
@@ -31,10 +39,6 @@ export const useBookerLayout = (event: Pick<BookerEvent, "profile"> | undefined 
   const columnViewExtraDays = useRef<number>(
     isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop
   );
-  const bookerLayouts = event?.profile?.bookerLayouts || defaultBookerLayoutSettings;
-  const defaultLayout = isEmbed
-    ? validateLayout(embedUiConfig.layout) || bookerLayouts.defaultLayout
-    : bookerLayouts.defaultLayout;
 
   useEffect(() => {
     if (isMobile && layout !== "mobile") {
@@ -45,18 +49,17 @@ export const useBookerLayout = (event: Pick<BookerEvent, "profile"> | undefined 
   }, [isMobile, setLayout, layout, defaultLayout]);
   //setting layout from query param
   useEffect(() => {
-    const layout = getQueryParam("layout") as BookerLayouts;
     if (
       !isMobile &&
       !isEmbed &&
-      validateLayout(layout) &&
+      validateLayout(layoutFromQuery) &&
       bookerLayouts?.enabledLayouts?.length &&
-      layout !== _layout
+      layoutFromQuery !== _layout
     ) {
-      const validLayout = bookerLayouts.enabledLayouts.find((userLayout) => userLayout === layout);
+      const validLayout = bookerLayouts.enabledLayouts.find((userLayout) => userLayout === layoutFromQuery);
       validLayout && setLayout(validLayout);
     }
-  }, [bookerLayouts, setLayout, _layout, isEmbed, isMobile]);
+  }, [bookerLayouts, setLayout, _layout, isEmbed, isMobile, layoutFromQuery]);
 
   // In Embed, a Dialog doesn't look good, we disable it intentionally for the layouts that support showing Form without Dialog(i.e. no-dialog Form)
   const shouldShowFormInDialogMap: Record<BookerLayout, boolean> = {

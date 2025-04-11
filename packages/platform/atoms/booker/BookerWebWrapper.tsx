@@ -73,7 +73,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     rescheduleUid,
     rescheduledBy,
     bookingUid: bookingUid,
-    layout: bookerLayout.isMobile ? "mobile" : bookerLayout.defaultLayout,
+    layout: bookerLayout.isMobile ? "mobile" : searchParams?.get("layout") || bookerLayout.defaultLayout,
     org: props.entity.orgSlug,
     timezone,
   });
