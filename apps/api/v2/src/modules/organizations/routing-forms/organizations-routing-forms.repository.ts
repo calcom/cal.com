@@ -36,7 +36,7 @@ export class OrganizationsRoutingFormsRepository {
 
     return this.dbRead.prisma.app_RoutingForms_Form.findMany({
       where: {
-        teamId: !teamIds || teamIds.length === 0 ? orgId : { in: teamIds },
+        team: { parentId: orgId, ...(teamIds?.length ? { id: { in: teamIds } } : {}) },
         ...(disabled !== undefined && { disabled }),
         ...(name && { name: { contains: name, mode: "insensitive" } }),
         ...(afterCreatedAt && { createdAt: { gte: afterCreatedAt } }),
@@ -79,7 +79,7 @@ export class OrganizationsRoutingFormsRepository {
     } = options || {};
     await this.dbRead.prisma.app_RoutingForms_Form.findFirstOrThrow({
       where: {
-        teamId: orgId,
+        team: { parentId: orgId },
         id: routingFormId,
       },
     });

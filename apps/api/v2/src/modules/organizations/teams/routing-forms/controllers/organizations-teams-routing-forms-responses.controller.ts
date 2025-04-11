@@ -37,7 +37,7 @@ export class OrganizationsTeamsRoutingFormsResponsesController {
     private readonly organizationsTeamsRoutingFormsResponsesService: OrganizationsTeamsRoutingFormsResponsesService
   ) {}
 
-  @Get()
+  @Get("/")
   @ApiOperation({ summary: "Get organization team routing form responses" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
@@ -64,7 +64,7 @@ export class OrganizationsTeamsRoutingFormsResponsesController {
     };
   }
 
-  @Patch(":responseId")
+  @Patch("/:responseId")
   @ApiOperation({ summary: "Update routing form response" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")

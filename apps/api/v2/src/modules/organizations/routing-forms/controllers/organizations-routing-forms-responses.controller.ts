@@ -30,7 +30,7 @@ export class OrganizationsRoutingFormsResponsesController {
     private readonly organizationsRoutingFormsResponsesService: OrganizationsRoutingFormsResponsesService
   ) {}
 
-  @Get()
+  @Get("/")
   @ApiOperation({ summary: "Get routing form responses" })
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
