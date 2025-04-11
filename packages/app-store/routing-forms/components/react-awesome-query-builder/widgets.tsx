@@ -140,7 +140,7 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
       type="number"
       labelSrOnly={remainingProps.noLabel}
       containerClassName="w-full"
-      className="bg-default border-default disabled:bg-emphasis focus:ring-brand-default dark:focus:border-emphasis focus:border-subtle mb-2 block w-full rounded-md text-sm disabled:hover:cursor-not-allowed"
+      className="bg-default border-default disabled:bg-emphasis focus:ring-brand-default dark:focus:border-emphasis focus:border-subtle mb-2 block w-full rounded-[10px] rounded-md text-sm disabled:hover:cursor-not-allowed"
       value={value}
       onChange={(e) => {
         setValue(e.target.value);
@@ -307,7 +307,7 @@ function Conjs({ not, setNot, config, conjunctionOptions, setConjunction, disabl
     const selectValue = options.find((option) => option.value === value);
     const summary = !config.operators.__calReporting ? "If booker selects" : "Query where";
     return (
-      <div className="flex items-center text-sm">
+      <div className="mb-[1px] flex items-center text-sm">
         <span>{summary}</span>
         <Select
           className="flex px-2"

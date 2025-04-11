@@ -548,7 +548,9 @@ const Route = ({
         ) : null}
 
         <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
-          <span className="text-emphasis text-sm font-medium">And connect with specific team members</span>
+          <span className="text-emphasis ml-2 text-sm font-medium">
+            And connect with specific team members
+          </span>
           {route.attributesQueryBuilderState && attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
             <Query
               {...attributesQueryBuilderConfigWithRaqbSettingsAndWidgets}
