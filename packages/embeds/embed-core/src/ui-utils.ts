@@ -60,10 +60,10 @@ function matchesMediaQuery(query: string) {
   return window.matchMedia(query).matches;
 }
 
-export function getLayout({ layout }: { layout: BookerLayouts | null }) {
+export function getTrueLayout({ layout }: { layout: BookerLayouts | null }) {
   const isMobile = matchesMediaQuery("(max-width: 768px)");
   if (isMobile) {
     return "mobile";
   }
-  return layout;
+  return layout ?? "month_view";
 }

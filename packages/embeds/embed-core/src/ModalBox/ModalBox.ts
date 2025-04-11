@@ -1,8 +1,8 @@
 import loaderCss from "../loader.css";
-import type { BookerLayouts, EmbedPageType } from "../types";
-import { toggleLoader } from "../ui-utils";
+import type { AllPossibleLayouts, BookerLayouts, EmbedPageType } from "../types";
+import { getTrueLayout, toggleLoader } from "../ui-utils";
 import { getErrorString } from "../utils";
-import modalBoxHtml from "./ModalBoxHtml";
+import modalBoxHtml, { getSkeletonData } from "./ModalBoxHtml";
 
 type ShadowRootWithStyle = ShadowRoot & {
   host: HTMLElement & { style: CSSStyleDeclaration };
@@ -10,6 +10,8 @@ type ShadowRootWithStyle = ShadowRoot & {
 
 export class ModalBox extends HTMLElement {
   static htmlOverflow: string;
+  private layout!: AllPossibleLayouts;
+  private boundResizeHandler: (this: ModalBox) => void;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   static get observedAttributes() {
@@ -177,10 +179,13 @@ export class ModalBox extends HTMLElement {
         this.explicitClose();
       };
     }
+
+    // Add the event listener when the element is connected to the DOM
+    window.addEventListener("resize", this.boundResizeHandler);
   }
 
-  private getLayout(): BookerLayouts {
-    return this.dataset.layout as BookerLayouts;
+  private getLayout(): AllPossibleLayouts {
+    return getTrueLayout({ layout: (this.dataset.layout as BookerLayouts | undefined) ?? null });
   }
 
   constructor() {
@@ -196,5 +201,31 @@ export class ModalBox extends HTMLElement {
     this.assertHasShadowRoot();
     this.shadowRoot.innerHTML = modalHtml;
     this.toggleLoader(true);
+    // Bind the handler once and store it
+    this.boundResizeHandler = this.resizeHandler.bind(this);
+  }
+
+  disconnectedCallback() {
+    // Remove the event listener when the element is disconnected from the DOM
+    window.removeEventListener("resize", this.boundResizeHandler);
+  }
+
+  private resizeHandler() {
+    const newLayout = this.getLayout();
+    if (newLayout !== this.layout) {
+      this.layout = newLayout;
+      const { skeletonContent, skeletonContainerStyle, skeletonStyle } = getSkeletonData({
+        layout: this.layout,
+        pageType: this.getPageType() ?? null,
+      });
+
+      const skeletonContainerEl = this.getSkeletonContainerElement();
+      const skeletonEl = this.getSkeletonElement();
+
+      skeletonContainerEl.setAttribute("style", skeletonContainerStyle);
+      skeletonEl.setAttribute("style", skeletonStyle);
+
+      skeletonEl.innerHTML = skeletonContent;
+    }
   }
 }

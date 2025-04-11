@@ -1,29 +1,22 @@
-import type { BookerLayouts, EmbedPageType } from "../types";
-import { getLayout } from "../ui-utils";
+import type { AllPossibleLayouts, EmbedPageType } from "../types";
 import { generateSkeleton } from "../ui/skeleton";
 
 const html = ({
   layout = "month_view",
   pageType,
 }: {
-  layout?: BookerLayouts;
+  layout?: AllPossibleLayouts;
   pageType: EmbedPageType | null;
 }) => {
-  const trueLayout = getLayout({ layout });
-  // We keep width 100% for mobile because we want it to take the entire screen width, which it would take because skeletonContainer is taking entire screen width
-  const mobileStyleForSkeleton = "width:100%;";
-  // We don't do width:100% here because we want skeleton to be centered horizontally and not take the entire screen width in desktop
-  const desktopStyleForSkeleton = "left:50%; transform:translate(-50%,0%)";
+  const { skeletonContent, skeletonContainerStyle, skeletonStyle } = getSkeletonData({
+    layout,
+    pageType,
+  });
 
-  const styleForSkeleton = trueLayout === "mobile" ? mobileStyleForSkeleton : desktopStyleForSkeleton;
-
-  // height is set via JS to be same as skeleton inside it
-  // Width 100% so that the entire width is available just like for iframe
-  const styleForSkeletonContainer = "width:100%;";
   return `
-<div id="skeleton-container" style="${styleForSkeletonContainer}">
-	<div id="skeleton" style="${styleForSkeleton}" class="absolute z-highest">
-		${generateSkeleton({ layout: trueLayout, pageType: pageType })}
+<div id="skeleton-container" style="${skeletonContainerStyle}">
+	<div id="skeleton" style="${skeletonStyle}" class="absolute z-highest">
+		${skeletonContent}
 	</div>
   <div id="wrapper" style="top:50%; left:50%; transform:translate(-50%,-50%)" class="absolute z-highest">
     <div class="loader border-brand-default dark:border-darkmodebrand">
@@ -36,5 +29,30 @@ const html = ({
 </div>
 <slot></slot>
 `;
+};
+
+export const getSkeletonData = ({
+  layout,
+  pageType,
+}: {
+  layout: AllPossibleLayouts;
+  pageType: EmbedPageType | null;
+}) => {
+  // We keep width 100% for mobile because we want it to take the entire screen width, which it would take because skeletonContainer is taking entire screen width
+  const mobileStyleForSkeleton = "width:100%;";
+  // We don't do width:100% here because we want skeleton to be centered horizontally and not take the entire screen width in desktop
+  const desktopStyleForSkeleton = "left:50%; transform:translate(-50%,0%)";
+
+  const styleForSkeleton = layout === "mobile" ? mobileStyleForSkeleton : desktopStyleForSkeleton;
+
+  // height is set via JS to be same as skeleton inside it
+  // Width 100% so that the entire width is available just like for iframe
+  const styleForSkeletonContainer = "width:100%;";
+
+  return {
+    skeletonContent: generateSkeleton({ layout, pageType }),
+    skeletonContainerStyle: styleForSkeletonContainer,
+    skeletonStyle: styleForSkeleton,
+  };
 };
 export default html;

@@ -1,5 +1,4 @@
-import type { BookerLayouts, EmbedPageType } from "../types";
-import { getLayout } from "../ui-utils";
+import type { AllPossibleLayouts, EmbedPageType } from "../types";
 import { generateSkeleton } from "../ui/skeleton";
 
 function getStyle() {
@@ -52,16 +51,13 @@ const html = ({
   layout = "month_view",
   pageType,
 }: {
-  layout?: BookerLayouts;
+  layout?: AllPossibleLayouts;
   pageType: EmbedPageType | null;
 }) => {
-  const trueLayout = getLayout({ layout });
-  const mobileStyleForSkeleton = "width:100%;";
-  const desktopStyleForSkeleton = "left:50%; transform:translate(-50%,0%)";
-  const styleForSkeleton = trueLayout === "mobile" ? mobileStyleForSkeleton : desktopStyleForSkeleton;
-  // height is set via JS to be same as skeleton inside it
-  // Width 100% so that the entire width is available just like for iframe
-  const styleForSkeletonContainer = "width:100%;";
+  const { skeletonContent, skeletonContainerStyle, skeletonStyle } = getSkeletonData({
+    layout,
+    pageType,
+  });
   return `
 ${getStyle()}
 <div class="my-backdrop">
@@ -69,14 +65,14 @@ ${getStyle()}
     <button type="button" class="close" aria-label="Close">&times;</button>
   </div>
   <div class="modal-box">
-    <div class="body" id="skeleton-container" style="${styleForSkeletonContainer}">
+    <div class="body" id="skeleton-container" style="${skeletonContainerStyle}">
       <div id="wrapper" class="z-[999999999999] absolute flex w-full items-center">
         <div class="loader modal-loader border-brand-default dark:border-darkmodebrand">
           <span class="loader-inner bg-brand dark:bg-darkmodebrand"></span>
         </div>
       </div>
-      <div id="skeleton" style="${styleForSkeleton}" class="absolute z-highest">
-        ${generateSkeleton({ layout: trueLayout, pageType: pageType })}
+      <div id="skeleton" style="${skeletonStyle}" class="absolute z-highest">
+        ${skeletonContent}
       </div>
       <div id="error" class="hidden left-1/2 -translate-x-1/2 relative text-inverted"></div>
       <slot></slot>
@@ -85,4 +81,23 @@ ${getStyle()}
 </div>`;
 };
 
+export const getSkeletonData = ({
+  layout,
+  pageType,
+}: {
+  layout: AllPossibleLayouts;
+  pageType: EmbedPageType | null;
+}) => {
+  const mobileStyleForSkeleton = "width:100%;";
+  const desktopStyleForSkeleton = "left:50%; transform:translate(-50%,0%)";
+  const styleForSkeleton = layout === "mobile" ? mobileStyleForSkeleton : desktopStyleForSkeleton;
+  // height is set via JS to be same as skeleton inside it
+  // Width 100% so that the entire width is available just like for iframe
+  const styleForSkeletonContainer = "width:100%;";
+  return {
+    skeletonContent: generateSkeleton({ layout, pageType }),
+    skeletonContainerStyle: styleForSkeletonContainer,
+    skeletonStyle: styleForSkeleton,
+  };
+};
 export default html;

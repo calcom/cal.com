@@ -38,7 +38,7 @@ import { useIsQuickAvailabilityCheckFeatureEnabled } from "./components/hooks/us
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import framerFeatures from "./framer-features";
 import { useBookerStore } from "./store";
-import type { BookerProps, WrappedBookerProps } from "./types";
+import type { BookerProps, WrappedBookerProps, BookerState } from "./types";
 import { isBookingDryRun } from "./utils/isBookingDryRun";
 import { isTimeSlotAvailable } from "./utils/isTimeslotAvailable";
 
