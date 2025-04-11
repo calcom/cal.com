@@ -73,6 +73,7 @@ BEGIN
                             WHERE et2.slug = et.slug 
                             AND et2."userId" = mb.user_id
                             AND et2.id != et.id
+                            AND et2.id < et.id  -- Keep the older event type
                         ) THEN 'conflict'
                         ELSE 'safe'
                     END as update_status
@@ -105,6 +106,7 @@ BEGIN
                             WHERE et2.slug = et.slug 
                             AND et2."userId" = mb.user_id
                             AND et2.id != et.id
+                            AND et2.id < et.id  -- Keep the older event type
                         ) THEN 'skipped_conflict'
                         ELSE 'skipped_mismatch'
                     END as status
@@ -181,6 +183,7 @@ BEGIN
                     WHERE et2.slug = et.slug 
                     AND et2."userId" = uet."B"
                     AND et2.id != et.id
+                    AND et2.id < et.id  -- Keep the older event type
                 ) THEN 'Yes'
                 ELSE 'No'
             END as has_conflict
@@ -226,6 +229,7 @@ BEGIN
         JOIN "EventType" et2 ON et2.slug = et.slug 
             AND et2."userId" = uet."B"
             AND et2.id != et.id
+            AND et2.id < et.id  -- Keep the older event type
         JOIN "_migration_progress" mp ON et.id = mp.event_type_id
         WHERE mp.status = 'skipped_conflict'  -- Only show skipped conflicts
         LIMIT 5
