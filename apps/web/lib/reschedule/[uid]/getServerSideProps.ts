@@ -103,16 +103,21 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   // If booking is already CANCELLED or REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.
   // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
+
   const isDisabledRescheduling = booking.eventType?.disableRescheduling;
 
   const metaData = booking.eventType?.metadata as EventMetadata;
-  const beyondThreshold =
-    metaData?.disableReschedulingThreshold &&
-    isBeyondThresholdTime(
-      booking.startTime,
-      metaData?.disableReschedulingThreshold.time,
-      metaData?.disableReschedulingThreshold.unit
-    );
+  let beyondThreshold = true;
+
+  if (isDisabledRescheduling) {
+    beyondThreshold = metaData?.disableReschedulingThreshold
+      ? isBeyondThresholdTime(
+          booking.startTime,
+          metaData.disableReschedulingThreshold.time,
+          metaData.disableReschedulingThreshold.unit
+        )
+      : false;
+  }
 
   if (
     (isDisabledRescheduling && !beyondThreshold) ||

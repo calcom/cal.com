@@ -61,16 +61,21 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const booking = rescheduleUid ? await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id) : null;
 
+  const isDisabledRescheduling = eventData.disableRescheduling;
   const metaData = eventData.metadata as EventTypeMetadata;
-  const beyondThreshold =
-    metaData?.disableReschedulingThreshold &&
-    isBeyondThresholdTime(
-      booking?.startTime ?? "",
-      metaData?.disableReschedulingThreshold.time,
-      metaData?.disableReschedulingThreshold.unit
-    );
 
-  if (rescheduleUid && eventData.disableRescheduling && !beyondThreshold) {
+  let beyondThreshold = true;
+  if (isDisabledRescheduling) {
+    beyondThreshold = metaData?.disableReschedulingThreshold
+      ? isBeyondThresholdTime(
+          booking?.startTime,
+          metaData?.disableReschedulingThreshold.time,
+          metaData?.disableReschedulingThreshold.unit
+        )
+      : false;
+  }
+
+  if (rescheduleUid && isDisabledRescheduling && !beyondThreshold) {
     return { redirect: { destination: `/booking/${rescheduleUid}`, permanent: false } };
   }
   const fromRedirectOfNonOrgLink = context.query.orgRedirection === "true";

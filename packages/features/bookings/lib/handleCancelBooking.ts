@@ -92,15 +92,22 @@ async function handler(input: CancelBookingInput) {
   if (!bookingToDelete.userId || !bookingToDelete.user) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
+
+  const isDisabledCancelling = bookingToDelete.eventType?.disableCancelling;
+
   const metadata = bookingToDelete.eventType?.metadata as EventTypeMetadata;
 
-  const beyondThreshold =
-    metadata?.disableCancellingThreshold &&
-    isBeyondThresholdTime(
-      bookingToDelete.startTime,
-      metadata?.disableCancellingThreshold.time,
-      metadata.disableCancellingThreshold.unit
-    );
+  let beyondThreshold = true;
+
+  if (isDisabledCancelling) {
+    beyondThreshold = metadata?.disableCancellingThreshold
+      ? isBeyondThresholdTime(
+          bookingToDelete.startTime,
+          metadata?.disableCancellingThreshold.time,
+          metadata.disableCancellingThreshold.unit
+        )
+      : false;
+  }
 
   if (bookingToDelete.eventType?.disableCancelling && !beyondThreshold) {
     throw new HttpError({

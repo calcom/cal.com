@@ -371,24 +371,23 @@ export default function Success(props: PageProps) {
   const isRerouting = searchParams?.get("cal.rerouting") === "true";
   const isRescheduled = bookingInfo?.rescheduled;
 
-  const canCancel =
-    !eventType?.disableCancelling ||
-    isBeyondThresholdTime(
-      bookingInfo.startTime,
-      eventType.metadata?.disableCancellingThreshold?.time,
-      eventType.metadata?.disableCancellingThreshold?.unit
-    );
+  let canCancel = false;
+  if (eventType?.disableCancelling) {
+    const threshold = eventType.metadata?.disableCancellingThreshold;
+    if (threshold) {
+      canCancel = isBeyondThresholdTime(bookingInfo.startTime, threshold.time, threshold.unit);
+    }
+  }
 
-  const canReschedule =
-    !eventType?.disableRescheduling ||
-    isBeyondThresholdTime(
-      bookingInfo.startTime,
-      eventType.metadata?.disableReschedulingThreshold?.time,
-      eventType.metadata?.disableReschedulingThreshold?.unit
-    );
+  let canReschedule = false;
+  if (eventType?.disableRescheduling) {
+    const threshold = eventType.metadata?.disableReschedulingThreshold;
+    if (threshold) {
+      canReschedule = isBeyondThresholdTime(bookingInfo.startTime, threshold.time, threshold.unit);
+    }
+  }
 
   const canCancelOrReschedule = !isPastBooking && (canCancel || canReschedule);
-
   const canCancelAndReschedule = !isPastBooking && canCancel && canReschedule;
 
   const successPageHeadline = (() => {

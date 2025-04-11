@@ -358,21 +358,19 @@ function BookingListItem(booking: BookingItemProps) {
       icon: "credit-card" as const,
     },
   ];
+
+  const cancellingThreshold = booking.eventType.metadata?.disableCancellingThreshold;
+  const reschedulingThreshold = booking.eventType.metadata?.disableReschedulingThreshold;
+
   const isDisabledCancelling =
     booking.eventType.disableCancelling &&
-    !isBeyondThresholdTime(
-      booking?.startTime,
-      booking?.eventType.metadata?.disableCancellingThreshold?.time,
-      booking.eventType.metadata?.disableCancellingThreshold?.unit
-    );
+    (!cancellingThreshold ||
+      !isBeyondThresholdTime(booking.startTime, cancellingThreshold.time, cancellingThreshold.unit));
 
   const isDisabledRescheduling =
     booking.eventType.disableRescheduling &&
-    !isBeyondThresholdTime(
-      booking?.startTime,
-      booking.eventType.metadata?.disableReschedulingThreshold?.time,
-      booking.eventType.metadata?.disableReschedulingThreshold?.unit
-    );
+    (!reschedulingThreshold ||
+      !isBeyondThresholdTime(booking.startTime, reschedulingThreshold.time, reschedulingThreshold.unit));
 
   if (isTabRecurring && isRecurring) {
     bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");

@@ -44,29 +44,35 @@ async function processReschedule({
 
   const booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
 
-  // if no booking found, no eventTypeId (dynamic) or it matches this eventData - return void (success).
-  if (booking === null || !booking.eventTypeId || booking?.eventTypeId === props.eventData?.id) {
-    props.booking = booking;
-    props.rescheduleUid = Array.isArray(rescheduleUid) ? rescheduleUid[0] : rescheduleUid;
-    return;
-  }
+  const isDisabledRescheduling = booking.eventType?.disableRescheduling;
 
   const metaData = booking.eventType?.metadata as EventTypeMetadata;
-  const beyondThreshold =
-    metaData?.disableReschedulingThreshold &&
-    isBeyondThresholdTime(
-      booking.startTime,
-      metaData?.disableReschedulingThreshold.time,
-      metaData?.disableReschedulingThreshold.unit
-    );
+  let beyondThreshold = true;
 
-  if (booking?.eventType?.disableRescheduling && !beyondThreshold) {
+  if (isDisabledRescheduling) {
+    beyondThreshold = metaData?.disableReschedulingThreshold
+      ? isBeyondThresholdTime(
+          booking?.startTime,
+          metaData.disableReschedulingThreshold.time,
+          metaData.disableReschedulingThreshold.unit
+        )
+      : false;
+  }
+
+  if (isDisabledRescheduling && !beyondThreshold) {
     return {
       redirect: {
         destination: `/booking/${rescheduleUid}`,
         permanent: false,
       },
     };
+  }
+
+  // if no booking found, no eventTypeId (dynamic) or it matches this eventData - return void (success).
+  if (booking === null || !booking.eventTypeId || booking?.eventTypeId === props.eventData?.id) {
+    props.booking = booking;
+    props.rescheduleUid = Array.isArray(rescheduleUid) ? rescheduleUid[0] : rescheduleUid;
+    return;
   }
 
   // handle redirect response
