@@ -4,7 +4,7 @@ import { AuthModule } from "@/modules/auth/auth.module";
 import { ConferencingModule } from "@/modules/conferencing/conferencing.module";
 import { EmailModule } from "@/modules/email/email.module";
 import { EmailService } from "@/modules/email/email.service";
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { UserOOORepository } from "@/modules/ooo/repositories/ooo.repository";
 import { UserOOOService } from "@/modules/ooo/services/ooo.service";
 import { OrganizationsAttributesController } from "@/modules/organizations/attributes/index/controllers/organizations-attributes.controller";
@@ -74,13 +74,13 @@ import { forwardRef, Module } from "@nestjs/common";
     OrganizationsDelegationCredentialModule,
     OrganizationsOrganizationsModule,
     OrganizationsTeamsRoutingFormsModule,
+    MembershipsModule,
   ],
   providers: [
     OrganizationsRepository,
     OrganizationsTeamsRepository,
     OrganizationsService,
     OrganizationsTeamsService,
-    MembershipsRepository,
     OrganizationsSchedulesService,
     OrganizationSchedulesRepository,
     OrganizationsUsersRepository,
