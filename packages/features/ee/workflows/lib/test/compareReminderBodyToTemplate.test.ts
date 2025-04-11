@@ -1,12 +1,27 @@
+import { createInstance } from "i18next";
 import { expect, test, describe } from "vitest";
 
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
+import en from "@calcom/web/public/static/locales/en/common.json";
 
 import { getTemplateBodyForAction } from "../actionHelperFunctions";
 import compareReminderBodyToTemplate from "../compareReminderBodyToTemplate";
 import plainTextReminderTemplates from "../reminders/templates/plainTextTemplates";
+
+const translation = async () => {
+  const _i18n = createInstance();
+  _i18n.init({
+    lng: "en",
+    resources: {
+      en: {
+        translation: en,
+      },
+    },
+  });
+  return _i18n.getFixedT("en");
+};
 
 describe("compareReminderBodyToTemplate", () => {
   test("should return true if reminderBody and template are the same", () => {
@@ -28,7 +43,7 @@ describe("compareReminderBodyToTemplate", () => {
         template: WorkflowTemplates.REMINDER,
         timeFormat: TimeFormat.TWELVE_HOUR,
         locale: "en",
-        t: await getTranslation("en", "common"),
+        t: await translation(),
       });
 
       if (!template) throw new Error("template not found");
@@ -43,7 +58,7 @@ describe("compareReminderBodyToTemplate", () => {
         template: WorkflowTemplates.RATING,
         timeFormat: TimeFormat.TWELVE_HOUR,
         locale: "en",
-        t: await getTranslation("en", "common"),
+        t: await translation(),
       });
 
       if (!template) throw new Error("template not found");
