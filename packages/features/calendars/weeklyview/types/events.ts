@@ -14,5 +14,10 @@ export interface CalendarEvent {
     borderColor?: string;
     className?: string;
     "data-test-id"?: string;
+    beforeEventBuffer?: number; // Minutes of buffer time before the event
+    afterEventBuffer?: number; // Minutes of buffer time after the event
+    isBuffer?: boolean; // Whether this event is a buffer segment
+    isPreBuffer?: boolean; // Whether this is a pre-event buffer
+    isPostBuffer?: boolean; // Whether this is a post-event buffer
   };
 }

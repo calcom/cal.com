@@ -1,8 +1,8 @@
 import { cva } from "class-variance-authority";
 
 import dayjs from "@calcom/dayjs";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 import classNames from "@calcom/ui/classNames";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { CalendarEvent } from "../../types/events";
 
@@ -41,6 +41,10 @@ const eventClasses = cva(
         AWAITING_HOST: "",
         custom: "",
       },
+      isBuffer: {
+        true: "opacity-50 border-dashed",
+        false: "",
+      },
     },
   }
 );
@@ -72,9 +76,10 @@ export function Event({
         className={classNames(
           eventClasses({
             status: options?.status,
-            disabled,
+            disabled: disabled || options?.isBuffer,
             selected,
             borderColor,
+            isBuffer: options?.isBuffer,
           }),
           eventDuration > 30 && "flex-col py-1",
           options?.className
