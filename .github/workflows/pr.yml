@@ -91,6 +91,23 @@ jobs:
             console.log('Found the label?', labelFound);
             core.setOutput('run-e2e', labelFound);
 
+  risk-check:
+    name: Check Change Risk
+    runs-on: buildjet-2vcpu-ubuntu-2204
+    needs: [changes]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set execute permission for script
+        run: chmod +x .github/scripts/check-low-risk-changes.sh
+
+      - name: Run low-risk check script
+        run: ./.github/scripts/check-low-risk-changes.sh
+
   deps:
     name: Install dependencies
     needs: [changes, check-label]
@@ -238,6 +255,7 @@ jobs:
         e2e-embed,
         e2e-embed-react,
         e2e-app-store,
+        risk-check,
       ]
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
