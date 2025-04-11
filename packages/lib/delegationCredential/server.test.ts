@@ -119,6 +119,8 @@ const buildDelegationCredential = (overrides = {}) => ({
   team: null,
   delegatedTo: {
     serviceAccountKey: mockServiceAccountKey,
+    id: "delegationCredential-1",
+    key: undefined,
   },
   ...overrides,
 });

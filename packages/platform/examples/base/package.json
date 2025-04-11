@@ -6,7 +6,8 @@
     "dev": "PORT=4321 next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "clean-db": "rm ./prisma/dev.db && yarn prisma db push"
   },
   "dependencies": {
     "@calcom/atoms": "*",

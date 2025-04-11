@@ -6,6 +6,7 @@ import {
 } from "@calcom/lib/CalendarAppError";
 import { handleErrorsRaw } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
+import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
@@ -97,8 +98,34 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
     },
     invalidateTokenObject: () => oAuthManagerHelper.invalidateCredential(credential.id),
     expireAccessToken: () => oAuthManagerHelper.markTokenAsExpired(credential),
-    updateTokenObject: (tokenObject) => {
-      if (!Boolean(credential.delegatedTo)) {
+    updateTokenObject: async (tokenObject) => {
+      if (!!credential.delegatedTo?.id) {
+        const existingToken = await prisma.delegationCredentialAccesssToken.findFirst({
+          where: {
+            delegationCredentialId: credential.delegatedTo.id,
+          },
+        });
+
+        if (existingToken) {
+          // Update existing token
+          await prisma.delegationCredentialAccesssToken.update({
+            where: {
+              id: existingToken.id,
+            },
+            data: {
+              key: tokenObject,
+            },
+          });
+        } else {
+          // Create new token
+          await prisma.delegationCredentialAccesssToken.create({
+            data: {
+              key: tokenObject,
+              delegationCredentialId: credential.delegatedTo.id,
+            },
+          });
+        }
+      } else {
         return oAuthManagerHelper.updateTokenObject({ tokenObject, credentialId: credential.id });
       }
       return Promise.resolve();
