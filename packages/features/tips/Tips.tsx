@@ -212,13 +212,16 @@ function Tips() {
               <Card
                 variant="SidebarCard"
                 thumbnailUrl={tip.thumbnailUrl}
-                mediaLink={tip.mediaLink}
+                mediaLink={isTopTip ? tip.mediaLink : undefined}
                 title={tip.title}
                 description={tip.description}
-                learnMore={{ href: tip.href, text: t("learn_more") }}
-                actionButton={{ onClick: () => handleRemoveItem(tip.id), child: t("dismiss") }}
+                learnMore={isTopTip ? { href: tip.href, text: t("learn_more") } : undefined}
+                actionButton={
+                  isTopTip ? { onClick: () => handleRemoveItem(tip.id), child: t("dismiss") } : undefined
+                }
                 containerProps={{
                   tabIndex: isTopTip ? undefined : -1,
+                  "aria-hidden": isTopTip ? undefined : "true",
                 }}
               />
             </div>
