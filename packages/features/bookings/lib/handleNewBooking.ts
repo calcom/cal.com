@@ -1860,6 +1860,7 @@ async function handler(
       bookerEmail,
       bookerPhoneNumber,
       isDryRun,
+      bookingFields: eventType.bookingFields,
     });
     const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
       userId: triggerForUser ? organizerUser.id : null,

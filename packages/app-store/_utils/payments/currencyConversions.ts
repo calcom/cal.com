@@ -32,3 +32,14 @@ export const convertFromSmallestToPresentableCurrencyUnit = (amount: number, cur
   }
   return amount / 100;
 };
+
+export const getCurrencySymbol = (currencyCode: string): string => {
+  try {
+    const formatter = new Intl.NumberFormat("en", { style: "currency", currency: currencyCode });
+    const parts = formatter.formatToParts(1);
+    const currencyPart = parts.find((part) => part.type === "currency");
+    return currencyPart?.value || "$";
+  } catch {
+    return "$";
+  }
+};
