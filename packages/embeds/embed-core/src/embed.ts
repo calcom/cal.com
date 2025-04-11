@@ -9,6 +9,7 @@ import { SdkActionManager } from "./sdk-action-manager";
 import type { EventData, EventDataMap } from "./sdk-action-manager";
 import tailwindCss from "./tailwindCss";
 import type { UiConfig } from "./types";
+import { getMaxHeightForModal } from "./ui-utils";
 import { fromEntriesWithDuplicateKeys, getThemeClassForEmbed } from "./utils";
 
 export type { PrefillAndIframeAttrsConfig } from "./embed-iframe";
@@ -385,10 +386,7 @@ export class Cal {
       }
 
       if (this.modalBox) {
-        // It ensures that if the iframe is so tall that it can't fit in the parent window without scroll. Then force the scroll by restricting the max-height to innerHeight
-        // This case is reproducible when viewing in ModalBox on Mobile.
-        const spacingTopPlusBottom = 2 * 50; // 50 is the padding we want to keep to show close button comfortably. Make it same as top for bottom.
-        iframe.style.maxHeight = `${window.innerHeight - spacingTopPlusBottom}px`;
+        iframe.style.maxHeight = `${getMaxHeightForModal()}px`;
       }
     });
 

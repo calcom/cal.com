@@ -375,11 +375,11 @@ export const useEmbedType = () => {
 };
 
 function unhideBody() {
+  if (document.body.style.visibility !== "visible") {
+    document.body.style.visibility = "visible";
+  }
   // Ensure that it stays visible and not reverted by React
   runAsap(() => {
-    if (document.body.style.visibility !== "visible") {
-      document.body.style.visibility = "visible";
-    }
     unhideBody();
   });
 }

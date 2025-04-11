@@ -42,6 +42,14 @@ import type { BookerProps, WrappedBookerProps } from "./types";
 import { isBookingDryRun } from "./utils/isBookingDryRun";
 import { isTimeSlotAvailable } from "./utils/isTimeslotAvailable";
 
+function updateEmbedIsBookerReady({ bookerState }: { bookerState: BookerState }) {
+  // Ensure that only after the bookerState is reflected, we update the embedIsBookerReady
+  if (typeof window !== "undefined") {
+    (window as Window & { _embedIsBookerReady?: boolean })._embedIsBookerReady =
+      bookerState && bookerState !== "loading";
+  }
+}
+
 const BookerComponent = ({
   username,
   eventSlug,
@@ -178,9 +186,10 @@ const BookerComponent = ({
     (bookerState === "booking" || (bookerState === "selecting_time" && skipConfirmStep))
   );
 
+  updateEmbedIsBookerReady({ bookerState });
+
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
-    (window as Window & { _embedIsBookerReady?: boolean })._embedIsBookerReady = true;
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
     const isSkipConfirmStepSupported = !isInstantMeeting && layout !== BookerLayouts.WEEK_VIEW;

@@ -1,6 +1,6 @@
-import { toggleLoader } from "../custom-element-utils";
 import loaderCss from "../loader.css";
 import type { BookerLayouts, EmbedPageType } from "../types";
+import { toggleLoader } from "../ui-utils";
 import { getErrorString } from "../utils";
 import modalBoxHtml from "./ModalBoxHtml";
 
@@ -121,6 +121,7 @@ export class ModalBox extends HTMLElement {
       skeletonContainerEl: this.getSkeletonContainerElement(),
       pageType: this.getPageType(),
       show,
+      isModal: true,
     });
   }
 

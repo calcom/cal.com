@@ -9,3 +9,15 @@
   - inline -> Used by inline embed
   - modal -> Used by element click as well as floating button
 - Make a skeleton from packages/embeds/embed-core/src/skeleton.tsx
+
+
+
+Skeleton to match with Booker
+- [ ] Layout
+  - [x] Mobile Layout
+  - [x] Desktop Layout
+  - [ ] Responsive as long as the layout doesn't switch from Desktop to Mobile or Mobile to Desktop
+- [ ] Theming
+  - [x] Dark and Light theme
+      NOTE: _If user has preference for theme configured within app, that has to be communicated clearly in the embed too for skeleton to work_
+  - [ ] Change in system theme should reflect without page refresh

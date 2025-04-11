@@ -4,6 +4,7 @@ type Theme = "dark" | "light";
 export type EmbedThemeConfig = Theme | "auto";
 
 export type BookerLayouts = "month_view" | "week_view" | "column_view";
+export type AllPossibleLayouts = BookerLayouts | "mobile";
 // Only allow certain styles to be modified so that when we make any changes to HTML, we know what all embed styles might be impacted.
 // Keep this list to minimum, only adding those styles which are really needed.
 export interface EmbedStyles {

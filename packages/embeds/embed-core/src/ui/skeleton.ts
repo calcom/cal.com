@@ -1,10 +1,17 @@
-import type { BookerLayouts, EmbedPageType } from "../types";
+import type { AllPossibleLayouts, EmbedPageType } from "../types";
 
 const generateEventMetaSkeleton = () => {
+  const eventMetaOptions = Array.from({ length: 4 })
+    .map(
+      () => `
+    <div class="flex items-start justify-start text-sm text-text">
+      <div class="animate-pulse bg-emphasis h-4 w-4 mr-2 rounded-sm"></div>
+      <div class="animate-pulse bg-emphasis h-4 w-32 rounded-sm"></div>
+    </div>
+    `
+    )
+    .join("");
   return `
-    <div 
-        class="relative z-10 flex [grid-area:meta]" 
-        style="position: sticky; top: 0px;">
         <div class="relative z-10 p-6" data-testid="event-meta">
           <div style="opacity: 1; transform: none;">
             <ul class="flex items-center border-muted">
@@ -17,45 +24,24 @@ const generateEventMetaSkeleton = () => {
             <p class="text-subtle mt-2 text-sm font-semibold">
               <div class="animate-pulse bg-emphasis h-4 w-24 rounded-sm"></div>
             </p>
-            <h1 data-testid="event-title" class="text-text text-xl font-semibold undefined my-2">
+            <h1 data-testid="event-title" class="text-text text-xl font-semibold my-2 mb-8">
               <div class="animate-pulse bg-emphasis h-6 w-32 rounded-sm"></div>
             </h1>
-            <div class="flex items-start justify-start text-sm text-text">
-              <div class="relative z-10 mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
-                <div class="animate-pulse bg-emphasis h-16 w-full rounded-sm"></div>
-              </div>
-            </div>
             <div class="space-y-4 font-medium rtl:-mr-2">
-              <div class="flex items-start justify-start text-sm text-text">
-                <div class="animate-pulse bg-emphasis h-4 w-4 mr-2 mt-[2px] rounded-sm"></div>
-                <div class="animate-pulse bg-emphasis h-4 w-32 rounded-sm"></div>
-              </div>
-              <div class="flex justify-start text-sm text-text items-center">
-                <div class="animate-pulse bg-emphasis h-4 w-4 mr-2 mt-[2px] rounded-sm"></div>
-                <div class="animate-pulse bg-emphasis h-4 w-16 rounded-sm"></div>
-              </div>
-              <div class="flex items-start justify-start text-sm text-text">
-                <div class="animate-pulse bg-emphasis h-4 w-4 mr-2 mt-[2px] rounded-sm"></div>
-                <div class="animate-pulse bg-emphasis h-4 w-24 rounded-sm"></div>
-              </div>
-              <div class="flex items-start justify-start text-sm text-text">
-                <div class="animate-pulse bg-emphasis h-4 w-4 mr-2 mt-[2px] rounded-sm"></div>
-                <div class="animate-pulse bg-emphasis h-4 w-32 rounded-sm"></div>
-              </div>
+              ${eventMetaOptions}
             </div>
           </div>
         </div>
-      </div>
   `;
 };
 
-const generateBookerMainSkeleton = () => {
+const generateDatePickerSkeleton = () => {
   const dayLabels = Array(7)
     .fill(0)
     .map(
       () => `
       <div class="text-emphasis my-4 text-xs font-medium uppercase tracking-widest">
-        <div class="animate-pulse bg-emphasis h-4 w-12 rounded-sm"></div>
+        <div class="animate-pulse bg-emphasis h-4 w-8 rounded-sm"></div>
       </div>
     `
     )
@@ -72,7 +58,7 @@ const generateBookerMainSkeleton = () => {
     )
     .join("");
 
-  return ` <div class="[grid-area:main] md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]" style="opacity: 1; transform: none;">
+  return ` 
           <div>
             <div class="mb-1 flex items-center justify-between text-xl">
               <span class="text-default w-1/2 text-base">
@@ -105,19 +91,44 @@ const generateBookerMainSkeleton = () => {
             <div class="relative grid grid-cols-7 grid-rows-6 gap-1 text-center">
              ${dates}
             </div>
-          </div>
-        </div>`;
+          </div>`;
 };
 
-const generateBookingSlotsPageSkeleton = ({ layout: _layout }: { layout: BookerLayouts | null }) => {
+const generateBookingSlotsPageSkeleton = ({ layout }: { layout: AllPossibleLayouts | null }) => {
+  if (layout === "mobile") {
+    return `
+  <div 
+    data-testid="booker-container" 
+    class="[--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px] [--booker-main-width:480px] [--booker-meta-width:340px] lg:[--booker-meta-width:424px] bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row border-subtle rounded-md" 
+    style="grid-template-areas: &quot;meta&quot; &quot;header&quot; &quot;main&quot; &quot;timeslots&quot;; width: 100%; grid-template-columns: 100%; grid-template-rows: minmax(min-content, max-content) 1fr; min-height: 0px; height: auto;">
+     <div 
+        class="relative z-10 flex [grid-area:meta]">
+        <div class="[grid-area:meta] max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
+        ${generateEventMetaSkeleton()}
+        <div class="mt-auto px-5 py-3">
+        ${generateDatePickerSkeleton()}
+        </div>
+        </div>
+      </div>
+      <div class="[grid-area:main] md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]" style="opacity: 1; transform: none;">
+      </div>
+  </div>
+`;
+  }
   // TODO: Support different layouts. Right now we show month view skeleton for all layouts
   return `
   <div 
     data-testid="booker-container" 
     class="[--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px] [--booker-meta-width:240px] [--booker-main-width:480px] lg:[--booker-meta-width:280px] bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:motion-reduce:transition-none md:flex-row rounded-md sm:transition-[width] sm:duration-300 border-subtle border undefined" 
     style="grid-template-areas: &quot;meta main main&quot; &quot;meta main main&quot;; width: calc(var(--booker-meta-width) + var(--booker-main-width)); grid-template-columns: var(--booker-meta-width) var(--booker-main-width); grid-template-rows: 1fr 0fr; min-height: 450px; height: auto;">
-    ${generateEventMetaSkeleton()}
-    ${generateBookerMainSkeleton()}
+     <div 
+        class="relative z-10 flex [grid-area:meta]" 
+        style="position: sticky; top: 0px;">
+        ${generateEventMetaSkeleton()}
+      </div>
+      <div class="[grid-area:main] md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]" style="opacity: 1; transform: none;">
+        ${generateDatePickerSkeleton()}
+      </div>
   </div>
 `;
 };
@@ -126,7 +137,7 @@ const generateSkeleton = ({
   layout = "month_view",
   pageType,
 }: {
-  layout?: BookerLayouts;
+  layout: AllPossibleLayouts | null;
   pageType: EmbedPageType | null;
 }) => {
   if (!pageType) {

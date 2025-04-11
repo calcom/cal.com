@@ -1,6 +1,6 @@
-import { toggleLoader } from "../custom-element-utils";
 import loaderCss from "../loader.css?inline";
 import type { BookerLayouts, EmbedPageType } from "../types";
+import { toggleLoader } from "../ui-utils";
 import { getErrorString } from "../utils";
 import inlineHtml from "./inlineHtml";
 
@@ -76,6 +76,7 @@ export class Inline extends HTMLElement {
       skeletonContainerEl: this.getSkeletonContainerEl(),
       pageType: this.getPageType() ?? null,
       show,
+      isModal: false,
     });
   }
 
