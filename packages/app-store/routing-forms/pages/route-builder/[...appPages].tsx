@@ -298,6 +298,7 @@ const WeightedAttributesSelector = ({
       />
       {!!attributeIdForWeights ? (
         <SelectField
+          size="sm"
           containerClassName="mb-6 mt-4 data-testid-select-router"
           label={t("attribute_for_weights")}
           options={attributesWithWeightsEnabled.map((attribute) => {
@@ -630,6 +631,7 @@ const Route = ({
                       <span>{t("send_booker_to")}</span>
                     </div> */}
                   <Select
+                    size="sm"
                     isDisabled={disabled}
                     className="data-testid-select-routing-action block w-full flex-grow"
                     required
@@ -687,6 +689,7 @@ const Route = ({
                   ) : (
                     <div className="flex-grow">
                       <Select
+                        size="sm"
                         required
                         className="data-testid-eventTypeRedirectUrl-select"
                         isDisabled={disabled}
@@ -763,6 +766,7 @@ const Route = ({
                   <span>{t("send_booker_to")}</span>
                 </div> */}
                     <Select
+                      size="sm"
                       isDisabled={disabled}
                       className="data-testid-select-routing-action block w-full flex-grow"
                       required
@@ -790,6 +794,7 @@ const Route = ({
                   {route.action?.type ? (
                     route.action?.type === "customPageMessage" ? (
                       <TextArea
+                        size="sm"
                         required
                         disabled={disabled}
                         name="customPageMessage"
@@ -804,6 +809,7 @@ const Route = ({
                       />
                     ) : route.action?.type === "externalRedirectUrl" ? (
                       <TextField
+                        size="sm"
                         disabled={disabled}
                         name="externalRedirectUrl"
                         className="border-default flex flex-grow text-sm"
@@ -820,6 +826,7 @@ const Route = ({
                     ) : (
                       <div className="flex-grow">
                         <Select
+                          size="sm"
                           required
                           className="data-testid-eventTypeRedirectUrl-select"
                           isDisabled={disabled}

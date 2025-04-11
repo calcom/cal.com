@@ -139,17 +139,6 @@
 .cal-query-builder .widget--valuesrc {
   margin-right: -8px;}
 
-.cal-query-builder .group--header{
-  /* margin: 8px !important;
-  padding-left: 8px !important; */
-}
-
-.cal-query-builder  .group--children {
-  /* border: 1px solid var(--cal-border-muted);
-  background-color: var(--cal-bg);
-  border-radius: 12px; */
-}
-
 .cal-query-builder .rule {
   /* border: 1px solid transparent; */
   /* padding: 10px; */
