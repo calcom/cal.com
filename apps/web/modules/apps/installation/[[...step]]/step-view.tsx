@@ -50,6 +50,7 @@ export type TEventTypeGroup = {
   slug?: string | null;
   name?: string | null;
   image: string;
+  isOrganisation?: boolean;
   eventTypes: TEventType[];
 };
 
@@ -68,7 +69,7 @@ type StepObj = Record<
   }
 >;
 
-export type TTeams = (Pick<Team, "id" | "name" | "logoUrl"> & {
+export type TTeams = (Pick<Team, "id" | "name" | "logoUrl" | "isOrganization"> & {
   alreadyInstalled: boolean;
 })[];
 
@@ -83,6 +84,7 @@ export type OnboardingPageProps = {
   showEventTypesStep: boolean;
   isConferencing: boolean;
   installableOnTeams: boolean;
+  isOrg: boolean;
 };
 
 type TUpdateObject = {
