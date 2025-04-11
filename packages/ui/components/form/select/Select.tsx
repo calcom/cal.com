@@ -81,7 +81,7 @@ export const Select = <
               ? "h-7 px-2"
               : "h-9 px-3",
             props.isDisabled && "bg-subtle",
-            size === "sm" ? "rounded-md" : "rounded-[10px]",
+            "rounded-[10px]",
             "[&:focus-within]:border-emphasis [&:focus-within]:shadow-outline-gray-focused [&:focus-within]:ring-0 !flex",
             innerClassNames?.control
           ),
