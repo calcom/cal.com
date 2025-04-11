@@ -2410,7 +2410,8 @@
             "name": "teamIds",
             "required": false,
             "in": "query",
-            "description": "Filter by teamIds",
+            "description": "Filter by teamIds. Team ids must be separated by a comma.",
+            "example": "?teamIds=100,200",
             "schema": {
               "type": "array",
               "items": {
@@ -3339,6 +3340,301 @@
         },
         "tags": [
           "Orgs / Teams / Bookings"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/connect": {
+      "post": {
+        "operationId": "OrganizationsConferencingController_connectTeamApp",
+        "summary": "Connect your conferencing application to a team",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "description": "Conferencing application type",
+            "schema": {
+              "enum": [
+                "google-meet"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Conferencing"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/oauth/auth-url": {
+      "get": {
+        "operationId": "OrganizationsConferencingController_getTeamOAuthUrl",
+        "summary": "Get OAuth conferencing app's auth url for a team",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "description": "Conferencing application type",
+            "schema": {
+              "enum": [
+                "zoom",
+                "msteams"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "returnTo",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "onErrorReturnTo",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetConferencingAppsOauthUrlResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Conferencing"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing": {
+      "get": {
+        "operationId": "OrganizationsConferencingController_listTeamConferencingApps",
+        "summary": "List team conferencing applications",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConferencingAppsOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Conferencing"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/default": {
+      "post": {
+        "operationId": "OrganizationsConferencingController_setTeamDefaultApp",
+        "summary": "Set team default conferencing application",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "description": "Conferencing application type",
+            "schema": {
+              "enum": [
+                "google-meet",
+                "zoom",
+                "msteams",
+                "daily-video"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetDefaultConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Conferencing"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/default": {
+      "get": {
+        "operationId": "OrganizationsConferencingController_getTeamDefaultApp",
+        "summary": "Get team default conferencing application",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "description": "Conferencing application type",
+            "schema": {
+              "enum": [
+                "google-meet",
+                "zoom",
+                "msteams",
+                "daily-video"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetDefaultConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Conferencing"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/disconnect": {
+      "delete": {
+        "operationId": "OrganizationsConferencingController_disconnectTeamApp",
+        "summary": "Disconnect team conferencing application",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "description": "Conferencing application type",
+            "schema": {
+              "enum": [
+                "google-meet",
+                "zoom",
+                "msteams"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DisconnectConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Conferencing"
         ]
       }
     },
@@ -6739,7 +7035,8 @@
     "/v2/bookings/{bookingUid}/mark-absent": {
       "post": {
         "operationId": "BookingsController_2024_08_13_markNoShow",
-        "summary": "Mark a booking absence - provided authorization header refers to owner of the booking.",
+        "summary": "Mark a booking absence",
+        "description": "The provided authorization header refers to the owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -6799,7 +7096,8 @@
     "/v2/bookings/{bookingUid}/reassign": {
       "post": {
         "operationId": "BookingsController_2024_08_13_reassignBooking",
-        "summary": "Automatically reassign booking to a new host automatically - provided authorization header refers to person who reassigned the booking.",
+        "summary": "Reassign booking to auto-selected host",
+        "description": "The provided authorization header refers to the owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -6849,7 +7147,8 @@
     "/v2/bookings/{bookingUid}/reassign/{userId}": {
       "post": {
         "operationId": "BookingsController_2024_08_13_reassignBookingToUser",
-        "summary": "Reassign a booking to a specific user specified by the :userId - provided authorization header refers to person who reassigned the booking.",
+        "summary": "Reassign a booking to a specific host",
+        "description": "The provided authorization header refers to the owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -6917,7 +7216,8 @@
     "/v2/bookings/{bookingUid}/confirm": {
       "post": {
         "operationId": "BookingsController_2024_08_13_confirmBooking",
-        "summary": "Confirm booking that requires a confirmation - provided authorization header refers to owner of the booking.",
+        "summary": "Confirm a booking",
+        "description": "The provided authorization header refers to the owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -6967,7 +7267,8 @@
     "/v2/bookings/{bookingUid}/decline": {
       "post": {
         "operationId": "BookingsController_2024_08_13_declineBooking",
-        "summary": "Decline booking that requires a confirmation - provided authorization header refers to owner of the booking.",
+        "summary": "Decline a booking",
+        "description": "The provided authorization header refers to the owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -8649,301 +8950,6 @@
         },
         "tags": [
           "OAuth Clients"
-        ]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/connect": {
-      "post": {
-        "operationId": "OrganizationsConferencingController_connectTeamApp",
-        "summary": "Connect your conferencing application to a team",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": [
-                "google-meet"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConferencingAppOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations/Teams Conferencing"
-        ]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/oauth/auth-url": {
-      "get": {
-        "operationId": "OrganizationsConferencingController_getTeamOAuthUrl",
-        "summary": "Get OAuth conferencing app's auth url for a team",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": [
-                "zoom",
-                "msteams"
-              ],
-              "type": "string"
-            }
-          },
-          {
-            "name": "returnTo",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "onErrorReturnTo",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetConferencingAppsOauthUrlResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations/Teams Conferencing"
-        ]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/conferencing": {
-      "get": {
-        "operationId": "OrganizationsConferencingController_listTeamConferencingApps",
-        "summary": "List team conferencing applications",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConferencingAppsOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations/Teams Conferencing"
-        ]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/default": {
-      "post": {
-        "operationId": "OrganizationsConferencingController_setTeamDefaultApp",
-        "summary": "Set team default conferencing application",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": [
-                "google-meet",
-                "zoom",
-                "msteams",
-                "daily-video"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SetDefaultConferencingAppOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations/Teams Conferencing"
-        ]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/default": {
-      "get": {
-        "operationId": "OrganizationsConferencingController_getTeamDefaultApp",
-        "summary": "Get team default conferencing application",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": [
-                "google-meet",
-                "zoom",
-                "msteams",
-                "daily-video"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetDefaultConferencingAppOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations/Teams Conferencing"
-        ]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/disconnect": {
-      "delete": {
-        "operationId": "OrganizationsConferencingController_disconnectTeamApp",
-        "summary": "Disconnect team conferencing application",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": [
-                "google-meet",
-                "zoom",
-                "msteams"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DisconnectConferencingAppOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations/Teams Conferencing"
         ]
       }
     },
