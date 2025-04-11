@@ -86,6 +86,9 @@ export class GetBookingsInput_2024_08_13 {
     if (typeof value === "string") {
       return value.split(",").map((eventTypeId: string) => parseInt(eventTypeId));
     }
+    if (Array.isArray(value)) {
+      return value.map((eventTypeId: string | number) => +eventTypeId);
+    }
     return value;
   })
   @IsArray()
@@ -115,6 +118,9 @@ export class GetBookingsInput_2024_08_13 {
   @Transform(({ value }) => {
     if (typeof value === "string") {
       return value.split(",").map((teamId: string) => parseInt(teamId));
+    }
+    if (Array.isArray(value)) {
+      return value.map((teamId: string | number) => +teamId);
     }
     return value;
   })
