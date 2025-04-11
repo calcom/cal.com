@@ -3053,5 +3053,17 @@
   "most_cancelled_bookings": "Найбільше скасованих бронювань",
   "name_or_email": "Ім'я або електронна пошта",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Якщо контакт не знайдено, використовувати власника ліда, якщо він існує",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time": "Дата та час",
+  "email_reminder_upcoming_event_notice": "Це нагадування про вашу майбутню подію.",
+  "email_reminder_triggered_by_workflow": "Це нагадування було ініційовано Workflow у Cal.",
+  "event_upper_case": "Подія",
+  "scheduling_by": "Заплановано",
+  "experience_review_prompt": "Як пройшов ваш останній досвід?",
+  "improve_customer_experience_message": "Ми постійно покращуємо клієнтський досвід.",
+  "meeting_satisfaction_question": "Наскільки ви задоволені останньою зустріччю?",
+  "meeting_not_joined_question": "не приєдналися до зустрічі?",
+  "reschedule_cta_short": "Перенести тут.",
+  "you_and_conjunction": "Ви &",
+  "email_survey_triggered_by_workflow": "Це опитування було запущено робочим процесом у Cal."
 }

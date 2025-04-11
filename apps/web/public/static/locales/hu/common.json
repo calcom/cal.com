@@ -3053,5 +3053,17 @@
   "most_cancelled_bookings": "Legtöbbször lemondott foglalások",
   "name_or_email": "Név vagy e-mail",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Ha nem található kapcsolat, visszalépés a lead tulajdonoshoz, ha létezik",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time": "Dátum és idő",
+  "email_reminder_upcoming_event_notice": "Ez egy emlékeztető a közelgő eseményedről.",
+  "email_reminder_triggered_by_workflow": "Ezt az emlékeztetőt egy Cal-beli Workflow indította.",
+  "event_upper_case": "Esemény",
+  "scheduling_by": "Ütemezve által",
+  "experience_review_prompt": "Milyen volt a legutóbbi élményed?",
+  "improve_customer_experience_message": "Folyamatosan javítjuk az ügyfélélményt.",
+  "meeting_satisfaction_question": "Mennyire elégedett volt a legutóbbi találkozójával?",
+  "meeting_not_joined_question": "nem vett részt a találkozón?",
+  "reschedule_cta_short": "Újraütemezés itt.",
+  "you_and_conjunction": "Te &",
+  "email_survey_triggered_by_workflow": "Ezt a kérdőívet egy Workflow indította a Cal-ban."
 }

@@ -3053,5 +3053,17 @@
   "most_cancelled_bookings": "Reservas más canceladas",
   "name_or_email": "Nombre o correo electrónico",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Si no se encuentra ningún contacto, recurrir al propietario del lead si existe",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agregue sus nuevas cadenas arriba ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agregue sus nuevas cadenas arriba ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time" : "Fecha y hora",
+  "email_reminder_upcoming_event_notice" : "Este es un recordatorio sobre su próximo evento.",
+  "email_reminder_triggered_by_workflow" : "Este recordatorio fue activado por un flujo de trabajo en Cal.",
+  "event_upper_case": "Evento",
+  "scheduling_by": "Programado por",
+  "experience_review_prompt": "¿Cómo fue tu experiencia reciente?",
+  "improve_customer_experience_message": "Siempre buscamos mejorar la experiencia de nuestros clientes.",
+  "meeting_satisfaction_question": "¿Qué tan satisfecho estuvo con su última reunión?",
+  "meeting_not_joined_question": "¿no asististe a la reunión?",
+  "reschedule_cta_short": "Reprogramar aquí.",
+  "you_and_conjunction": "Tú &",
+  "email_survey_triggered_by_workflow": "Esta encuesta fue activada por un Workflow en Cal."
 }

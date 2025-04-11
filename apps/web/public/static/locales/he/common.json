@@ -3053,5 +3053,17 @@
   "most_cancelled_bookings": "הזמנות שבוטלו הכי הרבה",
   "name_or_email": "שם או אימייל",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "אם לא נמצא איש קשר, חזור לבעל הליד אם הוא קיים",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time": "תאריך ושעה",
+  "email_reminder_upcoming_event_notice": "זאת תזכורת לגבי האירוע הקרוב שלך.",
+  "email_reminder_triggered_by_workflow": "תזכורת זו הופעלה על ידי Workflow ב-Cal.",
+  "event_upper_case": "אירוע",
+  "scheduling_by": "תזמון על ידי",
+  "experience_review_prompt": "איך הייתה החוויה האחרונה שלך?",
+  "improve_customer_experience_message": ".אנחנו תמיד משפרים את חווית הלקוח",
+  "meeting_satisfaction_question": "?עד כמה היית מרוצה מהפגישה האחרונה שלך",
+  "meeting_not_joined_question": "?לא הצטרפת לפגישה",
+  "reschedule_cta_short": ".קבע מחדש כאן",
+  "you_and_conjunction": "את/ה &",
+  "email_survey_triggered_by_workflow": "הסקר הזה הופעל על ידי Workflow ב-Cal."
 }

@@ -3053,5 +3053,17 @@
   "most_cancelled_bookings": "Enim tühistatud broneeringud",
   "name_or_email": "Nimi või e-post",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Kui kontakti ei leita, kasuta võimalusel liidi omanikku",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time" : "Kuupäev ja kellaaeg",
+  "email_reminder_upcoming_event_notice" : "See on meeldetuletus teie eelseisva sündmuse kohta.",
+  "email_reminder_triggered_by_workflow" : "Selle meeldetuletuse käivitas Cali töövoog.",
+  "event_upper_case": "Sündmus",
+  "scheduling_by": "Plaanitud",
+  "experience_review_prompt": "Kuidas oli teie hiljutine kogemus?",
+  "improve_customer_experience_message": "Me püüame pidevalt klindikogemust parandada.",
+  "meeting_satisfaction_question": "Kui rahul olite oma viimase kohtumisega?",
+  "meeting_not_joined_question": "ei osalenud koosolekul?",
+  "reschedule_cta_short": "Broneeri uuesti siit.",
+  "you_and_conjunction": "Sina &",
+  "email_survey_triggered_by_workflow": "See küsitlus käivitati Cali töövooga."
 }

@@ -17,6 +17,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@calcom/tsconfig": "*"
+    "@calcom/tsconfig": "*",
+    "@calcom/web": "*"
   }
 }

@@ -3053,5 +3053,17 @@
   "most_cancelled_bookings": "ការកក់ដែលត្រូវបានលុបចោលច្រើនបំផុត",
   "name_or_email": "ឈ្មោះ ឬអ៊ីមែល",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "ប្រសិនបើមិនមានទំនាក់ទំនងត្រូវបានរកឃើញទេ ត្រឡប់ទៅម្ចាស់ Lead ប្រសិនបើមាន",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time": "កាលបរិច្ឆេទ និងពេលវេលា",
+  "email_reminder_upcoming_event_notice": "នេះគឺជាការរំលឹកអំពីព្រឹត្តិការណ៍ដែលនឹងមានឡើងរបស់អ្នក។",
+  "email_reminder_triggered_by_workflow": "ការរំលឹកនេះត្រូវបានបង្កើតឡើងដោយលំហូរការងារនៅក្នុង Cal។",
+  "event_upper_case": "ព្រឹត្តិការណ៍",
+  "scheduling_by": "ការកំណត់ពេលវេលាដោយ",
+  "experience_review_prompt": "តើបទពិសោធន៍ថ្មីៗរបស់អ្នកយ៉ាងណា?",
+  "improve_customer_experience_message": "យើងតែងតែរកមធ្យោបាយកែលម្អបទពិសោធន៍អតិថិជន។",
+  "meeting_satisfaction_question": "តើអ្នកពេញចិត្តប៉ុណ្ណាជាមួយការប្រជុំថ្មីៗរបស់អ្នក?",
+  "meeting_not_joined_question": "មិនបានចូលរួមការប្រជុំ?",
+  "reschedule_cta_short": "កំណត់ពេលវេលាថ្មីនៅទីនេះ។",
+  "you_and_conjunction": "អ្នក &",
+  "email_survey_triggered_by_workflow": "ការស្ទង់មតិនេះត្រូវបានបង្កើតឡើងដោយលំហូរការងារនៅក្នុង Cal។"
 }

@@ -3053,5 +3053,17 @@
   "most_cancelled_bookings": "가장 많이 취소된 예약",
   "name_or_email": "이름 또는 이메일",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "연락처를 찾을 수 없는 경우, 리드 소유자가 있으면 대체",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time": "날짜 및 시간",
+  "email_reminder_upcoming_event_notice": "다가오는 일정에 대한 알림입니다.",
+  "email_reminder_triggered_by_workflow": "이 알림은 Cal의 워크플로우에 의해 트리거되었습니다.",
+  "event_upper_case": "이벤트",
+  "scheduling_by": "일정 계획 담당자",
+  "experience_review_prompt": "최근 경험은 어떠셨나요?",
+  "improve_customer_experience_message": "우리는 항상 고객 경험을 개선하기 위해 노력합니다.",
+  "meeting_satisfaction_question": "최근 미팅에 얼마나 만족하셨나요?",
+  "meeting_not_joined_question": "미팅에 참여하지 않으셨나요?",
+  "reschedule_cta_short": "여기서 재예약하세요.",
+  "you_and_conjunction": "당신 &",
+  "email_survey_triggered_by_workflow": "이 설문은 Cal의 워크플로우에 의해 트리거되었습니다."
 }

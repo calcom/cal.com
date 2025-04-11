@@ -355,7 +355,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
           if (isEmailAction(newStep.action)) {
             // on free plans always use predefined templates
-            const { emailBody, emailSubject } = getEmailTemplateText(newStep.template, {
+            const { emailBody, emailSubject } = await getEmailTemplateText(newStep.template, {
               locale: ctx.user.locale,
               action: newStep.action,
               timeFormat: ctx.user.timeFormat,
@@ -430,7 +430,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           }
 
           // on free plans always use predefined templates
-          const { emailBody, emailSubject } = getEmailTemplateText(newStep.template, {
+          const { emailBody, emailSubject } = await getEmailTemplateText(newStep.template, {
             locale: ctx.user.locale,
             action: newStep.action,
             timeFormat: ctx.user.timeFormat,
