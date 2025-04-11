@@ -46,6 +46,8 @@ const customTemplate = (
 
   let locationString = variables.location || "";
 
+  text = text.replace(/\{([A-Z0-9_]+)_VARIABLE}/g, (_, base) => `{${base}}`);
+
   if (text.includes("{LOCATION}")) {
     locationString = guessEventLocationType(locationString)?.label || locationString;
   }
