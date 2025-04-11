@@ -22,6 +22,7 @@ export const convertSvgToPng = async (data: string) => {
       const pngBuffer = await sharp(buffer).png().toBuffer();
       return `data:image/png;base64,${pngBuffer.toString("base64")}`;
     } catch (error) {
+      console.error("Error converting SVG to PNG", error);
       // Return a 1x1 transparent PNG as placeholder
       return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
     }
