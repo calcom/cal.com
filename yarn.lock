@@ -2726,6 +2726,7 @@ __metadata:
     "@calcom/lib": "*"
     "@calcom/tsconfig": "*"
     "@calcom/ui": "*"
+    "@calcom/web": "*"
     "@hookform/error-message": ^2.0.0
     "@hookform/resolvers": ^2.9.7
     "@sendgrid/client": ^7.7.0
@@ -3796,7 +3797,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/web@workspace:apps/web":
+"@calcom/web@*, @calcom/web@workspace:apps/web":
   version: 0.0.0-use.local
   resolution: "@calcom/web@workspace:apps/web"
   dependencies:
