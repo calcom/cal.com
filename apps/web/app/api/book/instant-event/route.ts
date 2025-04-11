@@ -8,7 +8,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import handleInstantMeeting from "@calcom/features/instant-meeting/handleInstantMeeting";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
-import { CreationSource } from "@calcom/prisma/enums";
+import { CreationSource } from "@calcom/prisma/enums/index";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 

@@ -25,7 +25,7 @@ async function handler(req: NextRequest) {
   const legacyReq = buildLegacyRequest(await headers(), await cookies());
   const userIp = getIP(legacyReq);
 
-  const requestData = await parseRequestData(req);
+  const requestData = (await parseRequestData(req)) as any[];
 
   if (process.env.NEXT_PUBLIC_CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1") {
     await checkCfTurnstileToken({
@@ -42,19 +42,19 @@ async function handler(req: NextRequest) {
   const session = await getServerSession({ req: legacyReq });
 
   const platformParams: PlatformParams = {};
-  if (requestData.platformClientId) platformParams.platformClientId = requestData.platformClientId;
-  if (requestData.platformCancelUrl) platformParams.platformCancelUrl = requestData.platformCancelUrl;
-  if (requestData.platformBookingUrl) platformParams.platformBookingUrl = requestData.platformBookingUrl;
-  if (requestData.platformRescheduleUrl)
-    platformParams.platformRescheduleUrl = requestData.platformRescheduleUrl;
-  if (requestData.platformBookingLocation)
-    platformParams.platformBookingLocation = requestData.platformBookingLocation;
+  const firstItem = (requestData[0] || {}) as Record<string, any>;
+  if (firstItem.platformClientId) platformParams.platformClientId = firstItem.platformClientId;
+  if (firstItem.platformCancelUrl) platformParams.platformCancelUrl = firstItem.platformCancelUrl;
+  if (firstItem.platformBookingUrl) platformParams.platformBookingUrl = firstItem.platformBookingUrl;
+  if (firstItem.platformRescheduleUrl) platformParams.platformRescheduleUrl = firstItem.platformRescheduleUrl;
+  if (firstItem.platformBookingLocation)
+    platformParams.platformBookingLocation = firstItem.platformBookingLocation;
 
   const createdBookings: BookingResponse[] = await handleNewRecurringBooking({
     bookingData: requestData,
     userId: session?.user?.id || -1,
     ...platformParams,
-    noEmail: requestData.noEmail,
+    noEmail: firstItem.noEmail,
   });
 
   return NextResponse.json(createdBookings);
