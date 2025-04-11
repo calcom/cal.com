@@ -1,6 +1,7 @@
 // !IMPORTANT! changes to this file requires publishing new version of platform libraries in order for the changes to be applied to APIV2
 import type { GetServerSidePropsContext } from "next";
 import { stringify } from "querystring";
+import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
@@ -19,6 +20,7 @@ import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-form
 import logger from "@calcom/lib/logger";
 import monitorCallbackAsync from "@calcom/lib/sentryWrapper";
 import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 
 import { TRPCError } from "@trpc/server";
 
@@ -76,7 +78,6 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     };
   }
 
-  const { UserRepository } = await import("@calcom/lib/server/repository/user");
   const profileEnrichmentStart = performance.now();
   const formWithUserProfile = {
     ...form,
@@ -119,7 +120,6 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
 
   const decidedAction = matchingRoute.action;
 
-  const { v4: uuidv4 } = await import("uuid");
   let teamMembersMatchingAttributeLogic = null;
   let formResponseId = null;
   let attributeRoutingConfig = null;
