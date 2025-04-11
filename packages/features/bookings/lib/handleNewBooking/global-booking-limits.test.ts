@@ -594,12 +594,9 @@ describe(
           },
         });
 
-        const { req: req1 } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData1,
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData1,
         });
-
-        const createdBooking = await handleNewBooking(req1);
 
         expect(createdBooking.responses).toEqual(
           expect.objectContaining({
@@ -621,13 +618,10 @@ describe(
           },
         });
 
-        const { req: req2 } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData2,
-        });
-
         // this is the second booking of this day for user 101, limit reached
-        await expect(async () => await handleNewBooking(req2)).rejects.toThrowError("booking_limit_reached");
+        await expect(
+          async () => await handleNewBooking({ bookingData: mockBookingData2 })
+        ).rejects.toThrowError("booking_limit_reached");
       });
       test(`Booking limits per week`, async ({}) => {
         await createBookingScenario(
@@ -681,12 +675,7 @@ describe(
           },
         });
 
-        const { req: req1 } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData1,
-        });
-
-        const createdBooking = await handleNewBooking(req1);
+        const createdBooking = await handleNewBooking({ bookingData: mockBookingData1 });
 
         expect(createdBooking.responses).toEqual(
           expect.objectContaining({
@@ -708,13 +697,10 @@ describe(
           },
         });
 
-        const { req: req2 } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData2,
-        });
-
         // this is the fourth booking of this week for user 101, limit reached
-        await expect(async () => await handleNewBooking(req2)).rejects.toThrowError("booking_limit_reached");
+        await expect(
+          async () => await handleNewBooking({ bookingData: mockBookingData2 })
+        ).rejects.toThrowError("booking_limit_reached");
       });
       test(`Booking limits per month`, async ({}) => {
         await createBookingScenario(
@@ -768,12 +754,7 @@ describe(
           },
         });
 
-        const { req: req1 } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData1,
-        });
-
-        const createdBooking = await handleNewBooking(req1);
+        const createdBooking = await handleNewBooking({ bookingData: mockBookingData1 });
 
         expect(createdBooking.responses).toEqual(
           expect.objectContaining({
@@ -795,13 +776,10 @@ describe(
           },
         });
 
-        const { req: req2 } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData2,
-        });
-
         // this is the fourth booking of this month for user 101, limit reached
-        await expect(async () => await handleNewBooking(req2)).rejects.toThrowError("booking_limit_reached");
+        await expect(
+          async () => await handleNewBooking({ bookingData: mockBookingData2 })
+        ).rejects.toThrowError("booking_limit_reached");
       });
       test(`Booking limits per year`, async ({}) => {
         await createBookingScenario(
@@ -848,12 +826,7 @@ describe(
           },
         });
 
-        const { req: req1 } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData1,
-        });
-
-        const createdBooking = await handleNewBooking(req1);
+        const createdBooking = await handleNewBooking({ bookingData: mockBookingData1 });
 
         expect(createdBooking.responses).toEqual(
           expect.objectContaining({
@@ -875,13 +848,10 @@ describe(
           },
         });
 
-        const { req: req2 } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData2,
-        });
-
         // this is the third booking of this year for user 101, limit reached
-        await expect(async () => await handleNewBooking(req2)).rejects.toThrowError("booking_limit_reached");
+        await expect(
+          async () => await handleNewBooking({ bookingData: mockBookingData2 })
+        ).rejects.toThrowError("booking_limit_reached");
       });
     });
   },
