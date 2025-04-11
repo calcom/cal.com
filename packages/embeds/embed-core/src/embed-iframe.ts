@@ -5,7 +5,14 @@ import { useEffect, useRef, useState, useCallback } from "react";
 
 import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
-import type { EmbedThemeConfig, UiConfig, EmbedNonStylesConfig, BookerLayouts, EmbedStyles } from "./types";
+import type {
+  EmbedThemeConfig,
+  UiConfig,
+  EmbedNonStylesConfig,
+  BookerLayouts,
+  EmbedStyles,
+  EmbedPageType,
+} from "./types";
 import { useCompatSearchParams } from "./useCompatSearchParams";
 
 type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
@@ -34,6 +41,9 @@ export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Rec
   // TODO: Rename layout and theme as ui.layout and ui.theme as it makes it clear that these two can be configured using `ui` instruction as well any time.
   "ui.color-scheme"?: string;
   theme?: EmbedThemeConfig;
+  // Prefixing with cal.embed because there could be more query params that aren't required by embed and are used for things like prefilling booking form, configuring dry run, and some other params simply to be forwarded to the booking success redirect URL.
+  // There are some cal. prefixed query params as well, not meant for embed specifically, but in general for cal.com
+  "cal.embed.pageType"?: EmbedPageType;
 };
 
 declare global {
@@ -43,6 +53,7 @@ declare global {
       embedStore: typeof embedStore;
       applyCssVars: (cssVarsPerTheme: UiConfig["cssVarsPerTheme"]) => void;
     };
+    _embedIsBookerReady?: boolean;
   }
 }
 
@@ -81,11 +92,13 @@ const embedStore = {
   // Store all React State setters here.
   reactStylesStateSetters: {} as Record<keyof EmbedStyles, SetStyles>,
   reactNonStylesStateSetters: {} as Record<keyof EmbedNonStylesConfig, setNonStylesConfig>,
+  // Embed can show itself only after this is set to true
   parentInformedAboutContentHeight: false,
   windowLoadEventFired: false,
   setTheme: undefined as ((arg0: EmbedThemeConfig) => void) | undefined,
   theme: undefined as UiConfig["theme"],
   uiConfig: undefined as Omit<UiConfig, "styles" | "theme"> | undefined,
+  pageType: null as EmbedPageType | null,
   /**
    * We maintain a list of all setUiConfig setters that are in use at the moment so that we can update all those components.
    */
@@ -310,6 +323,34 @@ function getEmbedType() {
   }
 }
 
+function getEmbedPageType() {
+  if (embedStore.pageType) {
+    return embedStore.pageType;
+  }
+  if (isBrowser) {
+    const url = new URL(document.URL);
+    const pageType = (embedStore.pageType = url.searchParams.get(
+      "cal.embed.pageType"
+    ) as EmbedPageType | null);
+    if (pageType) {
+      return pageType;
+    }
+    return null;
+  }
+}
+
+function isBookerReady() {
+  return window._embedIsBookerReady;
+}
+
+function isBookerPage() {
+  const pageType = getEmbedPageType();
+  if (!pageType) {
+    return false;
+  }
+  return pageType.startsWith("team.event.booking") || pageType.startsWith("user.event.booking");
+}
+
 export const useIsEmbed = (embedSsr?: boolean) => {
   const [isEmbed, setIsEmbed] = useState(embedSsr);
   useEffect(() => {
@@ -334,11 +375,11 @@ export const useEmbedType = () => {
 };
 
 function unhideBody() {
+  if (document.body.style.visibility !== "visible") {
+    document.body.style.visibility = "visible";
+  }
   // Ensure that it stays visible and not reverted by React
   runAsap(() => {
-    if (document.body.style.visibility !== "visible") {
-      document.body.style.visibility = "visible";
-    }
     unhideBody();
   });
 }
@@ -392,12 +433,21 @@ const methods = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   parentKnowsIframeReady: (_unused: unknown) => {
     log("Method: `parentKnowsIframeReady` called");
+
     runAsap(function tryInformingLinkReady() {
       // TODO: Do it by attaching a listener for change in parentInformedAboutContentHeight
       if (!embedStore.parentInformedAboutContentHeight) {
         runAsap(tryInformingLinkReady);
         return;
       }
+
+      // Let's wait for Booker to be ready before showing the embed
+      // It means that booker has loaded all its data and is ready to show
+      if (isBookerPage() && !isBookerReady()) {
+        runAsap(tryInformingLinkReady);
+        return;
+      }
+
       // No UI change should happen in sight. Let the parent height adjust and in next cycle show it.
       unhideBody();
       if (!isPrerendering()) {
@@ -460,10 +510,12 @@ function keepParentInformedAboutDimensionChanges() {
       }, 100);
       return;
     }
+
     if (!embedStore.windowLoadEventFired) {
       sdkActionManager?.fire("__windowLoadComplete", {});
     }
     embedStore.windowLoadEventFired = true;
+
     // Use the dimensions of main element as in most places there is max-width restriction on it and we just want to show the main content.
     // It avoids the unwanted padding outside main tag.
     const mainElement =
@@ -495,7 +547,9 @@ function keepParentInformedAboutDimensionChanges() {
     // On subsequent renders, consider html height as the height of the iframe. If we don't do this, then if iframe gets bigger in height, it would never shrink
     const iframeHeight = isFirstTime ? documentScrollHeight : contentHeight;
     const iframeWidth = isFirstTime ? documentScrollWidth : contentWidth;
+
     embedStore.parentInformedAboutContentHeight = true;
+
     if (!iframeHeight || !iframeWidth) {
       runAsap(informAboutScroll);
       return;

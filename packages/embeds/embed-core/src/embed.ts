@@ -9,6 +9,7 @@ import { SdkActionManager } from "./sdk-action-manager";
 import type { EventData, EventDataMap } from "./sdk-action-manager";
 import tailwindCss from "./tailwindCss";
 import type { UiConfig } from "./types";
+import { getMaxHeightForModal } from "./ui-utils";
 import { fromEntriesWithDuplicateKeys } from "./utils";
 
 export type { PrefillAndIframeAttrsConfig } from "./embed-iframe";
@@ -26,6 +27,8 @@ export type Message = {
 // HACK: Redefine and don't import WEBAPP_URL as it causes import statement to be present in built file.
 // This is happening because we are not able to generate an App and a lib using single Vite Config.
 const WEBAPP_URL = process.env.EMBED_PUBLIC_WEBAPP_URL || `https://${process.env.EMBED_PUBLIC_VERCEL_URL}`;
+// Add App CSS Vars as soon as possible so that tailwind classes can work instantly.
+addAppCssVars();
 
 customElements.define("cal-modal-box", ModalBox);
 customElements.define("cal-floating-button", FloatingButton);
@@ -187,6 +190,18 @@ type PrefillAndIframeAttrsConfigWithGuestAndColorScheme = PrefillAndIframeAttrsC
   "ui.color-scheme"?: string | null;
 };
 
+function getConfigProp<TProp extends keyof PrefillAndIframeAttrsConfig>(
+  config: PrefillAndIframeAttrsConfig,
+  prop: TProp
+) {
+  const knownConfigProps = ["flag.coep", "layout", "ui.color-scheme", "theme", "cal.embed.pageType"];
+  if (knownConfigProps.includes(prop)) {
+    return config[prop] ?? null;
+  }
+  console.warn(`Read unknown config prop: ${prop}`);
+  return config[prop] ?? null;
+}
+
 export class Cal {
   iframe?: HTMLIFrameElement;
 
@@ -316,7 +331,7 @@ export class Cal {
     for (const [key, value] of searchParams) {
       urlInstance.searchParams.append(key, value);
     }
-    iframe.src = urlInstance.toString();
+    // iframe.src = urlInstance.toString();
     return iframe;
   }
 
@@ -373,10 +388,7 @@ export class Cal {
       }
 
       if (this.modalBox) {
-        // It ensures that if the iframe is so tall that it can't fit in the parent window without scroll. Then force the scroll by restricting the max-height to innerHeight
-        // This case is reproducible when viewing in ModalBox on Mobile.
-        const spacingTopPlusBottom = 2 * 50; // 50 is the padding we want to keep to show close button comfortably. Make it same as top for bottom.
-        iframe.style.maxHeight = `${window.innerHeight - spacingTopPlusBottom}px`;
+        iframe.style.maxHeight = `${getMaxHeightForModal()}px`;
       }
     });
 
@@ -572,8 +584,19 @@ class CalApi {
     iframe.style.width = "100%";
 
     containerEl.classList.add("cal-inline-container");
+
     const template = document.createElement("template");
-    template.innerHTML = `<cal-inline style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%"></cal-inline><style>.cal-inline-container::-webkit-scrollbar{display:none}.cal-inline-container{scrollbar-width:none}</style>`;
+    const layout = getConfigProp(config, "layout");
+    const pageType = getConfigProp(config, "cal.embed.pageType");
+    const theme = getConfigProp(config, "theme");
+
+    template.innerHTML = `<cal-inline 
+      ${pageType ? `data-page-type="${pageType}"` : ""} 
+      ${theme ? `data-theme="${theme}"` : ""}
+      ${layout ? `data-layout="${layout}"` : ""}
+      style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%">
+    </cal-inline>
+    <style>.cal-inline-container::-webkit-scrollbar{display:none}.cal-inline-container{scrollbar-width:none}</style>`;
     this.cal.inlineEl = template.content.children[0];
     this.cal.inlineEl.appendChild(iframe);
     containerEl.appendChild(template.content);
@@ -715,7 +738,15 @@ class CalApi {
     iframe.style.height = "100%";
     iframe.style.width = "100%";
     const template = document.createElement("template");
-    template.innerHTML = `<cal-modal-box uid="${uid}"></cal-modal-box>`;
+    const pageType = getConfigProp(configWithGuestKeyAndColorScheme, "cal.embed.pageType");
+    const theme = getConfigProp(configWithGuestKeyAndColorScheme, "theme");
+    const layout = getConfigProp(configWithGuestKeyAndColorScheme, "layout");
+    template.innerHTML = `<cal-modal-box 
+      ${pageType ? `data-page-type="${pageType}"` : ""} 
+      ${theme ? `data-theme="${theme}"` : ""}
+      ${layout ? `data-layout="${layout}"` : ""}
+      uid="${uid}">
+    </cal-modal-box>`;
     this.cal.modalBox = template.content.children[0];
     this.cal.modalBox.appendChild(iframe);
     if (__prerender) {
@@ -1055,8 +1086,6 @@ function initializeGlobalCalProps() {
   // Use if configured by user otherwise set default
   globalCal.config.forwardQueryParams = globalCal.config.forwardQueryParams ?? false;
 }
-
-addAppCssVars();
 
 function log(...args: unknown[]) {
   console.log(...args);

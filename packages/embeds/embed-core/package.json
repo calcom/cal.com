@@ -22,6 +22,8 @@
     "buildWatchAndServer": "run-p '__dev' 'vite --port 3100 --strict-port --host --open'",
     "buildWatchAndServer-https": "run-p '__dev' 'vite --port 3100 --strict-port --host --open --https'",
     "dev": "yarn tailwind && run-p 'tailwind --watch' 'buildWatchAndServer'",
+    "buildWatchAndServer-no-auto-open": "run-p '__dev' 'vite --port 3100 --strict-port --host'",
+    "dev-no-open": "yarn tailwind && run-p 'tailwind --watch' 'buildWatchAndServer-no-auto-open'",
     "dev-https": "yarn tailwind && run-p 'tailwind --watch' 'buildWatchAndServer-https'",
     "dev-real": "vite dev --port 3100",
     "type-check": "tsc --pretty --noEmit",
