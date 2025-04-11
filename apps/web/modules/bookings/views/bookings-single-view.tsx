@@ -371,25 +371,29 @@ export default function Success(props: PageProps) {
   const isRerouting = searchParams?.get("cal.rerouting") === "true";
   const isRescheduled = bookingInfo?.rescheduled;
 
-  let canCancel = true;
-  if (eventType?.disableCancelling) {
-    const threshold = eventType.metadata?.disableCancellingThreshold;
-    if (threshold) {
-      canCancel = isBeyondThresholdTime(bookingInfo.startTime, threshold.time, threshold.unit);
-    } else {
-      canCancel = false; // If there's no threshold, canceling is not allowed
-    }
+  function isDisabledCancelOrReschedule(
+    isDisabled: boolean | null,
+    threshold: { time: number; unit: "hours" | "minutes" } | undefined,
+    startTime: Date
+  ): boolean {
+    if (!isDisabled) return true;
+
+    if (!threshold) return false;
+
+    return isBeyondThresholdTime(startTime, threshold.time, threshold.unit);
   }
 
-  let canReschedule = true;
-  if (eventType?.disableRescheduling) {
-    const threshold = eventType.metadata?.disableReschedulingThreshold;
-    if (threshold) {
-      canReschedule = isBeyondThresholdTime(bookingInfo.startTime, threshold.time, threshold.unit);
-    } else {
-      canReschedule = false; // If there's no threshold, rescheduling is not allowed
-    }
-  }
+  const canCancel = isDisabledCancelOrReschedule(
+    eventType?.disableCancelling,
+    eventType?.metadata?.disableCancellingThreshold,
+    bookingInfo.startTime
+  );
+
+  const canReschedule = isDisabledCancelOrReschedule(
+    eventType?.disableRescheduling,
+    eventType?.metadata?.disableReschedulingThreshold,
+    bookingInfo.startTime
+  );
 
   const canCancelOrReschedule = !isPastBooking && (canCancel || canReschedule);
   const canCancelAndReschedule = !isPastBooking && canCancel && canReschedule;
