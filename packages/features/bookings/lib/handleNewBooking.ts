@@ -1210,6 +1210,9 @@ async function handler(
     eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
     originalRescheduledBooking.userId !== evt.organizer.id;
 
+  const isLocationChanged =
+    !!originalRescheduledBooking && originalRescheduledBooking.location !== evt.location;
+
   let results: EventResult<AdditionalInformation & { url?: string; iCalUID?: string }>[] = [];
   let referencesToCreate: PartialReference[] = [];
 
@@ -1249,7 +1252,6 @@ async function handler(
         input: {
           bookerEmail,
           rescheduleReason,
-          changedOrganizer,
           smsReminderNumber,
           responses,
         },
