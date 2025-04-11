@@ -81,6 +81,12 @@ vi.mock("@calcom/atoms/hooks/useIsPlatform", () => ({
   useIsPlatform: () => false,
 }));
 
+vi.mock("@calcom/web/components/I18nLanguageHandler", () => ({
+  useViewerI18n: () => {
+    return { data: undefined };
+  },
+}));
+
 // Update mockStoreState to include all required state
 const mockStoreState = {
   state: "booking" as BookerState,
@@ -185,6 +191,7 @@ describe("Booker", () => {
       PUBLIC_QUICK_AVAILABILITY_ROLLOUT: 100,
       POWERED_BY_URL: "https://go.cal.com/booking",
       APP_NAME: "Cal.com",
+      CALCOM_VERSION: "0.0.0",
     });
     vi.clearAllMocks();
   });

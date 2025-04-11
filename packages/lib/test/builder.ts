@@ -88,6 +88,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     title: faker.lorem.sentence(),
     slug: faker.lorem.slug(),
     description: faker.lorem.paragraph(),
+    interfaceLanguage: null,
     position: 1,
     isInstantEvent: false,
     instantMeetingParameters: [],

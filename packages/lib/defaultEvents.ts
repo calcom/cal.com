@@ -128,6 +128,7 @@ const commons = {
   maxLeadThreshold: null,
   useEventLevelSelectedCalendars: false,
   rrResetInterval: null,
+  interfaceLanguage: null,
 };
 
 export const dynamicEvent = {
