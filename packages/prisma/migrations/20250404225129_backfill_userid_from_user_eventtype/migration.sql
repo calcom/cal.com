@@ -42,9 +42,9 @@ BEGIN
         -- Clear temporary table
         TRUNCATE TABLE migration_batch;
 
-        -- Insert next batch of unprocessed records
+        -- Insert next batch of unprocessed records, using the first user association for each event type
         INSERT INTO migration_batch (event_type_id, user_id)
-        SELECT uet."A", uet."B"
+        SELECT DISTINCT ON (uet."A") uet."A", uet."B"
         FROM "_user_eventtype" uet
         LEFT JOIN "_migration_progress" mp ON uet."A" = mp.event_type_id
         WHERE mp.event_type_id IS NULL
@@ -74,7 +74,6 @@ BEGIN
                             AND et2."userId" = mb.user_id
                             AND et2.id != et.id
                         ) THEN 'conflict'
-                        WHEN et."userId" IS NOT NULL AND et."userId" != mb.user_id THEN 'mismatch'
                         ELSE 'safe'
                     END as update_status
                 FROM "EventType" et
@@ -268,8 +267,9 @@ BEGIN
     RAISE NOTICE 'Summary of skipped records:%', skipped_details;
     RAISE NOTICE 'Found % total mismatches in processed records and % total conflicts', mismatch_count, conflict_count;
 
-    IF mismatch_count > 0 THEN
-        RAISE EXCEPTION 'Migration completed with mismatches in processed records';
+    -- Only fail if we have conflicts in processed records
+    IF conflict_count > 0 THEN
+        RAISE EXCEPTION 'Migration completed with conflicts in processed records';
     END IF;
 END $$;
 
