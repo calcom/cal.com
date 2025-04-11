@@ -39,6 +39,7 @@ export default function Home(props: { calUsername: string; calEmail: string }) {
               onCheckSuccess={() => {
                 console.log("stripe account connected successfully".toLocaleUpperCase());
               }}
+              teamId={35}
             />
           </div>
         </div>

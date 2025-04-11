@@ -6,6 +6,7 @@ import { OrganizationsConferencingService } from "@/modules/organizations/confer
 import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/event-types/pipes/team-event-types-response.transformer";
 import { InputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/input.service";
 import { OutputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/output.service";
+import { PlatformSubscriptionService } from "@/modules/organizations/platform-subscription/services/platform-subscription.service";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
@@ -35,6 +36,7 @@ import { forwardRef, Module } from "@nestjs/common";
     OutputTeamEventTypesResponsePipe,
     OutputOrganizationsEventTypesService,
     OrganizationsConferencingService,
+    PlatformSubscriptionService,
   ],
   exports: [TeamsEventTypesRepository, TeamsEventTypesService],
   controllers: [TeamsEventTypesController],

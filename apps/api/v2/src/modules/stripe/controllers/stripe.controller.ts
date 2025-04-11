@@ -3,6 +3,10 @@ import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import {
+  OAuthCallbackState,
+  OrganizationsStripeService,
+} from "@/modules/organizations/stripe/services/organizations-stripe.service";
+import {
   StripConnectOutputDto,
   StripConnectOutputResponseDto,
   StripCredentialsCheckOutputResponseDto,
@@ -10,6 +14,7 @@ import {
 } from "@/modules/stripe/outputs/stripe.output";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { getOnErrorReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturnToValueFromQueryState";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -37,7 +42,11 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 })
 @DocsTags("Stripe")
 export class StripeController {
-  constructor(private readonly stripeService: StripeService) {}
+  constructor(
+    private readonly stripeService: StripeService,
+    private readonly organizationsStripeService: OrganizationsStripeService,
+    private readonly tokensRepository: TokensRepository
+  ) {}
 
   @Get("/connect")
   @UseGuards(ApiAuthGuard)
@@ -48,26 +57,20 @@ export class StripeController {
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
     @GetUser() user: UserWithProfile,
-    @Query("redir") redir?: string | null,
-    @Query("errorRedir") errorRedir?: string | null,
-    @Query("teamId") teamId?: string | null
+    @Query("returnTo") returnTo?: string | null,
+    @Query("onErrorReturnTo") onErrorReturnTo?: string | null
   ): Promise<StripConnectOutputResponseDto> {
     const origin = req.headers.origin;
     const accessToken = authorization.replace("Bearer ", "");
 
-    const state = {
-      onErrorReturnTo: !!errorRedir ? errorRedir : origin,
+    const state: OAuthCallbackState = {
+      onErrorReturnTo: !!onErrorReturnTo ? onErrorReturnTo : origin,
       fromApp: false,
-      returnTo: !!redir ? redir : origin,
+      returnTo: !!returnTo ? returnTo : origin,
       accessToken,
-      teamId: Number(teamId) ?? null,
     };
 
-    const stripeRedirectUrl = await this.stripeService.getStripeRedirectUrl(
-      JSON.stringify(state),
-      user.email,
-      user.name
-    );
+    const stripeRedirectUrl = await this.stripeService.getStripeRedirectUrl(state, user.email, user.name);
 
     return {
       status: SUCCESS_STATUS,
@@ -85,18 +88,46 @@ export class StripeController {
     @Query("error") error: string | undefined,
     @Query("error_description") error_description: string | undefined
   ): Promise<StripCredentialsSaveOutputResponseDto> {
-    const accessToken = JSON.parse(state).accessToken;
-
-    // user cancels flow
-    if (error === "access_denied") {
-      return { url: getOnErrorReturnToValueFromQueryState(state) };
+    if (!state) {
+      throw new BadRequestException("Missing `state` query param");
     }
 
-    if (error) {
-      throw new BadRequestException(stringify({ error, error_description }));
-    }
+    const decodedCallbackState: OAuthCallbackState = JSON.parse(state);
+    try {
+      const userId = await this.tokensRepository.getAccessTokenOwnerId(decodedCallbackState.accessToken);
 
-    return await this.stripeService.saveStripeAccount(state, code, accessToken);
+      // user cancels flow
+      if (error === "access_denied") {
+        return { url: getOnErrorReturnToValueFromQueryState(state) };
+      }
+
+      if (error) {
+        throw new BadRequestException(stringify({ error, error_description }));
+      }
+
+      if (!userId) {
+        throw new BadRequestException("Invalid Access token.");
+      }
+
+      if (decodedCallbackState.orgId) {
+        // If we have an orgId, this is an organization-level operation
+        return await this.organizationsStripeService.saveStripeAccount({
+          state: decodedCallbackState,
+          code,
+          userId,
+        });
+      } else {
+        // Otherwise, it's a regular user-level operation
+        return await this.stripeService.saveStripeAccount(decodedCallbackState, code, userId, null);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(error.message);
+      }
+      return {
+        url: decodedCallbackState.onErrorReturnTo ?? "",
+      };
+    }
   }
 
   @Get("/check")
@@ -106,16 +137,5 @@ export class StripeController {
   @ApiOperation({ summary: "Check stripe connection" })
   async check(@GetUser() user: UserWithProfile): Promise<StripCredentialsCheckOutputResponseDto> {
     return await this.stripeService.checkIfIndividualStripeAccountConnected(user.id);
-  }
-
-  @Get("/check/:teamId")
-  @UseGuards(ApiAuthGuard)
-  @HttpCode(HttpStatus.OK)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
-  @ApiOperation({ summary: "Check team stripe connection" })
-  async checkTeamStripeConnection(
-    @Param("teamId") teamId: string
-  ): Promise<StripCredentialsCheckOutputResponseDto> {
-    return await this.stripeService.checkIfTeamStripeAccountConnected(Number(teamId));
   }
 }
