@@ -127,8 +127,13 @@ BEGIN
                     CASE 
                         WHEN ur.event_type_id IS NOT NULL THEN 
                             CASE 
-                                WHEN ur.update_status = 'conflict' THEN 'processed_conflict'
-                                WHEN ur.update_status = 'mismatch' THEN 'processed_mismatch'
+                                WHEN EXISTS (
+                                    SELECT 1 FROM "EventType" et2 
+                                    WHERE et2.slug = et.slug 
+                                    AND et2."userId" = mb.user_id
+                                    AND et2.id != et.id
+                                ) THEN 'processed_conflict'
+                                WHEN et."userId" != mb.user_id THEN 'processed_mismatch'
                                 ELSE 'processed'
                             END
                         ELSE 'skipped_mismatch'
