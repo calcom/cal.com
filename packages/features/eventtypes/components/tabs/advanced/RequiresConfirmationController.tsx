@@ -172,6 +172,7 @@ export default function RequiresConfirmationController({
                                     className="mx-2 inline-flex items-center">
                                     <Input
                                       type="number"
+                                      size="lg"
                                       min={1}
                                       disabled={requiresConfirmationLockedProps.disabled}
                                       onChange={(evt) => {
@@ -189,7 +190,7 @@ export default function RequiresConfirmationController({
                                         );
                                       }}
                                       className={classNames(
-                                        "border-default h-9! !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r",
+                                        "border-default !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r",
                                         customClassNames?.conditionalConfirmationRadio?.timeInput
                                       )}
                                       defaultValue={metadata?.requiresConfirmationThreshold?.time || 30}

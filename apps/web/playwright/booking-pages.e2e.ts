@@ -6,6 +6,8 @@ import { randomString } from "@calcom/lib/random";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
+import isBeyondThresholdTime from "@lib/isBeyondThresholdTime";
+
 import { test, todo } from "./lib/fixtures";
 import {
   bookFirstEvent,
@@ -653,4 +655,71 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
     const responseBody = await response.json();
     expect(responseBody.message).toBe("This event type does not allow cancellations");
   });
+});
+
+test("Cancel & reschedule based on threshold", async ({ page, users }) => {
+  const thresholdTime = 1000;
+  const thresholdUnit = "hours";
+
+  const userWithThreshold = await users.create({
+    name: `Test-user-${randomString(4)}`,
+    eventTypes: [
+      {
+        title: "Threshold Test Event",
+        slug: "threshold-test-event",
+        length: 30,
+        disableCancelling: true,
+        disableRescheduling: true,
+        metadata: {
+          disableCancellingThreshold: { time: thresholdTime, unit: thresholdUnit },
+          disableReschedulingThreshold: { time: thresholdTime, unit: thresholdUnit },
+        },
+      },
+    ],
+  });
+
+  const username = userWithThreshold.username;
+  const eventSlug = "threshold-test-event";
+
+  await page.goto(`/${username}/${eventSlug}`);
+  await selectFirstAvailableTimeSlotNextMonth(page);
+
+  // Extract booking start time from URL
+  const slot = new URL(page.url()).searchParams.get("slot");
+  const startTime = new Date(decodeURIComponent(slot!));
+  const isBeyondThreshold = isBeyondThresholdTime(startTime, thresholdTime, thresholdUnit);
+
+  // Book a slot
+  await bookTimeSlot(page, {
+    name: "Slot Threshold Test",
+    email: "slot-threshold@example.com",
+  });
+
+  await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+  // ✅ 1. Verify Cancel/Reschedule buttons visibility
+  await expect(page.locator('[data-testid="reschedule-link"]'))[
+    isBeyondThreshold ? "toBeVisible" : "toBeHidden"
+  ]();
+  await expect(page.locator('[data-testid="cancel"]'))[isBeyondThreshold ? "toBeVisible" : "toBeHidden"]();
+
+  // ✅ 2. Verify rescheduling access
+  const bookingId = new URL(page.url()).pathname.split("/").pop();
+  await page.goto(`/${username}/${eventSlug}?rescheduleUid=${bookingId}`);
+
+  await expect(
+    page.locator(`[data-testid=${isBeyondThreshold ? "booker-container" : "success-page"}]`)
+  ).toBeVisible();
+
+  // ✅ 3. Verify cancellation API behavior
+  const cancelResponse = await page.request.post("/api/cancel", {
+    data: { uid: bookingId },
+    headers: { "Content-Type": "application/json" },
+  });
+
+  expect(cancelResponse.status()).toBe(isBeyondThreshold ? 200 : 400);
+  const cancelBody = await cancelResponse.json();
+  expect(cancelBody[isBeyondThreshold ? "success" : "message"]).toBe(
+    isBeyondThreshold ? true : "This event type does not allow cancellations"
+  );
 });
