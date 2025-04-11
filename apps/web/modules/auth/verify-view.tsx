@@ -18,7 +18,7 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import Loader from "@components/Loader";
 
-async function sendVerificationLogin(email: string, username: string) {
+async function sendVerificationLogin(email: string, username: string, t: (key: string) => string) {
   await signIn("email", {
     email: email.toLowerCase(),
     username: username.toLowerCase(),
@@ -41,15 +41,16 @@ function useSendFirstVerificationLogin({
   username: string | undefined;
 }) {
   const sent = useRef(false);
+  const { t } = useLocale();
   useEffect(() => {
     if (!email || !username || sent.current) {
       return;
     }
     (async () => {
-      await sendVerificationLogin(email, username);
+      await sendVerificationLogin(email, username, t);
       sent.current = true;
     })();
-  }, [email, username]);
+  }, [email, username, t]);
 }
 
 const querySchema = z.object({
@@ -220,7 +221,7 @@ export default function Verify({ EMAIL_FROM }: { EMAIL_FROM?: string }) {
               const _searchParams = new URLSearchParams(searchParams?.toString());
               _searchParams.set("t", `${Date.now()}`);
               router.replace(`${pathname}?${_searchParams.toString()}`);
-              return await sendVerificationLogin(customer.email, customer.username);
+              return await sendVerificationLogin(customer.email, customer.username, t);
             }}>
             {secondsLeft > 0 ? t("resend_in_seconds", { seconds: secondsLeft }) : t("resend")}
           </button>
