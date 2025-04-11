@@ -11,20 +11,32 @@ import type { RoutingFormResponse } from "../server/getLuckyUser";
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
 import { filterHostsBySameRoundRobinHost } from "./filterHostsBySameRoundRobinHost";
 
-type Host<T> = {
-  isFixed: boolean;
+type Host<TUser, TIsFixed extends boolean> = {
+  isFixed: TIsFixed;
   createdAt: Date;
   priority?: number | null;
   weight?: number | null;
 } & {
-  user: T;
+  user: TUser;
+};
+
+type HostWithUserCredentials<TUser, TIsFixed extends boolean> = Omit<
+  Host<TUser, TIsFixed>,
+  "user" | "createdAt"
+> & {
+  createdAt: Date | null;
+  user: Omit<TUser, "credentials"> & { credentials: CredentialForCalendarService[] };
 };
 
 // In case we don't have any matching team members, we return all the RR hosts, as we always want the team event to be bookable.
 // Each filter is filtered down, but we never return 0-length.
 // TODO: We should notify about it to the organizer somehow.
-function applyFilterWithFallback<T>(currentValue: T[], newValue: T[]): T[] {
-  return newValue.length > 0 ? newValue : currentValue;
+async function applyFilterWithFallback<T>(
+  currentValue: T[] | Promise<T[]>,
+  newValue: T[] | Promise<T[]>
+): Promise<T[]> {
+  const rNewValue = await newValue;
+  return rNewValue.length > 0 ? rNewValue : await currentValue;
 }
 
 function getFallBackWithContactOwner<T extends { user: { id: number } }>(
@@ -42,7 +54,7 @@ const isRoundRobinHost = <T extends { isFixed: boolean }>(host: T): host is T & 
   return host.isFixed === false;
 };
 
-const isFixedHost = <T extends { isFixed: boolean }>(host: T): host is T & { isFixed: false } => {
+const isFixedHost = <T extends { isFixed: boolean }>(host: T): host is T & { isFixed: true } => {
   return host.isFixed;
 };
 
@@ -63,7 +75,7 @@ export const findQualifiedHostsWithDelegationCredentials = async <
   eventType: {
     id: number;
     maxLeadThreshold: number | null;
-    hosts?: Host<T>[];
+    hosts?: Host<T, boolean>[];
     users: T[];
     schedulingType: SchedulingType | null;
     isRRWeightsEnabled: boolean;
@@ -74,28 +86,10 @@ export const findQualifiedHostsWithDelegationCredentials = async <
   contactOwnerEmail: string | null;
   routingFormResponse: RoutingFormResponse | null;
 }): Promise<{
-  qualifiedRRHosts: {
-    isFixed: boolean;
-    createdAt: Date | null;
-    priority?: number | null;
-    weight?: number | null;
-    user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
-  }[];
-  fixedHosts: {
-    isFixed: boolean;
-    createdAt: Date | null;
-    priority?: number | null;
-    weight?: number | null;
-    user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
-  }[];
+  qualifiedRRHosts: HostWithUserCredentials<T, false>[];
+  fixedHosts: HostWithUserCredentials<T, true>[];
   // all hosts we want to fallback to including the qualifiedRRHosts (fairness + crm contact owner)
-  allFallbackRRHosts?: {
-    isFixed: boolean;
-    createdAt: Date | null;
-    priority?: number | null;
-    weight?: number | null;
-    user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
-  }[];
+  allFallbackRRHosts?: HostWithUserCredentials<T, boolean>[] | Promise<HostWithUserCredentials<T, boolean>[]>;
 }> => {
   const { hosts: normalizedHosts, fallbackHosts: fallbackUsers } =
     await getNormalizedHostsWithDelegationCredentials({
@@ -112,7 +106,7 @@ export const findQualifiedHostsWithDelegationCredentials = async <
   const roundRobinHosts = normalizedHosts.filter(isRoundRobinHost);
 
   // If it is rerouting, we should not force reschedule with same host.
-  const hostsAfterRescheduleWithSameRoundRobinHost = applyFilterWithFallback(
+  const hostsAfterRescheduleWithSameRoundRobinHost = await applyFilterWithFallback(
     roundRobinHosts,
     await filterHostsBySameRoundRobinHost({
       hosts: roundRobinHosts,
@@ -129,7 +123,7 @@ export const findQualifiedHostsWithDelegationCredentials = async <
     };
   }
 
-  const hostsAfterSegmentMatching = applyFilterWithFallback(
+  const hostsAfterSegmentMatching = await applyFilterWithFallback(
     roundRobinHosts,
     (await findMatchingHostsWithEventSegment({
       eventType,
@@ -147,12 +141,12 @@ export const findQualifiedHostsWithDelegationCredentials = async <
   //if segement matching doesn't return any hosts we fall back to all round robin hosts
   const officalRRHosts = hostsAfterSegmentMatching.length ? hostsAfterSegmentMatching : roundRobinHosts;
 
-  const hostsAfterContactOwnerMatching = applyFilterWithFallback(
+  const hostsAfterContactOwnerMatching = await applyFilterWithFallback(
     officalRRHosts,
     officalRRHosts.filter((host) => host.user.email === contactOwnerEmail)
   );
 
-  const hostsAfterRoutedTeamMemberIdsMatching = applyFilterWithFallback(
+  const hostsAfterRoutedTeamMemberIdsMatching = await applyFilterWithFallback(
     officalRRHosts,
     officalRRHosts.filter((host) => routedTeamMemberIds.includes(host.user.id))
   );
@@ -174,26 +168,42 @@ export const findQualifiedHostsWithDelegationCredentials = async <
     };
   }
 
-  const hostsAfterFairnessMatching = applyFilterWithFallback(
-    hostsAfterRoutedTeamMemberIdsMatching,
-    await filterHostsByLeadThreshold({
-      eventType,
-      hosts: hostsAfterRoutedTeamMemberIdsMatching,
-      maxLeadThreshold: eventType.maxLeadThreshold,
-      routingFormResponse,
-    })
-  );
+  // problem: We need to have fairness & OOO calibration calculation when contact owner is given
+  //          this is however very expensive to calculate, so we promisify it
+
+  const _filterHostsByLeadThreshold = filterHostsByLeadThreshold({
+    eventType,
+    hosts: hostsAfterRoutedTeamMemberIdsMatching,
+    maxLeadThreshold: eventType.maxLeadThreshold,
+    routingFormResponse,
+  });
+
+  const hostsAfterFairnessMatchingCb =
+    hostsAfterContactOwnerMatching.length !== 1
+      ? await applyFilterWithFallback(
+          hostsAfterRoutedTeamMemberIdsMatching,
+          await _filterHostsByLeadThreshold // Ensure it's resolved before passing
+        )
+      : applyFilterWithFallback(
+          hostsAfterRoutedTeamMemberIdsMatching,
+          _filterHostsByLeadThreshold // Pass as-is (could be sync or async)
+        );
 
   if (hostsAfterContactOwnerMatching.length === 1) {
+    const allFallbackRRHosts =
+      hostsAfterContactOwnerMatching.length === 1
+        ? getFallBackWithContactOwner(await hostsAfterFairnessMatchingCb, hostsAfterContactOwnerMatching[0])
+        : Promise.resolve(
+            getFallBackWithContactOwner(await hostsAfterFairnessMatchingCb, hostsAfterContactOwnerMatching[0])
+          );
     return {
       qualifiedRRHosts: hostsAfterContactOwnerMatching,
-      allFallbackRRHosts: getFallBackWithContactOwner(
-        hostsAfterFairnessMatching,
-        hostsAfterContactOwnerMatching[0]
-      ),
+      allFallbackRRHosts,
       fixedHosts,
     };
   }
+
+  const hostsAfterFairnessMatching = await hostsAfterFairnessMatchingCb;
 
   return {
     qualifiedRRHosts: hostsAfterFairnessMatching,
