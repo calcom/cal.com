@@ -13,7 +13,11 @@ interface IPUpdateOAuthCredentials {
   onError?: (err: ApiErrorResponse) => void;
 }
 
-export const useGetRedirectUrl = (calendar: (typeof CALENDARS)[number], redir?: string) => {
+export const useGetRedirectUrl = (
+  calendar: (typeof CALENDARS)[number],
+  redir?: string,
+  isDryRun?: boolean
+) => {
   const authUrl = useQuery({
     queryKey: getQueryKey(calendar),
     staleTime: Infinity,
@@ -21,7 +25,7 @@ export const useGetRedirectUrl = (calendar: (typeof CALENDARS)[number], redir?: 
     queryFn: () => {
       return http
         ?.get<ApiResponse<{ authUrl: string }>>(
-          `/calendars/${calendar}/connect${redir ? `?redir=${redir}` : ""}`
+          `/calendars/${calendar}/connect?redir=${redir ?? ""}&isDryRun=${isDryRun ?? ""}`
         )
         .then(({ data: responseBody }) => {
           if (responseBody.status === SUCCESS_STATUS) {
@@ -36,8 +40,8 @@ export const useGetRedirectUrl = (calendar: (typeof CALENDARS)[number], redir?: 
   return authUrl;
 };
 
-export const useConnect = (calendar: (typeof CALENDARS)[number], redir?: string) => {
-  const { refetch } = useGetRedirectUrl(calendar, redir);
+export const useConnect = (calendar: (typeof CALENDARS)[number], redir?: string, isDryRun?: boolean) => {
+  const { refetch } = useGetRedirectUrl(calendar, redir, isDryRun);
 
   const connect = async () => {
     const redirectUri = await refetch();
