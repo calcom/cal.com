@@ -193,6 +193,7 @@ function Tips() {
         gridTemplateColumns: "1fr",
       }}>
       {list.map((tip) => {
+        const isTopTip = baseOriginalList.indexOf(tip) === 0;
         return (
           <div
             className="relative"
@@ -216,6 +217,9 @@ function Tips() {
                 description={tip.description}
                 learnMore={{ href: tip.href, text: t("learn_more") }}
                 actionButton={{ onClick: () => handleRemoveItem(tip.id), child: t("dismiss") }}
+                containerProps={{
+                  tabIndex: isTopTip ? undefined : -1,
+                }}
               />
             </div>
           </div>
