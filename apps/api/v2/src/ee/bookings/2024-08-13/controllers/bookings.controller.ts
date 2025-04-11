@@ -256,7 +256,8 @@ export class BookingsController_2024_08_13 {
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary: "Mark a booking absence - provided authorization header refers to owner of the booking.",
+    summary: "Mark a booking absence",
+    description: "The provided authorization header refers to the owner of the booking.",
   })
   async markNoShow(
     @Param("bookingUid") bookingUid: string,
@@ -277,8 +278,8 @@ export class BookingsController_2024_08_13 {
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary:
-      "Automatically reassign booking to a new host automatically - provided authorization header refers to person who reassigned the booking.",
+    summary: "Reassign booking to auto-selected host",
+    description: "The provided authorization header refers to the owner of the booking.",
   })
   async reassignBooking(
     @Param("bookingUid") bookingUid: string,
@@ -298,8 +299,8 @@ export class BookingsController_2024_08_13 {
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary:
-      "Reassign a booking to a specific user specified by the :userId - provided authorization header refers to person who reassigned the booking.",
+    summary: "Reassign a booking to a specific host",
+    description: "The provided authorization header refers to the owner of the booking.",
   })
   async reassignBookingToUser(
     @Param("bookingUid") bookingUid: string,
@@ -326,8 +327,8 @@ export class BookingsController_2024_08_13 {
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary:
-      "Confirm booking that requires a confirmation - provided authorization header refers to owner of the booking.",
+    summary: "Confirm a booking",
+    description: "The provided authorization header refers to the owner of the booking.",
   })
   async confirmBooking(
     @Param("bookingUid") bookingUid: string,
@@ -347,8 +348,8 @@ export class BookingsController_2024_08_13 {
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary:
-      "Decline booking that requires a confirmation - provided authorization header refers to owner of the booking.",
+    summary: "Decline a booking",
+    description: "The provided authorization header refers to the owner of the booking.",
   })
   async declineBooking(
     @Param("bookingUid") bookingUid: string,
