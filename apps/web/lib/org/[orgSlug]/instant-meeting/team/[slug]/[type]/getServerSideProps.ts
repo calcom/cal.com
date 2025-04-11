@@ -5,7 +5,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
@@ -40,16 +40,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const org = isValidOrgDomain ? currentOrgDomain : null;
 
-  const eventData = await EventTypeRepository.getPublicEvent(
-    {
-      username: teamSlug,
-      eventSlug: meetingSlug,
-      isTeamEvent: true,
-      org,
-      fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-    },
-    session?.user?.id
-  );
+  const eventData = await getPublicEvent({
+    username: teamSlug,
+    eventSlug: meetingSlug,
+    isTeamEvent: true,
+    org,
+    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
+    currentUserId: session?.user?.id,
+    prisma,
+  });
   if (!eventData || !org) {
     return {
       notFound: true,

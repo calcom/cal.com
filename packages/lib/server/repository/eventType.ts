@@ -1,13 +1,11 @@
 import type { EventType as PrismaEventType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
-import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import logger from "@calcom/lib/logger";
 import { prisma, availabilityUserSelect } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
-import type { TEventInputSchema } from "@calcom/trpc/server/routers/publicViewer/event.schema";
 import type { Ensure } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
@@ -912,18 +910,5 @@ export class EventTypeRepository {
     eventTypeId: number;
   }) {
     return user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventTypeId);
-  }
-
-  static async getPublicEvent(input: TEventInputSchema, userId?: number) {
-    const event = await getPublicEvent(
-      input.username,
-      input.eventSlug,
-      input.isTeamEvent,
-      input.org,
-      prisma,
-      input.fromRedirectOfNonOrgLink,
-      userId
-    );
-    return event;
   }
 }
