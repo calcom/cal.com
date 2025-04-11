@@ -1,4 +1,4 @@
-import type { BookerLayouts, EmbedPageType } from "./types";
+import type { AllPossibleLayouts, EmbedThemeConfig } from "./types";
 
 export function getMaxHeightForModal() {
   const spacingTopPlusBottom = 2 * 50; // 50 is the padding we want to keep to show close button comfortably. Make it same as top for bottom.
@@ -7,63 +7,52 @@ export function getMaxHeightForModal() {
   return window.innerHeight - spacingTopPlusBottom;
 }
 
-export const toggleLoader = ({
-  skeletonEl,
-  loaderEl,
-  skeletonContainerEl,
-  pageType,
-  show,
-  isModal,
-}: {
-  skeletonEl: HTMLElement;
-  loaderEl: HTMLElement;
-  skeletonContainerEl: HTMLElement;
-  pageType: EmbedPageType | null;
-  isModal: boolean;
-  show: boolean;
-}) => {
-  function ensureContainerTakesSkeletonHeight() {
-    // skeletonEl is absolute positioned, so, we manually adjust the height of the Skeleton Container, so that the content around it doesn't do layout shift when actual iframe appears in its place
-    const heightOfSkeleton = parseFloat(getComputedStyle(skeletonEl).height);
-    if (isModal) {
-      skeletonContainerEl.style.maxHeight = `${getMaxHeightForModal()}px`;
-      skeletonContainerEl.style.height = `${heightOfSkeleton}px`;
-    } else {
-      const heightOfIframeByDefault = 300;
-      const diff = heightOfSkeleton - heightOfIframeByDefault;
-      if (heightOfSkeleton) {
-        if (diff > 0) {
-          // Skeleton is positioned over the iframe(hidden with height of 300px already) so we add to container height only the difference
-          skeletonContainerEl.style.height = `${diff}px`;
-        }
-      } else {
-        // We will be here when skeleton is display:none
-        skeletonContainerEl.style.height = "0px";
-      }
-    }
-    requestAnimationFrame(ensureContainerTakesSkeletonHeight);
-  }
-
-  const supportsSkeleton = !!pageType;
-
-  if (!supportsSkeleton) {
-    loaderEl.style.display = show ? "block" : "none";
-    skeletonEl.style.display = "none";
-  } else {
-    requestAnimationFrame(ensureContainerTakesSkeletonHeight);
-    skeletonEl.style.display = show ? "block" : "none";
-    loaderEl.style.display = "none";
-  }
-};
-
 function matchesMediaQuery(query: string) {
   return window.matchMedia(query).matches;
 }
 
-export function getTrueLayout({ layout }: { layout: BookerLayouts | null }) {
+export function getTrueLayout({ layout }: { layout: AllPossibleLayouts | null }) {
   const isMobile = matchesMediaQuery("(max-width: 768px)");
   if (isMobile) {
     return "mobile";
   }
-  return layout ?? "month_view";
+  const defaultLayout = "month_view";
+  // If layout is mobile and isMobile false, then we need to reset to defaultLayout
+  if (layout === "mobile") {
+    return defaultLayout;
+  }
+  return layout ?? defaultLayout;
+}
+
+function detectColorScheme() {
+  if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    return "dark";
+  }
+  return "light";
+}
+
+function getClassBasedOnTheme(theme: "dark" | "light") {
+  return theme;
+}
+
+export function isThemePreferenceProvided(theme: EmbedThemeConfig | undefined | null) {
+  return theme === "dark" || theme === "light";
+}
+
+export function getThemeClassForEmbed({ theme }: { theme: EmbedThemeConfig | undefined | null }) {
+  const systemTheme = detectColorScheme();
+  if (isThemePreferenceProvided(theme)) {
+    return getClassBasedOnTheme(theme);
+  }
+  // NOTE: We don't support App configured theme as we can't fetch those details here. User has to explicitly set the theme in the embed snippet or use system theme
+  return getClassBasedOnTheme(systemTheme);
+}
+
+const colorSchemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+export function addDarkColorSchemeChangeListener(listener: (e: MediaQueryListEvent) => void) {
+  colorSchemeQuery.addEventListener("change", listener);
+}
+
+export function removeDarkColorSchemeChangeListener(listener: (e: MediaQueryListEvent) => void) {
+  colorSchemeQuery.removeEventListener("change", listener);
 }

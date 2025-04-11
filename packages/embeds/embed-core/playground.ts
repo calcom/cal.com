@@ -642,7 +642,7 @@ if (only === "all" || only === "ns:skeletonDemo") {
     elementOrSelector: "#cal-booking-place-skeletonDemo .place",
     calLink: "pro/30min",
     config: {
-      theme: "light",
+      theme: "auto",
       iframeAttrs: {
         id: "cal-booking-place-skeletonDemo-iframe",
       },
