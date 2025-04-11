@@ -20,7 +20,6 @@
     "@calcom/types": "*",
     "@graphql-codegen/cli": "^5.0.5",
     "@parcel/watcher": "^2.5.1",
-    "dotenv": "^16.4.7",
     "graphql-config": "^5.1.3",
     "graphql-introspection-json-to-sdl": "^1.0.3"
   }
