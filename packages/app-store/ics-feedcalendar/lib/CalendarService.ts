@@ -63,19 +63,33 @@ export default class ICSFeedCalendarService implements Calendar {
   createEvent(_event: CalendarEvent, _credentialId: number): Promise<NewCalendarEventType> {
     if (this.skipWriting) {
       console.warn("Event creation is disabled for this calendar.");
-      return Promise.reject(new CalendarError("Event creation is disabled for this calendar.", 400));
+      return Promise.resolve({
+        uid: "",
+        type: this.integrationName,
+        id: "",
+        password: "",
+        url: "",
+        additionalInfo: {},
+      });
     }
     console.warn("createEvent called on read-only ICS feed");
-    return Promise.reject(new CalendarError("createEvent called on read-only ICS feed", 400));
+    return Promise.resolve({
+      uid: "",
+      type: this.integrationName,
+      id: "",
+      password: "",
+      url: "",
+      additionalInfo: {},
+    });
   }
 
   deleteEvent(_uid: string, _event: CalendarEvent, _externalCalendarId?: string): Promise<unknown> {
     if (this.skipWriting) {
       console.warn("Event deletion is disabled for this calendar.");
-      return Promise.reject(new CalendarError("Event deletion is disabled for this calendar.", 400));
+      return Promise.resolve();
     }
     console.warn("deleteEvent called on read-only ICS feed");
-    return Promise.reject(new CalendarError("deleteEvent called on read-only ICS feed", 400));
+    return Promise.resolve();
   }
 
   updateEvent(
@@ -85,10 +99,24 @@ export default class ICSFeedCalendarService implements Calendar {
   ): Promise<NewCalendarEventType | NewCalendarEventType[]> {
     if (this.skipWriting) {
       console.warn("Event update is disabled for this calendar.");
-      return Promise.reject(new CalendarError("Event update is disabled for this calendar.", 400));
+      return Promise.resolve({
+        uid: "",
+        type: this.integrationName,
+        id: "",
+        password: "",
+        url: "",
+        additionalInfo: {},
+      });
     }
     console.warn("updateEvent called on read-only ICS feed");
-    return Promise.reject(new CalendarError("updateEvent called on read-only ICS feed", 400));
+    return Promise.resolve({
+      uid: "",
+      type: this.integrationName,
+      id: "",
+      password: "",
+      url: "",
+      additionalInfo: {},
+    });
   }
 
   fetchCalendars = async (): Promise<{ url: string; vcalendar: ICAL.Component }[]> => {
