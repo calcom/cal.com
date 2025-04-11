@@ -6,5 +6,5 @@ import { ZEventInputSchema } from "../event.schema";
 
 export const event = publicProcedure.input(ZEventInputSchema).query(async (opts) => {
   const { user } = await getUserSession(opts.ctx);
-  return await getPublicEvent({ ...input, currentUserId: user?.id, prisma: opts.ctx.prisma });
+  return await getPublicEvent({ ...opts.input, currentUserId: user?.id, prisma: opts.ctx.prisma });
 });
