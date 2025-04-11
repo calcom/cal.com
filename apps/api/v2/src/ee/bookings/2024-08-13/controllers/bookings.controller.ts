@@ -278,7 +278,7 @@ export class BookingsController_2024_08_13 {
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary: "Reassign booking to auto-selected host",
+    summary: "Reassign a booking to auto-selected host",
     description: "The provided authorization header refers to the owner of the booking.",
   })
   async reassignBooking(
