@@ -5,6 +5,7 @@ import { useEmbedType, useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/e
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
+import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import { extraDaysConfig } from "../../config";
 import { useBookerStore } from "../../store";
@@ -27,7 +28,7 @@ export const useBookerLayout = (event: Pick<BookerEvent, "profile"> | undefined 
     (state) => [state.layout, state.setLayout, state.initialLayout],
     shallow
   );
-  const layoutFromQuery = getQueryParam("layout");
+  const layoutFromQuery = getQueryParam("layout") as BookerLayouts;
   const _layout = layoutFromQuery || (initialLayout ? layoutState : defaultLayout);
   // In Embed we give preference to embed configuration for the layout.If that's not set, we use the App configuration for the event layout
   // But if it's mobile view, there is only one layout supported which is 'mobile'
