@@ -52,6 +52,12 @@ const templates: Template[] = [
     text: "Add new bookings to Google Calendar",
     link: "https://zapier.com/app/editor/template/1083651",
   },
+  {
+    icon: "calendar.svg",
+    app: "Calendar",
+    text: "Handle booking no-show updates",
+    link: "https://zapier.com/app/editor/template/1082074",
+  },
 ];
 
 export default function AppSettings() {
