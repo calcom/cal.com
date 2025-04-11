@@ -588,6 +588,7 @@ export default class EventManager {
     bookingReferences: PartialReference[];
     isBookingInRecurringSeries?: boolean;
   }) {
+    const log = logger.getSubLogger({ prefix: [`[deleteEventsAndMeetings]: ${event?.uid}`] });
     const calendarReferences = [],
       videoReferences = [],
       crmReferences = [],

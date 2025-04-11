@@ -209,6 +209,10 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       )
   );
 
+  useEffect(() => {
+    if (hasSession) onOverlaySwitchStateChange(true);
+  }, [hasSession]);
+
   return (
     <BookerComponent
       {...props}
