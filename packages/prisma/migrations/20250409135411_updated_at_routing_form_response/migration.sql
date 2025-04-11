@@ -5,4 +5,4 @@
 
 */
 -- AlterTable
-ALTER TABLE "App_RoutingForms_FormResponse" ADD COLUMN     "updatedAt" TIMESTAMP(3) NOT NULL;
+ALTER TABLE "App_RoutingForms_FormResponse" ADD COLUMN     "updatedAt" TIMESTAMP(3);
