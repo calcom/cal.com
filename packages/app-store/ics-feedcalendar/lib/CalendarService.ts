@@ -4,6 +4,7 @@ import ICAL from "ical.js";
 
 import dayjs from "@calcom/dayjs";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { prisma } from "@calcom/prisma";
 import type {
   Calendar,
   IntegrationCalendar,
@@ -105,7 +106,6 @@ export default class ICSFeedCalendarService implements Calendar {
    * @returns {Promise<string | undefined>} - A Promise that resolves to the user's timezone or "Europe/London" as a default value if the timezone is not found.
    */
   getUserTimezoneFromDB = async (id: number): Promise<string | undefined> => {
-    const prisma = await import("@calcom/prisma").then((mod) => mod.default);
     const user = await prisma.user.findUnique({
       where: {
         id,
