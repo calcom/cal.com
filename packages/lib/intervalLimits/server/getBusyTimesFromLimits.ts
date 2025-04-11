@@ -304,6 +304,7 @@ const _getBusyTimesFromGlobalBookingLimits = async (
   bookingLimits: IntervalLimit,
   dateFrom: Dayjs,
   dateTo: Dayjs,
+  timeZone: string,
   rescheduleUid?: string
 ) => {
   const { limitDateFrom, limitDateTo } = getStartEndDateforLimitCheck(
@@ -368,6 +369,7 @@ const _getBusyTimesFromGlobalBookingLimits = async (
     rescheduleUid,
     user: { id: userId, email: userEmail },
     isGlobalBookingLimits: true,
+    timeZone,
   });
 
   return limitManager.getBusyTimes();

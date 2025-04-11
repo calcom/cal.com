@@ -21,6 +21,7 @@ import { SettingsToggle } from "@calcom/ui/components/form";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
+import GlobalBookingLimitsController from "@components/settings/GlobalBookingLimitsController";
 import TravelScheduleModal from "@components/settings/TravelScheduleModal";
 
 export type FormValues = {
@@ -395,6 +396,7 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
         setValue={formMethods.setValue}
         existingSchedules={formMethods.getValues("travelSchedules") ?? []}
       />
+      <GlobalBookingLimitsController bookingLimits={user.bookingLimits ?? {}} />
     </div>
   );
 };

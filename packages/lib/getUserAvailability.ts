@@ -401,6 +401,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
         globalBookingLimits,
         dateFrom.tz(timeZone),
         dateTo.tz(timeZone),
+        timeZone,
         initialData?.rescheduleUid ?? undefined
       );
     }

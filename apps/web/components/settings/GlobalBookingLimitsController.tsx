@@ -9,19 +9,12 @@ import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import { trpc } from "@calcom/trpc/react";
 import type { IntervalLimit } from "@calcom/types/Calendar";
-import { Button, Form, SkeletonContainer, SkeletonText, showToast, SettingsToggle } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Form, SettingsToggle } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
-const SkeletonLoader = () => (
-  <SkeletonContainer>
-    <div className="border-subtle mt-6 flex flex-col rounded-lg border px-4 py-6 sm:px-6">
-      <SkeletonText className="h-6 w-1/4" />
-      <SkeletonText className="mt-2 h-6 w-2/5" />
-    </div>
-  </SkeletonContainer>
-);
-
-const BookingsView = ({ bookingLimits }: { bookingLimits: IntervalLimit }) => {
+const GlobalBookingLimitsController = ({ bookingLimits }: { bookingLimits: IntervalLimit }) => {
   const { t } = useLocale();
   const bookingsLimitFormMethods = useForm({
     defaultValues: {
@@ -30,7 +23,7 @@ const BookingsView = ({ bookingLimits }: { bookingLimits: IntervalLimit }) => {
   });
 
   const utils = trpc.useUtils();
-  const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
+  const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async () => {
       await utils.viewer.me.invalidate();
       bookingsLimitFormMethods.reset(bookingsLimitFormMethods.getValues());
@@ -60,7 +53,6 @@ const BookingsView = ({ bookingLimits }: { bookingLimits: IntervalLimit }) => {
           return (
             <SettingsToggle
               toggleSwitchAtTheEnd={true}
-              labelClassName="text-sm"
               title={t("limit_booking_frequency")}
               description={t("global_limit_booking_frequency_description")}
               checked={isChecked}
@@ -99,11 +91,4 @@ const BookingsView = ({ bookingLimits }: { bookingLimits: IntervalLimit }) => {
   );
 };
 
-const BookingLimitsPage = () => {
-  const { data, isPending } = trpc.viewer.me.useQuery();
-  if (isPending || !data) return <SkeletonLoader />;
-
-  return <BookingsView bookingLimits={data.bookingLimits ?? {}} />;
-};
-
-export default BookingLimitsPage;
+export default GlobalBookingLimitsController;
