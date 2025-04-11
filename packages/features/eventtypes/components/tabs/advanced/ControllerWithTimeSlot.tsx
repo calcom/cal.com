@@ -72,7 +72,7 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
       `metadata.${metaDataName}`,
       {
         time: newState.time,
-        unit: newState?.unit?.value,
+        unit: newState?.unit?.value as "minutes" | "hours",
       },
       { shouldDirty: true }
     );
@@ -111,8 +111,8 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
                 value === "always"
                   ? undefined
                   : {
-                      time: timeAndUnit.time,
-                      unit: timeAndUnit.unit.value,
+                      time: timeAndUnit.time as number,
+                      unit: timeAndUnit?.unit?.value as "minutes" | "hours",
                     },
                 {
                   shouldDirty: true,
@@ -146,7 +146,7 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
                 innerClassNames={{
                   control: "rounded-l-none max-h-4 px-3",
                 }}
-                onChange={(val) => handleTimeUnitChange("unit", val.value)}
+                onChange={(val) => handleTimeUnitChange("unit", val?.value as "hours" | "minutes")}
               />
             </div>
           </RadioGroup.Root>
