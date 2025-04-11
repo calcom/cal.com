@@ -91,6 +91,7 @@ const TextAreaWidget = (props: TextLikeComponentPropsRAQB) => {
     <TextArea
       value={textValue}
       placeholder={placeholder}
+      className="mb-2"
       disabled={readOnly}
       onChange={onChange}
       maxLength={maxLength}
@@ -119,7 +120,7 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
   return (
     <TextField
       size="sm"
-      containerClassName="w-full"
+      containerClassName="w-full mb-2"
       type={type}
       value={textValue}
       noLabel={noLabel}
@@ -139,7 +140,7 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
       type="number"
       labelSrOnly={remainingProps.noLabel}
       containerClassName="w-full"
-      className="bg-default border-default disabled:bg-emphasis focus:ring-brand-default dark:focus:border-emphasis focus:border-subtle block w-full rounded-md text-sm disabled:hover:cursor-not-allowed"
+      className="bg-default border-default disabled:bg-emphasis focus:ring-brand-default dark:focus:border-emphasis focus:border-subtle mb-2 block w-full rounded-md text-sm disabled:hover:cursor-not-allowed"
       value={value}
       onChange={(e) => {
         setValue(e.target.value);
