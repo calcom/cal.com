@@ -67,4 +67,8 @@ export class InternalTasker implements Tasker {
   async cancelWhere(query: { payloadContains: string }): Promise<number> {
     return await Task.cancelWhere(query);
   }
+  async cancel(id: string): Promise<string> {
+    const task = await Task.cancel(id);
+    return task.id;
+  }
 }

@@ -762,25 +762,25 @@ model Availability {
 }
 
 model SelectedCalendar {
-  id                               String                @id @default(uuid())
-  user                             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                           Int
-  integration                      String
-  externalId                       String
-  credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  credentialId                     Int?
+  id                       String      @id @default(uuid())
+  user                     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                   Int
+  integration              String
+  externalId               String
+  credential               Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  credentialId             Int?
   // Used to identify a watched calendar channel in Google Calendar
-  googleChannelId                  String?
-  googleChannelKind                String?
-  googleChannelResourceId          String?
-  googleChannelResourceUri         String?
-  googleChannelExpiration          String?
+  googleChannelId          String?
+  googleChannelKind        String?
+  googleChannelResourceId  String?
+  googleChannelResourceUri String?
+  googleChannelExpiration  String?
 
   // Note that delegationCredentialId or credentialId aren't part of the unique constraint.
   // This is so that if there are duplicate connections to the same Calendar for a user, still SelectedCalendar entry remains same.
   // It also allows a situation where when an organization switch from Regular Credentials to Delegation Credentials, the existing SelectedCalendar entries(for Regular Credentials ) are reused and vice versa.
-  delegationCredential             DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
-  delegationCredentialId           String?
+  delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  delegationCredentialId String?
 
   // Deprecated and unused: Use delegationCredential instead
   domainWideDelegationCredential   DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
@@ -1068,15 +1068,17 @@ model App_RoutingForms_Form {
 }
 
 model App_RoutingForms_FormResponse {
-  id                 Int                   @id @default(autoincrement())
-  formFillerId       String                @default(cuid())
-  form               App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
-  formId             String
-  response           Json
-  createdAt          DateTime              @default(now())
-  routedToBookingUid String?               @unique
+  id           Int                   @id @default(autoincrement())
+  formFillerId String                @default(cuid())
+  form         App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId       String
+  response     Json
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime?             @updatedAt
+
+  routedToBookingUid String?  @unique
   // We should not cascade delete the booking, because we want to keep the form response even if the routedToBooking is deleted
-  routedToBooking    Booking?              @relation(fields: [routedToBookingUid], references: [uid])
+  routedToBooking    Booking? @relation(fields: [routedToBookingUid], references: [uid])
   chosenRouteId      String?
 
   @@unique([formFillerId, formId])
@@ -1247,6 +1249,7 @@ enum TimeUnit {
 
 model WorkflowReminder {
   id                  Int             @id @default(autoincrement())
+  uuid                String?         @unique @default(uuid())
   bookingUid          String?
   booking             Booking?        @relation(fields: [bookingUid], references: [uid])
   method              WorkflowMethods
@@ -1477,7 +1480,7 @@ model CalendarCache {
   // This field won't be set for CalendarCache of a regular credential
   delegationCredentialId String?
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
-  
+
   userId Int?
   user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -1685,6 +1688,7 @@ model Task {
   maxAttempts         Int       @default(3)
   lastError           String?
   lastFailedAttemptAt DateTime?
+  referenceUid        String?
 }
 
 enum SMSLockState {

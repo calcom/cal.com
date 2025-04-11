@@ -26,6 +26,7 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
     import("./delegationCredentialSelectedCalendars/createSelectedCalendars").then(
       (module) => module.delegationCredentialSelectedCalendars
     ),
+  sendWorkflowEmails: () => import("./sendWorkflowEmails").then((module) => module.sendWorkflowEmails),
   scanWorkflowBody: () => import("./scanWorkflowBody").then((module) => module.scanWorkflowBody),
 };
 

@@ -42,6 +42,7 @@ type TaskPayloads = {
   delegationCredentialSelectedCalendars: z.infer<
     typeof import("./tasks/delegationCredentialSelectedCalendars/schema").ZDelegationCredentialSelectedCalendarsPayloadSchema
   >;
+  sendWorkflowEmails: z.infer<typeof import("./tasks/sendWorkflowEmails").ZSendWorkflowEmailsSchema>;
   scanWorkflowBody: z.infer<typeof import("./tasks/scanWorkflowBody").scanWorkflowBodySchema>;
 };
 export type TaskTypes = keyof TaskPayloads;
@@ -49,7 +50,7 @@ export type TaskHandler = (payload: string) => Promise<TaskResult>;
 export type TaskerCreate = <TaskKey extends keyof TaskPayloads>(
   type: TaskKey,
   payload: TaskPayloads[TaskKey],
-  options?: { scheduledAt?: Date; maxAttempts?: number }
+  options?: { scheduledAt?: Date; maxAttempts?: number; referenceUid?: string }
 ) => Promise<string>;
 export interface Tasker {
   /** Create a new task with the given type and payload. */
@@ -57,4 +58,5 @@ export interface Tasker {
   processQueue(): Promise<void>;
   cleanup(): Promise<void>;
   cancelWhere(query: { payloadContains: string }): Promise<number>;
+  cancel(id: string): Promise<string>;
 }

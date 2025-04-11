@@ -5,9 +5,9 @@ import type { Header, Table, ColumnSizingState } from "@tanstack/react-table";
 import debounce from "lodash/debounce";
 import { useCallback, useEffect, useRef, useMemo } from "react";
 
-import { useDebouncedWidth, useDataTable } from "../hooks";
+import { useDebouncedWidth, useDataTable } from ".";
 
-type UsePersistentColumnResizingProps<TData> = {
+type UseColumnResizingProps<TData> = {
   enabled: boolean;
   table: Table<TData>;
   tableContainerRef: React.RefObject<HTMLDivElement>;
@@ -81,11 +81,11 @@ function getPartialColumnSizing(columnSizing: ColumnSizingState, columnsToExtrac
   }, {} as ColumnSizingState);
 }
 
-export function usePersistentColumnResizing<TData>({
+export function useColumnResizing<TData>({
   enabled,
   table,
   tableContainerRef,
-}: UsePersistentColumnResizingProps<TData>) {
+}: UseColumnResizingProps<TData>) {
   const initialized = useRef(false);
   const columnSizing = useRef<ColumnSizingState>({});
   const initialColumnSizing = useRef<ColumnSizingState>({});
