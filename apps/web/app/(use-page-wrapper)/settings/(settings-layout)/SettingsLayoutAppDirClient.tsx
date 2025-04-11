@@ -334,7 +334,26 @@ const TeamListCollapsible = () => {
                           teamMenuOpen: !teamMenuState[index].teamMenuOpen,
                         }),
                       ])
-                    }>
+                    }
+                    tabIndex={0}
+                    role="button"
+                    aria-expanded={teamMenuState[index].teamMenuOpen}
+                    aria-controls={`team-content-${team.id}`}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setTeamMenuState([
+                          ...teamMenuState,
+                          (teamMenuState[index] = {
+                            ...teamMenuState[index],
+                            teamMenuOpen: !teamMenuState[index].teamMenuOpen,
+                          }),
+                        ]);
+                      }
+                    }}
+                    aria-label={`${team.name} ${
+                      teamMenuState[index].teamMenuOpen ? t("collapse_menu") : t("expand_menu")
+                    }`}>
                     <div className="me-3">
                       {teamMenuState[index].teamMenuOpen ? (
                         <Icon name="chevron-down" className="h-4 w-4" />
@@ -357,7 +376,7 @@ const TeamListCollapsible = () => {
                     )}
                   </div>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-0.5">
+                <CollapsibleContent className="space-y-0.5" id={`team-content-${team.id}`}>
                   {team.accepted && (
                     <VerticalTabItem
                       name={t("profile")}
@@ -484,7 +503,7 @@ const SettingsSidebarContainer = ({
           ? "translate-x-0 opacity-100"
           : "-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100"
       )}
-      aria-label="Tabs">
+      aria-label={t("settings_navigation")}>
       <>
         <BackButtonInSidebar name={t("back")} />
         {tabsWithPermissions.map((tab) => {
@@ -620,7 +639,28 @@ const SettingsSidebarContainer = ({
                                         teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
                                       }),
                                     ])
-                                  }>
+                                  }
+                                  tabIndex={0}
+                                  role="button"
+                                  aria-expanded={otherTeamMenuState[index].teamMenuOpen}
+                                  aria-controls={`other-team-content-${otherTeam.id}`}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                      e.preventDefault();
+                                      setOtherTeamMenuState([
+                                        ...otherTeamMenuState,
+                                        (otherTeamMenuState[index] = {
+                                          ...otherTeamMenuState[index],
+                                          teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
+                                        }),
+                                      ]);
+                                    }
+                                  }}
+                                  aria-label={`${otherTeam.name} ${
+                                    otherTeamMenuState[index].teamMenuOpen
+                                      ? t("collapse_menu")
+                                      : t("expand_menu")
+                                  }`}>
                                   <div className="me-3">
                                     {otherTeamMenuState[index].teamMenuOpen ? (
                                       <Icon name="chevron-down" className="h-4 w-4" />
@@ -638,7 +678,9 @@ const SettingsSidebarContainer = ({
                                   <p className="w-1/2 truncate leading-normal">{otherTeam.name}</p>
                                 </div>
                               </CollapsibleTrigger>
-                              <CollapsibleContent className="space-y-0.5">
+                              <CollapsibleContent
+                                className="space-y-0.5"
+                                id={`other-team-content-${otherTeam.id}`}>
                                 <VerticalTabItem
                                   name={t("profile")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
