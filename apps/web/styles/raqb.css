@@ -22,6 +22,11 @@
   padding: 8px;
 }
 
+.cal-query-builder .cal-query-builder-container .group-container {
+  border:none;
+  padding: 0px;
+}
+
 .cal-query-builder .group .group--header { 
   margin-left: 8px;
 }
