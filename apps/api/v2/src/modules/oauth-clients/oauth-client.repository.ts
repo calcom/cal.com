@@ -133,4 +133,14 @@ export class OAuthClientRepository {
     });
     return hostWithUserPlatformClient?.user?.platformOAuthClients?.[0] ?? null;
   }
+
+  async getAllManagedUsersOfOAuthClient(clientId: string) {
+    const client = await this.dbRead.prisma.platformOAuthClient.findUnique({
+      where: { id: clientId },
+      include: {
+        users: true,
+      },
+    });
+    return client?.users ?? [];
+  }
 }

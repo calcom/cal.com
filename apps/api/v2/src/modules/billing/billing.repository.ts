@@ -15,12 +15,21 @@ export class BillingRepository {
       },
     });
 
+  async getBillingForTeamBySubscriptionId(subscriptionId: string) {
+    return this.dbRead.prisma.platformBilling.findFirst({
+      where: {
+        subscriptionId,
+      },
+    });
+  }
+
   async updateTeamBilling(
     teamId: number,
     billingStart: number,
     billingEnd: number,
     plan: PlatformPlan,
-    subscriptionId?: string
+    subscriptionId?: string,
+    priceId?: string
   ) {
     return this.dbWrite.prisma.platformBilling.update({
       where: {
@@ -32,6 +41,7 @@ export class BillingRepository {
         subscriptionId,
         plan: plan.toString(),
         overdue: false,
+        priceId,
       },
     });
   }
