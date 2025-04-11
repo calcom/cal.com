@@ -498,6 +498,7 @@ model Team {
   /// @zod.custom(imports.intervalLimitsType)
   bookingLimits                Json?
   includeManagedEventsInLimits Boolean                 @default(false)
+  hideOrganizerEmail           Boolean                 @default(false)
   internalNotePresets          InternalNotePreset[]
   organizationOnboarding       OrganizationOnboarding?
 
@@ -620,6 +621,7 @@ model BookingReference {
 model Attendee {
   id          Int          @id @default(autoincrement())
   email       String
+  maskedEmail String?
   name        String
   timeZone    String
   phoneNumber String?

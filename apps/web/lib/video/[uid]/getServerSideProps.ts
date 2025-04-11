@@ -7,6 +7,7 @@ import {
   updateMeetingTokenIfExpired,
 } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { maskEmail } from "@calcom/features/bookings/lib/maskEmail";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import { CAL_VIDEO_MEETING_LINK_FOR_TESTING } from "@calcom/lib/constants";
 import { isENVDev } from "@calcom/lib/env";
@@ -148,6 +149,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           ? {
               ...bookingObj.user,
               organization: profile?.organization,
+              email: bookingObj.eventType?.team?.hideOrganizerEmail
+                ? maskEmail(bookingObj.user)
+                : bookingObj.user.email,
             }
           : bookingObj.user,
       },

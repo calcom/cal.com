@@ -44,16 +44,18 @@ export const getWho = (
     .map(
       (attendee) =>
         `${attendee?.name || t("guest")}\n${
-          !isSmsCalEmail(attendee.email) ? attendee.email : attendee.phoneNumber
+          !isSmsCalEmail(attendee.email) ? attendee.maskedEmail ?? attendee.email : attendee.phoneNumber
         }`
     )
     .join("\n");
 
-  const organizer = `${calEvent.organizer.name} - ${t("organizer")}\n${calEvent.organizer.email}`;
+  const organizer = `${calEvent.organizer.name} - ${t("organizer")}\n${
+    calEvent.organizer.maskedEmail ?? calEvent.organizer.email
+  }`;
 
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members
-        .map((member) => `${member.name} - ${t("team_member")}\n${member.email}`)
+        .map((member) => `${member.name} - ${t("team_member")}\n${member.maskedEmail ?? member.email}`)
         .join("\n")
     : [];
 

@@ -29,6 +29,7 @@ import { ZRoundRobinManualReassignInputSchema } from "./roundRobin/roundRobinMan
 import { ZRoundRobinReassignInputSchema } from "./roundRobin/roundRobinReassign.schema";
 import { ZSetInviteExpirationInputSchema } from "./setInviteExpiration.schema";
 import { ZUpdateInputSchema } from "./update.schema";
+import { ZUpdateHideOrganizerEmailInputSchema } from "./updateHideOrganizerEmail.schema";
 import { ZUpdateInternalNotesPresetsInputSchema } from "./updateInternalNotesPresets.schema";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
 
@@ -246,6 +247,15 @@ export const viewerTeamsRouter = router({
       const handler = await importHandler(
         namespaced("updateInternalNotesPresets"),
         () => import("./updateInternalNotesPresets.handler")
+      );
+      return handler({ ctx, input });
+    }),
+  updateHideOrganizerEmail: authedProcedure
+    .input(ZUpdateHideOrganizerEmailInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const handler = await importHandler(
+        namespaced("updateHideOrganizerEmail"),
+        () => import("./updateHideOrganizerEmail.handler")
       );
       return handler({ ctx, input });
     }),
