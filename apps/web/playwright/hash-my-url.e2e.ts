@@ -30,8 +30,8 @@ test.describe("hash my url", () => {
 
     await hashedLinkCheck.click();
 
-    // we wait for the hashedLink setting to load
-    const $url = await page.locator('//*[@data-testid="generated-hash-url-0"]').inputValue();
+    // Wait for the private link URL input to be visible and get its value
+    const $url = await page.locator('[data-testid="private-link-url"]').inputValue();
 
     // click update
     await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
@@ -55,8 +55,8 @@ test.describe("hash my url", () => {
     const hashedLinkCheck2 = await page.locator('[data-testid="multiplePrivateLinksCheck"]');
     await hashedLinkCheck2.click();
 
-    // we wait for the hashedLink setting to load
-    const $newUrl = await page.locator('//*[@data-testid="generated-hash-url-0"]').inputValue();
+    // Wait for the private link URL input to be visible and get its value
+    const $newUrl = await page.locator('[data-testid="private-link-url"]').inputValue();
     expect($url !== $newUrl).toBeTruthy();
 
     // Ensure that private URL is enabled after modifying the event type.
@@ -68,7 +68,9 @@ test.describe("hash my url", () => {
       action: () => page.locator("[data-testid=update-eventtype]").click(),
     });
     await page.locator(".primary-navigation >> text=Advanced").click();
-    const $url2 = await page.locator('//*[@data-testid="generated-hash-url-0"]').inputValue();
+
+    // Wait for the private link URL input to be visible and get its value
+    const $url2 = await page.locator('[data-testid="private-link-url"]').inputValue();
     expect($url2.includes("somethingrandom")).toBeTruthy();
   });
 });
