@@ -424,7 +424,6 @@ export const EventAdvancedTab = ({
 
   const nameBookingField = formMethods.getValues().bookingFields.find((field) => field.name === "name");
   const isSplit = (nameBookingField && nameBookingField.variant === "firstAndLastName") ?? false;
-  const multiLocation = (formMethods.getValues("locations") || []).length > 1;
 
   const eventNameObject: EventNameObjectType = {
     attendeeName: t("scheduler"),
@@ -433,7 +432,6 @@ export const EventAdvancedTab = ({
     host: formMethods.getValues("users")[0]?.name || "Nameless",
     bookingFields: bookingFields,
     eventDuration: formMethods.getValues("length"),
-    location: multiLocation ? "location input" : formMethods.getValues("locations")[0].type,
     t,
   };
 
@@ -441,6 +439,7 @@ export const EventAdvancedTab = ({
     formMethods.getValues("requiresConfirmation")
   );
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
+  const multiLocation = (formMethods.getValues("locations") || []).length > 1;
   const noShowFeeEnabled =
     formMethods.getValues("metadata")?.apps?.stripe?.enabled === true &&
     formMethods.getValues("metadata")?.apps?.stripe?.paymentOption === "HOLD";
