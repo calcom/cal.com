@@ -324,33 +324,9 @@ const TeamListCollapsible = () => {
                   ])
                 }>
                 <CollapsibleTrigger asChild>
-                  <div
+                  <button
                     className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
-                    onClick={() =>
-                      setTeamMenuState([
-                        ...teamMenuState,
-                        (teamMenuState[index] = {
-                          ...teamMenuState[index],
-                          teamMenuOpen: !teamMenuState[index].teamMenuOpen,
-                        }),
-                      ])
-                    }
-                    tabIndex={0}
-                    role="button"
-                    aria-expanded={teamMenuState[index].teamMenuOpen}
                     aria-controls={`team-content-${team.id}`}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        setTeamMenuState([
-                          ...teamMenuState,
-                          (teamMenuState[index] = {
-                            ...teamMenuState[index],
-                            teamMenuOpen: !teamMenuState[index].teamMenuOpen,
-                          }),
-                        ]);
-                      }
-                    }}
                     aria-label={`${team.name} ${
                       teamMenuState[index].teamMenuOpen ? t("collapse_menu") : t("expand_menu")
                     }`}>
@@ -374,7 +350,7 @@ const TeamListCollapsible = () => {
                         Inv.
                       </Badge>
                     )}
-                  </div>
+                  </button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-0.5" id={`team-content-${team.id}`}>
                   {team.accepted && (
@@ -629,33 +605,9 @@ const SettingsSidebarContainer = ({
                                 ])
                               }>
                               <CollapsibleTrigger asChild>
-                                <div
+                                <button
                                   className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
-                                  onClick={() =>
-                                    setOtherTeamMenuState([
-                                      ...otherTeamMenuState,
-                                      (otherTeamMenuState[index] = {
-                                        ...otherTeamMenuState[index],
-                                        teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
-                                      }),
-                                    ])
-                                  }
-                                  tabIndex={0}
-                                  role="button"
-                                  aria-expanded={otherTeamMenuState[index].teamMenuOpen}
                                   aria-controls={`other-team-content-${otherTeam.id}`}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter" || e.key === " ") {
-                                      e.preventDefault();
-                                      setOtherTeamMenuState([
-                                        ...otherTeamMenuState,
-                                        (otherTeamMenuState[index] = {
-                                          ...otherTeamMenuState[index],
-                                          teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
-                                        }),
-                                      ]);
-                                    }
-                                  }}
                                   aria-label={`${otherTeam.name} ${
                                     otherTeamMenuState[index].teamMenuOpen
                                       ? t("collapse_menu")
@@ -676,7 +628,7 @@ const SettingsSidebarContainer = ({
                                     />
                                   )}
                                   <p className="w-1/2 truncate leading-normal">{otherTeam.name}</p>
-                                </div>
+                                </button>
                               </CollapsibleTrigger>
                               <CollapsibleContent
                                 className="space-y-0.5"
