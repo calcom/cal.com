@@ -324,17 +324,12 @@ const TeamListCollapsible = () => {
                   ])
                 }>
                 <CollapsibleTrigger asChild>
-                  <div
+                  <button
                     className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
-                    onClick={() =>
-                      setTeamMenuState([
-                        ...teamMenuState,
-                        (teamMenuState[index] = {
-                          ...teamMenuState[index],
-                          teamMenuOpen: !teamMenuState[index].teamMenuOpen,
-                        }),
-                      ])
-                    }>
+                    aria-controls={`team-content-${team.id}`}
+                    aria-label={`${team.name} ${
+                      teamMenuState[index].teamMenuOpen ? t("collapse_menu") : t("expand_menu")
+                    }`}>
                     <div className="me-3">
                       {teamMenuState[index].teamMenuOpen ? (
                         <Icon name="chevron-down" className="h-4 w-4" />
@@ -355,9 +350,9 @@ const TeamListCollapsible = () => {
                         Inv.
                       </Badge>
                     )}
-                  </div>
+                  </button>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-0.5">
+                <CollapsibleContent className="space-y-0.5" id={`team-content-${team.id}`}>
                   {team.accepted && (
                     <VerticalTabItem
                       name={t("profile")}
@@ -484,7 +479,7 @@ const SettingsSidebarContainer = ({
           ? "translate-x-0 opacity-100"
           : "-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100"
       )}
-      aria-label="Tabs">
+      aria-label={t("settings_navigation")}>
       <>
         <BackButtonInSidebar name={t("back")} />
         {tabsWithPermissions.map((tab) => {
@@ -610,17 +605,14 @@ const SettingsSidebarContainer = ({
                                 ])
                               }>
                               <CollapsibleTrigger asChild>
-                                <div
+                                <button
                                   className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
-                                  onClick={() =>
-                                    setOtherTeamMenuState([
-                                      ...otherTeamMenuState,
-                                      (otherTeamMenuState[index] = {
-                                        ...otherTeamMenuState[index],
-                                        teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
-                                      }),
-                                    ])
-                                  }>
+                                  aria-controls={`other-team-content-${otherTeam.id}`}
+                                  aria-label={`${otherTeam.name} ${
+                                    otherTeamMenuState[index].teamMenuOpen
+                                      ? t("collapse_menu")
+                                      : t("expand_menu")
+                                  }`}>
                                   <div className="me-3">
                                     {otherTeamMenuState[index].teamMenuOpen ? (
                                       <Icon name="chevron-down" className="h-4 w-4" />
@@ -636,9 +628,11 @@ const SettingsSidebarContainer = ({
                                     />
                                   )}
                                   <p className="w-1/2 truncate leading-normal">{otherTeam.name}</p>
-                                </div>
+                                </button>
                               </CollapsibleTrigger>
-                              <CollapsibleContent className="space-y-0.5">
+                              <CollapsibleContent
+                                className="space-y-0.5"
+                                id={`other-team-content-${otherTeam.id}`}>
                                 <VerticalTabItem
                                   name={t("profile")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
