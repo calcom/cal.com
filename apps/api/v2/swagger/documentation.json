@@ -13029,6 +13029,9 @@
           "lockTimeZoneToggleOnBookingPage": {
             "type": "boolean"
           },
+          "lockedTimeZone": {
+            "type": "string"
+          },
           "color": {
             "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
           },
@@ -14626,6 +14629,9 @@
           "lockTimeZoneToggleOnBookingPage": {
             "type": "boolean"
           },
+          "lockedTimeZone": {
+            "type": "string"
+          },
           "seatsPerTimeSlot": {
             "type": "object",
             "nullable": true
@@ -14733,6 +14739,7 @@
           "price",
           "currency",
           "lockTimeZoneToggleOnBookingPage",
+          "lockedTimeZone",
           "forwardParamsSuccessRedirect",
           "successRedirectUrl",
           "isInstantEvent",
@@ -15008,6 +15015,9 @@
           },
           "lockTimeZoneToggleOnBookingPage": {
             "type": "boolean"
+          },
+          "lockedTimeZone": {
+            "type": "string"
           },
           "color": {
             "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
@@ -16813,6 +16823,9 @@
           "lockTimeZoneToggleOnBookingPage": {
             "type": "boolean"
           },
+          "lockedTimeZone": {
+            "type": "string"
+          },
           "color": {
             "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
           },
@@ -17179,6 +17192,9 @@
           "lockTimeZoneToggleOnBookingPage": {
             "type": "boolean"
           },
+          "lockedTimeZone": {
+            "type": "string"
+          },
           "seatsPerTimeSlot": {
             "type": "number",
             "nullable": true
@@ -17309,6 +17325,7 @@
           "price",
           "currency",
           "lockTimeZoneToggleOnBookingPage",
+          "lockedTimeZone",
           "forwardParamsSuccessRedirect",
           "successRedirectUrl",
           "isInstantEvent",
@@ -17659,6 +17676,9 @@
           },
           "lockTimeZoneToggleOnBookingPage": {
             "type": "boolean"
+          },
+          "lockedTimeZone": {
+            "type": "string"
           },
           "color": {
             "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
