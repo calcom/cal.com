@@ -130,6 +130,7 @@ export default function ControllerWithTimeSlot(props: IControllerWithTimeSlotPro
                 className="mr-5"
               />
               <InputField
+                size="lg"
                 type="number"
                 disabled={selectedRadioOption !== "not-always"}
                 min={1}
