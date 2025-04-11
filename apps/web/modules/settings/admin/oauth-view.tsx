@@ -105,7 +105,7 @@ export default function OAuthView() {
               <Button
                 onClick={() => {
                   navigator.clipboard.writeText(clientId);
-                  showToast("Client ID copied!", "success");
+                  showToast(t("client_id_copied"), "success");
                 }}
                 type="button"
                 className="rounded-l-none text-base"
@@ -127,7 +127,7 @@ export default function OAuthView() {
                     onClick={() => {
                       navigator.clipboard.writeText(clientSecret);
                       setClientSecret("");
-                      showToast("Client secret copied!", "success");
+                      showToast(t("client_secret_copied"), "success");
                     }}
                     type="button"
                     className="rounded-l-none text-base"

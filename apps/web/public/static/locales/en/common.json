@@ -3098,6 +3098,8 @@
   "client_secret": "Client Secret",
   "user_team": "User/Team",
   "status": "Status",
+  "client_id_copied": "Client ID copied!",
+  "client_secret_copied": "Client secret copied!",
   "down_for_maintenance": "Down for maintenance",
   "maintenance_message": "The Cal.com team are performing scheduled maintenance. If you have any questions, please contact support.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
