@@ -1,4 +1,4 @@
-import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
+import { getPublicEvent } from "@calcom/lib/server/queries/eventType/getPublicEvent";
 
 export { getBulkUserEventTypes, getBulkTeamEventTypes } from "@calcom/lib/event-types/getBulkEventTypes";
 
