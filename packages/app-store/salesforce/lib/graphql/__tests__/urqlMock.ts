@@ -17,11 +17,17 @@ export const mockValueOfAccountOwnershipQueryMatchingContact = () => {
         {
           node: {
             Id: "contactId",
+            Email: {
+              value: "contact@email.com",
+            },
+            AccountId: {
+              value: "accountId",
+            },
             Account: {
               Owner: {
                 Id: "ownerId",
                 Email: {
-                  value: "ownerEmail",
+                  value: "owner@test.com",
                 },
               },
             },

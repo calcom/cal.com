@@ -32,10 +32,10 @@ describe("SalesforceGraphQLClient", () => {
 
     expect(owner).toEqual([
       {
-        id: "contactId",
-        email: "",
+        id: "accountId",
+        email: "contact@email.com",
         ownerId: "ownerId",
-        ownerEmail: "ownerEmail",
+        ownerEmail: "owner@test.com",
         recordType: SalesforceRecordEnum.ACCOUNT,
       },
     ]);

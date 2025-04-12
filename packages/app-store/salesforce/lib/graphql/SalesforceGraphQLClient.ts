@@ -48,8 +48,10 @@ export class SalesforceGraphQLClient {
       websites,
       emailDomain: `%@${emailDomain}`,
     });
+    console.log(query);
 
     const queryData = query?.data;
+    console.log("queryData", queryData);
 
     if (query?.error) {
       const errors = query.error;
@@ -73,8 +75,8 @@ export class SalesforceGraphQLClient {
       if (contact) {
         return [
           {
-            id: contact.Id,
-            email: "",
+            id: contact.AccountId?.value || contact.Id,
+            email: contact.Email?.value,
             ownerId: contact.Account?.Owner?.Id,
             ownerEmail: contact.Account?.Owner?.Email?.value,
             recordType: SalesforceRecordEnum.ACCOUNT,
