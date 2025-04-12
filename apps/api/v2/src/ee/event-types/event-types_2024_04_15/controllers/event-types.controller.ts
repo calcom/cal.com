@@ -40,7 +40,6 @@ import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { getPublicEvent, getEventTypesByViewer } from "@calcom/platform-libraries-0.0.2";
-import { PrismaClient } from "@calcom/prisma";
 
 @Controller({
   path: "/v2/event-types",
