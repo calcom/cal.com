@@ -1,3 +1,5 @@
+import type { KnownConfig } from "./types";
+
 export const getErrorString = (errorCode: string | undefined) => {
   if (errorCode === "404") {
     return `Error Code: 404. Cal Link seems to be wrong.`;
@@ -34,4 +36,51 @@ export function fromEntriesWithDuplicateKeys(entries: IterableIterator<[string, 
     }
   }
   return result;
+}
+
+function listKnownConfigProps() {
+  const knownConfigProps: (keyof KnownConfig)[] = [
+    "flag.coep",
+    "layout",
+    "ui.color-scheme",
+    "theme",
+    "cal.embed.pageType",
+  ];
+  return knownConfigProps;
+}
+
+export function getConfigProp<TProp extends keyof KnownConfig>(config: KnownConfig, prop: TProp) {
+  const knownConfigProps = listKnownConfigProps();
+  if (!knownConfigProps.includes(prop)) {
+    console.warn(`Not reading unknown config prop: ${prop}`);
+    return null;
+  }
+  return config[prop] ?? null;
+}
+
+export function getQueryParamProvidedByConfig<TProp extends keyof KnownConfig>(
+  queryParam: TProp
+): NonNullable<KnownConfig[TProp]> | null {
+  const knownConfigProps = listKnownConfigProps();
+  if (!knownConfigProps.includes(queryParam)) {
+    console.warn(`Not reading unknown config prop from query: ${queryParam}`);
+    return null;
+  }
+  const url = new URL(document.URL);
+  const value = url.searchParams.get(queryParam);
+  if (typeof value === "string") {
+    return value as NonNullable<KnownConfig[TProp]>;
+  }
+  return value;
+}
+
+function hyphenate(str: string): string {
+  return str.charAt(0).toLowerCase() + str.slice(1).replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
+}
+
+export function generateDataAttributes(props: Record<string, string | null | undefined>): string {
+  return Object.entries(props)
+    .filter(([_, value]) => value)
+    .map(([key, value]) => `data-${hyphenate(key)}="${value}"`)
+    .join(" ");
 }

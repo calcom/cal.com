@@ -16,7 +16,8 @@ export class EmbedElement extends HTMLElement {
   // Theme is set once by the user
   public theme!: EmbedThemeConfig | null;
   public isModal!: boolean;
-  // Theme Class is derived from theme as well as system color scheme preference
+  public skeletonContainerHeightTimer: number | null = null;
+  // Theme Class is derived from `this.theme` as well as system color scheme preference
   public themeClass!: string;
   public layout!: AllPossibleLayouts;
   public getSkeletonData!: (_args: { layout: AllPossibleLayouts; pageType: EmbedPageType | null }) => {
@@ -27,7 +28,15 @@ export class EmbedElement extends HTMLElement {
 
   private boundResizeHandler: () => void;
   private boundPrefersDarkThemeChangedHandler: (e: MediaQueryListEvent) => void;
-
+  private isSkeletonSupportedPageType() {
+    const pageType = this.getPageType();
+    return (
+      pageType === "user.event.booking.slots" ||
+      pageType === "team.event.booking.slots" ||
+      pageType === "user.event.booking.form" ||
+      pageType === "team.event.booking.form"
+    );
+  }
   public assertHasShadowRoot(): asserts this is HTMLElement & { shadowRoot: ShadowRootWithStyle } {
     if (!this.shadowRoot) {
       throw new Error("No shadow root");
@@ -66,30 +75,36 @@ export class EmbedElement extends HTMLElement {
     // skeletonEl is absolute positioned, so, we manually adjust the height of the Skeleton Container, so that the content around it doesn't do layout shift when actual iframe appears in its place
     const heightOfSkeleton = parseFloat(getComputedStyle(skeletonEl).height);
     if (isModal) {
-      skeletonContainerEl.style.maxHeight = `${getMaxHeightForModal()}px`;
+      const skeletonContainerContainingIframeToo = skeletonContainerEl;
       if (heightOfSkeleton) {
-        skeletonContainerEl.style.height = `${heightOfSkeleton}px`;
+        // maxHeight need to be set only if skeleton inside the container is visible
+        skeletonContainerContainingIframeToo.style.maxHeight = `${getMaxHeightForModal()}px`;
+        skeletonContainerContainingIframeToo.style.height = `${heightOfSkeleton}px`;
       } else {
-        // Reset height - and be done with requestAnimationFrame
-        skeletonContainerEl.style.height = "";
+        // Reset props and be done with requestAnimationFrame
+        skeletonContainerContainingIframeToo.style.height = "";
+        skeletonContainerContainingIframeToo.style.maxHeight = "";
         return;
       }
     } else {
+      const skeletonContainerNotContainingIframe = skeletonContainerEl;
       const heightOfIframeByDefault = 300;
       const diff = heightOfSkeleton - heightOfIframeByDefault;
       if (heightOfSkeleton) {
         if (diff > 0) {
-          // Skeleton is positioned over the iframe(hidden with height of 300px already) so we add to container height only the difference
-          skeletonContainerEl.style.height = `${diff}px`;
+          // Skeleton is positioned overlapping the iframe(hidden with height of 300px already) so we add to container height only the difference
+          skeletonContainerNotContainingIframe.style.height = `${diff}px`;
         }
       } else {
         // We will be here when skeleton is display:none
         // Reset height - and be done with requestAnimationFrame
-        skeletonContainerEl.style.height = "";
+        skeletonContainerNotContainingIframe.style.height = "";
         return;
       }
     }
-    requestAnimationFrame(this.ensureContainerTakesSkeletonHeightWhenVisible.bind(this));
+    const rafId = requestAnimationFrame(this.ensureContainerTakesSkeletonHeightWhenVisible.bind(this));
+    this.skeletonContainerHeightTimer = rafId;
+    return rafId;
   }
 
   getLoaderElement(): HTMLElement {
@@ -107,9 +122,8 @@ export class EmbedElement extends HTMLElement {
     const skeletonEl = this.getSkeletonElement();
 
     const loaderEl = this.getLoaderElement();
-    this.ensureContainerTakesSkeletonHeightWhenVisible();
-
-    const supportsSkeleton = !!this.getPageType();
+    const skeletonContainerEl = this.getSkeletonContainerElement();
+    const supportsSkeleton = this.isSkeletonSupportedPageType();
 
     if (!supportsSkeleton) {
       loaderEl.style.display = show ? "block" : "none";
@@ -117,13 +131,17 @@ export class EmbedElement extends HTMLElement {
     } else {
       skeletonEl.style.display = show ? "block" : "none";
       loaderEl.style.display = "none";
+      if (!this.isModal && !show) {
+        const skeletonContainerNotContainingIframe = skeletonContainerEl;
+        // In non-modal layout, skeletonContainerEl is static positioned before the slot(i.e. iframe) and it takes space even if its content is hidden. So, we explicitly set display to none
+        // Also, it doesn't contain anything other than skeleton, so it is safe to set display to none
+        skeletonContainerNotContainingIframe.style.display = "none";
+      }
     }
+    this.ensureContainerTakesSkeletonHeightWhenVisible();
   }
 
-  constructor({
-    isModal,
-    getSkeletonData,
-  }: {
+  constructor(data: {
     isModal: boolean;
     getSkeletonData: (_args: { layout: AllPossibleLayouts; pageType: EmbedPageType | null }) => {
       skeletonContent: string;
@@ -132,35 +150,39 @@ export class EmbedElement extends HTMLElement {
     };
   }) {
     super();
-    this.isModal = isModal;
+    if (process.env.INTEGRATION_TEST_MODE) {
+      // @ts-expect-error - Integration test mode
+      Object.assign(this.dataset, data.dataset);
+    }
+    this.isModal = data.isModal;
     this.layout = this.getLayout();
     this.theme = this.dataset.theme as EmbedThemeConfig | null;
     this.themeClass = getThemeClassForEmbed({ theme: this.theme });
     this.classList.add(this.themeClass);
 
-    this.getSkeletonData = getSkeletonData;
+    this.getSkeletonData = data.getSkeletonData;
     this.boundResizeHandler = this.resizeHandler.bind(this);
     this.boundPrefersDarkThemeChangedHandler = this.prefersDarkThemeChangedHandler.bind(this);
   }
 
   public resizeHandler() {
     const newLayout = getTrueLayout({ layout: this.layout ?? null });
-    if (newLayout !== this.layout) {
-      this.layout = newLayout;
-      const { skeletonContent, skeletonContainerStyle, skeletonStyle } = this.getSkeletonData({
-        layout: this.getLayout(),
-        pageType: this.getPageType() ?? null,
-      });
-
-      const skeletonContainerEl = this.getSkeletonContainerElement();
-      const skeletonEl = this.getSkeletonElement();
-
-      skeletonContainerEl.setAttribute("style", skeletonContainerStyle);
-      skeletonEl.setAttribute("style", skeletonStyle);
-
-      skeletonEl.innerHTML = skeletonContent;
+    if (newLayout === this.layout) {
+      return;
     }
     this.layout = newLayout;
+    const { skeletonContent, skeletonContainerStyle, skeletonStyle } = this.getSkeletonData({
+      layout: this.getLayout(),
+      pageType: this.getPageType() ?? null,
+    });
+
+    const skeletonContainerEl = this.getSkeletonContainerElement();
+    const skeletonEl = this.getSkeletonElement();
+
+    skeletonContainerEl.setAttribute("style", skeletonContainerStyle);
+    skeletonEl.setAttribute("style", skeletonStyle);
+
+    skeletonEl.innerHTML = skeletonContent;
   }
 
   public prefersDarkThemeChangedHandler(e: MediaQueryListEvent) {
@@ -179,6 +201,9 @@ export class EmbedElement extends HTMLElement {
     }
   }
   connectedCallback() {
+    // Make sure to show the loader initially.
+    // toggleLoader takes care of deciding which loader default/skeleton to be shown
+    this.toggleLoader(true);
     window.addEventListener("resize", this.boundResizeHandler);
     addDarkColorSchemeChangeListener(this.boundPrefersDarkThemeChangedHandler);
   }

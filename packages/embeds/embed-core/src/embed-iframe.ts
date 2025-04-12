@@ -11,7 +11,7 @@ import type {
   EmbedNonStylesConfig,
   BookerLayouts,
   EmbedStyles,
-  EmbedPageType,
+  KnownConfig,
 } from "./types";
 import { useCompatSearchParams } from "./useCompatSearchParams";
 
@@ -30,21 +30,7 @@ export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Rec
   iframeAttrs?: Record<string, string> & {
     id?: string;
   };
-
-  // TODO: It should have a dedicated prefill prop
-  // prefill: {},
-  "flag.coep"?: "true" | "false";
-
-  // TODO: Move layout and theme as nested props of ui as it makes it clear that these two can be configured using `ui` instruction as well any time.
-  // ui: {layout; theme}
-  layout?: BookerLayouts;
-  // TODO: Rename layout and theme as ui.layout and ui.theme as it makes it clear that these two can be configured using `ui` instruction as well any time.
-  "ui.color-scheme"?: string;
-  theme?: EmbedThemeConfig;
-  // Prefixing with cal.embed because there could be more query params that aren't required by embed and are used for things like prefilling booking form, configuring dry run, and some other params simply to be forwarded to the booking success redirect URL.
-  // There are some cal. prefixed query params as well, not meant for embed specifically, but in general for cal.com
-  "cal.embed.pageType"?: EmbedPageType;
-};
+} & KnownConfig;
 
 declare global {
   interface Window {
@@ -53,7 +39,8 @@ declare global {
       embedStore: typeof embedStore;
       applyCssVars: (cssVarsPerTheme: UiConfig["cssVarsPerTheme"]) => void;
     };
-    _embedIsBookerReady?: boolean;
+    // Marks that Booker has moved to some non-"loading" state
+    _embedBookerState?: "initializing" | "done";
   }
 }
 
@@ -98,7 +85,6 @@ const embedStore = {
   setTheme: undefined as ((arg0: EmbedThemeConfig) => void) | undefined,
   theme: undefined as UiConfig["theme"],
   uiConfig: undefined as Omit<UiConfig, "styles" | "theme"> | undefined,
-  pageType: null as EmbedPageType | null,
   /**
    * We maintain a list of all setUiConfig setters that are in use at the moment so that we can update all those components.
    */
@@ -323,32 +309,12 @@ function getEmbedType() {
   }
 }
 
-function getEmbedPageType() {
-  if (embedStore.pageType) {
-    return embedStore.pageType;
-  }
-  if (isBrowser) {
-    const url = new URL(document.URL);
-    const pageType = (embedStore.pageType = url.searchParams.get(
-      "cal.embed.pageType"
-    ) as EmbedPageType | null);
-    if (pageType) {
-      return pageType;
-    }
-    return null;
-  }
-}
-
 function isBookerReady() {
-  return window._embedIsBookerReady;
+  return window._embedBookerState === "done";
 }
 
 function isBookerPage() {
-  const pageType = getEmbedPageType();
-  if (!pageType) {
-    return false;
-  }
-  return pageType.startsWith("team.event.booking") || pageType.startsWith("user.event.booking");
+  return !!window._embedBookerState;
 }
 
 export const useIsEmbed = (embedSsr?: boolean) => {
@@ -443,6 +409,7 @@ const methods = {
 
       // Let's wait for Booker to be ready before showing the embed
       // It means that booker has loaded all its data and is ready to show
+      // TODO: We could try to mark the embed as ready earlier in this case not relying on document.readyState
       if (isBookerPage() && !isBookerReady()) {
         runAsap(tryInformingLinkReady);
         return;

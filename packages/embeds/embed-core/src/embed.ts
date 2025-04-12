@@ -10,7 +10,7 @@ import type { EventData, EventDataMap } from "./sdk-action-manager";
 import tailwindCss from "./tailwindCss";
 import type { UiConfig } from "./types";
 import { getMaxHeightForModal } from "./ui-utils";
-import { fromEntriesWithDuplicateKeys } from "./utils";
+import { fromEntriesWithDuplicateKeys, getConfigProp, generateDataAttributes } from "./utils";
 
 export type { PrefillAndIframeAttrsConfig } from "./embed-iframe";
 
@@ -190,18 +190,6 @@ type PrefillAndIframeAttrsConfigWithGuestAndColorScheme = PrefillAndIframeAttrsC
   "ui.color-scheme"?: string | null;
 };
 
-function getConfigProp<TProp extends keyof PrefillAndIframeAttrsConfig>(
-  config: PrefillAndIframeAttrsConfig,
-  prop: TProp
-) {
-  const knownConfigProps = ["flag.coep", "layout", "ui.color-scheme", "theme", "cal.embed.pageType"];
-  if (knownConfigProps.includes(prop)) {
-    return config[prop] ?? null;
-  }
-  console.warn(`Read unknown config prop: ${prop}`);
-  return config[prop] ?? null;
-}
-
 export class Cal {
   iframe?: HTMLIFrameElement;
 
@@ -331,7 +319,7 @@ export class Cal {
     for (const [key, value] of searchParams) {
       urlInstance.searchParams.append(key, value);
     }
-    // iframe.src = urlInstance.toString();
+    iframe.src = urlInstance.toString();
     return iframe;
   }
 
@@ -591,9 +579,11 @@ class CalApi {
     const theme = getConfigProp(config, "theme");
 
     template.innerHTML = `<cal-inline 
-      ${pageType ? `data-page-type="${pageType}"` : ""} 
-      ${theme ? `data-theme="${theme}"` : ""}
-      ${layout ? `data-layout="${layout}"` : ""}
+      ${generateDataAttributes({
+        pageType,
+        theme,
+        layout,
+      })}
       style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%">
     </cal-inline>
     <style>.cal-inline-container::-webkit-scrollbar{display:none}.cal-inline-container{scrollbar-width:none}</style>`;
@@ -741,10 +731,13 @@ class CalApi {
     const pageType = getConfigProp(configWithGuestKeyAndColorScheme, "cal.embed.pageType");
     const theme = getConfigProp(configWithGuestKeyAndColorScheme, "theme");
     const layout = getConfigProp(configWithGuestKeyAndColorScheme, "layout");
+
     template.innerHTML = `<cal-modal-box 
-      ${pageType ? `data-page-type="${pageType}"` : ""} 
-      ${theme ? `data-theme="${theme}"` : ""}
-      ${layout ? `data-layout="${layout}"` : ""}
+      ${generateDataAttributes({
+        pageType,
+        theme,
+        layout,
+      })}
       uid="${uid}">
     </cal-modal-box>`;
     this.cal.modalBox = template.content.children[0];

@@ -31,8 +31,8 @@ function detectColorScheme() {
   return "light";
 }
 
-function getClassBasedOnTheme(theme: "dark" | "light") {
-  return theme;
+function getClassBasedOnTheme(theme: EmbedThemeConfig | undefined | null) {
+  return theme ?? "light";
 }
 
 export function isThemePreferenceProvided(theme: EmbedThemeConfig | undefined | null) {
@@ -48,11 +48,19 @@ export function getThemeClassForEmbed({ theme }: { theme: EmbedThemeConfig | und
   return getClassBasedOnTheme(systemTheme);
 }
 
-const colorSchemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+let colorSchemeDarkQuery: MediaQueryList | null = null;
+
+export function getColorSchemeDarkQuery() {
+  if (!colorSchemeDarkQuery) {
+    colorSchemeDarkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  }
+  return colorSchemeDarkQuery;
+}
+
 export function addDarkColorSchemeChangeListener(listener: (e: MediaQueryListEvent) => void) {
-  colorSchemeQuery.addEventListener("change", listener);
+  getColorSchemeDarkQuery().addEventListener("change", listener);
 }
 
 export function removeDarkColorSchemeChangeListener(listener: (e: MediaQueryListEvent) => void) {
-  colorSchemeQuery.removeEventListener("change", listener);
+  getColorSchemeDarkQuery()?.removeEventListener("change", listener);
 }

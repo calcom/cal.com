@@ -138,6 +138,5 @@ export class ModalBox extends EmbedElement {
     this.open();
     this.assertHasShadowRoot();
     this.shadowRoot.innerHTML = modalHtml;
-    this.toggleLoader(true);
   }
 }

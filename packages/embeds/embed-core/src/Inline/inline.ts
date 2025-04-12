@@ -32,12 +32,9 @@ export class Inline extends EmbedElement {
     super({ isModal: false, getSkeletonData });
     this.attachShadow({ mode: "open" });
     this.assertHasShadowRoot();
-
-    this.classList.add(this.themeClass);
     this.shadowRoot.innerHTML = `<style>${window.Cal.__css}</style><style>${loaderCss}</style>${inlineHtml({
       layout: this.layout,
       pageType: this.getPageType() ?? null,
     })}`;
-    this.toggleLoader(true);
   }
 }

@@ -230,7 +230,7 @@ if (only === "all" || only === "ns:fifth") {
     //@ts-ignore
     {
       elementOrSelector: "#cal-booking-place-fifth .place",
-      calLink: "team/seeded-team/collective-seeded-team.event.booking",
+      calLink: "team/seeded-team/collective-seeded-team-event",
       config: {
         iframeAttrs: {
           id: "cal-booking-place-fifth-iframe",
@@ -669,9 +669,12 @@ if (only === "all" || only === "ns:skeletonDemoElementClick") {
   });
 }
 
-// Keep it at the bottom
+// Keep it at the bottom as it works on the API defined above for various cases
 (function ensureScrolledToCorrectIframe() {
-  let api: typeof Cal | (typeof Cal)["ns"][string];
+  // Reset the hash so that we can scroll to correct iframe
+  // Also, even if we need to scroll to the same iframe, we need to still reset it otherwise hashchange event will not fire
+  location.hash = "";
+  let api: typeof Cal | (typeof Cal)["ns"][string] | null = null;
 
   const getNamespace = () => {
     const url = new URL(document.URL);
@@ -679,27 +682,26 @@ if (only === "all" || only === "ns:skeletonDemoElementClick") {
     return only !== "all" ? only.replace("ns:", "") : null;
   };
 
-  const updateNamespace = () => {
+  const updateApiOnNamespaceChange = () => {
     const namespace = getNamespace();
-    api = namespace ? Cal.ns[namespace] : Cal;
+    api = namespace && namespace !== "default" ? Cal.ns[namespace] : Cal;
+    api?.("on", {
+      action: "*",
+      callback: (e) => {
+        function scrollToIframeInPlayground() {
+          const namespace = getNamespace();
+          if (namespace) {
+            location.hash = `#cal-booking-place-${namespace}-iframe`;
+          }
+        }
+        scrollToIframeInPlayground();
+      },
+    });
   };
 
   // Initial namespace setup
-  updateNamespace();
+  updateApiOnNamespaceChange();
 
   // Update namespace on hash change
-  window.addEventListener("hashchange", updateNamespace);
-
-  api("on", {
-    action: "*",
-    callback: (e) => {
-      function scrollToIframeInPlayground() {
-        const namespace = getNamespace();
-        if (namespace) {
-          location.hash = `#cal-booking-place-${namespace}-iframe`;
-        }
-      }
-      scrollToIframeInPlayground();
-    },
-  });
+  window.addEventListener("hashchange", updateApiOnNamespaceChange);
 })();

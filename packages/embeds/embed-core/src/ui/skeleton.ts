@@ -140,9 +140,10 @@ const generateSkeleton = ({
   layout: AllPossibleLayouts | null;
   pageType: EmbedPageType | null;
 }) => {
+  const defaultSkeleton = generateBookingSlotsPageSkeleton({ layout });
   if (!pageType) {
     // Ideally we shouldn't be here if pageType is nullish, but just in case
-    return generateBookingSlotsPageSkeleton({ layout });
+    return defaultSkeleton;
   }
 
   if (pageType === "user.event.booking.slots" || pageType === "team.event.booking.slots") {
@@ -150,7 +151,7 @@ const generateSkeleton = ({
   }
 
   // TODO: Support skeletons for other pages like user.event.booking.form, team.event.booking.form and profile pages
-  return generateBookingSlotsPageSkeleton({ layout });
+  return defaultSkeleton;
 };
 
 export { generateSkeleton };

@@ -42,11 +42,11 @@ import type { BookerProps, WrappedBookerProps, BookerState } from "./types";
 import { isBookingDryRun } from "./utils/isBookingDryRun";
 import { isTimeSlotAvailable } from "./utils/isTimeslotAvailable";
 
-function updateEmbedIsBookerReady({ bookerState }: { bookerState: BookerState }) {
+function updateEmbedBookerState({ bookerState }: { bookerState: BookerState }) {
   // Ensure that only after the bookerState is reflected, we update the embedIsBookerReady
   if (typeof window !== "undefined") {
-    (window as Window & { _embedIsBookerReady?: boolean })._embedIsBookerReady =
-      bookerState && bookerState !== "loading";
+    (window as Window & { _embedBookerState?: "initializing" | "done" })._embedBookerState =
+      bookerState && bookerState !== "loading" ? "done" : "initializing";
   }
 }
 
@@ -186,7 +186,7 @@ const BookerComponent = ({
     (bookerState === "booking" || (bookerState === "selecting_time" && skipConfirmStep))
   );
 
-  updateEmbedIsBookerReady({ bookerState });
+  updateEmbedBookerState({ bookerState });
 
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");

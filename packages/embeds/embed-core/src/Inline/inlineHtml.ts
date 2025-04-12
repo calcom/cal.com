@@ -15,9 +15,9 @@ const html = ({
 
   return `
 <div id="skeleton-container" style="${skeletonContainerStyle}">
-	<div id="skeleton" style="${skeletonStyle}" class="absolute z-highest">
-		${skeletonContent}
-	</div>
+  <div id="skeleton" style="${skeletonStyle}" class="absolute z-highest">
+    ${skeletonContent}
+  </div>
   <div id="wrapper" style="top:50%; left:50%; transform:translate(-50%,-50%)" class="absolute z-highest">
     <div class="loader border-brand-default dark:border-darkmodebrand">
       <span class="loader-inner bg-brand dark:bg-darkmodebrand"></span>
