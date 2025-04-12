@@ -200,11 +200,10 @@ const FixedHosts = ({
                   "hosts",
                   teamMembers.map((teamMember, index) => {
                     const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
-                    const existingOrganizer = currentHosts.find((h) => h.isOrganizer);
+                    const hasExistingOrganizer = currentHosts.find((h) => h.isOrganizer);
                     return {
                       isFixed: true,
-                      // First host becomes organizer if no organizer exists
-                      isOrganizer: !existingOrganizer && index === 0,
+                      isOrganizer: !hasExistingOrganizer && index === 0,
                       userId: parseInt(teamMember.value, 10),
                       priority: host?.priority ?? 2,
                       weight: host?.weight ?? 100,
@@ -541,6 +540,9 @@ const Hosts = ({
               teamMembers={teamMembers}
               value={value}
               onChange={(changeValue) => {
+                const hasOrganizer = changeValue.some((host: Host) => host.isOrganizer);
+                if (!hasOrganizer && changeValue.length > 0) changeValue[0].isOrganizer = true;
+
                 onChange([...updatedHosts(changeValue)]);
               }}
               assignAllTeamMembers={assignAllTeamMembers}
@@ -555,6 +557,9 @@ const Hosts = ({
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
+                  const hasOrganizer = changeValue.some((host: Host) => host.isOrganizer);
+                  if (!hasOrganizer && changeValue.length > 0) changeValue[0].isOrganizer = true;
+
                   onChange([...value.filter((host: Host) => !host.isFixed), ...updatedHosts(changeValue)]);
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
