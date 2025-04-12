@@ -914,11 +914,10 @@ export class EventTypeRepository {
     return user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventTypeId);
   }
 
-  static async getPublicEvent(input: GetPublicEventProps, userId?: number) {
+  static async getPublicEvent(input: Omit<GetPublicEventProps, "prisma">) {
     const event = await getPublicEvent({
       ...input,
       prisma,
-      currentUserId: userId,
     });
     return event;
   }

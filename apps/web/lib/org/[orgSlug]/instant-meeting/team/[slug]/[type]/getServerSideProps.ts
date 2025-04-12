@@ -40,16 +40,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const org = isValidOrgDomain ? currentOrgDomain : null;
 
-  const eventData = await EventTypeRepository.getPublicEvent(
-    {
-      username: teamSlug,
-      eventSlug: meetingSlug,
-      isTeamEvent: true,
-      org,
-      fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-    },
-    session?.user?.id
-  );
+  const eventData = await EventTypeRepository.getPublicEvent({
+    username: teamSlug,
+    eventSlug: meetingSlug,
+    isTeamEvent: true,
+    org,
+    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
+    currentUserId: session?.user?.id,
+  });
   if (!eventData || !org) {
     return {
       notFound: true,

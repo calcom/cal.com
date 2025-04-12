@@ -6,8 +6,8 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
+import type { getPublicEvent } from "@calcom/lib/server/queries/eventType/getPublicEvent";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
@@ -127,15 +127,13 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
 
-  const eventData = await EventTypeRepository.getPublicEvent(
-    {
-      username: usernames.join("+"),
-      eventSlug: slug,
-      org,
-      fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-    },
-    session?.user?.id
-  );
+  const eventData = await EventTypeRepository.getPublicEvent({
+    username: usernames.join("+"),
+    eventSlug: slug,
+    org,
+    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
+    currentUserId: session?.user?.id,
+  });
 
   if (!eventData) {
     return {
@@ -210,15 +208,13 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const org = isValidOrgDomain ? currentOrgDomain : null;
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we can show a 404 otherwise.
-  const eventData = await EventTypeRepository.getPublicEvent(
-    {
-      username,
-      eventSlug: slug,
-      org,
-      fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-    },
-    session?.user?.id
-  );
+  const eventData = await EventTypeRepository.getPublicEvent({
+    username,
+    eventSlug: slug,
+    org,
+    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
+    currentUserId: session?.user?.id,
+  });
 
   if (!eventData) {
     return {

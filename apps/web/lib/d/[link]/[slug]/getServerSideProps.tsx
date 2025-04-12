@@ -113,16 +113,14 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const eventData = await EventTypeRepository.getPublicEvent(
-    {
-      username: name,
-      eventSlug: slug,
-      isTeamEvent,
-      org,
-      fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-    },
-    session?.user?.id
-  );
+  const eventData = await EventTypeRepository.getPublicEvent({
+    username: name,
+    eventSlug: slug,
+    isTeamEvent,
+    org,
+    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
+    currentUserId: session?.user?.id,
+  });
 
   if (!eventData) {
     return notFound;

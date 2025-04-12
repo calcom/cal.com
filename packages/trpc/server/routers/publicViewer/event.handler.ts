@@ -8,7 +8,7 @@ interface EventHandlerOptions {
 }
 
 export const eventHandler = async ({ input, userId }: EventHandlerOptions) => {
-  return await EventTypeRepository.getPublicEvent(input, userId);
+  return await EventTypeRepository.getPublicEvent({ ...input, currentUserId: userId });
 };
 
 export default eventHandler;
