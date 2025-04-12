@@ -82,10 +82,9 @@ const CheckedHostField = ({
           onChange={(options) => {
             onChange &&
               onChange(
-                options.map((option, index) => ({
+                options.map((option) => ({
                   isFixed,
-                  // Make first fixed host the organizer
-                  isOrganizer: isFixed && value.length === 0 && index === 0,
+                  isOrganizer: option.isOrganizer ?? false,
                   userId: parseInt(option.value, 10),
                   priority: option.priority ?? 2,
                   weight: option.weight ?? 100,

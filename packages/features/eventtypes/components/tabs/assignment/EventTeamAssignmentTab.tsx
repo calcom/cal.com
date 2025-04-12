@@ -157,7 +157,9 @@ const FixedHosts = ({
 }) => {
   const { t } = useLocale();
   const { getValues, setValue } = useFormContext<FormValues>();
-  console.log("FixedHosts - Initial data from backend:", { value, teamMembers });
+  console.log("FixedHosts - Initial data from backend:");
+  console.log("hosts:", value);
+  console.log("teamMembers:", teamMembers);
 
   const hasActiveFixedHosts = isRoundRobinEvent && getValues("hosts").some((host) => host.isFixed);
 
@@ -198,12 +200,11 @@ const FixedHosts = ({
                 const currentHosts = getValues("hosts");
                 setValue(
                   "hosts",
-                  teamMembers.map((teamMember, index) => {
+                  teamMembers.map((teamMember) => {
                     const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
-                    const hasExistingOrganizer = currentHosts.find((h) => h.isOrganizer);
                     return {
                       isFixed: true,
-                      isOrganizer: !hasExistingOrganizer && index === 0,
+                      isOrganizer: false,
                       userId: parseInt(teamMember.value, 10),
                       priority: host?.priority ?? 2,
                       weight: host?.weight ?? 100,
