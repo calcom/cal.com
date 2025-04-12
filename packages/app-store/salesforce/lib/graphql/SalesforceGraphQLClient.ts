@@ -73,6 +73,7 @@ export class SalesforceGraphQLClient {
       const contact = queryData.uiapi.query.Contact?.edges?.[0]?.node;
 
       if (contact) {
+        log.info(`Existing contact found with id ${contact.Id}`);
         return [
           {
             id: contact.AccountId?.value || contact.Id,
@@ -89,6 +90,9 @@ export class SalesforceGraphQLClient {
     if (queryData.uiapi.query.Account) {
       const account = queryData.uiapi.query.Account?.edges?.[0]?.node;
       if (account) {
+        log.info(
+          `Existing account with website that matches email domain of ${emailDomain} found with id ${account.Id}`
+        );
         return [
           {
             id: account.Id,
@@ -156,6 +160,7 @@ export class SalesforceGraphQLClient {
         return [];
       }
 
+      log.info(`Account found via related contacts with account id ${dominantAccountId}`);
       return [
         {
           id: dominantAccountId,
@@ -167,6 +172,7 @@ export class SalesforceGraphQLClient {
       ];
     }
 
+    log.info("No account found for attendee");
     return [];
   }
 
