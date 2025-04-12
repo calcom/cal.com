@@ -6,7 +6,6 @@ import { prisma, availabilityUserSelect } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
-import type { TEventInputSchema } from "@calcom/trpc/server/routers/publicViewer/event.schema";
 import type { Ensure } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
@@ -14,6 +13,7 @@ import { TRPCError } from "@trpc/server";
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
 import { getPublicEvent } from "../queries/eventType/getPublicEvent";
+import type { GetPublicEventProps } from "../queries/eventType/getPublicEvent";
 import { LookupTarget, ProfileRepository } from "./profile";
 import type { UserWithLegacySelectedCalendars } from "./user";
 import { withSelectedCalendars } from "./user";
@@ -914,16 +914,12 @@ export class EventTypeRepository {
     return user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventTypeId);
   }
 
-  static async getPublicEvent(input: TEventInputSchema, userId?: number) {
-    const event = await getPublicEvent(
-      input.username,
-      input.eventSlug,
-      input.isTeamEvent,
-      input.org,
+  static async getPublicEvent(input: GetPublicEventProps, userId?: number) {
+    const event = await getPublicEvent({
+      ...input,
       prisma,
-      input.fromRedirectOfNonOrgLink,
-      userId
-    );
+      currentUserId: userId,
+    });
     return event;
   }
 }
