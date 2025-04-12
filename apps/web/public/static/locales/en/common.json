@@ -3109,5 +3109,17 @@
   "resend_in_seconds": "Resend in {{seconds}} seconds",
   "resend": "Resend",
   "verification_email_sent": "Verification email sent",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time": "Date & Time",
+  "email_reminder_upcoming_event_notice": "This is a reminder about your upcoming event.",
+  "email_reminder_triggered_by_workflow": "This reminder was triggered by a Workflow in Cal.",
+  "event_upper_case": "Event",
+  "scheduling_by": "Scheduling by",
+  "experience_review_prompt": "How was your recent experience?",
+  "improve_customer_experience_message": "We're always looking to improve our customer's experience.",
+  "meeting_satisfaction_question": "How satisfied were you with your recent meeting?",
+  "meeting_not_joined_question": "didn't join the meeting?",
+  "reschedule_cta_short": "Reschedule here.",
+  "you_and_conjunction": "You &",
+  "email_survey_triggered_by_workflow": "This survey was triggered by a Workflow in Cal."
 }
