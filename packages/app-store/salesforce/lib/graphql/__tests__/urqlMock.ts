@@ -44,7 +44,7 @@ export const mockValueOfAccountOwnershipQueryMatchingContact = () => {
             Owner: {
               Id: "ownerId",
               Email: {
-                value: "ownerEmail",
+                value: "owner@test.com",
               },
             },
           },
@@ -67,7 +67,7 @@ export const mockValueOfAccountOwnershipQueryMatchingAccountWebsite = () => {
             Owner: {
               Id: "ownerId",
               Email: {
-                value: "ownerEmail",
+                value: "owner@test.com",
               },
             },
           },
@@ -97,7 +97,7 @@ export const mockValueOfAccountOwnershipQueryMatchingRelatedContacts = () => {
               Owner: {
                 Id: "owner1",
                 Email: {
-                  value: "owner1Email",
+                  value: "owner1@test.com",
                 },
               },
             },
@@ -113,7 +113,7 @@ export const mockValueOfAccountOwnershipQueryMatchingRelatedContacts = () => {
               Owner: {
                 Id: "owner2",
                 Email: {
-                  value: "owner2Email",
+                  value: "owner2@test.com",
                 },
               },
             },
@@ -129,7 +129,7 @@ export const mockValueOfAccountOwnershipQueryMatchingRelatedContacts = () => {
               Owner: {
                 Id: "owner2",
                 Email: {
-                  value: "owner2Email",
+                  value: "owner2@test.com",
                 },
               },
             },
@@ -145,7 +145,7 @@ export const mockValueOfAccountOwnershipQueryMatchingRelatedContacts = () => {
               Owner: {
                 Id: "owner1",
                 Email: {
-                  value: "owner1Email",
+                  value: "owner1@test.com",
                 },
               },
             },
@@ -161,7 +161,7 @@ export const mockValueOfAccountOwnershipQueryMatchingRelatedContacts = () => {
               Owner: {
                 Id: "owner1",
                 Email: {
-                  value: "owner1Email",
+                  value: "owner1@test.com",
                 },
               },
             },
