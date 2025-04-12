@@ -38,7 +38,6 @@ import {
 } from "@nestjs/common";
 import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { getPublicEvent, getEventTypesByViewer } from "@calcom/platform-libraries-0.0.2";
 import { PrismaClient } from "@calcom/prisma";
@@ -113,7 +112,7 @@ export class EventTypesController_2024_04_15 {
     @Query() queryParams: GetPublicEventTypeQueryParams_2024_04_15
   ): Promise<GetEventTypePublicOutput> {
     try {
-      const event = await EventTypeRepository.getPublicEvent({
+      const event = await getPublicEvent({
         username: username.toLowerCase(),
         eventSlug,
         isTeamEvent: queryParams.isTeamEvent,
