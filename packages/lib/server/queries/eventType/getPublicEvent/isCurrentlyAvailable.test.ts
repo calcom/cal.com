@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { describe, it, expect, vi, beforeAll } from "vitest";
 
-import { isCurrentlyAvailable } from "./getPublicEvent";
+import { isCurrentlyAvailable } from ".";
 
 const prisma = new PrismaClient();
 

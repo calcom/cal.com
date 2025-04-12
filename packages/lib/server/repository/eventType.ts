@@ -1,7 +1,6 @@
 import type { EventType as PrismaEventType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
-import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import logger from "@calcom/lib/logger";
 import { prisma, availabilityUserSelect } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -14,6 +13,7 @@ import { TRPCError } from "@trpc/server";
 
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
+import { getPublicEvent } from "../queries/eventType/getPublicEvent";
 import { LookupTarget, ProfileRepository } from "./profile";
 import type { UserWithLegacySelectedCalendars } from "./user";
 import { withSelectedCalendars } from "./user";
