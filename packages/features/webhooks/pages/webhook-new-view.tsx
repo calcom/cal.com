@@ -9,31 +9,12 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
 
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";
 import { subscriberUrlReserved } from "../lib/subscriberUrlReserved";
-
-export const SkeletonLoader = () => {
-  const { t } = useLocale();
-  return (
-    <SettingsHeader
-      title={t("add_webhook")}
-      description={t("add_webhook_description", { appName: APP_NAME })}
-      borderInShellHeader={true}
-      backButton>
-      <SkeletonContainer>
-        <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
-          <SkeletonText className="h-8 w-full" />
-          <SkeletonText className="h-8 w-full" />
-        </div>
-      </SkeletonContainer>
-    </SettingsHeader>
-  );
-};
 
 type Props = {
   webhooks: RouterOutputs["viewer"]["webhook"]["list"];
