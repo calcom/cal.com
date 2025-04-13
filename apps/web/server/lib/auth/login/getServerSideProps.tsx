@@ -1,14 +1,14 @@
 import { jwtVerify } from "jose";
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
+import { IS_GOOGLE_LOGIN_ENABLED } from "server/lib/constants";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
+import { IS_OUTLOOK_LOGIN_ENABLED } from "@calcom/features/auth/lib/outlook";
+import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
-
-import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req, query } = context;
@@ -90,9 +90,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     props: {
       csrfToken: await getCsrfToken(context),
       isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
+      isOutlookLoginEnabled: IS_OUTLOOK_LOGIN_ENABLED,
       isSAMLLoginEnabled,
-      samlTenantID,
-      samlProductID,
+      samlTenantID: process.env.SAML_TENANT_ID || "",
+      samlProductID: process.env.SAML_PRODUCT_ID || "",
       totpEmail,
     },
   };

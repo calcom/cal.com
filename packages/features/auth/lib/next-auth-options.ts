@@ -6,6 +6,7 @@ import type { AuthOptions, Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
+import AzureADProvider from "next-auth/providers/azure-ad";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
@@ -13,6 +14,11 @@ import GoogleProvider from "next-auth/providers/google";
 import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
+import {
+  IS_OUTLOOK_LOGIN_ENABLED,
+  OUTLOOK_CLIENT_ID,
+  OUTLOOK_CLIENT_SECRET,
+} from "@calcom/features/auth/lib/outlook";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -390,6 +396,18 @@ if (isSAMLLoginEnabled) {
           profile: userProfile,
         };
       },
+    })
+  );
+}
+
+if (IS_OUTLOOK_LOGIN_ENABLED) {
+  providers.push(
+    AzureADProvider({
+      clientId: OUTLOOK_CLIENT_ID!,
+      clientSecret: OUTLOOK_CLIENT_SECRET!,
+      tenantId: process.env.AZURE_AD_TENANT_ID, // Use AZURE_AD_TENANT_ID for tenant ID
+      // Keeping allowDangerousEmailAccountLinking consistent with other providers
+      allowDangerousEmailAccountLinking: true,
     })
   );
 }

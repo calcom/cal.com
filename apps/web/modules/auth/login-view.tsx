@@ -24,6 +24,7 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { EmailField } from "@calcom/ui/components/form";
 import { PasswordField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { WithNonceProps } from "@lib/withNonce";
@@ -43,6 +44,10 @@ interface LoginValues {
   csrfToken: string;
 }
 
+const MicrosoftIcon = () => (
+  <img className="text-subtle mr-2 h-4 w-4" src="/microsoft-logo.svg" alt="Continue with Microsoft Icon" />
+);
+
 const GoogleIcon = () => (
   <img className="text-subtle mr-2 h-4 w-4" src="/google-icon-colored.svg" alt="Continue with Google Icon" />
 );
@@ -50,6 +55,7 @@ export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export default function Login({
   csrfToken,
   isGoogleLoginEnabled,
+  isOutlookLoginEnabled,
   isSAMLLoginEnabled,
   samlTenantID,
   samlProductID,
@@ -100,10 +106,36 @@ PageProps & WithNonceProps<{}>) {
 
   callbackUrl = safeCallbackUrl || "";
 
+  const { data, isPending, error } = trpc.viewer.public.ssoConnections.useQuery();
+
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (error) {
+        setErrorMessage(error.message);
+      }
+    },
+    [error]
+  );
+
+  const displaySSOLogin = HOSTED_CAL_FEATURES
+    ? true
+    : isSAMLLoginEnabled && !isPending && data?.connectionExists;
+
   const LoginFooter = (
-    <Link href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
-      {t("dont_have_an_account")}
-    </Link>
+    <div className="flex w-full flex-row items-center justify-center">
+      <Link href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
+        {t("create_an_account")}
+      </Link>
+      {displaySSOLogin && <Icon name="circle" className="mx-5 h-2 w-2 fill-[#d9d9d9]" color="#d9d9d9" />}
+      {displaySSOLogin && (
+        <SAMLLogin
+          disabled={formState.isSubmitting}
+          samlTenantID={samlTenantID}
+          samlProductID={samlProductID}
+          setErrorMessage={setErrorMessage}
+        />
+      )}
+    </div>
   );
 
   const TwoFactorFooter = (
@@ -168,21 +200,6 @@ PageProps & WithNonceProps<{}>) {
     else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
   };
 
-  const { data, isPending, error } = trpc.viewer.public.ssoConnections.useQuery();
-
-  useEffect(
-    function refactorMeWithoutEffect() {
-      if (error) {
-        setErrorMessage(error.message);
-      }
-    },
-    [error]
-  );
-
-  const displaySSOLogin = HOSTED_CAL_FEATURES
-    ? true
-    : isSAMLLoginEnabled && !isPending && data?.connectionExists;
-
   return (
     <div className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:#9CA3AF] [--cal-brand-text:white] [--cal-brand:#111827] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand-text:black] dark:[--cal-brand:white]">
       <AuthContainer
@@ -219,16 +236,25 @@ PageProps & WithNonceProps<{}>) {
                     {lastUsed === "google" && <LastUsed />}
                   </Button>
                 )}
-                {displaySSOLogin && (
-                  <SAMLLogin
-                    disabled={formState.isSubmitting}
-                    samlTenantID={samlTenantID}
-                    samlProductID={samlProductID}
-                    setErrorMessage={setErrorMessage}
-                  />
+                {isOutlookLoginEnabled && (
+                  <Button
+                    color="primary"
+                    className="w-full justify-center"
+                    data-testid="microsoft"
+                    CustomStartIcon={<MicrosoftIcon />}
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      setLastUsed("microsoft");
+                      await signIn("microsoft", {
+                        callbackUrl,
+                      });
+                    }}>
+                    <span>{t("signin_with_microsoft")}</span>
+                    {lastUsed === "microsoft" && <LastUsed />}
+                  </Button>
                 )}
               </div>
-              {(isGoogleLoginEnabled || displaySSOLogin) && (
+              {(isGoogleLoginEnabled || isOutlookLoginEnabled) && (
                 <div className="my-8">
                   <div className="relative flex items-center">
                     <div className="border-subtle flex-grow border-t" />
