@@ -1,8 +1,10 @@
 // eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
 
-import type { IconName } from "@calcom/ui";
-import { Button, Icon, Popover, PopoverContent, PopoverTrigger, Badge } from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import type { IconName } from "@calcom/ui/components/icon";
+import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 
 import { useFilterValue } from "../../hooks";
 import { type FilterableColumn, type FilterValue, ZFilterValue, ColumnFilterType } from "../../lib/types";
@@ -136,12 +138,12 @@ export function FilterPopover({ column }: FilterPopoverProps) {
       <PopoverTrigger asChild>
         <Button
           color="secondary"
-          className="items-center"
+          className="h-[34px] items-center"
+          StartIcon={icon}
+          EndIcon="chevron-down"
           data-testid={`filter-popover-trigger-${column.id}`}>
-          <Icon name={icon} className="mr-2 h-4 w-4" />
           <span>{startCase(column.title)}</span>
           <AppliedFilterValue column={column} filterValue={filterValue} />
-          <Icon name="chevron-down" className="ml-2 h-4 w-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0" align="start">

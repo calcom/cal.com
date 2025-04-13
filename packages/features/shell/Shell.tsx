@@ -4,18 +4,18 @@ import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
 import React, { cloneElement } from "react";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 
 import { useRedirectToLoginIfUnauthenticated } from "@calcom/features/auth/lib/hooks/useRedirectToLoginIfUnauthenticated";
 import { useRedirectToOnboardingIfNeeded } from "@calcom/features/auth/lib/hooks/useRedirectToOnboardingIfNeeded";
 import { KBarContent, KBarRoot } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
-import classNames from "@calcom/lib/classNames";
-import { APP_NAME } from "@calcom/lib/constants";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useNotifications } from "@calcom/lib/hooks/useNotifications";
-import { Button, ErrorBoundary, HeadSeo, SkeletonText } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { SideBarContainer } from "./SideBar";
 import { TopNavContainer } from "./TopNav";
@@ -28,19 +28,11 @@ const Layout = (props: LayoutProps) => {
   const { banners, bannersHeight } = useBanners();
   const pathname = usePathname();
   const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
-  const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
-  const withoutSeo = props.withoutSeo ?? props.withoutMain ?? false;
 
   useFormbricks();
 
   return (
     <>
-      {!withoutSeo && (
-        <HeadSeo
-          title={pageTitle ?? APP_NAME}
-          description={props.description ?? props.subtitle?.toString() ?? ""}
-        />
-      )}
       <div>
         <Toaster position="bottom-right" />
       </div>
@@ -89,8 +81,6 @@ export type LayoutProps = {
   flexChildrenContainer?: boolean;
   isPublic?: boolean;
   withoutMain?: boolean;
-  // Gives you the option to skip HeadSEO and render your own.
-  withoutSeo?: boolean;
   // Gives the ability to include actions to the right of the heading
   actions?: JSX.Element;
   beforeCTAactions?: JSX.Element;
@@ -135,16 +125,14 @@ export default function Shell(props: LayoutProps) {
 
 export function ShellMain(props: LayoutProps) {
   const router = useRouter();
-  const { isLocaleReady, t } = useLocale();
-
-  const { buttonToShow, isLoading, enableNotifications, disableNotifications } = useNotifications();
+  const { isLocaleReady } = useLocale();
 
   return (
     <>
       {(props.heading || !!props.backPath) && (
         <div
           className={classNames(
-            "hidden items-center md:mb-6 md:mt-0 md:flex",
+            "bg-default sticky top-0 z-10 mb-0 flex items-center py-2 md:mb-6 md:mt-0",
             props.smallHeading ? "lg:mb-7" : "lg:mb-8"
           )}>
           {!!props.backPath && (
@@ -170,7 +158,7 @@ export function ShellMain(props: LayoutProps) {
                 {props.heading && (
                   <h3
                     className={classNames(
-                      "font-cal text-emphasis max-w-28 sm:max-w-72 md:max-w-80 inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
+                      "font-cal text-emphasis max-w-28 sm:max-w-72 md:max-w-80 hidden truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
                       props.smallHeading ? "text-base" : "text-xl"
                     )}>
                     {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
@@ -195,23 +183,6 @@ export function ShellMain(props: LayoutProps) {
                 </div>
               )}
               {props.actions && props.actions}
-              {/* TODO: temporary hide push notifications {props.heading === "Bookings" && buttonToShow && (
-                <Button
-                  color="primary"
-                  onClick={buttonToShow === ButtonState.ALLOW ? enableNotifications : disableNotifications}
-                  loading={isLoading}
-                  disabled={buttonToShow === ButtonState.DENIED}
-                  tooltipSide="bottom"
-                  tooltip={
-                    buttonToShow === ButtonState.DENIED ? t("you_have_denied_notifications") : undefined
-                  }>
-                  {t(
-                    buttonToShow === ButtonState.DISABLE
-                      ? "disable_browser_notifications"
-                      : "allow_browser_notifications"
-                  )}
-                </Button>
-              )} */}
             </header>
           )}
         </div>
@@ -233,7 +204,7 @@ function MainContainer({
   ...props
 }: LayoutProps) {
   return (
-    <main className="bg-default relative z-0 flex-1 focus:outline-none">
+    <main className="bg-default relative z-0 flex-1 pb-8 focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
       <div className="max-w-full p-2 sm:py-4 lg:px-6">

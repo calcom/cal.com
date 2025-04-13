@@ -3,10 +3,12 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon, showToast, Switch } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 export type ICalendarSwitchProps = {
   title: string;
@@ -17,6 +19,7 @@ export type ICalendarSwitchProps = {
   isLastItemInList?: boolean;
   destination?: boolean;
   credentialId: number;
+  delegationCredentialId: string | null;
   eventTypeId: number | null;
   disabled?: boolean;
 };
@@ -28,7 +31,17 @@ type EventCalendarSwitchProps = ICalendarSwitchProps & {
 };
 
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
-  const { title, externalId, type, isChecked, name, credentialId, eventTypeId, disabled } = props;
+  const {
+    title,
+    externalId,
+    type,
+    isChecked,
+    name,
+    credentialId,
+    delegationCredentialId,
+    eventTypeId,
+    disabled,
+  } = props;
   const [checkedInternal, setCheckedInternal] = useState(isChecked);
   const utils = trpc.useUtils();
   const { t } = useLocale();
@@ -37,6 +50,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       const body = {
         integration: type,
         externalId: externalId,
+        ...(delegationCredentialId && { delegationCredentialId }),
         // new URLSearchParams does not accept numbers
         credentialId: String(credentialId),
         ...(eventTypeId ? { eventTypeId: String(eventTypeId) } : {}),
@@ -68,8 +82,8 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       }
     },
     async onSettled() {
-      await utils.viewer.integrations.invalidate();
-      await utils.viewer.connectedCalendars.invalidate();
+      await utils.viewer.apps.integrations.invalidate();
+      await utils.viewer.calendars.connectedCalendars.invalidate();
     },
     onError() {
       setCheckedInternal(false);

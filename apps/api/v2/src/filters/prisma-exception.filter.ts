@@ -1,3 +1,4 @@
+import { filterReqHeaders } from "@/lib/filterReqHeaders";
 import type { ArgumentsHost, ExceptionFilter } from "@nestjs/common";
 import { Catch, HttpStatus, Logger } from "@nestjs/common";
 import {
@@ -39,12 +40,13 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
-    const requestId = request.headers["X-Request-Id"];
+    const requestId = request.headers["X-Request-Id"] ?? "unknown-request-id";
+    response.setHeader("X-Request-Id", requestId.toString());
 
     this.logger.error(`PrismaError: ${error.message}`, {
       error,
       body: request.body,
-      headers: request.headers,
+      headers: filterReqHeaders(request.headers),
       url: request.url,
       method: request.method,
       requestId,

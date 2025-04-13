@@ -39,6 +39,8 @@ export const getEventTypesFromDB = async (id: number) => {
       currency: true,
       bookingFields: true,
       allowReschedulingPastBookings: true,
+      disableCancelling: true,
+      disableRescheduling: true,
       disableGuests: true,
       timeZone: true,
       profile: {
@@ -198,7 +200,9 @@ export async function getRecurringBookings(recurringEventId: string | null) {
   const recurringBookings = await prisma.booking.findMany({
     where: {
       recurringEventId,
-      status: BookingStatus.ACCEPTED,
+      status: {
+        in: [BookingStatus.ACCEPTED, BookingStatus.PENDING],
+      },
     },
     select: {
       startTime: true,
