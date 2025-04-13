@@ -21,6 +21,7 @@ export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/"]; // trailing slash in "
 export const POST_METHODS_ALLOWED_APP_ROUTES = [
   "/settings/my-account/general",
   "/settings/developer/webhooks",
+  "/settings/developer/api-keys",
 ];
 
 export function checkPostMethod(req: NextRequest) {
