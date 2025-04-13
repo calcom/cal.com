@@ -1,7 +1,6 @@
 import { createRouterCaller } from "app/_trpc/context";
-import { getTranslate, _generateMetadata } from "app/_utils";
+import { _generateMetadata } from "app/_utils";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { NewWebhookView } from "@calcom/features/webhooks/pages/webhook-new-view";
 import { APP_NAME } from "@calcom/lib/constants";
 import { appsRouter } from "@calcom/trpc/server/routers/viewer/apps/_router";
@@ -14,8 +13,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const [t, appsCaller, webhookCaller] = await Promise.all([
-    getTranslate(),
+  const [appsCaller, webhookCaller] = await Promise.all([
     createRouterCaller(appsRouter),
     createRouterCaller(webhookRouter),
   ]);
@@ -25,15 +23,7 @@ const Page = async () => {
     webhookCaller.list(),
   ]);
 
-  return (
-    <SettingsHeader
-      title={t("add_webhook")}
-      description={t("add_webhook_description", { appName: APP_NAME })}
-      borderInShellHeader={true}
-      backButton>
-      <NewWebhookView webhooks={webhooks} installedApps={installedApps} />
-    </SettingsHeader>
-  );
+  return <NewWebhookView webhooks={webhooks} installedApps={installedApps} />;
 };
 
 export default Page;
