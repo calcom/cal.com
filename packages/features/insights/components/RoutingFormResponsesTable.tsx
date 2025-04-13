@@ -1,13 +1,9 @@
 "use client";
 
-import {
-  useReactTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-} from "@tanstack/react-table";
+import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import { useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 import {
   DataTableWrapper,
@@ -15,6 +11,7 @@ import {
   DataTableSkeleton,
   useDataTable,
   DateRangeFilter,
+  DataTableSegment,
   ColumnFilterType,
   convertMapToFacetedValues,
   type FilterableColumn,
@@ -54,9 +51,9 @@ export function RoutingFormResponsesTable() {
 
   const getInsightsFacetedUniqueValues = useInsightsFacetedUniqueValues({ headers, userId, teamId, isAll });
 
-  const { sorting, limit, offset, updateFilter } = useDataTable();
+  const { sorting, limit, offset, ctaContainerRef, updateFilter } = useDataTable();
 
-  const { data, isFetching, isPending, isLoading } = trpc.viewer.insights.routingFormResponses.useQuery({
+  const { data, isPending } = trpc.viewer.insights.routingFormResponses.useQuery({
     teamId,
     startDate,
     endDate,
@@ -81,7 +78,6 @@ export function RoutingFormResponsesTable() {
     data: processedData,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     defaultColumn: {
       size: 150,
@@ -90,6 +86,11 @@ export function RoutingFormResponsesTable() {
       columnVisibility: {
         formId: false,
         bookingUserId: false,
+        utm_source: false,
+        utm_medium: false,
+        utm_campaign: false,
+        utm_term: false,
+        utm_content: false,
       },
     },
     getFacetedUniqueValues: getInsightsFacetedUniqueValues,
@@ -115,31 +116,39 @@ export function RoutingFormResponsesTable() {
   return (
     <>
       <div className="flex-1">
-        <DataTableWrapper
+        <DataTableWrapper<RoutingFormTableRow>
           table={table}
           isPending={isPending}
+          rowClassName="min-h-14"
           paginationMode="standard"
           totalRowCount={data?.total}
           LoaderView={<DataTableSkeleton columns={4} columnWidths={[200, 200, 250, 250]} />}
           ToolbarLeft={
             <>
+              <DataTableFilters.ColumnVisibilityButton table={table} />
               <OrgTeamsFilter />
-              <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
-              <DataTableFilters.ActiveFilters table={table} />
-              <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
-              <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
+              <DataTableFilters.FilterBar table={table} />
             </>
           }
           ToolbarRight={
             <>
-              <DateRangeFilter column={createdAtColumn} />
-              <RoutingFormResponsesDownload sorting={sorting} />
-              <DataTableFilters.ColumnVisibilityButton table={table} />
+              <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
+              <DataTableSegment.SaveButton />
+              <DataTableSegment.Select />
             </>
           }>
           <RoutingKPICards />
         </DataTableWrapper>
       </div>
+
+      {ctaContainerRef.current &&
+        createPortal(
+          <>
+            <DateRangeFilter column={createdAtColumn} />
+            <RoutingFormResponsesDownload sorting={sorting} />
+          </>,
+          ctaContainerRef.current
+        )}
     </>
   );
 }

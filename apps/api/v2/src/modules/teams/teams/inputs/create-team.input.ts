@@ -1,11 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsBoolean, IsObject, IsOptional, IsString, IsUrl, Length } from "class-validator";
 
-import {
-  Metadata,
-  METADATA_DOCS,
-  ValidateMetadata,
-} from "@calcom/platform-types/bookings/2024-08-13/inputs/validators/validate-metadata";
+import { Metadata, METADATA_DOCS, ValidateMetadata } from "@calcom/platform-types";
 
 export class CreateTeamInput {
   @IsString()
@@ -124,6 +120,11 @@ export class CreateTeamInput {
 
   @IsOptional()
   @IsBoolean()
-  @ApiPropertyOptional({ type: Boolean, default: true })
+  @ApiPropertyOptional({
+    type: Boolean,
+    default: true,
+    description:
+      "If you are a platform customer, don't pass 'false', because then team creator won't be able to create team event types.",
+  })
   readonly autoAcceptCreator?: boolean = true;
 }

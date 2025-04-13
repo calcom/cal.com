@@ -12,23 +12,16 @@ import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
 import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
 import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/lib/server/getTeamMemberEmailFromCrm";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
-import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integrations.handler";
-import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 export { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 
 export { slugify } from "@calcom/lib/slugify";
 export { getBookingForReschedule };
-export { updateScheduleHandler };
-export type UpdateScheduleOutputType = Awaited<
-  ReturnType<
-    typeof import("@calcom/trpc/server/routers/viewer/availability/schedule/update.handler").updateHandler
-  >
->;
 
 export { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 
@@ -49,14 +42,6 @@ export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDest
 
 export { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 
-export {
-  transformWorkingHoursForAtom,
-  transformAvailabilityForAtom,
-  transformDateOverridesForAtom,
-  transformApiScheduleAvailability,
-  transformApiScheduleOverrides,
-} from "@calcom/lib/schedules/transformers";
-
 export type {
   BookingCreateBody,
   BookingResponse,
@@ -70,14 +55,13 @@ export { cityTimezonesHandler } from "@calcom/features/cityTimezones/cityTimezon
 export type { CityTimezones } from "@calcom/features/cityTimezones/cityTimezonesHandler";
 
 export { TRPCError } from "@trpc/server";
-export type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
 export { createNewUsersConnectToOrgIfExists };
 
 export { getAllUserBookings };
 export { getBookingInfo };
 export { handleCancelBooking };
 
-export { userMetadata, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+export { userMetadata, bookingMetadataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 
@@ -94,7 +78,22 @@ export { roundRobinManualReassignment } from "@calcom/features/ee/round-robin/ro
 export { ErrorCode } from "@calcom/lib/errorCodes";
 
 export { validateCustomEventName } from "@calcom/lib/event";
-export type { TeamQuery };
+
+export type TeamQuery = Prisma.TeamGetPayload<{
+  select: {
+    id: true;
+    credentials: {
+      select: typeof import("@calcom/prisma/selects/credential").credentialForCalendarServiceSelect;
+    };
+    name: true;
+    logoUrl: true;
+    members: {
+      select: {
+        role: true;
+      };
+    };
+  };
+}>;
 
 export { credentialForCalendarServiceSelect };
 export { MembershipRole };
@@ -114,3 +113,7 @@ export { SelectedCalendarRepository } from "@calcom/lib/server/repository/select
 export { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 export { createHandler as createApiKeyHandler } from "@calcom/trpc/server/routers/viewer/apiKeys/create.handler";
 export { getCalendarLinks } from "@calcom/lib/bookings/getCalendarLinks";
+
+export { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
+export type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "@calcom/trpc/server/routers/viewer/attributes/findTeamMembersMatchingAttributeLogic.schema";
+export { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";

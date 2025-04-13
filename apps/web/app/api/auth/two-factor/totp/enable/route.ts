@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
@@ -11,9 +12,9 @@ import prisma from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-export async function POST(req: NextRequest) {
+async function postHandler(req: NextRequest) {
   const body = await parseRequestData(req);
-  const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
   if (!session) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
@@ -67,3 +68,5 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ message: "Two-factor enabled" });
 }
+
+export const POST = defaultResponderForAppDir(postHandler);

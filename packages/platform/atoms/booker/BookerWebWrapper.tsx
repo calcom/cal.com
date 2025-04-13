@@ -22,19 +22,32 @@ import { useBookerStore, useInitializeBookerStore } from "@calcom/features/booki
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { getLastBookingResponse } from "@calcom/features/bookings/Booker/utils/lastBookingResponse";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
+import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
-type BookerWebWrapperAtomProps = BookerProps;
+type BookerWebWrapperAtomProps = BookerProps & {
+  eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
+};
 
 export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const event = useEvent({
+  const clientFetchedEvent = useEvent({
+    disabled: !!props.eventData,
     fromRedirectOfNonOrgLink: props.entity.fromRedirectOfNonOrgLink,
   });
+  const event = props.eventData
+    ? {
+        data: props.eventData,
+        isSuccess: true,
+        isError: false,
+        isPending: false,
+      }
+    : clientFetchedEvent;
+
   const bookerLayout = useBookerLayout(event.data);
 
   const selectedDate = searchParams?.get("date");
@@ -60,7 +73,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     rescheduleUid,
     rescheduledBy,
     bookingUid: bookingUid,
-    layout: bookerLayout.defaultLayout,
+    layout: bookerLayout.isMobile ? "mobile" : bookerLayout.defaultLayout,
     org: props.entity.orgSlug,
     timezone,
   });
@@ -110,7 +123,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     requiresBookerEmailVerification: event?.data?.requiresBookerEmailVerification,
     onVerifyEmail: bookerForm.beforeVerifyEmail,
   });
-  const slots = useSlots(event);
+  const slots = useSlots(event?.data ? { id: event.data.id, length: event.data.length } : null);
 
   const isEmbed = useIsEmbed();
 
@@ -195,6 +208,10 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
         Array.from(searchParams.values()).includes(param)
       )
   );
+
+  useEffect(() => {
+    if (hasSession) onOverlaySwitchStateChange(true);
+  }, [hasSession]);
 
   return (
     <BookerComponent

@@ -583,3 +583,74 @@ test.describe("Booking round robin event", () => {
     expect(hostNameSecondBooking).toBe("teammate-1"); // teammate-1 should be booked again
   });
 });
+
+test.describe("Event type with disabled cancellation and rescheduling", () => {
+  let bookingId: string;
+  let user: { username: string | null };
+
+  test.beforeEach(async ({ page, users }) => {
+    user = await users.create({
+      name: `Test-user-${randomString(4)}`,
+      eventTypes: [
+        {
+          title: "No Cancel No Reschedule",
+          slug: "no-cancel-no-reschedule",
+          length: 30,
+          disableCancelling: true,
+          disableRescheduling: true,
+        },
+      ],
+    });
+
+    // Book the event
+    await page.goto(`/${user.username}/no-cancel-no-reschedule`);
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await bookTimeSlot(page, {
+      name: "Test-user-1",
+      email: "test-booker@example.com",
+    });
+
+    // Verify booking was successful
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    const url = new URL(page.url());
+    const pathSegments = url.pathname.split("/");
+    bookingId = pathSegments[pathSegments.length - 1];
+  });
+
+  test("Reschedule and cancel buttons should be hidden on success page", async ({ page }) => {
+    await expect(page.locator('[data-testid="reschedule-link"]')).toBeHidden();
+    await expect(page.locator('[data-testid="cancel"]')).toBeHidden();
+  });
+
+  test("Direct access to reschedule/{bookingId} should redirect to success page", async ({ page }) => {
+    await page.goto(`/reschedule/${bookingId}`);
+
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    await page.waitForURL((url) => url.pathname === `/booking/${bookingId}`);
+  });
+
+  test("Using rescheduleUid query parameter should redirect to success page", async ({ page }) => {
+    await page.goto(`/${user.username}/no-cancel-no-reschedule?rescheduleUid=${bookingId}`);
+
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    await page.waitForURL((url) => url.pathname === `/booking/${bookingId}`);
+  });
+
+  test("Should prevent cancellation and show an error message", async ({ page }) => {
+    const response = await page.request.post("/api/cancel", {
+      data: {
+        uid: bookingId,
+      },
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    expect(response.status()).toBe(400);
+    const responseBody = await response.json();
+    expect(responseBody.message).toBe("This event type does not allow cancellations");
+  });
+});

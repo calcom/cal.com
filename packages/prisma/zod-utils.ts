@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 import type {
   AnyZodObject,
@@ -58,6 +58,20 @@ export const bookerLayouts = z
     defaultLayout: layoutOptions,
   })
   .nullable();
+
+export const orgOnboardingInvitedMembersSchema = z.array(
+  z.object({ email: z.string().email(), name: z.string().optional() })
+);
+
+export const orgOnboardingTeamsSchema = z.array(
+  z.object({
+    id: z.number(),
+    name: z.string(),
+    isBeingMigrated: z.boolean(),
+    // "slug" is null for new teams
+    slug: z.string().nullable(),
+  })
+);
 
 export const defaultBookerLayoutSettings = {
   defaultLayout: BookerLayouts.MONTH_VIEW,
@@ -361,6 +375,7 @@ export enum BillingPeriod {
 
 export const teamMetadataSchema = z
   .object({
+    defaultConferencingApp: schemaDefaultConferencingApp.optional(),
     requestedSlug: z.string().or(z.null()),
     paymentId: z.string(),
     subscriptionId: z.string().nullable(),
@@ -620,6 +635,8 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   recurringEvent: true,
   customInputs: true,
   disableGuests: true,
+  disableCancelling: true,
+  disableRescheduling: true,
   requiresConfirmation: true,
   canSendCalVideoTranscriptionEmails: true,
   requiresConfirmationForFreeEmail: true,
