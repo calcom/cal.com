@@ -2,7 +2,8 @@ import { calendar_v3 } from "@googleapis/calendar";
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { OAuth2Client } from "googleapis-common";
-import type { AuthOptions, Session, User } from "next-auth";
+import type { AuthOptions, Session, User, Account, Profile } from "next-auth";
+import type { AdapterUser } from "next-auth/adapters";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
@@ -427,12 +428,17 @@ function isNumber(n: string) {
 
 const calcomAdapter = CalComAdapter(prisma);
 
-const mapIdentityProvider = (providerName: string) => {
+const mapIdentityProvider = (providerName: string): IdentityProvider => {
   switch (providerName) {
     case "saml-idp":
     case "saml":
       return IdentityProvider.SAML;
+    case "azure-ad":
+      return IdentityProvider.AZUREAD;
+    case "google":
+      return IdentityProvider.GOOGLE;
     default:
+      log.warn(`Unknown identity provider mapping encountered: ${providerName}. Defaulting to GOOGLE.`);
       return IdentityProvider.GOOGLE;
   }
 };
@@ -623,7 +629,7 @@ export const getOptions = ({
         if (!account.provider || !account.providerAccountId) {
           return { ...token, upId: user.profile?.upId ?? token.upId ?? null } as JWT;
         }
-        const idP = account.provider === "saml" ? IdentityProvider.SAML : IdentityProvider.GOOGLE;
+        const idP = mapIdentityProvider(account.provider);
 
         const existingUser = await prisma.user.findFirst({
           where: {
@@ -753,20 +759,16 @@ export const getOptions = ({
       };
       return calendsoSession;
     },
-    async signIn(params) {
-      const {
-        /**
-         * Available when Credentials provider is used - Has the value returned by authorize callback
-         */
-        user,
-        /**
-         * Available when Credentials provider is used - Has the value submitted as the body of the HTTP POST submission
-         */
-        profile,
-        account,
-      } = params;
+    async signIn(params: {
+      user: User | AdapterUser;
+      account: Account | null;
+      profile?: Profile;
+      email?: { verificationRequest?: boolean };
+      credentials?: Record<string, unknown>;
+    }) {
+      const { user, account, profile, email, credentials } = params;
 
-      log.debug("callbacks:signin", safeStringify(params));
+      log.debug("callbacks:signin", safeStringify({ user, account, profile, email, credentials }));
 
       if (account?.provider === "email") {
         return true;
@@ -791,12 +793,12 @@ export const getOptions = ({
         return false;
       }
       if (account?.provider) {
-        const idP: IdentityProvider = mapIdentityProvider(account.provider);
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore-error TODO validate email_verified key on profile
-        user.email_verified = user.email_verified || !!user.emailVerified || profile.email_verified;
+        const idP = mapIdentityProvider(account.provider);
+        // Use optional chaining for safety, especially with AdapterUser potentially having different structure initially.
+        const isEmailVerified = user.emailVerified || (profile as any)?.email_verified;
 
-        if (!user.email_verified) {
+        // Skip the explicit email verification check only for Azure AD during signup/signin
+        if (!isEmailVerified && idP !== IdentityProvider.AZUREAD) {
           log.error("Attention: SAML/Google User email is not verified in the IdP", safeStringify({ user }));
           return "/auth/error?error=unverified-email";
         }
@@ -907,7 +909,7 @@ export const getOptions = ({
           // if self-hosted then we can allow auto-merge of identity providers if email is verified
           if (
             !hostedCal &&
-            existingUserWithEmail.emailVerified &&
+            isEmailVerified &&
             existingUserWithEmail.identityProvider !== IdentityProvider.CAL
           ) {
             if (existingUserWithEmail.twoFactorEnabled) {
@@ -932,8 +934,8 @@ export const getOptions = ({
                 email: user.email,
                 // Slugify the incoming name and append a few random characters to
                 // prevent conflicts for users with the same name.
-                username: getOrgUsernameFromEmail(user.name, getDomainFromEmail(user.email)),
-                emailVerified: new Date(Date.now()),
+                username: getOrgUsernameFromEmail(user.name!, getDomainFromEmail(user.email!)),
+                emailVerified: new Date(),
                 name: user.name,
                 identityProvider: idP,
                 identityProviderId: account.providerAccountId,
@@ -947,10 +949,12 @@ export const getOptions = ({
             }
           }
 
-          // User signs up with email/password and then tries to login with Google/SAML using the same email
+          // User signs up with email/password and then tries to login with Google/SAML/AzureAD using the same email
           if (
             existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
-            (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
+            (idP === IdentityProvider.GOOGLE ||
+              idP === IdentityProvider.SAML ||
+              idP === IdentityProvider.AZUREAD)
           ) {
             await prisma.user.update({
               where: { email: existingUserWithEmail.email },
@@ -967,11 +971,28 @@ export const getOptions = ({
             } else {
               return true;
             }
-          } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
-            return "/auth/error?error=use-password-login";
           } else if (
             existingUserWithEmail.identityProvider === IdentityProvider.GOOGLE &&
-            idP === IdentityProvider.SAML
+            (idP === IdentityProvider.SAML || idP === IdentityProvider.AZUREAD)
+          ) {
+            await prisma.user.update({
+              where: { email: existingUserWithEmail.email },
+              // also update email to the IdP email
+              data: {
+                email: user.email.toLowerCase(),
+                identityProvider: idP,
+                identityProviderId: account.providerAccountId,
+              },
+            });
+
+            if (existingUserWithEmail.twoFactorEnabled) {
+              return loginWithTotp(existingUserWithEmail.email);
+            } else {
+              return true;
+            }
+          } else if (
+            existingUserWithEmail.identityProvider === IdentityProvider.AZUREAD &&
+            (idP === IdentityProvider.SAML || idP === IdentityProvider.GOOGLE)
           ) {
             await prisma.user.update({
               where: { email: existingUserWithEmail.email },
@@ -1001,11 +1022,11 @@ export const getOptions = ({
             data: {
               // Slugify the incoming name and append a few random characters to
               // prevent conflicts for users with the same name.
-              username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
-              emailVerified: new Date(Date.now()),
+              username: orgId ? slugify(orgUsername) : usernameSlug(user.name!),
+              emailVerified: new Date(),
               name: user.name,
               ...(user.image && { avatarUrl: user.image }),
-              email: user.email,
+              email: user.email!,
               identityProvider: idP,
               identityProviderId: account.providerAccountId,
               ...(orgId && {
@@ -1021,7 +1042,7 @@ export const getOptions = ({
           const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
           await calcomAdapter.linkAccount(linkAccountNewUserData);
 
-          if (account.twoFactorEnabled) {
+          if (newUser.twoFactorEnabled) {
             return loginWithTotp(newUser.email);
           } else {
             return true;
@@ -1061,6 +1082,12 @@ export const getOptions = ({
       // we should use NextAuth's isNewUser flag instead: https://next-auth.js.org/configuration/events#signin
       const isNewUser = new Date(user.createdDate) > new Date(Date.now() - 10 * 60 * 1000);
       if ((isENVDev || IS_CALCOM) && isNewUser) {
+        // Null check for user properties
+        const safeUserId = user.id ? user.id.toString() : "unknown";
+        const safeUserName = user.name ?? "Unknown User";
+        const safeUserEmail = user.email ?? "unknown@example.com";
+        const safeUserImage = user.image ?? undefined;
+
         if (process.env.DUB_API_KEY) {
           const clickId = getDubId();
           // check if there's a clickId (dub_id) cookie set by @dub/analytics
@@ -1072,10 +1099,10 @@ export const getOptions = ({
               dub.track.lead({
                 clickId,
                 eventName: "Sign Up",
-                customerId: user.id.toString(),
-                customerName: user.name,
-                customerEmail: user.email,
-                customerAvatar: user.image,
+                customerId: safeUserId,
+                customerName: safeUserName,
+                customerEmail: safeUserEmail,
+                customerAvatar: safeUserImage,
               })
             );
           }
@@ -1094,17 +1121,28 @@ const determineProfile = ({
 }: {
   token: JWT;
   profiles: { id: number | null; upId: string }[];
-}) => {
-  // If profile switcher is disabled, we can only show the first profile.
+}): { id: number | null; upId: string } => {
+  // Filter out profiles with null id for safety when selecting a default without token hint
+  const validProfiles = profiles.filter((p) => p.id !== null) as { id: number; upId: string }[];
+
+  // If profile switcher is disabled, return the first valid profile or fallback to the first original profile if none are valid
   if (!ENABLE_PROFILE_SWITCHER) {
-    return profiles[0];
+    // We need to return the profile structure {id: number | null, upId: string}
+    const firstValid = profiles.find((p) => p.id !== null);
+    return firstValid ?? profiles[0]; // Return first valid, or first original as fallback
   }
 
+  // If a upId exists in the token, try to find the matching profile
   if (token.upId) {
-    // Otherwise use what's in the token
-    return { profileId: token.profileId, upId: token.upId as string };
+    const matchingProfile = profiles.find((p) => p.upId === token.upId);
+    if (matchingProfile) {
+      // Prefer the version with a non-null ID if it exists among validProfiles, otherwise return the match found.
+      const matchingValidProfile = validProfiles.find((p) => p.upId === token.upId);
+      return matchingValidProfile ?? matchingProfile;
+    }
   }
 
-  // If there is just one profile it has to be the one we want to log into.
-  return profiles[0];
+  // Fallback: Return the first valid profile, or the first original profile if none are valid.
+  const firstValid = profiles.find((p) => p.id !== null);
+  return firstValid ?? profiles[0];
 };

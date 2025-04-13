@@ -71,7 +71,44 @@ export default function CalComAdapter(prismaClient: PrismaClient) {
         throw error;
       }
     },
-    linkAccount: (data: Prisma.AccountCreateInput) => prismaClient.account.create({ data }),
+    linkAccount: (data: any) => {
+      // Filter out any fields that aren't defined in the schema
+      // This ensures we only pass known fields to Prisma
+      // We need to handle the additional fields that Azure AD returns (like ext_expires_in)
+      const {
+        providerAccountId,
+        provider,
+        type,
+        refresh_token,
+        access_token,
+        expires_at,
+        token_type,
+        scope,
+        id_token,
+        session_state,
+        providerEmail,
+        ...rest
+      } = data;
+
+      // Only pass the fields we know are in the schema
+      return prismaClient.account.create({
+        data: {
+          providerAccountId,
+          provider,
+          type,
+          // Optional fields - only include if they exist
+          ...(refresh_token ? { refresh_token } : {}),
+          ...(access_token ? { access_token } : {}),
+          ...(expires_at ? { expires_at } : {}),
+          ...(token_type ? { token_type } : {}),
+          ...(scope ? { scope } : {}),
+          ...(id_token ? { id_token } : {}),
+          ...(session_state ? { session_state } : {}),
+          ...(providerEmail ? { providerEmail } : {}),
+          user: { connect: { id: data.userId } },
+        },
+      });
+    },
     unlinkAccount: (provider_providerAccountId: Prisma.AccountProviderProviderAccountIdCompoundUniqueInput) =>
       prismaClient.account.delete({ where: { provider_providerAccountId } }),
   };

@@ -245,7 +245,7 @@ PageProps & WithNonceProps<{}>) {
                     onClick={async (e) => {
                       e.preventDefault();
                       setLastUsed("microsoft");
-                      await signIn("microsoft", {
+                      await signIn("azure-ad", {
                         callbackUrl,
                       });
                     }}>
