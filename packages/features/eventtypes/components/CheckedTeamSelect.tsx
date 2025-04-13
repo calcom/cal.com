@@ -114,7 +114,7 @@ export const CheckedTeamSelect = ({
                   )}>
                   {option.label}
                 </p>
-                {option.isOrganizer && <span className="text-muted text-xs">(Organizer)</span>}
+                {option.isOrganizer && <span className="text-muted text-xs">{t("organizer")}</span>}
               </div>
               <div className="ml-auto flex items-center">
                 {option && !option.isFixed ? (
