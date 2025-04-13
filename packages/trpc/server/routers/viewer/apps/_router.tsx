@@ -32,6 +32,9 @@ type AppsRouterHandlerCache = {
 
 const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
 
+const APPS_CACHE = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 30 * 1000; // 30 seconds
+
 export const appsRouter = router({
   appById: authedProcedure.input(ZAppByIdInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.appById) {
@@ -77,6 +80,14 @@ export const appsRouter = router({
     return UNSTABLE_HANDLER_CACHE.getUsersDefaultConferencingApp({ ctx });
   }),
   integrations: authedProcedure.input(ZIntegrationsInputSchema).query(async ({ ctx, input }) => {
+    const cacheKey = `${ctx.user.id}:integrations:${JSON.stringify(input)}`;
+
+    const cachedData = APPS_CACHE.get(cacheKey);
+    const now = Date.now();
+    if (cachedData && now - cachedData.timestamp < CACHE_TTL) {
+      return cachedData.data;
+    }
+
     if (!UNSTABLE_HANDLER_CACHE.integrations) {
       UNSTABLE_HANDLER_CACHE.integrations = (await import("./integrations.handler")).integrationsHandler;
     }
@@ -86,7 +97,11 @@ export const appsRouter = router({
       throw new Error("Failed to load handler");
     }
 
-    return UNSTABLE_HANDLER_CACHE.integrations({ ctx, input });
+    const result = await UNSTABLE_HANDLER_CACHE.integrations({ ctx, input });
+
+    APPS_CACHE.set(cacheKey, { data: result, timestamp: now });
+
+    return result;
   }),
 
   listLocal: authedAdminProcedure.input(ZListLocalInputSchema).query(async ({ ctx, input }) => {

@@ -31,6 +31,9 @@ type BookingsRouterHandlerCache = {
 
 const UNSTABLE_HANDLER_CACHE: BookingsRouterHandlerCache = {};
 
+const EVENT_TYPES_CACHE = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 30 * 1000; // 30 seconds
+
 export const eventTypesRouter = router({
   // REVIEW: What should we name this procedure?
   getByViewer: authedProcedure.input(ZEventTypeInputSchema).query(async ({ ctx, input }) => {
@@ -83,6 +86,14 @@ export const eventTypesRouter = router({
   getEventTypesFromGroup: authedProcedure
     .input(ZGetEventTypesFromGroupSchema)
     .query(async ({ ctx, input }) => {
+      const cacheKey = `${ctx.user.id}:${JSON.stringify(input)}`;
+
+      const cachedData = EVENT_TYPES_CACHE.get(cacheKey);
+      const now = Date.now();
+      if (cachedData && now - cachedData.timestamp < CACHE_TTL) {
+        return cachedData.data;
+      }
+
       if (!UNSTABLE_HANDLER_CACHE.getEventTypesFromGroup) {
         UNSTABLE_HANDLER_CACHE.getEventTypesFromGroup = await import("./getEventTypesFromGroup.handler").then(
           (mod) => mod.getEventTypesFromGroup
@@ -102,6 +113,8 @@ export const eventTypesRouter = router({
       });
 
       timer();
+
+      EVENT_TYPES_CACHE.set(cacheKey, { data: result, timestamp: now });
 
       return result;
     }),

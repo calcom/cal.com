@@ -35,6 +35,9 @@ type WorkflowsRouterHandlerCache = {
 
 const UNSTABLE_HANDLER_CACHE: WorkflowsRouterHandlerCache = {};
 
+const WORKFLOWS_CACHE = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 30 * 1000; // 30 seconds
+
 export const workflowsRouter = router({
   list: authedProcedure.input(ZListInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.list) {
@@ -262,6 +265,14 @@ export const workflowsRouter = router({
   getAllActiveWorkflows: authedProcedure
     .input(ZGetAllActiveWorkflowsInputSchema)
     .query(async ({ ctx, input }) => {
+      const cacheKey = `${ctx.user.id}:getAllActiveWorkflows:${JSON.stringify(input)}`;
+
+      const cachedData = WORKFLOWS_CACHE.get(cacheKey);
+      const now = Date.now();
+      if (cachedData && now - cachedData.timestamp < CACHE_TTL) {
+        return cachedData.data;
+      }
+
       if (!UNSTABLE_HANDLER_CACHE.getAllActiveWorkflows) {
         UNSTABLE_HANDLER_CACHE.getAllActiveWorkflows = await import("./getAllActiveWorkflows.handler").then(
           (mod) => mod.getAllActiveWorkflowsHandler
@@ -273,10 +284,14 @@ export const workflowsRouter = router({
         throw new Error("Failed to load handler");
       }
 
-      return UNSTABLE_HANDLER_CACHE.getAllActiveWorkflows({
+      const result = await UNSTABLE_HANDLER_CACHE.getAllActiveWorkflows({
         ctx,
         input,
       });
+
+      WORKFLOWS_CACHE.set(cacheKey, { data: result, timestamp: now });
+
+      return result;
     }),
   workflowOrder: authedProcedure.input(ZWorkflowOrderInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.workflowOrder) {

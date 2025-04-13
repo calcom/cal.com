@@ -222,3 +222,12 @@ export const mapEventType = async (eventType: EventType) => ({
     }))
   ),
 });
+
+export const mapEventTypeLightweight = async (eventType: EventType) => ({
+  ...eventType,
+  safeDescription:
+    eventType?.description && eventType.description.length > 0
+      ? markdownToSafeHTML(eventType.description)
+      : undefined,
+  metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : null,
+});

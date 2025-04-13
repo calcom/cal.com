@@ -9,7 +9,8 @@ import type { PrismaClient } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetEventTypesFromGroupSchema } from "./getByViewer.schema";
-import { mapEventType } from "./util";
+import type { mapEventType } from "./util";
+import { mapEventTypeLightweight } from "./util";
 
 const log = logger.getSubLogger({ prefix: ["getEventTypesFromGroup"] });
 
@@ -56,7 +57,7 @@ export const getEventTypesFromGroup = async ({
     };
 
     const [nonChildEventTypes, childEventTypes] = await Promise.all([
-      EventTypeRepository.findAllByUpId(
+      EventTypeRepository.findAllByUpIdLightweight(
         {
           upId: userProfile.upId,
           userId: ctx.user.id,
@@ -78,7 +79,7 @@ export const getEventTypesFromGroup = async ({
           cursor,
         }
       ),
-      EventTypeRepository.findAllByUpId(
+      EventTypeRepository.findAllByUpIdLightweight(
         {
           upId: userProfile.upId,
           userId: ctx.user.id,
@@ -117,7 +118,7 @@ export const getEventTypesFromGroup = async ({
 
   if (teamId) {
     const teamEventTypes =
-      (await EventTypeRepository.findTeamEventTypes({
+      (await EventTypeRepository.findTeamEventTypesLightweight({
         teamId,
         parentId,
         userId: ctx.user.id,
@@ -150,7 +151,7 @@ export const getEventTypesFromGroup = async ({
     nextCursor = nextItem?.id;
   }
 
-  const mappedEventTypes: MappedEventType[] = await Promise.all(eventTypes.map(mapEventType));
+  const mappedEventTypes = await Promise.all(eventTypes.map(mapEventTypeLightweight));
 
   const membership = await prisma.membership.findFirst({
     where: {
@@ -175,5 +176,8 @@ export const getEventTypesFromGroup = async ({
       evType.children = [];
     });
 
-  return { eventTypes: mappedEventTypes, nextCursor: nextCursor ?? undefined };
+  return {
+    eventTypes: mappedEventTypes as unknown as MappedEventType[],
+    nextCursor: nextCursor ?? undefined,
+  };
 };
