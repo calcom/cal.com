@@ -9,10 +9,10 @@ export const SkeletonLoader = () => {
   const { t } = useLocale();
   return (
     <SettingsHeader
-      title={t("add_webhook")}
+      title={t("webhooks")}
       description={t("add_webhook_description", { appName: APP_NAME })}
-      borderInShellHeader={true}
-      backButton={true}>
+      borderInShellHeader={false}
+      CTA={null}>
       <SkeletonContainer>
         <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
           <SkeletonText className="h-8 w-full" />
