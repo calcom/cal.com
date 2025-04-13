@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
 import { prisma, availabilityUserSelect } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
@@ -914,10 +915,14 @@ export class EventTypeRepository {
     return user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventTypeId);
   }
 
-  static async getPublicEvent(input: Omit<GetPublicEventProps, "prisma">) {
+  static async getPublicEvent(
+    input: Omit<GetPublicEventProps, "prisma"> & {
+      prisma?: PrismaClient;
+    }
+  ) {
     const event = await getPublicEvent({
       ...input,
-      prisma,
+      prisma: input.prisma ?? prisma,
     });
     return event;
   }
