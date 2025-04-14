@@ -1,11 +1,11 @@
-import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microsoft-graph-types-beta";
+import type { Event, Calendar as OfficeCalendar, User } from "@microsoft/microsoft-graph-types-beta";
 import type { DefaultBodyType } from "msw";
 
 import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import {
-  CalendarAppDelegationCredentialInvalidGrantError,
   CalendarAppDelegationCredentialConfigurationError,
+  CalendarAppDelegationCredentialInvalidGrantError,
 } from "@calcom/lib/CalendarAppError";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -658,7 +658,7 @@ export default class Office365CalendarService implements Calendar {
               end: checkforAllDayEvent(`${evt.end.dateTime}Z`)
                 ? dayjs(`${evt.end.dateTime}Z`).subtract(1, "day").endOf("day").utc().format()
                 : `${evt.end.dateTime}Z`,
-              title: `${evt.subject}` ?? undefined,
+              title: evt.subject ?? undefined,
             });
           }, [])
         );
