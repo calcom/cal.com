@@ -12,7 +12,7 @@ import plainTextReminderTemplates from "../reminders/templates/plainTextTemplate
 
 const translation = async () => {
   const _i18n = createInstance();
-  _i18n.init({
+  await _i18n.init({
     lng: "en",
     resources: {
       en: {
