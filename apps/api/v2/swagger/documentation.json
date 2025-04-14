@@ -2410,7 +2410,7 @@
             "name": "teamIds",
             "required": false,
             "in": "query",
-            "description": "Filter by teamIds. Team ids must be separated by a comma.",
+            "description": "Filter by teamIds. Team IDs must be separated by a comma.",
             "example": "?teamIds=100,200",
             "schema": {
               "type": "array",
