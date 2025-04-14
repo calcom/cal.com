@@ -48,7 +48,7 @@ const WebhooksList = ({
       CTA={webhooksByViewer.webhookGroups.length > 0 ? <CreateNewWebhookButton isAdmin={isAdmin} /> : null}
       borderInShellHeader={false}>
       {!!webhookGroups.length ? (
-        <div className={classNames("mt-0", hasTeams && "mt-6")}>
+        <div className={classNames("mt-6")}>
           {webhookGroups.map((group) => (
             <div key={group.teamId}>
               {hasTeams && (
@@ -65,11 +65,7 @@ const WebhooksList = ({
                 </div>
               )}
               <div className="flex flex-col" key={group.profile.slug}>
-                <div
-                  className={classNames(
-                    "border-subtle rounded-lg rounded-t-none border border-t-0",
-                    hasTeams && "mb-8 mt-3 rounded-t-lg border-t"
-                  )}>
+                <div className={classNames("border-subtle mb-8 mt-3 rounded-lg border border-t")}>
                   {group.webhooks.map((webhook, index) => (
                     <WebhookListItem
                       key={webhook.id}
