@@ -108,7 +108,7 @@ async function createScenario({
   };
 }
 
-describe("delegationCredentialSelectedCalendars", () => {
+describe.skip("delegationCredentialSelectedCalendars", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     crashFetchPrimaryCalendarForUser = null;

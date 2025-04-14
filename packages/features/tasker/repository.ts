@@ -1,7 +1,6 @@
 import { type Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import db from "@calcom/prisma";
 
 import { type TaskTypes } from "./tasker";
@@ -171,53 +170,5 @@ export class Task {
     //     ],
     //   },
     // });
-  }
-
-  static async updateProgress({ taskId, payload }: { taskId: string; payload: string }) {
-    log.info("Updating task progress", { taskId, payload });
-    return db.task.update({
-      where: {
-        id: taskId,
-      },
-      data: {
-        payload,
-      },
-    });
-  }
-
-  /**
-   * Cancels a task based on the payload.
-   *
-   * If there are accidentally more than one task that matches the payload, it will log an error and won't cancel any task.
-   */
-  static async cancelWhere(where: { payloadContains: string }) {
-    const tasksToCancel = await db.task.findMany({
-      where: {
-        payload: {
-          contains: where.payloadContains,
-        },
-      },
-    });
-
-    if (tasksToCancel.length > 1) {
-      // Ensure that we don't accidentally act on wrong set of tasks.
-      log.error(
-        "Found more than one task to cancel, ignoring the call",
-        safeStringify({
-          tasksToCancel: tasksToCancel.map((task) => ({
-            id: task.id,
-            payload: task.payload,
-          })),
-        })
-      );
-      return 0;
-    }
-
-    const deleted = await db.task.deleteMany({
-      where: { id: { in: tasksToCancel.map((task) => task.id) } },
-    });
-
-    log.info("Deleted tasks", safeStringify({ count: deleted.count }));
-    return deleted.count;
   }
 }

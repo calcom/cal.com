@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import tasker from "@calcom/features/tasker";
+// import tasker from "@calcom/features/tasker";
 import { checkIfSuccessfullyConfiguredInWorkspace } from "@calcom/lib/delegationCredential/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
@@ -46,13 +46,13 @@ export async function toggleDelegationCredentialEnabled(
       delegationCredentialId,
       user: loggedInUser,
     });
-    tasker.create("delegationCredentialSelectedCalendars", {
-      delegationCredentialId,
-    });
+    // tasker.create("delegationCredentialSelectedCalendars", {
+    //   delegationCredentialId,
+    // });
   } else {
-    await tasker.cancelWhere({
-      payloadContains: `"delegationCredentialId":"${delegationCredentialId}"`,
-    });
+    // await tasker.cancelWhere({
+    //   payloadContains: `"delegationCredentialId":"${delegationCredentialId}"`,
+    // });
   }
 
   const updatedDelegationCredential = await DelegationCredentialRepository.updateById({
