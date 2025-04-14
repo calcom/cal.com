@@ -17,8 +17,6 @@ export const HelpCards = () => {
         {helpCards.map((card) => {
           if (card.title === "Contact us" && !isPaidUser) return null;
 
-          if (card.title === "Report issue" && isPaidUser) return null;
-
           const title = card.title === "Report issue" ? t("report_issue") : card.title;
           const description =
             card.title === "Report issue" ? t("report_issue_description") : card.description;
