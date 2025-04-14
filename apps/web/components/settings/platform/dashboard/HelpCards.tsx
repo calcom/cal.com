@@ -9,18 +9,15 @@ import { useGetUserAttributes } from "@components/settings/platform/hooks/useGet
 export const HelpCards = () => {
   const { t } = useLocale();
   const { userBillingData } = useGetUserAttributes();
-
-  const planLowerCase = userBillingData?.plan?.toLowerCase();
-  const isFreePlan = planLowerCase === "free" && userBillingData?.valid === true;
-  const hasValidPaidPlan = userBillingData?.valid === true && planLowerCase !== "free";
+  const isPaidUser = userBillingData?.valid && userBillingData?.plan?.toLowerCase() !== "free";
 
   return (
     <>
       <div className="grid-col-1 mb-4 grid gap-2 md:grid-cols-3">
         {helpCards.map((card) => {
-          if (card.title === "Contact us" && !hasValidPaidPlan) return null;
+          if (card.title === "Contact us" && !isPaidUser) return null;
 
-          if (card.title === "Report issue" && !isFreePlan) return null;
+          if (card.title === "Report issue" && isPaidUser) return null;
 
           const title = card.title === "Report issue" ? t("report_issue") : card.title;
           const description =
