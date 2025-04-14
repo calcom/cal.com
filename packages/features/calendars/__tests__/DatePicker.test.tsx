@@ -3,7 +3,7 @@ import { render } from "@testing-library/react";
 import dayjs from "@calcom/dayjs";
 import { PeriodType } from "@calcom/prisma/enums";
 
-import { DatePicker } from "./DatePicker";
+import { DatePicker } from "../DatePicker";
 
 const noop = () => {
   /* noop */
