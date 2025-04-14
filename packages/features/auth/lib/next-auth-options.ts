@@ -1003,9 +1003,9 @@ export const getOptions = ({
           });
 
           const accountData = {
+            ...account,
             userId: newUser.id,
             providerEmail: user.email,
-            ...account,
           };
 
           // Validate account data
