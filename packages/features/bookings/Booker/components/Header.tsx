@@ -7,7 +7,11 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-import { Button, ButtonGroup, Icon, ToggleGroup, Tooltip } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { ToggleGroup } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";
 import { useBookerStore } from "../store";
@@ -37,8 +41,8 @@ export function Header({
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
   const addToSelectedDate = useBookerStore((state) => state.addToSelectedDate);
   const isMonthView = layout === BookerLayouts.MONTH_VIEW;
-  const selectedDate = dayjs(selectedDateString);
   const today = dayjs();
+  const selectedDate = selectedDateString ? dayjs(selectedDateString) : today;
   const selectedDateMin3DaysDifference = useMemo(() => {
     const diff = today.diff(selectedDate, "days");
     return diff > 3 || diff < -3;

@@ -19,8 +19,16 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { PeriodType } from "@calcom/prisma/enums";
-import { Button, DateRangePicker, InputField, Label, Select, SettingsToggle, TextField } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import {
+  InputField,
+  DateRangePicker,
+  Label,
+  TextField,
+  Select,
+  SettingsToggle,
+} from "@calcom/ui/components/form";
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 
@@ -745,47 +753,50 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
           );
         }}
       />
-      <SettingsToggle
-        labelClassName={classNames("text-sm", customClassNames?.offsetStartTimes?.label)}
-        toggleSwitchAtTheEnd={true}
-        switchContainerClassName={classNames(
-          "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
-          offsetToggle && "rounded-b-none",
-          customClassNames?.offsetStartTimes?.container
-        )}
-        childrenClassName={classNames("lg:ml-0", customClassNames?.offsetStartTimes?.children)}
-        title={t("offset_toggle")}
-        descriptionClassName={customClassNames?.offsetStartTimes?.description}
-        description={t("offset_toggle_description")}
-        {...offsetStartLockedProps}
-        checked={offsetToggle}
-        onCheckedChange={(active) => {
-          setOffsetToggle(active);
-          if (!active) {
-            formMethods.setValue("offsetStart", 0, { shouldDirty: true });
-          }
-        }}>
-        <div className={classNames("border-subtle rounded-b-lg border border-t-0 p-6")}>
-          <TextField
-            required
-            type="number"
-            containerClassName={classNames(
-              "max-w-80",
-              customClassNames?.offsetStartTimes?.offsetInput?.container
-            )}
-            labelClassName={customClassNames?.offsetStartTimes?.offsetInput?.label}
-            addOnClassname={customClassNames?.offsetStartTimes?.offsetInput?.addOn}
-            className={customClassNames?.offsetStartTimes?.offsetInput?.input}
-            label={t("offset_start")}
-            {...formMethods.register("offsetStart", { setValueAs: (value) => Number(value) })}
-            addOnSuffix={<>{t("minutes")}</>}
-            hint={t("offset_start_description", {
-              originalTime: offsetOriginalTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
-              adjustedTime: offsetAdjustedTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
-            })}
-          />
-        </div>
-      </SettingsToggle>
+
+      {formMethods.getValues("offsetStart") > 0 && (
+        <SettingsToggle
+          labelClassName={classNames("text-sm", customClassNames?.offsetStartTimes?.label)}
+          toggleSwitchAtTheEnd={true}
+          switchContainerClassName={classNames(
+            "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
+            offsetToggle && "rounded-b-none",
+            customClassNames?.offsetStartTimes?.container
+          )}
+          childrenClassName={classNames("lg:ml-0", customClassNames?.offsetStartTimes?.children)}
+          title={t("offset_toggle")}
+          descriptionClassName={customClassNames?.offsetStartTimes?.description}
+          description={t("offset_toggle_description")}
+          {...offsetStartLockedProps}
+          checked={offsetToggle}
+          onCheckedChange={(active) => {
+            setOffsetToggle(active);
+            if (!active) {
+              formMethods.setValue("offsetStart", 0, { shouldDirty: true });
+            }
+          }}>
+          <div className={classNames("border-subtle rounded-b-lg border border-t-0 p-6")}>
+            <TextField
+              required
+              type="number"
+              containerClassName={classNames(
+                "max-w-80",
+                customClassNames?.offsetStartTimes?.offsetInput?.container
+              )}
+              labelClassName={customClassNames?.offsetStartTimes?.offsetInput?.label}
+              addOnClassname={customClassNames?.offsetStartTimes?.offsetInput?.addOn}
+              className={customClassNames?.offsetStartTimes?.offsetInput?.input}
+              label={t("offset_start")}
+              {...formMethods.register("offsetStart", { setValueAs: (value) => Number(value) })}
+              addOnSuffix={<>{t("minutes")}</>}
+              hint={t("offset_start_description", {
+                originalTime: offsetOriginalTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
+                adjustedTime: offsetAdjustedTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
+              })}
+            />
+          </div>
+        </SettingsToggle>
+      )}
     </div>
   );
 };

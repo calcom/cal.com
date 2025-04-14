@@ -1,39 +1,46 @@
 "use client";
 
-import type { Table as ReactTableType, VisibilityState } from "@tanstack/react-table";
+import type { VisibilityState } from "@tanstack/react-table";
+// eslint-disable-next-line no-restricted-imports
+import { noop } from "lodash";
 import { useEffect, useRef } from "react";
 
-import {
-  DataTable,
-  DataTablePagination,
-  useFetchMoreOnBottomReached,
-  useDataTable,
-  useColumnFilters,
-} from "@calcom/features/data-table";
-import classNames from "@calcom/ui/classNames";
+import { useColumnFilters } from "../hooks/useColumnFilters";
+import { useDataTable } from "../hooks/useDataTable";
+import { useFetchMoreOnBottomReached } from "../hooks/useFetchMoreOnBottomReached";
+import type { DataTablePropsFromWrapper } from "./DataTable";
+import { DataTable } from "./DataTable";
+import { DataTablePagination } from "./DataTablePagination";
 
-export type DataTableWrapperProps<TData, TValue> = {
-  testId?: string;
-  bodyTestId?: string;
-  table: ReactTableType<TData>;
-  isPending: boolean;
-  hasNextPage: boolean;
-  fetchNextPage: () => void;
-  isFetching: boolean;
-  hideHeader?: boolean;
-  variant?: "default" | "compact";
-  totalDBRowCount?: number;
+type BaseDataTableWrapperProps<TData> = Omit<
+  DataTablePropsFromWrapper<TData>,
+  "paginationMode" | "tableContainerRef"
+> & {
+  totalRowCount?: number;
   ToolbarLeft?: React.ReactNode;
   ToolbarRight?: React.ReactNode;
   EmptyView?: React.ReactNode;
   LoaderView?: React.ReactNode;
-  className?: string;
-  containerClassName?: string;
-  children?: React.ReactNode;
   tableContainerRef?: React.RefObject<HTMLDivElement>;
 };
 
-export function DataTableWrapper<TData, TValue>({
+type InfinitePaginationProps<TData> = BaseDataTableWrapperProps<TData> & {
+  paginationMode: "infinite";
+  hasNextPage: boolean;
+  fetchNextPage: () => void;
+  isFetching: boolean;
+};
+
+type StandardPaginationProps<TData> = BaseDataTableWrapperProps<TData> & {
+  paginationMode: "standard";
+  hasNextPage?: never;
+  fetchNextPage?: never;
+  isFetching?: never;
+};
+
+export type DataTableWrapperProps<TData> = InfinitePaginationProps<TData> | StandardPaginationProps<TData>;
+
+export function DataTableWrapper<TData>({
   testId,
   bodyTestId,
   table,
@@ -41,25 +48,28 @@ export function DataTableWrapper<TData, TValue>({
   hasNextPage,
   fetchNextPage,
   isFetching,
-  totalDBRowCount,
+  totalRowCount,
   variant,
-  hideHeader,
   ToolbarLeft,
   ToolbarRight,
   EmptyView,
   LoaderView,
   className,
   containerClassName,
+  headerClassName,
+  rowClassName,
   children,
   tableContainerRef: externalRef,
-}: DataTableWrapperProps<TData, TValue>) {
+  paginationMode,
+}: DataTableWrapperProps<TData>) {
   const internalRef = useRef<HTMLDivElement>(null);
   const tableContainerRef = externalRef || internalRef;
   const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
     tableContainerRef,
-    hasNextPage,
-    fetchNextPage,
-    isFetching,
+    hasNextPage: paginationMode === "infinite" ? hasNextPage : false,
+    fetchNextPage: paginationMode === "infinite" ? fetchNextPage : noop,
+    isFetching: paginationMode === "infinite" ? isFetching : false,
+    enabled: paginationMode === "infinite",
   });
   const { sorting, setSorting, columnVisibility, setColumnVisibility } = useDataTable();
   const columnFilters = useColumnFilters();
@@ -81,7 +91,7 @@ export function DataTableWrapper<TData, TValue>({
       onSortingChange: setSorting,
       onColumnVisibilityChange: setColumnVisibility,
     }));
-  }, [table, sorting, columnFilters, columnVisibility]);
+  }, [table, sorting, columnFilters, columnVisibility, setSorting, setColumnVisibility]);
 
   let view: "loader" | "empty" | "table" = "table";
   if (isPending && LoaderView) {
@@ -93,7 +103,7 @@ export function DataTableWrapper<TData, TValue>({
   return (
     <>
       {(ToolbarLeft || ToolbarRight || children) && (
-        <div className={classNames("grid w-full items-center gap-2 py-4", className)}>
+        <div className="grid w-full items-center gap-2 pb-4">
           <div className="flex w-full flex-col gap-2">
             <div className="flex w-full flex-wrap justify-between gap-2">
               <div className="flex flex-wrap items-center gap-2">{ToolbarLeft}</div>
@@ -114,16 +124,25 @@ export function DataTableWrapper<TData, TValue>({
           tableContainerRef={tableContainerRef}
           isPending={isPending}
           enableColumnResizing={true}
-          hideHeader={hideHeader}
           variant={variant}
           className={className}
           containerClassName={containerClassName}
-          onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
-          {totalDBRowCount && (
-            <div style={{ gridArea: "footer", marginTop: "1rem" }}>
-              <DataTablePagination table={table} totalDbDataCount={totalDBRowCount} />
-            </div>
-          )}
+          headerClassName={headerClassName}
+          rowClassName={rowClassName}
+          paginationMode={paginationMode}
+          onScroll={
+            paginationMode === "infinite"
+              ? (e: Pick<React.UIEvent<HTMLDivElement, UIEvent>, "target">) =>
+                  fetchMoreOnBottomReached(e.target as HTMLDivElement)
+              : undefined
+          }>
+          <div style={{ gridArea: "footer", marginTop: "1rem" }}>
+            <DataTablePagination<TData>
+              table={table}
+              totalRowCount={totalRowCount}
+              paginationMode={paginationMode}
+            />
+          </div>
         </DataTable>
       )}
     </>

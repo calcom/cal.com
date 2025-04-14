@@ -4,7 +4,7 @@ import { useState, memo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
-import { Card } from "@calcom/ui";
+import { Card } from "@calcom/ui/components/card";
 
 export const tips = [
   {
@@ -173,9 +173,11 @@ function Tips() {
       const items = localStorage.getItem("removedTipsIds") || "";
       const itemToRemoveIndex = currentItems.findIndex((item) => item.id === id);
 
+      if (itemToRemoveIndex === -1) return [...currentItems];
+
       localStorage.setItem(
         "removedTipsIds",
-        `${currentItems[itemToRemoveIndex].id.toString()}${items.length > 0 ? `,${items.split(",")}` : ""}`
+        `${currentItems[itemToRemoveIndex].id.toString()}${items.length > 0 ? `,${items}` : ""}`
       );
       currentItems.splice(itemToRemoveIndex, 1);
       return [...currentItems];
@@ -191,6 +193,7 @@ function Tips() {
         gridTemplateColumns: "1fr",
       }}>
       {list.map((tip) => {
+        const isTopTip = baseOriginalList.indexOf(tip) === 0;
         return (
           <div
             className="relative"
@@ -209,11 +212,17 @@ function Tips() {
               <Card
                 variant="SidebarCard"
                 thumbnailUrl={tip.thumbnailUrl}
-                mediaLink={tip.mediaLink}
+                mediaLink={isTopTip ? tip.mediaLink : undefined}
                 title={tip.title}
                 description={tip.description}
-                learnMore={{ href: tip.href, text: t("learn_more") }}
-                actionButton={{ onClick: () => handleRemoveItem(tip.id), child: t("dismiss") }}
+                learnMore={isTopTip ? { href: tip.href, text: t("learn_more") } : undefined}
+                actionButton={
+                  isTopTip ? { onClick: () => handleRemoveItem(tip.id), child: t("dismiss") } : undefined
+                }
+                containerProps={{
+                  tabIndex: isTopTip ? undefined : -1,
+                  "aria-hidden": isTopTip ? undefined : "true",
+                }}
               />
             </div>
           </div>

@@ -197,6 +197,7 @@ export default class EventManager {
       const calVideoKeys = calVideoKeysSchema.safeParse(calVideo?.keys);
 
       if (calVideo?.enabled && calVideoKeys.success) evt["location"] = "integrations:daily";
+      log.warn("Falling back to cal video as no location is set");
     }
 
     // Fallback to Cal Video if Google Meet is selected w/o a Google Cal
@@ -587,6 +588,7 @@ export default class EventManager {
     bookingReferences: PartialReference[];
     isBookingInRecurringSeries?: boolean;
   }) {
+    const log = logger.getSubLogger({ prefix: [`[deleteEventsAndMeetings]: ${event?.uid}`] });
     const calendarReferences = [],
       videoReferences = [],
       crmReferences = [],
@@ -615,7 +617,7 @@ export default class EventManager {
 
       if (reference.type.includes("_crm") || reference.type.includes("other_calendar")) {
         crmReferences.push(reference);
-        allPromises.push(this.deleteCRMEvent({ reference }));
+        allPromises.push(this.deleteCRMEvent({ reference, event }));
       }
     }
 
@@ -1045,7 +1047,7 @@ export default class EventManager {
       const crm = new CrmManager(credential, currentAppOption);
 
       let success = true;
-      const createdEvent = await crm.createEvent(event, currentAppOption).catch((error) => {
+      const createdEvent = await crm.createEvent(event).catch((error) => {
         success = false;
         // We don't know the type of the error here, so for an Error instance we can read message but otherwise we stringify the error
         const errorMsg = error instanceof Error ? error.message : JSON.stringify(error);
@@ -1099,11 +1101,12 @@ export default class EventManager {
     return updatedEvents;
   }
 
-  private async deleteCRMEvent({ reference }: { reference: PartialReference }) {
+  private async deleteCRMEvent({ reference, event }: { reference: PartialReference; event: CalendarEvent }) {
     const credential = this.crmCredentials.find((cred) => cred.id === reference.credentialId);
     if (credential) {
-      const crm = new CrmManager(credential);
-      await crm.deleteEvent(reference.uid);
+      const currentAppOption = this.getAppOptionsFromEventMetadata(credential);
+      const crm = new CrmManager(credential, currentAppOption);
+      await crm.deleteEvent(reference.uid, event);
     }
   }
 

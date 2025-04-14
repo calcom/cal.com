@@ -214,7 +214,13 @@ async function _getDelegationCredentialsMapPerUser({
   if (!organizationId) {
     return emptyMap;
   }
-  const domain = users[0].email.split("@")[1];
+  // We assume that all users in an organization are from the same domain, so first one should be fine.
+  // TODO: There could be multiple domains in an organization(if an organization is migrating maybe from one to another or for some other reason) and we should actually consider all of them, maybe group by domain.
+  const userThatDeterminesDomain = users[0];
+  if (!userThatDeterminesDomain) {
+    return emptyMap;
+  }
+  const domain = userThatDeterminesDomain.email.split("@")[1];
   log.debug("called with", safeStringify({ users }));
   const delegationCredential =
     await DelegationCredentialRepository.findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey(
@@ -239,7 +245,14 @@ async function _getDelegationCredentialsMapPerUser({
       _buildDelegatedConferencingCredential({ delegationCredential, user }),
     ].filter((credential): credential is NonNullable<typeof credential> => credential !== null);
 
-    log.debug("Returned for user", safeStringify({ user, delegationCredentials }));
+    log.debug(
+      "Returned for user",
+      safeStringify({
+        user,
+        delegationCredentialIds:
+          delegationCredentials?.map?.((delegationCredential) => delegationCredential?.delegatedToId) ?? [],
+      })
+    );
     credentialsByUserId.set(user.id, delegationCredentials);
   }
 

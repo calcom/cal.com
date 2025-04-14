@@ -1,8 +1,9 @@
 import { useRouter } from "next/navigation";
 import { createContext, forwardRef, useContext, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/features/embed/RoutingFormEmbed";
 import { EmbedDialogProvider } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
@@ -10,26 +11,26 @@ import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
-import type { ButtonProps } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import type { ButtonProps } from "@calcom/ui/components/button";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Button,
-  ConfirmationDialogContent,
-  Dialog,
-  DialogClose,
   DialogContent,
   DialogFooter,
+  DialogClose,
+  ConfirmationDialogContent,
+} from "@calcom/ui/components/dialog";
+import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Form,
-  SettingsToggle,
-  showToast,
-  Switch,
-  TextAreaField,
-  TextField,
-} from "@calcom/ui";
-import classNames from "@calcom/ui/classNames";
+} from "@calcom/ui/components/dropdown";
+import { TextAreaField } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Form } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 
@@ -126,7 +127,8 @@ function NewFormDialog({
                 placeholder={t("form_description_placeholder")}
               />
             </div>
-            {action === "duplicate" && (
+            {/* Disable this feature for new forms till we get it fully working with Routing Form with Attributes. This isn't much used feature */}
+            {/* {action === "duplicate" && (
               <Controller
                 name="shouldConnect"
                 render={({ field: { value, onChange } }) => {
@@ -142,7 +144,7 @@ function NewFormDialog({
                   );
                 }}
               />
-            )}
+            )} */}
           </div>
           <DialogFooter showDivider className="mt-12">
             <DialogClose />

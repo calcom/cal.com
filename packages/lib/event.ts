@@ -1,4 +1,4 @@
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 import z from "zod";
 
 import { guessEventLocationType } from "@calcom/app-store/locations";
@@ -22,9 +22,9 @@ export type EventNameObjectType = {
   eventName?: string | null;
   teamName?: string | null;
   host: string;
-  location?: string;
+  location?: string | null;
   eventDuration: number;
-  bookingFields?: Prisma.JsonObject;
+  bookingFields?: Prisma.JsonObject | null;
   t: TFunction;
 };
 
@@ -90,7 +90,11 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
 
       if (typeof bookingFieldValue === "object") {
         if ("value" in bookingFieldValue) {
-          fieldValue = bookingFieldValue.value?.toString();
+          const valueAsString = bookingFieldValue.value?.toString();
+          fieldValue =
+            variable === "location"
+              ? guessEventLocationType(valueAsString)?.label || valueAsString
+              : valueAsString;
         } else if (variable === "name" && "firstName" in bookingFieldValue) {
           const lastName = "lastName" in bookingFieldValue ? bookingFieldValue.lastName : "";
           fieldValue = `${bookingFieldValue.firstName} ${lastName}`.trim();
@@ -106,7 +110,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
   return dynamicEventName;
 }
 
-export const validateCustomEventName = (value: string, bookingFields?: Prisma.JsonObject) => {
+export const validateCustomEventName = (value: string, bookingFields?: Prisma.JsonObject | null) => {
   let customInputVariables: string[] = [];
   if (bookingFields) {
     customInputVariables = Object.keys(bookingFields).map((customInput) => {

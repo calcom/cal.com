@@ -7,10 +7,10 @@ import type { User } from "@calcom/prisma/client";
 
 import type { Availability } from "../../availability/AvailabilitySettings";
 import { transformApiScheduleForAtom } from "../../availability/atom-api-transformers/transformApiScheduleForAtom";
+import { useSchedule } from "../../hooks/schedules/useSchedule";
+import { useSchedules } from "../../hooks/schedules/useSchedules";
 import { useTeamMembers } from "../../hooks/teams/useTeamMembers";
 import { useAtomHostSchedules } from "../hooks/useAtomHostSchedules";
-import { useSchedule } from "../hooks/useSchedule";
-import { useSchedules } from "../hooks/useSchedules";
 
 type EventAvailabilityTabPlatformWrapperProps = {
   user?: Pick<User, "id" | "defaultScheduleId" | "timeZone" | "timeFormat" | "weekStart">;

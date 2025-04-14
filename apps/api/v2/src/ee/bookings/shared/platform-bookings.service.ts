@@ -9,7 +9,6 @@ import { PlatformOAuthClient } from "@calcom/prisma/client";
 @Injectable()
 export class PlatformBookingsService {
   constructor(
-    private readonly oAuthClientsUsersService: OAuthClientUsersService,
     private readonly usersRepository: UsersRepository,
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
     private readonly oAuthClientRepository: OAuthClientRepository
@@ -25,7 +24,7 @@ export class PlatformBookingsService {
     if (!attendeeEmail.includes(platformClientId)) {
       // note(Lauris): we need to do this when managed user is booking another managed user and the managed user doing the booking entered their email without oAuth client id
       // or if one of the guests added are managed users without oAuth client id in their email.
-      const oAuthUserEmail = this.oAuthClientsUsersService.getOAuthUserEmail(platformClientId, attendeeEmail);
+      const oAuthUserEmail = OAuthClientUsersService.getOAuthUserEmail(platformClientId, attendeeEmail);
       const oAuthUser = await this.usersRepository.findByEmail(oAuthUserEmail);
       if (oAuthUser) {
         return oAuthUserEmail;
@@ -41,6 +40,34 @@ export class PlatformBookingsService {
     if (eventType?.userId) {
       oAuthClient = await this.oAuthClientRepository.getByUserId(eventType.userId);
     } else if (eventType?.teamId) {
+      oAuthClient = await this.oAuthClientRepository.getByTeamId(eventType.teamId);
+    }
+    // Last resort check the hosts of the event-type
+    if (!oAuthClient && eventType?.teamId) {
+      oAuthClient = await this.oAuthClientRepository.getByEventTypeHosts(eventTypeId);
+    }
+
+    if (oAuthClient) {
+      return {
+        platformClientId: oAuthClient.id,
+        platformCancelUrl: oAuthClient.bookingCancelRedirectUri,
+        platformRescheduleUrl: oAuthClient.bookingRescheduleRedirectUri,
+        platformBookingUrl: oAuthClient.bookingRedirectUri,
+        arePlatformEmailsEnabled: oAuthClient.areEmailsEnabled,
+      };
+    }
+
+    return undefined;
+  }
+
+  async getOAuthClientParamsForEventType(eventType: {
+    userId: number | null | undefined;
+    teamId: number | null | undefined;
+  }) {
+    let oAuthClient: PlatformOAuthClient | null = null;
+    if (eventType.userId) {
+      oAuthClient = await this.oAuthClientRepository.getByUserId(eventType.userId);
+    } else if (eventType.teamId) {
       oAuthClient = await this.oAuthClientRepository.getByTeamId(eventType.teamId);
     }
 

@@ -1,11 +1,11 @@
 /* Schedule any workflow reminder that falls within 7 days for SMS */
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
 import { bulkShortenLinks } from "@calcom/ee/workflows/lib/reminders/utils";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
@@ -19,11 +19,11 @@ import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const apiKey = req.headers.authorization || req.query.apiKey;
+export async function handler(req: NextRequest) {
+  const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
+
   if (process.env.CRON_API_KEY !== apiKey) {
-    res.status(401).json({ message: "Not authenticated" });
-    return;
+    return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
   //delete all scheduled sms reminders where scheduled date is past current date
@@ -61,8 +61,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   })) as (PartialWorkflowReminder & { retryCount: number })[];
 
   if (!unscheduledReminders.length) {
-    res.json({ ok: true });
-    return;
+    return NextResponse.json({ ok: true });
   }
 
   for (const reminder of unscheduledReminders) {
@@ -216,9 +215,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       console.log(`Error scheduling SMS with error ${error}`);
     }
   }
-  res.status(200).json({ message: "SMS scheduled" });
-}
 
-export default defaultHandler({
-  POST: Promise.resolve({ default: handler }),
-});
+  return NextResponse.json({ message: "SMS scheduled" }, { status: 200 });
+}

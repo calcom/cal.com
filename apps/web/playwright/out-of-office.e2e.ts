@@ -8,7 +8,8 @@ import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
-import { submitAndWaitForResponse, localize } from "./lib/testUtils";
+import { localize } from "./lib/localize";
+import { submitAndWaitForResponse } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
@@ -486,7 +487,7 @@ test.describe("Out of office", () => {
   });
 
   test.describe("Team OOO", () => {
-    test("Create, edit and delete", async ({ page, users }) => {
+    test("Admin can create, edit and delete team member's OOO", async ({ page, users }) => {
       const t = await localize("en");
       const teamMatesObj = [{ name: "member-1" }, { name: "member-2" }, { name: "member-3" }];
       const teamAdmin = await users.create(
@@ -567,11 +568,309 @@ test.describe("Out of office", () => {
         expect(page.locator(`text=${t("success_deleted_entry_out_of_office")}`)).toBeTruthy();
       });
     });
+    test("Non-Admin has read-only access to team mate's OOO", async ({ page, users }) => {
+      const member1Name = `member-1-${Date.now()}`;
+      const member2Name = `member-2-${Date.now()}`;
+      const member3Name = `member-3-${Date.now()}`;
+      const teamMatesObj = [{ name: member1Name }, { name: member2Name }];
+      const member3User = await users.create(
+        { name: member3Name },
+        {
+          hasTeam: true,
+          teamRole: MembershipRole.MEMBER,
+          teammates: teamMatesObj,
+        }
+      );
+      const member1User = users.get().find((user) => user.name === member1Name);
+      const member2User = users.get().find((user) => user.name === member2Name);
+
+      //create ooos for member1 and member2
+      await prisma.outOfOfficeEntry.create({
+        data: {
+          start: dayjs().startOf("day").toDate(),
+          end: dayjs().startOf("day").add(1, "w").toDate(),
+          uuid: uuidv4(),
+          user: { connect: { id: member1User?.id } },
+          toUser: { connect: { id: member2User?.id } },
+          createdAt: new Date(),
+          reason: {
+            connect: {
+              id: 1,
+            },
+          },
+        },
+      });
+
+      await prisma.outOfOfficeEntry.create({
+        data: {
+          start: dayjs().startOf("day").add(3, "w").toDate(),
+          end: dayjs().startOf("day").add(4, "w").toDate(),
+          uuid: uuidv4(),
+          user: { connect: { id: member2User?.id } },
+          toUser: { connect: { id: member3User?.id } },
+          createdAt: new Date(),
+          reason: {
+            connect: {
+              id: 2,
+            },
+          },
+        },
+      });
+
+      await test.step("member3 logins and navigates to team OOO", async () => {
+        await member3User?.apiLogin();
+        const entriesListRespPromise = page.waitForResponse(
+          (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+        );
+        await page.goto("/settings/my-account/out-of-office?type=team");
+        await page.waitForLoadState("domcontentloaded");
+        await entriesListRespPromise;
+
+        //Non-Admin canNot create OOO for team members
+        await expect(page.locator('[data-testid="add_entry_ooo"]')).toBeDisabled();
+
+        //Non-Admin can view OOO entries of team members
+        await expect(
+          page.locator(`data-testid=table-redirect-${member2User?.username ?? "n-a"}`).nth(0)
+        ).toBeVisible();
+        await expect(
+          page.locator(`data-testid=table-redirect-${member3User?.username ?? "n-a"}`).nth(0)
+        ).toBeVisible();
+
+        //Non-Admin canNot edit OOO for team members
+        await expect(page.locator(`[data-testid="ooo-edit-${member2User?.username}"]`)).toBeDisabled();
+        await expect(page.locator(`[data-testid="ooo-edit-${member3User?.username}"]`)).toBeDisabled();
+
+        //Non-Admin canNot delete OOO for team members
+        await expect(page.locator(`[data-testid="ooo-delete-${member2User?.username}"]`)).toBeDisabled();
+        await expect(page.locator(`[data-testid="ooo-delete-${member3User?.username}"]`)).toBeDisabled();
+      });
+    });
+  });
+
+  test.describe("Date range filters", () => {
+    test("Default date range filter set to `Last 7 Days`", async ({ page, users }) => {
+      const user = await users.create({ name: `userOne=${Date.now()}` });
+      await user.apiLogin();
+      await page.goto("/settings/my-account/out-of-office");
+      await page.waitForLoadState("domcontentloaded");
+      await page.waitForResponse(
+        (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+      );
+      await page.locator('[data-testid="add-filter-button"]').click();
+      await page.locator('[data-testid="add-filter-item-dateRange"]').click();
+      await expect(
+        page
+          .locator('[data-testid="filter-popover-trigger-dateRange"] span', { hasText: "Last 7 Days" })
+          .nth(0)
+      ).toBeVisible();
+    });
+
+    test("Can choose date range presets", async ({ page, users }) => {
+      const user = await users.create({ name: `userOne=${Date.now()}` });
+      await user.apiLogin();
+      await page.goto("/settings/my-account/out-of-office");
+      await page.waitForLoadState("domcontentloaded");
+      await page.waitForResponse(
+        (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+      );
+      await page.locator('[data-testid="add-filter-button"]').click();
+      await page.locator('[data-testid="add-filter-item-dateRange"]').click();
+      await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
+
+      await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeVisible(); //Today
+      await expect(page.locator('[data-testid="date-range-options-w"]')).toBeVisible(); //Last 7 Days
+      await expect(page.locator('[data-testid="date-range-options-t"]')).toBeVisible(); //Last 30 Days
+      await expect(page.locator('[data-testid="date-range-options-m"]')).toBeVisible(); //Month to Date
+      await expect(page.locator('[data-testid="date-range-options-y"]')).toBeVisible(); //Year to Date
+      await expect(page.locator('[data-testid="date-range-options-c"]')).toBeVisible(); //Custom
+    });
+
+    test("Default - No date range filter selected.", async ({ page, users }) => {
+      const member1Name = `member-1-${Date.now()}`;
+      const member2Name = `member-2-${Date.now()}`;
+      const member3Name = `member-3-${Date.now()}`;
+      const teamMatesObj = [{ name: member1Name }, { name: member2Name }];
+      const member3User = await users.create(
+        { name: member3Name },
+        {
+          hasTeam: true,
+          teamRole: MembershipRole.MEMBER,
+          teammates: teamMatesObj,
+        }
+      );
+      const member1User = users.get().find((user) => user.name === member1Name);
+      const member2User = users.get().find((user) => user.name === member2Name);
+
+      //create OOO for member3, start:currentDate+2Days, end:currentDate+4days (future ooo)
+      await prisma.outOfOfficeEntry.create({
+        data: {
+          start: dayjs().startOf("day").add(2, "days").toDate(),
+          end: dayjs().startOf("day").add(4, "days").toDate(),
+          uuid: uuidv4(),
+          user: { connect: { id: member3User?.id } },
+          createdAt: new Date(),
+          reason: {
+            connect: {
+              id: 1,
+            },
+          },
+        },
+      });
+
+      await member3User?.apiLogin();
+      const entriesListRespPromise = page.waitForResponse(
+        (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+      );
+      await page.goto("/settings/my-account/out-of-office");
+      await entriesListRespPromise;
+      await page.waitForLoadState("domcontentloaded");
+
+      //By Default future OOO will be displayed
+      //1 OOO record should be visible for member3, end=currentDate+4days
+      const oooEntries = page.locator('[data-testid="ooo-actions"]');
+      await oooEntries.waitFor({ state: "visible" });
+      const oooEntriesCount = await oooEntries.count();
+
+      expect(oooEntriesCount).toBe(1);
+      await expect(page.locator(`data-testid=table-redirect-n-a`).nth(0)).toBeVisible();
+    });
+
+    test("Date range filter selected - 'Last 7 Days' (default filter).", async ({ page, users }) => {
+      const member1Name = `member-1-${Date.now()}`;
+      const member2Name = `member-2-${Date.now()}`;
+      const member3Name = `member-3-${Date.now()}`;
+      const teamMatesObj = [{ name: member1Name }, { name: member2Name }];
+      const member3User = await users.create(
+        { name: member3Name },
+        {
+          hasTeam: true,
+          teamRole: MembershipRole.MEMBER,
+          teammates: teamMatesObj,
+        }
+      );
+      const member1User = users.get().find((user) => user.name === member1Name);
+      const member2User = users.get().find((user) => user.name === member2Name);
+
+      //create OOO for member3, start:currentDate-2Days, end:currentDate-4days (for Last 7 Days)
+      await prisma.outOfOfficeEntry.create({
+        data: {
+          start: dayjs().startOf("day").subtract(4, "days").toDate(),
+          end: dayjs().startOf("day").subtract(2, "days").toDate(),
+          uuid: uuidv4(),
+          user: { connect: { id: member3User?.id } },
+          toUser: { connect: { id: member2User?.id } },
+          createdAt: new Date(),
+          reason: {
+            connect: {
+              id: 2,
+            },
+          },
+        },
+      });
+
+      await member3User?.apiLogin();
+      const entriesListRespPromise = page.waitForResponse(
+        (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+      );
+      await page.goto("/settings/my-account/out-of-office");
+      await entriesListRespPromise;
+      await page.waitForLoadState("domcontentloaded");
+
+      //Default filter 'Last 7 Days' when DateRange Filter is selected
+      await test.step("Default filter - 'Last 7 Days'", async () => {
+        await page.locator('[data-testid="add-filter-button"]').click();
+        const entriesListRespPromise = page.waitForResponse(
+          (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+        );
+        await page.locator('[data-testid="add-filter-item-dateRange"]').click();
+        await entriesListRespPromise;
+
+        //1 OOO record should be visible for member3, end=currentDate-4days
+        const oooEntries = page.locator('[data-testid="ooo-actions"]');
+        await oooEntries.waitFor({ state: "visible" });
+        const oooEntriesCount = await oooEntries.count();
+
+        expect(oooEntriesCount).toBe(1);
+        await expect(
+          page.locator(`data-testid=table-redirect-${member2User?.username}`).nth(0)
+        ).toBeVisible();
+      });
+    });
+
+    test("Date range filter selected - 'Last 30 Days'.", async ({ page, users }) => {
+      const member1Name = `member-1-${Date.now()}`;
+      const member2Name = `member-2-${Date.now()}`;
+      const member3Name = `member-3-${Date.now()}`;
+      const teamMatesObj = [{ name: member1Name }, { name: member2Name }];
+      const member3User = await users.create(
+        { name: member3Name },
+        {
+          hasTeam: true,
+          teamRole: MembershipRole.MEMBER,
+          teammates: teamMatesObj,
+        }
+      );
+      const member1User = users.get().find((user) => user.name === member1Name);
+      const member2User = users.get().find((user) => user.name === member2Name);
+
+      //create OOO for member3, start:currentDate-12Days, end:currentDate-10days (for Last 30 Days)
+      await prisma.outOfOfficeEntry.create({
+        data: {
+          start: dayjs().startOf("day").subtract(12, "days").toDate(),
+          end: dayjs().startOf("day").subtract(10, "days").toDate(),
+          uuid: uuidv4(),
+          user: { connect: { id: member3User?.id } },
+          toUser: { connect: { id: member1User?.id } },
+          createdAt: new Date(),
+          reason: {
+            connect: {
+              id: 2,
+            },
+          },
+        },
+      });
+
+      await member3User?.apiLogin();
+      const entriesListRespPromise = page.waitForResponse(
+        (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+      );
+      await page.goto("/settings/my-account/out-of-office");
+      await entriesListRespPromise;
+      await page.waitForLoadState("domcontentloaded");
+
+      //Select 'Last 30 Days'
+      await test.step("select 'Last 30 Days'", async () => {
+        await page.locator('[data-testid="add-filter-button"]').click();
+        const entriesListRespPromise1 = page.waitForResponse(
+          (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+        );
+        await page.locator('[data-testid="add-filter-item-dateRange"]').click();
+        await entriesListRespPromise1;
+
+        await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
+        const entriesListRespPromise2 = page.waitForResponse(
+          (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+        );
+        await page.locator(`[data-testid="date-range-options-t"]`).click(); //Last 30 Days
+        await entriesListRespPromise2;
+
+        //1 OOO record should be visible end=currentDate-12days
+        const oooEntries = page.locator('[data-testid="ooo-actions"]');
+        await oooEntries.waitFor({ state: "visible" });
+        const oooEntriesCount = await oooEntries.count();
+
+        expect(oooEntriesCount).toBe(1);
+        await expect(
+          page.locator(`data-testid=table-redirect-${member1User?.username}`).nth(0)
+        ).toBeVisible();
+      });
+    });
   });
 });
 
 async function saveAndWaitForResponse(page: Page, expectedStatusCode = 200) {
-  await submitAndWaitForResponse(page, "/api/trpc/viewer/outOfOfficeCreateOrUpdate?batch=1", {
+  await submitAndWaitForResponse(page, "/api/trpc/ooo/outOfOfficeCreateOrUpdate?batch=1", {
     action: () => page.getByTestId("create-or-edit-entry-ooo-redirect").click(),
     expectedStatusCode,
   });
@@ -593,11 +892,11 @@ async function selectDateAndCreateOOO(
   redirectToUserId?: number,
   expectedStatusCode = 200,
   forTeamMember = false,
-  month: "previous-month" | "next-month" = "next-month",
+  month: "previous" | "next" = "next",
   editMode = false
 ) {
   const t = await localize("en");
-  await page.locator(`button[name="${month}"]`).click();
+  await page.locator(`button[name="${month}-month"]`).click();
   await page.locator(`button[name="day"]:text-is("${fromDate}")`).nth(0).click();
   await page.locator(`button[name="day"]:text-is("${toDate}")`).nth(0).click();
   editMode

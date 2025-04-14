@@ -1,0 +1,101 @@
+---
+title: Bookings hooks
+description:  Overview of all the hooks associated with bookings.
+---
+
+Optimize your development workflow using our custom hooks. Our custom hooks are designed to simplify the integration of the Cal.com API into your products. With these hooks, you can effortlessly manage state, handle side effects, and optimize performance, allowing you to focus on building exceptional user experiences without the hassle of complex API interactions. 
+
+Below is a list of hooks you can find that are associated with bookings:
+
+### 1. `useBookings`
+
+The useBookings hook returns an array of all the booking data, allowing you to filter bookings by status, such as ***upcoming,*** ***recurring***, ***past,*** ***cancelled,*** or ***unconfirmed.*** It also supports pagination through the take and skip parameters. Additionally, various properties can be passed to useBookings, which can be referenced in the [following](https://github.com/calcom/cal.com/blob/307b2946a2cb6dcdb32dbee6c4f448e8a01c4285/packages/platform/types/bookings/2024-08-13/inputs/get-bookings.input.ts#L32) documentation for detailed information.
+
+Below code snippet shows how to use the useBookings hook to fetch bookings for a specific user.
+
+```js
+import { useBookings } from "@calcom/atoms";
+
+export default function Bookings() {
+  const { isLoading: isLoadingUpcomingBookings, data: upcomingBookings } = useBookings({
+    take: 50,
+    skip: 0,
+    status: ["upcoming"],
+  });
+
+  return (
+    <>
+      <h1>Upcoming bookings</h1>
+      {isLoadingUpcomingBookings && <p>Loading...</p>}
+      {!isLoadingUpcomingBookings && !upcomingBookings && <p>No upcoming bookings found</p>}
+      {!isLoading &&
+        upcomingBookings &&
+        (Boolean(upcomingBookings?.length)) &&
+        [...upcomingBookings].map((booking) => {
+            return (
+                <div key={booking.id}><h1>{booking.title}</h1></div>
+            );
+       })}
+    </>
+  );
+}
+```
+
+### 2. `useBooking`
+
+The useBooking hook returns detailed information about a single booking. Simply provide the booking's unique identifier ***(bookingUid)*** as a parameter to fetch its associated data. 
+
+Below code snippet shows how to use the useBooking hook to fetch a specific booking for a user.
+
+```js
+import { useBooking } from "@calcom/atoms";
+
+export default function Booking() {
+  const { isLoading: isLoadingBooking, data: booking } = useBooking("nChHoxEm1GXVPzi7TNAuWc");
+
+  return (
+    <>
+      {isLoadingBooking && <p>Loading...</p>}
+      {!isLoadingBooking && !booking && <p>No booking found</p>}
+      {!isLoading &&
+        !!booking &&
+        return (
+          <div>Title: {booking.title}</div>
+        )
+        }
+    </>
+  );
+}
+```
+
+### 3. `useCancelBooking`
+
+The useCancelBooking hook allows you to cancel a booking. This hook returns a mutation function that handles the cancellation process. To cancel a booking, you'll need to provide at least the booking's unique identifier ***(uid).*** While the uid is the only mandatory parameter, you can enhance the cancellation process by including optional parameters such as ***cancellationReason*** to specify why the booking is being canceled, and ***allRemainingBookings*** to specify whether to cancel all future recurring bookings.
+
+Below code snippet shows how to use the useCancelBooking hook to cancel a booking for a user.
+
+```js
+import { useCancelBooking } from "@calcom/atoms";
+
+export default function CancelBooking() {
+    const { mutate: cancelBooking } = useCancelBooking({
+    onSuccess: () => {
+      console.log("Booking canceled successfully!")
+    },
+  });
+
+  return (
+    <>
+      <button onClick={() => {
+          cancelBooking({
+            uid: "6L6ADNpVHwLX25V8wXKsBr",
+            cancellationReason: "User request",
+            allRemainingBookings: true,
+          })
+        }}>
+        Cancel booking
+      </button>
+    </>
+  );
+}
+```

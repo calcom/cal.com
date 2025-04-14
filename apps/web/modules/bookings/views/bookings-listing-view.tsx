@@ -1,31 +1,31 @@
 "use client";
 
-import {
-  useReactTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  createColumnHelper,
-} from "@tanstack/react-table";
+import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
 import { useMemo, useRef } from "react";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
 import {
+  useDataTable,
   DataTableProvider,
   DataTableWrapper,
   DataTableFilters,
+  DataTableSegment,
   ColumnFilterType,
   useFilterValue,
   ZMultiSelectFilterValue,
   ZDateRangeFilterValue,
   ZTextFilterValue,
 } from "@calcom/features/data-table";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import type { HorizontalTabItemProps, VerticalTabItemProps } from "@calcom/ui";
-import { Alert, EmptyScreen, HorizontalTabs } from "@calcom/ui";
+import { Alert } from "@calcom/ui/components/alert";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
+import { HorizontalTabs } from "@calcom/ui/components/navigation";
+import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
@@ -33,7 +33,6 @@ import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
-import { useStretchedHeightToBottom } from "~/bookings/hooks/useStretchedHeightToBottom";
 import type { validStatuses } from "~/bookings/lib/validStatuses";
 
 type BookingListingStatus = (typeof validStatuses)[number];
@@ -88,7 +87,7 @@ type BookingsProps = {
 
 export default function Bookings(props: BookingsProps) {
   return (
-    <DataTableProvider>
+    <DataTableProvider useSegments={useSegments}>
       <BookingsContent {...props} />
     </DataTableProvider>
   );
@@ -109,7 +108,6 @@ function BookingsContent({ status }: BookingsProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  useStretchedHeightToBottom(tableContainerRef);
 
   const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
   const teamIds = useFilterValue("teamId", ZMultiSelectFilterValue)?.data as number[] | undefined;
@@ -118,24 +116,24 @@ function BookingsContent({ status }: BookingsProps) {
   const attendeeName = useFilterValue("attendeeName", ZTextFilterValue);
   const attendeeEmail = useFilterValue("attendeeEmail", ZTextFilterValue);
 
-  const query = trpc.viewer.bookings.get.useInfiniteQuery(
-    {
-      limit: 10,
-      filters: {
-        status,
-        eventTypeIds,
-        teamIds,
-        userIds,
-        attendeeName,
-        attendeeEmail,
-        afterStartDate: dateRange?.startDate ?? undefined,
-        beforeEndDate: dateRange?.endDate ?? undefined,
-      },
+  const { limit, offset } = useDataTable();
+
+  const query = trpc.viewer.bookings.get.useQuery({
+    limit,
+    offset,
+    filters: {
+      status,
+      eventTypeIds,
+      teamIds,
+      userIds,
+      attendeeName,
+      attendeeEmail,
+      afterStartDate: dateRange?.startDate
+        ? dayjs(dateRange?.startDate).startOf("day").toISOString()
+        : undefined,
+      beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
     },
-    {
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    }
-  );
+  });
 
   const columns = useMemo(() => {
     const columnHelper = createColumnHelper<RowData>();
@@ -147,7 +145,6 @@ function BookingsContent({ status }: BookingsProps) {
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
-        filterFn: () => true,
         meta: {
           filter: {
             type: ColumnFilterType.MULTI_SELECT,
@@ -160,7 +157,6 @@ function BookingsContent({ status }: BookingsProps) {
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
-        filterFn: () => true,
         meta: {
           filter: {
             type: ColumnFilterType.MULTI_SELECT,
@@ -173,7 +169,6 @@ function BookingsContent({ status }: BookingsProps) {
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
-        filterFn: () => true,
         meta: {
           filter: {
             type: ColumnFilterType.MULTI_SELECT,
@@ -186,7 +181,6 @@ function BookingsContent({ status }: BookingsProps) {
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
-        filterFn: () => true,
         meta: {
           filter: {
             type: ColumnFilterType.TEXT,
@@ -199,7 +193,6 @@ function BookingsContent({ status }: BookingsProps) {
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
-        filterFn: () => true,
         meta: {
           filter: {
             type: ColumnFilterType.TEXT,
@@ -212,7 +205,6 @@ function BookingsContent({ status }: BookingsProps) {
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
-        filterFn: () => true,
         meta: {
           filter: {
             type: ColumnFilterType.DATE_RANGE,
@@ -260,7 +252,7 @@ function BookingsContent({ status }: BookingsProps) {
     ];
   }, [user, status, t]);
 
-  const isEmpty = useMemo(() => !query.data?.pages[0]?.bookings.length, [query.data]);
+  const isEmpty = useMemo(() => !query.data?.bookings.length, [query.data]);
 
   const flatData = useMemo<RowData[]>(() => {
     const shownBookings: Record<string, BookingOutput[]> = {};
@@ -287,37 +279,33 @@ function BookingsContent({ status }: BookingsProps) {
     };
 
     return (
-      query.data?.pages.flatMap((page) =>
-        page.bookings.filter(filterBookings).map((booking) => ({
-          type: "data",
-          booking,
-          recurringInfo: page.recurringInfo.find(
-            (info) => info.recurringEventId === booking.recurringEventId
-          ),
-          isToday: false,
-        }))
-      ) || []
+      query.data?.bookings.filter(filterBookings).map((booking) => ({
+        type: "data",
+        booking,
+        recurringInfo: query.data?.recurringInfo.find(
+          (info) => info.recurringEventId === booking.recurringEventId
+        ),
+        isToday: false,
+      })) || []
     );
   }, [query.data]);
 
   const bookingsToday = useMemo<RowData[]>(() => {
     return (
-      query.data?.pages.flatMap((page) =>
-        page.bookings
-          .filter(
-            (booking: BookingOutput) =>
-              dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") ===
-              dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
-          )
-          .map((booking) => ({
-            type: "data" as const,
-            booking,
-            recurringInfo: page.recurringInfo.find(
-              (info) => info.recurringEventId === booking.recurringEventId
-            ),
-            isToday: true,
-          }))
-      ) || []
+      query.data?.bookings
+        .filter(
+          (booking: BookingOutput) =>
+            dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") ===
+            dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
+        )
+        .map((booking) => ({
+          type: "data" as const,
+          booking,
+          recurringInfo: query.data?.recurringInfo.find(
+            (info) => info.recurringEventId === booking.recurringEventId
+          ),
+          isToday: true,
+        })) ?? []
     );
   }, [query.data]);
 
@@ -351,7 +339,6 @@ function BookingsContent({ status }: BookingsProps) {
       },
     },
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedUniqueValues,
   });
@@ -377,21 +364,26 @@ function BookingsContent({ status }: BookingsProps) {
                 <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
               )}
               <DataTableWrapper
+                className="mb-6"
                 tableContainerRef={tableContainerRef}
                 table={table}
                 testId={`${status}-bookings`}
                 bodyTestId="bookings"
-                hideHeader={true}
+                headerClassName="hidden"
                 isPending={query.isPending}
-                hasNextPage={query.hasNextPage}
-                fetchNextPage={query.fetchNextPage}
-                isFetching={query.isFetching}
+                totalRowCount={query.data?.totalCount}
                 variant="compact"
+                paginationMode="standard"
                 ToolbarLeft={
                   <>
-                    <DataTableFilters.AddFilterButton table={table} />
-                    <DataTableFilters.ActiveFilters table={table} />
+                    <DataTableFilters.FilterBar table={table} />
+                  </>
+                }
+                ToolbarRight={
+                  <>
                     <DataTableFilters.ClearFiltersButton />
+                    <DataTableSegment.SaveButton />
+                    <DataTableSegment.Select />
                   </>
                 }
                 LoaderView={<SkeletonLoader />}
