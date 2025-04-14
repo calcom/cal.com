@@ -10,13 +10,14 @@ export const HelpCards = () => {
   const { t } = useLocale();
   const { userBillingData } = useGetUserAttributes();
 
-  const isFreePlan = userBillingData?.plan === "free";
+  const isFreePlan = userBillingData?.plan === "free" && userBillingData?.valid === true;
+  const hasValidPaidPlan = userBillingData?.valid === true && userBillingData?.plan !== "free";
 
   return (
     <>
       <div className="grid-col-1 mb-4 grid gap-2 md:grid-cols-3">
         {helpCards.map((card) => {
-          if (card.title === "Contact us" && isFreePlan) return null;
+          if (card.title === "Contact us" && !hasValidPaidPlan) return null;
 
           if (card.title === "Report issue" && !isFreePlan) return null;
 
