@@ -19,7 +19,7 @@ interface IAddGuestsDialog {
 
 export const AddGuestsDialog = (props: IAddGuestsDialog) => {
   const { t } = useLocale();
-  const ZAddGuestsInputSchema = z.array(z.string().email()).refine((emails) => {
+  const ZAddGuestsInputSchema = z.array(z.string().email).refine((emails) => {
     const uniqueEmails = new Set(emails);
     return uniqueEmails.size === emails.length;
   });

@@ -9,14 +9,14 @@ import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingS
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { Badge } from "@calcom/ui/components/badge";
-import { Tooltip } from "@calcom/ui/components/tooltip";
-import { TextField } from "@calcom/ui/components/form";
 import { Alert } from "@calcom/ui/components/alert";
 import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
+import { TextField } from "@calcom/ui/components/form";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 type TeamMember = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 
@@ -85,7 +85,7 @@ export const AddNewTeamMembersForm = () => {
   const { register, handleSubmit, reset } = useForm<{ email: string }>();
 
   const onSubmit = handleSubmit((data) => {
-    const parsedEmail = z.string().email().safeParse(data.email);
+    const parsedEmail = z.string().email.safeParse(data.email);
     if (!parsedEmail.success) {
       return;
     }
