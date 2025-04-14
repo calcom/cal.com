@@ -1,6 +1,6 @@
 import type { EventTypeCustomInput } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import z from "zod";
+import { z } from "zod";
 
 type CustomInput = {
   value: string | boolean;
@@ -33,13 +33,13 @@ function validateInput(etcInput: EventTypeCustomInput, value: string | boolean |
 
 function validateBooleanInput(value: string | boolean | undefined, errorMessage: string) {
   z.literal(true, {
-    errorMap: () => ({ message: errorMessage }),
+    error: () => ({ message: errorMessage }),
   }).parse(value);
 }
 
 function validatePhoneInput(value: string | boolean | undefined, errorMessage: string) {
   z.string({
-    errorMap: () => ({ message: errorMessage }),
+    error: () => ({ message: errorMessage }),
   })
     .refine((val) => isValidPhoneNumber(val), {
       message: "Phone number is invalid",
@@ -49,7 +49,7 @@ function validatePhoneInput(value: string | boolean | undefined, errorMessage: s
 
 function validateStringInput(value: string | boolean | undefined, errorMessage: string) {
   z.string({
-    errorMap: () => ({ message: errorMessage }),
+    error: () => ({ message: errorMessage }),
   })
     .min(1)
     .parse(value);

@@ -12,7 +12,7 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 const responseSchema = z.object({
   hash: z.string(),
-  email: z.string().email(),
+  email: z.string().email,
   shortName: z.string(),
   appId: z.string(),
   fullName: z.string(),

@@ -60,7 +60,7 @@ export const bookerLayouts = z
   .nullable();
 
 export const orgOnboardingInvitedMembersSchema = z.array(
-  z.object({ email: z.string().email(), name: z.string().optional() })
+  z.object({ email: z.string().email, name: z.string().optional() })
 );
 
 export const orgOnboardingTeamsSchema = z.array(
@@ -290,7 +290,7 @@ export const bookingCancelSchema = z.object({
   cancelSubsequentBookings: z.boolean().optional(),
   cancellationReason: z.string().optional(),
   seatReferenceUid: z.string().optional(),
-  cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
+  cancelledBy: z.string().email({ error: "Invalid email" }).optional(),
   internalNote: z
     .object({
       id: z.number(),

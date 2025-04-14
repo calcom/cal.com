@@ -45,7 +45,7 @@ export const bookingCancelSchema = z.object({
   cancelSubsequentBookings: z.boolean().optional(),
   cancellationReason: z.string().optional().default("Not Provided"),
   seatReferenceUid: z.string().optional(),
-  cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
+  cancelledBy: z.string().email({ error: "Invalid email" }).optional(),
   internalNote: z
     .object({
       id: z.number(),
@@ -61,8 +61,8 @@ const schemaBookingEditParams = z
     title: z.string().optional(),
     startTime: iso8601.optional(),
     endTime: iso8601.optional(),
-    cancelledBy: z.string().email({ message: "Invalid Email" }).optional(),
-    rescheduledBy: z.string().email({ message: "Invalid Email" }).optional(),
+    cancelledBy: z.string().email({ error: "Invalid Email" }).optional(),
+    rescheduledBy: z.string().email({ error: "Invalid Email" }).optional(),
     // Not supporting responses in edit as that might require re-triggering emails
     // responses
   })

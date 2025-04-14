@@ -2,7 +2,7 @@ import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import z from "zod";
+import { z } from "zod";
 
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
@@ -16,11 +16,11 @@ import { CreationSource } from "@calcom/prisma/enums";
 const querySchema = z.object({
   username: z
     .string()
-    .refine((val) => val.trim().length >= 1, { message: "Please enter at least one character" }),
+    .refine((val) => val.trim().length >= 1, { error: "Please enter at least one character" }),
   full_name: z.string().min(3, "Please enter at least 3 characters"),
-  email_address: z.string().regex(emailRegex, { message: "Please enter a valid email" }),
+  email_address: z.string().regex(emailRegex, { error: "Please enter a valid email" }),
   password: z.string().refine((val) => isPasswordValid(val.trim(), false, true), {
-    message:
+    error:
       "The password must be a minimum of 15 characters long containing at least one number and have a mixture of uppercase and lowercase letters",
   }),
 });
