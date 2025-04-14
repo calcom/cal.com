@@ -3115,5 +3115,7 @@
   "resend_in_seconds": "Resend in {{seconds}} seconds",
   "resend": "Resend",
   "verification_email_sent": "Verification email sent",
+  "select_all_members": "Select all members",
+  "form_settings":"Form Settings",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

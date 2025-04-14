@@ -68,7 +68,7 @@ export const FormSettingsSlideover = ({
           onOpenChange(open);
         }
       }}>
-      <SheetContent className="flex h-full flex-col">
+      <SheetContent className="flex flex-col">
         <SheetHeader>
           <SheetTitle>{t("form_settings")}</SheetTitle>
         </SheetHeader>
