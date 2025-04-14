@@ -32,6 +32,7 @@ export interface UiConfig {
   layout?: BookerLayouts;
   colorScheme?: string | null;
   forceDesktop?: boolean;
+  [key: string]: unknown;
 }
 
 declare global {
