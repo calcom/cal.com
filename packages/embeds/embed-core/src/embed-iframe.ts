@@ -343,6 +343,9 @@ function unhideBody() {
   });
 }
 
+/** Minimum width in pixels for desktop view */
+const DESKTOP_MIN_WIDTH = 768;
+
 // It is a map of methods that can be called by parent using doInIframe({method: "methodName", arg: "argument"})
 const methods = {
   ui: function style(uiConfig: UiConfig) {
@@ -443,17 +446,22 @@ const messageParent = (data: CustomEvent["detail"]) => {
 function keepParentInformedAboutDimensionChanges() {
   let knownIframeHeight: number | null = null;
   let knownIframeWidth: null | number = null;
+  let knownShouldForceDesktop: boolean | null = null;
   let isFirstTime = true;
   let isWindowLoadComplete = false;
 
-  // Add container dimension detection
+  // Add container dimension detection with error handling
   const getContainerDimensions = () => {
     const container = window.frameElement?.parentElement;
     if (container) {
       const containerStyles = window.getComputedStyle(container);
+      const parseDimension = (value: string) => {
+        const parsed = parseInt(value);
+        return isNaN(parsed) ? 0 : parsed;
+      };
       return {
-        width: parseInt(containerStyles.width),
-        height: parseInt(containerStyles.height),
+        width: parseDimension(containerStyles.width),
+        height: parseDimension(containerStyles.height),
       };
     }
     return null;
@@ -492,7 +500,7 @@ function keepParentInformedAboutDimensionChanges() {
     const containerDimensions = getContainerDimensions();
 
     // Calculate optimal width based on container and content
-    const desktopMinWidth = 768; // minimum width for desktop view
+    const desktopMinWidth = DESKTOP_MIN_WIDTH; // minimum width for desktop view
     const containerWidth = containerDimensions?.width || window.innerWidth;
 
     // Determine if we should force desktop view
@@ -526,10 +534,15 @@ function keepParentInformedAboutDimensionChanges() {
       return;
     }
 
-    // Only update if dimensions have changed
-    if (knownIframeHeight !== iframeHeight || knownIframeWidth !== iframeWidth) {
+    // Update if dimensions or shouldForceDesktop changed
+    if (
+      knownIframeHeight !== iframeHeight ||
+      knownIframeWidth !== iframeWidth ||
+      knownShouldForceDesktop !== shouldForceDesktop
+    ) {
       knownIframeHeight = iframeHeight;
       knownIframeWidth = iframeWidth;
+      knownShouldForceDesktop = shouldForceDesktop;
 
       sdkActionManager?.fire("__dimensionChanged", {
         iframeHeight,

@@ -2,6 +2,10 @@
  These styles are applied to the entire page, so the selectors need to be specific
 */
 
+:root {
+  --cal-embed-desktop-min-width: 768px;
+}
+
 .cal-embed {
   border: 0;
   min-height: 300px;
@@ -14,7 +18,7 @@
 
 /* Desktop view styles */
 .cal-embed[data-force-desktop="true"] {
-  min-width: 768px;
+  min-width: var(--cal-embed-desktop-min-width);
   width: 100%;
   max-width: 100%;
 }
@@ -54,10 +58,10 @@
 }
 
 /* Fallback for iframe containers (like Canva) with limited width */
-@media (max-width: 768px) {
+@media (max-width: var(--cal-embed-desktop-min-width)) {
   .cal-embed[data-force-desktop="true"] {
-    min-width: 768px;
-    width: 768px; /* ensure horizontal scroll works */
+    min-width: var(--cal-embed-desktop-min-width);
+    width: var(--cal-embed-desktop-min-width); /* ensure horizontal scroll works */
   }
 
   .cal-embed-container {

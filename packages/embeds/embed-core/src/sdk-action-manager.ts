@@ -106,6 +106,7 @@ export type EventDataMap = {
     iframeHeight: number;
     iframeWidth: number;
     isFirstTime: boolean;
+    shouldForceDesktop: boolean;
   };
 };
 
