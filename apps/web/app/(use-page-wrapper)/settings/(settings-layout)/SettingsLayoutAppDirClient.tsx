@@ -314,41 +314,19 @@ const TeamListCollapsible = () => {
                 className="cursor-pointer"
                 key={team.id}
                 open={teamMenuState[index].teamMenuOpen}
-                onOpenChange={() =>
-                  setTeamMenuState([
-                    ...teamMenuState,
-                    (teamMenuState[index] = {
-                      ...teamMenuState[index],
-                      teamMenuOpen: !teamMenuState[index].teamMenuOpen,
-                    }),
-                  ])
-                }>
+                onOpenChange={(open) => {
+                  const newTeamMenuState = [...teamMenuState];
+                  newTeamMenuState[index] = {
+                    ...newTeamMenuState[index],
+                    teamMenuOpen: open,
+                  };
+                  setTeamMenuState(newTeamMenuState);
+                }}>
                 <CollapsibleTrigger asChild>
                   <button
                     className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
                     aria-controls={`team-content-${team.id}`}
                     aria-expanded={teamMenuState[index].teamMenuOpen}
-                    onClick={() =>
-                      setTeamMenuState([
-                        ...teamMenuState,
-                        (teamMenuState[index] = {
-                          ...teamMenuState[index],
-                          teamMenuOpen: !teamMenuState[index].teamMenuOpen,
-                        }),
-                      ])
-                    }
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        setTeamMenuState([
-                          ...teamMenuState,
-                          (teamMenuState[index] = {
-                            ...teamMenuState[index],
-                            teamMenuOpen: !teamMenuState[index].teamMenuOpen,
-                          }),
-                        ]);
-                      }
-                    }}
                     aria-label={`${team.name} ${
                       teamMenuState[index].teamMenuOpen ? t("collapse_menu") : t("expand_menu")
                     }`}>
@@ -617,41 +595,19 @@ const SettingsSidebarContainer = ({
                               className="cursor-pointer"
                               key={otherTeam.id}
                               open={otherTeamMenuState[index].teamMenuOpen}
-                              onOpenChange={() =>
-                                setOtherTeamMenuState([
-                                  ...otherTeamMenuState,
-                                  (otherTeamMenuState[index] = {
-                                    ...otherTeamMenuState[index],
-                                    teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
-                                  }),
-                                ])
-                              }>
+                              onOpenChange={(open) => {
+                                const newOtherTeamMenuState = [...otherTeamMenuState];
+                                newOtherTeamMenuState[index] = {
+                                  ...newOtherTeamMenuState[index],
+                                  teamMenuOpen: open,
+                                };
+                                setOtherTeamMenuState(newOtherTeamMenuState);
+                              }}>
                               <CollapsibleTrigger asChild>
                                 <button
                                   className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
                                   aria-controls={`other-team-content-${otherTeam.id}`}
                                   aria-expanded={otherTeamMenuState[index].teamMenuOpen}
-                                  onClick={() =>
-                                    setOtherTeamMenuState([
-                                      ...otherTeamMenuState,
-                                      (otherTeamMenuState[index] = {
-                                        ...otherTeamMenuState[index],
-                                        teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
-                                      }),
-                                    ])
-                                  }
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter" || e.key === " ") {
-                                      e.preventDefault();
-                                      setOtherTeamMenuState([
-                                        ...otherTeamMenuState,
-                                        (otherTeamMenuState[index] = {
-                                          ...otherTeamMenuState[index],
-                                          teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
-                                        }),
-                                      ]);
-                                    }
-                                  }}
                                   aria-label={`${otherTeam.name} ${
                                     otherTeamMenuState[index].teamMenuOpen
                                       ? t("collapse_menu")
