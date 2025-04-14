@@ -46,60 +46,38 @@ test.describe("Onboarding", () => {
       });
 
       await test.step("step 2 - Connected Calendar", async () => {
-        if (identityProvider === IdentityProvider.GOOGLE) {
-          const providerName = "Google Calendar";
-          const connectButton = page
-            .locator(`li:has-text("${providerName}")`)
-            .getByRole("button", { name: "Connect" }); // Using name "Connect" assuming default locale
-
-          await connectButton.click();
-
-          // Wait for redirection to the OAuth provider
-          await page.waitForURL(/.*accounts\\.google\\.com.*/);
-
-          // Assert the URL points to the correct OAuth provider
-          await expect(page).toHaveURL(/.*accounts\\.google\\.com.*/);
-
-          // NOTE: Test execution for Google stops here in this flow
-          // as we cannot complete the external OAuth interaction.
-        } else {
-          // Original logic for other providers (CAL, SAML, AZUREAD) - skip the step
-          const isDisabled = await page.locator("button[data-testid=save-calendar-button]").isDisabled();
-          await expect(isDisabled).toBe(true);
-          // tests skip button, we don't want to test entire flow.
-          await page.locator("button[data-testid=skip-step]").click();
-          await expect(page).toHaveURL(/.*connected-video/);
-        }
+        const isDisabled = await page.locator("button[data-testid=save-calendar-button]").isDisabled();
+        await expect(isDisabled).toBe(true);
+        // tests skip button, we don't want to test entire flow.
+        await page.locator("button[data-testid=skip-step]").click();
+        await expect(page).toHaveURL(/.*connected-video/);
       });
 
-      // Conditional execution for subsequent steps only if not Google
-      if (identityProvider !== IdentityProvider.GOOGLE) {
-        await test.step("step 3 - Connected Video", async () => {
-          const isDisabled = await page.locator("button[data-testid=save-video-button]").isDisabled();
-          await expect(isDisabled).toBe(true);
-          // tests skip button, we don't want to test entire flow.
-          await page.locator("button[data-testid=skip-step]").click();
-          await expect(page).toHaveURL(/.*setup-availability/);
-        });
+      await test.step("step 3 - Connected Video", async () => {
+        const isDisabled = await page.locator("button[data-testid=save-video-button]").isDisabled();
+        await expect(isDisabled).toBe(true);
+        // tests skip button, we don't want to test entire flow.
+        await page.locator("button[data-testid=skip-step]").click();
+        await expect(page).toHaveURL(/.*setup-availability/);
+      });
 
-        await test.step("step 4 - Setup Availability", async () => {
-          const isDisabled = await page.locator("button[data-testid=save-availability]").isDisabled();
-          await expect(isDisabled).toBe(false);
-          // same here, skip this step.
+      await test.step("step 4 - Setup Availability", async () => {
+        const isDisabled = await page.locator("button[data-testid=save-availability]").isDisabled();
+        await expect(isDisabled).toBe(false);
+        // same here, skip this step.
 
-          await page.locator("button[data-testid=save-availability]").click();
-          await expect(page).toHaveURL(/.*user-profile/);
-        });
+        await page.locator("button[data-testid=save-availability]").click();
+        await expect(page).toHaveURL(/.*user-profile/);
+      });
 
-        await test.step("step 5- User Profile", async () => {
-          await page.locator("button[type=submit]").click();
-          // should redirect to /event-types after onboarding
-          await page.waitForURL("/event-types");
+      await test.step("step 5- User Profile", async () => {
+        await page.locator("button[type=submit]").click();
+        // should redirect to /event-types after onboarding
+        await page.waitForURL("/event-types");
 
-          const userComplete = await user.self();
-          expect(userComplete.bio?.replace("<p><br></p>", "").length).toBe(0);
-        });
-      }
+        const userComplete = await user.self();
+        expect(userComplete.bio?.replace("<p><br></p>", "").length).toBe(0);
+      });
     });
   };
 
