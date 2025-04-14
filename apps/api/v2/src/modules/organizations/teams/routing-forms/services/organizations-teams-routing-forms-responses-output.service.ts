@@ -5,7 +5,7 @@ import { RoutingFormResponseOutput, RoutingFormResponseResponseOutput } from "@c
 import { App_RoutingForms_FormResponse } from "@calcom/prisma/client";
 
 @Injectable()
-export class RoutingFormsResponsesOutputService {
+export class OrganizationsTeamsRoutingFormsResponsesOutputService {
   getRoutingFormResponses(
     dbRoutingFormResponses: App_RoutingForms_FormResponse[]
   ): RoutingFormResponseOutput[] {
