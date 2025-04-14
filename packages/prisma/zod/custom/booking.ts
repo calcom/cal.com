@@ -10,7 +10,7 @@ export const bookingCreateBodySchema = z.object({
   eventTypeSlug: z.string().optional(),
   rescheduleUid: z.string().optional(),
   recurringEventId: z.string().optional(),
-  rescheduledBy: z.string().email({ error: "Invalid email" }).optional(),
+  rescheduledBy: z.string().email.optional(),
   start: z.string(),
   timeZone: z.string().refine((value: string) => isSupportedTimeZone(value), { message: "Invalid timezone" }),
   user: z.union([z.string(), z.array(z.string())]).optional(),
