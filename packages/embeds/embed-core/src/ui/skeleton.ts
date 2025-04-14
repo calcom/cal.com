@@ -6,7 +6,7 @@ const generateEventMetaSkeleton = () => {
       () => `
     <div class="flex items-start justify-start text-sm text-text">
       <div class="animate-pulse bg-emphasis h-4 w-4 mr-2 rounded-sm"></div>
-      <div class="animate-pulse bg-emphasis h-4 w-32 rounded-sm"></div>
+      <div class="animate-pulse bg-emphasis h-4 w-40 rounded-sm"></div>
     </div>
     `
     )
@@ -24,10 +24,10 @@ const generateEventMetaSkeleton = () => {
             <p class="text-subtle mt-2 text-sm font-semibold">
               <div class="animate-pulse bg-emphasis h-4 w-24 rounded-sm"></div>
             </p>
-            <h1 data-testid="event-title" class="text-text text-xl font-semibold my-2 mb-8">
-              <div class="animate-pulse bg-emphasis h-6 w-32 rounded-sm"></div>
+            <h1 data-testid="event-title" class="text-text text-xl font-semibold my-2 mb-4">
+              <div class="animate-pulse bg-emphasis h-6 w-48 rounded-sm"></div>
             </h1>
-            <div class="space-y-4 font-medium rtl:-mr-2">
+            <div class="space-y-2 font-medium rtl:-mr-2">
               ${eventMetaOptions}
             </div>
           </div>
@@ -52,7 +52,7 @@ const generateDatePickerSkeleton = () => {
       () => `
   <div class="relative w-full pt-[100%]">
     <button class="bg-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-90 transition" disabled="">
-      <span class="font-size-0 bg-emphasis inline-block animate-pulse rounded-md empty:before:inline-block empty:before:content-[''] h-8 w-9"></span>
+      <span class="font-size-0 bg-emphasis inline-block animate-pulse rounded-md empty:before:inline-block empty:before:content-[''] h-9 w-9"></span>
     </button>
   </div>`
     )
