@@ -10,8 +10,9 @@ export const HelpCards = () => {
   const { t } = useLocale();
   const { userBillingData } = useGetUserAttributes();
 
-  const isFreePlan = userBillingData?.plan === "free" && userBillingData?.valid === true;
-  const hasValidPaidPlan = userBillingData?.valid === true && userBillingData?.plan !== "free";
+  const planLowerCase = userBillingData?.plan?.toLowerCase();
+  const isFreePlan = planLowerCase === "free" && userBillingData?.valid === true;
+  const hasValidPaidPlan = userBillingData?.valid === true && planLowerCase !== "free";
 
   return (
     <>
