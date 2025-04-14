@@ -10,7 +10,6 @@ import {
   mockCalendarToHaveNoBusySlots,
   BookingLocations,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
   expectSuccessfulBookingCreationEmails,
   expectBookingToBeInDatabase,
@@ -56,18 +55,34 @@ describe("handleNewBooking", () => {
         });
 
         // Using .endOf("day") here to ensure our date doesn't change when we set the time zone
-        const startDateTimeOrganizerTz = dayjs(plus1DateString)
+        let startDateTimeOrganizerTz = dayjs(plus1DateString)
           .endOf("day")
           .tz(newYorkTimeZone)
           .hour(23)
           .minute(0)
           .second(0);
 
-        const endDateTimeOrganizerTz = dayjs(plus1DateString)
+        let endDateTimeOrganizerTz = dayjs(plus1DateString)
           .endOf("day")
           .tz(newYorkTimeZone)
           .startOf("day")
           .add(1, "day");
+
+        const endUtcOffset = Math.abs(endDateTimeOrganizerTz.utcOffset());
+        const startUtcOffset = Math.abs(startDateTimeOrganizerTz.utcOffset());
+        //on DST transition day the utc offsets are unequal
+        if (startUtcOffset !== endUtcOffset) {
+          if (endUtcOffset > startUtcOffset) {
+            // -5:00 to -4:00 transition
+            endDateTimeOrganizerTz = endDateTimeOrganizerTz.subtract(
+              endUtcOffset - startUtcOffset,
+              "minutes"
+            );
+          } else {
+            // -4:00 to -5:00 transition
+            startDateTimeOrganizerTz = startDateTimeOrganizerTz.add(startUtcOffset - endUtcOffset, "minutes");
+          }
+        }
 
         const schedule = {
           name: "4:00PM to 11:59PM in New York",
@@ -141,12 +156,9 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        const createdBooking = await handleNewBooking(req);
         expect(createdBooking.responses).toEqual(
           expect.objectContaining({
             email: booker.email,

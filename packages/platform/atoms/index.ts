@@ -16,6 +16,8 @@ export { useMe } from "./hooks/useMe";
 export { OutlookConnect } from "./connect/outlook/OutlookConnect";
 export * as Connect from "./connect";
 export { BookerEmbed } from "./booker-embed";
+export { Router } from "./router";
+
 export { useDeleteCalendarCredentials } from "./hooks/calendars/useDeleteCalendarCredentials";
 export { useAddSelectedCalendar } from "./hooks/calendars/useAddSelectedCalendar";
 export { useRemoveSelectedCalendar } from "./hooks/calendars/useRemoveSelectedCalendar";
@@ -29,3 +31,6 @@ export { ConferencingAppsViewPlatformWrapper as ConferencingAppsSettings } from 
 export { StripeConnect } from "./connect/stripe/StripeConnect";
 export { CreateEventTypePlatformWrapper as CreateEventType } from "./event-types/wrappers/CreateEventTypePlatformWrapper";
 export { PaymentForm } from "./event-types/payments/PaymentForm";
+
+export { useCreateEventType } from "./hooks/event-types/private/useCreateEventType";
+export { useCreateTeamEventType } from "./hooks/event-types/private/useCreateTeamEventType";

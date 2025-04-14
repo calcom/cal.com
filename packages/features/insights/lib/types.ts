@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+import type { RouterOutputs } from "@calcom/trpc";
+
+export type RoutingFormTableRow = RouterOutputs["viewer"]["insights"]["routingFormResponses"]["data"][number];
+
+export type HeaderRow = RouterOutputs["viewer"]["insights"]["routingFormResponsesHeaders"][number];
+
 export const ZResponseMultipleValues = z.object({
   label: z.string(),
   value: z.array(z.string()),

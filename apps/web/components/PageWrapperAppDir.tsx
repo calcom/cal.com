@@ -1,8 +1,5 @@
 "use client";
 
-import { type DehydratedState } from "@tanstack/react-query";
-import type { SSRConfig } from "next-i18next";
-// import I18nLanguageHandler from "@components/I18nLanguageHandler";
 import { usePathname } from "next/navigation";
 import Script from "next/script";
 
@@ -16,11 +13,7 @@ export type PageWrapperProps = Readonly<{
   children: React.ReactNode;
   requiresLicense: boolean;
   nonce: string | undefined;
-  themeBasis: string | null;
-  dehydratedState?: DehydratedState;
-  isThemeSupported?: boolean;
   isBookingPage?: boolean;
-  i18n?: SSRConfig;
 }>;
 
 function PageWrapper(props: PageWrapperProps) {
@@ -49,7 +42,6 @@ function PageWrapper(props: PageWrapperProps) {
 
   return (
     <AppProviders {...providerProps}>
-      {/* <I18nLanguageHandler locales={props.router.locales || []} /> */}
       <>
         <Script
           nonce={nonce}

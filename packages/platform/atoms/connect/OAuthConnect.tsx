@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import type { FC } from "react";
 
 import type { CALENDARS } from "@calcom/platform-constants";
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
 
 import type { OnCheckErrorType, UseCheckProps } from "../hooks/connect/useCheck";
 import { useCheck } from "../hooks/connect/useCheck";
@@ -76,7 +76,7 @@ export const OAuthConnect: FC<
           tooltipSide={tooltipSide}
           tooltipOffset={10}
           tooltipClassName="p-0 text-inherit bg-inherit"
-          className={cn("", !isDisabled && "cursor-pointer", className)}
+          className={cn("", !isDisabled && "cursor-pointer", "border-none md:rounded-md", className)}
           onTouchEnd={() => {
             connect();
             onSuccess?.();
@@ -99,9 +99,9 @@ export const OAuthConnect: FC<
         disabled={isDisabled}
         className={cn(
           "",
-          isChecking && "animate-pulse",
           isDisabled && "cursor-not-allowed",
           !isDisabled && "cursor-pointer",
+          "border-none md:rounded-md",
           className
         )}
         onTouchEnd={() => {

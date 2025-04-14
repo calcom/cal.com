@@ -4,7 +4,6 @@
 **/
 import { appKeysSchema as alby_zod_ts } from "./alby/zod";
 import { appKeysSchema as basecamp3_zod_ts } from "./basecamp3/zod";
-import { appKeysSchema as campsite_zod_ts } from "./campsite/zod";
 import { appKeysSchema as closecom_zod_ts } from "./closecom/zod";
 import { appKeysSchema as dailyvideo_zod_ts } from "./dailyvideo/zod";
 import { appKeysSchema as fathom_zod_ts } from "./fathom/zod";
@@ -14,6 +13,7 @@ import { appKeysSchema as giphy_zod_ts } from "./giphy/zod";
 import { appKeysSchema as googlecalendar_zod_ts } from "./googlecalendar/zod";
 import { appKeysSchema as googlevideo_zod_ts } from "./googlevideo/zod";
 import { appKeysSchema as gtm_zod_ts } from "./gtm/zod";
+import { appKeysSchema as hitpay_zod_ts } from "./hitpay/zod";
 import { appKeysSchema as hubspot_zod_ts } from "./hubspot/zod";
 import { appKeysSchema as insihts_zod_ts } from "./insihts/zod";
 import { appKeysSchema as intercom_zod_ts } from "./intercom/zod";
@@ -53,7 +53,6 @@ import { appKeysSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
 export const appKeysSchemas = {
   alby: alby_zod_ts,
   basecamp3: basecamp3_zod_ts,
-  campsite: campsite_zod_ts,
   closecom: closecom_zod_ts,
   dailyvideo: dailyvideo_zod_ts,
   fathom: fathom_zod_ts,
@@ -63,6 +62,7 @@ export const appKeysSchemas = {
   googlecalendar: googlecalendar_zod_ts,
   googlevideo: googlevideo_zod_ts,
   gtm: gtm_zod_ts,
+  hitpay: hitpay_zod_ts,
   hubspot: hubspot_zod_ts,
   insihts: insihts_zod_ts,
   intercom: intercom_zod_ts,

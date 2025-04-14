@@ -8,7 +8,8 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { CreationSource } from "@calcom/prisma/enums";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
@@ -139,16 +140,21 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
       usernameOrEmail: string;
       role: MembershipRole;
     }[];
+    creationSource: CreationSource;
+    /**
+     * Whether invitation is a direct user action or not i.e. we need to show them User based errors like inviting existing users or not.
+     */
+    isDirectUserAction?: boolean;
   } & TargetTeam
 ) => {
-  const { inviterName, orgSlug, invitations, language } = data;
+  const { inviterName, orgSlug, invitations, language, creationSource, isDirectUserAction = true } = data;
   const myLog = log.getSubLogger({ prefix: ["inviteMembers"] });
   const translation = await getTranslation(language ?? "en", "common");
   const team = "team" in data ? data.team : await getTeamOrThrow(data.teamId);
   const isTeamAnOrg = team.isOrganization;
 
   const uniqueInvitations = await getUniqueInvitationsOrThrowIfEmpty(invitations);
-  const beSilentAboutErrors = shouldBeSilentAboutErrors(uniqueInvitations);
+  const beSilentAboutErrors = shouldBeSilentAboutErrors(uniqueInvitations) || !isDirectUserAction;
   const existingUsersToBeInvited = await findUsersWithInviteStatus({
     invitations: uniqueInvitations,
     team,
@@ -188,6 +194,7 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
       isOrg: isTeamAnOrg,
       inviter,
       autoAcceptEmailDomain: orgState.autoAcceptEmailDomain,
+      creationSource,
     });
   }
 
@@ -235,7 +242,7 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
 
 const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
   const { user: inviter } = ctx;
-  const { usernameOrEmail, role, isPlatform } = input;
+  const { usernameOrEmail, role, isPlatform, creationSource } = input;
 
   const team = await getTeamOrThrow(input.teamId);
   const requestedSlugForTeam = team?.metadata?.requestedSlug ?? null;
@@ -267,11 +274,11 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
     teamId: inviterOrgId && isInviterOrgAdmin ? inviterOrgId : input.teamId,
     isOrg: isTeamAnOrg,
   });
-
   const result = await inviteMembersWithNoInviterPermissionCheck({
     inviterName: inviter.name,
     team,
     language: input.language,
+    creationSource,
     orgSlug,
     invitations,
   });

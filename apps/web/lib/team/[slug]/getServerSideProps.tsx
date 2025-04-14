@@ -1,13 +1,17 @@
 import type { GetServerSidePropsContext } from "next";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import {
+  getOrganizationSettings,
+  getVerifiedDomain,
+} from "@calcom/features/ee/organizations/lib/orgSettings";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
+import { IS_CALCOM } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import slugify from "@calcom/lib/slugify";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
@@ -16,8 +20,6 @@ import { RedirectType } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const log = logger.getSubLogger({ prefix: ["team/[slug]"] });
 
@@ -30,8 +32,13 @@ function getOrgProfileRedirectToVerifiedDomain(
   if (!team.isOrganization) {
     return null;
   }
+  // when this is not on a Cal.com page we don't auto redirect -
+  // good for diagnosis purposes.
+  if (!IS_CALCOM) {
+    return null;
+  }
 
-  const verifiedDomain = OrganizationRepository.utils.getVerifiedDomain(settings);
+  const verifiedDomain = getVerifiedDomain(settings);
 
   if (!settings.orgProfileRedirectsToVerifiedDomain || !verifiedDomain) {
     return null;
@@ -94,7 +101,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   }
 
-  const ssr = await ssrInit(context);
   const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
 
   // Taking care of sub-teams and orgs
@@ -140,12 +146,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           parent: teamParent,
           createdAt: null,
         },
-        trpcState: ssr.dehydrate(),
       },
     } as const;
   }
 
-  const organizationSettings = OrganizationRepository.utils.getOrganizationSettings(team);
+  const organizationSettings = getOrganizationSettings(team);
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
 
   const redirectToVerifiedDomain = organizationSettings
@@ -206,7 +211,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       props: {
         considerUnpublished: true,
         team: { ...serializableTeam },
-        trpcState: ssr.dehydrate(),
       },
     } as const;
   }
@@ -221,7 +225,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         children: isTeamOrParentOrgPrivate ? [] : team.children,
       },
       themeBasis: serializableTeam.slug,
-      trpcState: ssr.dehydrate(),
       markdownStrippedBio,
       isValidOrgDomain,
       currentOrgDomain,

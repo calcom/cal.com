@@ -4,9 +4,9 @@ import { URLSearchParams } from "url";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { getSafe } from "@calcom/lib/bookingSuccessRedirect";
 import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { getSafe } from "@calcom/lib/getSafe";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
@@ -23,7 +23,7 @@ const querySchema = z.object({
 });
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession(context);
+  const session = await getServerSession({ req: context.req });
 
   const {
     uid: bookingUid,
@@ -57,6 +57,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             },
           },
           slug: true,
+          allowReschedulingPastBookings: true,
+          disableRescheduling: true,
           team: {
             select: {
               parentId: true,
@@ -97,9 +99,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   // If booking is already CANCELLED or REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.
   // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
+  const isDisabledRescheduling = booking.eventType?.disableRescheduling;
   if (
-    !allowRescheduleForCancelledBooking &&
-    (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED)
+    isDisabledRescheduling ||
+    (!allowRescheduleForCancelledBooking &&
+      (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED))
   ) {
     return {
       redirect: {
@@ -131,7 +135,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   });
 
   const isBookingInPast = booking.endTime && new Date(booking.endTime) < new Date();
-  if (isBookingInPast) {
+  if (isBookingInPast && !eventType.allowReschedulingPastBookings) {
     const destinationUrlSearchParams = new URLSearchParams();
     const responses = bookingSeat ? getSafe<string>(bookingSeat.data, ["responses"]) : booking.responses;
     const name = getSafe<string>(responses, ["name"]);

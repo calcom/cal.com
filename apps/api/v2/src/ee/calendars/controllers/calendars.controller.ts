@@ -14,6 +14,7 @@ import { GoogleCalendarService } from "@/ee/calendars/services/gcal.service";
 import { IcsFeedService } from "@/ee/calendars/services/ics-feed.service";
 import { OutlookService } from "@/ee/calendars/services/outlook.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -34,7 +35,7 @@ import {
   Post,
   Body,
 } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { plainToClass } from "class-transformer";
 import { Request } from "express";
@@ -68,6 +69,7 @@ export class CalendarsController {
 
   @Post("/ics-feed/save")
   @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Save an ICS feed" })
   async createIcsFeed(
     @GetUser("id") userId: number,
@@ -79,12 +81,14 @@ export class CalendarsController {
 
   @Get("/ics-feed/check")
   @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Check an ICS feed" })
   async checkIcsFeed(@GetUser("id") userId: number): Promise<ApiResponse> {
     return await this.icsFeedService.check(userId);
   }
 
   @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Get("/busy-times")
   @ApiOperation({
     summary: "Get busy times",
@@ -113,6 +117,7 @@ export class CalendarsController {
 
   @Get("/")
   @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Get all calendars" })
   async getCalendars(@GetUser("id") userId: number): Promise<ConnectedCalendarsOutput> {
     const calendars = await this.calendarsService.getCalendars(userId);
@@ -123,10 +128,22 @@ export class CalendarsController {
     };
   }
 
+  @ApiParam({
+    enum: [OFFICE_365_CALENDAR, GOOGLE_CALENDAR],
+    type: String,
+    name: "calendar",
+  })
   @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Get("/:calendar/connect")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get connect URL" })
+  @ApiOperation({ summary: "Get oAuth connect URL" })
+  @ApiQuery({
+    name: "redir",
+    required: false,
+    type: String,
+    description: "Redirect URL after successful calendar authorization.",
+  })
   async redirect(
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
@@ -146,10 +163,15 @@ export class CalendarsController {
     }
   }
 
+  @ApiParam({
+    enum: [OFFICE_365_CALENDAR, GOOGLE_CALENDAR],
+    type: String,
+    name: "calendar",
+  })
   @Get("/:calendar/save")
   @HttpCode(HttpStatus.OK)
   @Redirect(undefined, 301)
-  @ApiOperation({ summary: "Save a calendar" })
+  @ApiOperation({ summary: "Save an oAuth calendar credentials" })
   async save(
     @Query("state") state: string,
     @Query("code") code: string,
@@ -177,7 +199,13 @@ export class CalendarsController {
     }
   }
 
+  @ApiParam({
+    enum: [APPLE_CALENDAR],
+    type: String,
+    name: "calendar",
+  })
   @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Post("/:calendar/credentials")
   @ApiOperation({ summary: "Sync credentials" })
   async syncCredentials(
@@ -198,9 +226,15 @@ export class CalendarsController {
     }
   }
 
+  @ApiParam({
+    enum: [APPLE_CALENDAR, GOOGLE_CALENDAR, OFFICE_365_CALENDAR],
+    type: String,
+    name: "calendar",
+  })
   @Get("/:calendar/check")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Permissions([APPS_READ])
   @ApiOperation({ summary: "Check a calendar connection" })
   async check(@GetUser("id") userId: number, @Param("calendar") calendar: string): Promise<ApiResponse> {
@@ -219,7 +253,13 @@ export class CalendarsController {
     }
   }
 
+  @ApiParam({
+    enum: [APPLE_CALENDAR, GOOGLE_CALENDAR, OFFICE_365_CALENDAR],
+    type: String,
+    name: "calendar",
+  })
   @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Post("/:calendar/disconnect")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Disconnect a calendar" })

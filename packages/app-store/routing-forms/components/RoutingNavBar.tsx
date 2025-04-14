@@ -1,10 +1,13 @@
+import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
-import { HorizontalTabs } from "@calcom/ui";
+import { trpc } from "@calcom/trpc";
+import { HorizontalTabs } from "@calcom/ui/components/navigation";
 
+import { enabledIncompleteBookingApps } from "../lib/enabledIncompleteBookingApps";
 import type { getSerializableForm } from "../lib/getSerializableForm";
-import type { RoutingFormWithResponseCount } from "./SingleForm";
+import type { RoutingFormWithResponseCount } from "../types/types";
 
 export default function RoutingNavBar({
   form,
@@ -17,6 +20,15 @@ export default function RoutingNavBar({
   hookForm: UseFormReturn<RoutingFormWithResponseCount>;
   setShowInfoLostDialog: Dispatch<SetStateAction<boolean>>;
 }) {
+  const router = useRouter();
+  const { data } = trpc.viewer.appRoutingForms.getIncompleteBookingSettings.useQuery({
+    formId: form.id,
+  });
+
+  const showIncompleteBookingTab = data?.credentials.some((credential) =>
+    enabledIncompleteBookingApps.includes(credential?.appId ?? "")
+  );
+
   const tabs = [
     {
       name: "Form",
@@ -29,7 +41,7 @@ export default function RoutingNavBar({
         if (hookForm.formState.isDirty) {
           setShowInfoLostDialog(true);
         } else {
-          window.location.href = `${appUrl}/route-builder/${form?.id}`;
+          router.push(`${appUrl}/route-builder/${form?.id}`);
         }
       },
     },
@@ -38,10 +50,14 @@ export default function RoutingNavBar({
       target: "_blank",
       href: `${appUrl}/reporting/${form?.id}`,
     },
-    {
-      name: "Incomplete Booking",
-      href: `${appUrl}/incomplete-booking/${form?.id}`,
-    },
+    ...(showIncompleteBookingTab
+      ? [
+          {
+            name: "Incomplete Booking",
+            href: `${appUrl}/incomplete-booking/${form?.id}`,
+          },
+        ]
+      : []),
   ];
   return (
     <div className="mb-4">

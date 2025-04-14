@@ -1,23 +1,25 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button, showToast, TextField } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
+import { TextField } from "@calcom/ui/components/form";
+import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 export default function PayPalSetup() {
   const [newClientId, setNewClientId] = useState("");
   const [newSecretKey, setNewSecretKey] = useState("");
   const router = useRouter();
   const { t } = useLocale();
-  const integrations = trpc.viewer.integrations.useQuery({ variant: "payment", appId: "paypal" });
+  const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "payment", appId: "paypal" });
   const [paypalPaymentAppCredentials] = integrations.data?.items || [];
   const [credentialId] = paypalPaymentAppCredentials?.userCredentialIds || [-1];
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
-  const saveKeysMutation = trpc.viewer.appsRouter.updateAppCredentials.useMutation({
+  const saveKeysMutation = trpc.viewer.apps.updateAppCredentials.useMutation({
     onSuccess: () => {
       showToast(t("keys_have_been_saved"), "success");
       router.push("/event-types");

@@ -2,9 +2,9 @@ import { cva } from "class-variance-authority";
 
 import dayjs from "@calcom/dayjs";
 import { getCurrentTime } from "@calcom/features/bookings/lib/useCheckOverlapWithOverlay";
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Tooltip } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { CalendarEvent } from "../../types/events";
 

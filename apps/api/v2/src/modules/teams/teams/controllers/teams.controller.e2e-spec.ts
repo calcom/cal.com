@@ -17,7 +17,7 @@ import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repo
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { TeamOutputDto } from "@calcom/platform-types";
@@ -29,11 +29,11 @@ describe("Teams endpoint", () => {
   let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
   let membershipRepositoryFixture: MembershipRepositoryFixture;
 
-  const aliceEmail = `alice-${randomNumber()}@api.com`;
+  const aliceEmail = `alice-${randomString()}@api.com`;
   let alice: User;
   let aliceApiKey: string;
 
-  const bobEmail = `bob-${randomNumber()}@api.com`;
+  const bobEmail = `bob-${randomString()}@api.com`;
   let bob: User;
   let bobApiKey: string;
 
@@ -73,9 +73,12 @@ describe("Teams endpoint", () => {
   });
 
   describe("User has membership in created team", () => {
-    it("should create a team", async () => {
+    it("should create first team", async () => {
       const body: CreateTeamInput = {
-        name: "Team dog",
+        name: `teams-dog-${randomString()}`,
+        metadata: {
+          teamKey: "teamValue",
+        },
       };
 
       return request(app.getHttpServer())
@@ -90,13 +93,30 @@ describe("Teams endpoint", () => {
           expect(responseData).toBeDefined();
           expect(responseData.id).toBeDefined();
           expect(responseData.name).toEqual(body.name);
+          expect(responseData.metadata).toEqual(body.metadata);
           team1 = responseData;
         });
     });
 
-    it("should create a team", async () => {
+    it("should not create a team with string metadata", async () => {
+      const body = {
+        name: `teams-dog-${randomString()}`,
+        metadata: JSON.stringify({
+          teamKey: "teamValue",
+        }),
+      };
+
+      return request(app.getHttpServer())
+        .post("/v2/teams")
+        .send(body)
+        .set({ Authorization: `Bearer cal_test_${aliceApiKey}` })
+        .expect(400);
+    });
+
+    it("should create second team", async () => {
       const body: CreateTeamInput = {
-        name: "Team cats",
+        name: `teams-cats-${randomString()}`,
+        metadata: {},
       };
 
       return request(app.getHttpServer())
@@ -111,6 +131,7 @@ describe("Teams endpoint", () => {
           expect(responseData).toBeDefined();
           expect(responseData.id).toBeDefined();
           expect(responseData.name).toEqual(body.name);
+          expect(responseData.metadata).toEqual(body.metadata);
           team2 = responseData;
         });
     });
@@ -139,16 +160,21 @@ describe("Teams endpoint", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.length).toEqual(2);
-          expect(responseBody.data[0].id).toBeDefined();
-          expect(responseBody.data[0].name).toEqual(team1.name);
-          expect(responseBody.data[1].id).toBeDefined();
-          expect(responseBody.data[1].name).toEqual(team2.name);
+
+          const responseTeam1 = responseBody.data.find((team) => team.id === team1.id);
+          const responseTeam2 = responseBody.data.find((team) => team.id === team2.id);
+
+          expect(responseTeam1).toBeDefined();
+          expect(responseTeam2).toBeDefined();
         });
     });
 
     it("should update a team", async () => {
       const body: UpdateTeamDto = {
-        name: "Team dogs shepherds",
+        name: `teams-dogs-shepherds-${randomString()}`,
+        metadata: {
+          teamKey: `teamValue ${randomString()}`,
+        },
       };
 
       return request(app.getHttpServer())
@@ -162,6 +188,7 @@ describe("Teams endpoint", () => {
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.id).toBeDefined();
           expect(responseBody.data.name).toEqual(body.name);
+          expect(responseBody.data.metadata).toEqual(body.metadata);
           team1 = responseBody.data;
         });
     });
@@ -223,6 +250,7 @@ describe("Teams endpoint", () => {
 
   afterAll(async () => {
     await userRepositoryFixture.deleteByEmail(aliceEmail);
+    await userRepositoryFixture.deleteByEmail(bobEmail);
     await teamRepositoryFixture.delete(team1.id);
     await teamRepositoryFixture.delete(team2.id);
     await app.close();

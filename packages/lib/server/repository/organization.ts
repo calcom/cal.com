@@ -1,21 +1,17 @@
+import type { z } from "zod";
+
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
-import type { OrganizationSettings } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import type { CreationSource } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { createAProfileForAnExistingUser } from "../../createAProfileForAnExistingUser";
 import { getParsedTeam } from "./teamUtils";
 import { UserRepository } from "./user";
 
-type MinimumOrganizationSettings = Pick<
-  OrganizationSettings,
-  "orgAutoAcceptEmail" | "orgProfileRedirectsToVerifiedDomain" | "allowSEOIndexing"
->;
-type SEOOrganizationSettings = Pick<OrganizationSettings, "allowSEOIndexing">;
 const orgSelect = {
   id: true,
   name: true,
@@ -30,7 +26,7 @@ export class OrganizationRepository {
   }: {
     orgData: {
       name: string;
-      slug: string;
+      slug: string | null;
       isOrganizationConfigured: boolean;
       isOrganizationAdminReviewed: boolean;
       autoAcceptEmail: string;
@@ -38,6 +34,9 @@ export class OrganizationRepository {
       pricePerSeat: number | null;
       isPlatform: boolean;
       billingPeriod?: "MONTHLY" | "ANNUALLY";
+      logoUrl: string | null;
+      bio: string | null;
+      requestedSlug?: string | null;
     };
     owner: {
       id: number;
@@ -70,6 +69,7 @@ export class OrganizationRepository {
   static async createWithNonExistentOwner({
     orgData,
     owner,
+    creationSource,
   }: {
     orgData: {
       name: string;
@@ -81,10 +81,13 @@ export class OrganizationRepository {
       billingPeriod?: "MONTHLY" | "ANNUALLY";
       pricePerSeat: number | null;
       isPlatform: boolean;
+      logoUrl: string | null;
+      bio: string | null;
     };
     owner: {
       email: string;
     };
+    creationSource: CreationSource;
   }) {
     logger.debug("createWithNonExistentOwner", safeStringify({ orgData, owner }));
     const organization = await this.create(orgData);
@@ -93,6 +96,8 @@ export class OrganizationRepository {
       email: owner.email,
       username: ownerUsernameInOrg,
       organizationId: organization.id,
+      locked: false,
+      creationSource,
     });
 
     await prisma.membership.create({
@@ -115,7 +120,7 @@ export class OrganizationRepository {
 
   static async create(orgData: {
     name: string;
-    slug: string;
+    slug: string | null;
     isOrganizationConfigured: boolean;
     isOrganizationAdminReviewed: boolean;
     autoAcceptEmail: string;
@@ -123,12 +128,18 @@ export class OrganizationRepository {
     billingPeriod?: "MONTHLY" | "ANNUALLY";
     pricePerSeat: number | null;
     isPlatform: boolean;
+    logoUrl: string | null;
+    bio: string | null;
+    requestedSlug?: string | null;
   }) {
     return await prisma.team.create({
       data: {
         name: orgData.name,
         isOrganization: true,
-        ...(!IS_TEAM_BILLING_ENABLED ? { slug: orgData.slug } : {}),
+        slug: orgData.slug,
+        // This is huge and causes issues, we need to have the logic to convert logo to logoUrl and then use that url ehre.
+        // logoUrl: orgData.logoUrl,
+        bio: orgData.bio,
         organizationSettings: {
           create: {
             isAdminReviewed: orgData.isOrganizationAdminReviewed,
@@ -138,10 +149,16 @@ export class OrganizationRepository {
           },
         },
         metadata: {
-          ...(IS_TEAM_BILLING_ENABLED ? { requestedSlug: orgData.slug } : {}),
+          isPlatform: orgData.isPlatform,
+
+          // We still have a case where we don't have slug set directly on organization. The reason is because we want to create an org first(with same slug as another regular team) and then move the team to org.
+          // Because in such cases there is a fallback existing at multiple places to use requestedSlug, we set it here still :(
+          requestedSlug: orgData.requestedSlug,
+
+          // We set these here still because some parts of code read it from metadata. This data exists in OrganizationOnboarding as well and should be used from there ideally
+          // We also need to think about existing Organizations that might not have OrganizationOnboarding, before taking any decision
           orgSeats: orgData.seats,
           orgPricePerSeat: orgData.pricePerSeat,
-          isPlatform: orgData.isPlatform,
           billingPeriod: orgData.billingPeriod,
         },
         isPlatform: orgData.isPlatform,
@@ -155,7 +172,34 @@ export class OrganizationRepository {
         id,
         isOrganization: true,
       },
-      select: orgSelect,
+    });
+  }
+
+  static async findBySlug({ slug }: { slug: string }) {
+    // Slug is unique but could be null as well, so we can't use findUnique
+    return prisma.team.findFirst({
+      where: {
+        slug,
+        isOrganization: true,
+      },
+    });
+  }
+
+  static async findBySlugIncludeOnboarding({ slug }: { slug: string }) {
+    return prisma.team.findFirst({
+      where: { slug, isOrganization: true },
+      include: {
+        organizationOnboarding: {
+          select: {
+            id: true,
+            isDomainConfigured: true,
+            isPlatform: true,
+            slug: true,
+            teams: true,
+            invitedMembers: true,
+          },
+        },
+      },
     });
   }
 
@@ -357,37 +401,52 @@ export class OrganizationRepository {
     return org?.calVideoLogo;
   }
 
-  static utils = {
-    /**
-     * Gets the organization setting if the team is an organization.
-     * If not, it gets the organization setting of the parent organization.
-     */
-    getOrganizationSettings: (team: {
-      isOrganization: boolean;
-      organizationSettings: MinimumOrganizationSettings | null;
-      parent: {
-        organizationSettings: MinimumOrganizationSettings | null;
-      } | null;
-    }) => {
-      if (!team) return null;
-      if (team.isOrganization) return team.organizationSettings ?? null;
-      if (!team.parent) return null;
-      return team.parent.organizationSettings ?? null;
-    },
-    getOrganizationSEOSettings: (team: {
-      isOrganization: boolean;
-      organizationSettings: SEOOrganizationSettings | null;
-      parent: {
-        organizationSettings: SEOOrganizationSettings | null;
-      } | null;
-    }) => {
-      if (!team) return null;
-      if (team.isOrganization) return team.organizationSettings ?? null;
-      if (!team.parent) return null;
-      return team.parent.organizationSettings ?? null;
-    },
-    getVerifiedDomain(settings: Pick<OrganizationSettings, "orgAutoAcceptEmail">) {
-      return settings.orgAutoAcceptEmail;
-    },
-  };
+  static async getVerifiedOrganizationByAutoAcceptEmailDomain(domain: string) {
+    return await prisma.team.findFirst({
+      where: {
+        organizationSettings: {
+          isOrganizationVerified: true,
+          orgAutoAcceptEmail: domain,
+        },
+      },
+      select: {
+        id: true,
+        organizationSettings: {
+          select: {
+            orgAutoAcceptEmail: true,
+          },
+        },
+      },
+    });
+  }
+
+  static async setSlug({ id, slug }: { id: number; slug: string }) {
+    return await prisma.team.update({
+      where: { id, isOrganization: true },
+      data: { slug },
+    });
+  }
+
+  static async updateStripeSubscriptionDetails({
+    id,
+    stripeSubscriptionId,
+    stripeSubscriptionItemId,
+    existingMetadata,
+  }: {
+    id: number;
+    stripeSubscriptionId: string;
+    stripeSubscriptionItemId: string;
+    existingMetadata: z.infer<typeof teamMetadataSchema>;
+  }) {
+    return await prisma.team.update({
+      where: { id, isOrganization: true },
+      data: {
+        metadata: {
+          ...existingMetadata,
+          subscriptionId: stripeSubscriptionId,
+          subscriptionItemId: stripeSubscriptionItemId,
+        },
+      },
+    });
+  }
 }

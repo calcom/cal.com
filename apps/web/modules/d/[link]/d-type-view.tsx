@@ -1,10 +1,11 @@
 "use client";
 
-import { Booker } from "@calcom/atoms/monorepo";
+import { BookerWebWrapper as Booker } from "@calcom/atoms/booker";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
-import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 
 import { type PageProps } from "@lib/d/[link]/[slug]/getServerSideProps";
+
+import BookingPageErrorBoundary from "@components/error/BookingPageErrorBoundary";
 
 export default function Type({
   slug,
@@ -19,27 +20,20 @@ export default function Type({
   durationConfig,
 }: PageProps) {
   return (
-    <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
-      <BookerSeo
-        username={user}
-        eventSlug={slug}
-        rescheduleUid={booking?.uid}
-        hideBranding={isBrandingHidden}
-        entity={entity}
-      />
-      <Booker
-        username={user}
-        eventSlug={slug}
-        bookingData={booking}
-        hideBranding={isBrandingHidden}
-        isTeamEvent={isTeamEvent}
-        entity={entity}
-        duration={duration}
-        hashedLink={hashedLink}
-        durationConfig={durationConfig}
-      />
-    </main>
+    <BookingPageErrorBoundary>
+      <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
+        <Booker
+          username={user}
+          eventSlug={slug}
+          bookingData={booking}
+          hideBranding={isBrandingHidden}
+          isTeamEvent={isTeamEvent}
+          entity={entity}
+          duration={duration}
+          hashedLink={hashedLink}
+          durationConfig={durationConfig}
+        />
+      </main>
+    </BookingPageErrorBoundary>
   );
 }
-
-Type.isBookingPage = true;

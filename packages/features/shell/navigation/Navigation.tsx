@@ -8,7 +8,7 @@ import {
   type OrganizationBranding,
 } from "@calcom/features/ee/organizations/context/provider";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 import { TeamInviteBadge } from "../TeamInviteBadge";
 import type { NavigationItemType } from "./NavigationItem";
@@ -48,13 +48,14 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     name: "teams",
     href: "/teams",
     icon: "users",
-    onlyDesktop: true,
     badge: <TeamInviteBadge />,
+    moreOnMobile: true,
   },
   {
     name: "apps",
     href: "/apps",
     icon: "grid-3x3",
+    moreOnMobile: true,
     isCurrent: ({ pathname: path, item }) => {
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
       return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
@@ -88,9 +89,9 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
   },
   {
     name: "routing",
-    href: "/routing/forms",
+    href: "/routing",
     icon: "split",
-    isCurrent: ({ pathname }) => pathname?.startsWith("/routing/forms") ?? false,
+    isCurrent: ({ pathname }) => pathname?.startsWith("/routing") ?? false,
     moreOnMobile: true,
   },
   {
@@ -109,7 +110,7 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
       {
         name: "bookings",
         href: "/insights",
-        isCurrent: ({ pathname: path }) => path == "/insights" ?? false,
+        isCurrent: ({ pathname: path }) => path === "/insights",
       },
       {
         name: "routing",
@@ -118,8 +119,8 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
       },
       {
         name: "router_position",
-        href: "/insights/virtual-queues",
-        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/virtual-queues") ?? false,
+        href: "/insights/router-position",
+        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/router-position") ?? false,
       },
     ],
   },

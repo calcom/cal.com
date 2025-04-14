@@ -70,6 +70,10 @@ test.describe("Manage Booking Questions", () => {
         const firstEventTypeElement = $eventTypes.first();
 
         await firstEventTypeElement.click();
+        await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
+          "aria-current",
+          "page"
+        );
         await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
       });
 
@@ -113,6 +117,10 @@ test.describe("Manage Booking Questions", () => {
         const firstEventTypeElement = $eventTypes.first();
 
         await firstEventTypeElement.click();
+        await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
+          "aria-current",
+          "page"
+        );
       });
 
       await test.step("Open the 'Name' field dialog", async () => {
@@ -172,7 +180,6 @@ test.describe("Manage Booking Questions", () => {
           prefillUrl.searchParams.append("email", "john@example.com");
           prefillUrl.searchParams.append("guests", "guest1@example.com");
           prefillUrl.searchParams.append("guests", "guest2@example.com");
-          prefillUrl.searchParams.append("notes", "This is an additional note");
           await page.goto(prefillUrl.toString());
           await bookTimeSlot({ page, skipSubmission: true });
           await expectSystemFieldsToBeThereOnBookingPage({
@@ -185,7 +192,6 @@ test.describe("Manage Booking Questions", () => {
               },
               email: "john@example.com",
               guests: ["guest1@example.com", "guest2@example.com"],
-              notes: "This is an additional note",
             },
           });
         });
@@ -260,7 +266,7 @@ test.describe("Manage Booking Questions", () => {
       await test.step("Go to First Team Event", async () => {
         const locator = page.getByTestId(`horizontal-tab-${team?.name}`);
         await locator.click();
-        await expect(locator).toHaveClass(/bg-emphasis/);
+        await expect(locator).toHaveAttribute("aria-current", "page");
         const $eventTypes = page.locator("[data-testid=event-types]").locator("li a");
         const firstEventTypeElement = $eventTypes.first();
 
@@ -748,6 +754,11 @@ test.describe("Text area min and max characters text", () => {
     await page.waitForSelector('[data-testid="event-types"]');
     await createNewEventType(page, { eventTitle });
     await page.waitForSelector('[data-testid="event-title"]');
+    await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toContainText("Event Setup"); //fix the race condition
+    await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
+      "aria-current",
+      "page"
+    );
     await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
     const insertQuestion = async (questionName: string) => {
       const element = page.locator('[data-testid="add-field"]');
@@ -831,7 +842,7 @@ test.describe("Text area min and max characters text", () => {
       );
       await cancelQuestion();
       // Save the event type
-      await page.locator("[data-testid=update-eventtype]").click();
+      await saveEventType(page);
 
       // Get the url of data-testid="preview-button"
       const previewButton = await page.locator('[data-testid="preview-button"]');

@@ -24,6 +24,11 @@ type GetUrlSearchParamsToForwardOptions = {
   teamMembersMatchingAttributeLogic: number[] | null;
   attributeRoutingConfig: AttributeRoutingConfig | null;
   reroutingFormResponses?: FormResponseValueOnly;
+  teamId?: number | null;
+  orgId?: number | null;
+  crmContactOwnerEmail?: string | null;
+  crmContactOwnerRecordType?: string | null;
+  crmAppSlug?: string | null;
 };
 
 export function getUrlSearchParamsToForward({
@@ -34,6 +39,11 @@ export function getUrlSearchParamsToForward({
   formResponseId,
   attributeRoutingConfig,
   reroutingFormResponses,
+  teamId,
+  orgId,
+  crmContactOwnerEmail,
+  crmContactOwnerRecordType,
+  crmAppSlug,
 }: GetUrlSearchParamsToForwardOptions) {
   type Params = Record<string, string | string[]>;
   const paramsFromResponse: Params = {};
@@ -101,6 +111,11 @@ export function getUrlSearchParamsToForward({
   }
 
   const allQueryParams: Params = {
+    ...(teamId && { ["cal.teamId"]: `${teamId}` }),
+    ...(orgId && { ["cal.orgId"]: `${orgId}` }),
+    ...(crmContactOwnerEmail && { ["cal.crmContactOwnerEmail"]: `${crmContactOwnerEmail}` }),
+    ...(crmContactOwnerRecordType && { ["cal.crmContactOwnerRecordType"]: `${crmContactOwnerRecordType}` }),
+    ...(crmAppSlug && { ["cal.crmAppSlug"]: `${crmAppSlug}` }),
     ...paramsFromCurrentUrl,
     // In case of conflict b/w paramsFromResponse and paramsFromCurrentUrl, paramsFromResponse should win as the booker probably improved upon the prefilled value.
     ...paramsFromResponse,

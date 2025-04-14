@@ -1,19 +1,20 @@
 "use client";
 
-import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useState, useEffect, useRef, useMemo } from "react";
 
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import "@calcom/ui";
+import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { buttonClasses } from "@calcom/ui/components/button";
+import { Button } from "@calcom/ui/components/button";
+import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import {
-  Avatar,
-  Button,
-  buttonClasses,
-  TextField,
-  Icon,
   Sheet,
   SheetBody,
   SheetClose,
@@ -21,11 +22,16 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-  showToast,
-} from "@calcom/ui";
+} from "@calcom/ui/components/sheet";
+import { showToast } from "@calcom/ui/components/toast";
+
+import {
+  useTeamMembersWithSegment,
+  useTeamMembersWithSegmentPlatform,
+} from "../../../platform/atoms/event-types/hooks/useTeamMembersWithSegment";
 
 type TeamMemberItemProps = {
-  member: TeamMember & { weight?: number };
+  member: Omit<TeamMember, "defaultScheduleId"> & { weight?: number };
   onWeightChange: (memberId: string, weight: number) => void;
 };
 
@@ -97,24 +103,36 @@ interface Props {
   value: Host[];
   onChange: (hosts: Host[]) => void;
   assignAllTeamMembers: boolean;
+  assignRRMembersUsingSegment: boolean;
+  teamId?: number;
+  queryValue?: AttributesQueryValue | null;
 }
 
 export const EditWeightsForAllTeamMembers = ({
-  teamMembers,
+  teamMembers: initialTeamMembers,
   value,
   onChange,
   assignAllTeamMembers,
+  assignRRMembersUsingSegment,
+  teamId,
+  queryValue,
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useLocale();
   const [searchQuery, setSearchQuery] = useState("");
-  const localWeightsInitialValues = teamMembers.reduce<Record<string, number>>((acc, member) => {
-    // When assignAllTeamMembers is false, only include members that exist in value array
-    // Find the member in the value array and use its weight if it exists
-    const memberInValue = value.find((host) => host.userId === parseInt(member.value, 10));
-    acc[member.value] = memberInValue?.weight ?? 100;
-    return acc;
-  }, {});
+
+  const isPlatform = useIsPlatform();
+
+  const useTeamMembersHook = isPlatform ? useTeamMembersWithSegmentPlatform : useTeamMembersWithSegment;
+
+  const { teamMembers, localWeightsInitialValues } = useTeamMembersHook({
+    initialTeamMembers,
+    assignRRMembersUsingSegment,
+    teamId,
+    queryValue,
+    value,
+  });
+
   const [localWeights, setLocalWeights] = useState<Record<string, number>>(localWeightsInitialValues);
   const [uploadErrors, setUploadErrors] = useState<Array<{ email: string; error: string }>>([]);
   const [isErrorsExpanded, setIsErrorsExpanded] = useState(true);
@@ -124,10 +142,21 @@ export const EditWeightsForAllTeamMembers = ({
   };
 
   const handleSave = () => {
-    const updatedValue = value.map((host) => ({
-      ...host,
-      weight: localWeights[host.userId.toString()] ?? host.weight ?? 100,
-    }));
+    // Create a map of existing hosts for easy lookup
+    const existingHostsMap = new Map(value.map((host) => [host.userId.toString(), host]));
+
+    // Create the updated value by processing all team members
+    const updatedValue = teamMembers.map((member) => {
+      const existingHost = existingHostsMap.get(member.value);
+      return {
+        ...existingHost,
+        userId: parseInt(member.value, 10),
+        isFixed: existingHost?.isFixed ?? false,
+        priority: existingHost?.priority ?? 0,
+        weight: localWeights[member.value] ?? existingHost?.weight ?? 100,
+      };
+    });
+
     onChange(updatedValue);
     setIsOpen(false);
   };
@@ -226,15 +255,19 @@ export const EditWeightsForAllTeamMembers = ({
             <SheetHeader>
               <SheetTitle>{t("edit_team_member_weights")}</SheetTitle>
               <div className="text-subtle text-sm">
-                <Trans i18nKey="weights_description">
-                  Weights determine how meetings are distributed among hosts.
-                  <Link
-                    className="underline underline-offset-2"
-                    target="_blank"
-                    href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#weights">
-                    Learn more
-                  </Link>
-                </Trans>
+                <ServerTrans
+                  t={t}
+                  i18nKey="weights_description"
+                  components={[
+                    <Link
+                      key="weights_description"
+                      className="underline underline-offset-2"
+                      target="_blank"
+                      href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#weights">
+                      Learn more
+                    </Link>,
+                  ]}
+                />
               </div>
             </SheetHeader>
 
