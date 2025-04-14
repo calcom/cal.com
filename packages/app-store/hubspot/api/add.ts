@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const appKeys = await getAppKeysFromSlug("hubspot");
   let clientId = "";
   if (typeof appKeys.client_id === "string") clientId = appKeys.client_id;
-  if (!client_id) return res.status(400).json({ message: "HubSpot client id missing." });
+  if (!clientId) return res.status(400).json({ message: "HubSpot client id missing." });
 
   const redirectUri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/hubspot/callback`;
   const url = hubspotClient.oauth.getAuthorizationUrl(
