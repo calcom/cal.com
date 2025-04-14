@@ -44,7 +44,7 @@ const useRoutingFormNavigation = (
     if (value === "route-builder" && formContext.formState.isDirty) {
       setShowInfoLostDialog(true);
     } else if (value === "reporting") {
-      window.open(baseUrl, "_blank");
+      router.push("/insights/routing");
     } else {
       router.push(baseUrl);
     }
@@ -277,12 +277,12 @@ export function Header({
             },
             ...(showIncompleteBookingTab
               ? [
-                {
-                  value: "incomplete-booking",
-                  label: t("incomplete_booking"),
-                  iconLeft: <Icon name="calendar" className="h-3 w-3" />,
-                },
-              ]
+                  {
+                    value: "incomplete-booking",
+                    label: t("incomplete_booking"),
+                    iconLeft: <Icon name="calendar" className="h-3 w-3" />,
+                  },
+                ]
               : []),
           ]}
         />
