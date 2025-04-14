@@ -15,7 +15,7 @@
   background-color: var(--cal-bg)
 }
 
-.cal-query-builder .group--children {
+.cal-query-builder .group--children:not(:empty) {
   background-color: var(--cal-bg);
   border: 1px solid var(--cal-border-muted);
   border-radius: 10px;

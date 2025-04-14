@@ -535,6 +535,8 @@ const Route = ({
       })
     : null;
 
+  console.log({ tree: route.attributesQueryBuilderState.tree });
+
   const attributesQueryBuilder =
     route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm ? (
       <div className="mt-4">
