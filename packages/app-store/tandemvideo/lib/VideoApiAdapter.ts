@@ -121,7 +121,7 @@ const TandemVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
       const accessToken = await (await auth).getToken();
 
-      const result = await fetch(`${base_url}/api/v1/meetings`, {
+      const result = await fetch(`${baseUrl}/api/v1/meetings`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -137,7 +137,7 @@ const TandemVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =
     deleteMeeting: async (uid: string): Promise<void> => {
       const accessToken = await (await auth).getToken();
 
-      await fetch(`${base_url}/api/v1/meetings/${uid}`, {
+      await fetch(`${baseUrl}/api/v1/meetings/${uid}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -150,7 +150,7 @@ const TandemVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
       const accessToken = await (await auth).getToken();
 
-      const result = await fetch(`${base_url}/api/v1/meetings/${bookingRef.meetingId}`, {
+      const result = await fetch(`${baseUrl}/api/v1/meetings/${bookingRef.meetingId}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${accessToken}`,

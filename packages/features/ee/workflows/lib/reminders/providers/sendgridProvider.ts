@@ -48,7 +48,7 @@ export function sendSendgridMail(
       setTestEmail({
         to: mailData.to?.toString() || "",
         from: {
-          email: senderEmail,
+          email: sender,
           name: mailData.sender || SENDER_NAME,
         },
         subject: mailData.subject || "",
@@ -70,7 +70,7 @@ export function sendSendgridMail(
   return sgMail.send({
     to: mailData.to,
     from: {
-      email: senderEmail,
+      email: sender,
       name: mailData.sender || SENDER_NAME,
     },
     subject: mailData.subject,
