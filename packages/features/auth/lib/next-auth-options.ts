@@ -759,6 +759,12 @@ export const getOptions = ({
       };
       return calendsoSession;
     },
+    /**
+     * Available when Credentials provider is used - Has the value returned by authorize callback
+     */
+    /**
+     * Available when Credentials provider is used - Has the value submitted as the body of the HTTP POST submission
+     */
     async signIn(params: {
       user: User | AdapterUser;
       account: Account | null;
