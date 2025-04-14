@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import type { SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
 import type { z } from "zod";
-import { ZodError } from "zod";
+import type { ZodError } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -576,9 +576,10 @@ function FieldEditDialog({
                             excludeOrRequireEmailSchema.parse(e.target.value);
                             fieldForm.clearErrors("requireEmails");
                           } catch (err) {
-                            if (err instanceof ZodError) {
+                            if (err && typeof err === "object" && "name" in err && err.name === "ZodError") {
+                              const zodError = err as ZodError;
                               fieldForm.setError("requireEmails", {
-                                message: err.errors[0]?.message || "Invalid input",
+                                message: zodError.errors[0]?.message || "Invalid input",
                               });
                             }
                           }
@@ -597,9 +598,10 @@ function FieldEditDialog({
                             excludeOrRequireEmailSchema.parse(e.target.value);
                             fieldForm.clearErrors("excludeEmails");
                           } catch (err) {
-                            if (err instanceof ZodError) {
+                            if (err && typeof err === "object" && "name" in err && err.name === "ZodError") {
+                              const zodError = err as ZodError;
                               fieldForm.setError("excludeEmails", {
-                                message: err.errors[0]?.message || "Invalid input",
+                                message: zodError.errors[0]?.message || "Invalid input",
                               });
                             }
                           }

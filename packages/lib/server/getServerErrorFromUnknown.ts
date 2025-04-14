@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import type { ZodIssue } from "zod";
-import { ZodError } from "zod";
+import type { ZodError } from "zod";
 
 import { stripeInvalidRequestErrorSchema } from "@calcom/app-store/_utils/stripe.types";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -16,7 +16,7 @@ function hasName(cause: unknown): cause is { name: string } {
 }
 
 function isZodError(cause: unknown): cause is ZodError {
-  return cause instanceof ZodError || (hasName(cause) && cause.name === "ZodError");
+  return hasName(cause) && cause.name === "ZodError";
 }
 
 function isPrismaError(cause: unknown): cause is Prisma.PrismaClientKnownRequestError {
