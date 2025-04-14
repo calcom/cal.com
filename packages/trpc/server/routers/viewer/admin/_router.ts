@@ -75,10 +75,7 @@ export const adminRouter = router({
         return handler(opts);
       }),
     toggleEnabled: authedAdminProcedure.input(workspacePlatformToggleEnabledSchema).mutation(async (opts) => {
-      const handler = await importHandler(
-        namespaced("workspacePlatforms.toggleEnabled"),
-        () => import("./workspacePlatform/toggleEnabled.handler")
-      );
+      const { default: handler } = await import("./workspacePlatform/toggleEnabled.handler");
       return handler(opts);
     }),
   }),
