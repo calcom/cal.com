@@ -1,5 +1,5 @@
 import authedProcedure from "../../../procedures/authedProcedure";
-import { importHandler, router } from "../../../trpc";
+import { router } from "../../../trpc";
 import { ZAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
 import { ZAddMembersToEventTypes } from "./addMembersToEventTypes.schema";
 import { ZChangeMemberRoleInputSchema } from "./changeMemberRole.schema";
@@ -38,26 +38,26 @@ const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 export const viewerTeamsRouter = router({
   // Retrieves team by id
   get: authedProcedure.input(ZGetSchema).query(async (opts) => {
-    const handler = await importHandler(namespaced("get"), () => import("./get.handler"));
+    const { default: handler } = await import("./get.handler");
     return handler(opts);
   }),
   // Returns teams I a member of
   list: authedProcedure.input(ZGetListSchema).query(async (opts) => {
-    const handler = await importHandler(namespaced("list"), () => import("./list.handler"));
+    const { default: handler } = await import("./list.handler");
     return handler(opts);
   }),
   // Returns Teams I am a owner/admin of
   listOwnedTeams: authedProcedure.query(async (opts) => {
-    const handler = await importHandler(namespaced("list"), () => import("./list.handler"));
+    const { default: handler } = await import("./list.handler");
     return handler(opts);
   }),
   create: authedProcedure.input(ZCreateInputSchema).mutation(async (opts) => {
-    const handler = await importHandler(namespaced("create"), () => import("./create.handler"));
+    const { default: handler } = await import("./create.handler");
     return handler(opts);
   }),
   // Allows team owner to update team metadata
   update: authedProcedure.input(ZUpdateInputSchema).mutation(async (opts) => {
-    const handler = await importHandler(namespaced("update"), () => import("./update.handler"));
+    const { default: handler } = await import("./update.handler");
     return handler(opts);
   }),
   delete: authedProcedure.input(ZDeleteInputSchema).mutation(async (opts) => {
