@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { queryNumberArray, useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";

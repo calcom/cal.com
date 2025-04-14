@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 
 export const albyCredentialKeysSchema = z.object({
   account_id: z.string(),

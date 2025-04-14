@@ -1,7 +1,7 @@
 import { signIn } from "next-auth/react";
 import type { Dispatch, SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
-import z from "zod";
+import { z } from "zod";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";

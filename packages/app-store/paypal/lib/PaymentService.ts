@@ -1,6 +1,6 @@
 import type { Booking, Payment, PaymentOption, Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
-import z from "zod";
+import { z } from "zod";
 
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { WEBAPP_URL } from "@calcom/lib/constants";

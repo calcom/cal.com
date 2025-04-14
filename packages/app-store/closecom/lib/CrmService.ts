@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 
 import type { CloseComFieldOptions } from "@calcom/lib/CloseCom";
 import CloseCom from "@calcom/lib/CloseCom";

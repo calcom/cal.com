@@ -1,5 +1,5 @@
 import { isValidPhoneNumber } from "libphonenumber-js";
-import z from "zod";
+import { z } from "zod";
 
 import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
 import { dbReadResponseSchema, fieldTypesSchemaMap } from "@calcom/features/form-builder/schema";

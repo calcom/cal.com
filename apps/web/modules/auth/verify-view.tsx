@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { signIn } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import z from "zod";
+import { z } from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";

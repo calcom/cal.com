@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import getRawBody from "raw-body";
-import z from "zod";
+import { z } from "zod";
 
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { default as webPrisma } from "@calcom/prisma";

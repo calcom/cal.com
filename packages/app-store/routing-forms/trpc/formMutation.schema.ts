@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 

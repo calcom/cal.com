@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 
 import { _SelectedCalendarModel as SelectedCalendar } from "@calcom/prisma/zod";
 

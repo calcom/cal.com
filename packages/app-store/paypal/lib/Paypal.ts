@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
-import z from "zod";
+import { z } from "zod";
 
 import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";

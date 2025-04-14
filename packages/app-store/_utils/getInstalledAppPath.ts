@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 
 import { AppCategories } from "@calcom/prisma/enums";
 

@@ -1,5 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
-import z from "zod";
+import { z } from "zod";
 
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import slugify from "@calcom/lib/slugify";

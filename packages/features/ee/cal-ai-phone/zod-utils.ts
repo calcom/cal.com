@@ -1,5 +1,5 @@
 import { isValidPhoneNumber } from "libphonenumber-js";
-import z from "zod";
+import { z } from "zod";
 
 export const templateTypeEnum = z.enum(["CHECK_IN_APPOINTMENT", "CUSTOM_TEMPLATE"]);
 

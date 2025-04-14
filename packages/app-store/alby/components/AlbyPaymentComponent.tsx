@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
-import z from "zod";
+import { z } from "zod";
 
 import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
