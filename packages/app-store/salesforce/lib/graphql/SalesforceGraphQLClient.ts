@@ -48,10 +48,8 @@ export class SalesforceGraphQLClient {
       websites,
       emailDomain: `%@${emailDomain}`,
     });
-    console.log(query);
 
     const queryData = query?.data;
-    console.log("queryData", queryData);
 
     if (query?.error) {
       const errors = query.error;

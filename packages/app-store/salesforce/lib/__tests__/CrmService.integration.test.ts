@@ -140,7 +140,6 @@ describe("SalesforceCRMService", () => {
           emails: lookingForEmail,
           forRoundRobinSkip,
         });
-        console.log("");
 
         expect(contacts).toHaveLength(1);
         expect(contacts[0].ownerEmail).toBe(contactAccountOwnerEmail);
