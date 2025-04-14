@@ -504,8 +504,8 @@ function keepParentInformedAboutDimensionChanges() {
     const containerWidth = containerDimensions?.width || window.innerWidth;
 
     // Determine if we should force desktop view
-    const shouldForceDesktop =
-      embedStore.uiConfig?.forceDesktop ||
+    const shouldForceDesktop: boolean =
+      !!embedStore.uiConfig?.forceDesktop ||
       window.location.href.includes("embed=true") ||
       containerWidth >= desktopMinWidth;
 
@@ -576,13 +576,13 @@ function main() {
 
   embedStore.uiConfig = {
     // TODO: Add theme as well here
-    colorScheme: url.searchParams.get("ui.color-scheme"),
+    colorScheme: url.searchParams.get("ui.color-scheme") as string | null,
     layout: (url.searchParams.get("layout") || "week_view") as BookerLayouts,
     // Force desktop layout in embed context unless explicitly set otherwise
     forceDesktop: window?.isEmbed?.() || isDesktopView,
   };
 
-  actOnColorScheme(embedStore.uiConfig.colorScheme);
+  actOnColorScheme(embedStore.uiConfig.colorScheme as string | null | undefined);
   // If embed link is opened in top, and not in iframe. Let the page be visible.
   if (top === window) {
     unhideBody();
