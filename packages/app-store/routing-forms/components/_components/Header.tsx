@@ -222,7 +222,7 @@ export function Header({
   const watchedName = form.watch("name");
 
   return (
-    <div className="bg-default border-muted flex items-center justify-between border-b px-4 py-3">
+    <div className="bg-default border-muted grid grid-cols-3 items-center border-b px-4 py-3">
       {/* Left */}
       <div className="flex items-center gap-2">
         <Button color="minimal" variant="icon" StartIcon="arrow-left" />
@@ -254,7 +254,7 @@ export function Header({
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center">
+      <div className="flex justify-center">
         <ToggleGroup
           defaultValue={getCurrentPage()}
           value={getCurrentPage()}
@@ -289,7 +289,9 @@ export function Header({
       </div>
 
       {/* Actions */}
-      <Actions form={routingForm} isSaving={isSaving} appUrl={appUrl} />
+      <div className="flex justify-end">
+        <Actions form={routingForm} isSaving={isSaving} appUrl={appUrl} />
+      </div>
     </div>
   );
 }
