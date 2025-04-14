@@ -61,8 +61,8 @@ const schemaBookingEditParams = z
     title: z.string().optional(),
     startTime: iso8601.optional(),
     endTime: iso8601.optional(),
-    cancelledBy: z.string().email({ error: "Invalid Email" }).optional(),
-    rescheduledBy: z.string().email({ error: "Invalid Email" }).optional(),
+    cancelledBy: z.string().email.optional(),
+    rescheduledBy: z.string().email.optional(),
     // Not supporting responses in edit as that might require re-triggering emails
     // responses
   })
