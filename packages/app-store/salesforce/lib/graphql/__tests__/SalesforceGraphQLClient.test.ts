@@ -71,7 +71,7 @@ describe("SalesforceGraphQLClient", () => {
         id: "accountId1",
         email: "",
         ownerId: "owner1",
-        ownerEmail: "owner1Email",
+        ownerEmail: "owner1Email@test.com",
         recordType: SalesforceRecordEnum.ACCOUNT,
       },
     ]);
