@@ -31,12 +31,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  let cliendId = "";
+  let clientId = "";
   let clientSecret = "";
   const appKeys = await getAppKeysFromSlug("office365-calendar");
-  if (typeof appKeys.client_id === "string") cliendId = appKeys.client_id;
+  if (typeof appKeys.client_id === "string") clientId = appKeys.client_id;
   if (typeof appKeys.client_secret === "string") clientSecret = appKeys.client_secret;
-  if (!cliendId) return res.status(400).json({ message: "Office 365 client_id missing." });
+  if (!clientId) return res.status(400).json({ message: "Office 365 client_id missing." });
   if (!clientSecret) return res.status(400).json({ message: "Office 365 client_secret missing." });
 
   const toUrlEncoded = (payload: Record<string, string>) =>
@@ -45,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .join("&");
 
   const body = toUrlEncoded({
-    client_id: cliendId,
+    client_id: clientId,
     grant_type: "authorization_code",
     code,
     scope: scopes.join(" "),
