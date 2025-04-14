@@ -27,7 +27,11 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { bookingMetadataSchema, EventTypeMetaDataSchema, bookingCancelInput } from "@calcom/prisma/zod-utils";
+import {
+  bookingMetadataSchema,
+  eventTypeMetaDataSchemaWithTypedApps,
+  bookingCancelInput,
+} from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -444,50 +448,79 @@ async function handler(input: CancelBookingInput) {
     allRemainingBookings
   );
 
-  const bookingToDeleteEventTypeMetadata = EventTypeMetaDataSchema.parse(
-    bookingToDelete.eventType?.metadata || null
-  );
+  try {
+    const bookingToDeleteEventTypeMetadataParsed = eventTypeMetaDataSchemaWithTypedApps.safeParse(
+      bookingToDelete.eventType?.metadata || null
+    );
 
-  const credentials = await getAllCredentials(bookingToDelete.user, {
-    ...bookingToDelete.eventType,
-    metadata: bookingToDeleteEventTypeMetadata,
-  });
+    if (!bookingToDeleteEventTypeMetadataParsed.success) {
+      log.error(
+        `Error parsing metadata`,
+        safeStringify({ error: bookingToDeleteEventTypeMetadataParsed?.error })
+      );
+      throw new Error("Error parsing metadata");
+    }
 
-  const eventManager = new EventManager({ ...bookingToDelete.user, credentials });
+    const bookingToDeleteEventTypeMetadata = bookingToDeleteEventTypeMetadataParsed.data;
 
-  await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
-
-  const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
-    where: {
-      bookingId: bookingToDelete.id,
-    },
-  });
-
-  const webhookTriggerPromises = [];
-  const workflowReminderPromises = [];
-
-  for (const booking of updatedBookings) {
-    // delete scheduled webhook triggers of cancelled bookings
-    webhookTriggerPromises.push(deleteWebhookScheduledTriggers({ booking }));
-
-    //Workflows - cancel all reminders for cancelled bookings
-    workflowReminderPromises.push(WorkflowRepository.deleteAllWorkflowReminders(booking.workflowReminders));
-  }
-
-  await Promise.all([...webhookTriggerPromises, ...workflowReminderPromises]).catch((error) => {
-    log.error("An error occurred when deleting workflow reminders and webhook triggers", error);
-  });
-
-  if (internalNote && teamId) {
-    await handleInternalNote({
-      internalNote,
-      booking: bookingToDelete,
-      userId: userId || -1,
-      teamId: teamId,
+    const credentials = await getAllCredentials(bookingToDelete.user, {
+      ...bookingToDelete.eventType,
+      metadata: bookingToDeleteEventTypeMetadata,
     });
+
+    const eventManager = new EventManager(
+      { ...bookingToDelete.user, credentials },
+      bookingToDeleteEventTypeMetadata?.apps
+    );
+
+    await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
+
+    await prisma.bookingReference.deleteMany({
+      where: {
+        bookingId: bookingToDelete.id,
+      },
+    });
+  } catch (error) {
+    log.error(`Error deleting integrations`, safeStringify({ error }));
   }
 
-  const prismaPromises: Promise<unknown>[] = [bookingReferenceDeletes];
+  try {
+    const webhookTriggerPromises = [];
+    const workflowReminderPromises = [];
+
+    for (const booking of updatedBookings) {
+      // delete scheduled webhook triggers of cancelled bookings
+      webhookTriggerPromises.push(deleteWebhookScheduledTriggers({ booking }));
+
+      //Workflows - cancel all reminders for cancelled bookings
+      workflowReminderPromises.push(WorkflowRepository.deleteAllWorkflowReminders(booking.workflowReminders));
+    }
+
+    await Promise.allSettled([...webhookTriggerPromises, ...workflowReminderPromises]).then((results) => {
+      const rejectedReasons = results
+        .filter((result): result is PromiseRejectedResult => result.status === "rejected")
+        .map((result) => result.reason);
+
+      if (rejectedReasons.length > 0) {
+        log.error("An error occurred when deleting workflow reminders and webhook triggers", rejectedReasons);
+      }
+    });
+  } catch (error) {
+    log.error("Error deleting scheduled webhooks and workflows", safeStringify({ error }));
+  }
+
+  try {
+    if (internalNote && teamId) {
+      await handleInternalNote({
+        internalNote,
+        booking: bookingToDelete,
+        userId: userId || -1,
+        teamId: teamId,
+      });
+    }
+  } catch (error) {
+    log.error("Error handlingInternalNote", safeStringify({ error }));
+  }
 
   try {
     // TODO: if emails fail try to requeue them
@@ -498,7 +531,7 @@ async function handler(input: CancelBookingInput) {
         bookingToDelete?.eventType?.metadata as EventTypeMetadata
       );
   } catch (error) {
-    console.error("Error deleting event", error);
+    log.error("Error deleting event", error);
   }
   return {
     success: true,
