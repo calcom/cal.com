@@ -1,8 +1,9 @@
 import dayjs from "@calcom/dayjs";
+import { sendCreditBalanceLowWarningEmails } from "@calcom/emails";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
+import { getTranslation } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
-import { CreditType } from "@calcom/prisma/enums";
-import { getAllCreditsForTeam, getAllCreditsForUser } from "@calcom/trpc/server/routers/viewer/credits/util";
+import { getAllCreditsForTeam } from "@calcom/trpc/server/routers/viewer/credits/util";
 import { isSubscriptionActive } from "@calcom/trpc/server/routers/viewer/teams/util";
 
 import { InternalTeamBilling } from "../../billing/teams/internal-team-billing";
@@ -133,164 +134,28 @@ export async function hasAvailableCredits({
   return false;
 }
 
-export async function payCredits({
-  quantity,
-  details,
+/*
+  credits can be 0, then we just check for available credits
+*/
+export async function getEntityToCharge({
+  credits,
   userId,
   teamId,
 }: {
-  quantity: number;
-  details: string;
-  userId?: number | null; // either userId or teamId is is given never both
+  credits: number;
+  userId?: number | null;
   teamId?: number | null;
 }) {
-  let teamToPay: { id: number; monthly: number; additional: number; remainingCredits: number } | undefined;
+  // todo
 
   if (userId) {
-    // if user has enough credits, use their credits
-    const userCredits = await getAllCreditsForUser(userId);
-    if (userCredits.additionalCredits >= quantity) {
-      await prisma.creditExpenseLog.create({
-        data: {
-          credits: quantity,
-          details,
-          creditType: CreditType.ADDITIONAL,
-          date: new Date(),
-          creditBalance: {
-            connectOrCreate: {
-              where: { userId },
-              create: { userId },
-            },
-          },
-        },
-      });
-
-      return {
-        userId,
-        additionalCredits: quantity,
-        monthlyCredits: 0,
-        remainingCredits: userCredits.additionalCredits - quantity,
-      };
-    }
-
-    if (!teamId) {
-      //todo: check if user is part of org
-      // teamId is never give if we have userId
-      const teams = await prisma.membership.findMany({
-        where: {
-          userId,
-          accepted: true,
-        },
-      });
-
-      // find teams that have enough credits
-      const teamsWithCredits = await Promise.all(
-        teams.map(async (team) => {
-          const teamCredits = await getAllCreditsForTeam(team.id);
-          return { ...teamCredits, teamId: team.id };
-        })
-      );
-
-      const sortedTeamsWithCredits = teamsWithCredits.sort(
-        (a, b) => a.totalRemainingMonthlyCredits - b.totalRemainingMonthlyCredits
-      );
-
-      const teamsWithEnoughCredits = sortedTeamsWithCredits.filter(
-        (team) => team.totalRemainingMonthlyCredits + team.additionalCredits >= quantity
-      );
-
-      const hasTeamWithEnoughCredits = teamsWithEnoughCredits.length > 0;
-
-      if (teamsWithEnoughCredits.length === 0) {
-        const hasEnoughMonthlyCredits = teamsWithEnoughCredits[0].totalRemainingMonthlyCredits >= quantity;
-        teamToPay = {
-          id: teamsWithEnoughCredits[0].teamId,
-          monthly: hasEnoughMonthlyCredits
-            ? quantity
-            : teamsWithEnoughCredits[0].totalRemainingMonthlyCredits,
-          additional: hasEnoughMonthlyCredits
-            ? 0
-            : quantity - teamsWithEnoughCredits[0].totalRemainingMonthlyCredits,
-          remainingCredits:
-            teamsWithEnoughCredits[0].totalRemainingMonthlyCredits +
-            teamsWithEnoughCredits[0].additionalCredits -
-            quantity,
-        };
-      } else {
-        teamToPay = {
-          id: sortedTeamsWithCredits[0].teamId,
-          monthly: sortedTeamsWithCredits[0].totalRemainingMonthlyCredits,
-          additional: sortedTeamsWithCredits[0].additionalCredits,
-          remainingCredits: 0,
-        };
-      }
-    }
+    return { userId, availableCredits: 0 };
   }
 
-  if (teamId && !teamToPay) {
-    const team = await prisma.team.findUnique({
-      where: {
-        id: teamId,
-      },
-    });
-
-    const teamIdToCharge = team?.parentId ? team.parentId : team?.id;
-    //if org has not enough credits, check also team
-    if (teamIdToCharge) {
-      const { totalRemainingMonthlyCredits, additionalCredits } = await getAllCreditsForTeam(teamIdToCharge);
-
-      const hasRemainingCredits = totalRemainingMonthlyCredits + additionalCredits >= quantity;
-
-      if (hasRemainingCredits) {
-        const hasEnoughMonthlyCredits = totalRemainingMonthlyCredits >= quantity;
-        teamToPay = {
-          id: teamIdToCharge,
-          monthly: hasEnoughMonthlyCredits ? quantity : totalRemainingMonthlyCredits,
-          additional: hasEnoughMonthlyCredits ? 0 : quantity - totalRemainingMonthlyCredits,
-          remainingCredits: totalRemainingMonthlyCredits + additionalCredits - quantity,
-        };
-      }
-    }
+  if (teamId) {
+    return { teamId, availableCredits: 0 };
   }
-
-  if (teamToPay) {
-    const { monthly, additional, id, remainingCredits } = teamToPay;
-
-    if (monthly) {
-      await prisma.creditExpenseLog.create({
-        data: {
-          credits: monthly,
-          details,
-          creditType: CreditType.MONTHLY,
-          date: new Date(),
-          creditBalance: {
-            connectOrCreate: {
-              where: { teamId: id },
-              create: { teamId: id },
-            },
-          },
-        },
-      });
-    }
-
-    if (additional) {
-      await prisma.creditExpenseLog.create({
-        data: {
-          credits: additional,
-          details,
-          creditType: CreditType.ADDITIONAL,
-          date: new Date(),
-          creditBalance: {
-            connectOrCreate: {
-              where: { teamId: id },
-              create: { teamId: id },
-            },
-          },
-        },
-      });
-    }
-    return { teamId: id, additionalCredits: additional, monthlyCredits: monthly, remainingCredits };
-  }
+  return null;
 }
 
 export async function handleLowCreditBalance({
@@ -339,7 +204,21 @@ export async function handleLowCreditBalance({
       if (creditBalance?.warningSentAt) return; // user has already sent warning email
 
       // user balance below 500 credits (5$)
-      //await sendWarningEmail(userId);
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) return;
+
+      await sendCreditBalanceLowWarningEmails({
+        balance: remainingCredits,
+        user: {
+          name: user.name ?? "",
+          email: user.email,
+          t: await getTranslation(user.locale ?? "en", "common"),
+        },
+      });
+
       await prisma.creditBalance.update({
         where: { userId },
         data: {

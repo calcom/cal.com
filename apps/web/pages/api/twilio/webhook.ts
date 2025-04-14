@@ -145,7 +145,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
         // find who will be charged and create expense log
         const billingInfo = await getEntityToCharge({
-          credits: credits,
+          credits,
           userId: parsedUserId,
           teamId: parsedTeamId,
         });
@@ -161,7 +161,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             creditType: CreditType.MONTHLY,
           });
 
-          //await handleLowCreditBalance();
+          if (credits) {
+            //await handleLowCreditBalance();
+          }
 
           return res
             .status(200)
