@@ -527,11 +527,13 @@ model CreditExpenseLog {
   id              String        @id @unique @default(uuid())
   creditBalanceId String
   creditBalance   CreditBalance @relation(fields: [creditBalanceId], references: [id], onDelete: Cascade)
-  details         String
-  credits         Int
-  creditType      CreditType
+  bookingUid      String?
+  booking         Booking?      @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  credits         Int?
+  creditType      CreditType?
   date            DateTime
-  // maybe add user id here
+  price           Float?
+  smsSid          String?
 }
 
 enum CreditType {
@@ -733,6 +735,7 @@ model Booking {
   internalNote                 BookingInternalNote[]
   creationSource               CreationSource?
   tracking                     Tracking?
+  expenseLogs                  CreditExpenseLog[]
 
   @@index([eventTypeId])
   @@index([userId])
