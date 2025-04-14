@@ -19,7 +19,7 @@
           "attrs": {}
         },
         {
-          "content": "window.dataLayer = window.dataLayer || [];\n      function gtag(){dataLayer.push(arguments);}\n      gtag('js', new Date());\n      gtag('config', '{TRACKING_ID}');"
+          "content": "window.dataLayer = window.dataLayer || [];\n      function gtag(){dataLayer.push(arguments);}\n      gtag('js', new Date());\n      gtag('config', '{TRACKING_ID}', {'cookie_flags': 'SameSite=None;Secure'});"
         }
       ]
     }

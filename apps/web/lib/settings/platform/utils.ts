@@ -104,4 +104,15 @@ export const helpCards: HelpCardInfo[] = [
       child: "Schedule a call",
     },
   },
+  {
+    icon: "triangle-alert",
+    title: "Report issue",
+    description:
+      "You can submit a ticket on GitHub or upgrade your plan to receive real-time support with developer conferences",
+    variant: "basic",
+    actionButton: {
+      href: "https://github.com/calcom/cal.com/issues/new?template=platform.md",
+      child: "Open Issue",
+    },
+  },
 ];
