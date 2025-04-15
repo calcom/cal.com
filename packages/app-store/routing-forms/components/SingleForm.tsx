@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
@@ -14,7 +16,7 @@ import type { NewFormDialogState } from "./FormActions";
 import { FormActionsProvider } from "./FormActions";
 import { InfoLostWarningDialog } from "./InfoLostWarningDialog";
 import { Header } from "./_components/Header";
-import { type UptoDateForm } from "./_components/TestForm";
+import { TestFormRenderer, type UptoDateForm } from "./_components/TestForm";
 import { getServerSidePropsForSingleFormView } from "./getServerSidePropsSingleForm";
 
 /**
@@ -99,14 +101,21 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           <div className="flex h-full min-h-screen w-full flex-col">
             <Header
               routingForm={form}
-              testForm={uptoDateForm}
               isSaving={mutation.isPending}
               appUrl={appUrl}
               setShowInfoLostDialog={setShowInfoLostDialog}
+              setIsTestPreviewOpen={setIsTestPreviewOpen}
             />
             <div className="bg-default flex flex-1">
               <div className="mx-auto w-full max-w-4xl">
                 <Page hookForm={hookForm} form={form} appUrl={appUrl} />
+              </div>
+              <div className="mx-auto w-full max-w-2xl">
+                <TestFormRenderer
+                  form={testForm}
+                  isTestPreviewOpen={isTestPreviewOpen}
+                  setIsTestPreviewOpen={setIsTestPreviewOpen}
+                />
               </div>
             </div>
           </div>

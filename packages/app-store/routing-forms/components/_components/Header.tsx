@@ -16,8 +16,6 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import { enabledIncompleteBookingApps } from "../../lib/enabledIncompleteBookingApps";
 import { FormAction, FormActionsDropdown } from "../FormActions";
 import { FormSettingsSlideover } from "./FormSettingsSlideover";
-import type { UptoDateForm } from "./TestForm";
-import { TestFormDialog } from "./TestForm";
 
 // Toggle group doesnt support HREF navigation, so we need to use this hook to handle navigation
 const useRoutingFormNavigation = (
@@ -62,17 +60,16 @@ const Actions = ({
   form,
   isSaving,
   appUrl,
-  testForm,
+  setIsTestPreviewOpen,
 }: {
   form: RoutingFormWithResponseCount;
-  testForm: UptoDateForm;
+  setIsTestPreviewOpen: (value: boolean) => void;
   isSaving: boolean;
   appUrl: string;
 }) => {
   const { t } = useLocale();
   const formContext = useFormContext<RoutingFormWithResponseCount>();
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
-  const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
 
   return (
     <>
@@ -95,7 +92,7 @@ const Actions = ({
               type="button"
               StartIcon="settings"
               onClick={() => {
-                setIsTestPreviewOpen(true);
+                setIsSettingsDialogOpen(true);
               }}
             />
           </Tooltip>
@@ -170,27 +167,22 @@ const Actions = ({
         onOpenChange={setIsSettingsDialogOpen}
         appUrl={appUrl}
       />
-      <TestFormDialog
-        form={testForm}
-        isTestPreviewOpen={isTestPreviewOpen}
-        setIsTestPreviewOpen={setIsTestPreviewOpen}
-      />
     </>
   );
 };
 
 export function Header({
   routingForm,
-  testForm,
   isSaving,
   appUrl,
   setShowInfoLostDialog,
+  setIsTestPreviewOpen,
 }: {
   routingForm: RoutingFormWithResponseCount;
-  testForm: UptoDateForm;
   isSaving: boolean;
   appUrl: string;
   setShowInfoLostDialog: (value: boolean) => void;
+  setIsTestPreviewOpen: (value: boolean) => void;
 }) {
   const { t } = useLocale();
   const [isEditing, setIsEditing] = useState(false);
@@ -300,7 +292,12 @@ export function Header({
 
       {/* Actions */}
       <div className="flex justify-end">
-        <Actions form={routingForm} testForm={testForm} isSaving={isSaving} appUrl={appUrl} />
+        <Actions
+          form={routingForm}
+          setIsTestPreviewOpen={setIsTestPreviewOpen}
+          isSaving={isSaving}
+          appUrl={appUrl}
+        />
       </div>
     </div>
   );

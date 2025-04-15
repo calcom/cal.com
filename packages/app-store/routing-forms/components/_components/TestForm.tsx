@@ -1,4 +1,6 @@
-import { useState } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import FormInputFields from "routing-forms/components/FormInputFields";
 import { getAbsoluteEventTypeRedirectUrl } from "routing-forms/getEventTypeRedirectUrl";
 import { RoutingPages } from "routing-forms/lib/RoutingPages";
@@ -19,6 +21,24 @@ import { TRPCClientError } from "@trpc/react-query";
 import type { SingleFormComponentProps } from "../../types/shared";
 import type { MembersMatchResultType } from "./TeamMembersMatchResult";
 import { TeamMembersMatchResult } from "./TeamMembersMatchResult";
+
+const MOBILE_BREAKPOINT = 768;
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState<boolean | undefined>(undefined);
+
+  useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+    const onChange = () => {
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    };
+    mql.addEventListener("change", onChange);
+    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
+  return !!isMobile;
+}
 
 export type UptoDateForm = Brand<
   NonNullable<SingleFormComponentProps["enrichedWithUserProfileForm"]>,
@@ -224,24 +244,34 @@ export const TestForm = ({
   );
 };
 
-export const TestFormDialog = ({
-  form,
+export const TestFormRenderer = ({
+  testForm,
   isTestPreviewOpen,
   setIsTestPreviewOpen,
 }: {
-  form: UptoDateForm;
+  testForm: UptoDateForm;
   isTestPreviewOpen: boolean;
   setIsTestPreviewOpen: (value: boolean) => void;
 }) => {
   const { t } = useLocale();
-  const isSubTeamForm = !!form.team?.parentId;
+  const isSubTeamForm = !!testForm.team?.parentId;
+  const isMobile = useIsMobile();
+
+  console.log("isMobile", isMobile);
+
+  if (!isMobile) {
+    if (isTestPreviewOpen) {
+      return <TestForm form={testForm} supportsTeamMembersMatchingLogic={isSubTeamForm} />;
+    }
+  }
+
   return (
     <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
       <DialogContent size="md" enableOverflow>
         <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
         <div>
           <TestForm
-            form={form}
+            form={testForm}
             supportsTeamMembersMatchingLogic={isSubTeamForm}
             renderFooter={(onClose) => (
               <DialogFooter>
