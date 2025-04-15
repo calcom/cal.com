@@ -20,16 +20,7 @@ async function postHandler(request: NextRequest) {
   }
 
   const reminderIntervalMinutes = [48 * 60, 24 * 60, 3 * 60];
-  const createNotificationCounter = () => {
-    let count = 0;
-    return {
-      increment: () => {
-        count++;
-      },
-      getCount: () => count,
-    };
-  };
-  const notificationCounter = createNotificationCounter();
+  let notificationsSent = 0;
 
   for (const interval of reminderIntervalMinutes) {
     const bookings = await prisma.booking.findMany({
@@ -158,11 +149,11 @@ async function postHandler(request: NextRequest) {
           elapsedMinutes: interval,
         },
       });
-      notificationCounter.increment();
+      notificationsSent++;
     }
   }
 
-  return NextResponse.json({ notificationsSent: notificationCounter.getCount() });
+  return NextResponse.json({ notificationsSent });
 }
 
 export const POST = defaultResponderForAppDir(postHandler);

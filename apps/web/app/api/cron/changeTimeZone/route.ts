@@ -28,16 +28,7 @@ async function postHandler(request: NextRequest) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
-  const createTimeZoneCounter = () => {
-    let count = 0;
-    return {
-      increment: () => {
-        count++;
-      },
-      getCount: () => count,
-    };
-  };
-  const timeZoneCounter = createTimeZoneCounter();
+  let timeZonesChanged = 0;
 
   const setNewTimeZone = async (timeZone: string, user: { id: number; defaultScheduleId: number | null }) => {
     await prisma.user.update({
@@ -71,7 +62,7 @@ async function postHandler(request: NextRequest) {
         timeZone: timeZone,
       },
     });
-    timeZoneCounter.increment();
+    timeZonesChanged++;
   };
 
   /* travelSchedules should be deleted automatically when timezone is set back to original tz,
@@ -175,7 +166,7 @@ async function postHandler(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ timeZonesChanged: timeZoneCounter.getCount() });
+  return NextResponse.json({ timeZonesChanged });
 }
 
 export const POST = defaultResponderForAppDir(postHandler);
