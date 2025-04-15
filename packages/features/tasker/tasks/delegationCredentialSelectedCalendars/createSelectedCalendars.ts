@@ -65,13 +65,13 @@ export async function delegationCredentialSelectedCalendars(payload: string): Pr
 
     await Promise.all(
       members.map(async (member) => {
-        const existingSelectedCalendar = await prisma.selectedCalendar.findFirst({
+        const existingSelectedCalendarForDelegationCredential = await prisma.selectedCalendar.findFirst({
           where: {
             userId: member.userId,
             delegationCredentialId,
           },
         });
-        if (existingSelectedCalendar) {
+        if (existingSelectedCalendarForDelegationCredential) {
           return;
         }
         const credentialForCalendarService = await findUniqueDelegationCalendarCredential({
@@ -121,6 +121,24 @@ export async function delegationCredentialSelectedCalendars(payload: string): Pr
           );
           return;
         }
+
+        // SelectedCalendar connected to non-delegation credential would also work
+        const existingSelectedCalendar = await prisma.selectedCalendar.findFirst({
+          where: {
+            userId: member.userId,
+            integration: "google_calendar",
+            externalId: primaryCalendar.id,
+            eventTypeId: null,
+          },
+        });
+
+        if (existingSelectedCalendar) {
+          log.debug(
+            `SelectedCalendar already exists for delegationCredentialId: ${delegationCredentialId} and userId: ${member.userId}. Not creating SelectedCalendar`
+          );
+          return;
+        }
+
         await prisma.selectedCalendar.create({
           data: {
             // TODO: Make it configurable via task payload
