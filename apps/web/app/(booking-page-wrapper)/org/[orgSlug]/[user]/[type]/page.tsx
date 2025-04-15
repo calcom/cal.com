@@ -1,9 +1,11 @@
+import { AppRouterI18nProvider } from "app/AppRouterI18nProvider";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { loadTranslations } from "@calcom/lib/server/i18n";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/[type]/getServerSideProps";
@@ -63,10 +65,32 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
   const props = await getData(
     buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
   );
-  if ((props as TeamTypePageProps)?.teamId) {
-    return <TeamTypePage {...(props as TeamTypePageProps)} />;
+
+  const eventLocale = props.eventData?.interfaceLanguage;
+  const ns = "common";
+  let translations;
+  if (eventLocale) {
+    const ns = "common";
+    translations = await loadTranslations(eventLocale, ns);
   }
-  return <UserTypePage {...(props as UserTypePageProps)} />;
+
+  if ((props as TeamTypePageProps)?.teamId) {
+    return eventLocale ? (
+      <AppRouterI18nProvider translations={translations} locale={eventLocale} ns={ns}>
+        <TeamTypePage {...(props as TeamTypePageProps)} />
+      </AppRouterI18nProvider>
+    ) : (
+      <TeamTypePage {...(props as TeamTypePageProps)} />
+    );
+  }
+
+  return eventLocale ? (
+    <AppRouterI18nProvider translations={translations} locale={eventLocale} ns={ns}>
+      <UserTypePage {...(props as UserTypePageProps)} />
+    </AppRouterI18nProvider>
+  ) : (
+    <UserTypePage {...(props as UserTypePageProps)} />
+  );
 };
 
 export default ServerPage;

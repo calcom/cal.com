@@ -18,8 +18,6 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
-import { useViewerI18n } from "@calcom/web/components/I18nLanguageHandler";
-import { BookerI18nextProvider } from "@calcom/web/components/bookerI18nextProvider";
 
 import { VerifyCodeDialog } from "../components/VerifyCodeDialog";
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
@@ -580,21 +578,9 @@ const BookerComponent = ({
 };
 
 export const Booker = (props: BookerProps & WrappedBookerProps) => {
-  const event = props.event;
-  const interfaceLanguage = event.data?.interfaceLanguage;
-
-  const shouldUseCustomInterfaceLanguage = interfaceLanguage && props.userLocale !== interfaceLanguage;
-  const { data } = useViewerI18n(interfaceLanguage || "");
-
   return (
     <LazyMotion strict features={framerFeatures}>
-      {shouldUseCustomInterfaceLanguage ? (
-        <BookerI18nextProvider locale={interfaceLanguage} i18nSSRConfig={data?.i18n}>
-          <BookerComponent {...props} />
-        </BookerI18nextProvider>
-      ) : (
-        <BookerComponent {...props} />
-      )}
+      <BookerComponent {...props} />
     </LazyMotion>
   );
 };

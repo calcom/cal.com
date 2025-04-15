@@ -4,7 +4,6 @@ import { useContext } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAtomsContext } from "@calcom/atoms/hooks/useAtomsContext";
-import { useBookerI18n } from "@calcom/web/components/bookerI18nextProvider";
 import { AppRouterI18nContext } from "@calcom/web/app/AppRouterI18nProvider";
 
 type useLocaleReturnType = {
@@ -18,11 +17,6 @@ const useClientLocale = (namespace: Parameters<typeof useTranslation>[0] = "comm
   const context = useAtomsContext();
   const { i18n, t } = useTranslation(namespace);
   const isLocaleReady = Object.keys(i18n).length > 0;
-
-  const bookerContext = useBookerI18n();
-  if (bookerContext?.isLocaleReady) {
-    return bookerContext;
-  }
 
   if (context?.clientId) {
     return {
