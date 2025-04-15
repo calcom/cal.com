@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { showToast } from "@calcom/ui/components/toast";
+import { showProgressToast } from "@calcom/ui/components/toast/ProgressToast";
 
 import { useInsightsParameters } from "../../hooks/useInsightsParameters";
 
@@ -76,6 +77,7 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
 
         const currentProgress = Math.min(Math.round((allData.length / totalRecords) * 100), 99);
         setDownloadProgress(currentProgress);
+        showProgressToast(t("downloading_data"), currentProgress);
       }
 
       if (allData.length >= totalRecords) {
@@ -100,7 +102,6 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
           EndIcon="file-down"
           color="secondary"
           className="self-end sm:self-baseline"
-          tooltip={isDownloading ? `${Math.floor(downloadProgress)}%` : undefined}
           loading={isDownloading}>
           {t("download")}
         </Button>

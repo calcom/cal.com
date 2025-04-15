@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { showToast } from "@calcom/ui/components/toast";
+import { showProgressToast } from "@calcom/ui/components/toast/ProgressToast";
 
 import { useInsightsParameters } from "../../hooks/useInsightsParameters";
 
@@ -27,18 +28,32 @@ const Download = () => {
   const [downloadProgress, setDownloadProgress] = useState(0);
   const utils = trpc.useUtils();
 
-  const fetchBatch = async (offset: number) => {
-    return await utils.viewer.insights.rawData.fetch({
-      startDate,
-      endDate,
-      teamId,
-      userId,
-      eventTypeId,
-      memberUserId,
-      isAll,
-      limit: BATCH_SIZE,
-      offset,
-    });
+  type PaginatedResponse = {
+    data: RawData[];
+    total: number;
+  };
+
+  const fetchBatch = async (offset: number): Promise<PaginatedResponse | null> => {
+    try {
+      const result = await utils.viewer.insights.rawData.fetch({
+        startDate,
+        endDate,
+        teamId,
+        userId,
+        eventTypeId,
+        memberUserId,
+        isAll,
+        limit: BATCH_SIZE,
+        offset,
+      });
+
+      if (result && "data" in result && "total" in result) {
+        return result as PaginatedResponse;
+      }
+      return null;
+    } catch (error) {
+      return null;
+    }
   };
 
   const handleDownloadClick = async () => {
@@ -50,17 +65,21 @@ const Download = () => {
 
       // Get first batch to get total count
       const firstBatch = await fetchBatch(0);
-      allData = [...firstBatch.data];
+      if (!firstBatch) return;
+
+      allData = firstBatch.data;
       const totalRecords = firstBatch.total;
 
       // Continue fetching remaining batches
       while (totalRecords > 0 && allData.length < totalRecords) {
         offset += BATCH_SIZE;
         const result = await fetchBatch(offset);
+        if (!result) break;
         allData = [...allData, ...result.data];
 
         const currentProgress = Math.min(Math.round((allData.length / totalRecords) * 100), 99);
         setDownloadProgress(currentProgress);
+        showProgressToast(t("downloading_data"), currentProgress);
       }
 
       if (allData.length >= totalRecords) {
@@ -85,7 +104,6 @@ const Download = () => {
           EndIcon="file-down"
           color="secondary"
           loading={isDownloading}
-          tooltip={isDownloading ? `${Math.floor(downloadProgress)}%` : undefined}
           className="h-full self-end sm:self-baseline">
           {t("download")}
         </Button>
