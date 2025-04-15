@@ -111,7 +111,6 @@ export const MultiplePrivateLinksController = ({
             { linkIds: convertedValue.map((val) => val.link) },
             {
               enabled: convertedValue.length > 0,
-              staleTime: 0,
               refetchOnMount: true,
             }
           );
@@ -123,13 +122,29 @@ export const MultiplePrivateLinksController = ({
             const userId = formMethods.getValues("users")?.[0]?.id ?? team?.id;
             if (!userId) return;
 
+            // Create a new private link
             const newPrivateLink = {
               link: generateHashedLink(userId),
               expiresAt: null,
               maxUsageCount: 1,
               usageCount: 0,
             };
-            const newValue = [...convertedValue, newPrivateLink];
+
+            // Copy all existing links WITH their current usage data
+            const newValue = convertedValue.map((link) => {
+              // Preserve any server-side usage data we have
+              const serverData = linkDataMap.get(link.link);
+              if (serverData) {
+                return {
+                  ...link,
+                  usageCount: serverData.usageCount ?? link.usageCount ?? 0,
+                };
+              }
+              return { ...link };
+            });
+
+            // Add the new link to the preserved collection
+            newValue.push(newPrivateLink);
             onChange(newValue);
           };
 
