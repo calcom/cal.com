@@ -1,8 +1,9 @@
 import { render } from "@testing-library/react";
 
 import dayjs from "@calcom/dayjs";
+import { PeriodType } from "@calcom/prisma/enums";
 
-import { DatePicker } from "./DatePicker";
+import { DatePicker } from "../DatePicker";
 
 const noop = () => {
   /* noop */
@@ -11,7 +12,20 @@ const noop = () => {
 describe("Tests for DatePicker Component", () => {
   test("Should render correctly with default date", async () => {
     const testDate = dayjs("2024-02-20");
-    const { getByTestId } = render(<DatePicker onChange={noop} browsingDate={testDate} locale="en" />);
+    const { getByTestId } = render(
+      <DatePicker
+        onChange={noop}
+        browsingDate={testDate}
+        locale="en"
+        periodData={{
+          periodType: PeriodType.UNLIMITED,
+          periodDays: null,
+          periodCountCalendarDays: false,
+          periodStartDate: null,
+          periodEndDate: null,
+        }}
+      />
+    );
 
     const selectedMonthLabel = getByTestId("selected-month-label");
     await expect(selectedMonthLabel).toHaveAttribute("dateTime", testDate.format("YYYY-MM"));
