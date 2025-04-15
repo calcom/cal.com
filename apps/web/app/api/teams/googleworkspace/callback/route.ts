@@ -70,14 +70,11 @@ async function getHandler(request: NextRequest) {
       },
     });
 
-    const getRedirectUrl = (teamId?: string) => {
-      if (teamId) {
-        return `${WEBAPP_URL}/settings/teams/${teamId}/members?inviteModal=true&bulk=true`;
-      }
-      return `${WEBAPP_URL}/settings`;
-    };
+    let redirectUrl = `${WEBAPP_URL}/settings`;
 
-    const redirectUrl = getRedirectUrl(teamId);
+    if (teamId) {
+      redirectUrl = `${WEBAPP_URL}/settings/teams/${teamId}/members?inviteModal=true&bulk=true`;
+    }
 
     const safeRedirectUrl = getSafeRedirectUrl(redirectUrl) ?? `${WEBAPP_URL}/teams`;
     return NextResponse.redirect(safeRedirectUrl);
