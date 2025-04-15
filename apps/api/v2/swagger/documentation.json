@@ -2291,6 +2291,359 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/routing-forms": {
+      "get": {
+        "operationId": "OrganizationsRoutingFormsController_getOrganizationRoutingForms",
+        "summary": "Get organization routing forms",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to skip",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to take",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort by creation time",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort by update time",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created after this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created before this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created after this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses updated before this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "routedToBookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses routed to a specific booking",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter by teamIds. Team ids must be separated by a comma.",
+            "example": "?teamIds=100,200",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetRoutingFormsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Routing forms"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/routing-forms/{routingFormId}/responses": {
+      "get": {
+        "operationId": "OrganizationsRoutingFormsResponsesController_getRoutingFormResponses",
+        "summary": "Get routing form responses",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "routingFormId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to skip",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to take",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort by creation time",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort by update time",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created after this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created before this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created after this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses updated before this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "routedToBookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses routed to a specific booking",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetRoutingFormResponsesOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Routing forms"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/routing-forms/{routingFormId}/responses/{responseId}": {
+      "patch": {
+        "operationId": "OrganizationsRoutingFormsResponsesController_updateRoutingFormResponse",
+        "summary": "Update routing form response",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "routingFormId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "responseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoutingFormResponseInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateRoutingFormResponseOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Routing forms"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/schedules": {
       "get": {
         "operationId": "OrganizationsSchedulesController_getOrganizationSchedules",
@@ -2987,6 +3340,301 @@
         },
         "tags": [
           "Orgs / Teams / Bookings"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/connect": {
+      "post": {
+        "operationId": "OrganizationsConferencingController_connectTeamApp",
+        "summary": "Connect your conferencing application to a team",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "description": "Conferencing application type",
+            "schema": {
+              "enum": [
+                "google-meet"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Conferencing"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/oauth/auth-url": {
+      "get": {
+        "operationId": "OrganizationsConferencingController_getTeamOAuthUrl",
+        "summary": "Get OAuth conferencing app's auth url for a team",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "description": "Conferencing application type",
+            "schema": {
+              "enum": [
+                "zoom",
+                "msteams"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "returnTo",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "onErrorReturnTo",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetConferencingAppsOauthUrlResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Conferencing"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing": {
+      "get": {
+        "operationId": "OrganizationsConferencingController_listTeamConferencingApps",
+        "summary": "List team conferencing applications",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConferencingAppsOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Conferencing"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/default": {
+      "post": {
+        "operationId": "OrganizationsConferencingController_setTeamDefaultApp",
+        "summary": "Set team default conferencing application",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "description": "Conferencing application type",
+            "schema": {
+              "enum": [
+                "google-meet",
+                "zoom",
+                "msteams",
+                "daily-video"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetDefaultConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Conferencing"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/default": {
+      "get": {
+        "operationId": "OrganizationsConferencingController_getTeamDefaultApp",
+        "summary": "Get team default conferencing application",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "description": "Conferencing application type",
+            "schema": {
+              "enum": [
+                "google-meet",
+                "zoom",
+                "msteams",
+                "daily-video"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetDefaultConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Conferencing"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/disconnect": {
+      "delete": {
+        "operationId": "OrganizationsConferencingController_disconnectTeamApp",
+        "summary": "Disconnect team conferencing application",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "description": "Conferencing application type",
+            "schema": {
+              "enum": [
+                "google-meet",
+                "zoom",
+                "msteams"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DisconnectConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Conferencing"
         ]
       }
     },
@@ -3886,10 +4534,151 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/routing-forms": {
+      "get": {
+        "operationId": "OrganizationsTeamsRoutingFormsController_getTeamRoutingForms",
+        "summary": "Get team routing forms",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to skip",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to take",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort by creation time",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort by update time",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created after this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created before this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created after this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses updated before this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "routedToBookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses routed to a specific booking",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetRoutingFormsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Routing forms"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses": {
       "get": {
         "operationId": "OrganizationsTeamsRoutingFormsResponsesController_getRoutingFormResponses",
-        "summary": "Get routing form responses",
+        "summary": "Get organization team routing form responses",
         "parameters": [
           {
             "name": "Authorization",
@@ -3907,6 +4696,115 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to skip",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to take",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort by creation time",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort by update time",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created after this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created before this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created after this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses updated before this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "routedToBookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses routed to a specific booking",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -3916,6 +4814,72 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetRoutingFormResponsesOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Routing forms / Responses"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses/{responseId}": {
+      "patch": {
+        "operationId": "OrganizationsTeamsRoutingFormsResponsesController_updateRoutingFormResponse",
+        "summary": "Update routing form response",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "routingFormId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "responseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoutingFormResponseInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateRoutingFormResponseOutput"
                 }
               }
             }
@@ -6071,7 +7035,8 @@
     "/v2/bookings/{bookingUid}/mark-absent": {
       "post": {
         "operationId": "BookingsController_2024_08_13_markNoShow",
-        "summary": "Mark a booking absence - provided authorization header refers to owner of the booking.",
+        "summary": "Mark a booking absence",
+        "description": "The provided authorization header refers to the owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -6131,7 +7096,8 @@
     "/v2/bookings/{bookingUid}/reassign": {
       "post": {
         "operationId": "BookingsController_2024_08_13_reassignBooking",
-        "summary": "Automatically reassign booking to a new host automatically - provided authorization header refers to person who reassigned the booking.",
+        "summary": "Reassign booking to auto-selected host",
+        "description": "The provided authorization header refers to the owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -6181,7 +7147,8 @@
     "/v2/bookings/{bookingUid}/reassign/{userId}": {
       "post": {
         "operationId": "BookingsController_2024_08_13_reassignBookingToUser",
-        "summary": "Reassign a booking to a specific user specified by the :userId - provided authorization header refers to person who reassigned the booking.",
+        "summary": "Reassign a booking to a specific host",
+        "description": "The provided authorization header refers to the owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -6249,7 +7216,8 @@
     "/v2/bookings/{bookingUid}/confirm": {
       "post": {
         "operationId": "BookingsController_2024_08_13_confirmBooking",
-        "summary": "Confirm booking that requires a confirmation - provided authorization header refers to owner of the booking.",
+        "summary": "Confirm a booking",
+        "description": "The provided authorization header refers to the owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -6299,7 +7267,8 @@
     "/v2/bookings/{bookingUid}/decline": {
       "post": {
         "operationId": "BookingsController_2024_08_13_declineBooking",
-        "summary": "Decline booking that requires a confirmation - provided authorization header refers to owner of the booking.",
+        "summary": "Decline a booking",
+        "description": "The provided authorization header refers to the owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -7984,395 +8953,6 @@
         ]
       }
     },
-    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/connect": {
-      "post": {
-        "operationId": "OrganizationsConferencingController_connectTeamApp",
-        "summary": "Connect your conferencing application to a team",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": [
-                "google-meet"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConferencingAppOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations/Teams Conferencing"
-        ]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/oauth/auth-url": {
-      "get": {
-        "operationId": "OrganizationsConferencingController_getTeamOAuthUrl",
-        "summary": "Get OAuth conferencing app's auth url for a team",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": [
-                "zoom",
-                "msteams"
-              ],
-              "type": "string"
-            }
-          },
-          {
-            "name": "returnTo",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "onErrorReturnTo",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetConferencingAppsOauthUrlResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations/Teams Conferencing"
-        ]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/conferencing": {
-      "get": {
-        "operationId": "OrganizationsConferencingController_listTeamConferencingApps",
-        "summary": "List team conferencing applications",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConferencingAppsOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations/Teams Conferencing"
-        ]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/default": {
-      "post": {
-        "operationId": "OrganizationsConferencingController_setTeamDefaultApp",
-        "summary": "Set team default conferencing application",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": [
-                "google-meet",
-                "zoom",
-                "msteams",
-                "daily-video"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SetDefaultConferencingAppOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations/Teams Conferencing"
-        ]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/default": {
-      "get": {
-        "operationId": "OrganizationsConferencingController_getTeamDefaultApp",
-        "summary": "Get team default conferencing application",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": [
-                "google-meet",
-                "zoom",
-                "msteams",
-                "daily-video"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetDefaultConferencingAppOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations/Teams Conferencing"
-        ]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/disconnect": {
-      "delete": {
-        "operationId": "OrganizationsConferencingController_disconnectTeamApp",
-        "summary": "Disconnect team conferencing application",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": [
-                "google-meet",
-                "zoom",
-                "msteams"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DisconnectConferencingAppOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations/Teams Conferencing"
-        ]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/stripe/connect": {
-      "get": {
-        "operationId": "OrganizationsStripeController_getTeamStripeConnectUrl",
-        "summary": "Get stripe connect URL for a team",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "returnTo",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "onErrorReturnTo",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StripConnectOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations/Teams Stripe"
-        ]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/stripe/check": {
-      "get": {
-        "operationId": "OrganizationsStripeController_checkTeamStripeConnection",
-        "summary": "Check team stripe connection",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StripCredentialsCheckOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations/Teams Stripe"
-        ]
-      }
-    },
     "/v2/schedules": {
       "post": {
         "operationId": "SchedulesController_2024_06_11_createSchedule",
@@ -9228,6 +9808,46 @@
         "operationId": "StripeController_check",
         "summary": "Check stripe connection",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsCheckOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Stripe"
+        ]
+      }
+    },
+    "/v2/stripe/check/{teamId}": {
+      "get": {
+        "operationId": "StripeController_checkTeamStripeConnection",
+        "summary": "Check team stripe connection",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "Authorization",
             "in": "header",
@@ -18071,7 +18691,7 @@
         "type": "object",
         "properties": {
           "status": {
-            "type": "object",
+            "type": "string",
             "example": "success"
           }
         },
@@ -19214,9 +19834,126 @@
             ]
           },
           "data": {
+            "$ref": "#/components/schemas/RoutingFormResponseOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateRoutingFormResponseInput": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "description": "The updated response data"
+          }
+        }
+      },
+      "UpdateRoutingFormResponseOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/RoutingFormResponseOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "RoutingFormOutput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "My Form"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "This is the description."
+          },
+          "position": {
+            "type": "number",
+            "example": 0
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-03-28T10:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-03-28T10:00:00.000Z"
+          },
+          "userId": {
+            "type": "number",
+            "example": 2313
+          },
+          "teamId": {
+            "type": "number",
+            "nullable": true,
+            "example": 4214321
+          },
+          "disabled": {
+            "type": "boolean",
+            "example": false
+          },
+          "id": {
+            "type": "string"
+          },
+          "routes": {
+            "type": "object",
+            "nullable": true
+          },
+          "fields": {
+            "type": "object",
+            "nullable": true
+          },
+          "settings": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "position",
+          "createdAt",
+          "updatedAt",
+          "userId",
+          "teamId",
+          "disabled",
+          "id",
+          "routes",
+          "fields",
+          "settings"
+        ]
+      },
+      "GetRoutingFormsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/RoutingFormResponseOutput"
+              "$ref": "#/components/schemas/RoutingFormOutput"
             }
           }
         },
