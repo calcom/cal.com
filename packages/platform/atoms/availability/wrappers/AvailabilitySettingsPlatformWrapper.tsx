@@ -36,6 +36,7 @@ type AvailabilitySettingsPlatformWrapperProps = {
   allowDelete?: boolean;
   allowSetToDefault?: boolean;
   disableToasts?: boolean;
+  isDryRun?: boolean;
 };
 
 export const AvailabilitySettingsPlatformWrapper = ({
@@ -51,6 +52,7 @@ export const AvailabilitySettingsPlatformWrapper = ({
   allowDelete,
   allowSetToDefault,
   disableToasts,
+  isDryRun = false,
 }: AvailabilitySettingsPlatformWrapperProps) => {
   const { isLoading, data: schedule } = useSchedule(id);
   const { data: schedules } = useSchedules();
@@ -124,10 +126,26 @@ export const AvailabilitySettingsPlatformWrapper = ({
       <AvailabilitySettings
         disableEditableHeading={disableEditableHeading}
         handleDelete={() => {
-          atomSchedule.id && handleDelete(atomSchedule.id);
+          if (isDryRun) {
+            toast({
+              description: "Schedule deleted successfully",
+            });
+          }
+
+          if (!isDryRun && atomSchedule.id) {
+            handleDelete(atomSchedule.id);
+          }
         }}
         handleSubmit={async (data) => {
-          atomSchedule.id && handleUpdate(atomSchedule.id, data);
+          if (isDryRun) {
+            toast({
+              description: "Schedule updated successfully",
+            });
+          }
+
+          if (!isDryRun && atomSchedule.id) {
+            handleUpdate(atomSchedule.id, data);
+          }
         }}
         weekStart={me?.data?.weekStart || "Sunday"}
         timeFormat={timeFormat}
