@@ -114,6 +114,7 @@ export class OrganizationAttributeOptionRepository {
     if (filters?.assignedOptionIds) {
       const filteredAssignedOptions = await this.dbRead.prisma.attributeOption.findMany({
         where: {
+          attribute: { teamId: organizationId },
           assignedUsers: {
             every: {
               attributeOptionId: { in: filters?.assignedOptionIds },
@@ -122,6 +123,10 @@ export class OrganizationAttributeOptionRepository {
         },
         include: { assignedUsers: { include: { member: true } } },
       });
+
+      if (!filteredAssignedOptions?.length) {
+        throw new NotFoundException("Option provided in assignedOptionIds are not assigned to anyone.");
+      }
 
       const matchingUserIds = filteredAssignedOptions.flatMap((opt) =>
         opt.assignedUsers.flatMap((assignedUser) => assignedUser.member.userId)
