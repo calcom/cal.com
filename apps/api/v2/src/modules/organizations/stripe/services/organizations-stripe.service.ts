@@ -43,8 +43,8 @@ export class OrganizationsStripeService {
   async saveStripeAccount(
     state: OAuthCallbackState,
     code: string,
-    userId: number,
-    teamId: number
+    teamId: number,
+    userId?: number
   ): Promise<{ url: string }> {
     if (!userId) {
       throw new UnauthorizedException("Invalid Access token.");

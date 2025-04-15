@@ -145,8 +145,8 @@ export class OrganizationsStripeController {
       return await this.organizationsStripeService.saveStripeAccount(
         decodedCallbackState,
         code,
-        userId,
-        teamId
+        teamId,
+        userId
       );
     } catch (error) {
       if (error instanceof Error) {
