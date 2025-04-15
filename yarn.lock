@@ -39068,6 +39068,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-rating@npm:^2.0.5":
+  version: 2.0.5
+  resolution: "react-rating@npm:2.0.5"
+  dependencies:
+    "@types/lodash": ^4.14.105
+    "@types/react": ^16.0.40
+  peerDependencies:
+    react: ">=16.3.0"
+    react-dom: ">=16.3.0"
+  checksum: f209ea396e85cc49e4f846f3ed1ed66e06bd97cc8d1043694ad9c54dd79c053d7e3a2908acfabd5f0461c36e3760518b64ec5ab244e18c651184bf279764eccb
+  languageName: node
+  linkType: hard
+
 "react-reconciler@npm:^0.26.2":
   version: 0.26.2
   resolution: "react-reconciler@npm:0.26.2"
