@@ -4,7 +4,9 @@ import { useCallback, useMemo, useEffect } from "react";
 
 import { trpc } from "@calcom/trpc/react";
 
+import { recalculateDateRange } from "../lib/dateRange";
 import { ZSegmentStorage, type UseSegments } from "../lib/types";
+import { isDateRangeFilterValue } from "../lib/utils";
 
 export const useSegments: UseSegments = ({
   tableIdentifier,
@@ -25,9 +27,27 @@ export const useSegments: UseSegments = ({
   setPageIndex,
   setSearchTerm,
 }) => {
-  const { data: segments, isFetching: isFetchingSegments } = trpc.viewer.filterSegments.list.useQuery({
+  const { data: rawSegments, isFetching: isFetchingSegments } = trpc.viewer.filterSegments.list.useQuery({
     tableIdentifier,
   });
+
+  // Recalculate date ranges based on the current timestamp
+  const segments = useMemo(() => {
+    if (!rawSegments) return [];
+    return rawSegments.map((segment) => ({
+      ...segment,
+      activeFilters: segment.activeFilters.map((filter) => {
+        if (isDateRangeFilterValue(filter.v)) {
+          return {
+            ...filter,
+            v: recalculateDateRange(filter.v),
+          };
+        }
+        return filter;
+      }),
+    }));
+  }, [rawSegments]);
+
   const selectedSegment = useMemo(
     () => segments?.find((segment) => segment.id === segmentId),
     [segments, segmentId]
