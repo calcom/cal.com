@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
 import { prisma, availabilityUserSelect } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
@@ -12,6 +13,8 @@ import { TRPCError } from "@trpc/server";
 
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
+import { getPublicEvent } from "../queries/eventType/getPublicEvent";
+import type { GetPublicEventProps } from "../queries/eventType/getPublicEvent";
 import { LookupTarget, ProfileRepository } from "./profile";
 import type { UserWithLegacySelectedCalendars } from "./user";
 import { withSelectedCalendars } from "./user";
@@ -910,5 +913,17 @@ export class EventTypeRepository {
     eventTypeId: number;
   }) {
     return user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventTypeId);
+  }
+
+  static async getPublicEvent(
+    input: Omit<GetPublicEventProps, "prisma"> & {
+      prisma?: PrismaClient;
+    }
+  ) {
+    const event = await getPublicEvent({
+      ...input,
+      prisma: input.prisma ?? prisma,
+    });
+    return event;
   }
 }
