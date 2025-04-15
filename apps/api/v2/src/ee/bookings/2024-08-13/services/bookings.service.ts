@@ -146,8 +146,8 @@ export class BookingsService_2024_08_13 {
   }
 
   async hasRequiredBookingFieldsResponses(body: CreateBookingInput, eventType: EventType | null) {
-    const bookingFields = body.bookingFieldsResponses;
-    if (!bookingFields || !eventType || !eventType.bookingFields) {
+    const bookingFields = { ...body.bookingFieldsResponses, attendeePhoneNumber: body.attendee.phoneNumber };
+    if (!eventType?.bookingFields) {
       return true;
     }
 
@@ -156,11 +156,20 @@ export class BookingsService_2024_08_13 {
       .parse(eventType.bookingFields)
       .filter((field) => !field.editable.startsWith("system"));
 
+    if (!eventTypeBookingFields.length) {
+      return true;
+    }
+
     for (const field of eventTypeBookingFields) {
       if (field.required && !(field.name in bookingFields)) {
-        throw new BadRequestException(`
-          Missing required booking field response: ${field.name} - it is required by the event type booking fields, but missing in the bookingFieldsResponses.
-          You can fetch the event type with ID ${eventType.id} to see the required fields.`);
+        if (field.name === "attendeePhoneNumber") {
+          throw new BadRequestException(
+            `Missing attendee phone number - it is required by the event type. Pass it as "attendee.phoneNumber" in the request.`
+          );
+        }
+        throw new BadRequestException(
+          `Missing required booking field response: ${field.name} - it is required by the event type booking fields, but missing in the bookingFieldsResponses. You can fetch the event type with ID ${eventType.id} to see the required fields.`
+        );
       }
     }
 
@@ -185,7 +194,11 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputBooking(databaseBooking);
   }
 
-  async createRecurringBooking(request: Request, body: CreateRecurringBookingInput_2024_08_13, eventType: EventTypeWithOwnerAndTeam) {
+  async createRecurringBooking(
+    request: Request,
+    body: CreateRecurringBookingInput_2024_08_13,
+    eventType: EventTypeWithOwnerAndTeam
+  ) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body, eventType);
     const bookings = await handleNewRecurringBooking({
       bookingData: bookingRequest.body,
@@ -202,7 +215,11 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputRecurringBookings(ids);
   }
 
-  async createRecurringSeatedBooking(request: Request, body: CreateRecurringBookingInput_2024_08_13, eventType: EventTypeWithOwnerAndTeam) {
+  async createRecurringSeatedBooking(
+    request: Request,
+    body: CreateRecurringBookingInput_2024_08_13,
+    eventType: EventTypeWithOwnerAndTeam
+  ) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body, eventType);
     const bookings = await handleNewRecurringBooking({
       bookingData: bookingRequest.body,
@@ -219,7 +236,11 @@ export class BookingsService_2024_08_13 {
     );
   }
 
-  async createRegularBooking(request: Request, body: CreateBookingInput_2024_08_13,  eventType: EventTypeWithOwnerAndTeam) {
+  async createRegularBooking(
+    request: Request,
+    body: CreateBookingInput_2024_08_13,
+    eventType: EventTypeWithOwnerAndTeam
+  ) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
     const booking = await handleNewBooking({
       bookingData: bookingRequest.body,
@@ -244,7 +265,11 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputBooking(databaseBooking);
   }
 
-  async createSeatedBooking(request: Request, body: CreateBookingInput_2024_08_13, eventType: EventTypeWithOwnerAndTeam) {
+  async createSeatedBooking(
+    request: Request,
+    body: CreateBookingInput_2024_08_13,
+    eventType: EventTypeWithOwnerAndTeam
+  ) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
     const booking = await handleNewBooking({
       bookingData: bookingRequest.body,
