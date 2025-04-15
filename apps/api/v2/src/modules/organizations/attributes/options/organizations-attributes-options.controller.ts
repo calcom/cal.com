@@ -8,6 +8,7 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/create-organization-attribute-option.input";
+import { GetAssignedAttributeOptions } from "@/modules/organizations/attributes/options/inputs/get-assigned-attribute-options.input";
 import { AssignOrganizationAttributeOptionToUserInput } from "@/modules/organizations/attributes/options/inputs/organizations-attributes-options-assign.input";
 import { UpdateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/update-organizaiton-attribute-option.input.ts";
 import {
@@ -21,7 +22,18 @@ import { GetOptionUserOutput } from "@/modules/organizations/attributes/options/
 import { GetAllAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/get-option.output";
 import { UpdateAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/update-option.output";
 import { OrganizationAttributeOptionService } from "@/modules/organizations/attributes/options/services/organization-attributes-option.service";
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -125,12 +137,17 @@ export class OrganizationsAttributesOptionsController {
   @ApiOperation({ summary: "Get all attribute options that are assigned to users" })
   async getOrganizationAttributeAssignedOptions(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("attributeId") attributeId: string
+    @Param("attributeId") attributeId: string,
+    @Query() queryParams: GetAssignedAttributeOptions
   ): Promise<GetAllAttributeAssignedOptionOutput> {
+    const { skip, take, ...rest } = queryParams;
     const attributeOptions =
       await this.organizationsAttributesOptionsService.getOrganizationAttributeAssignedOptions(
         orgId,
-        attributeId
+        attributeId,
+        skip,
+        take,
+        rest
       );
     return {
       status: SUCCESS_STATUS,

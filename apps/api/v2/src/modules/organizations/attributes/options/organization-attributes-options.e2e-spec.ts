@@ -20,7 +20,7 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { User, Team, Membership } from "@calcom/prisma/client";
+import { User, Team, Membership, Attribute, AttributeOption } from "@calcom/prisma/client";
 
 describe("Organizations Attributes Options Endpoints", () => {
   describe("User lacks required role", () => {
@@ -110,6 +110,8 @@ describe("Organizations Attributes Options Endpoints", () => {
     let attributeId: string;
     let createdOption: any;
     let createdOption2: any;
+    let attribute2: Attribute;
+    let attribute2Option: AttributeOption;
 
     const createOptionInput: CreateOrganizationAttributeOptionInput = {
       value: "option1",
@@ -161,8 +163,19 @@ describe("Organizations Attributes Options Endpoints", () => {
         type: "TEXT",
         slug: "test-attribute",
       });
-      attributeId = attribute.id;
 
+      attribute2 = await attributeRepositoryFixture.create({
+        name: "Test Attribute 2",
+        team: { connect: { id: org.id } },
+        type: "TEXT",
+        slug: "test-attribute-2",
+      });
+      attributeId = attribute.id;
+      attribute2Option = await attributeRepositoryFixture.createOption({
+        slug: "optionA",
+        value: "optionA",
+        attribute: { connect: { id: attribute2.id } },
+      });
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
 
@@ -258,6 +271,22 @@ describe("Organizations Attributes Options Endpoints", () => {
         });
     });
 
+    it("should assign attribute option to user2", async () => {
+      const assignInput: AssignOrganizationAttributeOptionToUserInput = {
+        attributeId: attribute2.id,
+        attributeOptionId: attribute2Option.id,
+      };
+
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/attributes/options/${user2.id}`)
+        .send(assignInput)
+        .expect(201)
+        .then((response) => {
+          expect(response.body.status).toEqual(SUCCESS_STATUS);
+          expect(response.body.data).toBeTruthy();
+        });
+    });
+
     it("should get attribute options for user", async () => {
       return request(app.getHttpServer())
         .get(`/v2/organizations/${org.id}/attributes/options/${user.id}`)
@@ -276,9 +305,10 @@ describe("Organizations Attributes Options Endpoints", () => {
         .expect(200)
         .then((response) => {
           expect(response.body.status).toEqual(SUCCESS_STATUS);
-          const userOptions = response.body.data;
-          expect(userOptions.length).toEqual(1);
-          expect(userOptions[0].id).toEqual(createdOption2.id);
+          const userOptions = response.body.data as AttributeOption[];
+          expect(userOptions.length).toEqual(2);
+          expect(userOptions.find((opt) => opt.id === createdOption2.id)).toBeDefined();
+          expect(userOptions.find((opt) => opt.id === attribute2Option.id)).toBeDefined();
         });
     });
 
@@ -298,6 +328,25 @@ describe("Organizations Attributes Options Endpoints", () => {
               ?.assignedUserIds.find((id) => id === user.id)
           ).toBeDefined();
 
+          expect(assignedOptions.find((opt) => createdOption2.id === opt.id)).toBeDefined();
+          expect(
+            assignedOptions
+              .find((opt) => createdOption2.id === opt.id)
+              ?.assignedUserIds.find((id) => id === user2.id)
+          ).toBeDefined();
+        });
+    });
+
+    it("should get attribute all assigned options filtered by other assigned options", async () => {
+      return request(app.getHttpServer())
+        .get(
+          `/v2/organizations/${org.id}/attributes/${attributeId}/options/assigned?assignedOptionIds=${attribute2Option.id}`
+        )
+        .expect(200)
+        .then((response) => {
+          expect(response.body.status).toEqual(SUCCESS_STATUS);
+          const assignedOptions = response.body.data as AssignedOptionOutput[];
+          expect(assignedOptions?.length).toEqual(1);
           expect(assignedOptions.find((opt) => createdOption2.id === opt.id)).toBeDefined();
           expect(
             assignedOptions

@@ -114,10 +114,19 @@ export class OrganizationAttributeOptionService {
     );
   }
 
-  async getOrganizationAttributeAssignedOptions(organizationId: number, attributeId: string) {
+  async getOrganizationAttributeAssignedOptions(
+    organizationId: number,
+    attributeId: string,
+    skip = 0,
+    take = 250,
+    filters?: { assignedOptionIds?: string[] }
+  ) {
     const options = await this.organizationAttributeOptionRepository.getOrganizationAttributeAssignedOptions(
       organizationId,
-      attributeId
+      attributeId,
+      skip,
+      take,
+      filters
     );
     return options.map((opt) => plainToClass(AssignedOptionOutput, opt, { strategy: "excludeAll" }));
   }

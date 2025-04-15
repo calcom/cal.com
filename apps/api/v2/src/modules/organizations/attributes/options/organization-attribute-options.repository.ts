@@ -90,22 +90,63 @@ export class OrganizationAttributeOptionRepository {
     return options;
   }
 
-  async getOrganizationAttributeAssignedOptions(organizationId: number, attributeId: string) {
+  async getOrganizationAttributeAssignedOptions(
+    organizationId: number,
+    attributeId: string,
+    skip = 0,
+    take = 250,
+    filters?: { assignedOptionIds?: string[] }
+  ) {
     const options = await this.dbRead.prisma.attributeOption.findMany({
       where: {
         attribute: {
           id: attributeId,
           teamId: organizationId,
         },
-        assignedUsers: { some: {} }, // empty some to check whether there is at least one related record
+        assignedUsers: { some: {} },
       },
       include: { assignedUsers: { include: { member: true } } },
+      skip,
+      take,
     });
 
-    return options.map((opt) => ({
-      ...opt,
-      assignedUserIds: opt.assignedUsers.map((attributeToUser) => attributeToUser.member.userId),
-    }));
+    // only return options that are assigned to users alongside assignedOptionIds filter
+    if (filters?.assignedOptionIds) {
+      const filteredAssignedOptions = await this.dbRead.prisma.attributeOption.findMany({
+        where: {
+          assignedUsers: {
+            every: {
+              attributeOptionId: { in: filters?.assignedOptionIds },
+            },
+          },
+        },
+        include: { assignedUsers: { include: { member: true } } },
+      });
+
+      const matchingUserIds = filteredAssignedOptions.flatMap((opt) =>
+        opt.assignedUsers.flatMap((assignedUser) => assignedUser.member.userId)
+      );
+      // reduce remove options that are not assigned alongside assignedOptionIds filter
+      return options.reduce((acc, opt) => {
+        if (opt.assignedUsers.some((assignedUser) => matchingUserIds.includes(assignedUser.member.userId))) {
+          return [
+            ...acc,
+            {
+              ...opt,
+              assignedUserIds: opt.assignedUsers.map((attributeToUser) => attributeToUser.member.userId),
+            },
+          ];
+        }
+        return acc;
+      }, [] as typeof options);
+    }
+
+    return options.map((opt) => {
+      return {
+        ...opt,
+        assignedUserIds: opt.assignedUsers.map((attributeToUser) => attributeToUser.member.userId),
+      };
+    });
   }
 
   async assignOrganizationAttributeOptionToUser({
