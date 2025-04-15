@@ -99,7 +99,7 @@ export async function scanWorkflowBody(payload: string) {
     const isSpam = await client.checkSpam(comment);
 
     if (isSpam) {
-      if (user.whitelistWorkflows) {
+      if (workflowStep.workflow.user?.whitelistWorkflows) {
         log.warn(
           `For whitelisted user, workflow step ${workflowStep.id} is spam with body ${workflowStep.reminderBody}`
         );
