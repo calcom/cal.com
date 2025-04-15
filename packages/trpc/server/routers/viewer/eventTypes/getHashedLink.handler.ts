@@ -69,6 +69,7 @@ export const getHashedLinkHandler = async ({ ctx, input }: GetHashedLinkOptions)
       where: {
         teamId: eventTypeTeamId,
         userId,
+        accepted: true,
       },
     });
 
