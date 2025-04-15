@@ -959,9 +959,12 @@ async function handler(
   }
 
   // If the team member is requested then they should be the organizer
-  const organizerUser = reqBody.teamMemberEmail
-    ? users.find((user) => user.email === reqBody.teamMemberEmail) ?? users[0]
-    : users[0];
+  let organizerUser: (typeof users)[number];
+  if (reqBody.teamMemberEmail) {
+    organizerUser = users.find((user) => user.email === reqBody.teamMemberEmail) ?? users[0];
+  } else {
+    organizerUser = fixedOrganizerUser || users[0];
+  }
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
   const allCredentials = await getAllCredentialsIncludeServiceAccountKey(organizerUser, eventType);

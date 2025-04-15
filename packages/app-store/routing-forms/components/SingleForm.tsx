@@ -145,6 +145,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           appUrl={appUrl}
           newFormDialogState={newFormDialogState}
           setNewFormDialogState={setNewFormDialogState}>
+<<<<<<< HEAD
           <div className="flex h-full min-h-screen w-full flex-col">
             <Header
               routingForm={form}
@@ -172,6 +173,113 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
               ) : (
                 <div className="mx-auto w-full max-w-4xl px-2">
                   <Page hookForm={hookForm} form={form} appUrl={appUrl} />
+=======
+          <ShellMain
+            heading={
+              <div className="flex">
+                <div>{form.name}</div>
+                {form.team && (
+                  <Badge className="ml-4 mt-1" variant="gray">
+                    {form.team.name}
+                  </Badge>
+                )}
+              </div>
+            }
+            subtitle={form.description || ""}
+            backPath={`${appUrl}/forms`}
+            CTA={<Actions form={form} mutation={mutation} />}>
+            <div className="flex flex-col items-center items-baseline px-3 md:flex-row md:items-start md:p-0">
+              <div className="lg:min-w-72 lg:max-w-72 md:max-w-56 mb-6 w-full md:mr-6">
+                <TextField
+                  type="text"
+                  containerClassName="mb-6"
+                  placeholder={t("title")}
+                  {...hookForm.register("name")}
+                />
+                <TextAreaField
+                  rows={3}
+                  id="description"
+                  data-testid="description"
+                  placeholder={t("form_description_placeholder")}
+                  {...hookForm.register("description")}
+                  defaultValue={form.description || ""}
+                />
+
+                <div className="mt-6">
+                  {form.teamId ? (
+                    <div className="flex flex-col">
+                      <span className="text-emphasis mb-3 block text-sm font-medium leading-none">
+                        {t("routing_forms_send_email_to")}
+                      </span>
+                      <AddMembersWithSwitch
+                        data-testid="routing-form-select-members"
+                        teamId={form.teamId}
+                        teamMembers={form.teamMembers.map((member) => ({
+                          value: member.id.toString(),
+                          label: member.name || member.email,
+                          avatar: member.avatarUrl || "",
+                          email: member.email,
+                          isFixed: true,
+                          defaultScheduleId: member.defaultScheduleId,
+                        }))}
+                        value={sendUpdatesTo.map((userId) => ({
+                          isFixed: true,
+                          isOrganizer: false,
+                          userId: userId,
+                          priority: 2,
+                          weight: 100,
+                          scheduleId: 1,
+                        }))}
+                        onChange={(value) => {
+                          hookForm.setValue(
+                            "settings.sendUpdatesTo",
+                            value.map((teamMember) => teamMember.userId),
+                            { shouldDirty: true }
+                          );
+                          hookForm.setValue("settings.emailOwnerOnSubmission", false, {
+                            shouldDirty: true,
+                          });
+                        }}
+                        assignAllTeamMembers={sendToAll}
+                        setAssignAllTeamMembers={(value) => {
+                          hookForm.setValue("settings.sendToAll", !!value, { shouldDirty: true });
+                        }}
+                        automaticAddAllEnabled={true}
+                        isFixed={true}
+                        onActive={() => {
+                          hookForm.setValue(
+                            "settings.sendUpdatesTo",
+                            form.teamMembers.map((teamMember) => teamMember.id),
+                            { shouldDirty: true }
+                          );
+                          hookForm.setValue("settings.emailOwnerOnSubmission", false, {
+                            shouldDirty: true,
+                          });
+                        }}
+                        placeholder={t("select_members")}
+                        containerClassName="!px-0 !pb-0 !pt-0"
+                      />
+                    </div>
+                  ) : (
+                    <Controller
+                      name="settings.emailOwnerOnSubmission"
+                      control={hookForm.control}
+                      render={({ field: { value, onChange } }) => {
+                        return (
+                          <SettingsToggle
+                            title={t("routing_forms_send_email_owner")}
+                            description={t("routing_forms_send_email_owner_description")}
+                            checked={value}
+                            onCheckedChange={(val) => {
+                              onChange(val);
+                              hookForm.unregister("settings.sendUpdatesTo");
+                            }}
+                          />
+                        );
+                      }}
+                    />
+                  )}
+>>>>>>> 019ce09865 (fixed types, no type-check errors now)
                 </div>
               )}
               <AnimatePresence>

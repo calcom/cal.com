@@ -153,6 +153,7 @@ export const EditWeightsForAllTeamMembers = ({
         return {
           ...existingHost,
           userId: parseInt(member.value, 10),
+          isOrganizer: existingHost?.isOrganizer ?? false,
           isFixed: existingHost?.isFixed ?? false,
           priority: existingHost?.priority ?? 0,
           weight: localWeights[member.value] ?? existingHost?.weight ?? 100,

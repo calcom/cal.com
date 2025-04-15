@@ -11,6 +11,7 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
         hosts: [
           {
             userId: 101,
+            isOrganizer: false,
             isFixed: false,
             priority: 2,
             weight: 100,
@@ -74,6 +75,7 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
           {
             userId: 101,
             isFixed: false,
+            isOrganizer: false,
             priority: 2,
             weight: 100,
             scheduleId: null,
