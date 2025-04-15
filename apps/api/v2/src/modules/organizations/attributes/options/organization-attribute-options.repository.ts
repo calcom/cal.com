@@ -125,7 +125,7 @@ export class OrganizationAttributeOptionRepository {
       });
 
       if (!filteredAssignedOptions?.length) {
-        throw new NotFoundException("Option provided in assignedOptionIds are not assigned to anyone.");
+        throw new NotFoundException("Options provided in assignedOptionIds are not assigned to anyone.");
       }
 
       const matchingUserIds = filteredAssignedOptions.flatMap((opt) =>
