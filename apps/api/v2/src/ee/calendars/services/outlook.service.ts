@@ -38,7 +38,7 @@ export class OutlookService implements OAuthCalendarApp {
   ): Promise<{ status: typeof SUCCESS_STATUS; data: { authUrl: string } }> {
     const accessToken = authorization.replace("Bearer ", "");
     const origin = req.get("origin") ?? req.get("host");
-    const redirectUrl = await await this.getCalendarRedirectUrl(accessToken, origin ?? "", redir, isDryRun);
+    const redirectUrl = await this.getCalendarRedirectUrl(accessToken, origin ?? "", redir, isDryRun);
 
     return { status: SUCCESS_STATUS, data: { authUrl: redirectUrl } };
   }
