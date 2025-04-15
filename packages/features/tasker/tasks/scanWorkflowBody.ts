@@ -39,6 +39,7 @@ export async function scanWorkflowBody(payload: string) {
             select: {
               locale: true,
               timeFormat: true,
+              whitelistWorkflows: true,
             },
           },
         },
@@ -98,6 +99,13 @@ export async function scanWorkflowBody(payload: string) {
     const isSpam = await client.checkSpam(comment);
 
     if (isSpam) {
+      if (user.whitelistWorkflows) {
+        log.warn(
+          `For whitelisted user, workflow step ${workflowStep.id} is spam with body ${workflowStep.reminderBody}`
+        );
+        return;
+      }
+
       // We won't delete the workflow step incase it is flagged as a false positive
       log.warn(`Workflow step ${workflowStep.id} is spam with body ${workflowStep.reminderBody}`);
       await lockUser("userId", userId.toString(), LockReason.SPAM_WORKFLOW_BODY);
