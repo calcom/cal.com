@@ -67,16 +67,12 @@ test.describe("Out of office", () => {
           teamId: team.id,
           accepted: true,
           role: "ADMIN",
-          createdAt: new Date(),
-          updatedAt: new Date(),
         },
         {
           userId: userTo.id,
           teamId: team.id,
           accepted: true,
           role: "ADMIN",
-          createdAt: new Date(),
-          updatedAt: new Date(),
         },
       ],
     });
@@ -665,7 +661,7 @@ test.describe("Out of office", () => {
       await page.locator('[data-testid="add-filter-item-dateRange"]').click();
       await expect(
         page
-          .locator('[data-testid="filter-popover-trigger-dateRange"] div', { hasText: "Last 7 Days" })
+          .locator('[data-testid="filter-popover-trigger-dateRange"] span', { hasText: "Last 7 Days" })
           .nth(0)
       ).toBeVisible();
     });

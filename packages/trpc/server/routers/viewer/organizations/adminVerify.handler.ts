@@ -94,7 +94,6 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
       },
       data: {
         accepted: true,
-        updatedAt: new Date(),
       },
     }),
 
