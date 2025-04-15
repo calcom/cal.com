@@ -1,9 +1,11 @@
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SMSLockState } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import type { IconName } from "@calcom/ui";
-import { Avatar, DropdownActions, Table } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/components/avatar";
+import type { IconName } from "@calcom/ui/components/icon";
+import { Table, DropdownActions } from "@calcom/ui/components/table";
 
 const { Cell, ColumnTitle, Header, Row } = Table;
 
@@ -50,6 +52,7 @@ const LockStatusTable = ({
   teams?: Team[];
   setSMSLockState: (param: { userId?: number; teamId?: number; lock: boolean }) => void;
 }) => {
+  const { t } = useLocale();
   function getActions({ user, team }: { user?: User; team?: Team }) {
     const smsLockState = user?.smsLockState ?? team?.smsLockState;
     if (!smsLockState) return [];
@@ -88,10 +91,10 @@ const LockStatusTable = ({
     <>
       <Table>
         <Header>
-          <ColumnTitle widthClassNames="w-auto">User/Team</ColumnTitle>
-          <ColumnTitle>Status</ColumnTitle>
+          <ColumnTitle widthClassNames="w-auto">{t("user_team")}</ColumnTitle>
+          <ColumnTitle>{t("status")}</ColumnTitle>
           <ColumnTitle widthClassNames="w-auto">
-            <span className="sr-only">Edit</span>
+            <span className="sr-only">{t("edit")}</span>
           </ColumnTitle>
         </Header>
 

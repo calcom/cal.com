@@ -116,6 +116,7 @@ describe("Event types Endpoints", () => {
       slug: "email",
       required: true,
       disableOnPrefill: false,
+      hidden: false,
     };
 
     const defaultResponseBookingFieldLocation = {
@@ -334,6 +335,67 @@ describe("Event types Endpoints", () => {
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .send(body)
         .expect(404);
+    });
+
+    it("should not be able to create phone-only event type", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Phone coding consultation",
+        slug: "phone-coding-consultation",
+        description: "Our team will review your codebase.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        bookingFields: [
+          {
+            type: "email",
+            required: false,
+            label: "Email",
+            hidden: true,
+          },
+          {
+            type: "phone",
+            slug: "attendeePhoneNumber",
+            required: true,
+            label: "Phone number",
+            hidden: false,
+          },
+        ],
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(400);
+
+      expect(response.body.error.message).toBe(
+        "checkIsEmailUserAccessible - Email booking field must be required and visible"
+      );
+    });
+
+    it("should not allow creating an event type with integration not installed on user", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class",
+        slug: "coding-class",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "zoom",
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(400);
     });
 
     it("should create an event type", async () => {
@@ -1049,6 +1111,23 @@ describe("Event types Endpoints", () => {
         .expect(404);
     });
 
+    it("should not allow to update event type with integration not installed on user", async () => {
+      const body: UpdateEventTypeInput_2024_06_14 = {
+        locations: [
+          {
+            type: "integration",
+            integration: "office365-video",
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${eventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(400);
+    });
+
     it(`/GET/:id`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types/${eventType.id}`)
@@ -1191,7 +1270,14 @@ describe("Event types Endpoints", () => {
 
     const expectedReturnSystemFields = [
       { isDefault: true, required: true, slug: "name", type: "name", disableOnPrefill: false },
-      { isDefault: true, required: true, slug: "email", type: "email", disableOnPrefill: false },
+      {
+        isDefault: true,
+        required: true,
+        slug: "email",
+        type: "email",
+        disableOnPrefill: false,
+        hidden: false,
+      },
       {
         isDefault: true,
         type: "radioInput",
@@ -1644,6 +1730,7 @@ describe("Event types Endpoints", () => {
               slug: "email",
               required: true,
               disableOnPrefill: false,
+              hidden: false,
             },
             {
               isDefault: true,
@@ -1845,7 +1932,6 @@ describe("Event types Endpoints", () => {
       await teamRepositoryFixture.delete(organization.id);
       try {
         await eventTypesRepositoryFixture.delete(legacyEventTypeId1);
-        await eventTypesRepositoryFixture.delete(legacyEventTypeId2);
       } catch (e) {
         // Event type might have been deleted by the test
       }

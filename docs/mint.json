@@ -11,7 +11,7 @@
       "method": "bearer"
     }
   },
-  "favicon": "/favicon-32x32.png",
+  "favicon": "/favicon.png",
   "colors": {
     "primary": "#111827",
     "light": "#d6d6d6",
@@ -185,11 +185,13 @@
       "group": "Getting Started",
       "pages": [
         "platform/introduction",
+        "platform/setup",
         "platform/quickstart",
         {
           "group": "Atoms",
           "icon": "atom",
           "pages": [
+            "platform/atoms/cal-provider",
             "platform/atoms/google-calendar-connect",
             "platform/atoms/outlook-calendar-connect",
             "platform/atoms/apple-calendar-connect",
@@ -201,7 +203,16 @@
             "platform/atoms/conferencing-apps"
           ]
         },
-        "platform/hooks",
+        {
+          "group": "Hooks",
+          "icon": "brackets-curly",
+          "pages": [
+            "platform/bookings-hooks",
+            "platform/event-types-hooks",
+            "platform/calendars-hooks",
+            "platform/user-or-team-related-hooks"
+          ]
+        },
         {
           "group": "Guides",
           "icon": "book",

@@ -27,6 +27,7 @@ import { Booking, BookingSeat } from "@calcom/prisma/client";
 export const bookingResponsesSchema = z
   .object({
     email: z.string(),
+    attendeePhoneNumber: z.string().optional(),
     name: z.union([
       z.string(),
       z.object({
@@ -45,6 +46,7 @@ export const seatedBookingDataSchema = z
     responses: z
       .object({
         email: z.string(),
+        attendeePhoneNumber: z.string().optional(),
         name: z.union([
           z.string(),
           z.object({
@@ -134,6 +136,7 @@ export class OutputBookingsService_2024_08_13 {
       createdAt: databaseBooking.createdAt,
       updatedAt: databaseBooking.updatedAt,
       rating: databaseBooking.rating,
+      icsUid: databaseBooking.iCalUID,
     };
 
     const bookingTransformed = plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
@@ -229,6 +232,7 @@ export class OutputBookingsService_2024_08_13 {
       createdAt: databaseBooking.createdAt,
       updatedAt: databaseBooking.updatedAt,
       rating: databaseBooking.rating,
+      icsUid: databaseBooking.iCalUID,
     };
 
     const bookingTransformed = plainToClass(RecurringBookingOutput_2024_08_13, booking, {
@@ -277,6 +281,7 @@ export class OutputBookingsService_2024_08_13 {
       createdAt: databaseBooking.createdAt,
       updatedAt: databaseBooking.updatedAt,
       rating: databaseBooking.rating,
+      icsUid: databaseBooking.iCalUID,
     };
 
     const parsed = plainToClass(GetSeatedBookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
@@ -386,6 +391,7 @@ export class OutputBookingsService_2024_08_13 {
       createdAt: databaseBooking.createdAt,
       updatedAt: databaseBooking.updatedAt,
       rating: databaseBooking.rating,
+      icsUid: databaseBooking.iCalUID,
     };
 
     const parsed = plainToClass(GetRecurringSeatedBookingOutput_2024_08_13, booking, {

@@ -61,6 +61,14 @@ export class GetBookingsInput_2024_08_13 {
     description: "Filter bookings by the attendee's email address.",
     example: "example@domain.com",
   })
+  @Transform(({ value }) => {
+    if (typeof value === "string") {
+      // note(Lauris): we replace inner white spaces with "+" because managed user emails have "+" in them but if they are not URL encoded
+      // when making request "+" becomes empty space " ".
+      return value.trim().replace(/\s+/g, "+");
+    }
+    return value;
+  })
   attendeeEmail?: string;
 
   @IsString()
@@ -151,6 +159,26 @@ export class GetBookingsInput_2024_08_13 {
     example: "?beforeEnd=2025-03-07T11:00:00.000Z",
   })
   beforeEnd?: string;
+
+  @IsOptional()
+  @IsISO8601({ strict: true }, { message: "fromDate must be a valid ISO 8601 date." })
+  @ApiProperty({
+    type: String,
+    required: false,
+    description: "Filter bookings that have been created after this date string.",
+    example: "?afterCreatedAt=2025-03-07T10:00:00.000Z",
+  })
+  afterCreatedAt?: string;
+
+  @IsOptional()
+  @IsISO8601({ strict: true }, { message: "toDate must be a valid ISO 8601 date." })
+  @ApiProperty({
+    type: String,
+    required: false,
+    description: "Filter bookings that have been created before this date string.",
+    example: "?beforeCreatedAt=2025-03-14T11:00:00.000Z",
+  })
+  beforeCreatedAt?: string;
 
   @IsOptional()
   @IsISO8601({ strict: true }, { message: "fromDate must be a valid ISO 8601 date." })

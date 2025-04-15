@@ -1,40 +1,46 @@
+import { useState } from "react";
+
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { Button, Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import {
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@calcom/ui/components/dropdown";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { useInsightsParameters } from "../../hooks/useInsightsParameters";
 
 const Download = () => {
   const { t } = useLocale();
-  const { startDate, endDate, teamId, userId, eventTypeId, memberUserId } = useInsightsParameters();
+  const { startDate, endDate, teamId, userId, eventTypeId, memberUserId, isAll } = useInsightsParameters();
+  const [isDownloading, setIsDownloading] = useState(false);
+  const utils = trpc.useUtils();
 
-  const { data, isPending } = trpc.viewer.insights.rawData.useQuery(
-    {
-      startDate,
-      endDate,
-      teamId,
-      userId,
-      eventTypeId,
-      memberUserId,
-    },
-    {
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      retry: false,
-      staleTime: Infinity,
-      trpc: {
-        context: { skipBatch: true },
-      },
+  const handleDownloadClick = async () => {
+    try {
+      setIsDownloading(true);
+      const data = await utils.viewer.insights.rawData.fetch({
+        startDate,
+        endDate,
+        teamId,
+        userId,
+        eventTypeId,
+        memberUserId,
+        isAll,
+      });
+
+      if (!data) return;
+      const { data: csvRaw, filename } = data;
+      downloadAsCsv(csvRaw, filename);
+    } catch (error) {
+      showToast(t("unexpected_error_try_again"), "error");
+    } finally {
+      setIsDownloading(false);
     }
-  );
-
-  type RawData = RouterOutputs["viewer"]["insights"]["rawData"] | undefined;
-  const handleDownloadClick = async (data: RawData) => {
-    if (!data) return;
-    const { data: csvRaw, filename } = data;
-    downloadAsCsv(csvRaw, filename);
   };
 
   return (
@@ -43,13 +49,13 @@ const Download = () => {
         <Button
           EndIcon="file-down"
           color="secondary"
-          {...(isPending && { loading: isPending })}
+          loading={isDownloading}
           className="h-full self-end sm:self-baseline">
           {t("download")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownItem onClick={() => handleDownloadClick(data)}>{t("as_csv")}</DropdownItem>
+        <DropdownItem onClick={handleDownloadClick}>{t("as_csv")}</DropdownItem>
       </DropdownMenuContent>
     </Dropdown>
   );

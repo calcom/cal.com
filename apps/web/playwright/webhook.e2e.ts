@@ -191,7 +191,7 @@ test.describe("BOOKING_REJECTED", async () => {
         endTime: "[redacted/dynamic]",
         organizer: {
           id: "[redacted/dynamic]",
-          name: "Unnamed",
+          name: "Nameless",
           email: "[redacted/dynamic]",
           timeZone: "[redacted/dynamic]",
           language: "[redacted/dynamic]",
@@ -384,7 +384,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
     });
   });
 
-  test("when rescheduling to a booking that already exists, should send a booking rescheduled event with the existant booking uid", async ({
+  test("when rescheduling to a booking that already exists, should send a booking rescheduled event with the existent booking uid", async ({
     page,
     users,
     bookings,

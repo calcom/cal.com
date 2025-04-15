@@ -4,7 +4,10 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Badge, SkeletonButton, SkeletonContainer, SkeletonText, Alert, SettingsToggle } from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { Alert } from "@calcom/ui/components/alert";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 
 import DisableTwoFactorModal from "@components/settings/DisableTwoFactorModal";
 import EnableTwoFactorModal from "@components/settings/EnableTwoFactorModal";
@@ -26,7 +29,7 @@ const TwoFactorAuthView = () => {
   const utils = trpc.useUtils();
 
   const { t } = useLocale();
-  const { data: user, isPending } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
+  const { data: user, isPending } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
 
   const [enableModalOpen, setEnableModalOpen] = useState<boolean>(false);
   const [disableModalOpen, setDisableModalOpen] = useState<boolean>(false);

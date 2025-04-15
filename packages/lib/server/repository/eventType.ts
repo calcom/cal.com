@@ -503,6 +503,8 @@ export class EventTypeRepository {
       hideCalendarNotes: true,
       hideCalendarEventDetails: true,
       disableGuests: true,
+      disableCancelling: true,
+      disableRescheduling: true,
       minimumBookingNotice: true,
       beforeEventBuffer: true,
       afterEventBuffer: true,
@@ -741,6 +743,7 @@ export class EventTypeRepository {
         team: {
           select: {
             parentId: true,
+            rrResetInterval: true,
           },
         },
       },
@@ -813,6 +816,7 @@ export class EventTypeRepository {
             bookingLimits: true,
             includeManagedEventsInLimits: true,
             parentId: true,
+            rrResetInterval: true,
           },
         },
         parent: {

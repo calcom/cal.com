@@ -1,16 +1,22 @@
+import { OAuthCallbackState } from "@/modules/conferencing/controllers/conferencing.controller";
 import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
+import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
+import { Office365VideoService } from "@/modules/conferencing/services/office365-video.service";
+import { ZoomVideoService } from "@/modules/conferencing/services/zoom-video.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, InternalServerErrorException, Logger } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
-import { CONFERENCING_APPS, CAL_VIDEO } from "@calcom/platform-constants";
 import {
-  userMetadata,
-  handleDeleteCredential,
-  getApps,
-  getUsersCredentials,
-} from "@calcom/platform-libraries";
+  CONFERENCING_APPS,
+  CAL_VIDEO,
+  GOOGLE_MEET,
+  ZOOM,
+  OFFICE_365_VIDEO,
+} from "@calcom/platform-constants";
+import { userMetadata, getUsersCredentials } from "@calcom/platform-libraries";
+import { getApps, handleDeleteCredential } from "@calcom/platform-libraries/app-store";
 
 @Injectable()
 export class ConferencingService {
@@ -18,11 +24,51 @@ export class ConferencingService {
 
   constructor(
     private readonly conferencingRepository: ConferencingRepository,
-    private readonly usersRepository: UsersRepository
+    private readonly usersRepository: UsersRepository,
+    private readonly googleMeetService: GoogleMeetService,
+    private readonly zoomVideoService: ZoomVideoService,
+    private readonly office365VideoService: Office365VideoService
   ) {}
 
   async getConferencingApps(userId: number) {
     return this.conferencingRepository.findConferencingApps(userId);
+  }
+
+  async connectUserNonOauthApp(app: string, userId: number) {
+    switch (app) {
+      case GOOGLE_MEET:
+        const credential = await this.googleMeetService.connectGoogleMeetToUser(userId);
+        return credential;
+      default:
+        throw new BadRequestException("Invalid conferencing app. Available apps: GOOGLE_MEET.");
+    }
+  }
+
+  async connectOauthApps(
+    app: string,
+    code: string,
+    userId: number,
+    decodedCallbackState: OAuthCallbackState,
+    teamId?: number
+  ) {
+    switch (app) {
+      case ZOOM:
+        return await this.zoomVideoService.connectZoomApp(decodedCallbackState, code, userId, teamId);
+
+      case OFFICE_365_VIDEO:
+        return await this.office365VideoService.connectOffice365App(
+          decodedCallbackState,
+          code,
+          userId,
+          teamId
+        );
+
+      default:
+        throw new BadRequestException(
+          "Invalid conferencing app, available apps are: ",
+          [ZOOM, OFFICE_365_VIDEO].join(", ")
+        );
+    }
   }
 
   async getUserDefaultConferencingApp(userId: number) {
@@ -66,5 +112,21 @@ export class ConferencingService {
       throw new InternalServerErrorException(`Could not set ${app} as default conferencing app`);
     }
     return true;
+  }
+
+  async generateOAuthUrl(app: string, state: OAuthCallbackState) {
+    switch (app) {
+      case ZOOM:
+        return await this.zoomVideoService.generateZoomAuthUrl(JSON.stringify(state));
+
+      case OFFICE_365_VIDEO:
+        return await this.office365VideoService.generateOffice365AuthUrl(JSON.stringify(state));
+
+      default:
+        throw new BadRequestException(
+          "Invalid conferencing app, available apps are: ",
+          [ZOOM, OFFICE_365_VIDEO].join(", ")
+        );
+    }
   }
 }

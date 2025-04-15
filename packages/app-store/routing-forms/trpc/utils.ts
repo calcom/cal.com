@@ -12,18 +12,6 @@ import type { Ensure } from "@calcom/types/utils";
 import type { SerializableField, OrderedResponses } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
 
-let tasker: Tasker;
-
-if (typeof window === "undefined") {
-  import("@calcom/features/tasker")
-    .then((module) => {
-      tasker = module.default;
-    })
-    .catch((error) => {
-      console.error("Failed to load tasker:", error);
-    });
-}
-
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/trpc/utils"] });
 
 type SelectFieldWebhookResponse = string | number | string[] | { label: string; id: string | null };
@@ -170,6 +158,18 @@ export async function onFormSubmission(
       console.error(`Error executing routing form webhook`, webhook, e);
     });
   });
+
+  let tasker: Tasker;
+
+  if (typeof window === "undefined") {
+    import("@calcom/features/tasker")
+      .then((module) => {
+        tasker = module.default;
+      })
+      .catch((error) => {
+        console.error("Failed to load tasker:", error);
+      });
+  }
 
   const promisesFormSubmittedNoEvent = webhooksFormSubmittedNoEvent.map((webhook) => {
     const scheduledAt = dayjs().add(15, "minute").toDate();

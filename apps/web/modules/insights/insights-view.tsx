@@ -11,13 +11,14 @@ import {
   AverageEventDurationChart,
   BookingKPICards,
   BookingStatusLineChart,
-  LeastBookedTeamMembersTable,
-  MostBookedTeamMembersTable,
-  PopularEventsTable,
   HighestNoShowHostTable,
-  RecentFeedbackTable,
   HighestRatedMembersTable,
+  LeastBookedTeamMembersTable,
   LowestRatedMembersTable,
+  MostBookedTeamMembersTable,
+  MostCancelledBookingsTables,
+  PopularEventsTable,
+  RecentFeedbackTable,
 } from "@calcom/features/insights/components";
 import "@calcom/features/insights/components/tremor.css";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
@@ -54,8 +55,9 @@ function InsightsPageContent() {
         className="flex flex-wrap items-center gap-2"
         data-testid={`insights-filters-${isAll}-${teamId}-${userId}`}>
         <OrgTeamsFilter />
-        <DataTableFilters.AddFilterButton table={table} />
+        <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
         <DataTableFilters.ActiveFilters table={table} />
+        <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
         <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
         <div className="grow" />
         <Download />
@@ -74,6 +76,9 @@ function InsightsPageContent() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <MostBookedTeamMembersTable />
           <LeastBookedTeamMembersTable />
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <MostCancelledBookingsTables />
         </div>
         <RecentFeedbackTable />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

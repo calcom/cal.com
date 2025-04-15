@@ -1,5 +1,9 @@
-import type { IconName } from "@calcom/ui";
-import { Badge, Icon } from "@calcom/ui";
+import { useRef, useState } from "react";
+
+import { Badge } from "@calcom/ui/components/badge";
+import type { IconName } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 type DisplayInfoType = {
   label: string;
@@ -23,6 +27,19 @@ export function DisplayInfo({
   valueClassname = valueDefaultClassname,
 }: DisplayInfoType) {
   const displayAsBadges = Array.isArray(value);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [showLeftGradient, setShowLeftGradient] = useState(false);
+  const [showRightGradient, setShowRightGradient] = useState(true);
+
+  const handleScroll = () => {
+    const element = scrollContainerRef.current;
+    if (!element) return;
+
+    setShowLeftGradient(element.scrollLeft > 0);
+
+    const isAtEnd = Math.abs(element.scrollWidth - element.clientWidth - element.scrollLeft) < 1;
+    setShowRightGradient(!isAtEnd);
+  };
 
   return (
     <div className="flex items-center gap-6">
@@ -39,12 +56,31 @@ export function DisplayInfo({
                   {v}
                 </Badge>
               ) : (
-                <Badge variant="gray">{v}</Badge>
+                <Badge variant="gray" key={v}>
+                  {v}
+                </Badge>
               );
             })}
           </div>
         ) : (
-          <span className={valueClassname}>{value}</span>
+          <div className="min-w-0 flex-1">
+            <div className="relative max-w-[280px]">
+              <Tooltip content={value}>
+                <div
+                  ref={scrollContainerRef}
+                  onScroll={handleScroll}
+                  className="no-scrollbar overflow-x-auto">
+                  <span className={`${valueClassname} whitespace-nowrap`}>{value}</span>
+                </div>
+              </Tooltip>
+              {showLeftGradient && (
+                <div className="from-default pointer-events-none absolute left-0 top-0 h-full w-8 bg-gradient-to-r to-transparent" />
+              )}
+              {showRightGradient && (
+                <div className="from-default pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l to-transparent" />
+              )}
+            </div>
+          </div>
         )}
       </div>
     </div>

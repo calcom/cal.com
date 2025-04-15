@@ -4,21 +4,18 @@ import { useState, useEffect, useCallback } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
+import { Button, buttonClasses } from "@calcom/ui/components/button";
 import {
-  DateRangePicker,
-  Button,
-  Icon,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
   Command,
   CommandList,
   CommandItem,
   CommandGroup,
   CommandSeparator,
-  buttonClasses,
-} from "@calcom/ui";
-import classNames from "@calcom/ui/classNames";
+} from "@calcom/ui/components/command";
+import { DateRangePicker } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 
 import { useDataTable, useFilterValue } from "../../hooks";
 import {
@@ -28,6 +25,7 @@ import {
   PRESET_OPTIONS,
   getDefaultStartDate,
   getDefaultEndDate,
+  getDateRangeFromPreset,
   type PresetOption,
 } from "../../lib/dateRange";
 import type { FilterableColumn, DateRangeFilterOptions } from "../../lib/types";
@@ -37,44 +35,6 @@ type DateRangeFilterProps = {
   column: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }>;
   options?: DateRangeFilterOptions;
   showClearButton?: boolean;
-};
-
-const getDateRangeFromPreset = (val: string | null) => {
-  let startDate;
-  let endDate;
-  const preset = PRESET_OPTIONS.find((o) => o.value === val);
-  if (!preset) {
-    return { startDate: getDefaultStartDate(), endDate: getDefaultEndDate(), preset: CUSTOM_PRESET };
-  }
-
-  switch (val) {
-    case "tdy": // Today
-      startDate = dayjs().startOf("day");
-      endDate = dayjs().endOf("day");
-      break;
-    case "w": // Last 7 days
-      startDate = dayjs().subtract(1, "week").startOf("day");
-      endDate = dayjs().endOf("day");
-      break;
-    case "t": // Last 30 days
-      startDate = dayjs().subtract(30, "day").startOf("day");
-      endDate = dayjs().endOf("day");
-      break;
-    case "m": // Month to Date
-      startDate = dayjs().startOf("month");
-      endDate = dayjs().endOf("day");
-      break;
-    case "y": // Year to Date
-      startDate = dayjs().startOf("year");
-      endDate = dayjs().endOf("day");
-      break;
-    default:
-      startDate = getDefaultStartDate();
-      endDate = getDefaultEndDate();
-      break;
-  }
-
-  return { startDate, endDate, preset };
 };
 
 export const DateRangeFilter = ({ column, options, showClearButton = false }: DateRangeFilterProps) => {
@@ -140,11 +100,11 @@ export const DateRangeFilter = ({ column, options, showClearButton = false }: Da
         endDate,
       });
     } else {
-      const r = getDateRangeFromPreset(val);
+      const { preset, startDate, endDate } = getDateRangeFromPreset(val);
       updateValues({
-        preset: r.preset,
-        startDate: r.startDate,
-        endDate: r.endDate,
+        preset,
+        startDate,
+        endDate,
       });
     }
   };
