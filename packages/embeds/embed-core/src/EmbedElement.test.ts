@@ -142,7 +142,6 @@ describe("EmbedElement", () => {
     if (!element) {
       throw new Error("`element` not defined");
     }
-    cancelAnimationFrame(element.skeletonContainerHeightTimer!);
     document.body.removeChild(element);
     vi.restoreAllMocks();
   });

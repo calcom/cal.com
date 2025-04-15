@@ -47,4 +47,15 @@ describe("generateDataAttributes", () => {
 
     expect(generateDataAttributes(props)).toBe("");
   });
+
+  it("should escape special characters in attribute values", () => {
+    const props = {
+      testKey: "<script>alert('XSS')</script>",
+      testKey2: '<script>alert("XSS")</script>',
+    };
+
+    expect(generateDataAttributes(props)).toBe(
+      'data-test-key="&lt;script&gt;alert(&#39;XSS&#39;)&lt;/script&gt;" data-test-key2="&lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;"'
+    );
+  });
 });

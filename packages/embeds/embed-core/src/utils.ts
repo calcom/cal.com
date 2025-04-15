@@ -78,9 +78,23 @@ function hyphenate(str: string): string {
   return str.charAt(0).toLowerCase() + str.slice(1).replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
 }
 
+/**
+ * Escapes special characters in HTML attribute values to prevent XSS
+ * @param value The string to escape
+ * @returns Escaped string safe for use in HTML attributes
+ */
+function escapeHtmlAttribute(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 export function generateDataAttributes(props: Record<string, string | null | undefined>): string {
   return Object.entries(props)
-    .filter(([_, value]) => value)
-    .map(([key, value]) => `data-${hyphenate(key)}="${value}"`)
+    .filter((pair): pair is [string, string] => !!pair[1])
+    .map(([key, value]) => `data-${hyphenate(key)}="${escapeHtmlAttribute(value)}"`)
     .join(" ");
 }

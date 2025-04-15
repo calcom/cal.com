@@ -209,6 +209,9 @@ export class EmbedElement extends HTMLElement {
   }
 
   disconnectedCallback() {
+    if (this.skeletonContainerHeightTimer) {
+      cancelAnimationFrame(this.skeletonContainerHeightTimer);
+    }
     window.removeEventListener("resize", this.boundResizeHandler);
     removeDarkColorSchemeChangeListener(this.boundPrefersDarkThemeChangedHandler);
   }

@@ -47,7 +47,8 @@ const generateDatePickerSkeleton = () => {
     )
     .join("");
 
-  const dates = Array.from({ length: 35 })
+  const datesToRender = 7 * 5; // columns * rows in a month view
+  const dates = Array.from({ length: datesToRender })
     .map(
       () => `
   <div class="relative w-full pt-[100%]">
