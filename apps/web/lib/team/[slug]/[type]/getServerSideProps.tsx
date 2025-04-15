@@ -10,9 +10,11 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/client";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
+import isBeyondThresholdTime from "@lib/isBeyondThresholdTime";
 
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
@@ -48,10 +50,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const eventData = team.eventTypes[0];
 
-  if (rescheduleUid && eventData.disableRescheduling) {
-    return { redirect: { destination: `/booking/${rescheduleUid}`, permanent: false } };
-  }
-
   const eventTypeId = eventData.id;
   const eventHostsUserData = await getUsersData(
     team.isPrivate,
@@ -63,6 +61,20 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const booking = rescheduleUid ? await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id) : null;
 
+  const isDisabledRescheduling = eventData.disableRescheduling;
+  const metaData = eventData.metadata as EventTypeMetadata;
+
+  const threshold = metaData?.disableReschedulingThreshold;
+
+  let isBeyond = false;
+
+  if (isDisabledRescheduling && threshold) {
+    isBeyond = isBeyondThresholdTime(booking?.startTime, threshold.time, threshold.unit);
+  }
+
+  if (rescheduleUid && isDisabledRescheduling && (!threshold || !isBeyond)) {
+    return { redirect: { destination: `/booking/${rescheduleUid}`, permanent: false } };
+  }
   const fromRedirectOfNonOrgLink = context.query.orgRedirection === "true";
   const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
 

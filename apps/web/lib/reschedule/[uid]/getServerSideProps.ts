@@ -11,6 +11,9 @@ import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUi
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+
+import isBeyondThresholdTime from "@lib/isBeyondThresholdTime";
 
 const querySchema = z.object({
   uid: z.string(),
@@ -59,6 +62,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           slug: true,
           allowReschedulingPastBookings: true,
           disableRescheduling: true,
+          metadata: true,
           team: {
             select: {
               parentId: true,
@@ -99,9 +103,20 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   // If booking is already CANCELLED or REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.
   // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
+
   const isDisabledRescheduling = booking.eventType?.disableRescheduling;
+  const metaData = booking.eventType?.metadata as EventTypeMetadata;
+
+  const threshold = metaData?.disableReschedulingThreshold;
+
+  let isBeyond = false;
+
+  if (isDisabledRescheduling && threshold) {
+    isBeyond = isBeyondThresholdTime(booking.startTime, threshold.time, threshold.unit);
+  }
+
   if (
-    isDisabledRescheduling ||
+    (isDisabledRescheduling && (!threshold || !isBeyond)) ||
     (!allowRescheduleForCancelledBooking &&
       (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED))
   ) {

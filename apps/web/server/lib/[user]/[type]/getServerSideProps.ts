@@ -13,8 +13,10 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
+import isBeyondThresholdTime from "@lib/isBeyondThresholdTime";
 
 type Props = {
   eventData: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
@@ -42,7 +44,18 @@ async function processReschedule({
 
   const booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
 
-  if (booking?.eventType?.disableRescheduling) {
+  const isDisabledRescheduling = booking?.eventType?.disableRescheduling;
+  const metaData = booking?.eventType?.metadata as EventTypeMetadata;
+
+  const threshold = metaData?.disableReschedulingThreshold;
+
+  let isBeyond = false;
+
+  if (isDisabledRescheduling && threshold) {
+    isBeyond = isBeyondThresholdTime(booking?.startTime, threshold.time, threshold.unit);
+  }
+
+  if (isDisabledRescheduling && (!threshold || !isBeyond)) {
     return {
       redirect: {
         destination: `/booking/${rescheduleUid}`,
@@ -57,6 +70,7 @@ async function processReschedule({
     props.rescheduleUid = Array.isArray(rescheduleUid) ? rescheduleUid[0] : rescheduleUid;
     return;
   }
+
   // handle redirect response
   const redirectEventTypeTarget = await prisma.eventType.findUnique({
     where: {

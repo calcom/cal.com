@@ -63,6 +63,8 @@ import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
 
+import isBeyondThresholdTime from "@lib/isBeyondThresholdTime";
+
 import type { PageProps } from "./bookings-single-view.getServerSideProps";
 
 const stringToBoolean = z
@@ -370,11 +372,32 @@ export default function Success(props: PageProps) {
   const isRerouting = searchParams?.get("cal.rerouting") === "true";
   const isRescheduled = bookingInfo?.rescheduled;
 
-  const canCancelOrReschedule = !eventType?.disableCancelling || !eventType?.disableRescheduling;
-  const canCancelAndReschedule = !eventType?.disableCancelling && !eventType?.disableRescheduling;
+  function isDisabledCancelOrReschedule(
+    isDisabled: boolean | null,
+    threshold: { time: number; unit: "hours" | "minutes" } | undefined,
+    startTime: Date
+  ): boolean {
+    if (!isDisabled) return true;
 
-  const canCancel = !eventType?.disableCancelling;
-  const canReschedule = !eventType?.disableRescheduling;
+    if (!threshold) return false;
+
+    return isBeyondThresholdTime(startTime, threshold.time, threshold.unit);
+  }
+
+  const canCancel = isDisabledCancelOrReschedule(
+    eventType?.disableCancelling,
+    eventType?.metadata?.disableCancellingThreshold,
+    bookingInfo.startTime
+  );
+
+  const canReschedule = isDisabledCancelOrReschedule(
+    eventType?.disableRescheduling,
+    eventType?.metadata?.disableReschedulingThreshold,
+    bookingInfo.startTime
+  );
+
+  const canCancelOrReschedule = !isPastBooking && (canCancel || canReschedule);
+  const canCancelAndReschedule = !isPastBooking && canCancel && canReschedule;
 
   const successPageHeadline = (() => {
     if (needsConfirmationAndReschedulable) {
