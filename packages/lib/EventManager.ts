@@ -4,12 +4,14 @@ import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
 import type { z } from "zod";
 
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
-import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
-import { getLocationFromApp, MeetLocationType } from "@calcom/app-store/locations";
-import getApps from "@calcom/app-store/utils";
+import { getCalendar } from "@calcom/features/calendars/lib/calendarHandlers";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getApps } from "@calcom/features/integrations/lib/appHandlers";
+import {
+  FAKE_DAILY_CREDENTIAL,
+  appKeysSchema as calVideoKeysSchema,
+} from "@calcom/features/integrations/video/lib/videoHandlers";
+import { getLocationFromApp, MeetLocationType } from "@calcom/features/locations/lib/locationHandlers";
 import { getUid } from "@calcom/lib/CalEventParser";
 import CRMScheduler from "@calcom/lib/crmManager/tasker/crmScheduler";
 import logger from "@calcom/lib/logger";

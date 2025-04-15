@@ -1,1 +1,1 @@
-export * from "@calcom/app-store/locations";
+export * from "@calcom/features/locations/lib/locationHandlers";

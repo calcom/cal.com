@@ -1,7 +1,7 @@
 import type { AppCategories, Prisma } from "@prisma/client";
 
-import appStore from "@calcom/app-store";
-import type { EventTypeAppsList } from "@calcom/app-store/utils";
+import { appStore } from "@calcom/features/ee/payments/lib/paymentHandlers";
+import type { EventTypeAppsList } from "@calcom/features/integrations/lib/appHandlers";
 import type { CompleteEventType } from "@calcom/prisma/zod";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";

@@ -1,10 +1,10 @@
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import appStore from "@calcom/app-store";
-import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
-import { DailyLocationType } from "@calcom/app-store/locations";
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
+import { appStore } from "@calcom/features/ee/payments/lib/paymentHandlers";
+import { getDailyAppKeys } from "@calcom/features/integrations/video/lib/videoHandlers";
+import { DailyLocationType } from "@calcom/features/locations/lib/locationHandlers";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
