@@ -124,6 +124,11 @@ function UsersTableBare() {
       showToast("Workflows verified", "success");
     },
   });
+  const whitelistUserWorkflows = trpc.viewer.admin.whitelistUserWorkflows.useMutation({
+    onSuccess: () => {
+      showToast("User workflows whitelisted", "success");
+    },
+  });
 
   const handleImpersonateUser = async (username: string | null) => {
     await signIn("impersonation-auth", { username: username, callbackUrl: `${WEBAPP_URL}/event-types` });
@@ -246,6 +251,19 @@ function UsersTableBare() {
                           id: "verify-workflows",
                           label: "Verify workflows",
                           onClick: () => verifyWorkflows.mutate({ userId: user.id }),
+                          icon: "check",
+                        },
+                        {
+                          id: "whitelist-user-workflows",
+                          label: user.whitelistWorkflows
+                            ? "Remove whitelist status"
+                            : "Whitelist user workflows",
+                          onClick: () => {
+                            whitelistUserWorkflows.mutate({
+                              userId: user.id,
+                              whitelist: !user.whitelistWorkflows,
+                            });
+                          },
                           icon: "check",
                         },
                         {
