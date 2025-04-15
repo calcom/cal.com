@@ -3730,7 +3730,6 @@ __metadata:
     "@jsforce/jsforce-node": ^3.6.3
     "@parcel/watcher": ^2.5.1
     "@urql/core": ^5.1.1
-    dotenv: ^16.4.7
     graphql-config: ^5.1.3
     graphql-introspection-json-to-sdl: ^1.0.3
   languageName: unknown
@@ -4064,6 +4063,7 @@ __metadata:
     "@googleapis/admin": ^23.0.0
     "@googleapis/calendar": ^9.7.9
     "@googleapis/oauth2": ^1.0.7
+    "@graphql-codegen/client-preset-swc-plugin": ^0.2.0
     "@hookform/error-message": ^2.0.0
     "@hookform/resolvers": ^2.9.7
     "@lingo.dev/_sdk": ^0.7.27
@@ -6125,6 +6125,13 @@ __metadata:
     graphql-codegen: cjs/bin.js
     graphql-codegen-esm: esm/bin.js
   checksum: f3ff651b52878da37ff131605600391ff09ff5614b2c17dace14d4c36c16de0e9331b3acbae3631ff97f038483a224f3ba9f4c1631e27d02e9dc01f26960926b
+  languageName: node
+  linkType: hard
+
+"@graphql-codegen/client-preset-swc-plugin@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "@graphql-codegen/client-preset-swc-plugin@npm:0.2.0"
+  checksum: c9bde1651f66bdea8fe747a53f8b388ad99aff81e628d0cbc7a9d53a883d05a389ef63010456002928ea734814e9dafa4179ead0c6532ead8557b3cc25e49368
   languageName: node
   linkType: hard
 
@@ -25017,13 +25024,6 @@ __metadata:
   version: 16.0.1
   resolution: "dotenv@npm:16.0.1"
   checksum: f459ffce07b977b7f15d8cc4ee69cdff77d4dd8c5dc8c85d2d485ee84655352c2415f9dd09d42b5b5985ced3be186130871b34e2f3e2569ebc72fbc2e8096792
-  languageName: node
-  linkType: hard
-
-"dotenv@npm:^16.4.7":
-  version: 16.4.7
-  resolution: "dotenv@npm:16.4.7"
-  checksum: c27419b5875a44addcc56cc69b7dc5b0e6587826ca85d5b355da9303c6fc317fc9989f1f18366a16378c9fdd9532d14117a1abe6029cc719cdbbef6eaef2cea4
   languageName: node
   linkType: hard
 
