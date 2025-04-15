@@ -6776,7 +6776,7 @@
     "/v2/bookings/{bookingUid}/reassign": {
       "post": {
         "operationId": "BookingsController_2024_08_13_reassignBooking",
-        "summary": "Reassign booking to auto-selected host",
+        "summary": "Reassign a booking to auto-selected host",
         "description": "The provided authorization header refers to the owner of the booking.",
         "parameters": [
           {
@@ -8520,6 +8520,141 @@
         "tags": ["OAuth Clients"]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/stripe/connect": {
+      "get": {
+        "operationId": "OrganizationsStripeController_getTeamStripeConnectUrl",
+        "summary": "Get stripe connect URL for a team",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "returnTo",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "onErrorReturnTo",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripConnectOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Organizations/Teams Stripe"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/stripe/check": {
+      "get": {
+        "operationId": "OrganizationsStripeController_checkTeamStripeConnection",
+        "summary": "Check team stripe connection",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsCheckOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Organizations/Teams Stripe"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/stripe/save": {
+      "get": {
+        "operationId": "OrganizationsStripeController_save",
+        "summary": "Save stripe credentials",
+        "parameters": [
+          {
+            "name": "state",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsSaveOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Organizations/Teams Stripe"]
+      }
+    },
     "/v2/schedules": {
       "post": {
         "operationId": "SchedulesController_2024_06_11_createSchedule",
@@ -9345,44 +9480,6 @@
         "operationId": "StripeController_check",
         "summary": "Check stripe connection",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StripCredentialsCheckOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Stripe"]
-      }
-    },
-    "/v2/stripe/check/{teamId}": {
-      "get": {
-        "operationId": "StripeController_checkTeamStripeConnection",
-        "summary": "Check team stripe connection",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "Authorization",
             "in": "header",
@@ -17130,7 +17227,7 @@
         "type": "object",
         "properties": {
           "status": {
-            "type": "string",
+            "type": "object",
             "example": "success"
           }
         },

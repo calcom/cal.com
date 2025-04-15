@@ -1,9 +1,11 @@
+import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { PlatformSubscriptionService } from "@/modules/organizations/platform-subscription/services/platform-subscription.service";
 import { StripeService } from "@/modules/stripe/stripe.service";
-import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, Logger } from "@nestjs/common";
+import { stripeInstance } from "@/modules/stripe/utils/newStripeInstance";
+import { StripeData } from "@/modules/stripe/utils/stripeDataSchemas";
+import { Logger, UnauthorizedException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
+import type { Prisma } from "@prisma/client";
 
 import { ApiResponseWithoutData } from "@calcom/platform-types";
 
@@ -22,9 +24,8 @@ export class OrganizationsStripeService {
 
   constructor(
     private readonly stripeService: StripeService,
-    private readonly usersRepository: UsersRepository,
     private readonly credentialRepository: CredentialsRepository,
-    private readonly platformSubscriptionService: PlatformSubscriptionService
+    private readonly appsRepository: AppsRepository
   ) {}
 
   async getStripeTeamRedirectUrl({
@@ -39,39 +40,45 @@ export class OrganizationsStripeService {
     return await this.stripeService.getStripeRedirectUrl(state, userEmail, userName);
   }
 
-  async saveStripeAccount({
-    state,
-    code,
-    userId,
-  }: {
-    state: OAuthCallbackState;
-    code: string;
-    userId: number;
-  }): Promise<{ url: string }> {
-    const { orgId, teamId } = state;
-
-    const user = await this.usersRepository.findByIdWithProfile(userId);
-
-    if (!orgId) {
-      throw new BadRequestException("orgId required");
+  async saveStripeAccount(
+    state: OAuthCallbackState,
+    code: string,
+    userId: number,
+    teamId: number
+  ): Promise<{ url: string }> {
+    if (!userId) {
+      throw new UnauthorizedException("Invalid Access token.");
     }
 
-    if (!user) {
-      throw new BadRequestException("user not found");
-    }
-
-    const isTeamLevel = !!teamId;
-    const requiredRole = isTeamLevel ? "TEAM_ADMIN" : "ORG_ADMIN";
-
-    const { teamId: validatedTeamId } = await this.platformSubscriptionService.verifyAccess({
-      user,
-      orgId,
-      teamId,
-      requiredRole,
-      minimumPlan: "ESSENTIALS",
+    const response = await stripeInstance.oauth.token({
+      grant_type: "authorization_code",
+      code: code?.toString(),
     });
 
-    return await this.stripeService.saveStripeAccount(state, code, userId, validatedTeamId);
+    const data: StripeData = { ...response, default_currency: "" };
+    if (response["stripe_user_id"]) {
+      const account = await stripeInstance.accounts.retrieve(response["stripe_user_id"]);
+      data["default_currency"] = account.default_currency;
+    }
+
+    const existingCredentials = await this.credentialRepository.findAllCredentialsByTypeAndTeamId(
+      "stripe_payment",
+      teamId
+    );
+
+    const credentialIdsToDelete = existingCredentials.map((item) => item.id);
+    if (credentialIdsToDelete.length > 0) {
+      await this.appsRepository.deleteTeamAppCredentials(credentialIdsToDelete, teamId);
+    }
+
+    await this.appsRepository.createTeamAppCredential(
+      "stripe_payment",
+      data as unknown as Prisma.InputJsonObject,
+      teamId,
+      "stripe"
+    );
+
+    return { url: state.returnTo ?? "" };
   }
 
   async checkIfTeamStripeAccountConnected(teamId: number): Promise<ApiResponseWithoutData> {

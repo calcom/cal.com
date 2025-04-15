@@ -1,5 +1,6 @@
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
+import { AppsRepository } from "@/modules/apps/apps.repository";
 import { AuthModule } from "@/modules/auth/auth.module";
 import { ConferencingModule } from "@/modules/conferencing/conferencing.module";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
@@ -55,6 +56,7 @@ import { OrganizationsWebhooksRepository } from "@/modules/organizations/webhook
 import { OrganizationsWebhooksService } from "@/modules/organizations/webhooks/services/organizations-webhooks.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
+import { RedisService } from "@/modules/redis/redis.service";
 import { StripeModule } from "@/modules/stripe/stripe.module";
 import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";
 import { TeamsModule } from "@/modules/teams/teams/teams.module";
@@ -118,6 +120,8 @@ import { forwardRef, Module } from "@nestjs/common";
     OrganizationsStripeService,
     CredentialsRepository,
     PlatformSubscriptionService,
+    AppsRepository,
+    RedisService,
   ],
   exports: [
     OrganizationsService,

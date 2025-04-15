@@ -2,10 +2,7 @@ import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import {
-  OAuthCallbackState,
-  OrganizationsStripeService,
-} from "@/modules/organizations/stripe/services/organizations-stripe.service";
+import { OAuthCallbackState } from "@/modules/organizations/stripe/services/organizations-stripe.service";
 import {
   StripConnectOutputDto,
   StripConnectOutputResponseDto,
@@ -16,6 +13,7 @@ import { StripeService } from "@/modules/stripe/stripe.service";
 import { getOnErrorReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturnToValueFromQueryState";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
+import { HttpService } from "@nestjs/axios";
 import {
   Controller,
   Query,
@@ -27,8 +25,8 @@ import {
   Req,
   BadRequestException,
   Headers,
-  Param,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { ApiTags as DocsTags, ApiOperation, ApiHeader } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 import { Request } from "express";
@@ -44,8 +42,9 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 export class StripeController {
   constructor(
     private readonly stripeService: StripeService,
-    private readonly organizationsStripeService: OrganizationsStripeService,
-    private readonly tokensRepository: TokensRepository
+    private readonly tokensRepository: TokensRepository,
+    private readonly httpService: HttpService,
+    private readonly config: ConfigService
   ) {}
 
   @Get("/connect")
@@ -82,6 +81,10 @@ export class StripeController {
   @UseGuards()
   @Redirect(undefined, 301)
   @ApiOperation({ summary: "Save stripe credentials" })
+  /**
+   * Save stripe credentials. If orgId and teamId are present in the callback state,
+   * proxy the request to the new organization/team-level endpoint. Otherwise, save at user level.
+   */
   async save(
     @Query("state") state: string,
     @Query("code") code: string,
@@ -94,6 +97,21 @@ export class StripeController {
 
     const decodedCallbackState: OAuthCallbackState = JSON.parse(state);
     try {
+      // If teamId is present, proxy to team endpoint
+      if (decodedCallbackState.teamId) {
+        let url = "";
+        const apiUrl = this.config.get("api.url");
+        url = `${apiUrl}/organizations/${decodedCallbackState.orgId}/teams/${decodedCallbackState.teamId}/stripe/save`;
+
+        const params: Record<string, string | undefined> = { state, code, error, error_description };
+        const headers = {
+          Authorization: `Bearer ${decodedCallbackState.accessToken}`,
+        };
+        const response = await this.httpService.axiosRef.get(url, { params, headers });
+        return response.data;
+      }
+
+      // user-level fallback
       const userId = await this.tokensRepository.getAccessTokenOwnerId(decodedCallbackState.accessToken);
 
       // user cancels flow
@@ -109,17 +127,7 @@ export class StripeController {
         throw new BadRequestException("Invalid Access token.");
       }
 
-      if (decodedCallbackState.orgId) {
-        // If we have an orgId, this is an organization-level operation
-        return await this.organizationsStripeService.saveStripeAccount({
-          state: decodedCallbackState,
-          code,
-          userId,
-        });
-      } else {
-        // Otherwise, it's a regular user-level operation
-        return await this.stripeService.saveStripeAccount(decodedCallbackState, code, userId, null);
-      }
+      return await this.stripeService.saveStripeAccount(decodedCallbackState, code, userId);
     } catch (error) {
       if (error instanceof Error) {
         console.error(error.message);

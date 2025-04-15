@@ -2305,6 +2305,7 @@ __metadata:
     "@golevelup/ts-jest": ^0.4.0
     "@microsoft/microsoft-graph-types-beta": ^0.42.0-preview
     "@nest-lab/throttler-storage-redis": 1.0.0
+    "@nestjs/axios": ^4.0.0
     "@nestjs/bull": ^10.1.1
     "@nestjs/cli": ^10.0.0
     "@nestjs/common": ^10.0.0
@@ -7669,6 +7670,17 @@ __metadata:
     reflect-metadata:
       optional: false
   checksum: ed6913f789e73a94370547c6fc1336d582e56b635dda951f18be297508cf732849cf45190e19df081c3849aede7cc5fe3940bd43373eb33201e91363651e19c8
+  languageName: node
+  linkType: hard
+
+"@nestjs/axios@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "@nestjs/axios@npm:4.0.0"
+  peerDependencies:
+    "@nestjs/common": ^10.0.0 || ^11.0.0
+    axios: ^1.3.1
+    rxjs: ^7.0.0
+  checksum: ab05bc772a7ad45e3ea79ea3acd04e6971d17495387d543b3e17355d0f4164982c20ed830eab48e8c7373546259b50ff770708c176832716f4fd126142d18ca7
   languageName: node
   linkType: hard
 

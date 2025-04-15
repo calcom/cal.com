@@ -26,14 +26,6 @@ import { stripeKeysResponseSchema } from "./utils/stripeDataSchemas";
 
 import stringify = require("qs-stringify");
 
-type IntegrationOAuthCallbackState = {
-  accessToken: string;
-  returnTo: string;
-  onErrorReturnTo: string;
-  fromApp: boolean;
-  teamId?: number | null;
-};
-
 @Injectable()
 export class StripeService {
   private stripe: Stripe;
@@ -99,12 +91,7 @@ export class StripeService {
     return { client_id, client_secret };
   }
 
-  async saveStripeAccount(
-    state: OAuthCallbackState,
-    code: string,
-    userId: number,
-    teamId: number | null
-  ): Promise<{ url: string }> {
+  async saveStripeAccount(state: OAuthCallbackState, code: string, userId: number): Promise<{ url: string }> {
     if (!userId) {
       throw new UnauthorizedException("Invalid Access token.");
     }
@@ -120,30 +107,22 @@ export class StripeService {
       data["default_currency"] = account.default_currency;
     }
 
-    const existingCredentials = teamId
-      ? await this.credentialsRepository.findAllCredentialsByTypeAndTeamId("stripe_payment", teamId)
-      : await this.credentialsRepository.findAllCredentialsByTypeAndUserId("stripe_payment", userId);
+    const existingCredentials = await this.credentialsRepository.findAllCredentialsByTypeAndUserId(
+      "stripe_payment",
+      userId
+    );
 
     const credentialIdsToDelete = existingCredentials.map((item) => item.id);
     if (credentialIdsToDelete.length > 0) {
-      teamId
-        ? await this.appsRepository.deleteTeamAppCredentials(credentialIdsToDelete, teamId)
-        : await this.appsRepository.deleteAppCredentials(credentialIdsToDelete, userId);
+      await this.appsRepository.deleteAppCredentials(credentialIdsToDelete, userId);
     }
 
-    teamId
-      ? await this.appsRepository.createTeamAppCredential(
-          "stripe_payment",
-          data as unknown as Prisma.InputJsonObject,
-          teamId,
-          "stripe"
-        )
-      : await this.appsRepository.createAppCredential(
-          "stripe_payment",
-          data as unknown as Prisma.InputJsonObject,
-          userId,
-          "stripe"
-        );
+    await this.appsRepository.createAppCredential(
+      "stripe_payment",
+      data as unknown as Prisma.InputJsonObject,
+      userId,
+      "stripe"
+    );
 
     return { url: state.returnTo ?? "" };
   }
@@ -155,15 +134,6 @@ export class StripeService {
     );
 
     return await this.validateStripeCredentials(stripeCredentials);
-  }
-
-  async checkIfUserHasAdminAccessToTeam(teamId: number, userId: number) {
-    const teamMembership = await this.membershipRepository.findMembershipByTeamId(teamId, userId);
-    const hasAdminAccessToTeam = teamMembership?.role === "ADMIN" || teamMembership?.role === "OWNER";
-
-    if (!hasAdminAccessToTeam) {
-      throw new BadRequestException("You must be team owner or admin to do this");
-    }
   }
 
   async validateStripeCredentials(
