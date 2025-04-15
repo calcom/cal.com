@@ -3587,7 +3587,7 @@ __metadata:
     highlight.js: ^11.6.0
     isarray: 2.0.5
     next: ^13.5.6
-    openapi-snippet: ^0.13.0
+    openapi-snippet: ^0.14.0
     react: ^18.2.0
     react-dom: ^18.2.0
     swagger-ui-react: 4.11.1
@@ -36410,13 +36410,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openapi-snippet@npm:^0.13.0":
-  version: 0.13.0
-  resolution: "openapi-snippet@npm:0.13.0"
+"openapi-snippet@npm:^0.14.0":
+  version: 0.14.0
+  resolution: "openapi-snippet@npm:0.14.0"
   dependencies:
     httpsnippet: ^2.0.0
     openapi-sampler: ^1.0.0-beta.14
-  checksum: b5ba6ba799c95501cfa518fbee970c4fded4eadf6b56ca232f9b4e3e1e08eb8fda9df8e63914797281ea524dc648a377186966a5bdfc36fd7cff5acb899e5d5d
+  checksum: b5d42ad3f63add9aa937d68d10e336a3ef1223c7a0224e13bc0560dd2ec54b6be1800077286b469a603ee5292e9f41ec53b48157bb313fc5d254df0d0036893f
   languageName: node
   linkType: hard
 
