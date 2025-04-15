@@ -194,7 +194,7 @@ const nextConfig = {
     swcPlugins: [
       [
         "@graphql-codegen/client-preset-swc-plugin",
-        { artifactDirectory: "./src/gql/", gqlTagName: "graphql" },
+        { artifactDirectory: "@calcom/app-store/salesforce/src/gql", gqlTagName: "graphql" },
       ],
     ],
   },
