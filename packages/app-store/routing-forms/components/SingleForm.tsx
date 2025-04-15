@@ -14,7 +14,7 @@ import type { NewFormDialogState } from "./FormActions";
 import { FormActionsProvider } from "./FormActions";
 import { InfoLostWarningDialog } from "./InfoLostWarningDialog";
 import { Header } from "./_components/Header";
-import { type UptoDateForm, TestFormDialog } from "./_components/TestForm";
+import { type UptoDateForm } from "./_components/TestForm";
 import { getServerSidePropsForSingleFormView } from "./getServerSidePropsSingleForm";
 
 /**
@@ -99,6 +99,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           <div className="flex h-full min-h-screen w-full flex-col">
             <Header
               routingForm={form}
+              testForm={uptoDateForm}
               isSaving={mutation.isPending}
               appUrl={appUrl}
               setShowInfoLostDialog={setShowInfoLostDialog}
@@ -118,11 +119,6 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           setIsOpenInfoLostDialog={setShowInfoLostDialog}
         />
       )}
-      <TestFormDialog
-        form={uptoDateForm}
-        isTestPreviewOpen={isTestPreviewOpen}
-        setIsTestPreviewOpen={setIsTestPreviewOpen}
-      />
     </>
   );
 }

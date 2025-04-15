@@ -16,6 +16,8 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import { enabledIncompleteBookingApps } from "../../lib/enabledIncompleteBookingApps";
 import { FormAction, FormActionsDropdown } from "../FormActions";
 import { FormSettingsSlideover } from "./FormSettingsSlideover";
+import type { UptoDateForm } from "./TestForm";
+import { TestFormDialog } from "./TestForm";
 
 // Toggle group doesnt support HREF navigation, so we need to use this hook to handle navigation
 const useRoutingFormNavigation = (
@@ -60,38 +62,40 @@ const Actions = ({
   form,
   isSaving,
   appUrl,
+  testForm,
 }: {
   form: RoutingFormWithResponseCount;
+  testForm: UptoDateForm;
   isSaving: boolean;
   appUrl: string;
 }) => {
   const { t } = useLocale();
   const formContext = useFormContext<RoutingFormWithResponseCount>();
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
+  const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
 
   return (
     <>
       <div className="flex items-center">
         <div className="flex gap-2">
           <Tooltip sideOffset={4} content={t("preview")} side="bottom">
-            <FormAction
-              routingForm={form}
+            <Button
               color="secondary"
-              target="_blank"
               type="button"
-              rel="noreferrer"
-              action="preview">
+              variant="icon"
+              onClick={() => {
+                setIsTestPreviewOpen(true);
+              }}>
               {t("preview")}
-            </FormAction>
+            </Button>
           </Tooltip>
           <Tooltip sideOffset={4} content={t("settings")} side="bottom">
             <Button
               color="secondary"
               type="button"
-              variant="icon"
               StartIcon="settings"
               onClick={() => {
-                setIsSettingsDialogOpen(true);
+                setIsTestPreviewOpen(true);
               }}
             />
           </Tooltip>
@@ -103,9 +107,8 @@ const Actions = ({
               type="button"
               rel="noreferrer"
               action="preview"
-              className="md:hidden"
               StartIcon="external-link">
-              {t("preview")}
+              {t("view_form")}
             </FormAction>
             <FormAction
               action="copyLink"
@@ -167,17 +170,24 @@ const Actions = ({
         onOpenChange={setIsSettingsDialogOpen}
         appUrl={appUrl}
       />
+      <TestFormDialog
+        form={testForm}
+        isTestPreviewOpen={isTestPreviewOpen}
+        setIsTestPreviewOpen={setIsTestPreviewOpen}
+      />
     </>
   );
 };
 
 export function Header({
   routingForm,
+  testForm,
   isSaving,
   appUrl,
   setShowInfoLostDialog,
 }: {
   routingForm: RoutingFormWithResponseCount;
+  testForm: UptoDateForm;
   isSaving: boolean;
   appUrl: string;
   setShowInfoLostDialog: (value: boolean) => void;
@@ -290,7 +300,7 @@ export function Header({
 
       {/* Actions */}
       <div className="flex justify-end">
-        <Actions form={routingForm} isSaving={isSaving} appUrl={appUrl} />
+        <Actions form={routingForm} testForm={testForm} isSaving={isSaving} appUrl={appUrl} />
       </div>
     </div>
   );
