@@ -30,46 +30,39 @@ const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
 
   const teamId = session.metadata?.teamId ? Number(session.metadata.teamId) : null;
 
-  /*
-    already schedule SMS are still sent via email (SMS are scheduled 2 hours in advance)
-    new SMS are scheduled as per normal
-  */
+  let creditBalance: { id: string } | null;
   if (teamId) {
-    prisma.creditBalance.upsert({
+    creditBalance = await prisma.creditBalance.findUnique({
       where: {
-        teamId: teamId,
-      },
-      update: {
-        additionalCredits: { increment: nrOfCredits },
-        limitReachedAt: null,
-      },
-      create: {
-        teamId: teamId,
-        additionalCredits: nrOfCredits,
-      },
-      select: {
-        additionalCredits: true,
-        limitReachedAt: true,
+        teamId,
       },
     });
   } else {
-    await prisma.creditBalance.upsert({
+    creditBalance = await prisma.creditBalance.findUnique({
       where: {
         userId: user.id,
       },
-      update: {
-        additionalCredits: { increment: nrOfCredits },
-        limitReachedAt: null,
+    });
+  }
+
+  if (creditBalance) {
+    await prisma.creditBalance.update({
+      where: {
+        id: creditBalance.id,
       },
-      create: {
-        userId: user.id,
+      data: { additionalCredits: { increment: nrOfCredits }, limitReachedAt: null },
+    });
+  } else {
+    await prisma.creditBalance.create({
+      data: {
+        teamId: teamId ? teamId : undefined,
+        userId: teamId ? undefined : user.id,
         additionalCredits: nrOfCredits,
-      },
-      select: {
-        additionalCredits: true,
       },
     });
   }
+
+  return { success: true };
 };
 
 export default handler;
