@@ -7,8 +7,6 @@ import { performance } from "@calcom/lib/server/perfObserver";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-let isCold = true;
-
 async function getHandler() {
   const prePrismaDate = performance.now();
   const prisma = (await import("@calcom/prisma")).default;
@@ -30,7 +28,6 @@ async function getHandler() {
 
   const lastUpdate = performance.now();
 
-  // Create response with headers
   const response = NextResponse.json({
     message: `Hello ${user.name}`,
     prePrismaDate,
@@ -40,12 +37,7 @@ async function getHandler() {
     preUserDate,
     userDuration: `User took ${lastUpdate - preUserDate}ms`,
     lastUpdate,
-    wasCold: isCold,
   });
-
-  // Set custom header
-  response.headers.set("x-is-cold", isCold.toString());
-  isCold = false;
 
   return response;
 }
