@@ -384,6 +384,7 @@ model User {
   creationSource                 CreationSource?
   createdOrganizationOnboardings OrganizationOnboarding[]     @relation("CreatedOrganizationOnboardings")
   filterSegments                 FilterSegment[]
+  ratings                        Rating[]
 
   @@unique([email])
   @@unique([email, username])
@@ -2068,4 +2069,19 @@ model BookingInternalNote {
 
   @@unique([bookingId, notePresetId])
   @@index([bookingId])
+}
+
+model Rating {
+  id     Int @id @default(autoincrement())
+  rating Int
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  templateId String
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, templateId])
+  @@index([templateId])
 }
