@@ -146,7 +146,7 @@ export class BookingsService_2024_08_13 {
   }
 
   async hasRequiredBookingFieldsResponses(body: CreateBookingInput, eventType: EventType | null) {
-    const bookingFields = body.bookingFieldsResponses;
+    const bookingFields = { ...body.bookingFieldsResponses, attendeePhoneNumber: body.attendee.phoneNumber };
     if (!eventType?.bookingFields) {
       return true;
     }
