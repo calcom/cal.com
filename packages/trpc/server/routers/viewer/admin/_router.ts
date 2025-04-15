@@ -8,6 +8,7 @@ import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
 import { ZSetSMSLockState } from "./setSMSLockState.schema";
 import { toggleFeatureFlag } from "./toggleFeatureFlag.procedure";
 import { ZAdminVerifyWorkflowsSchema } from "./verifyWorkflows.schema";
+import { ZWhitelistUserWorkflows } from "./whitelistUserWorkflows.schema";
 import {
   workspacePlatformCreateSchema,
   workspacePlatformUpdateSchema,
@@ -73,6 +74,13 @@ export const adminRouter = router({
     const handler = await importHandler(
       namespaced("verifyWorkflows"),
       () => import("./verifyWorkflows.handler")
+    );
+    return handler(opts);
+  }),
+  whitelistUserWorkflows: authedAdminProcedure.input(ZWhitelistUserWorkflows).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("whitelistUserWorkflows"),
+      () => import("./whitelistUserWorkflows.handler")
     );
     return handler(opts);
   }),
