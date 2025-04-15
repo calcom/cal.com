@@ -11,8 +11,6 @@ import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredentia
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import metadata from "../_metadata";
 
-let client_id = "";
-let client_secret = "";
 const hubspotClient = new hubspot.Client();
 
 export interface HubspotToken extends TokenResponseIF {
@@ -32,18 +30,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
 
+  let clientId = "";
+  let clientSecret = "";
   const appKeys = await getAppKeysFromSlug("hubspot");
-  if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
-  if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
-  if (!client_id) return res.status(400).json({ message: "HubSpot client id missing." });
-  if (!client_secret) return res.status(400).json({ message: "HubSpot client secret missing." });
+  if (typeof appKeys.client_id === "string") clientId = appKeys.client_id;
+  if (typeof appKeys.client_secret === "string") clientSecret = appKeys.client_secret;
+  if (!clientId) return res.status(400).json({ message: "HubSpot client id missing." });
+  if (!clientSecret) return res.status(400).json({ message: "HubSpot client secret missing." });
 
   const hubspotToken: HubspotToken = await hubspotClient.oauth.tokensApi.createToken(
     "authorization_code",
     code,
     `${WEBAPP_URL_FOR_OAUTH}/api/integrations/hubspot/callback`,
-    client_id,
-    client_secret
+    clientId,
+    clientSecret
   );
 
   // set expiry date as offset from current time.
