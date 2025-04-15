@@ -85,7 +85,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
             )}>
             <Avatar
               size={small ? "xs" : "xsm"}
-              imageSrc={`${user?.avatarUrl ?? user?.avatar}`}
+              imageSrc={user?.avatarUrl ?? user?.avatar}
               alt={user?.username ? `${user.username} Avatar` : "Nameless User Avatar"}
               className="overflow-hidden"
             />
