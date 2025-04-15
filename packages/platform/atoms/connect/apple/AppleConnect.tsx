@@ -139,8 +139,9 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
                 form.reset();
                 setIsDialogOpen(false);
                 toast({
-                  description: "Calendar credentials added successfully",
+                  description: "Dry run connection successful (no credentials saved)", // Updated message
                 });
+                onSuccess?.(); // Call onSuccess for dry run as well
               } else {
                 await saveCredentials({ calendar: "apple", username, password });
               }
