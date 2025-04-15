@@ -754,7 +754,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
         }}
       />
 
-      {eventType.offsetStart !== 0 && (
+      {formMethods.getValues("offsetStart") > 0 && (
         <SettingsToggle
           labelClassName={classNames("text-sm", customClassNames?.offsetStartTimes?.label)}
           toggleSwitchAtTheEnd={true}

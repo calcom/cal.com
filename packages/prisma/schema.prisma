@@ -1067,7 +1067,7 @@ model App_RoutingForms_FormResponse {
   formId       String
   response     Json
   createdAt    DateTime              @default(now())
-  updatedAt    DateTime              @updatedAt
+  updatedAt    DateTime?             @updatedAt
 
   routedToBookingUid String?  @unique
   // We should not cascade delete the booking, because we want to keep the form response even if the routedToBooking is deleted
