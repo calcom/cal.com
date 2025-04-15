@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
@@ -7,6 +8,7 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import classNames from "@calcom/ui/classNames";
 import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -18,6 +20,55 @@ import { InfoLostWarningDialog } from "./InfoLostWarningDialog";
 import { Header } from "./_components/Header";
 import { TestFormRenderer, type UptoDateForm } from "./_components/TestForm";
 import { getServerSidePropsForSingleFormView } from "./getServerSidePropsSingleForm";
+
+const BREAKPOINTS = {
+  sm: 640,
+  md: 768,
+  lg: 1024,
+  xl: 1280,
+  "2xl": 1536,
+} as const;
+
+type Breakpoint = keyof typeof BREAKPOINTS;
+type BreakpointState = Record<Breakpoint, boolean>;
+
+function useBreakPoints() {
+  const [breakpoints, setBreakpoints] = useState<BreakpointState>({
+    sm: false,
+    md: false,
+    lg: false,
+    xl: false,
+    "2xl": false,
+  });
+
+  useEffect(() => {
+    const updateBreakpoints = () => {
+      const width = window.innerWidth;
+      setBreakpoints({
+        sm: width >= BREAKPOINTS.sm,
+        md: width >= BREAKPOINTS.md,
+        lg: width >= BREAKPOINTS.lg,
+        xl: width >= BREAKPOINTS.xl,
+        "2xl": width >= BREAKPOINTS["2xl"],
+      });
+    };
+
+    // Initial check
+    updateBreakpoints();
+
+    // Add resize listener
+    window.addEventListener("resize", updateBreakpoints);
+    return () => window.removeEventListener("resize", updateBreakpoints);
+  }, []);
+
+  return {
+    ...breakpoints,
+    // Convenience properties
+    isMobile: !breakpoints.md,
+    isTablet: breakpoints.md && !breakpoints.lg,
+    isDesktop: breakpoints.lg,
+  };
+}
 
 /**
  * It has the the ongoing changes in the form along with enrichedWithUserProfileForm specific data.
@@ -32,6 +83,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
   const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
   const [showInfoLostDialog, setShowInfoLostDialog] = useState(false);
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
+  const { isTablet } = useBreakPoints();
 
   useEffect(() => {
     //  The first time a tab is opened, the hookForm copies the form data (saved version, from the backend),
@@ -105,18 +157,54 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
               appUrl={appUrl}
               setShowInfoLostDialog={setShowInfoLostDialog}
               setIsTestPreviewOpen={setIsTestPreviewOpen}
+              isTestPreviewOpen={isTestPreviewOpen}
             />
-            <div className="bg-default flex flex-1">
-              <div className="mx-auto w-full max-w-4xl">
-                <Page hookForm={hookForm} form={form} appUrl={appUrl} />
-              </div>
-              <div className="mx-auto w-full max-w-2xl">
-                <TestFormRenderer
-                  form={testForm}
-                  isTestPreviewOpen={isTestPreviewOpen}
-                  setIsTestPreviewOpen={setIsTestPreviewOpen}
-                />
-              </div>
+            <div
+              className={classNames(
+                "bg-default flex-1",
+                !isTablet && "grid gap-8",
+                !isTablet && isTestPreviewOpen && "grid-cols-[1fr,400px]",
+                !isTablet && !isTestPreviewOpen && "grid-cols-1",
+                isTablet && "flex flex-col"
+              )}>
+              {!isTablet ? (
+                <motion.div
+                  layout
+                  className="mx-auto w-full max-w-4xl"
+                  transition={{ duration: 0.3, ease: "easeInOut" }}>
+                  <Page hookForm={hookForm} form={form} appUrl={appUrl} />
+                </motion.div>
+              ) : (
+                <div className="mx-auto w-full max-w-4xl">
+                  <Page hookForm={hookForm} form={form} appUrl={appUrl} />
+                </div>
+              )}
+              <AnimatePresence>
+                {isTestPreviewOpen && !isTablet ? (
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="border-default border-l">
+                    <TestFormRenderer
+                      isMobile={isTablet}
+                      testForm={uptoDateForm}
+                      isTestPreviewOpen={isTestPreviewOpen}
+                      setIsTestPreviewOpen={setIsTestPreviewOpen}
+                    />
+                  </motion.div>
+                ) : isTestPreviewOpen ? (
+                  <div className="border-default border-t">
+                    <TestFormRenderer
+                      isMobile={isTablet}
+                      testForm={uptoDateForm}
+                      isTestPreviewOpen={isTestPreviewOpen}
+                      setIsTestPreviewOpen={setIsTestPreviewOpen}
+                    />
+                  </div>
+                ) : null}
+              </AnimatePresence>
             </div>
           </div>
         </FormActionsProvider>

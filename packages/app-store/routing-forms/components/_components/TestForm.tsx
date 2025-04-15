@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import FormInputFields from "routing-forms/components/FormInputFields";
 import { getAbsoluteEventTypeRedirectUrl } from "routing-forms/getEventTypeRedirectUrl";
 import { RoutingPages } from "routing-forms/lib/RoutingPages";
@@ -21,24 +21,6 @@ import { TRPCClientError } from "@trpc/react-query";
 import type { SingleFormComponentProps } from "../../types/shared";
 import type { MembersMatchResultType } from "./TeamMembersMatchResult";
 import { TeamMembersMatchResult } from "./TeamMembersMatchResult";
-
-const MOBILE_BREAKPOINT = 768;
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState<boolean | undefined>(undefined);
-
-  useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
-    const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    };
-    mql.addEventListener("change", onChange);
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    return () => mql.removeEventListener("change", onChange);
-  }, []);
-
-  return !!isMobile;
-}
 
 export type UptoDateForm = Brand<
   NonNullable<SingleFormComponentProps["enrichedWithUserProfileForm"]>,
@@ -248,16 +230,15 @@ export const TestFormRenderer = ({
   testForm,
   isTestPreviewOpen,
   setIsTestPreviewOpen,
+  isMobile,
 }: {
   testForm: UptoDateForm;
   isTestPreviewOpen: boolean;
   setIsTestPreviewOpen: (value: boolean) => void;
+  isMobile: boolean;
 }) => {
   const { t } = useLocale();
   const isSubTeamForm = !!testForm.team?.parentId;
-  const isMobile = useIsMobile();
-
-  console.log("isMobile", isMobile);
 
   if (!isMobile) {
     if (isTestPreviewOpen) {

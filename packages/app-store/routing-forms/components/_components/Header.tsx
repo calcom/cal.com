@@ -61,11 +61,13 @@ const Actions = ({
   isSaving,
   appUrl,
   setIsTestPreviewOpen,
+  isTestPreviewOpen,
 }: {
   form: RoutingFormWithResponseCount;
   setIsTestPreviewOpen: (value: boolean) => void;
   isSaving: boolean;
   appUrl: string;
+  isTestPreviewOpen: boolean;
 }) => {
   const { t } = useLocale();
   const formContext = useFormContext<RoutingFormWithResponseCount>();
@@ -81,7 +83,7 @@ const Actions = ({
               type="button"
               variant="icon"
               onClick={() => {
-                setIsTestPreviewOpen(true);
+                setIsTestPreviewOpen(!isTestPreviewOpen);
               }}>
               {t("preview")}
             </Button>
@@ -177,12 +179,14 @@ export function Header({
   appUrl,
   setShowInfoLostDialog,
   setIsTestPreviewOpen,
+  isTestPreviewOpen,
 }: {
   routingForm: RoutingFormWithResponseCount;
   isSaving: boolean;
   appUrl: string;
   setShowInfoLostDialog: (value: boolean) => void;
   setIsTestPreviewOpen: (value: boolean) => void;
+  isTestPreviewOpen: boolean;
 }) {
   const { t } = useLocale();
   const [isEditing, setIsEditing] = useState(false);
@@ -295,6 +299,7 @@ export function Header({
         <Actions
           form={routingForm}
           setIsTestPreviewOpen={setIsTestPreviewOpen}
+          isTestPreviewOpen={isTestPreviewOpen}
           isSaving={isSaving}
           appUrl={appUrl}
         />
