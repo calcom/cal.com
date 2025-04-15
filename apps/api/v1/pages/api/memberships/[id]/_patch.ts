@@ -43,10 +43,7 @@ export async function patchHandler(req: NextApiRequest) {
   const { query } = req;
   const userId_teamId = membershipIdSchema.parse(query);
   const data = membershipEditBodySchema.parse(req.body);
-  const args: Prisma.MembershipUpdateArgs = {
-    where: { userId_teamId },
-    data: { ...data, updatedAt: new Date() },
-  };
+  const args: Prisma.MembershipUpdateArgs = { where: { userId_teamId }, data };
 
   await checkPermissions(req);
 

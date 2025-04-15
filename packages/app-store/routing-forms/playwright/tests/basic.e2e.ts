@@ -694,8 +694,6 @@ test.describe("Routing Forms", () => {
         data: {
           teamId: teamId,
           userId: newUser.id,
-          createdAt: new Date(),
-          updatedAt: new Date(),
           role: MembershipRole.MEMBER,
           accepted: true,
         },

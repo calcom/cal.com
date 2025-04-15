@@ -29,7 +29,6 @@ export const updateMembershipHandler = async ({ ctx, input }: UpdateMembershipOp
     },
     data: {
       disableImpersonation: input.disableImpersonation,
-      updatedAt: new Date(),
     },
   });
 };

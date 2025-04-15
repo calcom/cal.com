@@ -67,8 +67,6 @@ export class MembershipsRepository {
         teamId,
         userId,
         accepted,
-        createdAt: new Date(),
-        updatedAt: new Date(),
       },
     });
 

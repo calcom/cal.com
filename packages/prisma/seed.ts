@@ -126,8 +126,6 @@ const associateUserAndOrg = async ({ teamId, userId, role, username }: Associate
       userId,
       role: role as MembershipRole,
       accepted: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
     },
   });
 
@@ -256,8 +254,6 @@ async function createTeamAndAddUsers(
         userId: id,
         role: role,
         accepted: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
       },
     });
     console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${role}'`);
@@ -575,8 +571,6 @@ async function createOrganizationAndAddMembersAndTeams({
           userId: member.id,
           role: role,
           accepted: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
         },
       });
     }

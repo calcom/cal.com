@@ -419,8 +419,6 @@ export async function createMemberships({
           userId: invitee.id,
           accepted,
           role: checkAdminOrOwner(organizationRole) ? organizationRole : invitee.newRole,
-          createdAt: new Date(),
-          updatedAt: new Date(),
         });
 
         // membership for the org
@@ -430,8 +428,6 @@ export async function createMemberships({
             teamId: parentId,
             userId: invitee.id,
             role: MembershipRole.MEMBER,
-            createdAt: new Date(),
-            updatedAt: new Date(),
           });
         }
         return data;
@@ -872,8 +868,6 @@ export async function handleExistingUsersInvites({
           data: {
             userId: user.id,
             teamId: team.id,
-            createdAt: new Date(),
-            updatedAt: new Date(),
             accepted: shouldAutoAccept,
             role: user.newRole,
           },

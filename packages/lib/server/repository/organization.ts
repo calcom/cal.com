@@ -61,8 +61,6 @@ export class OrganizationRepository {
         role: MembershipRole.OWNER,
         accepted: true,
         teamId: organization.id,
-        createdAt: new Date(),
-        updatedAt: new Date(),
       },
     });
     return { organization, ownerProfile };
@@ -108,8 +106,6 @@ export class OrganizationRepository {
         role: MembershipRole.OWNER,
         accepted: true,
         teamId: organization.id,
-        createdAt: new Date(),
-        updatedAt: new Date(),
       },
     });
 

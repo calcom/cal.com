@@ -61,7 +61,6 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
     },
     data: {
       role: input.role,
-      updatedAt: new Date(),
     },
     include: {
       team: true,
