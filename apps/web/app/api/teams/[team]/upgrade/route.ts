@@ -41,21 +41,35 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
       throw new HttpError({ statusCode: 402, message: "Payment required" });
     }
 
-    let team = await prisma.team.findFirst({
-      where: { metadata: { path: ["paymentId"], equals: checkoutSession.id } },
-    });
+    const findTeamByPaymentId = async (paymentId: string) => {
+      return await prisma.team.findFirst({
+        where: { metadata: { path: ["paymentId"], equals: paymentId } },
+      });
+    };
 
-    let metadata;
+    const team = await findTeamByPaymentId(checkoutSession.id);
+
+    const getMetadata = () => {
+      let parsedMetadata;
+      return {
+        get: () => parsedMetadata,
+        set: (value: any) => {
+          parsedMetadata = value;
+        },
+      };
+    };
+    const metadataManager = getMetadata();
 
     if (!team) {
       const prevTeam = await prisma.team.findFirstOrThrow({ where: { id } });
 
-      metadata = teamMetadataSchema.safeParse(prevTeam.metadata);
-      if (!metadata.success) {
+      const parsedMetadata = teamMetadataSchema.safeParse(prevTeam.metadata);
+      if (!parsedMetadata.success) {
         throw new HttpError({ statusCode: 400, message: "Invalid team metadata" });
       }
+      metadataManager.set(parsedMetadata);
 
-      const { requestedSlug, ...newMetadata } = metadata.data || {};
+      const { requestedSlug, ...newMetadata } = parsedMetadata.data || {};
       team = await prisma.team.update({
         where: { id },
         data: {
@@ -79,11 +93,12 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
       }
     }
 
-    if (!metadata) {
-      metadata = teamMetadataSchema.safeParse(team.metadata);
-      if (!metadata.success) {
+    if (!metadataManager.get()) {
+      const parsedMetadata = teamMetadataSchema.safeParse(team.metadata);
+      if (!parsedMetadata.success) {
         throw new HttpError({ statusCode: 400, message: "Invalid team metadata" });
       }
+      metadataManager.set(parsedMetadata);
     }
 
     const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });

@@ -20,7 +20,8 @@ async function postHandler(request: NextRequest) {
   const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   const pageSize = 90; // Adjust this value based on the total number of teams and the available processing time
 
-  let { page: pageNumber } = querySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
+  const { page: initialPageNumber } = querySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
+  let pageNumber = initialPageNumber;
 
   while (true) {
     const teams = await prisma.team.findMany({

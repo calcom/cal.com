@@ -10,10 +10,16 @@ import { bookingCancelInput } from "@calcom/prisma/zod-utils";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 async function handler(req: NextRequest) {
-  let appDirRequestBody;
-  try {
-    appDirRequestBody = await req.json();
-  } catch (error) {
+  const getRequestBody = async () => {
+    try {
+      return await req.json();
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const appDirRequestBody = await getRequestBody();
+  if (!appDirRequestBody) {
     return NextResponse.json({ success: false, message: "Invalid JSON" }, { status: 400 });
   }
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });

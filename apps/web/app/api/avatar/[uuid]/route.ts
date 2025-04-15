@@ -35,30 +35,36 @@ async function handler(req: NextRequest, { params }: { params: Promise<Params> }
 
   const { uuid: objectKey } = result.data;
 
-  let img;
-  try {
-    const { data } = await prisma.avatar.findUniqueOrThrow({
-      where: {
-        objectKey,
-      },
-      select: {
-        data: true,
-      },
-    });
-
-    // Convert SVG to PNG if needed and update the database
-    if (data.startsWith("data:image/svg+xml;base64,")) {
-      const pngData = await convertSvgToPng(data);
-
-      await prisma.avatar.update({
-        where: { objectKey },
-        data: { data: pngData },
+  const getImageData = async () => {
+    try {
+      const { data } = await prisma.avatar.findUniqueOrThrow({
+        where: {
+          objectKey,
+        },
+        select: {
+          data: true,
+        },
       });
-      img = pngData;
-    } else {
-      img = data;
+
+      // Convert SVG to PNG if needed and update the database
+      if (data.startsWith("data:image/svg+xml;base64,")) {
+        const pngData = await convertSvgToPng(data);
+
+        await prisma.avatar.update({
+          where: { objectKey },
+          data: { data: pngData },
+        });
+        return pngData;
+      } else {
+        return data;
+      }
+    } catch (e) {
+      return null;
     }
-  } catch (e) {
+  };
+
+  const img = await getImageData();
+  if (!img) {
     // If anything goes wrong or avatar is not found, use default avatar
     const url = new URL(AVATAR_FALLBACK, WEBAPP_URL).toString();
     return NextResponse.redirect(url, 302);
