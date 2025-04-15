@@ -1,10 +1,11 @@
+import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata } from "app/_utils";
-import { getTranslate } from "app/_utils";
-import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
+import { travelSchedulesRouter } from "@calcom/trpc/server/routers/viewer/travelSchedules/_router";
 
-import GeneralQueryView from "~/settings/my-account/general-view";
+import GeneralView from "~/settings/my-account/general-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -13,17 +14,15 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const t = await getTranslate();
-  const revalidatePage = async () => {
-    "use server";
-    revalidatePath("settings/my-account/general");
-  };
-
-  return (
-    <SettingsHeader title={t("general")} description={t("general_description")} borderInShellHeader={true}>
-      <GeneralQueryView revalidatePage={revalidatePage} />
-    </SettingsHeader>
-  );
+  const [meCaller, travelSchedulesCaller] = await Promise.all([
+    createRouterCaller(meRouter),
+    createRouterCaller(travelSchedulesRouter),
+  ]);
+  const [user, travelSchedules] = await Promise.all([meCaller.get(), travelSchedulesCaller.get()]);
+  if (!user) {
+    redirect("/auth/login");
+  }
+  return <GeneralView user={user} travelSchedules={travelSchedules ?? []} />;
 };
 
 export default Page;
