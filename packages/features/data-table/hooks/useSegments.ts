@@ -1,37 +1,21 @@
-import type { SortingState, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import { isEqual } from "lodash";
 import { useCallback, useMemo, useEffect } from "react";
 
 import { trpc } from "@calcom/trpc/react";
 
-import { type ActiveFilters, ZSegmentStorage } from "./types";
+import { recalculateDateRange } from "../lib/dateRange";
+import { ZSegmentStorage, type UseSegments } from "../lib/types";
+import { isDateRangeFilterValue } from "../lib/utils";
 
-type UseSegmentsProps = {
-  tableIdentifier: string;
-  activeFilters: ActiveFilters;
-  sorting: SortingState;
-  columnVisibility: VisibilityState;
-  columnSizing: ColumnSizingState;
-  pageSize: number;
-  defaultPageSize: number;
-  segmentId: number;
-  setSegmentId: (segmentId: number | null) => void;
-  setActiveFilters: (activeFilters: ActiveFilters) => void;
-  setSorting: (sorting: SortingState) => void;
-  setColumnVisibility: (columnVisibility: VisibilityState) => void;
-  setColumnSizing: (columnSizing: ColumnSizingState) => void;
-  setPageSize: (pageSize: number) => void;
-  setPageIndex: (pageIndex: number) => void;
-};
-
-export function useSegments({
+export const useSegments: UseSegments = ({
   tableIdentifier,
   activeFilters,
   sorting,
   columnVisibility,
   columnSizing,
   pageSize,
+  searchTerm,
   defaultPageSize,
   segmentId,
   setSegmentId,
@@ -41,10 +25,29 @@ export function useSegments({
   setColumnSizing,
   setPageSize,
   setPageIndex,
-}: UseSegmentsProps) {
-  const { data: segments, isFetching: isFetchingSegments } = trpc.viewer.filterSegments.list.useQuery({
+  setSearchTerm,
+}) => {
+  const { data: rawSegments, isFetching: isFetchingSegments } = trpc.viewer.filterSegments.list.useQuery({
     tableIdentifier,
   });
+
+  // Recalculate date ranges based on the current timestamp
+  const segments = useMemo(() => {
+    if (!rawSegments) return [];
+    return rawSegments.map((segment) => ({
+      ...segment,
+      activeFilters: segment.activeFilters.map((filter) => {
+        if (isDateRangeFilterValue(filter.v)) {
+          return {
+            ...filter,
+            v: recalculateDateRange(filter.v),
+          };
+        }
+        return filter;
+      }),
+    }));
+  }, [rawSegments]);
+
   const selectedSegment = useMemo(
     () => segments?.find((segment) => segment.id === segmentId),
     [segments, segmentId]
@@ -81,6 +84,7 @@ export function useSegments({
       setColumnVisibility(selectedSegment.columnVisibility);
       setColumnSizing(selectedSegment.columnSizing);
       setPageSize(selectedSegment.perPage);
+      setSearchTerm(selectedSegment.searchTerm);
       setPageIndex(0);
     }
   }, [
@@ -91,6 +95,7 @@ export function useSegments({
     setColumnSizing,
     setPageSize,
     setPageIndex,
+    setSearchTerm,
   ]);
 
   const canSaveSegment = useMemo(() => {
@@ -101,7 +106,8 @@ export function useSegments({
         sorting.length > 0 ||
         Object.keys(columnVisibility).length > 0 ||
         Object.keys(columnSizing).length > 0 ||
-        pageSize !== defaultPageSize
+        pageSize !== defaultPageSize ||
+        searchTerm?.length > 0
       );
     } else {
       // if a segment is selected, we can save the segment if the active filters, sorting, etc. are different from the segment
@@ -110,12 +116,22 @@ export function useSegments({
         !isEqual(sorting, selectedSegment.sorting) ||
         !isEqual(columnVisibility, selectedSegment.columnVisibility) ||
         !isEqual(columnSizing, selectedSegment.columnSizing) ||
-        !isEqual(pageSize, selectedSegment.perPage)
+        !isEqual(pageSize, selectedSegment.perPage) ||
+        !isEqual(searchTerm, selectedSegment.searchTerm)
       );
     }
-  }, [selectedSegment, activeFilters, sorting, columnVisibility, columnSizing, pageSize, defaultPageSize]);
+  }, [
+    selectedSegment,
+    activeFilters,
+    sorting,
+    columnVisibility,
+    columnSizing,
+    pageSize,
+    searchTerm,
+    defaultPageSize,
+  ]);
 
-  const setSegmentIdAndSaveToLocalStorage = useCallback(
+  const setAndPersistSegmentId = useCallback(
     (segmentId: number | null) => {
       setSegmentId(segmentId);
       saveSegmentToLocalStorage({ tableIdentifier, segmentId });
@@ -127,9 +143,10 @@ export function useSegments({
     segments: segments ?? [],
     selectedSegment,
     canSaveSegment,
-    setSegmentIdAndSaveToLocalStorage,
+    setAndPersistSegmentId,
+    isSegmentEnabled: true,
   };
-}
+};
 
 const LOCAL_STORAGE_KEY = "data-table:segments";
 

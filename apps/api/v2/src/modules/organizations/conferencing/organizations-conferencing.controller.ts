@@ -56,7 +56,7 @@ export type OAuthCallbackState = {
   path: "/v2/organizations/:orgId",
   version: API_VERSIONS_VALUES,
 })
-@DocsTags("Organizations/Teams Conferencing")
+@DocsTags("Orgs / Teams / Conferencing")
 export class OrganizationsConferencingController {
   constructor(
     private readonly conferencingService: ConferencingService,

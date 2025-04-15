@@ -82,6 +82,17 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     rescheduledToUid = rescheduledTo?.uid ?? null;
   }
 
+  let previousBooking: {
+    rescheduledBy: string | null;
+    uid: string;
+  } | null = null;
+
+  if (bookingInfo.fromReschedule) {
+    previousBooking = await BookingRepository.findReschedulerByUid({
+      uid: bookingInfo.fromReschedule,
+    });
+  }
+
   const eventTypeRaw = !bookingInfoRaw.eventTypeId
     ? getDefaultEvent(eventTypeSlug || "")
     : await getEventTypesFromDB(bookingInfoRaw.eventTypeId);
@@ -220,6 +231,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),
       dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
+      previousBooking,
       paymentStatus: payment,
       ...(tz && { tz }),
       userTimeFormat,
