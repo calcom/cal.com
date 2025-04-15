@@ -156,6 +156,10 @@ export class BookingsService_2024_08_13 {
       .parse(eventType.bookingFields)
       .filter((field) => !field.editable.startsWith("system"));
 
+    if (!eventTypeBookingFields.length) {
+      return true;
+    }
+
     if (!bookingFields) {
       throw new BadRequestException(
         `Missing bookingFieldsResponses - it is required by the event type booking fields, but missing in the bookingFieldsResponses. The event type with ID ${
