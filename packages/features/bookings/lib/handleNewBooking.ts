@@ -1991,7 +1991,7 @@ async function handler(
       });
 
       if (!hashedLink) {
-        throw new HttpError({ statusCode: 410, message: "Link is invalid or has been used" });
+        throw new HttpError({ statusCode: 410, message: "Link has expired" });
       }
 
       const now = new Date();
