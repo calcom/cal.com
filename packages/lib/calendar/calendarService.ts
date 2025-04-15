@@ -1,0 +1,44 @@
+import logger from "@calcom/lib/logger";
+import type { Calendar, CalendarClass } from "@calcom/types/Calendar";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
+
+const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
+
+/**
+ * @see [Using type predicates](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates)
+ */
+const isCalendarService = (x: unknown): x is { lib: { CalendarService: CalendarClass } } =>
+  !!x &&
+  typeof x === "object" &&
+  "lib" in x &&
+  typeof x.lib === "object" &&
+  !!x.lib &&
+  "CalendarService" in x.lib;
+
+export const getCalendar = async (
+  credential: CredentialForCalendarService | null
+): Promise<Calendar | null> => {
+  if (!credential || !credential.key) return null;
+  let { type: calendarType } = credential;
+  if (calendarType?.endsWith("_other_calendar")) {
+    calendarType = calendarType.split("_other_calendar")[0];
+  }
+  if (calendarType?.endsWith("_crm")) {
+    calendarType = calendarType.split("_crm")[0];
+  }
+
+  const calendarApp = null;
+
+  if (!calendarApp) {
+    log.warn(`calendar of type ${calendarType} is not implemented`);
+    return null;
+  }
+
+  if (!isCalendarService(calendarApp)) {
+    log.warn(`calendar of type ${calendarType} is not implemented`);
+    return null;
+  }
+  log.info("Got calendarApp", calendarApp.lib.CalendarService);
+  const CalendarService = calendarApp.lib.CalendarService;
+  return new CalendarService(credential);
+};

@@ -1,10 +1,10 @@
 import type { AppCategories, Prisma } from "@prisma/client";
 
-import appStore from "@calcom/app-store";
-import type { EventTypeAppsList } from "@calcom/app-store/utils";
+import { appStore } from "@calcom/lib/payment/paymentService";
 import type { CompleteEventType } from "@calcom/prisma/zod";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { EventTypeAppsList } from "@calcom/types/EventTypeAppsList";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
 const isPaymentApp = (x: unknown): x is PaymentApp =>

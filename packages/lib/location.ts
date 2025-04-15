@@ -1,1 +1,3 @@
-export * from "@calcom/app-store/locations";
+export * from "./locations/constants";
+export * from "./locations/locationTypes";
+export * from "./locations/locationFunctions";

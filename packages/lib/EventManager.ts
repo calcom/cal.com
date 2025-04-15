@@ -4,14 +4,12 @@ import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
 import type { z } from "zod";
 
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
-import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
-import { getLocationFromApp, MeetLocationType } from "@calcom/app-store/locations";
-import getApps from "@calcom/app-store/utils";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getUid } from "@calcom/lib/CalEventParser";
+import { getApps } from "@calcom/lib/apps/appService";
+import { getCalendar } from "@calcom/lib/calendar/calendarService";
 import CRMScheduler from "@calcom/lib/crmManager/tasker/crmScheduler";
+import { getLocationFromApp, MeetLocationType } from "@calcom/lib/locations/locationFunctions";
 import logger from "@calcom/lib/logger";
 import {
   getPiiFreeDestinationCalendar,
@@ -21,6 +19,7 @@ import {
 } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { FAKE_DAILY_CREDENTIAL, appKeysSchema as calVideoKeysSchema } from "@calcom/lib/video/videoService";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -51,7 +50,7 @@ const latestCredentialFirst = <T extends HasId>(a: T, b: T) => {
   return b.id - a.id;
 };
 
-const delegatedCredentialFirst = <T extends { delegatedToId?: string | null }>(a: T, b: T) => {
+const _delegatedCredentialFirst = <T extends { delegatedToId?: string | null }>(a: T, b: T) => {
   return (b.delegatedToId ? 1 : 0) - (a.delegatedToId ? 1 : 0);
 };
 
@@ -980,9 +979,9 @@ export default class EventManager {
 
       return Promise.all(result);
     } catch (error) {
-      let message = `Tried to 'updateAllCalendarEvents' but there was no '{thing}' for '${credential?.type}', userId: '${credential?.userId}', bookingId: '${booking?.id}'`;
+      let _message = `Tried to 'updateAllCalendarEvents' but there was no '{thing}' for '${credential?.type}', userId: '${credential?.userId}', bookingId: '${booking?.id}'`;
       if (error instanceof Error) {
-        message = message.replace("{thing}", error.message);
+        _message = _message.replace("{thing}", error.message);
       }
 
       return Promise.resolve(

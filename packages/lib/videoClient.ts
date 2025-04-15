@@ -1,14 +1,14 @@
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import appStore from "@calcom/app-store";
-import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
-import { DailyLocationType } from "@calcom/app-store/locations";
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
+import { DailyLocationType } from "@calcom/lib/locations/constants";
 import logger from "@calcom/lib/logger";
+import { appStore } from "@calcom/lib/payment/paymentService";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getDailyAppKeys } from "@calcom/lib/video/videoService";
 import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";

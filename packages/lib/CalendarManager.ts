@@ -1,11 +1,11 @@
 // eslint-disable-next-line no-restricted-imports
 import { sortBy } from "lodash";
 
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
 import { CalendarAppDelegationCredentialError } from "@calcom/lib/CalendarAppError";
+import { getApps } from "@calcom/lib/apps/appService";
+import { getCalendar } from "@calcom/lib/calendar/calendarService";
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential/clientAndServer";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
