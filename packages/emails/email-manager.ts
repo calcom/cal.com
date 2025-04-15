@@ -46,6 +46,8 @@ import type { IBookingRedirect } from "./templates/booking-redirect-notification
 import BrokenIntegrationEmail from "./templates/broken-integration-email";
 import type { ChangeOfEmailVerifyLink } from "./templates/change-account-email-verify";
 import ChangeOfEmailVerifyEmail from "./templates/change-account-email-verify";
+import TeamInviteEmail from "./templates/credit-balance-low-warning-email";
+import CreditBalanceLowWarningEmail from "./templates/credit-balance-low-warning-email";
 import DisabledAppEmail from "./templates/disabled-app-email";
 import type { Feedback } from "./templates/feedback-email";
 import FeedbackEmail from "./templates/feedback-email";
@@ -73,7 +75,6 @@ import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
 import SlugReplacementEmail from "./templates/slug-replacement-email";
 import type { TeamInvite } from "./templates/team-invite-email";
-import TeamInviteEmail from "./templates/team-invite-email";
 
 type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
 
@@ -734,4 +735,31 @@ export const sendAdminOrganizationNotification = async (input: OrganizationNotif
 
 export const sendBookingRedirectNotification = async (bookingRedirect: IBookingRedirect) => {
   await sendEmail(() => new BookingRedirectEmailNotification(bookingRedirect));
+};
+
+export const sendCreditBalanceLowWarningEmails = async (input: {
+  user?: {
+    name: string;
+    email: string;
+    t: TFunction;
+  };
+  team?: {
+    name: string;
+    adminAndOwners: {
+      name: string;
+      email: string;
+      t: TFunction;
+    }[];
+  };
+  balance: number;
+}) => {
+  const { team, user } = input;
+  const toUsers = team?.adminAndOwners.map((admin) => admin) ?? (user ? [user] : []);
+
+  const emailsToSend: Promise<unknown>[] = [];
+
+  for (const user of toUsers) {
+    emailsToSend.push(sendEmail(() => new CreditBalanceLowWarningEmail(user, input.balance, team?.name)));
+  }
+  await Promise.all(emailsToSend);
 };
