@@ -512,7 +512,7 @@ export default function Success(props: PageProps) {
                                 const refundPolicy = eventType?.metadata?.apps?.stripe?.refundPolicy;
                                 const refundDaysCount = eventType?.metadata?.apps?.stripe?.refundDaysCount;
 
-                                // Handle missing team or event type owner
+                                // Handle missing team or event type owner (same in processPaymentRefund.ts)
                                 if (!eventType?.teamId && !eventType?.owner) {
                                   return t("booking_with_payment_cancelled_no_refund");
                                 }
