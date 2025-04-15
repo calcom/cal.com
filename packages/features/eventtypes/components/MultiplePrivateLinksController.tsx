@@ -2,7 +2,6 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
-import { HashedLinkUsageIndicator } from "@calcom/features/eventtypes/components/HashedLinkUsageIndicator";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues, PrivateLinkWithOptions } from "@calcom/features/eventtypes/lib/types";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
@@ -229,7 +228,6 @@ export const MultiplePrivateLinksController = ({
                         }
                       />
                       <div className="ml-2 flex items-center">
-                        <HashedLinkUsageIndicator link={val.link} />
                         <Button
                           type="button"
                           color="minimal"
