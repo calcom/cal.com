@@ -1553,6 +1553,7 @@
   "download_responses": "Download responses",
   "download_responses_description": "Download all responses to your form in CSV format.",
   "download": "Download",
+  "downloading_data": "Downloading data",
   "download_recording": "Download Recording",
   "transcription_enabled": "Transcriptions are enabled now",
   "transcription_stopped": "Transcriptions are stopped now",
