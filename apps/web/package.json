@@ -153,7 +153,6 @@
     "@babel/core": "^7.19.6",
     "@calcom/config": "*",
     "@calcom/types": "*",
-    "@graphql-codegen/client-preset-swc-plugin": "^0.2.0",
     "@microsoft/microsoft-graph-types-beta": "0.15.0-preview",
     "@playwright/test": "^1.45.3",
     "@testing-library/react": "^13.3.0",

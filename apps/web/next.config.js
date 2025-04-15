@@ -191,12 +191,6 @@ const nextConfig = {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     optimizePackageImports: ["@calcom/ui"],
     turbo: {},
-    swcPlugins: [
-      [
-        "@graphql-codegen/client-preset-swc-plugin",
-        { artifactDirectory: "@calcom/app-store/salesforce/src/gql", gqlTagName: "graphql" },
-      ],
-    ],
   },
   productionBrowserSourceMaps: process.env.SENTRY_DISABLE_CLIENT_SOURCE_MAPS === "0",
   /* We already do type check on GH actions */
