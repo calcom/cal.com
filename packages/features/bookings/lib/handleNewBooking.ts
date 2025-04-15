@@ -2002,7 +2002,7 @@ async function handler(
 
       if (hashedLink.maxUsageCount && hashedLink.maxUsageCount > 0) {
         if (hashedLink.usageCount >= hashedLink.maxUsageCount) {
-          throw new HttpError({ statusCode: 410, message: "Link usage limit reached" });
+        throw new HttpError({ statusCode: 410, message: "Link has expired" });
         }
 
         try {
