@@ -6,7 +6,14 @@ import { AttributeType, MembershipRole, SchedulingType } from "@calcom/prisma/en
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 import { test } from "@calcom/web/playwright/lib/fixtures";
 import { selectInteractions } from "@calcom/web/playwright/lib/pageObject";
-import { getEmailsReceivedByUser, gotoRoutingLink } from "@calcom/web/playwright/lib/testUtils";
+import {
+  confirmBooking,
+  getEmailsReceivedByUser,
+  gotoRoutingLink,
+  selectFirstAvailableTimeSlotNextMonth,
+  testEmail,
+  testName,
+} from "@calcom/web/playwright/lib/testUtils";
 
 import {
   addForm,
@@ -279,6 +286,54 @@ test.describe("Routing Forms", () => {
   });
 
   todo("should be able to duplicate form");
+
+  test.describe("Routing Form to Event Booking", () => {
+    test("should redirect to event page and successfully complete booking", async ({ page, users }) => {
+      const user = await users.create({ username: "routing-to-booking" });
+      await user.apiLogin();
+
+      // Create a routing form
+      const formId = await addForm(page, { name: "Event Redirect Form" });
+
+      await addShortTextFieldAndSaveForm({ page, formId });
+
+      await page.click('[href*="/route-builder/"]');
+      await selectNewRoute(page);
+      await selectFirstEventRedirectOption(page);
+
+      await saveCurrentForm(page);
+
+      await gotoRoutingLink({ page, formId });
+      await page.fill('[data-testid="form-field-short-text"]', "Test Input");
+      await page.click('button[type="submit"]');
+
+      // Wait for redirect and verify presence of routingFormResponseId in URL
+      await page.waitForURL((url) => {
+        return (
+          url.pathname.includes(`/${user.username}/30min`) &&
+          url.searchParams.has("cal.routingFormResponseId")
+        );
+      });
+
+      await selectFirstAvailableTimeSlotNextMonth(page);
+
+      // Fill booking form
+      await page.fill('[name="name"]', testName);
+      await page.fill('[name="email"]', testEmail);
+      await page.fill('[name="notes"]', "Booked via routing form");
+
+      await confirmBooking(page);
+
+      // Verify booking was successful
+      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+      await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toBeVisible();
+      await expect(page.locator(`[data-testid="attendee-email-${testEmail}"]`)).toBeVisible();
+    });
+
+    test.afterEach(async ({ users }) => {
+      await users.deleteAll();
+    });
+  });
 
   test.describe("Seeded Routing Form ", () => {
     test.beforeEach(async ({ page }) => {
