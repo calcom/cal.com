@@ -710,11 +710,13 @@ export default function Success(props: PageProps) {
                               {showUtmParams && (
                                 <div className="col-span-2 mb-2 mt-2">
                                   <ul className="list-disc space-y-1 p-1 pl-5 sm:w-80">
-                                    {Object.entries(utmParams).map(([key, value]) => (
-                                      <li key={key} className="text-muted space-x-1 text-sm">
-                                        <span>{key}</span>: <span>{value || "—"}</span>
-                                      </li>
-                                    ))}
+                                    {Object.entries(utmParams)
+                                      .filter(([_, value]) => Boolean(value))
+                                      .map(([key, value]) => (
+                                        <li key={key} className="text-muted space-x-1 text-sm">
+                                          <span>{key}</span>: <span>{value}</span>
+                                        </li>
+                                      ))}
                                   </ul>
                                 </div>
                               )}
