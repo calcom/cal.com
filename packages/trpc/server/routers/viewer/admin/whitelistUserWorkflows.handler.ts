@@ -11,11 +11,11 @@ type GetOptions = {
 };
 
 export const whitelistUserWorkflows = async ({ input }: GetOptions) => {
-  const { userId, whitelist } = input;
+  const { userId, whitelistWorkflows } = input;
 
   const user = await UserRepository.updateWhitelistWorkflows({
     id: userId,
-    whitelistWorkflows: whitelist,
+    whitelistWorkflows,
   });
 
   return { whitelistWorkflows: user.whitelistWorkflows };

@@ -264,7 +264,7 @@ function UsersTableBare() {
                           onClick: () => {
                             whitelistUserWorkflows.mutate({
                               userId: user.id,
-                              whitelist: !user.whitelistWorkflows,
+                              whitelistWorkflows: !user.whitelistWorkflows,
                             });
                           },
                           icon: "check",
