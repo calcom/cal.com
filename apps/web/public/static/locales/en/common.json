@@ -3104,7 +3104,6 @@
   "oauth_client_not_found": "OAuth Client not found.",
   "subscribe_to_platform": "Subscribe to Platform",
   "error_accessing_webhooks": "Error while trying to access webhooks.",
-  "slash_separator": "&nbsp;/&nbsp;",
   "webhook_update_failed": "Failed to update webhook.",
   "webhook_create_failed": "Failed to create webhook.",
   "invalid_link": "Invalid Link",

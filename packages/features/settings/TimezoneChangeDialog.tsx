@@ -28,7 +28,10 @@ const TimezoneChangeDialogContent = () => {
   const formattedCurrentTz = CURRENT_TIMEZONE.replace("_", " ");
 
   const onMutationSuccess = async () => {
-    showToast(t("updated_timezone_to", { formattedCurrentTz }), "success");
+    showToast(
+      t("updated_timezone_to", { formattedCurrentTz, interpolation: { escapeValue: false } }),
+      "success"
+    );
     await utils.viewer.me.invalidate();
   };
 
