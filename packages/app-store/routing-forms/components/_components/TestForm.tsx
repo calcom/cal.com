@@ -189,7 +189,7 @@ export const TestForm = ({
       if (isPending) return <div>Loading...</div>;
 
       return (
-        <div>
+        <div className="border border-red-500">
           <TeamMembersMatchResult
             chosenRouteName={chosenRouteName()}
             membersMatchResult={membersMatchResult}
@@ -217,6 +217,7 @@ export const TestForm = ({
         <div className="mt-2">
           {RoutingPages.map((page) => {
             if (page.value !== chosenRoute.action.type) return null;
+            console.log("page", page);
             return (
               <span key={page.value} data-testid="test-routing-result-type">
                 {page.label}
@@ -285,7 +286,10 @@ export const TestForm = ({
             renderFooter={renderFooter}
           />
         ) : (
-          <Results onBack={() => setShowResults(false)} chosenRoute={chosenRoute} />
+          <>
+            <Results onBack={() => setShowResults(false)} chosenRoute={chosenRoute} />
+            {renderTestResult(showAllData)}
+          </>
         )}
       </AnimatePresence>
     </div>

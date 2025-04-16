@@ -2,16 +2,34 @@
 
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
-import { RoutingPages } from "routing-forms/lib/RoutingPages";
 import type { NonRouterRoute } from "routing-forms/types/types";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
+import type { IconName } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui/components/icon";
 
-export const ResultsSection = ({ title, children }: { title: string; children: ReactNode }) => (
-  <div className="border-subtle bg-default mb-4 rounded-md border p-4">
-    <h4 className="text-emphasis mb-2 font-medium">{title}</h4>
-    {children}
+export const ResultsSection = ({
+  title,
+  children,
+  icon,
+}: {
+  title?: string;
+  children: ReactNode;
+  icon?: IconName;
+}) => (
+  <div className="bg-default border-muted mb-0.5 flex flex-col gap-0.5 rounded-2xl border p-1">
+    {(title || icon) && (
+      <div className="flex items-center gap-2 px-2 py-1">
+        {icon && (
+          <div className="border-subtle rounded-lg border p-1">
+            <Icon name={icon} className="h-4 w-4" />
+          </div>
+        )}
+        <h4 className="text-sm font-medium leading-none">{title}</h4>
+      </div>
+    )}
+    <div className="border-subtle rounded-xl border px-3 pt-2">{children}</div>
   </div>
 );
 
@@ -59,6 +77,8 @@ export const ResultsView = ({ onBack, chosenRoute }: ResultsViewProps) => {
 
   if (!chosenRoute) return null;
 
+  console.log("chosenRoute", chosenRoute);
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -70,20 +90,53 @@ export const ResultsView = ({ onBack, chosenRoute }: ResultsViewProps) => {
         <h3 className="text-emphasis text-lg font-semibold">{t("results")}</h3>
         <Button color="minimal" size="sm" variant="icon" StartIcon="x" onClick={onBack} />
       </div>
-      {RoutingPages.map((page) => {
-        if (page.value !== chosenRoute.action.type) return null;
-        return (
-          <span key={page.value} data-testid="test-routing-result-type">
-            {page.label}
-          </span>
-        );
-      })}
 
-      <ResultsSection title="Route">
-        <div className="flex items-center space-x-2">
-          <span className="text-default">team/sales/eu-enterprise</span>
+      {/* {chosenRoute.action.type === "customPageMessage" ? (
+        <span className="text-default" data-testid="test-routing-result">
+          {chosenRoute.action.value}
+        </span>
+      ) : chosenRoute.action.type === "externalRedirectUrl" ? (
+        <span className="text-default underline">
+          <a
+            target="_blank"
+            data-testid="test-routing-result"
+            href={
+              chosenRoute.action.value.includes("https://") || chosenRoute.action.value.includes("http://")
+                ? chosenRoute.action.value
+                : `http://${chosenRoute.action.value}`
+            }
+            rel="noreferrer">
+            {chosenRoute.action.value}
+          </a>
+        </span>
+      ) : (
+        <div className="flex flex-col space-y-2">
+          <span className="text-default underline">
+            <a
+              target="_blank"
+              className={classNames(
+                findTeamMembersMatchingAttributeLogicMutation.isPending && "pointer-events-none"
+              )}
+              href={membersMatchResult?.eventTypeRedirectUrl ?? eventTypeUrlWithoutParams}
+              rel="noreferrer"
+              data-testid="test-routing-result">
+              {chosenRoute.action.value}
+            </a>
+          </span>
+          {renderTeamMembersMatchResult(showAllData, findTeamMembersMatchingAttributeLogicMutation.isPending)}
         </div>
-      </ResultsSection>
+      )} */}
+
+      {chosenRoute.action.type === "eventTypeRedirectUrl" && (
+        <ResultsSection title={chosenRoute.name ?? ""} icon="zap">
+          <div className="flex items-center gap-2">
+            <div className="border-subtle rounded-lg border p-1">
+              <Icon name="calendar" className="h-4 w-4" />
+            </div>
+            <span className="text-default">{chosenRoute.action.value}</span>
+          </div>
+        </ResultsSection>
+      )}
 
       <ResultsSection title="Matching">
         <div className="space-y-3">
