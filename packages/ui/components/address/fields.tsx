@@ -5,7 +5,6 @@ import type { FieldValues, SubmitHandler, UseFormReturn } from "react-hook-form"
 import { FormProvider, useFormContext } from "react-hook-form";
 
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
 import { Alert } from "../alert";
@@ -53,13 +52,11 @@ type InputFieldProps = {
 
 const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(props, ref) {
   const id = useId();
-  const { t } = useLocale();
   const methods = useFormContext();
   const {
-    label = props.translations?.[props.name] || t(props.name),
+    label = props.translations?.[props.name] || props.name,
     labelProps,
-    placeholder = props.translations?.[`${props.name}_placeholder`] ||
-      (t(`${props.name}_placeholder`) !== `${props.name}_placeholder` ? t(`${props.name}_placeholder`) : ""),
+    placeholder = props.translations?.[`${props.name}_placeholder`] || "",
     className,
     addOnLeading,
     hint,
@@ -167,13 +164,11 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
   ref
 ) {
   const id = useId();
-  const { t } = useLocale();
   const methods = useFormContext();
   const {
-    label = props.translations?.[props.name as string] || t(props.name as string),
+    label = props.translations?.[props.name as string] || (props.name as string),
     labelProps,
-    placeholder = props.translations?.[`${props.name}_placeholder`] ||
-      (t(`${props.name}_placeholder`) !== `${props.name}_placeholder` ? t(`${props.name}_placeholder`) : ""),
+    placeholder = props.translations?.[`${props.name}_placeholder`] || "",
     translations = {},
     ...passThrough
   } = props;
