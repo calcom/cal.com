@@ -927,4 +927,17 @@ export class UserRepository {
       data: { metadata: { ...existingMetadata, stripeCustomerId } },
     });
   }
+
+  static async updateWhitelistWorkflows({
+    id,
+    whitelistWorkflows,
+  }: {
+    id: number;
+    whitelistWorkflows: boolean;
+  }) {
+    return prisma.user.update({
+      where: { id },
+      data: { whitelistWorkflows },
+    });
+  }
 }
