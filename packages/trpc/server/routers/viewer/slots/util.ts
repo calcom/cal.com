@@ -300,20 +300,21 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
 
   let userId: string | null = null;
   try {
-    userId = (await getToken({ req: ctx.req as any }))?.sub;
+    const token = await getToken({ req: ctx?.req as any });
+    userId = token?.sub ?? null;
   } catch (e) {
     logger.error("Failed to get user id", e);
   }
 
   const eventType = await monitorCallbackAsync(getRegularOrDynamicEventType, input, orgDetails);
 
+  if (!eventType) {
+    throw new TRPCError({ code: "NOT_FOUND" });
+  }
+
   // allow event owner to get slots without minimumBookingNotice
   if (eventType.userId == userId) {
     eventType.minimumBookingNotice = 0;
-  }
-
-  if (!eventType) {
-    throw new TRPCError({ code: "NOT_FOUND" });
   }
 
   const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
