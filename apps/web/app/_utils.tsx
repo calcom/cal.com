@@ -56,7 +56,13 @@ export const _generateMetadata = async (
   origin?: string,
   pathname?: string
 ) => {
-  const metadata = await _generateMetadataWithoutImage(getTitle, getDescription, hideBranding, origin);
+  const metadata = await _generateMetadataWithoutImage(
+    getTitle,
+    getDescription,
+    hideBranding,
+    origin,
+    pathname
+  );
   const image =
     SEO_IMG_OGIMG +
     constructGenericImage({
@@ -107,7 +113,13 @@ export const generateAppMetadata = async (
   origin?: string,
   pathname?: string
 ) => {
-  const metadata = await _generateMetadataWithoutImage(getTitle, getDescription, hideBranding, origin);
+  const metadata = await _generateMetadataWithoutImage(
+    getTitle,
+    getDescription,
+    hideBranding,
+    origin,
+    pathname
+  );
 
   const image = SEO_IMG_OGIMG + constructAppImage({ ...app, description: metadata.description });
 

@@ -21,7 +21,9 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
   return await _generateMetadata(
     (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
     (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`,
-    isBrandingHidden
+    isBrandingHidden,
+    undefined,
+    `/d/${await params.link}/${await params.slug}`
   );
 };
 
