@@ -190,18 +190,18 @@ export default function ImageUploader({
           <DialogClose
             color="minimal"
             translations={{
-              close: translations["cancel"] || t("cancel"),
+              close: translations["cancel"] || "Cancel",
             }}>
-            {translations["cancel"] || t("cancel")}
+            {translations["cancel"] || "Cancel"}
           </DialogClose>
           <DialogClose
             data-testid={testId ? `upload-${testId}` : "upload-avatar"}
             color="primary"
             onClick={() => showCroppedImage(croppedAreaPixels)}
             translations={{
-              close: translations["save"] || t("save"),
+              close: translations["save"] || "Save",
             }}>
-            {translations["save"] || t("save")}
+            {translations["save"] || "Save"}
           </DialogClose>
         </DialogFooter>
       </DialogContent>
