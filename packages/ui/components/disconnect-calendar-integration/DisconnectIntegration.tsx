@@ -1,5 +1,3 @@
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-
 import type { ButtonProps } from "../button/Button";
 import { Button } from "../button/Button";
 import { ConfirmationDialogContent } from "../dialog/ConfirmationDialogContent";
@@ -26,8 +24,6 @@ export const DisconnectIntegrationComponent = ({
   disabled?: boolean;
   translations?: Record<string, string>;
 }) => {
-  const { t } = useLocale();
-
   return (
     <>
       <Dialog open={isModalOpen} onOpenChange={onModalOpen}>
@@ -44,14 +40,11 @@ export const DisconnectIntegrationComponent = ({
         </DialogTrigger>
         <ConfirmationDialogContent
           variety="danger"
-          title={translations["remove_app"] || t("remove_app")}
-          confirmBtnText={translations["yes_remove_app"] || t("yes_remove_app")}
+          title={translations["remove_app"]}
+          confirmBtnText={translations["yes_remove_app"]}
           translations={translations}
           onConfirm={onDeletionConfirmation}>
-          <p className="mt-5">
-            {translations["are_you_sure_you_want_to_remove_this_app"] ||
-              t("are_you_sure_you_want_to_remove_this_app")}
-          </p>
+          <p className="mt-5">{translations["are_you_sure_you_want_to_remove_this_app"]}</p>
         </ConfirmationDialogContent>
       </Dialog>
     </>

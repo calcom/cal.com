@@ -2,8 +2,6 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import type { PropsWithChildren, ReactElement } from "react";
 import React from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-
 import { Icon } from "../icon";
 import { DialogClose, DialogContent } from "./Dialog";
 
@@ -30,15 +28,14 @@ export function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationD
 }
 
 export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogContentProps>) => {
-  const { t } = useLocale();
   const {
     title,
     variety,
     confirmBtn = null,
     translations = {},
-    confirmBtnText = translations["confirm"] || t("confirm"),
-    cancelBtnText = translations["cancel"] || t("cancel"),
-    loadingText = translations["loading"] || t("loading"),
+    confirmBtnText = translations["confirm"],
+    cancelBtnText = translations["cancel"],
+    loadingText = translations["loading"],
     isPending = false,
     onConfirm,
     children,
@@ -85,8 +82,8 @@ export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogC
             onClick={(e) => onConfirm && onConfirm(e)}
             data-testid="dialog-confirmation"
             translations={{
-              close: t("close"),
-              cancel: t("cancel"),
+              close: translations["close"],
+              cancel: translations["cancel"],
             }}>
             {isPending ? loadingText : confirmBtnText}
           </DialogClose>
@@ -94,8 +91,8 @@ export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogC
         <DialogClose
           disabled={isPending}
           translations={{
-            close: t("close"),
-            cancel: t("cancel"),
+            close: translations["close"],
+            cancel: translations["cancel"],
           }}>
           {cancelBtnText}
         </DialogClose>
