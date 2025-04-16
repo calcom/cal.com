@@ -22,6 +22,10 @@ export class ModalBox extends EmbedElement {
   }
 
   open() {
+    if (this.getAttribute("state") === "prerendering") {
+      // You can't show a modal thats prerendering or prerendered
+      return;
+    }
     this.show(true);
     const event = new Event("open");
     this.dispatchEvent(event);
@@ -77,13 +81,13 @@ export class ModalBox extends EmbedElement {
     }
 
     if (newValue === "loading") {
+      this.toggleLoader(true);
       this.open();
       this.hideIframe();
-      this.toggleLoader(true);
     } else if (newValue == "loaded" || newValue === "reopening") {
+      this.toggleLoader(false);
       this.open();
       this.showIframe();
-      this.toggleLoader(false);
     } else if (newValue == "closed") {
       this.explicitClose();
     } else if (newValue === "failed") {
@@ -93,6 +97,8 @@ export class ModalBox extends EmbedElement {
       const errorString = getErrorString(this.dataset.errorCode);
       this.getErrorElement().innerText = errorString;
     } else if (newValue === "prerendering") {
+      // We do a close here because we don't want the loaders to show up when the modal is prerendering
+      // As per HTML, both skeleton/loader are configured to be shown by default, so we need to hide them and infact we don't want to show up anything unexpected so we completely hide the customElement itself
       this.explicitClose();
     }
   }

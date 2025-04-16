@@ -10,7 +10,13 @@ import type { EventData, EventDataMap } from "./sdk-action-manager";
 import tailwindCss from "./tailwindCss";
 import type { UiConfig } from "./types";
 import { getMaxHeightForModal } from "./ui-utils";
-import { fromEntriesWithDuplicateKeys, getConfigProp, generateDataAttributes } from "./utils";
+import {
+  fromEntriesWithDuplicateKeys,
+  isRouterPath,
+  submitResponseAndGetRoutingResult,
+  generateDataAttributes,
+  getConfigProp,
+} from "./utils";
 
 export type { PrefillAndIframeAttrsConfig } from "./embed-iframe";
 
@@ -212,6 +218,8 @@ export class Cal {
   isPerendering?: boolean;
 
   static actionsManagers: Record<Namespace, SdkActionManager>;
+  // Store calLink separately,  because we could load different URL in iframe(derived from calLink e.g. calLink=Router -> redirects to eventBookingUrl and then we load that URL in iframe)
+  calLink: string | null = null;
 
   static ensureGuestKey(config: PrefillAndIframeAttrsConfig) {
     config = config || {};
@@ -380,7 +388,7 @@ export class Cal {
       }
     });
 
-    this.actionManager.on("__iframeReady", () => {
+    this.actionManager.on("__iframeReady", (e) => {
       this.iframeReady = true;
       if (this.iframe) {
         // It's a bit late to make the iframe visible here. We just needed to wait for the HTML tag of the embedded calLink to be rendered(which then informs the browser of the color-scheme)
@@ -389,7 +397,9 @@ export class Cal {
         // Once the embedded calLink starts not hiding the document, we should optimize this line to make the iframe visible earlier than this.
 
         // Imp: Don't use visibility:visible as that would make the iframe show even if the host element(A paren tof the iframe) has visibility:hidden set. Just reset the visibility to default
-        this.iframe.style.visibility = "";
+        if (!e.detail.data.isPrerendering) {
+          this.iframe.style.visibility = "";
+        }
       }
       this.doInIframe({ method: "parentKnowsIframeReady" } as const);
       this.iframeDoQueue.forEach((doInIframeArg) => {
@@ -410,11 +420,14 @@ export class Cal {
       }
     });
 
+    // Removes the loader
     this.actionManager.on("linkReady", () => {
       if (this.isPerendering) {
         // Absolute check to ensure that we don't mark embed as loaded if it's prerendering otherwise prerendered embed would showup without any user action
         return;
       }
+      this.iframe!.style.visibility = "";
+      // Removes the loader
       this.modalBox?.setAttribute("state", "loaded");
       this.inlineEl?.setAttribute("loading", "done");
     });
@@ -684,14 +697,64 @@ class CalApi {
       }),
       containerEl
     );
-    const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`);
 
+    const calConfig = this.cal.getInitConfig();
+
+    // When pre-rendering it would be null
+    // When user actually clicks the modalbox cta, it would be the URL for the webpage that user would be able to see.
+    // When he clicks the cta again, it would be the URL for the webpage the user last saw in iframe.
+    let lastLoadedUrlInInframeObject = this.cal.iframe ? new URL(this.cal.iframe.src) : null;
+    const newCalLink = calLink;
+    const previousCalLink = this.cal.calLink;
+    const previousCalLinkUrlObject = previousCalLink
+      ? new URL(previousCalLink, calConfig.calOrigin as string)
+      : null;
+    const newCalLinkUrlObject = new URL(newCalLink, calConfig.calOrigin as string);
+    this.cal.calLink = calLink;
+
+    const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`);
+    // Reset iframe should also consider change in config parameter of the fn
+    const resetIframe = previousCalLinkUrlObject?.toString() !== newCalLinkUrlObject.toString();
     if (existingModalEl) {
-      if (isConnectingToPreloadedModal) {
-        this.cal.doInIframe({
-          method: "connect",
-          arg: configWithGuestKeyAndColorScheme,
-        });
+      if (isConnectingToPreloadedModal || resetIframe) {
+        lastLoadedUrlInInframeObject = new URL(
+          lastLoadedUrlInInframeObject!.pathname.replace(/\/embed$/, ""),
+          lastLoadedUrlInInframeObject!.origin
+        );
+        const shouldSubmitResponse = newCalLinkUrlObject
+          ? isRouterPath(newCalLinkUrlObject.toString())
+          : false;
+        if (shouldSubmitResponse) {
+          const headlessRouterPageObject = newCalLinkUrlObject;
+          submitResponseAndGetRoutingResult({
+            headlessRouterPageUrl: headlessRouterPageObject.toString(),
+          }).then((result) => {
+            if ("redirect" in result) {
+              const newUrlThatWeWantToLoad = result.redirect;
+              let newUrlThatWeWantToLoadObject = new URL(newUrlThatWeWantToLoad);
+              newUrlThatWeWantToLoadObject = new URL(
+                newUrlThatWeWantToLoadObject.pathname.replace(/^\/team/, ""),
+                newUrlThatWeWantToLoadObject.origin
+              );
+              if (lastLoadedUrlInInframeObject!.pathname === newUrlThatWeWantToLoadObject.pathname) {
+                this.cal.doInIframe({
+                  method: "connect",
+                  arg: configWithGuestKeyAndColorScheme,
+                });
+              } else {
+                console.error("Preloaded modal couldn't be used", {
+                  oldPath: lastLoadedUrlInInframeObject!.pathname,
+                  newPath: newUrlThatWeWantToLoadObject.pathname,
+                });
+              }
+            }
+          });
+        } else {
+          this.cal.doInIframe({
+            method: "connect",
+            arg: configWithGuestKeyAndColorScheme,
+          });
+        }
         this.modalUid = uid;
         existingModalEl.setAttribute("state", "loading");
         return;
@@ -800,12 +863,14 @@ class CalApi {
     calLink,
     type,
     options = {},
+    pageType,
   }: {
     calLink: string;
     type?: "modal" | "floatingButton";
     options?: {
       prerenderIframe?: boolean;
     };
+    pageType?: string;
   }) {
     // eslint-disable-next-line prefer-rest-params
     validate(arguments[0], {
@@ -852,6 +917,9 @@ class CalApi {
           calLink,
           calOrigin: config.calOrigin,
           __prerender: true,
+          config: {
+            "cal.embed.pageType": pageType,
+          },
         });
       } else {
         console.warn("Ignoring - full preload for inline embed and instead preloading assets only");
@@ -862,10 +930,19 @@ class CalApi {
     }
   }
 
-  prerender({ calLink, type }: { calLink: string; type: "modal" | "floatingButton" }) {
+  prerender({
+    calLink,
+    type,
+    pageType,
+  }: {
+    calLink: string;
+    type: "modal" | "floatingButton";
+    pageType?: string;
+  }) {
     this.preload({
       calLink,
       type,
+      pageType,
     });
   }
 

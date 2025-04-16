@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useCallback } from "react";
 
 import type { Message } from "./embed";
@@ -40,7 +39,7 @@ declare global {
       applyCssVars: (cssVarsPerTheme: UiConfig["cssVarsPerTheme"]) => void;
     };
     // Marks that Booker has moved to some non-"loading" state
-    _embedBookerState?: "initializing" | "done";
+    _embedBookerState?: "initializing" | "slotsLoading" | "slotsLoaded";
   }
 }
 
@@ -50,23 +49,39 @@ declare global {
 const embedStore = {
   // Handles the commands of routing received from parent even when React hasn't initialized and nextRouter isn't available
   router: {
-    setNextRouter(nextRouter: ReturnType<typeof useRouter>) {
-      this.nextRouter = nextRouter;
-
-      // Empty the queue after running push on nextRouter. This is important because setNextRouter is be called multiple times
-      this.queue.forEach((url) => {
-        nextRouter.push(url);
-        this.queue.splice(0, 1);
-      });
-    },
-    nextRouter: null as null | ReturnType<typeof useRouter>,
-    queue: [] as string[],
-    goto(url: string) {
-      if (this.nextRouter) {
-        this.nextRouter.push(url.toString());
-      } else {
-        this.queue.push(url);
-      }
+    /**
+     * When we do the history push, it is possible that
+     * - React might revert that change depending on in what state React is in while initializing
+     * - So, we use a declarative approach to ensure that our requirement is continuously met
+     */
+    ensureQueryParamsInUrl({
+      toBeThereSearchParams,
+      toRemoveParams,
+    }: {
+      toBeThereSearchParams: URLSearchParams;
+      toRemoveParams: string[];
+    }) {
+      const interval = setInterval(() => {
+        const url = new URL(document.URL);
+        let hasChanged = false;
+        for (const [key, value] of toBeThereSearchParams.entries()) {
+          if (url.searchParams.get(key) !== value) {
+            url.searchParams.set(key, value);
+            hasChanged = true;
+          }
+        }
+        for (const key of toRemoveParams) {
+          if (url.searchParams.has(key)) {
+            url.searchParams.delete(key);
+            hasChanged = true;
+          }
+        }
+        if (hasChanged) {
+          console.log("history.pushState", url);
+          window.history.pushState({}, "", url.toString());
+        }
+      }, 100);
+      return () => clearInterval(interval);
     },
   },
 
@@ -199,8 +214,6 @@ const useUrlChange = (callback: (newUrl: string) => void) => {
   const pathname = currentFullUrl?.pathname ?? "";
   const searchParams = currentFullUrl?.searchParams ?? null;
   const lastKnownUrl = useRef(`${pathname}?${searchParams}`);
-  const router = useRouter();
-  embedStore.router.setNextRouter(router);
   useEffect(() => {
     const newUrl = `${pathname}?${searchParams}`;
     if (lastKnownUrl.current !== newUrl) {
@@ -309,8 +322,25 @@ function getEmbedType() {
   }
 }
 
+/**
+ * It is important to be able to check realtime(instead of storing isLinkReady as a variable) if the link is ready, because there is a possibility that  booker might have moved to non-ready state from ready state
+ */
+function isLinkReady() {
+  if (!embedStore.parentInformedAboutContentHeight) {
+    return false;
+  }
+
+  if (isBookerPage()) {
+    // Let's wait for Booker to be ready before showing the embed
+    // It means that booker has loaded all its data and is ready to show
+    // TODO: We could try to mark the embed as ready earlier in this case not relying on document.readyState
+    return isBookerReady();
+  }
+  return true;
+}
+
 function isBookerReady() {
-  return window._embedBookerState === "done";
+  return window._embedBookerState === "slotsLoaded";
 }
 
 function isBookerPage() {
@@ -401,16 +431,7 @@ const methods = {
     log("Method: `parentKnowsIframeReady` called");
 
     runAsap(function tryInformingLinkReady() {
-      // TODO: Do it by attaching a listener for change in parentInformedAboutContentHeight
-      if (!embedStore.parentInformedAboutContentHeight) {
-        runAsap(tryInformingLinkReady);
-        return;
-      }
-
-      // Let's wait for Booker to be ready before showing the embed
-      // It means that booker has loaded all its data and is ready to show
-      // TODO: We could try to mark the embed as ready earlier in this case not relying on document.readyState
-      if (isBookerPage() && !isBookerReady()) {
+      if (!isLinkReady()) {
         runAsap(tryInformingLinkReady);
         return;
       }
@@ -423,21 +444,17 @@ const methods = {
     });
   },
   connect: function connect(queryObject: PrefillAndIframeAttrsConfig) {
-    const currentUrl = new URL(document.URL);
-    const searchParams = currentUrl.searchParams;
-    searchParams.delete("preload");
+    log("Method: connect, connected already loaded iframe and updated with query params", queryObject);
+    const toBeThereSearchParams = new URLSearchParams();
+    // TODO: Do we need to handle duplicate params here?
     for (const [key, value] of Object.entries(queryObject)) {
-      if (value === undefined) {
-        continue;
-      }
-      if (value instanceof Array) {
-        value.forEach((val) => searchParams.append(key, val));
-      } else {
-        searchParams.set(key, value as string);
-      }
+      toBeThereSearchParams.set(key, value as string);
     }
 
-    connectPreloadedEmbed({ url: currentUrl });
+    connectPreloadedEmbed({
+      toBeThereSearchParams,
+      toRemoveParams: ["preload", "cal.skipGetSchedule"],
+    });
   },
 };
 
@@ -601,7 +618,9 @@ function main() {
 }
 
 function initializeAndSetupEmbed() {
-  sdkActionManager?.fire("__iframeReady", {});
+  sdkActionManager?.fire("__iframeReady", {
+    isPrerendering: isPrerendering(),
+  });
 
   // Only NOT_INITIALIZED -> INITIALIZED transition is allowed
   if (embedStore.state !== EMBED_IFRAME_STATE.NOT_INITIALIZED) {
@@ -642,15 +661,29 @@ function actOnColorScheme(colorScheme: string | null | undefined) {
  * Apply configurations to the preloaded page and then ask parent to show the embed
  * url has the config as params
  */
-function connectPreloadedEmbed({ url }: { url: URL }) {
-  // TODO: Use a better way to detect that React has initialized. Currently, we are using setTimeout which is a hack.
-  const MAX_TIME_TO_LET_REACT_APPLY_UI_CHANGES = 700;
-  // It can be fired before React has initialized, so use embedStore.router(which is a nextRouter wrapper that supports a queue)
-  embedStore.router.goto(url.toString());
-  setTimeout(() => {
-    // Firing this event would stop the loader and show the embed
+function connectPreloadedEmbed({
+  toBeThereSearchParams,
+  toRemoveParams,
+}: {
+  toBeThereSearchParams: URLSearchParams;
+  toRemoveParams: string[];
+}) {
+  const stopEnsuringQueryParamsInUrl = embedStore.router.ensureQueryParamsInUrl({
+    toBeThereSearchParams,
+    toRemoveParams,
+  });
+  // Firing this event would stop the loader and show the embed
+  // This causes loader to go away later.
+  runAsap(function tryToFireLinkReady() {
+    if (!isLinkReady()) {
+      runAsap(tryToFireLinkReady);
+      return;
+    }
+    // link is ready now, so we could stop doing it.
+    // Also the page is visible to user now.
+    stopEnsuringQueryParamsInUrl();
     sdkActionManager?.fire("linkReady", {});
-  }, MAX_TIME_TO_LET_REACT_APPLY_UI_CHANGES);
+  });
 }
 
 const isPrerendering = () => {

@@ -98,3 +98,33 @@ export function generateDataAttributes(props: Record<string, string | null | und
     .map(([key, value]) => `data-${hyphenate(key)}="${escapeHtmlAttribute(value)}"`)
     .join(" ");
 }
+
+export function isRouterPath(path: string) {
+  // URL doesn't matter
+  const urlObject = new URL(path, "http://baseUrl.example");
+  return urlObject.pathname === "/router";
+}
+
+export async function submitResponseAndGetRoutingResult({
+  headlessRouterPageUrl,
+}: {
+  headlessRouterPageUrl: string;
+}) {
+  const headlessRouterUrlObject = new URL(headlessRouterPageUrl);
+  const searchParams = headlessRouterUrlObject.searchParams;
+  const headlessRouterApiUrl = `${headlessRouterUrlObject.origin}${headlessRouterUrlObject.pathname.replace(
+    /^\/?router/,
+    "/api/router"
+  )}`;
+  const response = await fetch(headlessRouterApiUrl, {
+    method: "POST",
+    body: JSON.stringify(fromEntriesWithDuplicateKeys(searchParams.entries())),
+  });
+  const result = await response.json();
+  if (result.status === "success") {
+    return result.data as { redirect: string } | { message: string };
+  } else {
+    console.warn("Error submitting response and getting routing result", result);
+    return { error: result.data.message } as { error: string };
+  }
+}

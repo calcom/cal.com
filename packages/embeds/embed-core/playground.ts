@@ -669,6 +669,24 @@ if (only === "all" || only === "ns:skeletonDemoElementClick") {
   });
 }
 
+if (only === "all" || only === "ns:routingFormPrerender") {
+  Cal("init", "routingFormPrerender", {
+    debug: true,
+    origin: "http://acme.cal.local:3000",
+  });
+
+  Cal.ns.routingFormPrerender("prerender", {
+    calLink: "team1/team1-event-1?cal.skipGetSchedule=true",
+    type: "modal",
+    pageType: "team.event.booking.slots",
+  });
+
+  Cal.ns.routingFormPrerender("on", {
+    action: "*",
+    callback,
+  });
+}
+
 // Keep it at the bottom as it works on the API defined above for various cases
 (function ensureScrolledToCorrectIframe() {
   // Reset the hash so that we can scroll to correct iframe

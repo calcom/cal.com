@@ -46,7 +46,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   };
 
   if (!queryParsed.success) {
-    log.warn("Error parsing query", queryParsed.error);
+    log.warn("Error parsing query", { issues: queryParsed.error.issues, data: context.query });
     return {
       notFound: true,
     };

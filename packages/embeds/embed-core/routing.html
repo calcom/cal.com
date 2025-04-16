@@ -1,0 +1,104 @@
+
+<html>
+  <head>
+    <title>Embed Playground - Routing Form</title>
+    <!-- <link rel="prerender" href="http://localhost:3000/free"> -->
+    <!-- <script src="./src/embed.ts" type="module"></script> -->
+    <script>
+      const url = new URL(document.URL);
+      window.only = url.searchParams.get("only")
+      window.calOrigin = url.searchParams.get("calOrigin") || "http://localhost:3000";
+      window.calLink = url.searchParams.get("calLink");
+
+      if (!location.search.includes("nonResponsive")) {
+        document.write('<meta name="viewport" content="width=device-width"/>');
+      }
+  
+    </script>
+    <script>
+      function embedSnippet() {
+        (function (C, A, L) {
+        let p = function (a, ar) {
+          a.q.push(ar);
+        };
+        let d = C.document;
+          C.Cal =
+            C.Cal ||
+            function () {
+              let cal = C.Cal;
+              let ar = arguments;
+              if (!cal.loaded) {
+                cal.ns = {};
+                cal.q = cal.q || [];
+                d.head.appendChild(d.createElement("script")).src = A;
+                cal.loaded = true;
+              }
+              if (ar[0] === L) {
+                const api = function () {
+                  p(api, arguments);
+                };
+                const namespace = ar[1];
+                api.q = api.q || [];
+                if (typeof namespace === "string"){
+                  // Make sure that even after re-execution of the snippet, the namespace is not overridden
+                  cal.ns[namespace] = cal.ns[namespace] || api; 
+                  p(cal.ns[namespace], ar); 
+                  p(cal, ['initNamespace', namespace])
+                } else p(cal, ar);
+                return;
+              }
+              p(cal, ar);
+            };
+        })(window, window.calOrigin + "/embed/embed.js", "init");
+      }
+      embedSnippet();
+      </script>
+ 
+    <style>
+      body {
+        background: linear-gradient(
+          90deg,
+          rgba(120, 116, 186, 1) 0%,
+          rgba(221, 221, 255, 1) 41%,
+          rgba(148, 232, 249, 1) 100%
+        );
+      }
+      .inline-embed-container {
+        /* border: 1px solid black; */
+        margin-bottom: 5px;
+        border-bottom: 1px solid;
+      }
+
+      .loader {
+        color: green;
+      }
+      * {
+        --cal-brand-color: gray;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cal-booking-place-routingFormPrerender">
+      <a href="?only=ns:routingFormPrerender">Routing Form Prerender Demo</a>
+      <h3><button data-cal-namespace="routingFormPrerender" data-cal-preload="team1/team1-event-1" data-cal-origin="http://acme.cal.local:3000" data-cal-link="router?form=48994044-62dc-474c-8ad4-ce239c67f889&email=john@example.com&name=John Doe" data-cal-config='{"cal.embed.pageType":"team.event.booking.slots"}'>Routing Form Prerender Demo</button></h3>
+      <form id="cal-booking-place-routingFormPrerender-form">
+        <input type="text" name="name" placeholder="John Doe" />
+        <input type="email" name="email" placeholder="john@example.com" />
+      </form>
+      <button id="cal-booking-place-routingFormPrerender-submit" data-cal-namespace="routingFormPrerender" data-cal-preload="team1/team1-event-1" data-cal-origin="http://acme.cal.local:3000"  data-cal-config='{"cal.embed.pageType":"team.event.booking.slots"}'>Submit</button>
+      <script>
+        requestAnimationFrame(function updateSubmitButtonLink() {
+          const form = document.getElementById("cal-booking-place-routingFormPrerender-form");
+          const name = form.querySelector("input[name='name']").value;
+          const email = form.querySelector("input[name='email']").value;
+          if (name && email) {
+            document.getElementById("cal-booking-place-routingFormPrerender-submit").setAttribute("data-cal-link", `router?form=48994044-62dc-474c-8ad4-ce239c67f889&email=${email}&name=${name}`);
+          }
+          requestAnimationFrame(updateSubmitButtonLink);
+        });
+      </script>
+    </div>
+    <script type="module" src="./playground.ts"></script>
+    </script>
+  </body>
+</html>

@@ -23,6 +23,18 @@ export type UseScheduleWithCacheArgs = {
   teamMemberEmail?: string | null;
 };
 
+function updateEmbedBookerState({ isGetSchedulePending }: { isGetSchedulePending: boolean }) {
+  // Ensure that only after the bookerState is reflected, we update the embedIsBookerReady
+  if (typeof window !== "undefined") {
+    const _window = window as Window & {
+      _embedBookerState?: "initializing" | "slotsLoading" | "slotsLoaded";
+    };
+    if (!isGetSchedulePending) {
+      _window._embedBookerState = "slotsLoaded";
+    }
+  }
+}
+
 export const useSchedule = ({
   month,
   timezone,
@@ -56,7 +68,7 @@ export const useSchedule = ({
   const utils = trpc.useUtils();
   const routingFormResponseIdParam = searchParams?.get("cal.routingFormResponseId");
   const email = searchParams?.get("email");
-
+  const skipGetSchedule = searchParams?.get("cal.skipGetSchedule") === "true";
   const routingFormResponseId = routingFormResponseIdParam
     ? parseInt(routingFormResponseIdParam, 10)
     : undefined;
@@ -79,6 +91,7 @@ export const useSchedule = ({
     orgSlug,
     teamMemberEmail,
     routedTeamMemberIds,
+    skipGetSchedule,
     skipContactOwner,
     shouldServeCache,
     routingFormResponseId,
@@ -98,6 +111,7 @@ export const useSchedule = ({
     // It allows long sitting users to get latest available slots
     refetchInterval: PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS * 1000,
     enabled:
+      !skipGetSchedule &&
       Boolean(username) &&
       Boolean(month) &&
       Boolean(timezone) &&
@@ -111,6 +125,9 @@ export const useSchedule = ({
   } else {
     schedule = trpc.viewer.slots.getSchedule.useQuery(input, options);
   }
+
+  updateEmbedBookerState({ isGetSchedulePending: schedule.isPending });
+
   return {
     ...schedule,
     /**

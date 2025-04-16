@@ -45,8 +45,12 @@ import { isTimeSlotAvailable } from "./utils/isTimeslotAvailable";
 function updateEmbedBookerState({ bookerState }: { bookerState: BookerState }) {
   // Ensure that only after the bookerState is reflected, we update the embedIsBookerReady
   if (typeof window !== "undefined") {
-    (window as Window & { _embedBookerState?: "initializing" | "done" })._embedBookerState =
-      bookerState && bookerState !== "loading" ? "done" : "initializing";
+    const _window = window as Window & {
+      _embedBookerState?: "initializing" | "slotsLoading" | "slotsLoaded";
+    };
+    if (!_window._embedBookerState) {
+      _window._embedBookerState = bookerState && bookerState !== "loading" ? "slotsLoading" : "initializing";
+    }
   }
 }
 
