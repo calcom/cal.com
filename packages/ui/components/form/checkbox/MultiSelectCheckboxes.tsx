@@ -10,7 +10,6 @@ import type {
 import { components } from "react-select";
 import type { Props } from "react-select";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
 import { Select } from "../select";
@@ -56,20 +55,24 @@ type MultiSelectionCheckboxesProps = {
   selected: Option[];
   setValue: (s: Option[]) => unknown;
   countText?: string;
+  translations: Record<string, string>;
 };
 
 const MultiValue = ({
   index,
   getValue,
   countText,
+  translations,
 }: {
   index: number;
   getValue: () => readonly Option[];
   countText: string;
+  translations: Record<string, string>;
 }) => {
-  const { t } = useLocale();
   const count = getValue().filter((option) => option.value !== "all").length;
-  return <>{!index && count !== 0 && <div>{t(countText, { count })}</div>}</>;
+  return (
+    <>{!index && count !== 0 && <div>{translations[countText].replace("{count}", count.toString())}</div>}</>
+  );
 };
 
 export default function MultiSelectCheckboxes({
@@ -81,10 +84,11 @@ export default function MultiSelectCheckboxes({
   className,
   isDisabled,
   countText,
+  translations,
 }: Omit<Props, "options"> & MultiSelectionCheckboxesProps) {
   const additonalComponents = {
     MultiValue: (props: MultiValueProps<Option, boolean, GroupBase<Option>>) => (
-      <MultiValue {...props} countText={countText || "selected"} />
+      <MultiValue {...props} countText={countText || "selected"} translations={translations} />
     ),
   };
 

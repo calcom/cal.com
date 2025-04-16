@@ -1,5 +1,3 @@
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-
 import { Button } from "../button";
 import { EmailField } from "../form";
 import { Icon } from "../icon";
@@ -11,11 +9,10 @@ interface MultiEmailProps {
   label: string;
   setValue: (value: string[]) => void;
   placeholder?: string;
-  translations?: Record<string, string>;
+  translations: Record<string, string>;
 }
 
-function MultiEmail({ value, readOnly, label, setValue, placeholder, translations = {} }: MultiEmailProps) {
-  const { t } = useLocale();
+function MultiEmail({ value, readOnly, label, setValue, placeholder, translations }: MultiEmailProps) {
   value = value || [];
   const inputClassName =
     "dark:placeholder:text-muted focus:border-emphasis border-subtle block w-full rounded-md border-default text-sm focus:ring-black disabled:bg-emphasis disabled:hover:cursor-not-allowed dark:selection:bg-green-500 disabled:dark:text-subtle";
@@ -71,7 +68,7 @@ function MultiEmail({ value, readOnly, label, setValue, placeholder, translation
                 updatedValue.push("");
                 setValue(updatedValue);
               }}>
-              {translations["add_another"] || t("add_another")}
+              {translations["add_another"]}
             </Button>
           )}
         </div>

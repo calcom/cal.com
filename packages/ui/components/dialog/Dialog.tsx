@@ -5,7 +5,6 @@ import { cva, type VariantProps } from "class-variance-authority";
 import type { ForwardRefExoticComponent, ReactNode } from "react";
 import React from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
 import type { ButtonProps } from "../button";
@@ -181,10 +180,10 @@ export function DialogClose(
     onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
     disabled?: boolean;
     color?: ButtonProps["color"];
+    translations: Record<string, string>;
   } & React.ComponentProps<typeof Button>
 ) {
-  const { t } = useLocale();
-  const { className, ...buttonProps } = props;
+  const { className, translations, ...buttonProps } = props;
 
   return (
     <DialogPrimitive.Close asChild {...props.dialogCloseProps}>
@@ -193,7 +192,7 @@ export function DialogClose(
         color={props.color || "minimal"}
         className={classNames(props.color === "destructive" && "destructive", className)}
         {...buttonProps}>
-        {props.children ? props.children : t("close")}
+        {props.children ? props.children : translations["close"]}
       </Button>
     </DialogPrimitive.Close>
   );
