@@ -1,108 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import twilio from "twilio";
 
-import { getEntityToCharge } from "@calcom/features/ee/billing/lib/credits";
+import { chargeCredits } from "@calcom/features/ee/billing/lib/credits";
 import { createTwilioClient } from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
-import { CreditType } from "@calcom/prisma/enums";
 
 const twilioClient = createTwilioClient();
-
-async function createExpenseLog(props: {
-  bookingUid: string;
-  smsSid: string;
-  teamId?: number;
-  userId?: number;
-  creditBalanceId?: string;
-  credits?: number;
-  creditType?: CreditType;
-}) {
-  const { credits, creditType, bookingUid, smsSid, teamId, userId, creditBalanceId } = props;
-
-  if (creditBalanceId) {
-    await prisma.creditExpenseLog.create({
-      data: {
-        creditBalanceId: creditBalanceId,
-        credits,
-        creditType,
-        date: new Date(),
-        bookingUid,
-        smsSid,
-      },
-    });
-    if (creditType === CreditType.ADDITIONAL) {
-      prisma.creditBalance.update({
-        where: {
-          id: creditBalanceId,
-        },
-        data: {
-          additionalCredits: {
-            decrement: credits,
-          },
-        },
-      });
-    }
-    return;
-  }
-
-  // if creditBalanceId is not provided
-  let creditBalance: { id: string } | null = null;
-
-  if (teamId) {
-    creditBalance = await prisma.creditBalance.findUnique({
-      where: { teamId: teamId },
-    });
-  } else if (userId) {
-    creditBalance = await prisma.creditBalance.findUnique({
-      where: { userId: userId },
-    });
-  }
-
-  if (creditBalance) {
-    await prisma.creditExpenseLog.create({
-      data: {
-        creditBalanceId: creditBalance.id,
-        credits,
-        creditType,
-        date: new Date(),
-        bookingUid,
-        smsSid,
-      },
-    });
-    if (creditType === CreditType.ADDITIONAL) {
-      prisma.creditBalance.update({
-        where: {
-          id: creditBalance.id,
-        },
-        data: {
-          additionalCredits: {
-            decrement: credits,
-          },
-        },
-      });
-    }
-  } else {
-    const newCreditBalance = await prisma.creditBalance.create({
-      data: {
-        userId: userId,
-        teamId: teamId,
-      },
-    });
-    return prisma.creditExpenseLog.create({
-      data: {
-        credits,
-        creditType,
-        date: new Date(),
-        bookingUid,
-        smsSid,
-        creditBalanceId: newCreditBalance.id,
-      },
-    });
-  }
-}
 
 /*
   Twilio status callback: creates expense log when sms is delivered or undelivered
@@ -136,13 +42,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         }
 
         if (!IS_SMS_CREDITS_ENABLED) {
-          await createExpenseLog({
+          await chargeCredits({
+            credits: 0,
             teamId: parsedTeamId,
             userId: parsedUserId,
             bookingUid: parsedBookingUid,
             smsSid,
-            credits: 0,
-            creditType: CreditType.MONTHLY,
           });
           return res.status(200).send(`SMS credits are not enabled. Credits set to 0`);
         }
@@ -163,12 +68,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           }
 
           if (teamIdToCharge) {
-            await createExpenseLog({
+            await chargeCredits({
               teamId: teamIdToCharge,
               bookingUid: parsedBookingUid,
               smsSid,
               credits: 0,
-              creditType: CreditType.MONTHLY,
             });
             return res.status(200).send(`SMS to US and CA are free on a team plan. Credits set to 0`);
           }
@@ -193,45 +97,28 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         }
 
         if (orgId) {
-          await createExpenseLog({
-            teamId: orgId,
-            bookingUid: parsedBookingUid,
-            smsSid,
-            credits: 0,
-            creditType: CreditType.MONTHLY,
-          });
+          await chargeCredits({ teamId: orgId, bookingUid: parsedBookingUid, smsSid, credits: 0 });
+
           return res.status(200).send(`SMS are free for organziations. Credits set to 0`);
         }
 
+        // todo: make reusable function in twilioProvider
         const message = await twilioClient.messages(smsSid).fetch();
 
         const twilioPrice = message.price ? parseFloat(message.price) : 0; // todo: test this if price is not available
 
         const price = twilioPrice * 1.8;
-        const credits = price * 100 * -1;
+        const credits = price * 100 * -1; // todo: if price is given this should be at least 1 credit
 
-        // find who will be charged and create expense log
-        const billingInfo = await getEntityToCharge({
+        const billingInfo = await chargeCredits({
           credits,
-          userId: parsedUserId,
           teamId: parsedTeamId,
+          userId: parsedUserId,
+          smsSid,
+          bookingUid: parsedBookingUid,
         });
 
         if (billingInfo) {
-          await createExpenseLog({
-            teamId: billingInfo.teamId,
-            userId: billingInfo.userId,
-            bookingUid: parsedBookingUid,
-            smsSid,
-            // set to undefined if price is not yet available, cron job will handle it
-            credits: credits || undefined,
-            creditType: CreditType.MONTHLY,
-          });
-
-          if (credits) {
-            //await handleLowCreditBalance();
-          }
-
           return res
             .status(200)
             .send(

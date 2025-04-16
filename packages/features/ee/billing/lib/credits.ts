@@ -1,92 +1,73 @@
 import dayjs from "@calcom/dayjs";
 import { sendCreditBalanceLowWarningEmails } from "@calcom/emails";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
+import { CreditType } from "@calcom/prisma/enums";
 import { getAllCreditsForTeam } from "@calcom/trpc/server/routers/viewer/credits/util";
 import { isSubscriptionActive } from "@calcom/trpc/server/routers/viewer/teams/util";
 
 import { InternalTeamBilling } from "../../billing/teams/internal-team-billing";
 
-/* WIP */
-export async function getMonthlyCredits(teamId: number) {
-  const team = await prisma.team.findUnique({
-    where: {
-      id: teamId,
-    },
-    select: {
-      members: {
-        select: {
-          accepted: true,
-        },
-      },
-      id: true,
-      metadata: true,
-      parentId: true,
-      isOrganization: true,
-    },
+const log = logger.getSubLogger({ prefix: ["[credits]"] });
+
+// done, write test
+export async function chargeCredits({
+  userId,
+  teamId,
+  credits,
+  bookingUid,
+  smsSid,
+}: {
+  userId?: number;
+  teamId?: number;
+  credits: number | null;
+  bookingUid: string;
+  smsSid: string;
+}) {
+  let teamToCharge: number | null = credits === 0 && teamId ? teamId : null;
+  let userToCharge: number | null = credits === 0 && userId ? userId : null;
+  let creditType: CreditType = CreditType.ADDITIONAL;
+  let remainingCredits;
+  if (credits !== 0) {
+    const result = await getTeamOrUserToCharge({
+      credits: credits ?? 1, // if we don't have exact credits, we check for at east 1 credit available
+      userId,
+      teamId,
+    });
+    teamToCharge = result?.teamId ?? null;
+    userToCharge = result?.userId ?? null;
+    creditType = result?.creditType ?? creditType;
+    remainingCredits = result?.availableCredits;
+  }
+
+  if (!teamToCharge && !userToCharge) {
+    log.error("No team or user found to charge. No credit expense log created");
+    return null;
+  }
+
+  await createExpenseLog({
+    bookingUid,
+    smsSid,
+    teamId: teamToCharge,
+    userId: !teamToCharge ? userToCharge : null,
+    credits,
+    creditType,
   });
 
-  if (!team) return 0;
-
-  const teamBillingService = new InternalTeamBilling(team);
-  const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
-
-  if (isSubscriptionActive(subscriptionStatus)) {
-    return 0;
+  if (credits) {
+    await handleLowCreditBalance({
+      userId: userToCharge,
+      teamId: teamToCharge,
+      remainingCredits,
+    });
   }
 
-  const activeMembers = team.members.filter((member) => member.accepted).length;
-
-  // todo: where do I get price per seat from? --> different for team and org
-  const pricePerSeat = 15;
-  const totalMonthlyCredits = activeMembers * ((pricePerSeat / 2) * 100);
-
-  return totalMonthlyCredits;
-}
-
-async function hasTeamAvailableCredits(teamId: number) {
-  const team = await prisma.team.findUnique({
-    where: {
-      id: teamId,
-    },
-    select: {
-      credits: {
-        select: {
-          limitReachedAt: true,
-          additionalCredits: true,
-        },
-      },
-      parent: {
-        select: {
-          credits: {
-            select: {
-              limitReachedAt: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (team?.parent) {
-    // check if org has available credits
-    if (!team?.parent.credits?.limitReachedAt) {
-      return true;
-    }
-
-    // check if a team has left over additional credits
-    if (team?.credits?.additionalCredits && team?.credits.additionalCredits > 0) {
-      return true;
-    }
-    return false;
-  }
-
-  // non org event type
-  if (!team?.credits?.limitReachedAt) {
-    return true;
-  }
-  return false;
+  return {
+    teamId: teamToCharge,
+    userId: teamToCharge ? null : userToCharge,
+  };
 }
 
 export async function hasAvailableCredits({
@@ -134,10 +115,54 @@ export async function hasAvailableCredits({
   return false;
 }
 
+async function hasTeamAvailableCredits(teamId: number) {
+  const team = await prisma.team.findUnique({
+    where: {
+      id: teamId,
+    },
+    select: {
+      credits: {
+        select: {
+          limitReachedAt: true,
+          additionalCredits: true,
+        },
+      },
+      parent: {
+        select: {
+          credits: {
+            select: {
+              limitReachedAt: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (team?.parent) {
+    // check if org has available credits
+    if (!team?.parent.credits?.limitReachedAt) {
+      return true;
+    }
+
+    // if org limit is reached, check if team has left over additional credits
+    if (team?.credits?.additionalCredits && team?.credits.additionalCredits > 0) {
+      return true;
+    }
+    return false;
+  }
+
+  // non org event type
+  if (!team?.credits?.limitReachedAt) {
+    return true;
+  }
+  return false;
+}
+
 /*
   credits can be 0, then we just check for available credits
 */
-export async function getEntityToCharge({
+export async function getTeamOrUserToCharge({
   credits,
   userId,
   teamId,
@@ -164,7 +189,7 @@ export async function getEntityToCharge({
     return {
       teamId,
       availableCredits: 0, //todo: get available credits, montlhy + additional - credits
-      creditBalanceId: creditBalance.id,
+      creditType: CreditType.ADDITIONAL, // todo
     };
   }
 
@@ -184,21 +209,95 @@ export async function getEntityToCharge({
     return {
       userId,
       availableCredits: 0, //todo: get available credits, montlhy + additional - credits
-      creditBalanceId: creditBalance.id,
+      creditType: CreditType.ADDITIONAL, // todo
     };
   }
 
   return null;
 }
 
+// done, write test
+async function createExpenseLog(props: {
+  bookingUid: string;
+  smsSid: string;
+  teamId: number | null;
+  userId: number | null;
+  credits: number | null;
+  creditType: CreditType;
+}) {
+  const { credits, creditType, bookingUid, smsSid, teamId, userId } = props;
+
+  if (!userId && !teamId) return;
+
+  let creditBalance: { id: string } | null = null;
+
+  if (teamId) {
+    creditBalance = await prisma.creditBalance.findUnique({
+      where: {
+        teamId: teamId,
+      },
+    });
+  } else if (userId) {
+    creditBalance = await prisma.creditBalance.findUnique({
+      where: {
+        userId: userId,
+      },
+    });
+  }
+
+  if (!creditBalance) {
+    creditBalance = await prisma.creditBalance.create({
+      data: {
+        teamId: teamId,
+        userId: teamId ? null : userId,
+      },
+    });
+  }
+
+  if (credits && creditType === CreditType.ADDITIONAL) {
+    prisma.creditBalance.update({
+      where: {
+        id: creditBalance.id,
+      },
+      data: {
+        additionalCredits: {
+          decrement: credits,
+        },
+      },
+    });
+  }
+
+  if (creditBalance) {
+    // also track logs with undefined credits (will be set on the cron job)
+    await prisma.creditExpenseLog.create({
+      data: {
+        creditBalanceId: creditBalance.id,
+        credits,
+        creditType,
+        date: new Date(),
+        bookingUid,
+        smsSid,
+      },
+    });
+  }
+}
+
+// some more todos + tests
+/*
+Called when we know the exact amount of credits to be charged:
+- Sets `limitReachedAt` and `warningSentAt`
+- Sends warning email if balance is low
+- Sends limit reached email
+- cancels all already scheduled SMS (from the next two hours)
+*/
 export async function handleLowCreditBalance({
   userId,
   teamId,
-  remainingCredits,
+  remainingCredits = 0,
 }: {
   userId?: number | null; // either userId or teamId is given never both
   teamId?: number | null;
-  remainingCredits: number;
+  remainingCredits?: number;
 }) {
   if (userId && !teamId) {
     // check if user is on a team/org plan
@@ -212,8 +311,8 @@ export async function handleLowCreditBalance({
     // user paid with left over personal credits, but is on a team/org plan, so we don't need to handle low credit balance
     if (team) return;
 
-    // don't hard code credits amount
-    const warningLimitUser = 500;
+    // todo: don't hard code credits amount
+    const warningLimitUser = 200;
     if (remainingCredits < warningLimitUser) {
       const creditBalance = await prisma.creditBalance.findUnique({
         where: { userId },
@@ -222,7 +321,6 @@ export async function handleLowCreditBalance({
       if (creditBalance?.limitReachedAt) return; // user has already reached limit
 
       if (remainingCredits <= 0) {
-        //await sendDisableSmsEmail(userId);
         await prisma.creditBalance.update({
           where: { userId },
           data: {
@@ -230,13 +328,14 @@ export async function handleLowCreditBalance({
           },
         });
 
+        //await sendDisableSmsEmail(userId);
         //cancelScheduledSmsAndScheduleEmails({ userId: parsedUserId }); --> only from user worklfows
         return;
       }
 
       if (creditBalance?.warningSentAt) return; // user has already sent warning email
 
-      // user balance below 500 credits (5$)
+      // user balance below 200 credits (2$)
       const user = await prisma.user.findUnique({
         where: { id: userId },
       });
@@ -287,7 +386,7 @@ export async function handleLowCreditBalance({
 
       if (dayjs(creditBalance?.warningSentAt).isAfter(dayjs().startOf("month"))) return; // team has already sent warning email this month
 
-      // team balance below 20% of credits
+      // team balance below 20% of total monthly credits
       //await sendWarningEmail(teamId);
       await prisma.creditBalance.update({
         where: { teamId },
@@ -297,4 +396,41 @@ export async function handleLowCreditBalance({
       });
     }
   }
+}
+
+// some more todos + test
+export async function getMonthlyCredits(teamId: number) {
+  const team = await prisma.team.findUnique({
+    where: {
+      id: teamId,
+    },
+    select: {
+      members: {
+        select: {
+          accepted: true,
+        },
+      },
+      id: true,
+      metadata: true,
+      parentId: true,
+      isOrganization: true,
+    },
+  });
+
+  if (!team) return 0;
+
+  const teamBillingService = new InternalTeamBilling(team);
+  const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
+
+  if (isSubscriptionActive(subscriptionStatus)) {
+    return 0;
+  }
+
+  const activeMembers = team.members.filter((member) => member.accepted).length;
+
+  // todo: where do I get price per seat from? --> different for team and org
+  const pricePerSeat = 15;
+  const totalMonthlyCredits = activeMembers * ((pricePerSeat / 2) * 100);
+
+  return totalMonthlyCredits;
 }
