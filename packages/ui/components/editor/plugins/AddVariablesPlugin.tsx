@@ -11,7 +11,6 @@ import { TextNode } from "lexical";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
 import { VariableNode, $createVariableNode } from "../nodes/VariableNode";
@@ -80,8 +79,10 @@ interface AddVariablesPluginProps {
   variables: string[];
 }
 
-export default function AddVariablesPlugin({ variables }: AddVariablesPluginProps): JSX.Element | null {
-  const { t } = useLocale();
+export default function AddVariablesPlugin({
+  variables,
+  translations = {},
+}: AddVariablesPluginProps & { translations?: Record<string, string> }): JSX.Element | null {
   const [editor] = useLexicalComposerContext();
   useVariablesTransform(editor);
 
@@ -100,9 +101,8 @@ export default function AddVariablesPlugin({ variables }: AddVariablesPluginProp
   const onSelectOption = useCallback(
     (selectedOption: VariableTypeaheadOption, nodeToReplace: TextNode | null, closeMenu: () => void) => {
       editor.update(() => {
-        const variableNode = $createVariableNode(
-          `{${t(`${selectedOption.name}_variable`).toUpperCase().replace(/ /g, "_")}}`
-        );
+        const variableText = translations[`${selectedOption.name}_variable`] || selectedOption.name;
+        const variableNode = $createVariableNode(`{${variableText.toUpperCase().replace(/ /g, "_")}}`);
         if (nodeToReplace) {
           nodeToReplace.replace(variableNode);
         }
@@ -110,7 +110,7 @@ export default function AddVariablesPlugin({ variables }: AddVariablesPluginProp
         closeMenu();
       });
     },
-    [editor, t]
+    [editor, translations]
   );
 
   return (
@@ -145,9 +145,13 @@ export default function AddVariablesPlugin({ variables }: AddVariablesPluginProp
                         setHighlightedIndex(index);
                       }}>
                       <p className="text-sm font-semibold">
-                        {`{${t(`${option.name}_variable`).toUpperCase().replace(/ /g, "_")}}`}
+                        {`{${(translations[`${option.name}_variable`] || option.name)
+                          .toUpperCase()
+                          .replace(/ /g, "_")}}`}
                       </p>
-                      <span className="text-default text-sm">{t(`${option.name}_info`)}</span>
+                      <span className="text-default text-sm">
+                        {translations[`${option.name}_info`] || `Information about ${option.name}`}
+                      </span>
                     </li>
                   ))}
                 </ul>
