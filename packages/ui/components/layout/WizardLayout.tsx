@@ -7,7 +7,6 @@ import React, { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 
 import { APP_NAME } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Button } from "../../components/button/Button";
 import { StepCard } from "../../components/card/StepCard";
@@ -19,10 +18,13 @@ export function WizardLayout({
   maxSteps = 2,
   currentStep = 0,
   isOptionalCallback,
+  translations = {},
+  isLocaleReady = true,
 }: {
   children: React.ReactNode;
+  translations?: Record<string, string>;
+  isLocaleReady?: boolean;
 } & { maxSteps?: number; currentStep?: number; isOptionalCallback?: () => void }) {
-  const { t, isLocaleReady } = useLocale();
   const [meta, setMeta] = useState({ title: "", subtitle: " " });
   const pathname = usePathname();
   const { title, subtitle } = meta;
@@ -66,7 +68,7 @@ export function WizardLayout({
         {isOptionalCallback && (
           <div className="mt-4 flex justify-center">
             <Button data-testid="handle-later-button" color="minimal" onClick={isOptionalCallback}>
-              {t("ill_do_this_later")}
+              {translations["ill_do_this_later"] || "I'll do this later"}
             </Button>
           </div>
         )}
