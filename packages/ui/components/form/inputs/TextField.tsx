@@ -3,7 +3,6 @@
 import { cva } from "class-variance-authority";
 import React, { forwardRef, useId, useState } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
 import { Icon } from "../../icon";
@@ -94,16 +93,15 @@ const Addon = ({ children, className, error, onClickAddon, size = "md", position
 
 export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(props, ref) {
   const id = useId();
-  const { t: _t, isLocaleReady, i18n } = useLocale();
-  const t = props.t || _t;
   const name = props.name || "";
   const {
-    label = t(name),
+    translations = {} as Record<string, string>,
+    label = name,
     labelProps,
     labelClassName,
     disabled,
     LockedIcon,
-    placeholder = isLocaleReady && i18n.exists(`${name}_placeholder`) ? t(`${name}_placeholder`) : "",
+    placeholder = "",
     className,
     addOnLeading,
     addOnSuffix,
@@ -118,8 +116,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     readOnly,
     showAsteriskIndicator,
     onClickAddon,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    t: __t,
     dataTestid,
     size,
     ...passThrough
@@ -217,7 +213,11 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           disabled={readOnly || disabled}
         />
       )}
-      <HintsOrErrors hintErrors={hintErrors} fieldName={name} t={t} />
+      <HintsOrErrors
+        hintErrors={hintErrors}
+        fieldName={name}
+        translations={translations as Record<string, string>}
+      />
       {hint && <div className="text-default mt-2 flex items-center text-sm">{hint}</div>}
     </div>
   );

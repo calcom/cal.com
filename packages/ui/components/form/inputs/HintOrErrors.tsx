@@ -7,13 +7,13 @@ import { InputError } from "./InputError";
 type hintsOrErrorsProps = {
   hintErrors?: string[];
   fieldName: string;
-  t: (key: string) => string;
+  translations?: Record<string, string>;
 };
 
 export function HintsOrErrors<T extends FieldValues = FieldValues>({
   hintErrors,
   fieldName,
-  t,
+  translations = {},
 }: hintsOrErrorsProps) {
   const methods = useFormContext() as ReturnType<typeof useFormContext> | null;
   /* If there's no methods it means we're using these components outside a React Hook Form context */
@@ -31,7 +31,7 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
           {Object.keys(fieldErrors).map((key: string) => {
             return (
               <li key={key} className="text-blue-700">
-                {t(`${fieldName}_hint_${key}`)}
+                {translations[`${fieldName}_hint_${key}`] || `${fieldName}_hint_${key}`}
               </li>
             );
           })}
@@ -77,7 +77,7 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
                     className="-ml-1 inline-block ltr:mr-2 rtl:ml-2"
                   />
                 )}
-                {t(`${fieldName}_hint_${key}`)}
+                {translations[`${fieldName}_hint_${key}`] || `${fieldName}_hint_${key}`}
               </li>
             );
           })}
@@ -112,7 +112,7 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
               ) : (
                 <Icon name="circle" fill="currentColor" size="5" className="inline-block ltr:mr-2 rtl:ml-2" />
               )}
-              {t(`${fieldName}_hint_${key}`)}
+              {translations[`${fieldName}_hint_${key}`] || `${fieldName}_hint_${key}`}
             </li>
           );
         })}
