@@ -178,9 +178,12 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
     });
 
     it("should get routing form responses", async () => {
+      const createdAt = new Date(routingFormResponse.createdAt);
+      createdAt.setHours(createdAt.getHours() - 1);
+      const isoStringCreatedAt = createdAt.toISOString();
       return request(app.getHttpServer())
         .get(
-          `/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?skip=0&take=2&sortUpdatedAt=asc&sortCreatedAt=desc`
+          `/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?skip=0&take=2&sortUpdatedAt=asc&sortCreatedAt=desc&afterCreatedAt=${isoStringCreatedAt}`
         )
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .expect(200)

@@ -40,7 +40,7 @@ const SCALE = "SCALE";
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-@DocsTags("Orgs / Orgs")
+@DocsTags("Managed Orgs")
 @ApiHeader(X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(X_CAL_SECRET_KEY_HEADER)
 export class OrganizationsOrganizationsController {

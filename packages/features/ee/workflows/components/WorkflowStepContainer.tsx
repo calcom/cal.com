@@ -133,6 +133,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     const template = getTemplateBodyForAction({
       action,
       locale: i18n.language,
+      t,
       template: step.template ?? WorkflowTemplates.REMINDER,
       timeFormat,
     });
@@ -143,6 +144,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     const subjectTemplate = emailReminderTemplate({
       isEditingMode: true,
       locale: i18n.language,
+      t,
       action: form.getValues(`steps.${step.stepNumber - 1}.action`),
       timeFormat,
     }).emailSubject;
@@ -443,6 +445,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             const template = getTemplateBodyForAction({
                               action: val.value,
                               locale: i18n.language,
+                              t,
                               template: WorkflowTemplates.REMINDER,
                               timeFormat,
                             });
@@ -762,6 +765,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             const template = getTemplateBodyForAction({
                               action,
                               locale: i18n.language,
+                              t,
                               template: val.value ?? WorkflowTemplates.REMINDER,
                               timeFormat,
                             });
@@ -775,6 +779,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                   emailReminderTemplate({
                                     isEditingMode: true,
                                     locale: i18n.language,
+                                    t,
                                     action,
                                     timeFormat,
                                   }).emailSubject
@@ -786,6 +791,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                     isEditingMode: true,
                                     locale: i18n.language,
                                     action,
+                                    t,
                                     timeFormat,
                                   }).emailSubject
                                 );
