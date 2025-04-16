@@ -6,9 +6,9 @@ import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { timeZoneSchema } from "@calcom/lib/timeZoneSchema";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";

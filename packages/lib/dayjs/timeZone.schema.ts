@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { isSupportedTimeZone } from "./isSupportedTimeZone";
+import { isSupportedTimeZone } from "./index";
 
 // Schema for validating IANA timezone strings compatible with Intl.DateTimeFormat
 export const timeZoneSchema = z.string().refine((timeZone) => isSupportedTimeZone(timeZone), {

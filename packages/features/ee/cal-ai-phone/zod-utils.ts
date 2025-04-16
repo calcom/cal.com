@@ -1,7 +1,7 @@
 import { isValidPhoneNumber } from "libphonenumber-js";
 import z from "zod";
 
-import { timeZoneSchema } from "@calcom/lib/timeZoneSchema";
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 
 export const templateTypeEnum = z.enum(["CHECK_IN_APPOINTMENT", "CUSTOM_TEMPLATE"]);
 
