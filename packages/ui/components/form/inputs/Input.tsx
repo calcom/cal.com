@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 import React, { forwardRef, useCallback, useId, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
 import { Alert } from "../../alert";
@@ -27,17 +26,23 @@ type PasswordFieldTranslations = {
   hidePasswordText?: string;
 };
 
-export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(function PasswordField(
+type PasswordFieldProps = InputFieldProps & {
+  translations?: Record<string, string>;
+};
+
+export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(function PasswordField(
   props,
   ref
 ) {
-  const { t } = useLocale();
+  const { translations = {} } = props;
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const toggleIsPasswordVisible = useCallback(
     () => setIsPasswordVisible(!isPasswordVisible),
     [isPasswordVisible, setIsPasswordVisible]
   );
-  const textLabel = isPasswordVisible ? t("hide_password") : t("show_password");
+  const textLabel = isPasswordVisible
+    ? translations["hide_password"] || ""
+    : translations["show_password"] || "";
 
   return (
     <InputField
@@ -111,47 +116,46 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
 
 type TextAreaFieldProps = {
   label?: ReactNode;
-  t?: (key: string) => string;
 } & React.ComponentProps<typeof TextArea> & {
     name: string;
     labelProps?: React.ComponentProps<typeof Label>;
   };
 
-export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(function TextField(
-  props,
-  ref
-) {
-  const id = useId();
-  const { t: _t } = useLocale();
-  const t = props.t || _t;
-  const methods = useFormContext();
-  const {
-    label = t(props.name as string),
-    labelProps,
-    /** Prevents displaying untranslated placeholder keys */
-    placeholder = t(`${props.name}_placeholder`) !== `${props.name}_placeholder`
-      ? `${props.name}_placeholder`
-      : "",
-    ...passThrough
-  } = props;
-  return (
-    <div>
-      {!!props.name && (
-        <Label htmlFor={id} {...labelProps}>
-          {label}
-        </Label>
-      )}
-      <TextArea ref={ref} placeholder={placeholder} {...passThrough} />
-      {methods?.formState?.errors[props.name]?.message && (
-        <Alert
-          className="mt-1"
-          severity="error"
-          message={<>{methods.formState.errors[props.name]?.message}</>}
-        />
-      )}
-    </div>
-  );
-});
+type TextAreaFieldPropsWithTranslations = TextAreaFieldProps & {
+  translations?: Record<string, string>;
+};
+
+export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldPropsWithTranslations>(
+  function TextField(props, ref) {
+    const id = useId();
+    const methods = useFormContext();
+    const {
+      translations = {},
+      label = translations[props.name as string] || "",
+      labelProps,
+      /** Prevents displaying untranslated placeholder keys */
+      placeholder = translations[`${props.name}_placeholder`] || "",
+      ...passThrough
+    } = props;
+    return (
+      <div>
+        {!!props.name && (
+          <Label htmlFor={id} {...labelProps}>
+            {label}
+          </Label>
+        )}
+        <TextArea ref={ref} placeholder={placeholder} {...passThrough} />
+        {methods?.formState?.errors[props.name]?.message && (
+          <Alert
+            className="mt-1"
+            severity="error"
+            message={<>{methods.formState.errors[props.name]?.message}</>}
+          />
+        )}
+      </div>
+    );
+  }
+);
 
 export function FieldsetLegend(props: JSX.IntrinsicElements["legend"]) {
   return (
