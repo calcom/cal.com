@@ -222,3 +222,6 @@ export function getUTCOffsetByTimezone(timeZone: string, date?: string | Date | 
 
   return dayjs(date).tz(timeZone).utcOffset();
 }
+
+// To prevent breaking changes
+export { isSupportedTimeZone } from "./isSupportedTimeZone";
