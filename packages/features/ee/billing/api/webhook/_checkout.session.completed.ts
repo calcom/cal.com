@@ -30,6 +30,20 @@ const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
 
   const teamId = session.metadata?.teamId ? Number(session.metadata.teamId) : null;
 
+  await saveToCreditBalance({ userId: user.id, teamId, nrOfCredits });
+
+  return { success: true };
+};
+
+export async function saveToCreditBalance({
+  teamId,
+  userId,
+  nrOfCredits,
+}: {
+  userId: number;
+  teamId: number | null;
+  nrOfCredits: number;
+}) {
   let creditBalance: { id: string } | null;
   if (teamId) {
     creditBalance = await prisma.creditBalance.findUnique({
@@ -40,7 +54,7 @@ const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
   } else {
     creditBalance = await prisma.creditBalance.findUnique({
       where: {
-        userId: user.id,
+        userId,
       },
     });
   }
@@ -56,13 +70,10 @@ const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
     await prisma.creditBalance.create({
       data: {
         teamId: teamId ? teamId : undefined,
-        userId: teamId ? undefined : user.id,
+        userId: teamId ? undefined : userId,
         additionalCredits: nrOfCredits,
       },
     });
   }
-
-  return { success: true };
-};
-
+}
 export default handler;
