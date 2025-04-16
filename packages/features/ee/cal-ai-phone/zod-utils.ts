@@ -1,8 +1,6 @@
 import { isValidPhoneNumber } from "libphonenumber-js";
 import z from "zod";
 
-import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
-
 export const templateTypeEnum = z.enum(["CHECK_IN_APPOINTMENT", "CUSTOM_TEMPLATE"]);
 
 const requiredFields = z.object({
@@ -145,7 +143,7 @@ export const ZGetRetellLLMSchema = z
           type: z.string(),
           cal_api_key: z.string().optional(),
           event_type_id: z.number().optional(),
-          timezone: timeZoneSchema.optional(),
+          timezone: z.string().optional(),
         })
         .passthrough()
     ),
@@ -161,7 +159,7 @@ export const ZGetRetellLLMSchema = z
                   type: z.string(),
                   cal_api_key: z.string().optional(),
                   event_type_id: z.number().optional(),
-                  timezone: timeZoneSchema.optional(),
+                  timezone: z.string().optional(),
                 })
                 .passthrough()
             ),
