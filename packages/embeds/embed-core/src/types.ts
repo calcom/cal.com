@@ -22,7 +22,7 @@ export interface EmbedNonStylesConfig {
   };
 }
 
-export type UiConfig = {
+export interface UiConfig {
   hideEventTypeDetails?: boolean;
   // If theme not provided we would get null
   theme?: EmbedThemeConfig | null;
@@ -31,7 +31,9 @@ export type UiConfig = {
   cssVarsPerTheme?: Record<Theme, Record<string, string>>;
   layout?: BookerLayouts;
   colorScheme?: string | null;
-};
+  forceDesktop?: boolean;
+  [key: string]: unknown;
+}
 
 declare global {
   interface Window {

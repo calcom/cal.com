@@ -343,6 +343,9 @@ function unhideBody() {
   });
 }
 
+/** Minimum width in pixels for desktop view */
+const DESKTOP_MIN_WIDTH = 768;
+
 // It is a map of methods that can be called by parent using doInIframe({method: "methodName", arg: "argument"})
 const methods = {
   ui: function style(uiConfig: UiConfig) {
@@ -442,78 +445,119 @@ const messageParent = (data: CustomEvent["detail"]) => {
 
 function keepParentInformedAboutDimensionChanges() {
   let knownIframeHeight: number | null = null;
-  let knownIframeWidth: number | null = null;
+  let knownIframeWidth: null | number = null;
+  let knownShouldForceDesktop: boolean | null = null;
   let isFirstTime = true;
   let isWindowLoadComplete = false;
+
+  // Add container dimension detection with error handling
+  const getContainerDimensions = () => {
+    const container = window.frameElement?.parentElement;
+    if (container) {
+      const containerStyles = window.getComputedStyle(container);
+      const parseDimension = (value: string) => {
+        const parsed = parseInt(value);
+        return isNaN(parsed) ? 0 : parsed;
+      };
+      return {
+        width: parseDimension(containerStyles.width),
+        height: parseDimension(containerStyles.height),
+      };
+    }
+    return null;
+  };
+
   runAsap(function informAboutScroll() {
     if (document.readyState !== "complete") {
-      // Wait for window to load to correctly calculate the initial scroll height.
       runAsap(informAboutScroll);
       return;
     }
+
     if (!isWindowLoadComplete) {
-      // On Safari, even though document.readyState is complete, still the page is not rendered and we can't compute documentElement.scrollHeight correctly
-      // Postponing to just next cycle allow us to fix this.
       setTimeout(() => {
         isWindowLoadComplete = true;
         informAboutScroll();
       }, 100);
       return;
     }
+
     if (!embedStore.windowLoadEventFired) {
       sdkActionManager?.fire("__windowLoadComplete", {});
     }
+
     embedStore.windowLoadEventFired = true;
-    // Use the dimensions of main element as in most places there is max-width restriction on it and we just want to show the main content.
-    // It avoids the unwanted padding outside main tag.
+
     const mainElement =
       document.getElementsByClassName("main")[0] ||
       document.getElementsByTagName("main")[0] ||
       document.documentElement;
-    const documentScrollHeight = document.documentElement.scrollHeight;
-    const documentScrollWidth = document.documentElement.scrollWidth;
 
     if (!(mainElement instanceof HTMLElement)) {
       throw new Error("Main element should be an HTMLElement");
     }
 
     const mainElementStyles = getComputedStyle(mainElement);
-    // Use, .height as that gives more accurate value in floating point. Also, do a ceil on the total sum so that whatever happens there is enough iframe size to avoid scroll.
-    const contentHeight = Math.ceil(
-      parseFloat(mainElementStyles.height) +
-        parseFloat(mainElementStyles.marginTop) +
-        parseFloat(mainElementStyles.marginBottom)
-    );
+    const containerDimensions = getContainerDimensions();
+
+    // Calculate optimal width based on container and content
+    const desktopMinWidth = DESKTOP_MIN_WIDTH; // minimum width for desktop view
+    const containerWidth = containerDimensions?.width || window.innerWidth;
+
+    // Determine if we should force desktop view
+    const shouldForceDesktop: boolean =
+      !!embedStore.uiConfig?.forceDesktop ||
+      window.location.href.includes("embed=true") ||
+      containerWidth >= desktopMinWidth;
+
+    // Calculate content dimensions
     const contentWidth = Math.ceil(
       parseFloat(mainElementStyles.width) +
         parseFloat(mainElementStyles.marginLeft) +
         parseFloat(mainElementStyles.marginRight)
     );
 
-    // During first render let iframe tell parent that how much is the expected height to avoid scroll.
-    // Parent would set the same value as the height of iframe which would prevent scroll.
-    // On subsequent renders, consider html height as the height of the iframe. If we don't do this, then if iframe gets bigger in height, it would never shrink
-    const iframeHeight = isFirstTime ? documentScrollHeight : contentHeight;
-    const iframeWidth = isFirstTime ? documentScrollWidth : contentWidth;
+    const contentHeight = Math.ceil(
+      parseFloat(mainElementStyles.height) +
+        parseFloat(mainElementStyles.marginTop) +
+        parseFloat(mainElementStyles.marginBottom)
+    );
+
+    // Set appropriate dimensions
+    const iframeWidth = shouldForceDesktop ? Math.max(desktopMinWidth, contentWidth) : contentWidth;
+
+    const iframeHeight = isFirstTime ? document.documentElement.scrollHeight : contentHeight;
+
     embedStore.parentInformedAboutContentHeight = true;
+
     if (!iframeHeight || !iframeWidth) {
       runAsap(informAboutScroll);
       return;
     }
-    if (knownIframeHeight !== iframeHeight || knownIframeWidth !== iframeWidth) {
+
+    // Update if dimensions or shouldForceDesktop changed
+    if (
+      knownIframeHeight !== iframeHeight ||
+      knownIframeWidth !== iframeWidth ||
+      knownShouldForceDesktop !== shouldForceDesktop
+    ) {
       knownIframeHeight = iframeHeight;
       knownIframeWidth = iframeWidth;
-      // FIXME: This event shouldn't be subscribable by the user. Only by the SDK.
+      knownShouldForceDesktop = shouldForceDesktop;
+
       sdkActionManager?.fire("__dimensionChanged", {
         iframeHeight,
         iframeWidth,
         isFirstTime,
+        shouldForceDesktop,
       });
+
+      // Add data attribute for CSS targeting
+      if (window.frameElement) {
+        window.frameElement.setAttribute("data-force-desktop", String(shouldForceDesktop));
+      }
     }
+
     isFirstTime = false;
-    // Parent Counterpart would change the dimension of iframe and thus page's dimension would be impacted which is recursive.
-    // It should stop ideally by reaching a hiddenHeight value of 0.
-    // FIXME: If 0 can't be reached we need to just abandon our quest for perfect iframe and let scroll be there. Such case can be logged in the wild and fixed later on.
     runAsap(informAboutScroll);
   });
 }
@@ -526,13 +570,19 @@ function main() {
   const url = new URL(document.URL);
   embedStore.theme = window?.getEmbedTheme?.();
 
+  // Check for explicit view parameters
+  const isDesktopView =
+    url.searchParams.get("view") === "desktop" || url.searchParams.get("isMobile") === "false";
+
   embedStore.uiConfig = {
     // TODO: Add theme as well here
-    colorScheme: url.searchParams.get("ui.color-scheme"),
-    layout: url.searchParams.get("layout") as BookerLayouts,
+    colorScheme: url.searchParams.get("ui.color-scheme") as string | null,
+    layout: (url.searchParams.get("layout") || "week_view") as BookerLayouts,
+    // Force desktop layout in embed context unless explicitly set otherwise
+    forceDesktop: window?.isEmbed?.() || isDesktopView,
   };
 
-  actOnColorScheme(embedStore.uiConfig.colorScheme);
+  actOnColorScheme(embedStore.uiConfig.colorScheme as string | null | undefined);
   // If embed link is opened in top, and not in iframe. Let the page be visible.
   if (top === window) {
     unhideBody();

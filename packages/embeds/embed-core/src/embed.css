@@ -1,9 +1,70 @@
 /**
  These styles are applied to the entire page, so the selectors need to be specific
 */
+
+:root {
+  --cal-embed-desktop-min-width: 768px;
+}
+
 .cal-embed {
-  border: 0px;
+  border: 0;
   min-height: 300px;
   margin: 0 auto;
   width: 100%;
+  transition: width 0.3s ease-in-out;
+  display: block;
+  box-sizing: border-box;
+}
+
+/* Desktop view styles */
+.cal-embed[data-force-desktop="true"] {
+  min-width: var(--cal-embed-desktop-min-width);
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Mobile view styles */
+.cal-embed[data-force-desktop="false"] {
+  min-width: unset;
+  width: 100%;
+}
+
+/* Container styles */
+.cal-embed-container {
+  position: relative;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
+}
+
+/* Custom scrollbar for better UX */
+.cal-embed-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.cal-embed-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.cal-embed-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.cal-embed-container::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/* Fallback for iframe containers (like Canva) with limited width */
+@media (max-width: var(--cal-embed-desktop-min-width)) {
+  .cal-embed[data-force-desktop="true"] {
+    min-width: var(--cal-embed-desktop-min-width);
+    width: var(--cal-embed-desktop-min-width); /* ensure horizontal scroll works */
+  }
+
+  .cal-embed-container {
+    overflow-x: auto;
+  }
 }

@@ -846,7 +846,7 @@ class CalApi {
   }
 
   ui(uiConfig: UiConfig) {
-    validate(uiConfig, {
+    validate(uiConfig as Record<string, unknown>, {
       required: true,
       props: {
         theme: {
