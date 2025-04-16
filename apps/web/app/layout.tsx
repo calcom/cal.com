@@ -9,6 +9,8 @@ import { loadTranslations } from "@calcom/lib/server/i18n";
 import { IconSprites } from "@calcom/ui/components/icon";
 import { NotificationSoundHandler } from "@calcom/web/components/notification-sound-handler";
 
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+
 import "../styles/globals.css";
 import { AppRouterI18nProvider } from "./AppRouterI18nProvider";
 import { SpeculationRules } from "./SpeculationRules";
@@ -83,9 +85,7 @@ const getInitialProps = async (url: string) => {
 
   const isEmbed = pathname.endsWith("/embed") || (searchParams?.get("embedType") ?? null) !== null;
   const embedColorScheme = searchParams?.get("ui.color-scheme");
-
-  const req = { headers: await headers(), cookies: await cookies() };
-  const newLocale = (await getLocale(req)) ?? "en";
+  const newLocale = (await getLocale(buildLegacyRequest(await headers(), await cookies()))) ?? "en";
   const direction = dir(newLocale);
 
   return {
@@ -105,15 +105,13 @@ const getFallbackProps = () => ({
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const h = await headers();
-
-  const fullUrl = h.get("x-url") ?? "";
   const nonce = h.get("x-csp") ?? "";
+  const fullUrl = h.get("referer");
 
-  const isSSG = !fullUrl;
+  const { locale, direction, isEmbed, embedColorScheme } = fullUrl
+    ? await getInitialProps(fullUrl)
+    : getFallbackProps();
 
-  const { locale, direction, isEmbed, embedColorScheme } = isSSG
-    ? getFallbackProps()
-    : await getInitialProps(fullUrl);
   const ns = "common";
   const translations = await loadTranslations(locale, ns);
 

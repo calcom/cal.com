@@ -3,7 +3,6 @@ import { collectEvents } from "next-collect/server";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
 import { csp } from "./lib/csp";
@@ -67,7 +66,6 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
 
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
-  requestHeaders.set("x-url", req.url);
 
   if (!url.pathname.startsWith("/api")) {
     //
@@ -117,12 +115,6 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
       return response;
     }
   }
-
-  requestHeaders.set("x-pathname", url.pathname);
-
-  const locale = await getLocale(req);
-
-  requestHeaders.set("x-locale", locale);
 
   const res = NextResponse.next({
     request: {

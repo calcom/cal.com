@@ -12,11 +12,7 @@ import { truncateOnWord } from "@calcom/lib/text";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 export const getTranslate = async () => {
-  const headersList = await headers();
-  // If "x-locale" does not exist in header,
-  // ensure that config.matcher in middleware includes the page you are testing
-  const locale =
-    headersList.get("x-locale") ?? (await getLocale(buildLegacyRequest(headersList, await cookies())));
+  const locale = await getLocale(buildLegacyRequest(await headers(), await cookies()));
 
   return await getTranslation(locale ?? "en", "common");
 };
@@ -28,8 +24,7 @@ const _generateMetadataWithoutImage = async (
   origin?: string,
   pathname?: string
 ) => {
-  const h = await headers();
-  const _pathname = h.get("x-pathname") ?? pathname ?? "";
+  const _pathname = pathname ?? "";
   const canonical = buildCanonical({ path: _pathname, origin: origin ?? CAL_URL });
   const t = await getTranslate();
 
