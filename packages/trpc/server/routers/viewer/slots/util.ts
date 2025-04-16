@@ -308,7 +308,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   const eventType = await monitorCallbackAsync(getRegularOrDynamicEventType, input, orgDetails);
 
   // allow event owner to get slots without minimumBookingNotice
-  if (eventType.userId === userId) {
+  if (eventType.userId == userId) {
     eventType.minimumBookingNotice = 0;
   }
 
