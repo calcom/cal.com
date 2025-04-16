@@ -53,7 +53,8 @@ export const _generateMetadata = async (
   getTitle: (t: TFunction<string, undefined>) => string,
   getDescription: (t: TFunction<string, undefined>) => string,
   hideBranding?: boolean,
-  origin?: string
+  origin?: string,
+  pathname?: string
 ) => {
   const metadata = await _generateMetadataWithoutImage(getTitle, getDescription, hideBranding, origin);
   const image =
@@ -103,7 +104,8 @@ export const generateAppMetadata = async (
   getTitle: (t: TFunction<string, undefined>) => string,
   getDescription: (t: TFunction<string, undefined>) => string,
   hideBranding?: boolean,
-  origin?: string
+  origin?: string,
+  pathname?: string
 ) => {
   const metadata = await _generateMetadataWithoutImage(getTitle, getDescription, hideBranding, origin);
 
