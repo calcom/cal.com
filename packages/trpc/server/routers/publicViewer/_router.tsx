@@ -1,5 +1,5 @@
 import publicProcedure from "../../procedures/publicProcedure";
-import { importHandler, router } from "../../trpc";
+import { router } from "../../trpc";
 import { ZUserEmailVerificationRequiredSchema } from "./checkIfUserEmailVerificationRequired.schema";
 import { ZMarkHostAsNoShowInputSchema } from "./markHostAsNoShow.schema";
 import { event } from "./procedures/event";
@@ -16,50 +16,35 @@ const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 export const publicViewerRouter = router({
   session,
   countryCode: publicProcedure.query(async (opts) => {
-    const handler = await importHandler(namespaced("countryCode"), () => import("./countryCode.handler"));
+    const { default: handler } = await import("./countryCode.handler");
     return handler(opts);
   }),
   submitRating: publicProcedure.input(ZSubmitRatingInputSchema).mutation(async (opts) => {
-    const handler = await importHandler(namespaced("submitRating"), () => import("./submitRating.handler"));
+    const { default: handler } = await import("./submitRating.handler");
     return handler(opts);
   }),
   markHostAsNoShow: publicProcedure.input(ZMarkHostAsNoShowInputSchema).mutation(async (opts) => {
-    const handler = await importHandler(
-      namespaced("markHostAsNoShow"),
-      () => import("./markHostAsNoShow.handler")
-    );
+    const { default: handler } = await import("./markHostAsNoShow.handler");
     return handler(opts);
   }),
   samlTenantProduct: publicProcedure.input(ZSamlTenantProductInputSchema).mutation(async (opts) => {
-    const handler = await importHandler(
-      namespaced("samlTenantProduct"),
-      () => import("./samlTenantProduct.handler")
-    );
+    const { default: handler } = await import("./samlTenantProduct.handler");
     return handler(opts);
   }),
   stripeCheckoutSession: publicProcedure.input(ZStripeCheckoutSessionInputSchema).query(async (opts) => {
-    const handler = await importHandler(
-      namespaced("stripeCheckoutSession"),
-      () => import("./stripeCheckoutSession.handler")
-    );
+    const { default: handler } = await import("./stripeCheckoutSession.handler");
     return handler(opts);
   }),
   event,
   ssoConnections: publicProcedure.query(async () => {
-    const handler = await importHandler(
-      namespaced("ssoConnections"),
-      () => import("./ssoConnections.handler")
-    );
+    const { default: handler } = await import("./ssoConnections.handler");
     return handler();
   }),
 
   checkIfUserEmailVerificationRequired: publicProcedure
     .input(ZUserEmailVerificationRequiredSchema)
     .query(async (opts) => {
-      const handler = await importHandler(
-        namespaced("checkIfUserEmailVerificationRequired"),
-        () => import("./checkIfUserEmailVerificationRequired.handler")
-      );
+      const { default: handler } = await import("./checkIfUserEmailVerificationRequired.handler");
       return handler(opts);
     }),
 });

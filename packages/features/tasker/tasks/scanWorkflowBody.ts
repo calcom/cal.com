@@ -7,6 +7,7 @@ import compareReminderBodyToTemplate from "@calcom/features/ee/workflows/lib/com
 import { lockUser, LockReason } from "@calcom/lib/autoLock";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { scheduleWorkflowNotifications } from "@calcom/trpc/server/routers/viewer/workflows/util";
@@ -68,6 +69,7 @@ export async function scanWorkflowBody(payload: string) {
     const defaultTemplate = getTemplateBodyForAction({
       action: workflowStep.action,
       locale: workflowStep.workflow.user?.locale ?? "en",
+      t: await getTranslation(workflowStep.workflow.user?.locale ?? "en", "common"),
       template: workflowStep.template,
       timeFormat,
     });

@@ -1,15 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import {
-  IsOptional,
-  IsString,
-  IsEnum,
-  IsISO8601,
-  IsDate,
-  IsNumber,
-  IsArray,
-  ArrayMinSize,
-} from "class-validator";
+import { IsOptional, IsString, IsEnum, IsISO8601, IsNumber, IsArray, ArrayMinSize } from "class-validator";
 
 enum SortOrder {
   ASC = "asc",
@@ -44,9 +35,7 @@ export class GetRoutingFormResponsesParams {
   })
   @IsOptional()
   @IsISO8601()
-  @Transform(({ value }) => value && new Date(value))
-  @IsDate()
-  afterCreatedAt?: Date;
+  afterCreatedAt?: string;
 
   @ApiPropertyOptional({
     type: String,
@@ -55,9 +44,7 @@ export class GetRoutingFormResponsesParams {
   })
   @IsOptional()
   @IsISO8601()
-  @Transform(({ value }) => value && new Date(value))
-  @IsDate()
-  beforeCreatedAt?: Date;
+  beforeCreatedAt?: string;
 
   @ApiPropertyOptional({
     type: String,
@@ -66,9 +53,7 @@ export class GetRoutingFormResponsesParams {
   })
   @IsOptional()
   @IsISO8601()
-  @Transform(({ value }) => value && new Date(value))
-  @IsDate()
-  afterUpdatedAt?: Date;
+  afterUpdatedAt?: string;
 
   @ApiPropertyOptional({
     type: String,
@@ -77,9 +62,7 @@ export class GetRoutingFormResponsesParams {
   })
   @IsOptional()
   @IsISO8601()
-  @Transform(({ value }) => value && new Date(value))
-  @IsDate()
-  beforeUpdatedAt?: Date;
+  beforeUpdatedAt?: string;
 
   @ApiPropertyOptional({ type: String, description: "Filter by responses routed to a specific booking" })
   @IsOptional()
