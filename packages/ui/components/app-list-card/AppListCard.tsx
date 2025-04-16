@@ -3,7 +3,6 @@
 import type { ReactNode } from "react";
 
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { CredentialOwner } from "@calcom/types/CredentialOwner";
 import classNames from "@calcom/ui/classNames";
 
@@ -37,7 +36,6 @@ export type AppListCardProps = {
 } & ShouldHighlight;
 
 export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) => {
-  const { t } = useLocale();
   const {
     logo,
     title,
@@ -67,7 +65,7 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
           <div className="flex items-center gap-x-2">
             <h3 className="text-emphasis truncate text-sm font-semibold">{title}</h3>
             <div className="flex items-center gap-x-2">
-              {isDefault && <Badge variant="green">{translations["default"] || t("default")}</Badge>}
+              {isDefault && <Badge variant="green">{translations["default"]}</Badge>}
               {isTemplate && <Badge variant="red">Template</Badge>}
             </div>
           </div>
@@ -76,7 +74,7 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
             <div className="flex gap-x-2 pt-2">
               <Icon name="circle-alert" className="h-8 w-8 text-red-500 sm:h-4 sm:w-4" />
               <ListItemText component="p" className="whitespace-pre-wrap text-red-500">
-                {translations["invalid_credential"] || t("invalid_credential")}
+                {translations["invalid_credential"]}
               </ListItemText>
             </div>
           )}
