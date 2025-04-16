@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import { countBy } from "lodash";
+import { getToken } from "next-auth/jwt";
 import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 
@@ -297,7 +298,19 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     logger.settings.minLevel = 2;
   }
 
+  let userId: string | null = null;
+  try {
+    userId = (await getToken({ req: ctx.req as any }))?.sub;
+  } catch (e) {
+    logger.error("Failed to get user id", e);
+  }
+
   const eventType = await monitorCallbackAsync(getRegularOrDynamicEventType, input, orgDetails);
+
+  // allow event owner to get slots without minimumBookingNotice
+  if (eventType.userId === userId) {
+    eventType.minimumBookingNotice = 0;
+  }
 
   if (!eventType) {
     throw new TRPCError({ code: "NOT_FOUND" });
