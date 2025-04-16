@@ -147,7 +147,12 @@ function NewFormDialog({
             )} */}
           </div>
           <DialogFooter showDivider className="mt-12">
-            <DialogClose />
+            <DialogClose
+              translations={{
+                close: t("close"),
+                cancel: t("cancel"),
+              }}
+            />
             <Button loading={mutation.isPending} data-testid="add-form" type="submit">
               {t("continue")}
             </Button>

@@ -138,7 +138,13 @@ export function OverlayCalendarSettingsModal({
           </div>
 
           <div className="mt-4 flex gap-2 self-end">
-            <DialogClose>{t("done")}</DialogClose>
+            <DialogClose
+              translations={{
+                close: t("close"),
+                cancel: t("cancel"),
+              }}>
+              {t("done")}
+            </DialogClose>
           </div>
         </DialogContent>
       </Dialog>

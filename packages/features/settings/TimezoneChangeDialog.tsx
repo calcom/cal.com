@@ -65,10 +65,22 @@ const TimezoneChangeDialogContent = () => {
         */}
       <div className="mb-8" />
       <DialogFooter showDivider>
-        <DialogClose onClick={() => hideDialogFor([3, "months"], t("we_wont_show_again"))} color="secondary">
+        <DialogClose
+          onClick={() => hideDialogFor([3, "months"], t("we_wont_show_again"))}
+          color="secondary"
+          translations={{
+            close: t("close"),
+            cancel: t("cancel"),
+          }}>
           {t("dont_update")}
         </DialogClose>
-        <DialogClose onClick={() => updateTimezone()} color="primary">
+        <DialogClose
+          onClick={() => updateTimezone()}
+          color="primary"
+          translations={{
+            close: t("close"),
+            cancel: t("cancel"),
+          }}>
           {t("update_timezone")}
         </DialogClose>
       </DialogFooter>

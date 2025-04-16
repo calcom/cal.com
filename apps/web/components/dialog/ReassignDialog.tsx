@@ -271,7 +271,12 @@ export const ReassignDialog = ({
               </div>
             )}
             <DialogFooter>
-              <DialogClose />
+              <DialogClose
+                translations={{
+                  close: t("close"),
+                  cancel: t("cancel"),
+                }}
+              />
               <Button
                 type="submit"
                 data-testid="rejection-confirm"

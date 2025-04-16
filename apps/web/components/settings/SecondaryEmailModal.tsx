@@ -59,7 +59,9 @@ const SecondaryEmailModal = ({
           />
           {errorMessage && <InputError message={errorMessage} />}
           <DialogFooter showDivider className="mt-10">
-            <DialogClose onClick={onCancel}>{t("cancel")}</DialogClose>
+            <DialogClose onClick={onCancel} translations={{ close: t("close"), cancel: t("cancel") }}>
+              {t("cancel")}
+            </DialogClose>
             <Button type="submit" data-testid="add-secondary-email-button" disabled={isLoading}>
               {t("add_email")}
             </Button>

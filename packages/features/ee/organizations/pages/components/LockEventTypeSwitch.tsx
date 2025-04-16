@@ -123,7 +123,12 @@ export const LockEventTypeSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewP
                   </RadioArea.Group>
 
                   <DialogFooter>
-                    <DialogClose />
+                    <DialogClose
+                      translations={{
+                        close: t("close"),
+                        cancel: t("cancel"),
+                      }}
+                    />
                     <Button disabled={!isAdminOrOwner} type="submit">
                       {t("submit")}
                     </Button>

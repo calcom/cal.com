@@ -323,7 +323,13 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 {t("save")}
               </Button>
             )}
-            <DialogClose color="secondary" onClick={() => setOpenDialogSaveUsername(false)}>
+            <DialogClose
+              color="secondary"
+              onClick={() => setOpenDialogSaveUsername(false)}
+              translations={{
+                close: t("close"),
+                cancel: t("cancel"),
+              }}>
               {t("cancel")}
             </DialogClose>
           </DialogFooter>

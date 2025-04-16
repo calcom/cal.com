@@ -254,6 +254,16 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                         handleAvatarChange={onChange}
                         imageSrc={getPlaceholderAvatar(value, form.getValues("name"))}
                         triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
+                        translations={{
+                          upload_target: t("upload_target"),
+                          no_target: t("no_target"),
+                          slide_zoom_drag_instructions: t("slide_zoom_drag_instructions"),
+                          image_size_limit_exceed: t("image_size_limit_exceed"),
+                          upload_image: t("upload_image"),
+                          choose_a_file: t("choose_a_file"),
+                          cancel: t("cancel"),
+                          save: t("save"),
+                        }}
                       />
                       {showRemoveLogoButton && (
                         <Button color="secondary" onClick={() => onChange(null)}>
@@ -296,6 +306,17 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                         handleAvatarChange={onChange}
                         imageSrc={value || undefined}
                         triggerButtonColor={showRemoveBannerButton ? "secondary" : "primary"}
+                        translations={{
+                          upload_target: t("upload_target"),
+                          no_target: t("no_target"),
+                          slide_zoom_drag_instructions: t("slide_zoom_drag_instructions"),
+                          image_size_limit_exceed: t("image_size_limit_exceed"),
+                          org_banner_instructions: t("org_banner_instructions"),
+                          upload_image: t("upload_image"),
+                          choose_a_file: t("choose_a_file"),
+                          cancel: t("cancel"),
+                          save: t("save"),
+                        }}
                       />
                       {showRemoveBannerButton && (
                         <Button color="destructive" onClick={() => onChange(null)}>
@@ -334,6 +355,16 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                         uploadInstruction={t("cal_video_logo_upload_instruction")}
                         triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
                         testId="cal-video-logo"
+                        translations={{
+                          upload_target: t("upload_target"),
+                          no_target: t("no_target"),
+                          slide_zoom_drag_instructions: t("slide_zoom_drag_instructions"),
+                          image_size_limit_exceed: t("image_size_limit_exceed"),
+                          upload_image: t("upload_image"),
+                          choose_a_file: t("choose_a_file"),
+                          cancel: t("cancel"),
+                          save: t("save"),
+                        }}
                       />
                       {showRemoveLogoButton && (
                         <Button color="secondary" onClick={() => onChange(null)}>

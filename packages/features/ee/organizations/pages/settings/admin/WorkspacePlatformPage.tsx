@@ -361,7 +361,12 @@ function CreatePlatformDialog({ isOpen, onOpenChange }: Pick<Props, "isOpen" | "
         <Form form={form} handleSubmit={onSubmit}>
           <PlatformFormFields isCreate={true} />
           <DialogFooter>
-            <DialogClose />
+            <DialogClose
+              translations={{
+                close: t("close"),
+                cancel: t("cancel"),
+              }}
+            />
             <Button type="submit">{t("create")}</Button>
           </DialogFooter>
         </Form>
@@ -407,7 +412,12 @@ function UpdatePlatformDialog({
         <Form form={form} handleSubmit={onSubmit}>
           <PlatformFormFields isCreate={false} />
           <DialogFooter>
-            <DialogClose />
+            <DialogClose
+              translations={{
+                close: t("close"),
+                cancel: t("cancel"),
+              }}
+            />
             <Button type="submit">{t("save")}</Button>
           </DialogFooter>
         </Form>

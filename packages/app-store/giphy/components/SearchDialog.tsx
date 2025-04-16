@@ -198,6 +198,10 @@ export const SearchDialog = (props: ISearchDialog) => {
             tabIndex={-1}
             onClick={() => {
               props.setIsOpenDialog(false);
+            }}
+            translations={{
+              close: t("close"),
+              cancel: t("cancel"),
             }}>
             {t("cancel")}
           </DialogClose>

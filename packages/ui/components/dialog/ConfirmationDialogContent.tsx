@@ -83,11 +83,22 @@ export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogC
             color="primary"
             loading={isPending}
             onClick={(e) => onConfirm && onConfirm(e)}
-            data-testid="dialog-confirmation">
+            data-testid="dialog-confirmation"
+            translations={{
+              close: t("close"),
+              cancel: t("cancel"),
+            }}>
             {isPending ? loadingText : confirmBtnText}
           </DialogClose>
         )}
-        <DialogClose disabled={isPending}>{cancelBtnText}</DialogClose>
+        <DialogClose
+          disabled={isPending}
+          translations={{
+            close: t("close"),
+            cancel: t("cancel"),
+          }}>
+          {cancelBtnText}
+        </DialogClose>
       </div>
     </>
   );

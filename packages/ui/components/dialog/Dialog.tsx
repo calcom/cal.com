@@ -180,10 +180,10 @@ export function DialogClose(
     onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
     disabled?: boolean;
     color?: ButtonProps["color"];
-    translations: Record<string, string>;
+    translations?: Record<string, string>;
   } & React.ComponentProps<typeof Button>
 ) {
-  const { className, translations, ...buttonProps } = props;
+  const { className, translations = {}, ...buttonProps } = props;
 
   return (
     <DialogPrimitive.Close asChild {...props.dialogCloseProps}>
@@ -192,7 +192,7 @@ export function DialogClose(
         color={props.color || "minimal"}
         className={classNames(props.color === "destructive" && "destructive", className)}
         {...buttonProps}>
-        {props.children ? props.children : translations["close"]}
+        {props.children ? props.children : translations["close"] || "Close"}
       </Button>
     </DialogPrimitive.Close>
   );

@@ -141,7 +141,12 @@ const TravelScheduleModal = ({
           />
         </div>
         <DialogFooter showDivider className="relative">
-          <DialogClose />
+          <DialogClose
+            translations={{
+              close: t("close"),
+              cancel: t("cancel"),
+            }}
+          />
           <Button
             disabled={isNoEndDate ? !startDate : !startDate || !endDate}
             onClick={() => {

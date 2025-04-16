@@ -78,7 +78,11 @@ export function NewScheduleButton({
             {...register("name")}
           />
           <DialogFooter>
-            <DialogClose />
+            <DialogClose
+              translations={{
+                close: t("close"),
+              }}
+            />
             <Button type="submit" loading={createMutation.isPending}>
               {t("continue")}
             </Button>

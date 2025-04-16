@@ -89,7 +89,13 @@ export const PriorityDialog = (
         </div>
 
         <DialogFooter>
-          <DialogClose onClick={() => setNewPriority(undefined)} />
+          <DialogClose
+            onClick={() => setNewPriority(undefined)}
+            translations={{
+              close: t("close"),
+              cancel: t("cancel"),
+            }}
+          />
           <Button onClick={setPriority} className={customClassNames?.confirmButton}>
             {t("confirm")}
           </Button>
@@ -177,7 +183,13 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
           </div>
         </div>
         <DialogFooter>
-          <DialogClose onClick={() => setNewWeight(undefined)} />
+          <DialogClose
+            onClick={() => setNewWeight(undefined)}
+            translations={{
+              close: t("close"),
+              cancel: t("cancel"),
+            }}
+          />
           <Button onClick={setWeight} className={customClassNames?.confirmButton}>
             {t("confirm")}
           </Button>

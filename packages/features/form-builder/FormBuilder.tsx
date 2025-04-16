@@ -642,7 +642,9 @@ function FieldEditDialog({
           </div>
 
           <DialogFooter className="relative">
-            <DialogClose color="secondary">{t("cancel")}</DialogClose>
+            <DialogClose color="secondary" translations={{ close: t("close"), cancel: t("cancel") }}>
+              {t("cancel")}
+            </DialogClose>
             <Button data-testid="field-add-save" type="submit">
               {isFieldEditMode ? t("save") : t("add")}
             </Button>

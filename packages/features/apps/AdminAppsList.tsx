@@ -245,7 +245,13 @@ const EditKeysModal: FC<{
           </Form>
         )}
         <DialogFooter showDivider className="mt-8">
-          <DialogClose onClick={handleModelClose} />
+          <DialogClose
+            onClick={handleModelClose}
+            translations={{
+              close: t("close"),
+              cancel: t("cancel"),
+            }}
+          />
           <Button form="edit-keys" type="submit">
             {t("save")}
           </Button>

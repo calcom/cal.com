@@ -4,7 +4,6 @@ import { useCallback, useState, useEffect } from "react";
 import Cropper from "react-easy-crop";
 
 import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import type { ButtonColor } from "../button";
 import { Button } from "../button";
@@ -24,16 +23,18 @@ type BannerUploaderProps = {
   disabled?: boolean;
   height: number;
   width: number;
+  translations?: Record<string, string>;
 };
 
 function CropContainer({
   onCropComplete,
   imageSrc,
+  translations = {},
 }: {
   imageSrc: string;
   onCropComplete: (croppedAreaPixels: Area) => void;
+  translations?: Record<string, string>;
 }) {
-  const { t } = useLocale();
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
 
@@ -59,7 +60,7 @@ function CropContainer({
         min={1}
         max={3}
         step={0.1}
-        label={t("slide_zoom_drag_instructions")}
+        label={translations["slide_zoom_drag_instructions"] || "Slide to zoom, drag to reposition"}
         changeHandler={handleZoomSliderChange}
       />
     </div>
@@ -77,8 +78,8 @@ export default function BannerUploader({
   disabled = false,
   height,
   width,
+  translations = {},
 }: BannerUploaderProps) {
-  const { t } = useLocale();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
   const [{ result }, setFile] = useFileReader({
@@ -94,7 +95,7 @@ export default function BannerUploader({
     const file = e.target.files[0];
 
     if (file.size > limit) {
-      showToast(t("image_size_limit_exceed"), "error");
+      showToast(translations["image_size_limit_exceed"] || "Image size exceeds 5MB limit", "error");
     } else {
       setFile(file);
     }
@@ -124,7 +125,14 @@ export default function BannerUploader({
         result as string /* result is always string when using readAsDataUrl */
       );
       if (image.naturalWidth !== width || image.naturalHeight !== height) {
-        showToast(t("org_banner_instructions", { height, width }), "warning");
+        showToast(
+          translations["org_banner_instructions"]
+            ? translations["org_banner_instructions"]
+                .replace("{height}", height.toString())
+                .replace("{width}", width.toString())
+            : `Banner should be ${width}x${height}px`,
+          "warning"
+        );
       }
     };
     if (result) {
@@ -150,14 +158,22 @@ export default function BannerUploader({
           {buttonMsg}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:w-[45rem] sm:max-w-[45rem]" title={t("upload_target", { target })}>
+      <DialogContent
+        className="sm:w-[45rem] sm:max-w-[45rem]"
+        title={
+          translations["upload_target"]
+            ? translations["upload_target"].replace("{target}", target)
+            : `Upload ${target}`
+        }>
         <div className="mb-4">
           <div className="cropper mt-6 flex flex-col items-center justify-center p-8">
             {!result && (
               <div className="bg-muted flex h-60 w-full items-center justify-start">
                 {!imageSrc || checkIfItFallbackImage(imageSrc) ? (
                   <p className="text-emphasis w-full text-center text-sm sm:text-xs">
-                    {t("no_target", { target })}
+                    {translations["no_target"]
+                      ? translations["no_target"].replace("{target}", target)
+                      : `No ${target}`}
                   </p>
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -165,7 +181,13 @@ export default function BannerUploader({
                 )}
               </div>
             )}
-            {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
+            {result && (
+              <CropContainer
+                imageSrc={result as string}
+                onCropComplete={setCroppedAreaPixels}
+                translations={translations}
+              />
+            )}
             <label
               data-testid="open-upload-image-filechooser"
               className="bg-subtle hover:bg-muted hover:text-emphasis border-subtle text-default mt-8 cursor-pointer rounded-sm border px-3 py-1 text-xs font-medium leading-4 transition focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
@@ -173,11 +195,11 @@ export default function BannerUploader({
                 onInput={onInputFile}
                 type="file"
                 name={id}
-                placeholder={t("upload_image")}
+                placeholder={translations["upload_image"] || "Upload image"}
                 className="text-default pointer-events-none absolute mt-4 opacity-0 "
                 accept="image/*"
               />
-              {t("choose_a_file")}
+              {translations["choose_a_file"] || "Choose a file"}
             </label>
             {uploadInstruction && (
               <p className="text-muted mt-4 text-center text-sm">({uploadInstruction})</p>
@@ -185,12 +207,15 @@ export default function BannerUploader({
           </div>
         </div>
         <DialogFooter className="relative">
-          <DialogClose color="minimal">{t("cancel")}</DialogClose>
+          <DialogClose color="minimal" translations={translations}>
+            {translations["cancel"] || "Cancel"}
+          </DialogClose>
           <DialogClose
             data-testid="upload-avatar"
             color="primary"
+            translations={translations}
             onClick={() => showCroppedImage(croppedAreaPixels)}>
-            {t("save")}
+            {translations["save"] || "Save"}
           </DialogClose>
         </DialogFooter>
       </DialogContent>

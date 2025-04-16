@@ -1299,7 +1299,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
               )}
             </div>
             <DialogFooter className="mt-10 flex-row-reverse gap-x-2" showDivider>
-              <DialogClose />
+              <DialogClose
+                translations={{
+                  close: t("close"),
+                  cancel: t("cancel"),
+                }}
+              />
               <Button
                 type="submit"
                 onClick={() => {

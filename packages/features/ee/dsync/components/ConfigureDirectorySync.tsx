@@ -87,7 +87,12 @@ const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | n
                   <p className="text-default mb-4">{t("directory_sync_delete_confirmation")}</p>
                 </div>
                 <DialogFooter showDivider>
-                  <DialogClose />
+                  <DialogClose
+                    translations={{
+                      close: t("close"),
+                      cancel: t("cancel"),
+                    }}
+                  />
                   <Button
                     color="primary"
                     data-testid="delete-account-confirm"

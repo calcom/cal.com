@@ -71,7 +71,10 @@ export const DisableAllEmailsSetting = ({
             }}
           />
           <DialogFooter className={customClassNames?.confirmationDialog?.dialogFooter?.container}>
-            <DialogClose className={customClassNames?.confirmationDialog?.dialogFooter?.cancelButton} />
+            <DialogClose
+              className={customClassNames?.confirmationDialog?.dialogFooter?.cancelButton}
+              translations={{ close: t("close") }}
+            />
             <Button
               disabled={confirmText.toLowerCase() !== confirmationString.toLowerCase()}
               onClick={() => {

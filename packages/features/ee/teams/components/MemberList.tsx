@@ -756,7 +756,9 @@ function MemberListContent(props: Props) {
                 });
               }}>
               <DialogFooter showDivider className="mt-8">
-                <DialogClose color="secondary">{t("cancel")}</DialogClose>
+                <DialogClose color="secondary" translations={{ close: t("close"), cancel: t("cancel") }}>
+                  {t("cancel")}
+                </DialogClose>
                 <Button color="primary" type="submit">
                   {t("impersonate")}
                 </Button>

@@ -260,6 +260,10 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                   setIsEmailAddressNeeded(false);
                   setIsSenderIdNeeded(false);
                 }}
+                translations={{
+                  close: t("close"),
+                  cancel: t("cancel"),
+                }}
               />
               <Button type="submit">{t("add")}</Button>
             </DialogFooter>

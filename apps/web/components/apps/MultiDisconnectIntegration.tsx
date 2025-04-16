@@ -107,6 +107,11 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
                 ...(credentialToDelete.teamId ? { teamId: credentialToDelete.teamId } : {}),
               });
             }
+          }}
+          translations={{
+            confirm: t("confirm"),
+            cancel: t("cancel"),
+            loading: t("loading"),
           }}>
           <p className="mt-5">
             {t("are_you_sure_you_want_to_remove_this_app_from")} {credentialToDelete?.name || t("unnamed")}?

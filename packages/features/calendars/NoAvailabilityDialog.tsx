@@ -83,7 +83,11 @@ const NoAvailabilityDialog = ({
           <DialogClose
             color={noFutureAvailability ? "primary" : "secondary"}
             onClick={closeDialog}
-            data-testid="close_dialog_button">
+            data-testid="close_dialog_button"
+            translations={{
+              close: t("close"),
+              cancel: t("cancel"),
+            }}>
             {t("close")}
           </DialogClose>
           {!noFutureAvailability && (

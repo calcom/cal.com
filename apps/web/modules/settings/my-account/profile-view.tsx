@@ -357,7 +357,12 @@ const ProfileView = () => {
               {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
             </div>
             <DialogFooter showDivider>
-              <DialogClose />
+              <DialogClose
+                translations={{
+                  close: t("close"),
+                  cancel: t("cancel"),
+                }}
+              />
               <Button
                 color="primary"
                 data-testid="delete-account-confirm"
@@ -412,7 +417,12 @@ const ProfileView = () => {
               onClick={(e) => onConfirmPassword(e)}>
               {t("confirm")}
             </Button>
-            <DialogClose />
+            <DialogClose
+              translations={{
+                close: t("close"),
+                cancel: t("cancel"),
+              }}
+            />
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -424,7 +434,12 @@ const ProfileView = () => {
           type="creation"
           Icon="triangle-alert">
           <DialogFooter>
-            <DialogClose />
+            <DialogClose
+              translations={{
+                close: t("close"),
+                cancel: t("cancel"),
+              }}
+            />
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -444,7 +459,12 @@ const ProfileView = () => {
               }}>
               {t("confirm")}
             </Button>
-            <DialogClose />
+            <DialogClose
+              translations={{
+                close: t("close"),
+                cancel: t("cancel"),
+              }}
+            />
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -633,6 +653,16 @@ const ProfileForm = ({
                         }}
                         imageSrc={getUserAvatarUrl({ avatarUrl: value })}
                         triggerButtonColor={showRemoveAvatarButton ? "secondary" : "secondary"}
+                        translations={{
+                          upload_target: t("upload_target"),
+                          no_target: t("no_target"),
+                          slide_zoom_drag_instructions: t("slide_zoom_drag_instructions"),
+                          image_size_limit_exceed: t("image_size_limit_exceed"),
+                          upload_image: t("upload_image"),
+                          choose_a_file: t("choose_a_file"),
+                          cancel: t("cancel"),
+                          save: t("save"),
+                        }}
                       />
 
                       {showRemoveAvatarButton && (

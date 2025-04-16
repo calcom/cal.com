@@ -77,7 +77,12 @@ export function AppSetDefaultLinkDialog({
             />
 
             <DialogFooter showDivider className="mt-8">
-              <DialogClose />
+              <DialogClose
+                translations={{
+                  close: t("close"),
+                  cancel: t("cancel"),
+                }}
+              />
               <Button color="primary" type="submit">
                 {t("save")}
               </Button>

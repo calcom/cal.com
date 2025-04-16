@@ -183,12 +183,22 @@ const DateOverrideForm = ({
                 data-testid="add-override-submit-btn">
                 {value ? t("date_overrides_update_btn") : t("date_overrides_save_btn")}
               </Button>
-              <DialogClose />
+              <DialogClose
+                translations={{
+                  close: t("close"),
+                  cancel: t("cancel"),
+                }}
+              />
             </div>
           </>
         ) : (
           <div className="bottom-7 right-8 flex flex-row-reverse sm:absolute">
-            <DialogClose />
+            <DialogClose
+              translations={{
+                close: t("close"),
+                cancel: t("cancel"),
+              }}
+            />
           </div>
         )}
       </div>

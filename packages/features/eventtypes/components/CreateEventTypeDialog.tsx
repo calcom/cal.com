@@ -94,7 +94,12 @@ export default function CreateEventTypeDialog({
   const SubmitButton = (isPending: boolean) => {
     return (
       <DialogFooter showDivider>
-        <DialogClose />
+        <DialogClose
+          translations={{
+            close: t("close"),
+            cancel: t("cancel"),
+          }}
+        />
         <Button type="submit" loading={isPending}>
           {t("continue")}
         </Button>

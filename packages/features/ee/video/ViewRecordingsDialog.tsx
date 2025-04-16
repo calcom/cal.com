@@ -193,7 +193,12 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
           <p className="font-semibold">{t("no_recordings_found")}</p>
         )}
         <DialogFooter>
-          <DialogClose className="border" />
+          <DialogClose
+            className="border"
+            translations={{
+              close: t("close"),
+            }}
+          />
         </DialogFooter>
       </DialogContent>
     </Dialog>

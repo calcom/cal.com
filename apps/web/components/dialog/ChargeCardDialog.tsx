@@ -57,7 +57,12 @@ export const ChargeCardDialog = (props: IRescheduleDialog) => {
             )}
 
             <DialogFooter>
-              <DialogClose />
+              <DialogClose
+                translations={{
+                  close: t("close"),
+                  cancel: t("cancel"),
+                }}
+              />
               <Button
                 data-testid="send_request"
                 disabled={chargeCardMutation.isPending || chargeError}

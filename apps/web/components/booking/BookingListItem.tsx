@@ -547,7 +547,12 @@ function BookingListItem(booking: BookingItemProps) {
           </div>
 
           <DialogFooter>
-            <DialogClose />
+            <DialogClose
+              translations={{
+                close: t("close"),
+                cancel: t("cancel"),
+              }}
+            />
             <Button
               disabled={mutation.isPending}
               data-testid="rejection-confirm"
@@ -1171,7 +1176,13 @@ const NoShowAttendeesDialog = ({
           </form>
         ))}
         <DialogFooter>
-          <DialogClose>{t("done")}</DialogClose>
+          <DialogClose
+            translations={{
+              close: t("close"),
+              cancel: t("cancel"),
+            }}>
+            {t("done")}
+          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>

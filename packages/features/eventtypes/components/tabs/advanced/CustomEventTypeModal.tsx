@@ -394,7 +394,13 @@ const CustomEventTypeModal: FC<CustomEventTypeModalProps> = (props) => {
           />
         </FormProvider>
         <DialogFooter>
-          <DialogClose>{t("cancel")}</DialogClose>
+          <DialogClose
+            translations={{
+              close: t("close"),
+              cancel: t("cancel"),
+            }}>
+            {t("cancel")}
+          </DialogClose>
           <Button form="custom-event-name" type="submit" color="primary">
             {t("create")}
           </Button>

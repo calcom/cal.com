@@ -19,7 +19,14 @@ const SecondaryEmailConfirmModal = ({ email, onCancel }: SecondaryEmailConfirmMo
         type="creation"
         data-testid="secondary-email-confirm-dialog">
         <DialogFooter>
-          <DialogClose color="primary" onClick={onCancel} data-testid="secondary-email-confirm-done-button">
+          <DialogClose
+            color="primary"
+            onClick={onCancel}
+            data-testid="secondary-email-confirm-done-button"
+            translations={{
+              close: t("close"),
+              cancel: t("cancel"),
+            }}>
             {t("done")}
           </DialogClose>
         </DialogFooter>

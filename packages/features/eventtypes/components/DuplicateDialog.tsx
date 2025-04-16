@@ -174,7 +174,12 @@ const DuplicateDialog = () => {
             </div>
           </div>
           <DialogFooter showDivider className="mt-10">
-            <DialogClose />
+            <DialogClose
+              translations={{
+                close: t("close"),
+                cancel: t("cancel"),
+              }}
+            />
             <Button data-testid="continue" type="submit" loading={duplicateMutation.isPending}>
               {t("continue")}
             </Button>

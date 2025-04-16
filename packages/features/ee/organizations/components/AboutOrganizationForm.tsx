@@ -5,13 +5,13 @@ import { Controller, useForm } from "react-hook-form";
 
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ImageUploader } from "@calcom/ui/components/image-uploader";
-import { TextAreaField } from "@calcom/ui/components/form";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
+import { TextAreaField } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { ImageUploader } from "@calcom/ui/components/image-uploader";
 
 export const AboutOrganizationForm = () => {
   const { t } = useLocale();
@@ -64,6 +64,16 @@ export const AboutOrganizationForm = () => {
                         aboutOrganizationFormMethods.setValue("logo", newAvatar);
                       }}
                       imageSrc={value}
+                      translations={{
+                        upload_target: t("upload_target"),
+                        no_target: t("no_target"),
+                        slide_zoom_drag_instructions: t("slide_zoom_drag_instructions"),
+                        image_size_limit_exceed: t("image_size_limit_exceed"),
+                        upload_image: t("upload_image"),
+                        choose_a_file: t("choose_a_file"),
+                        cancel: t("cancel"),
+                        save: t("save"),
+                      }}
                     />
                   </div>
                 </div>

@@ -1068,7 +1068,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </div>
             </div>
             <DialogFooter showDivider>
-              <DialogClose color="primary" />
+              <DialogClose
+                color="primary"
+                translations={{
+                  close: t("close"),
+                  cancel: t("cancel"),
+                }}
+              />
             </DialogFooter>
           </DialogContent>
         </Dialog>

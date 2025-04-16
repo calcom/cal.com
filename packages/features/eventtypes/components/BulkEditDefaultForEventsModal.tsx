@@ -95,6 +95,10 @@ export function BulkEditDefaultForEventsModal({
               onClick={() => {
                 props.handleBulkEditDialogToggle();
               }}
+              translations={{
+                close: t("close"),
+                cancel: t("cancel"),
+              }}
             />
             <Button type="submit" color="primary" loading={props.isPending} disabled={isButtonDisabled}>
               {t("update")}

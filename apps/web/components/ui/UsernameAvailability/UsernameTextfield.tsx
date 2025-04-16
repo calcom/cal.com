@@ -198,7 +198,13 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
               {t("save")}
             </Button>
 
-            <DialogClose color="secondary" onClick={() => setOpenDialogSaveUsername(false)}>
+            <DialogClose
+              color="secondary"
+              onClick={() => setOpenDialogSaveUsername(false)}
+              translations={{
+                close: t("close"),
+                cancel: t("cancel"),
+              }}>
               {t("cancel")}
             </DialogClose>
           </DialogFooter>
