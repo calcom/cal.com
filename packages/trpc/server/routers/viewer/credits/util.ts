@@ -27,7 +27,8 @@ export async function getAllCreditsForTeam(teamId: number) {
   });
 
   const totalMonthlyCredits = await getMonthlyCredits(teamId);
-  const totalMonthlyCreditsUsed = creditBalance?.expenseLogs.reduce((sum, log) => sum + log.credits, 0) || 0;
+  const totalMonthlyCreditsUsed =
+    creditBalance?.expenseLogs.reduce((sum, log) => sum + (log?.credits ?? 0), 0) || 0;
 
   return {
     totalMonthlyCredits,
