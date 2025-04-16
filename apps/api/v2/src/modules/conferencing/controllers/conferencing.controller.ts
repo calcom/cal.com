@@ -15,9 +15,9 @@ import {
 import { GetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/get-default-conferencing-app.output";
 import { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/set-default-conferencing-app.output";
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
-import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
+import { HttpService } from "@nestjs/axios";
 import { Logger } from "@nestjs/common";
 import {
   Controller,
@@ -36,6 +36,7 @@ import {
   Req,
   HttpException,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { Request } from "express";
@@ -62,7 +63,8 @@ export class ConferencingController {
   constructor(
     private readonly tokensRepository: TokensRepository,
     private readonly conferencingService: ConferencingService,
-    private readonly organizationsConferencingService: OrganizationsConferencingService
+    private readonly config: ConfigService,
+    private readonly httpService: HttpService
   ) {}
 
   @Post("/:app/connect")
@@ -150,16 +152,27 @@ export class ConferencingController {
       if (!userId) {
         throw new UnauthorizedException("Invalid Access token.");
       }
-      if (decodedCallbackState.orgId) {
-        return this.organizationsConferencingService.connectTeamOauthApps({
-          app,
-          code,
-          userId,
-          decodedCallbackState,
-        });
-      } else {
-        return this.conferencingService.connectOauthApps(app, code, userId, decodedCallbackState);
+
+      if (decodedCallbackState.teamId && decodedCallbackState.orgId) {
+        const apiUrl = this.config.get("api.url");
+        const url = `${apiUrl}/organizations/${decodedCallbackState.orgId}/teams/${decodedCallbackState.teamId}/conferencing/${app}/oauth/callback`;
+        const params: Record<string, string | undefined> = { state, code, error, error_description };
+        const headers = {
+          Authorization: `Bearer ${decodedCallbackState.accessToken}`,
+        };
+        try {
+          const response = await this.httpService.axiosRef.get(url, { params, headers });
+          // Always redirect to the URL provided by the downstream endpoint, or fallback to onErrorReturnTo
+          const redirectUrl = response.data?.url || decodedCallbackState.onErrorReturnTo || "";
+          return { url: redirectUrl };
+        } catch (err) {
+          // On error, redirect to error fallback
+          const fallbackUrl = decodedCallbackState.onErrorReturnTo || "";
+          return { url: fallbackUrl };
+        }
       }
+
+      return this.conferencingService.connectOauthApps(app, code, userId, decodedCallbackState);
     } catch (error) {
       if (error instanceof HttpException || error instanceof Error) {
         this.logger.error(error.message);

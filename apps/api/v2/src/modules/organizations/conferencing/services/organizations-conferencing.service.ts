@@ -1,19 +1,12 @@
-import { PlatformPlanType } from "@/modules/billing/types";
 import { OAuthCallbackState } from "@/modules/conferencing/controllers/conferencing.controller";
 import { DefaultConferencingAppsOutputDto } from "@/modules/conferencing/outputs/get-default-conferencing-app.output";
 import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
 import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
-import { PlatformSubscriptionService } from "@/modules/organizations/platform-subscription/services/platform-subscription.service";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import {
-  BadRequestException,
-  ForbiddenException,
-  InternalServerErrorException,
-  Logger,
-} from "@nestjs/common";
+import { BadRequestException, InternalServerErrorException, Logger } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
 import { GOOGLE_MEET } from "@calcom/platform-constants";
@@ -30,8 +23,7 @@ export class OrganizationsConferencingService {
     private teamsRepository: TeamsRepository,
     private usersRepository: UsersRepository,
     private readonly googleMeetService: GoogleMeetService,
-    private readonly conferencingService: ConferencingService,
-    private readonly platformSubscriptionService: PlatformSubscriptionService
+    private readonly conferencingService: ConferencingService
   ) {}
 
   async connectTeamNonOauthApps({ teamId, app }: { teamId: number; app: string }): Promise<any> {
@@ -48,14 +40,17 @@ export class OrganizationsConferencingService {
     app,
     code,
     userId,
+    orgId,
+    teamId,
   }: {
     userId: number;
     app: string;
     decodedCallbackState: OAuthCallbackState;
     code: string;
+    orgId: number;
+    teamId: number;
   }) {
     const user = await this.usersRepository.findByIdWithProfile(userId);
-    const { orgId, teamId } = decodedCallbackState;
 
     if (!orgId) {
       throw new BadRequestException("orgId required");
@@ -65,21 +60,7 @@ export class OrganizationsConferencingService {
       throw new BadRequestException("user not found");
     }
 
-    const isTeamLevel = !!teamId;
-    const requiredRole = isTeamLevel ? "TEAM_ADMIN" : "ORG_ADMIN";
-
-    const { orgId: validatedOrgId, teamId: validatedTeamId } =
-      await this.platformSubscriptionService.verifyAccess({
-        user,
-        orgId,
-        teamId,
-        requiredRole,
-        minimumPlan: "ESSENTIALS",
-      });
-
-    const entityId = isTeamLevel && validatedTeamId !== null ? validatedTeamId : validatedOrgId;
-
-    return this.conferencingService.connectOauthApps(app, code, userId, decodedCallbackState, entityId);
+    return this.conferencingService.connectOauthApps(app, code, userId, decodedCallbackState, teamId);
   }
 
   async getConferencingApps({ teamId }: { teamId: number }) {

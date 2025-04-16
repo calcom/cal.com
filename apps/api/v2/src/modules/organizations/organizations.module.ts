@@ -1,8 +1,11 @@
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
 import { AppsRepository } from "@/modules/apps/apps.repository";
-import { AuthModule } from "@/modules/auth/auth.module";
-import { ConferencingModule } from "@/modules/conferencing/conferencing.module";
+import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
+import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
+import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
+import { Office365VideoService } from "@/modules/conferencing/services/office365-video.service";
+import { ZoomVideoService } from "@/modules/conferencing/services/zoom-video.service";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { EmailModule } from "@/modules/email/email.module";
 import { EmailService } from "@/modules/email/email.service";
@@ -16,6 +19,7 @@ import { OrganizationAttributeOptionRepository } from "@/modules/organizations/a
 import { OrganizationsAttributesOptionsController } from "@/modules/organizations/attributes/options/organizations-attributes-options.controller";
 import { OrganizationAttributeOptionService } from "@/modules/organizations/attributes/options/services/organization-attributes-option.service";
 import { OrganizationsConferencingController } from "@/modules/organizations/conferencing/organizations-conferencing.controller";
+import { OrganizationsConferencingModule } from "@/modules/organizations/conferencing/organizations-conferencing.module";
 import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
 import { OrganizationsDelegationCredentialModule } from "@/modules/organizations/delegation-credentials/organizations-delegation-credential.module";
 import { OrganizationsEventTypesController } from "@/modules/organizations/event-types/organizations-event-types.controller";
@@ -30,8 +34,6 @@ import { OrganizationsMembershipsController } from "@/modules/organizations/memb
 import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import { OrganizationsOrganizationsModule } from "@/modules/organizations/organizations/organizations-organizations.module";
-import { PlatformSubscriptionModule } from "@/modules/organizations/platform-subscription/platform-subscription.module";
-import { PlatformSubscriptionService } from "@/modules/organizations/platform-subscription/services/platform-subscription.service";
 import { OrganizationsSchedulesController } from "@/modules/organizations/schedules/organizations-schedules.controller";
 import { OrganizationSchedulesRepository } from "@/modules/organizations/schedules/organizations-schedules.repository";
 import { OrganizationsSchedulesService } from "@/modules/organizations/schedules/services/organizations-schedules.service";
@@ -60,10 +62,11 @@ import { RedisService } from "@/modules/redis/redis.service";
 import { StripeModule } from "@/modules/stripe/stripe.module";
 import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";
 import { TeamsModule } from "@/modules/teams/teams/teams.module";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersModule } from "@/modules/users/users.module";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
-import { forwardRef, Module } from "@nestjs/common";
+import { Module } from "@nestjs/common";
 
 @Module({
   imports: [
@@ -76,13 +79,11 @@ import { forwardRef, Module } from "@nestjs/common";
     EventTypesModule_2024_06_14,
     TeamsEventTypesModule,
     TeamsModule,
-    forwardRef(() => ConferencingModule),
-    forwardRef(() => AuthModule),
     OrganizationsDelegationCredentialModule,
     OrganizationsOrganizationsModule,
     OrganizationsStripeModule,
     OrganizationsTeamsRoutingFormsModule,
-    PlatformSubscriptionModule,
+    OrganizationsConferencingModule,
   ],
   providers: [
     OrganizationsRepository,
@@ -119,9 +120,14 @@ import { forwardRef, Module } from "@nestjs/common";
     OrganizationsConferencingService,
     OrganizationsStripeService,
     CredentialsRepository,
-    PlatformSubscriptionService,
     AppsRepository,
     RedisService,
+    ConferencingRepository,
+    GoogleMeetService,
+    ConferencingService,
+    ZoomVideoService,
+    Office365VideoService,
+    TokensRepository,
   ],
   exports: [
     OrganizationsService,
@@ -144,7 +150,6 @@ import { forwardRef, Module } from "@nestjs/common";
     OrganizationsEventTypesService,
     OrganizationsConferencingService,
     OrganizationsStripeService,
-    PlatformSubscriptionService,
   ],
   controllers: [
     OrganizationsTeamsController,
