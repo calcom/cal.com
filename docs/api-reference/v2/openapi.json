@@ -1226,6 +1226,33 @@
         "summary": "Get Organization Bookings",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "status",
             "required": false,
             "in": "query",
@@ -1935,82 +1962,16 @@
         "tags": ["Orgs / Memberships"]
       }
     },
-    "/v2/organizations/{orgId}/organizations": {
-      "post": {
-        "operationId": "OrganizationsOrganizationsController_createOrganization",
-        "summary": "Create an organization within an organization",
-        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "For platform customers - OAuth client secret key",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-cal-client-id",
-            "in": "header",
-            "description": "For platform customers - OAuth client ID",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOrganizationInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateManagedOrganizationOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Orgs / Orgs"]
-      },
+    "/v2/organizations/{orgId}/routing-forms": {
       "get": {
-        "operationId": "OrganizationsOrganizationsController_getOrganizations",
-        "summary": "Get all organizations within an organization",
-        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+        "operationId": "OrganizationsRoutingFormsController_getOrganizationRoutingForms",
+        "summary": "Get organization routing forms",
         "parameters": [
           {
-            "name": "x-cal-secret-key",
+            "name": "Authorization",
             "in": "header",
-            "description": "For platform customers - OAuth client secret key",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-cal-client-id",
-            "in": "header",
-            "description": "For platform customers - OAuth client ID",
-            "required": false,
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -2021,6 +1982,106 @@
             "in": "path",
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to skip",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to take",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort by creation time",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort by update time",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created after this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created before this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created after this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses updated before this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "routedToBookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses routed to a specific booking",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter by teamIds. Team ids must be separated by a comma.",
+            "example": "?teamIds=100,200",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
             }
           }
         ],
@@ -2030,81 +2091,25 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetManagedOrganizationsOutput"
+                  "$ref": "#/components/schemas/GetRoutingFormsOutput"
                 }
               }
             }
           }
         },
-        "tags": ["Orgs / Orgs"]
+        "tags": ["Orgs / Routing forms"]
       }
     },
-    "/v2/organizations/{orgId}/organizations/{managedOrganizationId}": {
+    "/v2/organizations/{orgId}/routing-forms/{routingFormId}/responses": {
       "get": {
-        "operationId": "OrganizationsOrganizationsController_getOrganization",
-        "summary": "Get an organization within an organization",
-        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+        "operationId": "OrganizationsRoutingFormsResponsesController_getRoutingFormResponses",
+        "summary": "Get routing form responses",
         "parameters": [
           {
-            "name": "x-cal-secret-key",
+            "name": "Authorization",
             "in": "header",
-            "description": "For platform customers - OAuth client secret key",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-cal-client-id",
-            "in": "header",
-            "description": "For platform customers - OAuth client ID",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "managedOrganizationId",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
             "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedOrganizationOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Orgs / Orgs"]
-      },
-      "patch": {
-        "operationId": "OrganizationsOrganizationsController_updateOrganization",
-        "summary": "Update an organization within an organization",
-        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "For platform customers - OAuth client secret key",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-cal-client-id",
-            "in": "header",
-            "description": "For platform customers - OAuth client ID",
-            "required": false,
             "schema": {
               "type": "string"
             }
@@ -2118,7 +2123,148 @@
             }
           },
           {
-            "name": "managedOrganizationId",
+            "name": "routingFormId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to skip",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to take",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort by creation time",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort by update time",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created after this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created before this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created after this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses updated before this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "routedToBookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses routed to a specific booking",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetRoutingFormResponsesOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Routing forms"]
+      }
+    },
+    "/v2/organizations/{orgId}/routing-forms/{routingFormId}/responses/{responseId}": {
+      "patch": {
+        "operationId": "OrganizationsRoutingFormsResponsesController_updateRoutingFormResponse",
+        "summary": "Update routing form response",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "routingFormId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "responseId",
             "required": true,
             "in": "path",
             "schema": {
@@ -2131,7 +2277,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateOrganizationInput"
+                "$ref": "#/components/schemas/UpdateRoutingFormResponseInput"
               }
             }
           }
@@ -2142,59 +2288,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetManagedOrganizationOutput"
+                  "$ref": "#/components/schemas/UpdateRoutingFormResponseOutput"
                 }
               }
             }
           }
         },
-        "tags": ["Orgs / Orgs"]
-      },
-      "delete": {
-        "operationId": "OrganizationsOrganizationsController_deleteOrganization",
-        "summary": "Delete an organization within an organization",
-        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "For platform customers - OAuth client secret key",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-cal-client-id",
-            "in": "header",
-            "description": "For platform customers - OAuth client ID",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "managedOrganizationId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedOrganizationOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Orgs / Orgs"]
+        "tags": ["Orgs / Routing forms"]
       }
     },
     "/v2/organizations/{orgId}/schedules": {
@@ -2863,6 +2963,270 @@
           }
         },
         "tags": ["Orgs / Teams / Bookings"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/connect": {
+      "post": {
+        "operationId": "OrganizationsConferencingController_connectTeamApp",
+        "summary": "Connect your conferencing application to a team",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "description": "Conferencing application type",
+            "schema": {
+              "enum": ["google-meet"],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Conferencing"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/oauth/auth-url": {
+      "get": {
+        "operationId": "OrganizationsConferencingController_getTeamOAuthUrl",
+        "summary": "Get OAuth conferencing app's auth url for a team",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "description": "Conferencing application type",
+            "schema": {
+              "enum": ["zoom", "msteams"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "returnTo",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "onErrorReturnTo",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetConferencingAppsOauthUrlResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Conferencing"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing": {
+      "get": {
+        "operationId": "OrganizationsConferencingController_listTeamConferencingApps",
+        "summary": "List team conferencing applications",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConferencingAppsOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Conferencing"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/default": {
+      "post": {
+        "operationId": "OrganizationsConferencingController_setTeamDefaultApp",
+        "summary": "Set team default conferencing application",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "description": "Conferencing application type",
+            "schema": {
+              "enum": ["google-meet", "zoom", "msteams", "daily-video"],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetDefaultConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Conferencing"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/default": {
+      "get": {
+        "operationId": "OrganizationsConferencingController_getTeamDefaultApp",
+        "summary": "Get team default conferencing application",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "description": "Conferencing application type",
+            "schema": {
+              "enum": ["google-meet", "zoom", "msteams", "daily-video"],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetDefaultConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Conferencing"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/disconnect": {
+      "delete": {
+        "operationId": "OrganizationsConferencingController_disconnectTeamApp",
+        "summary": "Disconnect team conferencing application",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "description": "Conferencing application type",
+            "schema": {
+              "enum": ["google-meet", "zoom", "msteams"],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DisconnectConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Conferencing"]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}/event-types": {
@@ -3737,10 +4101,143 @@
         "tags": ["Orgs / Teams / Memberships"]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/routing-forms": {
+      "get": {
+        "operationId": "OrganizationsTeamsRoutingFormsController_getTeamRoutingForms",
+        "summary": "Get team routing forms",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to skip",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to take",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort by creation time",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort by update time",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created after this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created before this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created after this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses updated before this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "routedToBookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses routed to a specific booking",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetRoutingFormsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Routing forms"]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses": {
       "get": {
         "operationId": "OrganizationsTeamsRoutingFormsResponsesController_getRoutingFormResponses",
-        "summary": "Get routing form responses",
+        "summary": "Get organization team routing form responses",
         "parameters": [
           {
             "name": "Authorization",
@@ -3758,6 +4255,109 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to skip",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to take",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort by creation time",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort by update time",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created after this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created before this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses created after this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses updated before this date",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "routedToBookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter by responses routed to a specific booking",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -3767,6 +4367,70 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetRoutingFormResponsesOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Routing forms / Responses"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses/{responseId}": {
+      "patch": {
+        "operationId": "OrganizationsTeamsRoutingFormsResponsesController_updateRoutingFormResponse",
+        "summary": "Update routing form response",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "routingFormId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "responseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoutingFormResponseInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateRoutingFormResponseOutput"
                 }
               }
             }
@@ -4120,7 +4784,42 @@
         "summary": "Get all bookings of an organization user",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
             "required": true,
             "in": "path",
             "schema": {
@@ -5818,7 +6517,8 @@
     "/v2/bookings/{bookingUid}/mark-absent": {
       "post": {
         "operationId": "BookingsController_2024_08_13_markNoShow",
-        "summary": "Mark a booking absence - provided authorization header refers to owner of the booking.",
+        "summary": "Mark a booking absence",
+        "description": "The provided authorization header refers to the owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -5876,7 +6576,8 @@
     "/v2/bookings/{bookingUid}/reassign": {
       "post": {
         "operationId": "BookingsController_2024_08_13_reassignBooking",
-        "summary": "Automatically reassign booking to a new host automatically - provided authorization header refers to person who reassigned the booking.",
+        "summary": "Reassign a booking to auto-selected host",
+        "description": "The provided authorization header refers to the owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -5924,7 +6625,8 @@
     "/v2/bookings/{bookingUid}/reassign/{userId}": {
       "post": {
         "operationId": "BookingsController_2024_08_13_reassignBookingToUser",
-        "summary": "Reassign a booking to a specific user specified by the :userId - provided authorization header refers to person who reassigned the booking.",
+        "summary": "Reassign a booking to a specific host",
+        "description": "The provided authorization header refers to the owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -5990,7 +6692,8 @@
     "/v2/bookings/{bookingUid}/confirm": {
       "post": {
         "operationId": "BookingsController_2024_08_13_confirmBooking",
-        "summary": "Confirm booking that requires a confirmation - provided authorization header refers to owner of the booking.",
+        "summary": "Confirm a booking",
+        "description": "The provided authorization header refers to the owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -6038,7 +6741,8 @@
     "/v2/bookings/{bookingUid}/decline": {
       "post": {
         "operationId": "BookingsController_2024_08_13_declineBooking",
-        "summary": "Decline booking that requires a confirmation - provided authorization header refers to owner of the booking.",
+        "summary": "Decline a booking",
+        "description": "The provided authorization header refers to the owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -7360,6 +8064,268 @@
         "tags": ["Event Types / Webhooks"]
       }
     },
+    "/v2/organizations/{orgId}/organizations": {
+      "post": {
+        "operationId": "OrganizationsOrganizationsController_createOrganization",
+        "summary": "Create an organization within an organization",
+        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrganizationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateManagedOrganizationOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Managed Orgs"]
+      },
+      "get": {
+        "operationId": "OrganizationsOrganizationsController_getOrganizations",
+        "summary": "Get all organizations within an organization",
+        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedOrganizationsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Managed Orgs"]
+      }
+    },
+    "/v2/organizations/{orgId}/organizations/{managedOrganizationId}": {
+      "get": {
+        "operationId": "OrganizationsOrganizationsController_getOrganization",
+        "summary": "Get an organization within an organization",
+        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "managedOrganizationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedOrganizationOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Managed Orgs"]
+      },
+      "patch": {
+        "operationId": "OrganizationsOrganizationsController_updateOrganization",
+        "summary": "Update an organization within an organization",
+        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "managedOrganizationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrganizationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedOrganizationOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Managed Orgs"]
+      },
+      "delete": {
+        "operationId": "OrganizationsOrganizationsController_deleteOrganization",
+        "summary": "Delete an organization within an organization",
+        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "managedOrganizationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedOrganizationOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Managed Orgs"]
+      }
+    },
     "/v2/me": {
       "get": {
         "operationId": "MeController_getMe",
@@ -7616,212 +8582,77 @@
         "tags": ["OAuth Clients"]
       }
     },
-    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/connect": {
+    "/v2/routing-forms/{routingFormId}/calculate-slots": {
       "post": {
-        "operationId": "OrganizationsConferencingController_connectTeamApp",
-        "summary": "Connect your conferencing application to a team",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": ["google-meet"],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConferencingAppOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Organizations/Teams Conferencing"]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/oauth/auth-url": {
-      "get": {
-        "operationId": "OrganizationsConferencingController_getTeamOAuthUrl",
-        "summary": "Get OAuth conferencing app's auth url for a team",
+        "operationId": "RoutingFormsController_calculateSlotsBasedOnRoutingFormResponse",
+        "summary": "Calculate slots based on routing form response",
+        "description": "It will not actually save the response just return the routed event type and slots when it can be booked.",
         "parameters": [
           {
             "name": "Authorization",
-            "required": true,
             "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "teamId",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
             "required": true,
-            "in": "path",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": ["zoom", "msteams"],
-              "type": "string"
-            }
-          },
-          {
-            "name": "returnTo",
+            "name": "start",
             "required": true,
             "in": "query",
+            "description": "\n      Time starting from which available slots should be checked.\n    \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to start of day or specify hours:\n      2024-08-13 (will have hours 00:00:00 aka at very beginning of the date) or you can specify hours manually like 2024-08-13T09:00:00Z\n      ",
+            "example": "2050-09-05",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "onErrorReturnTo",
+            "name": "end",
             "required": true,
             "in": "query",
+            "description": "\n      Time until which available slots should be checked.\n      \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to end of day or specify hours:\n      2024-08-20 (will have hours 23:59:59 aka at the very end of the date) or you can specify hours manually like 2024-08-20T18:00:00Z",
+            "example": "2050-09-06",
             "schema": {
               "type": "string"
             }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetConferencingAppsOauthUrlResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Organizations/Teams Conferencing"]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/conferencing": {
-      "get": {
-        "operationId": "OrganizationsConferencingController_listTeamConferencingApps",
-        "summary": "List team conferencing applications",
-        "parameters": [
+          },
           {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
+            "name": "timeZone",
+            "required": false,
+            "in": "query",
+            "description": "Time zone in which the available slots should be returned. Defaults to UTC.",
+            "example": "Europe/Rome",
             "schema": {
-              "type": "number"
+              "type": "string"
             }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConferencingAppsOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Organizations/Teams Conferencing"]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/default": {
-      "post": {
-        "operationId": "OrganizationsConferencingController_setTeamDefaultApp",
-        "summary": "Set team default conferencing application",
-        "parameters": [
+          },
           {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
+            "name": "duration",
+            "required": false,
+            "in": "query",
+            "description": "If event type has multiple possible durations then you can specify the desired duration here. Also, if you are fetching slots for a dynamic event then you can specify the duration her which defaults to 30, meaning that returned slots will be each 30 minutes long.",
+            "example": "60",
             "schema": {
               "type": "number"
             }
           },
           {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "description": "Format of slot times in response. Use 'range' to get start and end times.",
+            "example": "range",
             "schema": {
-              "enum": ["google-meet", "zoom", "msteams", "daily-video"],
+              "enum": ["range", "time"],
               "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SetDefaultConferencingAppOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Organizations/Teams Conferencing"]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/default": {
-      "get": {
-        "operationId": "OrganizationsConferencingController_getTeamDefaultApp",
-        "summary": "Get team default conferencing application",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
             }
           },
           {
-            "name": "app",
+            "name": "routingFormId",
             "required": true,
             "in": "path",
-            "description": "Conferencing application type",
             "schema": {
-              "enum": ["google-meet", "zoom", "msteams", "daily-video"],
               "type": "string"
             }
           }
@@ -7832,52 +8663,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetDefaultConferencingAppOutputResponseDto"
+                  "$ref": "#/components/schemas/ResponseSlotsOutput"
                 }
               }
             }
           }
         },
-        "tags": ["Organizations/Teams Conferencing"]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/disconnect": {
-      "delete": {
-        "operationId": "OrganizationsConferencingController_disconnectTeamApp",
-        "summary": "Disconnect team conferencing application",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": ["google-meet", "zoom", "msteams"],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DisconnectConferencingAppOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Organizations/Teams Conferencing"]
+        "tags": ["Routing forms"]
       }
     },
     "/v2/schedules": {
@@ -17470,10 +18262,264 @@
             "enum": ["success", "error"]
           },
           "data": {
+            "$ref": "#/components/schemas/RoutingFormResponseOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "UpdateRoutingFormResponseInput": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "description": "The updated response data"
+          }
+        }
+      },
+      "UpdateRoutingFormResponseOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/RoutingFormResponseOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "RoutingFormOutput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "My Form"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "This is the description."
+          },
+          "position": {
+            "type": "number",
+            "example": 0
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-03-28T10:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-03-28T10:00:00.000Z"
+          },
+          "userId": {
+            "type": "number",
+            "example": 2313
+          },
+          "teamId": {
+            "type": "number",
+            "nullable": true,
+            "example": 4214321
+          },
+          "disabled": {
+            "type": "boolean",
+            "example": false
+          },
+          "id": {
+            "type": "string"
+          },
+          "routes": {
+            "type": "object",
+            "nullable": true
+          },
+          "fields": {
+            "type": "object",
+            "nullable": true
+          },
+          "settings": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "position",
+          "createdAt",
+          "updatedAt",
+          "userId",
+          "teamId",
+          "disabled",
+          "id",
+          "routes",
+          "fields",
+          "settings"
+        ]
+      },
+      "GetRoutingFormsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/RoutingFormResponseOutput"
+              "$ref": "#/components/schemas/RoutingFormOutput"
             }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "SlotsOutput_2024_09_04": {
+        "type": "object",
+        "properties": {}
+      },
+      "RangeSlotsOutput_2024_09_04": {
+        "type": "object",
+        "properties": {}
+      },
+      "ResponseSlotsOutputData": {
+        "type": "object",
+        "properties": {
+          "eventTypeId": {
+            "type": "number"
+          },
+          "slots": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/SlotsOutput_2024_09_04"
+              },
+              {
+                "$ref": "#/components/schemas/RangeSlotsOutput_2024_09_04"
+              }
+            ]
+          }
+        },
+        "required": ["eventTypeId", "slots"]
+      },
+      "ResponseSlotsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ResponseSlotsOutputData"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "ReserveSlotInput_2024_09_04": {
+        "type": "object",
+        "properties": {
+          "eventTypeId": {
+            "type": "number",
+            "example": 1,
+            "description": "The ID of the event type for which slot should be reserved."
+          },
+          "slotStart": {
+            "type": "string",
+            "example": "2024-09-04T09:00:00Z",
+            "description": "ISO 8601 datestring in UTC timezone representing available slot."
+          },
+          "slotDuration": {
+            "type": "number",
+            "example": "30",
+            "description": "By default slot duration is equal to event type length, but if you want to reserve a slot for an event type that has a variable length you can specify it here as a number in minutes. If you don't have this set explicitly that event type can have one of many lengths you can omit this."
+          },
+          "reservationDuration": {
+            "type": "number",
+            "example": 5,
+            "description": "ONLY for authenticated requests with api key, access token or OAuth credentials (ID + secret).\n      \n      For how many minutes the slot should be reserved - for this long time noone else can book this event type at `start` time. If not provided, defaults to 5 minutes."
+          }
+        },
+        "required": ["eventTypeId", "slotStart"]
+      },
+      "ReserveSlotOutput_2024_09_04": {
+        "type": "object",
+        "properties": {
+          "eventTypeId": {
+            "type": "number",
+            "example": 1,
+            "description": "The ID of the event type for which slot was reserved."
+          },
+          "slotStart": {
+            "type": "string",
+            "example": "2024-09-04T09:00:00Z",
+            "description": "ISO 8601 datestring in UTC timezone representing available slot."
+          },
+          "slotEnd": {
+            "type": "string",
+            "example": "2024-09-04T10:00:00Z",
+            "description": "ISO 8601 datestring in UTC timezone representing slot end."
+          },
+          "slotDuration": {
+            "type": "number",
+            "example": "30",
+            "description": "By default slot duration is equal to event type length, but if you want to reserve a slot for an event type that has a variable length you can specify it here. If you don't have this set explicitly that event type can have one of many lengths you can omit this."
+          },
+          "reservationUid": {
+            "type": "string",
+            "example": "e84be5a3-4696-49e3-acc7-b2f3999c3b94",
+            "description": "The unique identifier of the reservation. Use it to update, get or delete the reservation."
+          },
+          "reservationDuration": {
+            "type": "number",
+            "example": 5,
+            "description": "For how many minutes the slot is reserved - for this long time noone else can book this event type at `start` time."
+          },
+          "reservationUntil": {
+            "type": "string",
+            "example": "2023-09-04T10:00:00Z",
+            "description": "ISO 8601 datestring in UTC timezone representing time until which the slot is reserved."
+          }
+        },
+        "required": [
+          "eventTypeId",
+          "slotStart",
+          "slotEnd",
+          "slotDuration",
+          "reservationUid",
+          "reservationDuration",
+          "reservationUntil"
+        ]
+      },
+      "ReserveSlotOutputResponse_2024_09_04": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ReserveSlotOutput_2024_09_04"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetReservedSlotOutput_2024_09_04": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GetReservedSlotOutput_2024_09_04"
+              }
+            ]
           }
         },
         "required": ["status", "data"]
@@ -19559,114 +20605,6 @@
           },
           "data": {
             "$ref": "#/components/schemas/TeamMembershipOutput"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "ReserveSlotInput_2024_09_04": {
-        "type": "object",
-        "properties": {
-          "eventTypeId": {
-            "type": "number",
-            "example": 1,
-            "description": "The ID of the event type for which slot should be reserved."
-          },
-          "slotStart": {
-            "type": "string",
-            "example": "2024-09-04T09:00:00Z",
-            "description": "ISO 8601 datestring in UTC timezone representing available slot."
-          },
-          "slotDuration": {
-            "type": "number",
-            "example": "30",
-            "description": "By default slot duration is equal to event type length, but if you want to reserve a slot for an event type that has a variable length you can specify it here as a number in minutes. If you don't have this set explicitly that event type can have one of many lengths you can omit this."
-          },
-          "reservationDuration": {
-            "type": "number",
-            "example": 5,
-            "description": "ONLY for authenticated requests with api key, access token or OAuth credentials (ID + secret).\n      \n      For how many minutes the slot should be reserved - for this long time noone else can book this event type at `start` time. If not provided, defaults to 5 minutes."
-          }
-        },
-        "required": ["eventTypeId", "slotStart"]
-      },
-      "ReserveSlotOutput_2024_09_04": {
-        "type": "object",
-        "properties": {
-          "eventTypeId": {
-            "type": "number",
-            "example": 1,
-            "description": "The ID of the event type for which slot was reserved."
-          },
-          "slotStart": {
-            "type": "string",
-            "example": "2024-09-04T09:00:00Z",
-            "description": "ISO 8601 datestring in UTC timezone representing available slot."
-          },
-          "slotEnd": {
-            "type": "string",
-            "example": "2024-09-04T10:00:00Z",
-            "description": "ISO 8601 datestring in UTC timezone representing slot end."
-          },
-          "slotDuration": {
-            "type": "number",
-            "example": "30",
-            "description": "By default slot duration is equal to event type length, but if you want to reserve a slot for an event type that has a variable length you can specify it here. If you don't have this set explicitly that event type can have one of many lengths you can omit this."
-          },
-          "reservationUid": {
-            "type": "string",
-            "example": "e84be5a3-4696-49e3-acc7-b2f3999c3b94",
-            "description": "The unique identifier of the reservation. Use it to update, get or delete the reservation."
-          },
-          "reservationDuration": {
-            "type": "number",
-            "example": 5,
-            "description": "For how many minutes the slot is reserved - for this long time noone else can book this event type at `start` time."
-          },
-          "reservationUntil": {
-            "type": "string",
-            "example": "2023-09-04T10:00:00Z",
-            "description": "ISO 8601 datestring in UTC timezone representing time until which the slot is reserved."
-          }
-        },
-        "required": [
-          "eventTypeId",
-          "slotStart",
-          "slotEnd",
-          "slotDuration",
-          "reservationUid",
-          "reservationDuration",
-          "reservationUntil"
-        ]
-      },
-      "ReserveSlotOutputResponse_2024_09_04": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ReserveSlotOutput_2024_09_04"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "GetReservedSlotOutput_2024_09_04": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/GetReservedSlotOutput_2024_09_04"
-              }
-            ]
           }
         },
         "required": ["status", "data"]

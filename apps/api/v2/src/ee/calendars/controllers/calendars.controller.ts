@@ -34,6 +34,7 @@ import {
   BadRequestException,
   Post,
   Body,
+  ParseBoolPipe,
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
@@ -148,13 +149,14 @@ export class CalendarsController {
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
     @Param("calendar") calendar: string,
-    @Query("redir") redir?: string | null
+    @Query("redir") redir?: string | null,
+    @Query("isDryRun", ParseBoolPipe) isDryRun?: boolean
   ): Promise<ApiResponse<{ authUrl: string }>> {
     switch (calendar) {
       case OFFICE_365_CALENDAR:
-        return await this.outlookService.connect(authorization, req, redir ?? "");
+        return await this.outlookService.connect(authorization, req, redir ?? "", isDryRun);
       case GOOGLE_CALENDAR:
-        return await this.googleCalendarService.connect(authorization, req, redir ?? "");
+        return await this.googleCalendarService.connect(authorization, req, redir ?? "", isDryRun);
       default:
         throw new BadRequestException(
           "Invalid calendar type, available calendars are: ",
@@ -179,18 +181,30 @@ export class CalendarsController {
   ): Promise<{ url: string }> {
     // state params contains our user access token
     const stateParams = new URLSearchParams(state);
-    const { accessToken, origin, redir } = z
-      .object({ accessToken: z.string(), origin: z.string(), redir: z.string().nullish().optional() })
+    const { accessToken, origin, redir, isDryRun } = z
+      .object({
+        accessToken: z.string(),
+        origin: z.string(),
+        redir: z.string().nullish().optional(),
+        isDryRun: z.string().nullish().optional(),
+      })
       .parse({
         accessToken: stateParams.get("accessToken"),
         origin: stateParams.get("origin"),
         redir: stateParams.get("redir"),
+        isDryRun: stateParams.get("isDryRun"),
       });
     switch (calendar) {
       case OFFICE_365_CALENDAR:
-        return await this.outlookService.save(code, accessToken, origin, redir ?? "");
+        return await this.outlookService.save(code, accessToken, origin, redir ?? "", isDryRun === "true");
       case GOOGLE_CALENDAR:
-        return await this.googleCalendarService.save(code, accessToken, origin, redir ?? "");
+        return await this.googleCalendarService.save(
+          code,
+          accessToken,
+          origin,
+          redir ?? "",
+          isDryRun === "true"
+        );
       default:
         throw new BadRequestException(
           "Invalid calendar type, available calendars are: ",

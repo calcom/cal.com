@@ -5,16 +5,15 @@ import { redactError } from "@calcom/lib/redactError";
 import { middleware } from "../trpc";
 
 const captureErrorsMiddleware = middleware(async ({ next }) => {
-  const result = await next();
-  if (result && !result.ok) {
-    const cause = result.error.cause;
-    if (!cause) {
-      return result;
-    }
-    captureException(cause);
-    throw redactError(cause);
+  try {
+    const result = await next();
+    if (result.ok) return result;
+    if (!result.error.cause) return result;
+    throw result.error.cause;
+  } catch (error) {
+    captureException(error);
+    throw redactError(error);
   }
-  return result;
 });
 
 export default captureErrorsMiddleware;
