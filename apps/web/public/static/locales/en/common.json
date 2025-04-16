@@ -2992,6 +2992,7 @@
   "authorize": "Authorize",
   "next": "Next",
   "hide": "Hide",
+  "show":"Show",
   "asc": "Asc",
   "desc": "Desc",
   "verify_email_change": "Verify email change",
