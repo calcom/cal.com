@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import FormInputFields from "routing-forms/components/FormInputFields";
 import { getAbsoluteEventTypeRedirectUrl } from "routing-forms/getEventTypeRedirectUrl";
 import { RoutingPages } from "routing-forms/lib/RoutingPages";
@@ -36,7 +36,7 @@ export const TestForm = ({
   form: UptoDateForm | RoutingForm;
   supportsTeamMembersMatchingLogic: boolean;
   showAllData?: boolean;
-  renderFooter?: (onClose: () => void, onSubmit: () => void) => React.ReactNode;
+  renderFooter?: (onClose: () => void, onSubmit: () => void, isValid: boolean) => React.ReactNode;
 }) => {
   const { t } = useLocale();
   const [response, setResponse] = useState<FormResponse>({});
@@ -101,6 +101,25 @@ export const TestForm = ({
       });
     }
   }
+
+  // Check if all required fields are filled - form was handling this in the past but we cant have nested forms.
+  const areRequiredFieldsFilled = useMemo(() => {
+    if (!form.fields) return true;
+
+    const requiredFields = form.fields.filter((field) => field.required);
+    if (!requiredFields.length) return true;
+
+    return requiredFields.every((field) => {
+      const fieldResponse = response[field.id];
+      if (!fieldResponse) return false;
+
+      const value = fieldResponse.value;
+      if (Array.isArray(value)) {
+        return value.length > 0;
+      }
+      return value !== undefined && value !== null && value !== "";
+    });
+  }, [form.fields, response]);
 
   const renderTestResult = (showAllData: boolean) => {
     if (!form.routes || !chosenRoute) return null;
@@ -214,15 +233,20 @@ export const TestForm = ({
             onClick={() => {
               resetMembersMatchResult();
               testRouting();
-            }}>
+            }}
+            disabled={!areRequiredFieldsFilled}>
             {t("submit")}
           </Button>
         </div>
       ) : (
-        renderFooter(onClose, () => {
-          resetMembersMatchResult();
-          testRouting();
-        })
+        renderFooter(
+          onClose,
+          () => {
+            resetMembersMatchResult();
+            testRouting();
+          },
+          areRequiredFieldsFilled
+        )
       )}
       <div>{renderTestResult(showAllData)}</div>
     </div>
@@ -265,10 +289,14 @@ export const TestFormRenderer = ({
           <TestForm
             form={testForm}
             supportsTeamMembersMatchingLogic={isSubTeamForm}
-            renderFooter={(onClose, onSubmit) => (
+            renderFooter={(onClose, onSubmit, isValid) => (
               <DialogFooter>
-                <Button onClick={onClose}>{t("close")}</Button>
-                <Button onClick={onSubmit}>{t("submit")}</Button>
+                <Button onClick={onClose} color="secondary">
+                  {t("close")}
+                </Button>
+                <Button onClick={onSubmit} disabled={!isValid}>
+                  {t("submit")}
+                </Button>
               </DialogFooter>
             )}
           />
