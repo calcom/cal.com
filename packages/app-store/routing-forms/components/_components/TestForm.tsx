@@ -21,6 +21,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { TRPCClientError } from "@trpc/react-query";
 
 import type { SingleFormComponentProps } from "../../types/shared";
+import { ResultsView as Results } from "./ResultSection";
 import type { MembersMatchResultType } from "./TeamMembersMatchResult";
 import { TeamMembersMatchResult } from "./TeamMembersMatchResult";
 
@@ -69,31 +70,6 @@ const FormView = ({
   );
 };
 
-const ResultsView = ({
-  showAllData,
-  renderTestResult,
-  onBack,
-}: {
-  showAllData: boolean;
-  renderTestResult: (showAllData: boolean) => React.ReactNode;
-  onBack: () => void;
-}) => {
-  const { t } = useLocale();
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ duration: 0.2 }}>
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-emphasis text-lg font-semibold">{t("results")}</h3>
-        <Button color="minimal" size="sm" variant="icon" StartIcon="x" onClick={onBack} />
-      </div>
-      {renderTestResult(showAllData)}
-    </motion.div>
-  );
-};
-
 export const TestForm = ({
   form,
   supportsTeamMembersMatchingLogic,
@@ -113,39 +89,34 @@ export const TestForm = ({
   const [membersMatchResult, setMembersMatchResult] = useState<MembersMatchResultType | null>(null);
   const [showResults, setShowResults] = useState(false);
 
+  const areRequiredFieldsFilled = useMemo(() => {
+    if (!form.fields) return true;
+
+    const requiredFields = form.fields.filter((field) => field.required);
+    if (!requiredFields.length) return true;
+
+    return requiredFields.every((field) => {
+      const fieldResponse = response[field.id];
+      if (!fieldResponse) return false;
+
+      const value = fieldResponse.value;
+      if (Array.isArray(value)) {
+        return value.length > 0;
+      }
+      return value !== undefined && value !== null && value !== "";
+    });
+  }, [form.fields, response]);
+
   const resetMembersMatchResult = () => {
     setMembersMatchResult(null);
     setShowResults(false);
   };
-  const findTeamMembersMatchingAttributeLogicMutation =
-    trpc.viewer.routingForms.findTeamMembersMatchingAttributeLogicOfRoute.useMutation({
-      onSuccess(data) {
-        setMembersMatchResult({
-          isUsingAttributeWeights: data.isUsingAttributeWeights,
-          eventTypeRedirectUrl: data.eventTypeRedirectUrl,
-          contactOwnerEmail: data.contactOwnerEmail,
-          teamMembersMatchingAttributeLogic: data.result ? data.result.users : data.result,
-          perUserData: data.result ? data.result.perUserData : null,
-          checkedFallback: data.checkedFallback,
-          mainWarnings: data.mainWarnings,
-          fallbackWarnings: data.fallbackWarnings,
-        });
-      },
-      onError(e) {
-        if (e instanceof TRPCClientError) {
-          showToast(e.message, "error");
-        } else {
-          showToast(t("something_went_wrong"), "error");
-        }
-      },
-    });
 
   function testRouting() {
     const route = findMatchingRoute({ form, response });
     let eventTypeRedirectUrl: string | null = null;
 
     if (route?.action?.type === "eventTypeRedirectUrl") {
-      // only needed in routing form testing (type UptoDateForm)
       if ("team" in form) {
         eventTypeRedirectUrl = getAbsoluteEventTypeRedirectUrl({
           eventTypeRedirectUrl: route.action.value,
@@ -172,24 +143,34 @@ export const TestForm = ({
     }
   }
 
-  // Check if all required fields are filled - form was handling this in the past but we cant have nested forms.
-  const areRequiredFieldsFilled = useMemo(() => {
-    if (!form.fields) return true;
+  const onClose = () => {
+    setChosenRoute(null);
+    setResponse({});
+    setShowResults(false);
+  };
 
-    const requiredFields = form.fields.filter((field) => field.required);
-    if (!requiredFields.length) return true;
-
-    return requiredFields.every((field) => {
-      const fieldResponse = response[field.id];
-      if (!fieldResponse) return false;
-
-      const value = fieldResponse.value;
-      if (Array.isArray(value)) {
-        return value.length > 0;
-      }
-      return value !== undefined && value !== null && value !== "";
+  const findTeamMembersMatchingAttributeLogicMutation =
+    trpc.viewer.routingForms.findTeamMembersMatchingAttributeLogicOfRoute.useMutation({
+      onSuccess(data) {
+        setMembersMatchResult({
+          isUsingAttributeWeights: data.isUsingAttributeWeights,
+          eventTypeRedirectUrl: data.eventTypeRedirectUrl,
+          contactOwnerEmail: data.contactOwnerEmail,
+          teamMembersMatchingAttributeLogic: data.result ? data.result.users : data.result,
+          perUserData: data.result ? data.result.perUserData : null,
+          checkedFallback: data.checkedFallback,
+          mainWarnings: data.mainWarnings,
+          fallbackWarnings: data.fallbackWarnings,
+        });
+      },
+      onError(e) {
+        if (e instanceof TRPCClientError) {
+          showToast(e.message, "error");
+        } else {
+          showToast(t("something_went_wrong"), "error");
+        }
+      },
     });
-  }, [form.fields, response]);
 
   const renderTestResult = (showAllData: boolean) => {
     if (!form.routes || !chosenRoute) return null;
@@ -287,12 +268,6 @@ export const TestForm = ({
     );
   };
 
-  const onClose = () => {
-    setChosenRoute(null);
-    setResponse({});
-    setShowResults(false);
-  };
-
   return (
     <div>
       <AnimatePresence mode="wait">
@@ -310,10 +285,11 @@ export const TestForm = ({
             renderFooter={renderFooter}
           />
         ) : (
-          <ResultsView
+          <Results
             showAllData={showAllData}
             renderTestResult={renderTestResult}
             onBack={() => setShowResults(false)}
+            membersMatchResult={membersMatchResult}
           />
         )}
       </AnimatePresence>
