@@ -80,13 +80,12 @@ export const metadata = {
   },
 };
 
-const getInitialProps = async (url: string) => {
-  const { pathname, searchParams } = new URL(url);
-
-  const isEmbed = pathname.endsWith("/embed") || (searchParams?.get("embedType") ?? null) !== null;
-  const embedColorScheme = searchParams?.get("ui.color-scheme");
+const getInitialProps = async () => {
+  const h = await headers();
+  const isEmbed = h.get("x-isEmbed") === "true";
+  const embedColorScheme = h.get("x-embedColorScheme");
   const newLocale = (await getLocale(buildLegacyRequest(await headers(), await cookies()))) ?? "en";
-  const direction = dir(newLocale);
+  const direction = dir(newLocale) ?? "ltr";
 
   return {
     isEmbed,
@@ -96,21 +95,11 @@ const getInitialProps = async (url: string) => {
   };
 };
 
-const getFallbackProps = () => ({
-  locale: "en",
-  direction: "ltr",
-  isEmbed: false,
-  embedColorScheme: false,
-});
-
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const h = await headers();
   const nonce = h.get("x-csp") ?? "";
-  const fullUrl = h.get("referer");
 
-  const { locale, direction, isEmbed, embedColorScheme } = fullUrl
-    ? await getInitialProps(fullUrl)
-    : getFallbackProps();
+  const { locale, direction, isEmbed, embedColorScheme } = await getInitialProps();
 
   const ns = "common";
   const translations = await loadTranslations(locale, ns);

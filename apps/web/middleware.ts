@@ -148,6 +148,13 @@ const embeds = {
     if (isCOEPEnabled) {
       res.headers.set("Cross-Origin-Embedder-Policy", "require-corp");
     }
+
+    const embedColorScheme = url.searchParams.get("ui.color-scheme");
+    if (embedColorScheme) {
+      res.headers.set("x-embedColorScheme", embedColorScheme);
+    }
+
+    res.headers.set("x-isEmbed", "true");
     return res;
   },
 };
