@@ -21,8 +21,8 @@ export const POST_METHODS_ALLOWED_APP_ROUTES = [
   "/settings/my-account/general",
   "/settings/developer/webhooks",
 ];
-export const ROUTES_TO_ENFORCE_CSP = ["/auth/login", "/login"];
-export const ROUTES_TO_SET_COOKIES = ["/apps/installed", "/auth/logout"];
+const ROUTES_TO_ENFORCE_CSP = ["/auth/login", "/login"];
+const ROUTES_TO_SET_COOKIES = ["/apps/installed", "/auth/logout"];
 const MATCHER = [
   "/:path*/embed",
   "/api/auth/signup",
