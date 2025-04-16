@@ -13,7 +13,7 @@ import {
 
 import { SlotFormat } from "@calcom/platform-enums";
 
-class GetAvailableSlotsInput_2024_09_04 {
+export class GetAvailableSlotsInput_2024_09_04 {
   @IsDateString()
   @ApiProperty({
     type: String,
@@ -80,7 +80,11 @@ class GetAvailableSlotsInput_2024_09_04 {
   format?: SlotFormat;
 }
 
+export const ById_2024_09_04_type = "byEventTypeId";
 export class ById_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
+  @IsString()
+  type: typeof ById_2024_09_04_type = ById_2024_09_04_type;
+
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
   @ApiProperty({
@@ -91,7 +95,11 @@ export class ById_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
   eventTypeId!: number;
 }
 
-export class BySlug_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
+export const ByUsernameAndEventTypeSlug_2024_09_04_type = "byUsernameAndEventTypeSlug";
+export class ByUsernameAndEventTypeSlug_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
+  @IsString()
+  type: typeof ByUsernameAndEventTypeSlug_2024_09_04_type = ByUsernameAndEventTypeSlug_2024_09_04_type;
+
   @IsString()
   @ApiProperty({
     type: String,
@@ -120,7 +128,44 @@ export class BySlug_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
   organizationSlug?: string;
 }
 
+export const ByTeamSlugAndEventTypeSlug_2024_09_04_type = "byTeamSlugAndEventTypeSlug";
+export class ByTeamSlugAndEventTypeSlug_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
+  @IsString()
+  type: typeof ByTeamSlugAndEventTypeSlug_2024_09_04_type = ByTeamSlugAndEventTypeSlug_2024_09_04_type;
+
+  @IsString()
+  @ApiProperty({
+    type: String,
+    description: "The slug of the event type for which available slots should be checked.",
+    example: "event-type-slug",
+  })
+  eventTypeSlug!: string;
+
+  @IsString()
+  @ApiProperty({
+    type: String,
+    description:
+      "When searching by eventTypeSlug a teamSlug must be provided too aka team who owns the the event type.",
+    example: "bob",
+  })
+  teamSlug!: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({
+    type: String,
+    description:
+      "Organzation slug in which the slots of event type belonging to the specified teamSlug should be checked.",
+    example: "org-slug",
+  })
+  organizationSlug?: string;
+}
+
+export const ByUsernames_2024_09_04_type = "byUsernames";
 export class ByUsernames_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
+  @IsString()
+  type: typeof ByUsernames_2024_09_04_type = ByUsernames_2024_09_04_type;
+
   @Transform(({ value }) => {
     if (typeof value === "string") {
       return value.split(",").map((username: string) => username.trim());

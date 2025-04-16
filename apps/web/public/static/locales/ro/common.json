@@ -3053,5 +3053,17 @@
   "most_cancelled_bookings": "Cele mai multe rezervări anulate",
   "name_or_email": "Nume sau email",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Dacă nu este găsit niciun contact, se revine la proprietarul lead-ului dacă acesta există",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time": "Data și ora",
+  "email_reminder_upcoming_event_notice": "Acesta este un memento privind evenimentul tău viitor.",
+  "email_reminder_triggered_by_workflow": "Acest memento a fost declanșat de un Workflow în Cal.",
+  "event_upper_case": "Eveniment",
+  "scheduling_by": "Programat de",
+  "experience_review_prompt": "Cum a fost experiența ta recentă?",
+  "improve_customer_experience_message": "Îmbunătățim constant experiența clienților.",
+  "meeting_satisfaction_question": "Cât de mulțumit ai fost de ultima întâlnire?",
+  "meeting_not_joined_question": "nu ai participat la întâlnire?",
+  "reschedule_cta_short": "Reprogramează aici.",
+  "you_and_conjunction": "Tu &",
+  "email_survey_triggered_by_workflow": "Acest sondaj a fost declanșat de un Workflow în Cal."
 }
