@@ -230,7 +230,10 @@ export const generateMetadata = async () => {
       isInsights
         ? t("feature_currently_disabled") ?? "Feature is currently disabled"
         : t("404_page_not_found"),
-    (t) => t("404_page_not_found")
+    (t) => t("404_page_not_found"),
+    undefined,
+    undefined,
+    pathname
   );
   return {
     ...metadata,

@@ -58,9 +58,16 @@ export const _generateMetadata = async (
   getTitle: (t: TFunction<string, undefined>) => string,
   getDescription: (t: TFunction<string, undefined>) => string,
   hideBranding?: boolean,
-  origin?: string
+  origin?: string,
+  pathname?: string
 ) => {
-  const metadata = await _generateMetadataWithoutImage(getTitle, getDescription, hideBranding, origin);
+  const metadata = await _generateMetadataWithoutImage(
+    getTitle,
+    getDescription,
+    hideBranding,
+    origin,
+    pathname
+  );
   const image =
     SEO_IMG_OGIMG +
     constructGenericImage({
@@ -108,9 +115,16 @@ export const generateAppMetadata = async (
   getTitle: (t: TFunction<string, undefined>) => string,
   getDescription: (t: TFunction<string, undefined>) => string,
   hideBranding?: boolean,
-  origin?: string
+  origin?: string,
+  pathname?: string
 ) => {
-  const metadata = await _generateMetadataWithoutImage(getTitle, getDescription, hideBranding, origin);
+  const metadata = await _generateMetadataWithoutImage(
+    getTitle,
+    getDescription,
+    hideBranding,
+    origin,
+    pathname
+  );
 
   const image = SEO_IMG_OGIMG + constructAppImage({ ...app, description: metadata.description });
 
