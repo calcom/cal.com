@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-
 import { Button } from "../button";
 import { ButtonGroup } from "../buttonGroup";
 import { Select } from "../form/select";
@@ -33,7 +31,6 @@ export const Pagination = ({
   onPrevious,
   translations = {},
 }: PaginationProps) => {
-  const { t } = useLocale();
   const [internalPageSize, setInternalPageSize] = useState(pageSize);
   const totalPages = Math.ceil(totalItems / pageSize);
 
@@ -78,7 +75,7 @@ export const Pagination = ({
           onChange={handlePageSizeChange}
           size="sm"
         />
-        <span className="text-default text-sm">{translations["rows_per_page"] || t("rows_per_page")}</span>
+        <span className="text-default text-sm">{translations["rows_per_page"] || "Rows per page"}</span>
       </div>
       <div className="flex items-center space-x-2">
         <span className="text-default text-sm">
@@ -86,10 +83,7 @@ export const Pagination = ({
             ? translations["pagination_status"]
                 .replace("{currentRange}", `${startItem}-${endItem}`)
                 .replace("{totalItems}", `${totalItems}`)
-            : t("pagination_status", {
-                currentRange: `${startItem}-${endItem}`,
-                totalItems,
-              })}
+            : `${startItem}-${endItem} of ${totalItems}`}
         </span>
         <ButtonGroup containerProps={{ className: "space-x-1.5" }}>
           <Button
