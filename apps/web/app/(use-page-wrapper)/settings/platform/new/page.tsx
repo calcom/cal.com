@@ -17,7 +17,10 @@ type Props = {
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("set_up_your_platform_organization"),
-    (t) => t("platform_organization_description")
+    (t) => t("platform_organization_description"),
+    undefined,
+    undefined,
+    "/settings/platform/new"
   );
 
 const getData = withAppDirSsr<Props>(getServerSideProps);

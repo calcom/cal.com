@@ -5,7 +5,10 @@ import BookingDryRunSuccessView from "~/bookings/views/booking-dry-run-success-v
 export const generateMetadata = async () => {
   return await _generateMetadata(
     (t) => t("booking_dry_run_successful"),
-    (t) => t("booking_dry_run_successful_description")
+    (t) => t("booking_dry_run_successful_description"),
+    undefined,
+    undefined,
+    "/booking/dry-run-successful"
   );
 };
 
