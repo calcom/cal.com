@@ -532,7 +532,6 @@ model CreditExpenseLog {
   credits         Int?
   creditType      CreditType?
   date            DateTime
-  price           Float?
   smsSid          String?
 }
 

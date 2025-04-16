@@ -3,6 +3,7 @@ import twilio from "twilio";
 
 import { getEntityToCharge } from "@calcom/features/ee/billing/lib/credits";
 import { createTwilioClient } from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
+import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
@@ -15,29 +16,92 @@ async function createExpenseLog(props: {
   smsSid: string;
   teamId?: number;
   userId?: number;
+  creditBalanceId?: string;
   credits?: number;
   creditType?: CreditType;
 }) {
-  const { credits, creditType, bookingUid, smsSid, teamId, userId } = props;
+  const { credits, creditType, bookingUid, smsSid, teamId, userId, creditBalanceId } = props;
 
-  if (!teamId && !userId) return;
+  if (creditBalanceId) {
+    await prisma.creditExpenseLog.create({
+      data: {
+        creditBalanceId: creditBalanceId,
+        credits,
+        creditType,
+        date: new Date(),
+        bookingUid,
+        smsSid,
+      },
+    });
+    if (creditType === CreditType.ADDITIONAL) {
+      prisma.creditBalance.update({
+        where: {
+          id: creditBalanceId,
+        },
+        data: {
+          additionalCredits: {
+            decrement: credits,
+          },
+        },
+      });
+    }
+    return;
+  }
 
-  const creditBalance = await prisma.creditBalance.upsert({
-    where: { teamId: teamId, userId: !teamId ? userId : undefined },
-    create: { teamId: teamId, userId: !teamId ? userId : undefined },
-    update: {},
-  });
+  // if creditBalanceId is not provided
+  let creditBalance: { id: string } | null = null;
 
-  return prisma.creditExpenseLog.create({
-    data: {
-      creditBalanceId: creditBalance.id,
-      credits,
-      creditType,
-      date: new Date(),
-      bookingUid,
-      smsSid,
-    },
-  });
+  if (teamId) {
+    creditBalance = await prisma.creditBalance.findUnique({
+      where: { teamId: teamId },
+    });
+  } else if (userId) {
+    creditBalance = await prisma.creditBalance.findUnique({
+      where: { userId: userId },
+    });
+  }
+
+  if (creditBalance) {
+    await prisma.creditExpenseLog.create({
+      data: {
+        creditBalanceId: creditBalance.id,
+        credits,
+        creditType,
+        date: new Date(),
+        bookingUid,
+        smsSid,
+      },
+    });
+    if (creditType === CreditType.ADDITIONAL) {
+      prisma.creditBalance.update({
+        where: {
+          id: creditBalance.id,
+        },
+        data: {
+          additionalCredits: {
+            decrement: credits,
+          },
+        },
+      });
+    }
+  } else {
+    const newCreditBalance = await prisma.creditBalance.create({
+      data: {
+        userId: userId,
+        teamId: teamId,
+      },
+    });
+    return prisma.creditExpenseLog.create({
+      data: {
+        credits,
+        creditType,
+        date: new Date(),
+        bookingUid,
+        smsSid,
+        creditBalanceId: newCreditBalance.id,
+      },
+    });
+  }
 }
 
 /*
@@ -46,7 +110,7 @@ async function createExpenseLog(props: {
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const authToken = process.env.TWILIO_TOKEN;
   const twilioSignature = req.headers["x-twilio-signature"];
-  const baseUrl = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/webhook`;
+  const baseUrl = `https://f091-93-83-143-142.ngrok-free.app/api/twilio/webhook`;
 
   const queryParams = new URLSearchParams(req.query as Record<string, string>).toString();
   const url = queryParams ? `${baseUrl}?${queryParams}` : baseUrl;
@@ -58,20 +122,23 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const { userId, teamId, bookingUid } = req.query;
 
       if (messageStatus === "delivered" || messageStatus === "undelivered") {
+        console.log("message delievered ");
         const phoneNumber = await twilioClient.lookups.v2.phoneNumbers(req.body.To).fetch();
 
-        const parsedTeamId = teamId ? (Array.isArray(teamId) ? Number(teamId[0]) : Number(teamId)) : null;
-        const parsedUserId = userId ? (Array.isArray(userId) ? Number(userId[0]) : Number(userId)) : null;
+        const parsedTeamId = !!teamId ? Number(teamId) : undefined;
+
+        const parsedUserId = !!userId ? Number(userId) : undefined;
+
         const parsedBookingUid = bookingUid as string;
         const smsSid = req.body.SmsSid;
-
         if (!parsedUserId && !parsedTeamId) {
           return res.status(401).send("Team or user id is required");
         }
 
         if (!IS_SMS_CREDITS_ENABLED) {
           await createExpenseLog({
-            teamId: teamIdToCharge,
+            teamId: parsedTeamId,
+            userId: parsedUserId,
             bookingUid: parsedBookingUid,
             smsSid,
             credits: 0,
@@ -92,7 +159,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               },
             });
 
-            teamIdToCharge = teamMembership?.teamId ?? null;
+            teamIdToCharge = teamMembership?.teamId;
           }
 
           if (teamIdToCharge) {
@@ -107,7 +174,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           }
         }
 
-        let orgId = null;
+        let orgId;
 
         if (parsedTeamId) {
           const team = await prisma.team.findUnique({
@@ -115,7 +182,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               id: parsedTeamId,
             },
           });
-          orgId = team?.isOrganization ? team.id : null;
+          orgId = team?.isOrganization ? team.id : undefined;
         }
 
         if (!orgId) {

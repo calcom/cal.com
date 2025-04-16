@@ -148,13 +148,46 @@ export async function getEntityToCharge({
 }) {
   // todo
 
-  if (userId) {
-    return { userId, availableCredits: 0 };
+  if (teamId) {
+    let creditBalance = await prisma.creditBalance.findFirst({
+      where: {
+        teamId,
+      },
+    });
+
+    if (!creditBalance) {
+      creditBalance = await prisma.creditBalance.create({
+        data: { teamId },
+      });
+    }
+
+    return {
+      teamId,
+      availableCredits: 0, //todo: get available credits, montlhy + additional - credits
+      creditBalanceId: creditBalance.id,
+    };
   }
 
-  if (teamId) {
-    return { teamId, availableCredits: 0 };
+  if (userId) {
+    let creditBalance = await prisma.creditBalance.findFirst({
+      where: {
+        userId,
+      },
+    });
+
+    if (!creditBalance) {
+      creditBalance = await prisma.creditBalance.create({
+        data: { userId },
+      });
+    }
+
+    return {
+      userId,
+      availableCredits: 0, //todo: get available credits, montlhy + additional - credits
+      creditBalanceId: creditBalance.id,
+    };
   }
+
   return null;
 }
 
