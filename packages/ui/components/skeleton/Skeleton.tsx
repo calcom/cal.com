@@ -1,6 +1,5 @@
 import React from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
 type SkeletonBaseProps = {
@@ -51,8 +50,7 @@ const Skeleton = <T extends keyof JSX.IntrinsicElements | React.FC>({
   isLocaleReady,
   ...rest
 }: SkeletonProps<T>) => {
-  const locale = useLocale();
-  const localeReady = isLocaleReady !== undefined ? isLocaleReady : locale.isLocaleReady;
+  const localeReady = isLocaleReady !== undefined ? isLocaleReady : true;
   loading = (waitForTranslation ? !localeReady : false) || loading;
   const Component = as;
   return (
