@@ -122,6 +122,7 @@ function UsersTableBare() {
   const verifyWorkflows = trpc.viewer.admin.verifyWorkflows.useMutation({
     onSuccess: () => {
       showToast("Workflows verified", "success");
+      utils.viewer.admin.listPaginated.invalidate();
     },
   });
   const whitelistUserWorkflows = trpc.viewer.admin.whitelistUserWorkflows.useMutation({
@@ -130,6 +131,7 @@ function UsersTableBare() {
         data.whitelistWorkflows ? t("user_workflows_whitelisted") : t("user_workflows_unwhitelisted"),
         "success"
       );
+      utils.viewer.admin.listPaginated.invalidate();
     },
   });
 
