@@ -22,7 +22,15 @@ export const POST_METHODS_ALLOWED_APP_ROUTES = [
   "/settings/my-account/general",
   "/settings/developer/webhooks",
 ];
-
+export const ROUTES_TO_ENFORCE_CSP = ["/auth/login", "/login"];
+export const ROUTES_TO_SET_COOKIES = ["/apps/installed", "/auth/logout"];
+const MATCHER = [
+  "/:path*/embed",
+  "/api/auth/signup",
+  "/api/trpc/:path*",
+  ...ROUTES_TO_ENFORCE_CSP,
+  ...ROUTES_TO_SET_COOKIES,
+];
 export function checkPostMethod(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
   if (
@@ -175,49 +183,9 @@ function responseWithHeaders({ url, res, req }: { url: URL; res: NextResponse; r
 }
 
 export const config = {
-  // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
-  // https://github.com/vercel/next.js/discussions/42458
   // WARNING: DO NOT ADD AN ENDING SLASH "/" TO THE PATHS BELOW
   // THIS WILL MAKE THEM NOT MATCH AND HENCE NOT HIT MIDDLEWARE
-  matcher: [
-    "/403",
-    "/500",
-    "/icons",
-    "/d/:path*",
-    "/more/:path*",
-    "/maintenance/:path*",
-    "/enterprise/:path*",
-    "/upgrade/:path*",
-    "/connect-and-join/:path*",
-    "/insights/:path*",
-    "/:path*/embed",
-    "/api/auth/signup",
-    "/api/trpc/:path*",
-    "/login",
-    "/apps/:path*",
-    "/auth/:path*",
-    "/event-types/:path*",
-    "/workflows/:path*",
-    "/getting-started/:path*",
-    "/bookings/:path*",
-    "/video/:path*",
-    "/teams/:path*",
-    "/signup/:path*",
-    "/settings/:path*",
-    "/reschedule/:path*",
-    "/availability/:path*",
-    "/booking/:path*",
-    "/payment/:path*",
-    "/routing-forms/:path*",
-    "/org/:orgSlug/instant-meeting/team/:slug/:type",
-    "/org/:orgSlug/team/:slug/:type",
-    "/org/:orgSlug/team/:slug",
-    "/org/:orgSlug/:user/:type",
-    "/org/:orgSlug/:user",
-    "/org/:orgSlug",
-    "/team/:slug/:type",
-    "/team/:slug",
-  ],
+  matcher: MATCHER,
 };
 
 export default collectEvents({
