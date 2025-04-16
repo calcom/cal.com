@@ -122,6 +122,16 @@ function UsersTableBare() {
   const verifyWorkflows = trpc.viewer.admin.verifyWorkflows.useMutation({
     onSuccess: () => {
       showToast("Workflows verified", "success");
+      utils.viewer.admin.listPaginated.invalidate();
+    },
+  });
+  const whitelistUserWorkflows = trpc.viewer.admin.whitelistUserWorkflows.useMutation({
+    onSuccess: (data) => {
+      showToast(
+        data.whitelistWorkflows ? t("user_workflows_whitelisted") : t("user_workflows_unwhitelisted"),
+        "success"
+      );
+      utils.viewer.admin.listPaginated.invalidate();
     },
   });
 
@@ -246,6 +256,19 @@ function UsersTableBare() {
                           id: "verify-workflows",
                           label: "Verify workflows",
                           onClick: () => verifyWorkflows.mutate({ userId: user.id }),
+                          icon: "check",
+                        },
+                        {
+                          id: "whitelist-user-workflows",
+                          label: user.whitelistWorkflows
+                            ? t("remove_whitelist_status")
+                            : t("whitelist_user_workflows"),
+                          onClick: () => {
+                            whitelistUserWorkflows.mutate({
+                              userId: user.id,
+                              whitelistWorkflows: !user.whitelistWorkflows,
+                            });
+                          },
                           icon: "check",
                         },
                         {
