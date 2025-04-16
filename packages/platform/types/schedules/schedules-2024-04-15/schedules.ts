@@ -4,13 +4,11 @@ import { IsString, IsBoolean, IsOptional, ValidateNested, IsArray, IsDate } from
 import { DateTime } from "luxon";
 import { z } from "zod";
 
-import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
-
 const scheduleSchema_2024_04_15 = z.object({
   id: z.number().int(),
   userId: z.number().int(),
   name: z.string(),
-  timeZone: timeZoneSchema.nullish(),
+  timeZone: z.string().nullish(),
 });
 
 const availabilitySchema_2024_04_15 = z.object({
