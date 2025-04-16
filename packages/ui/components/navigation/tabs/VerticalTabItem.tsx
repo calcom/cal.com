@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Fragment } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
 import classNames from "@calcom/ui/classNames";
 
@@ -28,6 +27,7 @@ export type VerticalTabItemProps = {
   onClick?: (name: string) => void;
   isActive?: boolean;
   "data-testid"?: string;
+  translations?: Record<string, string>;
 };
 
 const VerticalTabItem = ({
@@ -38,10 +38,10 @@ const VerticalTabItem = ({
   disableChevron,
   linkShallow,
   linkScroll,
+  translations = {},
   ...props
 }: VerticalTabItemProps) => {
   const isCurrent = useUrlMatchesCurrentUrl(href) || props?.isActive;
-  const { t } = useLocale();
 
   return (
     <Fragment key={name}>
@@ -78,7 +78,7 @@ const VerticalTabItem = ({
             )}
             <div className="h-fit min-w-0 flex-1">
               <span className="flex items-center gap-2">
-                {t(name)}
+                {translations[name] || name}
                 {props.isExternalLink ? <Icon name="external-link" data-testid="external-link" /> : null}
               </span>
               {info && (
