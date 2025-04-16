@@ -285,12 +285,7 @@ export const TestForm = ({
             renderFooter={renderFooter}
           />
         ) : (
-          <Results
-            showAllData={showAllData}
-            renderTestResult={renderTestResult}
-            onBack={() => setShowResults(false)}
-            membersMatchResult={membersMatchResult}
-          />
+          <Results onBack={() => setShowResults(false)} chosenRoute={chosenRoute} />
         )}
       </AnimatePresence>
     </div>

@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
+import { RoutingPages } from "routing-forms/lib/RoutingPages";
+import type { NonRouterRoute } from "routing-forms/types/types";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
@@ -48,19 +50,15 @@ export const TeamMember = ({ name, tags, score }: { name: string; tags: string[]
 );
 
 interface ResultsViewProps {
-  showAllData: boolean;
-  renderTestResult: (showAllData: boolean) => ReactNode;
   onBack: () => void;
-  membersMatchResult: any; // TODO: Add proper type
+  chosenRoute: NonRouterRoute | null;
 }
 
-export const ResultsView = ({
-  showAllData,
-  renderTestResult,
-  onBack,
-  membersMatchResult,
-}: ResultsViewProps) => {
+export const ResultsView = ({ onBack, chosenRoute }: ResultsViewProps) => {
   const { t } = useLocale();
+
+  if (!chosenRoute) return null;
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -72,6 +70,14 @@ export const ResultsView = ({
         <h3 className="text-emphasis text-lg font-semibold">{t("results")}</h3>
         <Button color="minimal" size="sm" variant="icon" StartIcon="x" onClick={onBack} />
       </div>
+      {RoutingPages.map((page) => {
+        if (page.value !== chosenRoute.action.type) return null;
+        return (
+          <span key={page.value} data-testid="test-routing-result-type">
+            {page.label}
+          </span>
+        );
+      })}
 
       <ResultsSection title="Route">
         <div className="flex items-center space-x-2">
