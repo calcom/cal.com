@@ -13,9 +13,13 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
 
   const { appMetadata } = await getData(legacyCtx);
+  const step = (await params).step ? (await params).step.join("/") : "";
   return await _generateMetadata(
     (t) => `${t("install")} ${appMetadata?.name ?? ""}`,
-    () => ""
+    () => "",
+    undefined,
+    undefined,
+    `/apps/installation${step ? `/${step}` : ""}`
   );
 };
 
