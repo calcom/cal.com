@@ -7378,6 +7378,14 @@
             }
           },
           {
+            "name": "isDryRun",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
             "name": "redir",
             "required": false,
             "in": "query",

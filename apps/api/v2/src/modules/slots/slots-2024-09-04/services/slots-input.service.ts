@@ -61,11 +61,11 @@ export class SlotsInputService_2024_09_04 {
   }
 
   private async getEventType(input: GetSlotsInput_2024_09_04) {
-    if (this.isInputByEventTypeId(input)) {
+    if (input.type === ById_2024_09_04_type) {
       return this.eventTypeRepository.getEventTypeById(input.eventTypeId);
     }
 
-    if (this.isInputByUsernameAndEventTypeSlug(input)) {
+    if (input.type === ByUsernameAndEventTypeSlug_2024_09_04_type) {
       const user = await this.getEventTypeUser(input);
       if (!user) {
         throw new NotFoundException(`User with username ${input.username} not found`);
@@ -73,7 +73,7 @@ export class SlotsInputService_2024_09_04 {
       return this.eventTypeRepository.getUserEventTypeBySlug(user.id, input.eventTypeSlug);
     }
 
-    if (this.isInputByTeamSlugAndEventTypeSlug(input)) {
+    if (input.type === ByTeamSlugAndEventTypeSlug_2024_09_04_type) {
       const team = await this.getEventTypeTeam(input);
       if (!team) {
         throw new NotFoundException(`Team with slug ${input.teamSlug} not found`);
@@ -82,22 +82,6 @@ export class SlotsInputService_2024_09_04 {
     }
 
     return input.duration ? { ...dynamicEvent, length: input.duration } : dynamicEvent;
-  }
-
-  private isInputByEventTypeId(input: GetSlotsInput_2024_09_04): input is ById_2024_09_04 {
-    return input.type === ById_2024_09_04_type;
-  }
-
-  private isInputByUsernameAndEventTypeSlug(
-    input: GetSlotsInput_2024_09_04
-  ): input is ByUsernameAndEventTypeSlug_2024_09_04 {
-    return input.type === ByUsernameAndEventTypeSlug_2024_09_04_type;
-  }
-
-  private isInputByTeamSlugAndEventTypeSlug(
-    input: GetSlotsInput_2024_09_04
-  ): input is ByTeamSlugAndEventTypeSlug_2024_09_04 {
-    return input.type === ByTeamSlugAndEventTypeSlug_2024_09_04_type;
   }
 
   private async getEventTypeUser(input: ByUsernameAndEventTypeSlug_2024_09_04) {
