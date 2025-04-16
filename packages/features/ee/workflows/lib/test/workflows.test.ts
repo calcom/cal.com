@@ -86,8 +86,8 @@ const mockBookings = [
     eventTypeId: 1,
     userId: 101,
     status: BookingStatus.ACCEPTED,
-    startTime: `2024-05-20T14:00:00.000Z`,
-    endTime: `2024-05-20T14:30:00.000Z`,
+    startTime: `2024-05-20T09:00:00.000Z`,
+    endTime: `2024-05-20T09:15:00.000Z`,
     attendees: [{ email: "attendee@example.com", locale: "en" }],
   },
   {
@@ -95,8 +95,8 @@ const mockBookings = [
     eventTypeId: 1,
     userId: 101,
     status: BookingStatus.ACCEPTED,
-    startTime: `2024-05-20T14:30:00.000Z`,
-    endTime: `2024-05-20T15:00:00.000Z`,
+    startTime: `2024-05-20T09:15:00.000Z`,
+    endTime: `2024-05-20T09:30:00.000Z`,
     attendees: [{ email: "attendee@example.com", locale: "en" }],
   },
   {
@@ -230,6 +230,14 @@ async function createWorkflowRemindersAndTasksForWorkflow(workflowName: string) 
 
   return workflow;
 }
+
+vi.mock("@calcom/lib/constants", async () => {
+  const actual = (await vi.importActual("@calcom/lib/constants")) as typeof import("@calcom/lib/constants");
+  return {
+    ...actual,
+    IS_SMS_CREDITS_ENABLED: false,
+  };
+});
 
 describe("deleteRemindersOfActiveOnIds", () => {
   test("should delete all reminders and tasks from removed event types", async ({}) => {
@@ -500,8 +508,8 @@ describe("scheduleBookingReminders", () => {
     );
 
     const expectedScheduledDates = [
-      new Date("2024-05-20T13:00:00.000"),
-      new Date("2024-05-20T13:30:00.000Z"),
+      new Date("2024-05-20T08:00:00.000"),
+      new Date("2024-05-20T08:15:00.000Z"),
       new Date("2024-06-01T03:30:00.000Z"),
       new Date("2024-06-02T03:30:00.000Z"),
     ];
@@ -586,8 +594,8 @@ describe("scheduleBookingReminders", () => {
     );
 
     const expectedScheduledDates = [
-      new Date("2024-05-20T15:30:00.000"),
-      new Date("2024-05-20T16:00:00.000Z"),
+      new Date("2024-05-20T10:15:00.000"),
+      new Date("2024-05-20T10:30:00.000Z"),
       new Date("2024-06-01T06:00:00.000Z"),
       new Date("2024-06-02T06:00:00.000Z"),
     ];
@@ -692,13 +700,13 @@ describe("scheduleBookingReminders", () => {
     expectSMSWorkflowToBeTriggered({
       sms,
       toNumber: "000",
-      includedString: "2024 May 20 at 7:30pm Asia/Kolkata",
+      includedString: "2024 May 20 at 2:30pm Asia/Kolkata",
     });
 
     expectSMSWorkflowToBeTriggered({
       sms,
       toNumber: "000",
-      includedString: "2024 May 20 at 8:00pm Asia/Kolkata",
+      includedString: "2024 May 20 at 2:45pm Asia/Kolkata",
     });
 
     // sms are too far in future
