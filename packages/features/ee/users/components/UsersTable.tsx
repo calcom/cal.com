@@ -256,8 +256,8 @@ function UsersTableBare() {
                         {
                           id: "whitelist-user-workflows",
                           label: user.whitelistWorkflows
-                            ? "Remove whitelist status"
-                            : "Whitelist user workflows",
+                            ? t("remove_whitelist_status")
+                            : t("whitelist_user_workflows"),
                           onClick: () => {
                             whitelistUserWorkflows.mutate({
                               userId: user.id,
