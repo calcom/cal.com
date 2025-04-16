@@ -172,7 +172,7 @@ export const EventSetupTab = (
               />
             </div>
           )}
-          {interfaceLanguageOptions.length > 0 && (
+          {!isPlatform && interfaceLanguageOptions.length > 0 && (
             <div>
               <Skeleton
                 as={Label}
