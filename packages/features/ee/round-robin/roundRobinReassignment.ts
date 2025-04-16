@@ -467,6 +467,7 @@ export const roundRobinReassignment = async ({
             reminderBody: true,
             sender: true,
             includeCalendarEvent: true,
+            verifiedAt: true,
           },
         },
       },
@@ -494,7 +495,7 @@ export const roundRobinReassignment = async ({
             time: workflow.time,
             timeUnit: workflow.timeUnit,
           },
-          sendTo: reassignedRRHost.email,
+          sendTo: [reassignedRRHost.email],
           template: workflowStep.template,
           emailSubject: workflowStep.emailSubject || undefined,
           emailBody: workflowStep.reminderBody || undefined,
@@ -502,10 +503,11 @@ export const roundRobinReassignment = async ({
           hideBranding: true,
           includeCalendarEvent: workflowStep.includeCalendarEvent,
           workflowStepId: workflowStep.id,
+          verifiedAt: workflowStep.verifiedAt,
         });
       }
 
-      await deleteScheduledEmailReminder(workflowReminder.id, workflowReminder.referenceId);
+      await deleteScheduledEmailReminder(workflowReminder.id);
     }
     // Send new event workflows to new organizer
     const newEventWorkflows = await prisma.workflow.findMany({

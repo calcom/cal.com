@@ -246,9 +246,13 @@ test.describe("pro user", () => {
     const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
     await expect(cancelledHeadline).toBeVisible();
     const bookingCancelledId = new URL(page.url()).pathname.split("/booking/")[1];
+
+    const { slug: eventSlug } = await pro.getFirstEventAsOwner();
+
     await page.goto(`/reschedule/${bookingCancelledId}`);
-    // Should be redirected to the booking details page which shows the cancelled headline
-    await expect(page.locator('[data-testid="cancelled-headline"]')).toBeVisible();
+
+    // Should be redirected to the original event link
+    await expect(page).toHaveURL(new RegExp(`/${pro.username}/${eventSlug}`));
   });
 
   test("can book an event that requires confirmation and then that booking can be accepted by organizer", async ({
@@ -582,4 +586,108 @@ test.describe("Booking round robin event", () => {
     const hostNameSecondBooking = await hostSecondBooking.innerText();
     expect(hostNameSecondBooking).toBe("teammate-1"); // teammate-1 should be booked again
   });
+});
+
+test.describe("Event type with disabled cancellation and rescheduling", () => {
+  let bookingId: string;
+  let user: { username: string | null };
+
+  test.beforeEach(async ({ page, users }) => {
+    user = await users.create({
+      name: `Test-user-${randomString(4)}`,
+      eventTypes: [
+        {
+          title: "No Cancel No Reschedule",
+          slug: "no-cancel-no-reschedule",
+          length: 30,
+          disableCancelling: true,
+          disableRescheduling: true,
+        },
+      ],
+    });
+
+    // Book the event
+    await page.goto(`/${user.username}/no-cancel-no-reschedule`);
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await bookTimeSlot(page, {
+      name: "Test-user-1",
+      email: "test-booker@example.com",
+    });
+
+    // Verify booking was successful
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    const url = new URL(page.url());
+    const pathSegments = url.pathname.split("/");
+    bookingId = pathSegments[pathSegments.length - 1];
+  });
+
+  test("Reschedule and cancel buttons should be hidden on success page", async ({ page }) => {
+    await expect(page.locator('[data-testid="reschedule-link"]')).toBeHidden();
+    await expect(page.locator('[data-testid="cancel"]')).toBeHidden();
+  });
+
+  test("Direct access to reschedule/{bookingId} should redirect to success page", async ({ page }) => {
+    await page.goto(`/reschedule/${bookingId}`);
+
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    await page.waitForURL((url) => url.pathname === `/booking/${bookingId}`);
+  });
+
+  test("Using rescheduleUid query parameter should redirect to success page", async ({ page }) => {
+    await page.goto(`/${user.username}/no-cancel-no-reschedule?rescheduleUid=${bookingId}`);
+
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    await page.waitForURL((url) => url.pathname === `/booking/${bookingId}`);
+  });
+
+  test("Should prevent cancellation and show an error message", async ({ page }) => {
+    const response = await page.request.post("/api/cancel", {
+      data: {
+        uid: bookingId,
+      },
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    expect(response.status()).toBe(400);
+    const responseBody = await response.json();
+    expect(responseBody.message).toBe("This event type does not allow cancellations");
+  });
+});
+test("Should throw error when both seatsPerTimeSlot and recurringEvent are set", async ({ page, users }) => {
+  const user = await users.create({
+    name: `Test-user-${randomString(4)}`,
+    eventTypes: [
+      {
+        title: "Seats With Recurrence",
+        slug: "seats-with-recurrence",
+        length: 30,
+        seatsPerTimeSlot: 3,
+        recurringEvent: {
+          freq: 1,
+          count: 4,
+          interval: 1,
+        },
+      },
+    ],
+  });
+
+  // Way to book the event
+  await page.goto(`/${user.username}/seats-with-recurrence`);
+  await selectFirstAvailableTimeSlotNextMonth(page);
+  await page.locator('[name="name"]').fill("Test name");
+  await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
+
+  page.locator("[data-testid=confirm-book-button]").click();
+
+  // Expect an error message to be displayed
+  const alertError = page.locator("[data-testid=booking-fail]");
+  await expect(alertError).toBeVisible();
+  await expect(alertError).toContainText(
+    "Could not book the meeting. Recurring event doesn't support seats feature. Disable seats feature or make the event non-recurring."
+  );
 });

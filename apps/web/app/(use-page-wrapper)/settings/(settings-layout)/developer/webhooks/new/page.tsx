@@ -1,10 +1,10 @@
-import { getTranslate, _generateMetadata } from "app/_utils";
-import { Suspense } from "react";
+import { createRouterCaller } from "app/_trpc/context";
+import { _generateMetadata } from "app/_utils";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { NewWebhookView } from "@calcom/features/webhooks/pages/webhook-new-view";
 import { APP_NAME } from "@calcom/lib/constants";
-import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
+import { appsRouter } from "@calcom/trpc/server/routers/viewer/apps/_router";
+import { webhookRouter } from "@calcom/trpc/server/routers/viewer/webhook/_router";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -12,31 +12,18 @@ export const generateMetadata = async () =>
     (t) => t("add_webhook_description", { appName: APP_NAME })
   );
 
-const SkeletonLoader = () => {
-  return (
-    <SkeletonContainer>
-      <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
-        <SkeletonText className="h-8 w-full" />
-        <SkeletonText className="h-8 w-full" />
-      </div>
-    </SkeletonContainer>
-  );
-};
-
 const Page = async () => {
-  const t = await getTranslate();
+  const [appsCaller, webhookCaller] = await Promise.all([
+    createRouterCaller(appsRouter),
+    createRouterCaller(webhookRouter),
+  ]);
 
-  return (
-    <SettingsHeader
-      title={t("add_webhook")}
-      description={t("add_webhook_description", { appName: APP_NAME })}
-      borderInShellHeader={true}
-      backButton>
-      <Suspense fallback={<SkeletonLoader />}>
-        <NewWebhookView />
-      </Suspense>
-    </SettingsHeader>
-  );
+  const [installedApps, webhooks] = await Promise.all([
+    appsCaller.integrations({ variant: "other", onlyInstalled: true }),
+    webhookCaller.list(),
+  ]);
+
+  return <NewWebhookView webhooks={webhooks} installedApps={installedApps} />;
 };
 
 export default Page;
