@@ -1239,6 +1239,7 @@
   "make_setup_instructions_6": "You're set!",
   "install_zapier_app": "Please first install the Zapier App in the app store.",
   "install_make_app": "Please first install the Make App in the app store.",
+  "app_installation": "App Installation",
   "app_not_installed": "App not installed",
   "visit_our_app_store": "Sorry, this app isn't installed on your account. Please visit our app store to explore and discover this and other great apps.",
   "connect_apple_server": "Connect to Apple Server",
