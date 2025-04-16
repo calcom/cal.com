@@ -289,7 +289,12 @@ test.describe("Routing Forms", () => {
 
   test.describe("Routing Form to Event Booking", () => {
     test("should redirect to event page and successfully complete booking", async ({ page, users }) => {
-      const user = await users.create({ username: "routing-to-booking" });
+      const user = await users.create(
+        { username: "routing-to-booking" },
+        {
+          hasTeam: true,
+        }
+      );
       await user.apiLogin();
 
       // Create a routing form
@@ -314,6 +319,13 @@ test.describe("Routing Forms", () => {
           url.searchParams.has("cal.routingFormResponseId")
         );
       });
+
+      const currentUrl = new URL(page.url());
+      const routingFormResponseId = currentUrl.searchParams.get("cal.routingFormResponseId");
+
+      // Verify it's a valid number (not NaN)
+      const parsedId = Number(routingFormResponseId);
+      expect(isNaN(parsedId)).toBeFalsy();
 
       await selectFirstAvailableTimeSlotNextMonth(page);
 
