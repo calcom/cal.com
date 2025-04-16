@@ -4,7 +4,6 @@ import { useCallback, useState } from "react";
 import Cropper from "react-easy-crop";
 
 import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import type { ButtonColor, ButtonProps } from "../button";
 import { Button } from "../button";
@@ -39,7 +38,6 @@ function CropContainer({
   onCropComplete: (croppedAreaPixels: Area) => void;
   translations?: Record<string, string>;
 }) {
-  const { t } = useLocale();
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
 
@@ -65,7 +63,7 @@ function CropContainer({
         min={1}
         max={3}
         step={0.1}
-        label={translations["slide_zoom_drag_instructions"] || t("slide_zoom_drag_instructions")}
+        label={translations["slide_zoom_drag_instructions"] || "Slide to zoom, drag to reposition"}
         changeHandler={handleZoomSliderChange}
       />
     </div>
@@ -85,7 +83,6 @@ export default function ImageUploader({
   buttonSize,
   translations = {},
 }: ImageUploaderProps) {
-  const { t } = useLocale();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
   const [{ result }, setFile] = useFileReader({
@@ -101,7 +98,7 @@ export default function ImageUploader({
     const file = e.target.files[0];
 
     if (file.size > limit) {
-      showToast(translations["image_size_limit_exceed"] || t("image_size_limit_exceed"), "error");
+      showToast(translations["image_size_limit_exceed"] || "Image size limit exceeded", "error");
     } else {
       setFile(file);
     }
@@ -146,7 +143,7 @@ export default function ImageUploader({
         title={
           translations["upload_target"]
             ? translations["upload_target"].replace("{target}", target)
-            : t("upload_target", { target })
+            : `Upload ${target}`
         }>
         <div className="mb-4">
           <div className="cropper mt-6 flex flex-col items-center justify-center p-8">
@@ -156,7 +153,7 @@ export default function ImageUploader({
                   <p className="text-emphasis w-full text-center text-sm sm:text-xs">
                     {translations["no_target"]
                       ? translations["no_target"].replace("{target}", target)
-                      : t("no_target", { target })}
+                      : `No ${target}`}
                   </p>
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -178,11 +175,11 @@ export default function ImageUploader({
                 onInput={onInputFile}
                 type="file"
                 name={id}
-                placeholder={translations["upload_image"] || t("upload_image")}
+                placeholder={translations["upload_image"] || "Upload image"}
                 className="text-default pointer-events-none absolute mt-4 opacity-0 "
                 accept="image/*"
               />
-              {translations["choose_a_file"] || t("choose_a_file")}
+              {translations["choose_a_file"] || "Choose a file"}
             </label>
             {uploadInstruction && (
               <p className="text-muted mt-4 text-center text-sm">({uploadInstruction})</p>
