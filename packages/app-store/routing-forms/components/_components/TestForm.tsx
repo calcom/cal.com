@@ -13,7 +13,7 @@ import { trpc } from "@calcom/trpc";
 import type { Brand } from "@calcom/types/utils";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogFooter } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { TRPCClientError } from "@trpc/react-query";
@@ -36,7 +36,7 @@ export const TestForm = ({
   form: UptoDateForm | RoutingForm;
   supportsTeamMembersMatchingLogic: boolean;
   showAllData?: boolean;
-  renderFooter?: (onClose: () => void) => React.ReactNode;
+  renderFooter?: (onClose: () => void, onSubmit: () => void) => React.ReactNode;
 }) => {
   const { t } = useLocale();
   const [response, setResponse] = useState<FormResponse>({});
@@ -204,25 +204,28 @@ export const TestForm = ({
   };
 
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        resetMembersMatchResult();
-        testRouting();
-      }}>
+    <div>
       <div className="px-1">
         {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
       </div>
       {!renderFooter ? (
         <div className="mt-4">
-          <Button type="submit">{t("show_matching_hosts")}</Button>
+          <Button
+            onClick={() => {
+              resetMembersMatchResult();
+              testRouting();
+            }}>
+            {t("submit")}
+          </Button>
         </div>
       ) : (
-        <></>
+        renderFooter(onClose, () => {
+          resetMembersMatchResult();
+          testRouting();
+        })
       )}
       <div>{renderTestResult(showAllData)}</div>
-      {renderFooter?.(onClose)}
-    </form>
+    </div>
   );
 };
 
@@ -242,7 +245,15 @@ export const TestFormRenderer = ({
 
   if (!isMobile) {
     if (isTestPreviewOpen) {
-      return <TestForm form={testForm} supportsTeamMembersMatchingLogic={isSubTeamForm} />;
+      return (
+        <div className="border-muted bg-muted h-full border-l p-6">
+          <div className="mb-6 flex items-center justify-between">
+            <h3 className="text-emphasis text-lg font-semibold">{t("preview")}</h3>
+            <Button color="minimal" size="sm" variant="icon" StartIcon="x" />
+          </div>
+          <TestForm form={testForm} supportsTeamMembersMatchingLogic={isSubTeamForm} />
+        </div>
+      );
     }
   }
 
@@ -254,19 +265,10 @@ export const TestFormRenderer = ({
           <TestForm
             form={testForm}
             supportsTeamMembersMatchingLogic={isSubTeamForm}
-            renderFooter={(onClose) => (
+            renderFooter={(onClose, onSubmit) => (
               <DialogFooter>
-                <DialogClose
-                  color="secondary"
-                  onClick={() => {
-                    setIsTestPreviewOpen(false);
-                    onClose();
-                  }}>
-                  {t("close")}
-                </DialogClose>
-                <Button type="submit" data-testid="test-routing">
-                  {t("test_routing")}
-                </Button>
+                <Button onClick={onClose}>{t("close")}</Button>
+                <Button onClick={onSubmit}>{t("submit")}</Button>
               </DialogFooter>
             )}
           />

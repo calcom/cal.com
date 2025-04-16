@@ -7,7 +7,6 @@ import { useFormContext } from "react-hook-form";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import classNames from "@calcom/ui/classNames";
 import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
@@ -77,13 +76,12 @@ function useBreakPoints() {
 function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleFormComponentProps) {
   const utils = trpc.useUtils();
   const { t } = useLocale();
-  const { data: user } = useMeQuery();
   const [newFormDialogState, setNewFormDialogState] = useState<NewFormDialogState>(null);
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
   const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
   const [showInfoLostDialog, setShowInfoLostDialog] = useState(false);
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
-  const { isTablet } = useBreakPoints();
+  const { isDesktop } = useBreakPoints();
 
   useEffect(() => {
     //  The first time a tab is opened, the hookForm copies the form data (saved version, from the backend),
@@ -162,12 +160,12 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
             <div
               className={classNames(
                 "bg-default flex-1",
-                !isTablet && "grid gap-8",
-                !isTablet && isTestPreviewOpen && "grid-cols-[1fr,400px]",
-                !isTablet && !isTestPreviewOpen && "grid-cols-1",
-                isTablet && "flex flex-col"
+                isDesktop && "grid gap-8",
+                isDesktop && isTestPreviewOpen && "grid-cols-[1fr,400px]",
+                isDesktop && !isTestPreviewOpen && "grid-cols-1",
+                !isDesktop && "flex flex-col"
               )}>
-              {!isTablet ? (
+              {isDesktop ? (
                 <motion.div
                   layout
                   className="mx-auto w-full max-w-4xl"
@@ -180,24 +178,23 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                 </div>
               )}
               <AnimatePresence>
-                {isTestPreviewOpen && !isTablet ? (
+                {isTestPreviewOpen && isDesktop ? (
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="border-default border-l">
+                    transition={{ duration: 0.3, ease: "easeInOut" }}>
                     <TestFormRenderer
-                      isMobile={isTablet}
+                      isMobile={!isDesktop}
                       testForm={uptoDateForm}
                       isTestPreviewOpen={isTestPreviewOpen}
                       setIsTestPreviewOpen={setIsTestPreviewOpen}
                     />
                   </motion.div>
                 ) : isTestPreviewOpen ? (
-                  <div className="border-default border-t">
+                  <div>
                     <TestFormRenderer
-                      isMobile={isTablet}
+                      isMobile={!isDesktop}
                       testForm={uptoDateForm}
                       isTestPreviewOpen={isTestPreviewOpen}
                       setIsTestPreviewOpen={setIsTestPreviewOpen}
