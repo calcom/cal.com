@@ -3,7 +3,6 @@ import * as React from "react";
 import type { GroupBase, SingleValue, MultiValue } from "react-select";
 import ReactSelect from "react-select";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import cx from "@calcom/ui/classNames";
 
 import { Label } from "../inputs/Label";
@@ -133,10 +132,17 @@ export const SelectField = function SelectField<
     labelProps?: React.ComponentProps<typeof Label>;
     className?: string;
     error?: string;
+    translations?: Record<string, string>;
   } & SelectProps<Option, IsMulti, Group>
 ) {
-  const { t } = useLocale();
-  const { label = t(props.name || ""), containerClassName, labelProps, className, ...passThrough } = props;
+  const {
+    label = props.translations?.[props.name || ""] || props.name || "",
+    containerClassName,
+    labelProps,
+    className,
+    translations = {},
+    ...passThrough
+  } = props;
   const id = useId();
   return (
     <div className={cx(containerClassName)}>
