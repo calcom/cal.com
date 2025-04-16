@@ -57,10 +57,7 @@ export const adminRouter = router({
     return handler(opts);
   }),
   whitelistUserWorkflows: authedAdminProcedure.input(ZWhitelistUserWorkflows).mutation(async (opts) => {
-    const handler = await importHandler(
-      namespaced("whitelistUserWorkflows"),
-      () => import("./whitelistUserWorkflows.handler")
-    );
+    const { default: handler } = await import("./whitelistUserWorkflows.handler");
     return handler(opts);
   }),
   workspacePlatform: router({
