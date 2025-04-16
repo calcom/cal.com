@@ -193,6 +193,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const isLoggedInUserHost = checkIfUserIsHost(userId);
 
+  if (!isLoggedInUserHost && !!bookingInfo.tracking) {
+    bookingInfo.tracking = null;
+  }
+
   if (!isLoggedInUserHost) {
     // Removing hidden fields from responses
     for (const key in bookingInfo.responses) {

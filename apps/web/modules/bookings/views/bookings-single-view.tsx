@@ -105,6 +105,7 @@ export default function Success(props: PageProps) {
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
+  const [showUtmParams, setShowUtmParams] = useState(false);
 
   const { eventType, bookingInfo, previousBooking, requiresLoginToUpdate, rescheduledToUid } = props;
 
@@ -680,6 +681,34 @@ export default function Success(props: PageProps) {
                             <div className="mt-9 font-medium">{t("additional_notes")}</div>
                             <div className="col-span-2 mb-2 mt-9">
                               <p className="break-words">{bookingInfo.description}</p>
+                            </div>
+                          </>
+                        )}
+                        {!!bookingInfo?.tracking && (
+                          <>
+                            <div className="mt-3 font-medium">UTM Parameters</div>
+                            <div
+                              className="col-span-2 mb-2 mt-3"
+                              onClick={() => setShowUtmParams((prev) => !prev)}>
+                              <button className="flex items-center gap-2">
+                                <span>{showUtmParams ? "Hide" : "Show"}</span>
+                                <Icon name={showUtmParams ? "chevron-up" : "chevron-down"} />
+                              </button>
+                              {showUtmParams && (
+                                <div className="mt-1">
+                                  <ul className="list-disc pl-5">
+                                    {Object.entries(bookingInfo.tracking)
+                                      .filter(
+                                        ([_, value]) => value !== null && value !== undefined && value !== ""
+                                      )
+                                      .map(([key, value]) => (
+                                        <li key={key} className="text-subtle break-words">
+                                          {key}: {value}
+                                        </li>
+                                      ))}
+                                  </ul>
+                                </div>
+                              )}
                             </div>
                           </>
                         )}
