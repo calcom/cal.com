@@ -22,7 +22,7 @@ export class GetAssignedAttributeOptions {
   })
   @ApiPropertyOptional({
     type: [String],
-    description: "Filter by assigned option ids. ids must be separated by a comma.",
+    description: "Filter by assigned attribute option ids. ids must be separated by a comma.",
     example: "?assignedOptionIds=aaaaaaaa-bbbb-cccc-dddd-eeeeee1eee,aaaaaaaa-bbbb-cccc-dddd-eeeeee2eee",
   })
   @IsArray()

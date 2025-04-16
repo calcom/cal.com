@@ -17,6 +17,48 @@ export class OrganizationsUsersRepository {
     };
   }
 
+  async getOrganizationUsersByEmailsAndAttributeFilters(
+    orgId: number,
+    attributeFilters: { assignedOptionIds: string[]; attributeQueryOperator?: "AND" | "OR" | "NONE" },
+    emailArray?: string[],
+    skip?: number,
+    take?: number
+  ) {
+    const attributeQueryOperator = attributeFilters?.attributeQueryOperator ?? "AND";
+    const assignedOptionIds = attributeFilters.assignedOptionIds;
+    const attributeToUsersWithProfile = await this.dbRead.prisma.attributeToUser.findMany({
+      include: {
+        member: { include: { user: { include: { profiles: { where: { organizationId: orgId } } } } } },
+      },
+      distinct: ["memberId"],
+      where: {
+        member: {
+          teamId: orgId,
+          // Filter to only get users which have ALL of the assigned attribue options
+          ...(attributeQueryOperator === "AND" && {
+            AND: assignedOptionIds.map((optionId) => ({
+              AttributeToUser: { some: { attributeOptionId: optionId } },
+            })),
+          }),
+        },
+        ...(emailArray && emailArray.length ? { email: { in: emailArray } } : {}),
+        // Filter to get users which have AT LEAST ONE of the assigned attribue options
+        ...(attributeQueryOperator === "OR" && {
+          attributeOption: { id: { in: assignedOptionIds } },
+        }),
+        // Filter to  get users that have NONE the assigned attribue options
+        ...(attributeQueryOperator === "NONE" && {
+          NOT: {
+            attributeOption: { id: { in: assignedOptionIds } },
+          },
+        }),
+      },
+      skip,
+      take,
+    });
+    return attributeToUsersWithProfile.map((attributeToUser) => attributeToUser.member.user);
+  }
+
   async getOrganizationUsersByEmails(orgId: number, emailArray?: string[], skip?: number, take?: number) {
     return await this.dbRead.prisma.user.findMany({
       where: {
