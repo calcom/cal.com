@@ -1,5 +1,3 @@
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../dropdown";
 import { Icon } from "../../icon";
 
@@ -12,7 +10,6 @@ interface IAddVariablesDropdown {
 }
 
 export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
-  const { t } = useLocale();
   const translations = props.translations || {};
 
   return (
@@ -22,13 +19,13 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
           {props.isTextEditor ? (
             <>
               <div className="hidden sm:flex">
-                {translations["add_variable"] || t("add_variable")}
+                {translations["add_variable"] || "Add variable"}
                 <Icon name="chevron-down" className="ml-1 mt-[2px] h-4 w-4" />
               </div>
               <div className="block sm:hidden">
                 {props.addVariableButtonTop ? (
                   <div className="flex">
-                    {translations["add_variable"] || t("add_variable")}
+                    {translations["add_variable"] || "Add variable"}
                     <Icon name="chevron-down" className="ml-1 mt-[2px] h-4 w-4" />
                   </div>
                 ) : (
@@ -38,7 +35,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
             </>
           ) : (
             <div className="flex">
-              {translations["add_variable"] || t("add_variable")}
+              {translations["add_variable"] || "Add variable"}
               <Icon name="chevron-down" className="ml-1 mt-[2px] h-4 w-4" />
             </div>
           )}
@@ -47,7 +44,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
       <DropdownMenuContent>
         <div className="pb-1 pt-4">
           <div className="text-subtle mb-2 px-4 text-left text-xs">
-            {(translations["add_dynamic_variables"] || t("add_dynamic_variables")).toLocaleUpperCase()}
+            {(translations["add_dynamic_variables"] || "Add dynamic variables").toLocaleUpperCase()}
           </div>
           <div className="h-64 overflow-scroll md:h-80">
             {props.variables.map((variable) => (
@@ -56,17 +53,15 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
                   key={variable}
                   type="button"
                   className="w-full px-4 py-2"
-                  onClick={() =>
-                    props.addVariable(translations[`${variable}_variable`] || t(`${variable}_variable`))
-                  }>
+                  onClick={() => props.addVariable(translations[`${variable}_variable`] || `${variable}`)}>
                   <div className="flex flex-col">
                     <div className="mr-text-left">
-                      {`{${(translations[`${variable}_variable`] || t(`${variable}_variable`))
+                      {`{${(translations[`${variable}_variable`] || `${variable}`)
                         .toUpperCase()
                         .replace(/ /g, "_")}}`}
                     </div>
                     <div className="text-default hidden text-left sm:flex">
-                      {translations[`${variable}_info`] || t(`${variable}_info`)}
+                      {translations[`${variable}_info`] || `Information about ${variable}`}
                     </div>
                   </div>
                 </button>
