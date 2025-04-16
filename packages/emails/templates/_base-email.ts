@@ -1,4 +1,5 @@
 import { decodeHTML } from "entities";
+import { createTransport } from "nodemailer";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
@@ -70,7 +71,6 @@ export default class BaseEmail {
       },
       ...(parseSubject.success && { subject: decodeHTML(parseSubject.data) }),
     };
-    const { createTransport } = await import("nodemailer");
     await new Promise((resolve, reject) =>
       createTransport(this.getMailerOptions().transport).sendMail(
         payloadWithUnEscapedSubject,
