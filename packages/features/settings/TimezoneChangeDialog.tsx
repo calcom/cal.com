@@ -55,7 +55,10 @@ const TimezoneChangeDialogContent = () => {
     <>
       <DialogHeader
         title={t("update_timezone_question")}
-        subtitle={t("update_timezone_description", { formattedCurrentTz })}
+        subtitle={t("update_timezone_description", {
+          formattedCurrentTz,
+          interpolation: { escapeValue: false },
+        })}
       />
       {/* todo: save this in db and auto-update when timezone changes (be able to disable??? if yes, /settings)
         <Checkbox description="Always update timezone" />
