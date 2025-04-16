@@ -48,14 +48,24 @@ export const sendSMS = async ({
   teamId?: number | null;
   isWhatsapp?: boolean;
 }) => {
-  //check if there are available credits otherwise dont send and send as email instead
-
+  //check if there are available credits
+  //if no available credits, send email instead
   log.silly("sendSMS", JSON.stringify({ phoneNumber, body, sender, userId, teamId }));
 
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
 
   if (isSMSSendingLocked) {
     log.debug(`${teamId ? `Team id ${teamId} ` : `User id ${userId} `} is locked for SMS sending `);
+    return;
+  }
+
+  const hasCredits = await hasAvailableCredits({ userId, teamId });
+
+  if (!hasCredits) {
+    // todo: send email instead
+    log.debug(
+      `SMS not sent because ${teamId ? `Team id ${teamId} ` : `User id ${userId} `} has no available credits`
+    );
     return;
   }
 
@@ -86,7 +96,9 @@ export const sendSMS = async ({
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
     to: getSMSNumber(phoneNumber, isWhatsapp),
     from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender ? sender : getDefaultSender(),
-    statusCallback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/webhook?userId=${userId}&teamId=${teamId}&bookingUid=${bookingUid}`,
+    statusCallback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/webhook?userId=${userId}${
+      teamId ? "&teamId=${teamId}" : ""
+    }&bookingUid=${bookingUid}`,
   });
 
   return response;
@@ -111,9 +123,18 @@ export const scheduleSMS = async ({
   teamId?: number | null;
   isWhatsapp?: boolean;
 }) => {
+  const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
+
   const hasCredits = await hasAvailableCredits({ userId, teamId });
 
   if (!hasCredits) {
+    /*
+     we schedule 2 hours in advance
+     so even when credits are bought now all SMS within the next two hours are sent as email
+    */
+
+    // todo: schedule email instead
+
     log.debug(
       `SMS not scheduled because ${
         teamId ? `Team id ${teamId} ` : `User id ${userId} `
@@ -121,8 +142,6 @@ export const scheduleSMS = async ({
     );
     return;
   }
-
-  const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
 
   if (isSMSSendingLocked) {
     log.debug(`${teamId ? `Team id ${teamId} ` : `User id ${userId} `} is locked for SMS sending `);
@@ -157,7 +176,9 @@ export const scheduleSMS = async ({
     scheduleType: "fixed",
     sendAt: scheduledDate,
     from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender ? sender : getDefaultSender(),
-    statusCallback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/webhook?userId=${userId}&teamId=${teamId}&bookingUid=${bookingUid}`,
+    statusCallback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/webhook?userId=${userId}${
+      teamId ? "&teamId=${teamId}" : ""
+    }&bookingUid=${bookingUid}`,
   });
 
   return response;
@@ -230,4 +251,31 @@ async function isLockedForSMSSending(userId?: number | null, teamId?: number | n
     });
     return user?.smsLockState === SMSLockState.LOCKED;
   }
+}
+
+export async function getCountryCodeForNumber(phoneNumber: string) {
+  const twilio = createTwilioClient();
+  const { countryCode } = await twilio.lookups.v2.phoneNumbers(phoneNumber).fetch();
+  return countryCode;
+}
+
+export async function getCreditsForSMS(smsSid: string) {
+  const twilio = createTwilioClient();
+
+  const message = await twilio.messages(smsSid).fetch();
+
+  const twilioPrice = message.price ? Math.abs(parseFloat(message.price)) : 0; //might not work because price is a string
+  const price = twilioPrice * 1.8;
+  const credits = Math.ceil(price * 100);
+
+  return credits || null;
+}
+
+export async function validateRequest(
+  authToken: string,
+  twilioHeader: string,
+  url: string,
+  params: Record<string, any>
+) {
+  return TwilioClient.validateRequest(authToken, twilioHeader, url, params);
 }

@@ -3,11 +3,9 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
-import { createTwilioClient } from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
+import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-
-const twilioClient = createTwilioClient();
 
 async function postHandler(req: NextRequest) {
   const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
@@ -34,18 +32,12 @@ async function postHandler(req: NextRequest) {
     smsLogsWithoutPrice.map(async (log) => {
       if (!log.smsSid) return;
       try {
-        const message = await twilioClient.messages(log.smsSid).fetch();
+        const credits = await twilio.getCreditsForSMS(log.smsSid);
 
-        if (!message.price) {
+        if (!credits) {
           // price not yet available
           return;
         }
-
-        const twilioPrice = parseFloat(message.price);
-
-        const price = twilioPrice * 1.8;
-
-        const credits = price * 100 * -1;
 
         await prisma.creditExpenseLog.update({
           where: { id: log.id },

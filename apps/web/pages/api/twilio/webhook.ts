@@ -1,14 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import twilio from "twilio";
 
 import { chargeCredits } from "@calcom/features/ee/billing/lib/credits";
-import { createTwilioClient } from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
+import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
-
-const twilioClient = createTwilioClient();
 
 /*
   Twilio status callback: creates expense log when sms is delivered or undelivered
@@ -22,14 +19,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const url = queryParams ? `${baseUrl}?${queryParams}` : baseUrl;
 
   if (typeof twilioSignature === "string") {
-    const valid = twilio.validateRequest(authToken ?? "", twilioSignature, url, req.body);
+    const valid = await twilio.validateRequest(authToken ?? "", twilioSignature, url, req.body);
     if (valid) {
       const messageStatus = req.body.MessageStatus;
       const { userId, teamId, bookingUid } = req.query;
 
       if (messageStatus === "delivered" || messageStatus === "undelivered") {
-        console.log("message delievered ");
-        const phoneNumber = await twilioClient.lookups.v2.phoneNumbers(req.body.To).fetch();
+        const countryCode = await twilio.getCountryCodeForNumber(req.body.To);
 
         const parsedTeamId = !!teamId ? Number(teamId) : undefined;
 
@@ -52,7 +48,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           return res.status(200).send(`SMS credits are not enabled. Credits set to 0`);
         }
 
-        if (phoneNumber.countryCode === "US" || phoneNumber.countryCode === "CA") {
+        if (countryCode === "US" || countryCode === "CA") {
           // SMS to US and CA are free on a team plan
           let teamIdToCharge = parsedTeamId;
 
@@ -102,13 +98,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           return res.status(200).send(`SMS are free for organziations. Credits set to 0`);
         }
 
-        // todo: make reusable function in twilioProvider
-        const message = await twilioClient.messages(smsSid).fetch();
-
-        const twilioPrice = message.price ? parseFloat(message.price) : 0; // todo: test this if price is not available
-
-        const price = twilioPrice * 1.8;
-        const credits = price * 100 * -1; // todo: if price is given this should be at least 1 credit
+        const credits = await twilio.getCreditsForSMS(smsSid);
 
         const billingInfo = await chargeCredits({
           credits,
