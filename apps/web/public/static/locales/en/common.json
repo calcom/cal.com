@@ -3119,5 +3119,7 @@
   "verification_email_sent": "Verification email sent",
   "remove_whitelist_status": "Remove whitelist status",
   "whitelist_user_workflows": "Whitelist user workflows",
+  "user_workflows_whitelisted": "User workflows whitelisted",
+  "user_workflows_unwhitelisted": "User workflows unwhitelisted",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

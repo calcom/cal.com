@@ -125,8 +125,11 @@ function UsersTableBare() {
     },
   });
   const whitelistUserWorkflows = trpc.viewer.admin.whitelistUserWorkflows.useMutation({
-    onSuccess: () => {
-      showToast("User workflows whitelisted", "success");
+    onSuccess: (data) => {
+      showToast(
+        data.whitelistWorkflows ? t("user_workflows_whitelisted") : t("user_workflows_unwhitelisted"),
+        "success"
+      );
     },
   });
 
