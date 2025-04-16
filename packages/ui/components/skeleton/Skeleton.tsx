@@ -28,6 +28,7 @@ type SkeletonProps<T> = {
   loading?: boolean;
   waitForTranslation?: boolean;
   loadingClassName?: string;
+  isLocaleReady?: boolean;
 } & (T extends React.FC<infer P>
   ? P
   : T extends keyof JSX.IntrinsicElements
@@ -47,10 +48,12 @@ const Skeleton = <T extends keyof JSX.IntrinsicElements | React.FC>({
    * Classes that you need only in loading state
    */
   loadingClassName = "",
+  isLocaleReady,
   ...rest
 }: SkeletonProps<T>) => {
-  const { isLocaleReady } = useLocale();
-  loading = (waitForTranslation ? !isLocaleReady : false) || loading;
+  const locale = useLocale();
+  const localeReady = isLocaleReady !== undefined ? isLocaleReady : locale.isLocaleReady;
+  loading = (waitForTranslation ? !localeReady : false) || loading;
   const Component = as;
   return (
     <Component
