@@ -16,11 +16,13 @@ import {
   DataTableToolbar,
   DataTableProvider,
   ColumnFilterType,
+  useDataTable,
   useFilterValue,
   ZDateRangeFilterValue,
   DataTableFilters,
   DataTableSegment,
 } from "@calcom/features/data-table";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -62,7 +64,7 @@ interface OutOfOfficeEntry {
 
 export default function OutOfOfficeEntriesList() {
   return (
-    <DataTableProvider>
+    <DataTableProvider useSegments={useSegments}>
       <OutOfOfficeEntriesListContent />
     </DataTableProvider>
   );
@@ -71,7 +73,6 @@ export default function OutOfOfficeEntriesList() {
 function OutOfOfficeEntriesListContent() {
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [deletedEntry, setDeletedEntry] = useState(0);
   const [currentlyEditingOutOfOfficeEntry, setCurrentlyEditingOutOfOfficeEntry] =
     useState<BookingRedirectForm | null>(null);
@@ -81,6 +82,7 @@ function OutOfOfficeEntriesListContent() {
     setOpenModal(true);
   };
 
+  const { searchTerm } = useDataTable();
   const searchParams = useCompatSearchParams();
   const selectedTab = searchParams?.get("type") ?? OutOfOfficeTab.MINE;
 
@@ -236,7 +238,7 @@ function OutOfOfficeEntriesListContent() {
           return (
             <>
               {row.original && !isPending && !isFetching ? (
-                <div className="flex flex-row items-center justify-end gap-x-2">
+                <div className="flex flex-row items-center justify-end gap-x-2" data-testid="ooo-actions">
                   <Tooltip content={t("edit")}>
                     <Button
                       className="self-center rounded-lg border"
@@ -348,7 +350,7 @@ function OutOfOfficeEntriesListContent() {
         paginationMode="infinite"
         ToolbarLeft={
           <>
-            <DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchTerm(value)} />
+            <DataTableToolbar.SearchBar />
             <DataTableFilters.FilterBar table={table} />
           </>
         }

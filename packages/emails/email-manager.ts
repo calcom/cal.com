@@ -46,7 +46,6 @@ import type { IBookingRedirect } from "./templates/booking-redirect-notification
 import BrokenIntegrationEmail from "./templates/broken-integration-email";
 import type { ChangeOfEmailVerifyLink } from "./templates/change-account-email-verify";
 import ChangeOfEmailVerifyEmail from "./templates/change-account-email-verify";
-import TeamInviteEmail from "./templates/credit-balance-low-warning-email";
 import CreditBalanceLowWarningEmail from "./templates/credit-balance-low-warning-email";
 import DisabledAppEmail from "./templates/disabled-app-email";
 import type { Feedback } from "./templates/feedback-email";
@@ -75,6 +74,9 @@ import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
 import SlugReplacementEmail from "./templates/slug-replacement-email";
 import type { TeamInvite } from "./templates/team-invite-email";
+import TeamInviteEmail from "./templates/team-invite-email";
+import type { WorkflowEmailData } from "./templates/workflow-email";
+import WorkflowEmail from "./templates/workflow-email";
 
 type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
 
@@ -538,6 +540,10 @@ export const sendPasswordResetEmail = async (passwordResetEvent: PasswordReset) 
 
 export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite) => {
   await sendEmail(() => new TeamInviteEmail(teamInviteEvent));
+};
+
+export const sendCustomWorkflowEmail = async (emailData: WorkflowEmailData) => {
+  await sendEmail(() => new WorkflowEmail(emailData));
 };
 
 export const sendOrganizationCreationEmail = async (organizationCreationEvent: OrganizationCreation) => {

@@ -2,6 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
@@ -9,7 +10,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
-import { RedirectType } from "@calcom/prisma/client";
+import { BookingStatus, RedirectType } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
@@ -24,6 +25,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const session = await getServerSession({ req });
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
   const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting, email } = query;
+  const allowRescheduleForCancelledBooking = query.allowRescheduleForCancelledBooking === "true";
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, params?.orgSlug);
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
 
@@ -47,6 +49,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const eventData = team.eventTypes[0];
+
+  if (rescheduleUid && eventData.disableRescheduling) {
+    return { redirect: { destination: `/booking/${rescheduleUid}`, permanent: false } };
+  }
+
   const eventTypeId = eventData.id;
   const eventHostsUserData = await getUsersData(
     team.isPrivate,
@@ -56,7 +63,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
   const name = team.parent?.name ?? team.name ?? null;
 
-  const booking = rescheduleUid ? await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id) : null;
+  let booking: GetBookingType | null = null;
+  if (rescheduleUid) {
+    booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
+    if (booking?.status === BookingStatus.CANCELLED && !allowRescheduleForCancelledBooking) {
+      return {
+        redirect: {
+          permanent: false,
+          destination: `/team/${teamSlug}/${meetingSlug}`,
+        },
+      };
+    }
+  }
 
   const fromRedirectOfNonOrgLink = context.query.orgRedirection === "true";
   const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
@@ -181,6 +199,8 @@ const getTeamWithEventsData = async (
           metadata: true,
           length: true,
           hidden: true,
+          disableCancelling: true,
+          disableRescheduling: true,
           hosts: {
             take: 3,
             select: {

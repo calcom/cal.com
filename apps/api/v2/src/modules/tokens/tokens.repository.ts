@@ -2,11 +2,14 @@ import { JwtService } from "@/modules/jwt/jwt.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
+import { Logger } from "@nestjs/common";
 import { PlatformAuthorizationToken } from "@prisma/client";
 import { DateTime } from "luxon";
 
 @Injectable()
 export class TokensRepository {
+  private readonly logger = new Logger("TokensRepository");
+
   constructor(
     private readonly dbRead: PrismaReadService,
     private readonly dbWrite: PrismaWriteService,
@@ -52,7 +55,7 @@ export class TokensRepository {
       try {
         await this.dbWrite.prisma.$transaction([
           this.dbWrite.prisma.accessToken.deleteMany({
-            where: { client: { id: clientId }, userId: ownerId, expiresAt: { lte: new Date() } },
+            where: { client: { id: clientId }, userId: ownerId },
           }),
           this.dbWrite.prisma.refreshToken.deleteMany({
             where: {
@@ -62,7 +65,7 @@ export class TokensRepository {
           }),
         ]);
       } catch (err) {
-        // discard.
+        this.logger.error("createOAuthTokens - Failed to delete old tokens", err);
       }
     }
 
@@ -71,7 +74,7 @@ export class TokensRepository {
     const [accessToken, refreshToken] = await this.dbWrite.prisma.$transaction([
       this.dbWrite.prisma.accessToken.create({
         data: {
-          secret: this.jwtService.signAccessToken({ clientId, ownerId }),
+          secret: this.jwtService.signAccessToken({ clientId, ownerId, expiresAt: accessExpiry.valueOf() }),
           expiresAt: accessExpiry,
           client: { connect: { id: clientId } },
           owner: { connect: { id: ownerId } },
@@ -79,7 +82,7 @@ export class TokensRepository {
       }),
       this.dbWrite.prisma.refreshToken.create({
         data: {
-          secret: this.jwtService.signRefreshToken({ clientId, ownerId }),
+          secret: this.jwtService.signRefreshToken({ clientId, ownerId, expiresAt: refreshExpiry.valueOf() }),
           expiresAt: refreshExpiry,
           client: { connect: { id: clientId } },
           owner: { connect: { id: ownerId } },
@@ -91,6 +94,7 @@ export class TokensRepository {
       accessToken: accessToken.secret,
       accessTokenExpiresAt: accessToken.expiresAt,
       refreshToken: refreshToken.secret,
+      refreshTokenExpiresAt: refreshToken.expiresAt,
     };
   }
 
@@ -131,7 +135,12 @@ export class TokensRepository {
       this.dbWrite.prisma.refreshToken.delete({ where: { secret: refreshTokenSecret } }),
       this.dbWrite.prisma.accessToken.create({
         data: {
-          secret: this.jwtService.signAccessToken({ clientId, userId: tokenUserId }),
+          secret: this.jwtService.signAccessToken({
+            clientId,
+            ownerId: tokenUserId,
+            expiresAt: accessExpiry.valueOf(),
+            userId: tokenUserId,
+          }),
           expiresAt: accessExpiry,
           client: { connect: { id: clientId } },
           owner: { connect: { id: tokenUserId } },
@@ -139,7 +148,14 @@ export class TokensRepository {
       }),
       this.dbWrite.prisma.refreshToken.create({
         data: {
-          secret: this.jwtService.signRefreshToken({ clientId, userId: tokenUserId }),
+          // note(Lauris): I am leaving userId because it was before adding ownerId to standardize payload like in the createOAuthTokens function for
+          // backwards compatability.
+          secret: this.jwtService.signRefreshToken({
+            clientId,
+            ownerId: tokenUserId,
+            expiresAt: refreshExpiry.valueOf(),
+            userId: tokenUserId,
+          }),
           expiresAt: refreshExpiry,
           client: { connect: { id: clientId } },
           owner: { connect: { id: tokenUserId } },

@@ -14,6 +14,7 @@ import {
   useColumnFilters,
   useDataTable,
 } from "@calcom/features/data-table";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -58,7 +59,10 @@ type PlatformManagedUsersTableProps = {
 
 export function PlatformManagedUsersTable(props: PlatformManagedUsersTableProps) {
   return (
-    <DataTableProvider defaultPageSize={25}>
+    <DataTableProvider
+      useSegments={useSegments}
+      defaultPageSize={25}
+      tableIdentifier={`platform-managed-users-${props.oAuthClientId}`}>
       <UserListTableContent {...props} />
     </DataTableProvider>
   );
@@ -68,12 +72,11 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
   const { t } = useLocale();
 
   const [state, dispatch] = useReducer(reducer, initialState);
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [rowSelection, setRowSelection] = useState({});
 
   const columnFilters = useColumnFilters();
 
-  const { pageIndex, pageSize } = useDataTable();
+  const { pageIndex, pageSize, searchTerm } = useDataTable();
   const limit = pageSize;
   const offset = pageIndex * pageSize;
 
@@ -81,7 +84,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
     {
       limit,
       offset,
-      searchTerm: debouncedSearchTerm,
+      searchTerm,
       filters: columnFilters,
       oAuthClientId,
     },
@@ -289,11 +292,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
         paginationMode="standard"
         ToolbarLeft={
           <>
-            <DataTableToolbar.SearchBar
-              table={table}
-              onSearch={(value) => setDebouncedSearchTerm(value)}
-              className="sm:max-w-64 max-w-full"
-            />
+            <DataTableToolbar.SearchBar className="sm:max-w-64 max-w-full" />
             <DataTableFilters.ColumnVisibilityButton table={table} />
             <DataTableFilters.FilterBar table={table} />
           </>

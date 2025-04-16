@@ -34,7 +34,13 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
     teamId,
     isVerificationPending = false,
     seatReferenceUid,
+    verifiedAt,
   } = args;
+
+  if (!verifiedAt) {
+    log.warn(`Workflow step ${workflowStepId} not verified`);
+    return;
+  }
 
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;

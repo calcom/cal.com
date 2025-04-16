@@ -1,4 +1,4 @@
-import { getTRPCContext } from "app/_trpc/context";
+import { createRouterCaller } from "app/_trpc/context";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
@@ -11,9 +11,8 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
-import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
-import { createCallerFactory } from "@calcom/trpc/server/trpc";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -51,9 +50,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   let userTimeFormat: number | null = null;
   let requiresLoginToUpdate = false;
   if (session) {
-    const trpcContext = await getTRPCContext();
-    const createCaller = createCallerFactory(meRouter);
-    const caller = createCaller(trpcContext);
+    const caller = await createRouterCaller(meRouter);
     const user = await caller.get();
     tz = user.timeZone;
     userTimeFormat = user.timeFormat;
@@ -83,6 +80,17 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       originalBookingUid: bookingInfo.uid,
     });
     rescheduledToUid = rescheduledTo?.uid ?? null;
+  }
+
+  let previousBooking: {
+    rescheduledBy: string | null;
+    uid: string;
+  } | null = null;
+
+  if (bookingInfo.fromReschedule) {
+    previousBooking = await BookingRepository.findReschedulerByUid({
+      uid: bookingInfo.fromReschedule,
+    });
   }
 
   const eventTypeRaw = !bookingInfoRaw.eventTypeId
@@ -121,7 +129,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     ...eventTypeRaw,
     periodStartDate: eventTypeRaw.periodStartDate?.toString() ?? null,
     periodEndDate: eventTypeRaw.periodEndDate?.toString() ?? null,
-    metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata),
+    metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventTypeRaw.metadata),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
     customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
     bookingFields: eventTypeRaw.bookingFields.map((field) => {
@@ -223,6 +231,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),
       dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
+      previousBooking,
       paymentStatus: payment,
       ...(tz && { tz }),
       userTimeFormat,
