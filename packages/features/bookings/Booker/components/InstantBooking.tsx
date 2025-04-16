@@ -1,7 +1,8 @@
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
-import { Button, UserAvatarGroupWithOrg } from "@calcom/ui";
+import { UserAvatarGroupWithOrg } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
 
 interface IInstantBookingProps {
   onConnectNow: () => void;

@@ -14,7 +14,7 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
+import { EventType, User } from "@prisma/client";
 import { advanceTo, clear } from "jest-date-mock";
 import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
@@ -66,6 +66,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let user: User;
 
     let eventTypeId: number;
+    let eventType: EventType;
     const eventTypeSlug = `user-bookings-event-type-${randomString()}`;
     let recurringEventTypeId: number;
     const recurringEventTypeSlug = `user-bookings-event-type-${randomString()}`;
@@ -128,6 +129,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         user.id
       );
       eventTypeId = event.id;
+      eventType = event;
 
       const recurringEvent = await eventTypesRepositoryFixture.create(
         // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
@@ -527,7 +529,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     });
 
     describe("get individual booking", () => {
-      it("should should get a booking", async () => {
+      it("should get a booking", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings/${createdBooking.uid}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -562,7 +564,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should get a booking with rating", async () => {
+      it("should get a booking with rating", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings/${bookingInThePast.uid}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -586,7 +588,66 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should get 1 recurrence of a recurring booking", async () => {
+      it("should get a booking with icsUid", async () => {
+        const mockBooking = await bookingsRepositoryFixture.create({
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          startTime: new Date(Date.UTC(2020, 0, 8, 13, 0, 0)),
+          endTime: new Date(Date.UTC(2020, 0, 8, 14, 0, 0)),
+          title: "peer coding lets goo",
+          uid: `booking-in-the-past-${randomString()}`,
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          location: "integrations:daily",
+          customInputs: {},
+          metadata: {},
+          responses: {
+            name: "Oldie",
+            email: "oldie@gmail.com",
+          },
+          attendees: {
+            create: {
+              email: "oldie@gmail.com",
+              name: "Oldie",
+              locale: "lv",
+              timeZone: "Europe/Rome",
+            },
+          },
+          rating: 10,
+          iCalUID: "ics-uid",
+        });
+
+        return request(app.getHttpServer())
+          .get(`/v2/bookings/${mockBooking.uid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toEqual(mockBooking.id);
+              expect(data.uid).toEqual(mockBooking.uid);
+              expect(data.icsUid).toEqual(mockBooking.iCalUID);
+              await bookingsRepositoryFixture.deleteById(mockBooking.id);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibily recurring bookings"
+              );
+            }
+          });
+      });
+
+      it("should get 1 recurrence of a recurring booking", async () => {
         const recurrenceUid = createdRecurringBooking[0].uid;
         return request(app.getHttpServer())
           .get(`/v2/bookings/${recurrenceUid}`)
@@ -622,7 +683,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should get all recurrences of the recurring bookings", async () => {
+      it("should get all recurrences of the recurring bookings", async () => {
         const recurringBookingUid = createdRecurringBooking[0].recurringBookingUid;
         return request(app.getHttpServer())
           .get(`/v2/bookings/${recurringBookingUid}`)
@@ -691,7 +752,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     });
 
     describe("get bookings", () => {
-      it("should should get all bookings", async () => {
+      it("should get all bookings", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -709,7 +770,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should take bookings", async () => {
+      it("should take bookings", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?take=3`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -727,7 +788,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should skip bookings", async () => {
+      it("should skip bookings", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?skip=2`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -745,7 +806,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should get upcoming bookings", async () => {
+      it("should get upcoming bookings", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?status=upcoming`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -763,7 +824,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should get past bookings", async () => {
+      it("should get past bookings", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?status=past`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -781,7 +842,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should get upcoming and past bookings", async () => {
+      it("should get upcoming and past bookings", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?status=upcoming,past`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -799,7 +860,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should get recurring booking recurrences", async () => {
+      it("should get recurring booking recurrences", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?status=recurring`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -817,7 +878,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should get bookings by attendee email", async () => {
+      it("should get bookings by attendee email", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?attendeeEmail=mr_proper@gmail.com`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -835,7 +896,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should get bookings by attendee name", async () => {
+      it("should get bookings by attendee name", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?attendeeName=Mr Proper Recurring`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -853,7 +914,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should get bookings by eventTypeId", async () => {
+      it("should get bookings by eventTypeId", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?eventTypeId=${eventTypeId}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -871,7 +932,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should get bookings by eventTypeIds", async () => {
+      it("should get bookings by eventTypeIds", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?eventTypeIds=${eventTypeId},${recurringEventTypeId}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -889,7 +950,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should get bookings by after specified start time", async () => {
+      it("should get bookings by after specified start time", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?afterStart=${createdRecurringBooking[1].start}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -907,7 +968,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should get bookings by before specified end time", async () => {
+      it("should get bookings by before specified end time", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?beforeEnd=${createdRecurringBooking[0].end}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -925,7 +986,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should get bookings after specified update time", async () => {
+      it("should get bookings after specified update time", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?afterUpdatedAt=${createdRecurringBooking[1].updatedAt}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -943,7 +1004,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should get bookings before specified update time", async () => {
+      it("should get bookings before specified update time", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?beforeUpdatedAt=${createdRecurringBooking[0].updatedAt}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -961,7 +1022,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should get bookings in update range", async () => {
+      it("should get bookings in update range", async () => {
         return request(app.getHttpServer())
           .get(
             `/v2/bookings?afterUpdatedAt=${createdRecurringBooking[0].updatedAt}&beforeUpdatedAt=${createdRecurringBooking[2].updatedAt}`
@@ -982,7 +1043,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       describe("createdAt filter", () => {
-        it("should should get bookings after specified createdAt time", async () => {
+        it("should get bookings after specified createdAt time", async () => {
           return request(app.getHttpServer())
             .get(`/v2/bookings?afterCreatedAt=${createdRecurringBooking[1].createdAt}`)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -1000,7 +1061,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             });
         });
 
-        it("should should get bookings before specified createdAt time", async () => {
+        it("should get bookings before specified createdAt time", async () => {
           return request(app.getHttpServer())
             .get(`/v2/bookings?beforeCreatedAt=${createdRecurringBooking[0].createdAt}`)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -1018,7 +1079,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             });
         });
 
-        it("should should get bookings in createdAt range", async () => {
+        it("should get bookings in createdAt range", async () => {
           return request(app.getHttpServer())
             .get(
               `/v2/bookings?afterCreatedAt=${createdRecurringBooking[0].createdAt}&beforeCreatedAt=${createdRecurringBooking[1].createdAt}`
@@ -1039,7 +1100,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         });
       });
 
-      it("should should sort bookings by start in descending order", async () => {
+      it("should sort bookings by start in descending order", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?eventTypeId=${eventTypeId}&sortStart=desc`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -1059,7 +1120,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should sort bookings by start in ascending order", async () => {
+      it("should sort bookings by start in ascending order", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?eventTypeId=${eventTypeId}&sortStart=asc`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -1079,7 +1140,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should sort bookings by end in descending order", async () => {
+      it("should sort bookings by end in descending order", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?eventTypeId=${eventTypeId}&sortEnd=desc`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -1099,7 +1160,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should sort bookings by end in ascending order", async () => {
+      it("should sort bookings by end in ascending order", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?eventTypeId=${eventTypeId}&sortEnd=asc`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -1119,7 +1180,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should sort bookings by created in descending order", async () => {
+      it("should sort bookings by created in descending order", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?eventTypeId=${eventTypeId}&sortCreated=desc`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -1139,7 +1200,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should sort bookings by created in ascending order", async () => {
+      it("should sort bookings by created in ascending order", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?eventTypeId=${eventTypeId}&sortCreated=asc`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -1159,7 +1220,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should sort bookings by updated in descending order", async () => {
+      it("should sort bookings by updated in descending order", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?eventTypeId=${eventTypeId}&sortUpdatedAt=desc`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -1179,7 +1240,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should sort bookings by updated in ascending order", async () => {
+      it("should sort bookings by updated in ascending order", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?eventTypeId=${eventTypeId}&sortUpdatedAt=asc`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -1201,7 +1262,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     });
 
     describe("reschedule bookings", () => {
-      it("should should reschedule normal booking", async () => {
+      it("should reschedule normal booking", async () => {
         const body: RescheduleBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2035, 0, 8, 14, 0, 0)).toISOString(),
           reschedulingReason: "Flying to mars that day",
@@ -1604,6 +1665,135 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
     });
 
+    describe("book by username and event type slug", () => {
+      it("should not create a booking by if neither event type id nor username and event type slug provided", async () => {
+        const googleMeetUrl = "https://meet.google.com/abc-def-ghi";
+        const body = {
+          start: new Date(Date.UTC(2036, 0, 8, 15, 0, 0)).toISOString(),
+          attendee: {
+            name: "Mr Proper",
+            email: "mr_proper@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          location: googleMeetUrl,
+          bookingFieldsResponses: {
+            customField: "customValue",
+          },
+          metadata: {
+            userId: "100",
+          },
+          guests: ["bob@gmail.com"],
+        };
+
+        const response = await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(400);
+
+        expect(
+          response.body.error.message.includes(
+            "Either eventTypeId OR (eventTypeSlug + username) must be provided"
+          )
+        ).toBe(true);
+      });
+
+      it("should create a booking by username and event type slug", async () => {
+        const googleMeetUrl = "https://meet.google.com/abc-def-ghi";
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2036, 0, 8, 15, 0, 0)).toISOString(),
+          eventTypeSlug: eventType.slug,
+          username: user.username || "",
+          attendee: {
+            name: "Mr Proper",
+            email: "mr_proper@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          location: googleMeetUrl,
+          bookingFieldsResponses: {
+            customField: "customValue",
+          },
+          metadata: {
+            userId: "100",
+          },
+          guests: ["bob@gmail.com"],
+        };
+
+        const beforeCreate = new Date();
+        return request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const afterCreate = new Date();
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toBeDefined();
+              expect(data.uid).toBeDefined();
+              expect(data.hosts[0].id).toEqual(user.id);
+              expect(data.hosts[0].username).toEqual(user.username);
+              expect(data.hosts[0].email).toEqual(user.email);
+              expect(data.status).toEqual("accepted");
+              expect(data.start).toEqual(body.start);
+              expect(data.end).toEqual(new Date(Date.UTC(2036, 0, 8, 16, 0, 0)).toISOString());
+              expect(data.duration).toEqual(60);
+              expect(data.eventTypeId).toEqual(eventTypeId);
+              expect(data.eventType).toEqual({
+                id: eventTypeId,
+                slug: eventTypeSlug,
+              });
+              expect(data.attendees[0]).toEqual({
+                name: body.attendee.name,
+                email: body.attendee.email,
+                timeZone: body.attendee.timeZone,
+                language: body.attendee.language,
+                absent: false,
+              });
+              expect(data.location).toEqual(body.location);
+              expect(data.meetingUrl).toEqual(body.location);
+              expect(data.absentHost).toEqual(false);
+              expect(data.bookingFieldsResponses).toEqual({
+                name: body.attendee.name,
+                email: body.attendee.email,
+                ...body.bookingFieldsResponses,
+                guests: body.guests,
+                location: {
+                  optionValue: googleMeetUrl,
+                  value: "link",
+                },
+              });
+              expect(data.guests).toEqual(body.guests);
+
+              // Check createdAt date is between the time of the request and after the request
+              const createdAtDate = new Date(data.createdAt);
+              expect(createdAtDate.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
+              expect(createdAtDate.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
+
+              // Check updatedAt date is between the time of the request and after the request
+              expect(data.updatedAt).toBeDefined();
+              const updatedAtDate = data.updatedAt ? new Date(data.updatedAt) : null;
+              expect(updatedAtDate?.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
+              expect(updatedAtDate?.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
+
+              expect(data.metadata).toEqual(body.metadata);
+              createdBooking = data;
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
+    });
+
     describe("booking location", () => {
       const address = "123 Main St";
       const link = "https://cal.com/join/123456";
@@ -1946,6 +2136,95 @@ describe("Bookings Endpoints 2024-08-13", () => {
           .send(bookingBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(400);
+      });
+    });
+
+    describe("rescheduling booking with invalid booking responses", () => {
+      it("should reschedule", async () => {
+        const email = `user-bookings-attendee-${randomString(10)}@gmail.com`;
+        const username = `user-bookings-attendee-${randomString(10)}`;
+        const locale = "it";
+        const timeZone = "Europe/Rome";
+        const attendee = await userRepositoryFixture.create({
+          email,
+          username,
+          locale,
+          timeZone,
+        });
+
+        const booking = await bookingsRepositoryFixture.create({
+          uid: `booking-uid-${randomString(10)}`,
+          title: "booking title",
+          startTime: "2060-09-05T11:00:00.000Z",
+          endTime: "2060-09-05T12:00:00.000Z",
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          status: "ACCEPTED",
+          metadata: {},
+          responses: "null",
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          attendees: {
+            create: {
+              email: email,
+              name: username,
+              timeZone,
+              locale,
+            },
+          },
+        });
+
+        const body: RescheduleBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2060, 0, 9, 14, 0, 0)).toISOString(),
+          reschedulingReason: "Flying to mars that day",
+        };
+
+        return request(app.getHttpServer())
+          .post(`/v2/bookings/${booking.uid}/reschedule`)
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            const data: BookingOutput_2024_08_13 = responseBody.data;
+            expect(data.reschedulingReason).toEqual(body.reschedulingReason);
+            expect(data.start).toEqual(body.start);
+            expect(data.end).toEqual(new Date(Date.UTC(2060, 0, 9, 15, 0, 0)).toISOString());
+            expect(data.rescheduledFromUid).toEqual(booking.uid);
+            expect(data.id).toBeDefined();
+            expect(data.uid).toBeDefined();
+            expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.hosts[0].username).toEqual(user.username);
+            expect(data.hosts[0].email).toEqual(user.email);
+            expect(data.status).toEqual("accepted");
+            expect(data.eventTypeId).toEqual(booking.eventTypeId);
+            expect(data.attendees.length).toEqual(1);
+            expect(data.attendees[0]).toEqual({
+              name: attendee.username,
+              email: attendee.email,
+              timeZone: attendee.timeZone,
+              language: attendee.locale,
+              absent: false,
+            });
+            expect(data.bookingFieldsResponses).toEqual({
+              name: attendee.username,
+              email: attendee.email,
+              rescheduledReason: body.reschedulingReason,
+              guests: [],
+            });
+            await bookingsRepositoryFixture.deleteById(data.id);
+            await userRepositoryFixture.delete(attendee.id);
+          });
       });
     });
 

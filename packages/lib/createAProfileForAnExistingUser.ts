@@ -25,6 +25,16 @@ export const createAProfileForAnExistingUser = async ({
   if (!org) {
     throw new Error(`Organization with id ${organizationId} not found`);
   }
+
+  const existingProfile = await ProfileRepository.findByUserIdAndOrgId({
+    userId: user.id,
+    organizationId,
+  });
+
+  if (existingProfile) {
+    return existingProfile;
+  }
+
   const usernameInOrg = getOrgUsernameFromEmail(
     user.email,
     org.organizationSettings?.orgAutoAcceptEmail ?? null

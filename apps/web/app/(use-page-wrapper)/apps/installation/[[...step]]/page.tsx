@@ -10,7 +10,7 @@ import type { OnboardingPageProps } from "~/apps/installation/[[...step]]/step-v
 import Page from "~/apps/installation/[[...step]]/step-view";
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
 
   const { appMetadata } = await getData(legacyCtx);
   return await _generateMetadata(
@@ -22,7 +22,9 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 const getData = withAppDirSsr<OnboardingPageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
+  const props = await getData(
+    buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
+  );
   return <Page {...props} />;
 };
 export default ServerPage;

@@ -49,7 +49,7 @@ module.exports = {
     "no-restricted-imports": [
       "error",
       {
-        patterns: ["lodash"],
+        patterns: [],
       },
     ],
     "prefer-template": "error",

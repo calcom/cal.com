@@ -5,7 +5,9 @@ import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc";
-import { Button, showToast, Tooltip } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+import { Button } from "@calcom/ui/components/button";
 
 const GoogleIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -41,7 +43,7 @@ export function GoogleWorkspaceInviteButton(
   const teamId = Number(params.id);
   const [googleWorkspaceLoading, setGoogleWorkspaceLoading] = useState(false);
   const { data: credential } = trpc.viewer.googleWorkspace.checkForGWorkspace.useQuery();
-  const { data: hasGcalInstalled } = trpc.viewer.appsRouter.checkGlobalKeys.useQuery({
+  const { data: hasGcalInstalled } = trpc.viewer.apps.checkGlobalKeys.useQuery({
     slug: "google-calendar",
   });
   const mutation = trpc.viewer.googleWorkspace.getUsersFromGWorkspace.useMutation({

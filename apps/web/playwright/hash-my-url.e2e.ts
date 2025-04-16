@@ -34,8 +34,9 @@ test.describe("hash my url", () => {
     const $url = await page.locator('//*[@data-testid="generated-hash-url-0"]').inputValue();
 
     // click update
-    await page.locator('[data-testid="update-eventtype"]').press("Enter");
-
+    await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+      action: () => page.locator("[data-testid=update-eventtype]").click(),
+    });
     // book using generated url hash
     await page.goto($url);
     await selectFirstAvailableTimeSlotNextMonth(page);

@@ -2,6 +2,8 @@ import type { User as PrismaUser } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
+import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
+import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
@@ -249,20 +251,91 @@ export class ProfileRepository {
     });
   }
 
+  static async createManyForExistingUsers({
+    users,
+    organizationId,
+    orgAutoAcceptEmail,
+  }: {
+    users: { id: number; username: string | null; email: string }[];
+    organizationId: number;
+    orgAutoAcceptEmail: string;
+  }) {
+    await prisma.profile.createMany({
+      data: users.map((user) => ({
+        uid: ProfileRepository.generateProfileUid(),
+        userId: user.id,
+        organizationId,
+        username: user?.username || getOrgUsernameFromEmail(user.email, orgAutoAcceptEmail),
+      })),
+      skipDuplicates: true,
+    });
+
+    // Populate the movedFromUser
+    const createdProfiles = await prisma.profile.findMany({
+      where: {
+        userId: {
+          in: users.map((user) => user.id),
+        },
+        organizationId,
+      },
+    });
+
+    for (let i = 0; i < createdProfiles.length; i += DATABASE_CHUNK_SIZE) {
+      const profilesBatch = createdProfiles.slice(i, i + DATABASE_CHUNK_SIZE);
+      await Promise.allSettled([
+        profilesBatch.map((profile) => {
+          prisma.user.update({
+            where: {
+              id: profile.userId,
+            },
+            data: {
+              movedToProfile: {
+                connect: { id: profile.id },
+              },
+            },
+          });
+        }),
+      ]);
+    }
+  }
+
+  static async createManyPromise({
+    users,
+    organizationId,
+    orgAutoAcceptEmail,
+  }: {
+    users: { id: number; username: string | null; email: string }[];
+    organizationId: number;
+    orgAutoAcceptEmail: string;
+  }) {
+    return await prisma.profile.createMany({
+      data: users.map((user) => ({
+        uid: ProfileRepository.generateProfileUid(),
+        userId: user.id,
+        organizationId,
+        username: user?.username || getOrgUsernameFromEmail(user.email, orgAutoAcceptEmail),
+      })),
+      skipDuplicates: true,
+    });
+  }
+
   static createMany({
     users,
     organizationId,
+    orgAutoAcceptEmail,
   }: {
-    users: { id: number; username: string; email: string }[];
+    users: { id: number; username: string | null; email: string }[];
     organizationId: number;
+    orgAutoAcceptEmail: string;
   }) {
     return prisma.profile.createMany({
       data: users.map((user) => ({
         uid: ProfileRepository.generateProfileUid(),
         userId: user.id,
         organizationId,
-        username: user.username || user.email.split("@")[0],
+        username: user?.username || getOrgUsernameFromEmail(user.email, orgAutoAcceptEmail),
       })),
+      skipDuplicates: true,
     });
   }
 

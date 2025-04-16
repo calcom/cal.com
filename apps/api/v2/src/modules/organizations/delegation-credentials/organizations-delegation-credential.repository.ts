@@ -28,4 +28,16 @@ export class OrganizationsDelegationCredentialRepository {
       include: { workspacePlatform: true },
     });
   }
+
+  async findDelegatedUserProfiles(orgId: number, domain: string) {
+    return this.dbRead.prisma.profile.findMany({
+      select: {
+        userId: true,
+      },
+      where: {
+        organizationId: orgId,
+        user: { email: { endsWith: domain } },
+      },
+    });
+  }
 }

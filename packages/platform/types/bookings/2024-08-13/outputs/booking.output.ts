@@ -255,6 +255,12 @@ class BaseBookingOutput_2024_08_13 {
   @IsOptional()
   @Expose()
   rating?: number;
+
+  @ApiPropertyOptional({ type: String, example: "ics_uid_123", description: "UID of ICS event." })
+  @IsString()
+  @IsOptional()
+  @Expose()
+  icsUid?: string;
 }
 
 export class BookingOutput_2024_08_13 extends BaseBookingOutput_2024_08_13 {

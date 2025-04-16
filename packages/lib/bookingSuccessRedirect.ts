@@ -8,6 +8,8 @@ import type { BookingResponse } from "@calcom/features/bookings/types";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 
+import { getSafe } from "./getSafe";
+
 function getNewSearchParams(args: {
   query: Record<string, string | null | undefined | boolean>;
   searchParams?: URLSearchParams;
@@ -42,13 +44,6 @@ type ResultType = {
   attendeeFirstName?: string | null;
   attendeeLastName?: string | null;
 };
-
-export function getSafe<T>(obj: unknown, path: (string | number)[]): T | undefined {
-  return path.reduce(
-    (acc, key) => (typeof acc === "object" && acc !== null ? (acc as any)[key] : undefined),
-    obj
-  ) as T | undefined;
-}
 
 export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingType) => {
   const redirectQueryParamKeys: BookingResponseKey[] = [

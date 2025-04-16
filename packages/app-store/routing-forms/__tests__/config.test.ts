@@ -8,7 +8,6 @@ import {
 vi.mock("../components/react-awesome-query-builder/widgets", () => ({
   default: {},
 }));
-vi.mock("@calcom/ui", () => ({}));
 
 const assertCommonStructure = (config: any) => {
   expect(config).toHaveProperty("conjunctions");

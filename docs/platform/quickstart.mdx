@@ -95,7 +95,7 @@ We recommend setting the `timeZone` for ease of use.
 You have to setup an endpoint on your server to which atoms can send an expired access token and receive new one in return. This exchange will be automatically handled by atoms when you provide this endpoint URL when setting up frontend in the next step.
 
 > Q: Why do we need a separate endpoint just for this?
-A: Your OAuth client secret and users refresh tokens should never be exposed on the frontend. The OAuth client secret will reside as an environment variable in your backend and the users' refresh tokens are stored in your database, which are used by the SDK to refresh the access token.
+A: Your OAuth client secret and users refresh tokens should never be exposed on the frontend. The OAuth client secret will reside as an environment variable in your backend and the users' refresh tokens are stored in your database, which are used by our API to refresh the access token.
 >
 
 You can check an example refresh token endpoint in our atoms examples app: [https://github.com/calcom/atoms-examples/blob/main/cal-sync/src/pages/api/refresh.ts](https://github.com/calcom/atoms-examples/blob/main/cal-sync/src/pages/api/refresh.ts)
@@ -109,20 +109,31 @@ Shortly:
 2. Your endpoint will receive a request from atoms.
 3. Make it a GET endpoint to which “Authorization: Bearer accessToken” header can be sent to.
 4. Assuming you have stored the access and refresh tokens in your database and connected them to a specific user, fetch the user based on the received access token.
-5. Provide the OAuth client ID, client secret and refresh token and make a request to our “oauth/:clientId/refresh” endpoint.
-6. Store access and refresh tokens returned by the SDK in your database.
+5. Provide the OAuth client ID, client secret and managed user refresh token to the [`/refresh`](https://cal.com/docs/api-reference/v2/platform-managed-users/refresh-managed-user-tokens) endpoint.
+6. Store in your database access and refresh tokens returned by the [`/refresh`](https://cal.com/docs/api-reference/v2/platform-managed-users/refresh-managed-user-tokens) endpoint.
 7. Return access token to the request. It should be in the format of:
   ```js
   { accessToken: "fresh access token" }
   ```
 
-The atoms will now use the new access token to handle scheduling on behalf of your user.
+The atoms will now use the new access token to handle scheduling on behalf of your user. Access token expires after 60 minutes and atoms
+then will make a request to your refresh token endpoint to get a new access token while also refreshing the refresh token.
 
-## 5. Frontend: setting up atoms
+## 5. Managing refresh token expiry
+
+Each refresh token is valid for 1 year. When a managed user's access token is refreshed, the refresh token is refreshed too.
+However, to make sure that refresh tokens do not expire for less active users you have 2 options:
+1. If you decode the refresh token there is `expiresAt` date (it is a jwt token so you can decode it using some library from npm). You could have a cron job that checks all of your users refresh tokens and sees if the refresh token
+is about to expire, then refresh tokens using the [`/refresh`](https://cal.com/docs/api-reference/v2/platform-managed-users/refresh-managed-user-tokens) endpoint.
+2. In the refresh endpoint you built in the [previous step](https://cal.com/docs/platform/quickstart#4-backend%3A-setting-up-a-refresh-token-endpoint) you could have a check that if the call to [`/refresh`](https://cal.com/docs/api-reference/v2/platform-managed-users/refresh-managed-user-tokens) fails meaning that the
+refresh token has expired, call the [`/force-refresh`](https://cal.com/docs/api-reference/v2/platform-managed-users/force-refresh-tokens) endpoint - it allows you to refresh managed user tokens
+using only the OAuth client ID and client secret and is intended to be used in cases when one of the tokens is lost or the refresh token is expired.
+
+## 6. Frontend: setting up atoms
 
 Atoms are customizable UI components handling scheduling on behalf of your users.
 
-### 5.1 Install the atoms package
+### 6.1 Install the atoms package
 
 npm:
 
@@ -142,7 +153,7 @@ pnpm:
 pnpm add @calcom/atoms
 ```
 
-### 5.2 Setup environment variables
+### 6.2 Setup environment variables
 
 CAL_OAUTH_CLIENT_ID: OAuth client ID
 
@@ -227,7 +238,7 @@ function MyApp({ Component, pageProps }) {
 export default MyApp;
 ```
 
-## 6. Frontend: using atoms
+## 7. Frontend: using atoms
 
 It’s very easy, just import the atom and drop it in code! For example, for users to connect their Google Calendar drop in "Connect.GoogleCalendar" component - it will handle everything.
 
@@ -274,7 +285,7 @@ other more complex atoms will expose multiple classNames and props to react to e
 />;
 ```
 
-## 7. Front-end: passing additional props to CalProvider
+## 8. Front-end: passing additional props to CalProvider
 
 The CalProvider component offers several additional props to customize its behavior and appearance:
 1. autoUpdateTimezone: By default, the atoms automatically update the user's timezone. You can disable this feature by setting autoUpdateTimezone to false.

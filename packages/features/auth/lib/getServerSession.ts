@@ -99,6 +99,7 @@ export async function getServerSession(options: {
       }),
       belongsToActiveTeam: token.belongsToActiveTeam,
       org: token.org,
+      orgAwareUsername: token.orgAwareUsername,
       locale: user.locale ?? undefined,
       profile: user.profile,
     },

@@ -16,6 +16,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Team, User } from "@calcom/prisma/client";
@@ -254,7 +255,7 @@ async function createOrMoveTeamsToOrganization(teams: TeamData[], owner: User, o
     .filter((team) => team.isBeingMigrated)
     .map((team) => ({
       id: team.id,
-      newSlug: team.slug,
+      newSlug: team.slug ? slugify(team.slug) : team.slug,
       shouldMove: true,
     }));
 

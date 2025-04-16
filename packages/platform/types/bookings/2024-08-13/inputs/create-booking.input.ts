@@ -31,9 +31,38 @@ import {
   BookingInputIntegrationLocation_2024_08_13,
   BookingInputLinkLocation_2024_08_13,
   BookingInputPhoneLocation_2024_08_13,
+  BookingInputOrganizersDefaultAppLocation_2024_08_13,
   ValidateBookingLocation_2024_08_13,
 } from "./location.input";
 import { ValidateMetadata } from "./validators/validate-metadata";
+
+function RequireEventTypeIdentification(validationOptions?: ValidationOptions) {
+  return function (object: any) {
+    registerDecorator({
+      name: "requireEventTypeIdentification",
+      target: object,
+      propertyName: "eventTypeId or eventTypeSlug + username",
+      options: validationOptions,
+      constraints: [],
+      validator: {
+        validate(_value: any, args: ValidationArguments) {
+          const obj = args.object as CreateBookingInput_2024_08_13;
+
+          // Check if eventTypeId is provided
+          const hasEventTypeId = !!obj?.eventTypeId;
+
+          // Check if we have both eventTypeSlug and username
+          const hasSlugAndUsername = !!obj?.eventTypeSlug && !!obj?.username;
+
+          return hasEventTypeId || hasSlugAndUsername;
+        },
+        defaultMessage(): string {
+          return "Either eventTypeId OR (eventTypeSlug + username) must be provided";
+        },
+      },
+    });
+  };
+}
 
 function RequireEmailOrPhone(validationOptions?: ValidationOptions) {
   return function (target: object, propertyName: string) {
@@ -117,8 +146,10 @@ class Attendee {
   BookingInputIntegrationLocation_2024_08_13,
   BookingInputLinkLocation_2024_08_13,
   BookingInputPhoneLocation_2024_08_13,
+  BookingInputOrganizersDefaultAppLocation_2024_08_13,
   ValidateBookingLocation_2024_08_13
 )
+@RequireEventTypeIdentification()
 export class CreateBookingInput_2024_08_13 {
   @ApiProperty({
     type: String,
@@ -138,13 +169,44 @@ export class CreateBookingInput_2024_08_13 {
   })
   lengthInMinutes?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: Number,
-    description: "The ID of the event type that is booked.",
+    description:
+      "The ID of the event type that is booked. Required unless eventTypeSlug and username are provided as an alternative to identifying the event type.",
     example: 123,
   })
+  @IsOptional()
   @IsInt()
-  eventTypeId!: number;
+  eventTypeId?: number;
+
+  @ApiPropertyOptional({
+    type: String,
+    description:
+      "The slug of the event type. Required along with username and optionally organizationSlug if eventTypeId is not provided.",
+    example: "my-event-type",
+  })
+  @IsOptional()
+  @IsString()
+  eventTypeSlug?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description:
+      "The username of the event owner. Required along with eventTypeSlug and optionally organizationSlug if eventTypeId is not provided.",
+    example: "john-doe",
+  })
+  @IsOptional()
+  @IsString()
+  username?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description: "The organization slug. Optional, only used when booking with eventTypeSlug + username.",
+    example: "acme-corp",
+  })
+  @IsOptional()
+  @IsString()
+  organizationSlug?: string;
 
   @ApiProperty({
     type: Attendee,
@@ -189,6 +251,7 @@ export class CreateBookingInput_2024_08_13 {
       { $ref: getSchemaPath(BookingInputIntegrationLocation_2024_08_13) },
       { $ref: getSchemaPath(BookingInputLinkLocation_2024_08_13) },
       { $ref: getSchemaPath(BookingInputPhoneLocation_2024_08_13) },
+      { $ref: getSchemaPath(BookingInputOrganizersDefaultAppLocation_2024_08_13) },
     ],
   })
   @Type(() => Object)

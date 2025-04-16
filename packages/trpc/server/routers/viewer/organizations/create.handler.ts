@@ -19,7 +19,7 @@ import { UserPermissionRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import { BillingPeriod } from "./create.schema";
 import type { TCreateInputSchema } from "./create.schema";
 
@@ -204,7 +204,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     }
   }
 
-  const autoAcceptEmail = orgOwnerEmail.split("@")[1];
+  const autoAcceptEmail = isPlatform ? "UNUSED_FOR_PLATFORM" : orgOwnerEmail.split("@")[1];
 
   const orgData = {
     name,

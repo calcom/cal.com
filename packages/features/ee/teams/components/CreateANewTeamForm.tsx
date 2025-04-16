@@ -5,7 +5,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, DialogFooter, Form, TextField } from "@calcom/ui";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { DialogFooter } from "@calcom/ui/components/dialog";
+import { Form } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
 
 import { useOrgBranding } from "../../organizations/context/provider";
 import { subdomainSuffix } from "../../organizations/lib/orgDomains";
@@ -31,8 +35,14 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
     },
   });
 
+  const utils = trpc.useUtils();
+
   const createTeamMutation = trpc.viewer.teams.create.useMutation({
-    onSuccess: (data) => onSuccess(data),
+    onSuccess: async (data) => {
+      await utils.viewer.eventTypes.getUserEventGroups.invalidate();
+      onSuccess(data);
+    },
+
     onError: (err) => {
       if (err.message === "team_url_taken") {
         newTeamFormMethods.setError("slug", { type: "custom", message: t("url_taken") });

@@ -10,7 +10,6 @@ import {
   TestData,
   getDate,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import { expectBookingCancelledWebhookToHaveBeenFired } from "@calcom/web/test/utils/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
@@ -110,16 +109,13 @@ describe("Cancel Booking", () => {
       },
     });
 
-    const { req } = createMockNextJsRequest({
-      method: "POST",
-      body: {
+    await handleCancelBooking({
+      bookingData: {
         id: idOfBookingToBeCancelled,
         uid: uidOfBookingToBeCancelled,
         cancelledBy: organizer.email,
       },
     });
-
-    await handleCancelBooking(req);
 
     expectBookingCancelledWebhookToHaveBeenFired({
       booker,
@@ -240,16 +236,13 @@ describe("Cancel Booking", () => {
       },
     });
 
-    const { req } = createMockNextJsRequest({
-      method: "POST",
-      body: {
+    await handleCancelBooking({
+      bookingData: {
         id: idOfBookingToBeCancelled,
         uid: uidOfBookingToBeCancelled,
         cancelledBy: organizer.email,
       },
     });
-
-    await handleCancelBooking(req);
 
     expectBookingCancelledWebhookToHaveBeenFired({
       booker,

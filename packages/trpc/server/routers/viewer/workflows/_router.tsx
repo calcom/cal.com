@@ -13,6 +13,7 @@ import { ZSendVerificationCodeInputSchema } from "./sendVerificationCode.schema"
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZVerifyEmailCodeInputSchema } from "./verifyEmailCode.schema";
 import { ZVerifyPhoneNumberInputSchema } from "./verifyPhoneNumber.schema";
+import { ZWorkflowOrderInputSchema } from "./workflowOrder.schema";
 
 type WorkflowsRouterHandlerCache = {
   list?: typeof import("./list.handler").listHandler;
@@ -29,6 +30,7 @@ type WorkflowsRouterHandlerCache = {
   getVerifiedEmails?: typeof import("./getVerifiedEmails.handler").getVerifiedEmailsHandler;
   verifyEmailCode?: typeof import("./verifyEmailCode.handler").verifyEmailCodeHandler;
   getAllActiveWorkflows?: typeof import("./getAllActiveWorkflows.handler").getAllActiveWorkflowsHandler;
+  workflowOrder?: typeof import("./workflowOrder.handler").workflowOrderHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: WorkflowsRouterHandlerCache = {};
@@ -276,4 +278,16 @@ export const workflowsRouter = router({
         input,
       });
     }),
+  workflowOrder: authedProcedure.input(ZWorkflowOrderInputSchema).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.workflowOrder) {
+      UNSTABLE_HANDLER_CACHE.workflowOrder = (await import("./workflowOrder.handler")).workflowOrderHandler;
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.workflowOrder) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.workflowOrder({ ctx, input });
+  }),
 });

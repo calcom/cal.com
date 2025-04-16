@@ -3,7 +3,7 @@
 import React from "react";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
 
 type Props = {
   statusCode?: number | null;
@@ -12,6 +12,7 @@ type Props = {
   /** Display debugging information */
   displayDebug?: boolean;
   children?: never;
+  reset?: () => void;
 };
 
 const defaultProps = {
@@ -53,7 +54,10 @@ const ErrorDebugPanel: React.FC<{ error: Props["error"]; children?: never }> = (
 
 export const ErrorPage: React.FC<Props> = (props) => {
   const { message, statusCode, error, displayDebug } = { ...defaultProps, ...props };
-
+  const handleReset = () => {
+    window.location.reload();
+    props.reset?.();
+  };
   return (
     <>
       <div className="bg-subtle flex h-screen">
@@ -77,8 +81,8 @@ export const ErrorPage: React.FC<Props> = (props) => {
           </div>
 
           <Button href="mailto:support@cal.com">Contact Support</Button>
-          <Button color="secondary" href="javascript:history.back()" className="ml-2">
-            Go back
+          <Button color="secondary" className="ml-2" onClick={handleReset}>
+            Try again
           </Button>
         </div>
       </div>

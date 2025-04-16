@@ -1,3 +1,5 @@
+import { captureException } from "@sentry/nextjs";
+
 import { redactError } from "@calcom/lib/redactError";
 
 import { middleware } from "../trpc";
@@ -9,7 +11,6 @@ const captureErrorsMiddleware = middleware(async ({ next }) => {
     if (!cause) {
       return result;
     }
-    const { captureException } = await import("@sentry/nextjs");
     captureException(cause);
     throw redactError(cause);
   }

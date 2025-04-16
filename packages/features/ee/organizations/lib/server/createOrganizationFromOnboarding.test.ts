@@ -30,32 +30,6 @@ vi.mock("@calcom/trpc/server/routers/viewer/organizations/createTeams.handler", 
   createTeamsHandler: vi.fn(),
 }));
 
-vi.mock("next-i18next", () => ({
-  serverSideTranslations: vi.fn().mockImplementation(async () => {
-    return {
-      _nextI18Next: {
-        initialI18nStore: {
-          en: {
-            common: {},
-          },
-        },
-        userConfig: {
-          i18n: {
-            defaultLocale: "en",
-            locales: ["en"],
-          },
-        },
-      },
-    };
-  }),
-  i18n: {
-    language: "en",
-    languages: ["en"],
-    defaultLocale: "en",
-    getFixedT: () => (key: string) => key,
-  },
-}));
-
 vi.mock("@calcom/lib/domainManager/organization", () => ({
   createDomain: vi.fn(),
 }));
@@ -311,6 +285,39 @@ describe("createOrganizationFromOnboarding", () => {
         paymentSubscriptionItemId: "mock_subscription_item_id",
       })
     ).rejects.toThrow("organization_url_taken");
+  });
+
+  it("should create team with slugified slug", async () => {
+    const teamToMove = await createTestTeam({
+      name: "Sales",
+      slug: "Company Sales",
+    });
+
+    const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+      user: {
+        email: "test@example.com",
+      },
+      organizationOnboarding: {
+        slug: "UPPERCASE-SLUG",
+        teams: [{ id: teamToMove.id, name: "Sales", isBeingMigrated: true, slug: "sales-team" }],
+      },
+    });
+
+    const { organization } = await createOrganizationFromOnboarding({
+      organizationOnboarding,
+      paymentSubscriptionId: "mock_subscription_id",
+      paymentSubscriptionItemId: "mock_subscription_item_id",
+    });
+
+    expect(createTeamsHandler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        input: expect.objectContaining({
+          orgId: organization.id,
+          teamNames: [],
+          moveTeams: expect.arrayContaining([expect.objectContaining({ id: 1, newSlug: "sales-team" })]),
+        }),
+      })
+    );
   });
 
   it("should update stripe customer ID for existing user", async () => {

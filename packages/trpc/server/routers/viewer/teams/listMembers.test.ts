@@ -3,7 +3,7 @@
 // TODO: Bring this test back with the correct setup (no illegal imports)
 import { describe, it, beforeEach, vi, expect } from "vitest";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import listMembers from "./listMembers.handler";
 
 const createTeamWithMembers = async ({ isPrivate = false }: { isPrivate?: boolean }) => {

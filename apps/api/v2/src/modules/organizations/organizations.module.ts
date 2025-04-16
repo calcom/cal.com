@@ -1,5 +1,7 @@
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
+import { AuthModule } from "@/modules/auth/auth.module";
+import { ConferencingModule } from "@/modules/conferencing/conferencing.module";
 import { EmailModule } from "@/modules/email/email.module";
 import { EmailService } from "@/modules/email/email.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
@@ -11,6 +13,8 @@ import { OrganizationAttributesService } from "@/modules/organizations/attribute
 import { OrganizationAttributeOptionRepository } from "@/modules/organizations/attributes/options/organization-attribute-options.repository";
 import { OrganizationsAttributesOptionsController } from "@/modules/organizations/attributes/options/organizations-attributes-options.controller";
 import { OrganizationAttributeOptionService } from "@/modules/organizations/attributes/options/services/organization-attributes-option.service";
+import { OrganizationsConferencingController } from "@/modules/organizations/conferencing/organizations-conferencing.controller";
+import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
 import { OrganizationsDelegationCredentialModule } from "@/modules/organizations/delegation-credentials/organizations-delegation-credential.module";
 import { OrganizationsEventTypesController } from "@/modules/organizations/event-types/organizations-event-types.controller";
 import { OrganizationsEventTypesRepository } from "@/modules/organizations/event-types/organizations-event-types.repository";
@@ -33,7 +37,7 @@ import { OrganizationsTeamsService } from "@/modules/organizations/teams/index/s
 import { OrganizationsTeamsMembershipsController } from "@/modules/organizations/teams/memberships/organizations-teams-memberships.controller";
 import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations/teams/memberships/organizations-teams-memberships.repository";
 import { OrganizationsTeamsMembershipsService } from "@/modules/organizations/teams/memberships/services/organizations-teams-memberships.service";
-import { OrganizationsTeamsRoutingFormsModule } from "@/modules/organizations/teams/routing-forms/organizations-teams-routing-forms-responses.module";
+import { OrganizationsTeamsRoutingFormsModule } from "@/modules/organizations/teams/routing-forms/organizations-teams-routing-forms.module";
 import { OrganizationsTeamsSchedulesController } from "@/modules/organizations/teams/schedules/organizations-teams-schedules.controller";
 import { OrganizationsUsersController } from "@/modules/organizations/users/index/controllers/organizations-users.controller";
 import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
@@ -52,7 +56,7 @@ import { TeamsModule } from "@/modules/teams/teams/teams.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 
 @Module({
   imports: [
@@ -65,6 +69,8 @@ import { Module } from "@nestjs/common";
     EventTypesModule_2024_06_14,
     TeamsEventTypesModule,
     TeamsModule,
+    forwardRef(() => ConferencingModule),
+    forwardRef(() => AuthModule),
     OrganizationsDelegationCredentialModule,
     OrganizationsOrganizationsModule,
     OrganizationsTeamsRoutingFormsModule,
@@ -101,6 +107,7 @@ import { Module } from "@nestjs/common";
     UserOOORepository,
     OrgUsersOOOService,
     OrgUsersOOORepository,
+    OrganizationsConferencingService,
   ],
   exports: [
     OrganizationsService,
@@ -121,6 +128,7 @@ import { Module } from "@nestjs/common";
     WebhooksRepository,
     WebhooksService,
     OrganizationsEventTypesService,
+    OrganizationsConferencingService,
   ],
   controllers: [
     OrganizationsTeamsController,
@@ -134,6 +142,7 @@ import { Module } from "@nestjs/common";
     OrganizationsWebhooksController,
     OrganizationsTeamsSchedulesController,
     OrganizationsUsersOOOController,
+    OrganizationsConferencingController,
   ],
 })
 export class OrganizationsModule {}

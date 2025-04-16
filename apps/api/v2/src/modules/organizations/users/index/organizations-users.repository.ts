@@ -1,9 +1,7 @@
-import { CreateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/create-organization-user.input";
-import { UpdateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/update-organization-user.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
-import { CreationSource } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class OrganizationsUsersRepository {
@@ -37,6 +35,22 @@ export class OrganizationsUsersRepository {
     });
   }
 
+  async getOrganizationUsersByIds(orgId: number, userIds: number[]) {
+    return await this.dbRead.prisma.user.findMany({
+      where: {
+        profiles: {
+          some: {
+            organizationId: orgId,
+            userId: { in: userIds },
+          },
+        },
+      },
+      include: {
+        profiles: true,
+      },
+    });
+  }
+
   async getOrganizationUserByEmail(orgId: number, email: string) {
     return await this.dbRead.prisma.user.findFirst({
       where: {
@@ -53,15 +67,7 @@ export class OrganizationsUsersRepository {
     });
   }
 
-  async createOrganizationUser(orgId: number, createUserBody: CreateOrganizationUserInput) {
-    const createdUser = await this.dbWrite.prisma.user.create({
-      data: { ...createUserBody, creationSource: CreationSource.API_V2 },
-    });
-
-    return createdUser;
-  }
-
-  async updateOrganizationUser(orgId: number, userId: number, updateUserBody: UpdateOrganizationUserInput) {
+  async updateOrganizationUser(orgId: number, userId: number, updateUserBody: Prisma.UserUpdateInput) {
     return await this.dbWrite.prisma.user.update({
       where: {
         id: userId,

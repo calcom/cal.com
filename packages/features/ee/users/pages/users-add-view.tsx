@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { getParserWithGeneric } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import { UserForm } from "../components/UserForm";

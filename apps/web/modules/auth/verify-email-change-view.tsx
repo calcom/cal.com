@@ -8,7 +8,7 @@ import { Toaster } from "sonner";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import type { getServerSideProps } from "@server/lib/auth/verify-email-change/getServerSideProps";
 

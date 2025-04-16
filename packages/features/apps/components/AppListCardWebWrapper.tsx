@@ -6,8 +6,8 @@ import { z } from "zod";
 
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
-import { AppListCard } from "@calcom/ui/components/app-list-card/AppListCard";
-import type { AppListCardProps } from "@calcom/ui/components/app-list-card/AppListCard";
+import { AppListCard } from "@calcom/ui/components/app-list-card";
+import type { AppListCardProps } from "@calcom/ui/components/app-list-card";
 
 const schema = z.object({ hl: z.string().optional() });
 

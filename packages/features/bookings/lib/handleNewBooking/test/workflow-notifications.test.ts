@@ -12,7 +12,6 @@ import {
   Timezones,
   createOrganization,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
   expectWorkflowToBeTriggered,
   expectSMSWorkflowToBeTriggered,
@@ -133,12 +132,9 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        await handleNewBooking(req);
 
         expectSMSWorkflowToBeTriggered({
           sms,
@@ -232,12 +228,9 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        await handleNewBooking(req);
 
         expectSMSWorkflowToBeNotTriggered({
           sms,
@@ -379,12 +372,9 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        await handleNewBooking(req);
 
         expectSMSWorkflowToBeTriggered({
           sms,
@@ -524,12 +514,9 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        await handleNewBooking(req);
 
         expectSMSWorkflowToBeNotTriggered({
           sms,
@@ -644,12 +631,9 @@ describe("handleNewBooking", () => {
         },
       });
 
-      const { req } = createMockNextJsRequest({
-        method: "POST",
-        body: mockBookingData,
+      await handleNewBooking({
+        bookingData: mockBookingData,
       });
-
-      await handleNewBooking(req);
 
       expectWorkflowToBeTriggered({
         emailsToReceive: ["booker@example.com"],
@@ -760,12 +744,9 @@ describe("handleNewBooking", () => {
         },
       });
 
-      const { req } = createMockNextJsRequest({
-        method: "POST",
-        body: mockBookingData,
+      await handleNewBooking({
+        bookingData: mockBookingData,
       });
-
-      await handleNewBooking(req);
 
       expectSMSWorkflowToBeTriggered({
         sms,

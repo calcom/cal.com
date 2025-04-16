@@ -9,6 +9,18 @@ vi.mock("../lib/processRoute", () => ({
   findMatchingRoute: vi.fn(),
 }));
 
+vi.mock("next/navigation", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("next/navigation")>();
+  return {
+    ...actual,
+    useRouter: vi.fn(() => ({
+      push: vi.fn(() => {
+        return;
+      }),
+    })),
+  };
+});
+
 function mockMatchingRoute(route: any) {
   (findMatchingRoute as Mock<typeof findMatchingRoute>).mockReturnValue({
     ...route,
@@ -37,10 +49,6 @@ function mockEventTypeRedirectUrlMatchingRoute() {
 /**
  * fixes the error due to Formbricks
  */
-vi.mock("@calcom/ui", async (importOriginal) => ({
-  ...(await importOriginal<Record<string, unknown>>()),
-}));
-
 vi.mock("@calcom/features/shell/Shell", () => ({
   ShellMain: vi.fn(),
 }));

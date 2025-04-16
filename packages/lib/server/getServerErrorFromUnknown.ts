@@ -95,7 +95,7 @@ function getStatusCode(cause: Error): number {
     case ErrorCode.AvailabilityNotFoundInSchedule:
       return 400;
     case ErrorCode.CancelledBookingsCannotBeRescheduled:
-      return 403;
+      return 400;
     case ErrorCode.NoAvailableUsersFound:
     case ErrorCode.HostsUnavailableForBooking:
     case ErrorCode.PaymentCreationFailure:

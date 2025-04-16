@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { useDeleteOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useDeleteOAuthClient";
 import { useOAuthClients } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
@@ -44,10 +44,10 @@ export default function Platform() {
     setInitialClientName(data[0]?.name);
   }, [data]);
 
-  if (isUserLoading || isOAuthClientLoading) return <div className="m-5">Loading...</div>;
+  if (isUserLoading || isOAuthClientLoading) return <div className="m-5">{t("loading")}</div>;
 
   if (isUserBillingDataLoading && !userBillingData) {
-    return <div className="m-5">Loading...</div>;
+    return <div className="m-5">{t("loading")}</div>;
   }
 
   if (isPlatformUser && !isPaidUser)
@@ -56,7 +56,7 @@ export default function Platform() {
         teamId={userOrgId}
         heading={
           <div className="mb-5 text-center text-2xl font-semibold">
-            <h1>Subscribe to Platform</h1>
+            <h1>{t("subscribe_to_platform")}</h1>
           </div>
         }
       />
@@ -71,7 +71,6 @@ export default function Platform() {
             subtitle={t("platform_description")}
             title={t("platform")}
             description={t("platform_description")}
-            withoutSeo={true}
             withoutMain={false}
             isPlatformUser={true}>
             <HelpCards />
@@ -89,7 +88,6 @@ export default function Platform() {
         // hence we pass isPlatformUser boolean as prop
         isPlatformUser={true}
         withoutMain={false}
-        withoutSeo={true}
         SidebarContainer={<></>}>
         <NoPlatformPlan />
       </Shell>

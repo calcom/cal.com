@@ -6,3 +6,4 @@ export { DataTable } from "./DataTable";
 export { DataTableSkeleton } from "./DataTableSkeleton";
 export { DataTableWrapper } from "./DataTableWrapper";
 export type { DataTableProps } from "./DataTable";
+export { DataTableSegment } from "./segment";

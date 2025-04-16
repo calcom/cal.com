@@ -22,7 +22,7 @@ import { getSerializableForm } from "@calcom/routing-forms/lib/getSerializableFo
 import { getServerTimingHeader } from "@calcom/routing-forms/lib/getServerTimingHeader";
 import isRouter from "@calcom/routing-forms/lib/isRouter";
 import { RouteActionType } from "@calcom/routing-forms/zod";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 

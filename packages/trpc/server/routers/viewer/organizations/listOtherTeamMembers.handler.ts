@@ -7,7 +7,7 @@ import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 
 export const ZListOtherTeamMembersSchema = z.object({
   teamId: z.number(),

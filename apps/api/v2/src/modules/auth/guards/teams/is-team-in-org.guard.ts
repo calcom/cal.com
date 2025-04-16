@@ -15,7 +15,7 @@ export class IsTeamInOrg implements CanActivate {
   constructor(private organizationsTeamsRepository: OrganizationsTeamsRepository) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request & { team: Team }>();
+    const request = context.switchToHttp().getRequest<Request & { team?: Team }>();
     const teamId: string = request.params.teamId;
     const orgId: string = request.params.orgId;
 
@@ -27,17 +27,25 @@ export class IsTeamInOrg implements CanActivate {
       throw new ForbiddenException("No team id found in request params.");
     }
 
-    const team = await this.organizationsTeamsRepository.findOrgTeam(Number(orgId), Number(teamId));
+    const { canAccess, team } = await this.checkIfTeamIsInOrg(orgId, teamId);
 
-    if (team && !team.isOrganization && team.parentId === Number(orgId)) {
+    if (canAccess && team) {
       request.team = team;
-      return true;
     }
+    return canAccess;
+  }
+
+  async checkIfTeamIsInOrg(orgId: string, teamId: string): Promise<{ canAccess: boolean; team?: Team }> {
+    const team = await this.organizationsTeamsRepository.findOrgTeam(Number(orgId), Number(teamId));
 
     if (!team) {
       throw new NotFoundException(`Team (${teamId}) not found.`);
     }
 
-    return false;
+    if (!team.isOrganization && team.parentId === Number(orgId)) {
+      return { canAccess: true, team };
+    }
+
+    return { canAccess: false };
   }
 }

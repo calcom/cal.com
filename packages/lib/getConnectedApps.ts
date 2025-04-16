@@ -1,21 +1,50 @@
+import type { Prisma } from "@prisma/client";
+
 import appStore from "@calcom/app-store";
 import type { TDependencyData } from "@calcom/app-store/_appRegistry";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import type { PrismaClient } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
+import type { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integrations.handler";
-import type { TIntegrationsInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/integrations.schema";
 import type { PaymentApp } from "@calcom/types/PaymentService";
 
 import { buildNonDelegationCredentials } from "./delegationCredential/clientAndServer";
 
 export type ConnectedApps = Awaited<ReturnType<typeof getConnectedApps>>;
+type InputSchema = {
+  variant?: string | undefined;
+  exclude?: Array<string> | null;
+  onlyInstalled?: boolean | undefined;
+  includeTeamInstalledApps?: boolean | null;
+  extendsFeature?: "EventType" | null;
+  teamId?: number | null;
+  sortByMostPopular?: boolean | null;
+  sortByInstalledFirst?: boolean | null;
+  categories?: Array<AppCategories> | null;
+  appId?: string | null;
+};
+
+export type TeamQuery = Prisma.TeamGetPayload<{
+  select: {
+    id: true;
+    credentials: {
+      select: typeof import("@calcom/prisma/selects/credential").credentialForCalendarServiceSelect;
+    };
+    name: true;
+    logoUrl: true;
+    members: {
+      select: {
+        role: true;
+      };
+    };
+  };
+}>;
 
 export async function getConnectedApps({
   user,
@@ -24,7 +53,7 @@ export async function getConnectedApps({
 }: {
   user: Pick<User, "id" | "name" | "avatarUrl" | "email"> & { avatar?: string };
   prisma: PrismaClient;
-  input: TIntegrationsInputSchema;
+  input: InputSchema;
 }) {
   const {
     variant,
@@ -108,6 +137,7 @@ export async function getConnectedApps({
     const teamAppCredentials = userTeams.flatMap((teamApp) => {
       return teamApp.credentials ? buildNonDelegationCredentials(teamApp.credentials.flat()) : [];
     });
+
     if (!includeTeamInstalledApps || teamId) {
       credentials = teamAppCredentials;
     } else {
@@ -139,9 +169,7 @@ export async function getConnectedApps({
               name: team.name,
               logoUrl: team.logoUrl,
               credentialId: c.id,
-              isAdmin:
-                team.members[0].role === MembershipRole.ADMIN ||
-                team.members[0].role === MembershipRole.OWNER,
+              isAdmin: checkAdminOrOwner(team.members[0].role),
             };
           })
       );

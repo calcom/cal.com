@@ -7,7 +7,7 @@ import { describe, it, beforeEach, vi, expect } from "vitest";
 
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import { bulkDeleteUsersHandler } from "./bulkDeleteUsers.handler";
 
 const getBaseUserInfo = (

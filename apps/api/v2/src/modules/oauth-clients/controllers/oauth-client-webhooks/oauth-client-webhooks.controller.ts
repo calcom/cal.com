@@ -16,11 +16,11 @@ import { WebhookOutputPipe } from "@/modules/webhooks/pipes/WebhookOutputPipe";
 import { OAuthClientWebhooksService } from "@/modules/webhooks/services/oauth-clients-webhooks.service";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import { Controller, Post, Body, UseGuards, Get, Param, Query, Delete, Patch } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { Webhook, MembershipRole } from "@prisma/client";
 import { plainToClass } from "class-transformer";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
 
 import { OAuthClientGuard } from "../../guards/oauth-client-guard";
@@ -31,6 +31,11 @@ import { OAuthClientGuard } from "../../guards/oauth-client-guard";
 })
 @UseGuards(NextAuthGuard, OrganizationRolesGuard, OAuthClientGuard)
 @DocsTags("Platform / Webhooks")
+@ApiHeader({
+  name: X_CAL_SECRET_KEY,
+  description: "OAuth client secret key",
+  required: true,
+})
 export class OAuthClientWebhooksController {
   constructor(
     private readonly webhooksService: WebhooksService,

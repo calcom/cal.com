@@ -4,17 +4,17 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { ButtonColor } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/components/avatar";
+import type { ButtonColor } from "@calcom/ui/components/button";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Avatar,
-  Button,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
 
 export interface Option {
   platform?: boolean;
@@ -107,7 +107,7 @@ export function CreateButton(props: CreateBtnProps) {
               {buttonText ? buttonText : t("new")}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent sideOffset={14} align="end">
+          <DropdownMenuContent sideOffset={14} align="end" className="scroll-bar max-h-60 overflow-y-auto">
             <DropdownMenuLabel>
               <div className="w-48 text-left text-xs">{subtitle}</div>
             </DropdownMenuLabel>

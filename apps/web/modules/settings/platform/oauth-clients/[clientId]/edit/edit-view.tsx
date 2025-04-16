@@ -7,7 +7,7 @@ import Shell from "@calcom/features/shell/Shell";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { useOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClient";
 import { useUpdateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useUpdateOAuthClient";
@@ -28,7 +28,7 @@ export default function EditOAuthClient() {
   const { data, isFetched, isFetching, isError, refetch } = useOAuthClient(clientId);
   const { mutateAsync: update, isPending: isUpdating } = useUpdateOAuthClient({
     onSuccess: () => {
-      showToast("OAuth client updated successfully", "success");
+      showToast(t("oauth_client_updated_successfully"), "success");
       refetch();
       router.push("/settings/platform/");
     },
@@ -63,12 +63,12 @@ export default function EditOAuthClient() {
     });
   };
 
-  if (isUserLoading) return <div className="m-5">Loading...</div>;
+  if (isUserLoading) return <div className="m-5">{t("loading")}</div>;
 
   if (isPlatformUser && isPaidUser) {
     return (
       <div>
-        <Shell withoutSeo={true} title={t("oAuth_client_updation_form")} isPlatformUser={true}>
+        <Shell title={t("oAuth_client_updation_form")} isPlatformUser={true}>
           <div className="m-2 md:mx-14 md:mx-5">
             <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
               <div className="flex w-full flex-col">
@@ -80,7 +80,7 @@ export default function EditOAuthClient() {
                 </p>
               </div>
             </div>
-            {(!Boolean(clientId) || (isFetched && !data)) && <p>OAuth Client not found.</p>}
+            {(!Boolean(clientId) || (isFetched && !data)) && <p>{t("oauth_client_not_found")}</p>}
             {isFetched && !!data && (
               <EditOAuthClientForm
                 defaultValues={{
@@ -106,8 +106,8 @@ export default function EditOAuthClient() {
                 isPending={isUpdating}
               />
             )}
-            {isFetching && <p>Loading...</p>}
-            {isError && <p>Something went wrong.</p>}
+            {isFetching && <p>{t("loading")}</p>}
+            {isError && <p>{t("something_went_wrong")}</p>}
           </div>
         </Shell>
       </div>
@@ -116,7 +116,7 @@ export default function EditOAuthClient() {
 
   return (
     <div>
-      <Shell withoutSeo={true} isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
+      <Shell isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
         <NoPlatformPlan />
       </Shell>
     </div>

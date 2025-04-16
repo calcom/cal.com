@@ -4,19 +4,15 @@ import type { ICalendarSwitchProps } from "@calcom/features/calendars/CalendarSw
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { CALENDARS } from "@calcom/platform-constants";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
-import type { ButtonProps } from "@calcom/ui";
-import {
-  CalendarSwitchComponent,
-  AppListCard,
-  List,
-  DisconnectIntegrationComponent,
-  Alert,
-  Button,
-  Dropdown,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  Switch,
-} from "@calcom/ui";
+import { Alert } from "@calcom/ui/components/alert";
+import { AppListCard } from "@calcom/ui/components/app-list-card";
+import type { ButtonProps } from "@calcom/ui/components/button";
+import { Button } from "@calcom/ui/components/button";
+import { CalendarSwitchComponent } from "@calcom/ui/components/calendar-switch";
+import { DisconnectIntegrationComponent } from "@calcom/ui/components/disconnect-calendar-integration";
+import { Dropdown, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/components/dropdown";
+import { Switch } from "@calcom/ui/components/form";
+import { List } from "@calcom/ui/components/list";
 
 import { AppleConnect } from "../../connect/apple/AppleConnect";
 import { useAddSelectedCalendar } from "../../hooks/calendars/useAddSelectedCalendar";
@@ -37,12 +33,14 @@ type SelectedCalendarsSettingsPlatformWrapperProps = {
   classNames?: string;
   calendarRedirectUrls?: CalendarRedirectUrls;
   allowDelete?: boolean;
+  isDryRun?: boolean;
 };
 
 export const SelectedCalendarsSettingsPlatformWrapper = ({
   classNames = "mx-5 mb-6",
   calendarRedirectUrls,
   allowDelete,
+  isDryRun,
 }: SelectedCalendarsSettingsPlatformWrapperProps) => {
   const { t } = useLocale();
   const query = useConnectedCalendars({});
@@ -58,7 +56,10 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
             if (!data.connectedCalendars.length) {
               return (
                 <SelectedCalendarsSettings classNames={classNames}>
-                  <SelectedCalendarsSettingsHeading calendarRedirectUrls={calendarRedirectUrls} />
+                  <SelectedCalendarsSettingsHeading
+                    calendarRedirectUrls={calendarRedirectUrls}
+                    isDryRun={isDryRun}
+                  />
                   <h1 className="px-6 py-4 text-base leading-5">No connected calendars found.</h1>
                 </SelectedCalendarsSettings>
               );
@@ -66,7 +67,10 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
 
             return (
               <SelectedCalendarsSettings classNames={classNames}>
-                <SelectedCalendarsSettingsHeading calendarRedirectUrls={calendarRedirectUrls} />
+                <SelectedCalendarsSettingsHeading
+                  calendarRedirectUrls={calendarRedirectUrls}
+                  isDryRun={isDryRun}
+                />
                 <List noBorderTreatment className="p-6 pt-2">
                   {data.connectedCalendars.map((connectedCalendar) => {
                     if (!!connectedCalendar.calendars && connectedCalendar.calendars.length > 0) {
@@ -89,6 +93,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                                   trashIcon
                                   buttonProps={{ className: "border border-default" }}
                                   slug={connectedCalendar.integration.slug}
+                                  isDryRun={isDryRun}
                                 />
                               )}
                             </div>
@@ -109,6 +114,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                                     credentialId={cal.credentialId}
                                     delegationCredentialId={connectedCalendar.delegationCredentialId}
                                     eventTypeId={null}
+                                    isDryRun={isDryRun}
                                   />
                                 );
                               })}
@@ -132,6 +138,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                                 trashIcon
                                 buttonProps={{ className: "border border-default" }}
                                 slug={connectedCalendar.integration.slug}
+                                isDryRun={isDryRun}
                               />
                             </div>
                           )
@@ -151,8 +158,10 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
 
 const SelectedCalendarsSettingsHeading = ({
   calendarRedirectUrls,
+  isDryRun,
 }: {
   calendarRedirectUrls?: CalendarRedirectUrls;
+  isDryRun?: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -165,7 +174,10 @@ const SelectedCalendarsSettingsHeading = ({
         </div>
         <div className="flex flex-col xl:flex-row xl:space-x-5">
           <div className="flex items-center">
-            <PlatformAdditionalCalendarSelector calendarRedirectUrls={calendarRedirectUrls} />
+            <PlatformAdditionalCalendarSelector
+              calendarRedirectUrls={calendarRedirectUrls}
+              isDryRun={isDryRun}
+            />
           </div>
         </div>
       </div>
@@ -181,6 +193,7 @@ const PlatformDisconnectIntegration = (props: {
   isGlobal?: boolean;
   onSuccess?: () => void;
   buttonProps?: ButtonProps;
+  isDryRun?: boolean;
 }) => {
   const { t } = useLocale();
   const { onSuccess, credentialId, slug } = props;
@@ -206,11 +219,20 @@ const PlatformDisconnectIntegration = (props: {
   return (
     <DisconnectIntegrationComponent
       onDeletionConfirmation={async () => {
-        slug &&
-          (await deleteCalendarCredentials({
+        !props.isDryRun && setModalOpen(false);
+
+        if (props.isDryRun) {
+          toast({
+            description: t("app_removed_successfully"),
+          });
+        }
+
+        if (!props.isDryRun && slug) {
+          await deleteCalendarCredentials({
             calendar: slug.split("-")[0] as unknown as (typeof CALENDARS)[number],
             id: credentialId,
-          }));
+          });
+        }
       }}
       {...props}
       isModalOpen={modalOpen}
@@ -219,7 +241,7 @@ const PlatformDisconnectIntegration = (props: {
   );
 };
 
-const PlatformCalendarSwitch = (props: ICalendarSwitchProps) => {
+const PlatformCalendarSwitch = (props: ICalendarSwitchProps & { isDryRun?: boolean }) => {
   const { isChecked, title, credentialId, type, externalId, delegationCredentialId } = props;
   const [checkedInternal, setCheckedInternal] = useState(isChecked);
   const { toast } = useToast();
@@ -275,12 +297,15 @@ const PlatformCalendarSwitch = (props: ICalendarSwitchProps) => {
         id={externalId}
         onCheckedChange={async () => {
           setCheckedInternal((prevValue) => !prevValue);
-          await toggleSelectedCalendars({
-            isOn: !checkedInternal,
-            credentialId,
-            externalId,
-            integration: type,
-          });
+
+          if (!props.isDryRun) {
+            await toggleSelectedCalendars({
+              isOn: !checkedInternal,
+              credentialId,
+              externalId,
+              integration: type,
+            });
+          }
         }}
       />
     </CalendarSwitchComponent>
@@ -289,8 +314,10 @@ const PlatformCalendarSwitch = (props: ICalendarSwitchProps) => {
 
 const PlatformAdditionalCalendarSelector = ({
   calendarRedirectUrls,
+  isDryRun,
 }: {
   calendarRedirectUrls?: CalendarRedirectUrls;
+  isDryRun?: boolean;
 }) => {
   const { t } = useLocale();
   const { refetch } = useConnectedCalendars({});
@@ -306,6 +333,7 @@ const PlatformAdditionalCalendarSelector = ({
         <div>
           <div>
             <Connect.GoogleCalendar
+              // isDryRun={isDryRun}
               isMultiCalendar={true}
               isClickable={true}
               tooltip={<></>}
@@ -318,6 +346,7 @@ const PlatformAdditionalCalendarSelector = ({
           </div>
           <div>
             <Connect.OutlookCalendar
+              // isDryRun={isDryRun}
               isMultiCalendar={true}
               isClickable={true}
               tooltip={<></>}
@@ -330,6 +359,7 @@ const PlatformAdditionalCalendarSelector = ({
           </div>
           <div>
             <AppleConnect
+              // isDryRun={isDryRun}
               onSuccess={refetch}
               isClickable={true}
               isMultiCalendar={true}

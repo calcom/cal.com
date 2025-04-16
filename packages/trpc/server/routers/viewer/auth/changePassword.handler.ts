@@ -6,7 +6,7 @@ import { IdentityProvider } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TChangePasswordInputSchema } from "./changePassword.schema";
 
 type ChangePasswordOptions = {

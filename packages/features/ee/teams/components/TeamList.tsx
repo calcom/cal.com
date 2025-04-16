@@ -8,7 +8,9 @@ import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Card, Icon, showToast } from "@calcom/ui";
+import { Card } from "@calcom/ui/components/card";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 import TeamListItem from "./TeamListItem";
 

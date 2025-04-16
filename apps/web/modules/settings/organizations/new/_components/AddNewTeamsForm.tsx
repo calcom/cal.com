@@ -7,18 +7,15 @@ import { z } from "zod";
 
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  CheckboxField,
-  Form,
-  Icon,
-  TextField,
-  SkeletonText,
-  SkeletonContainer,
-  SkeletonButton,
-} from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { CheckboxField } from "@calcom/ui/components/form";
+import { Form } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { SkeletonText, SkeletonContainer, SkeletonButton } from "@calcom/ui/components/skeleton";
 
 const schema = z.object({
   teams: z.array(
@@ -106,7 +103,7 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
       }
     },
   });
-  const { register, control, watch, getValues } = form;
+  const { register, control, watch, getValues, setValue } = form;
   const { fields, append, remove } = useFieldArray({
     control,
     name: "teams",
@@ -181,6 +178,10 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
                         placeholder="New Slug"
                         defaultValue={teams.find((t) => t.id === team.id)?.slug ?? ""}
                         {...register(`moveTeams.${index}.newSlug`)}
+                        onChange={(e) => {
+                          const slug = slugify(e.target.value, true);
+                          setValue(`moveTeams.${index}.newSlug`, slug);
+                        }}
                         className="mt-2"
                         label=""
                       />

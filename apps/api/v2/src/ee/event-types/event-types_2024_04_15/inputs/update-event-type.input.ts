@@ -10,12 +10,15 @@ import {
   IsOptional,
   ValidateNested,
   Min,
+  Max,
   IsInt,
   IsEnum,
   IsArray,
   IsDate,
   IsNumber,
 } from "class-validator";
+
+import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/platform-constants";
 
 // note(Lauris): We will gradually expose more properties if any customer needs them.
 // Just uncomment any below when requested. Go to bottom of file to see UpdateEventTypeInput.
@@ -414,9 +417,12 @@ export class UpdateEventTypeInput_2024_04_15 {
   @ApiPropertyOptional()
   afterEventBuffer?: number;
 
-  // @IsInt()
-  // @IsOptional()
-  // seatsPerTimeSlot?: number;
+  @IsInt()
+  @Min(1)
+  @Max(MAX_SEATS_PER_TIME_SLOT)
+  @IsOptional()
+  @ApiPropertyOptional()
+  seatsPerTimeSlot?: number;
 
   // @IsBoolean()
   // @IsOptional()

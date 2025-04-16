@@ -1,6 +1,6 @@
 import classNames from "@calcom/ui/classNames";
 
-export default function Logo({
+export function Logo({
   small,
   icon,
   inline = true,

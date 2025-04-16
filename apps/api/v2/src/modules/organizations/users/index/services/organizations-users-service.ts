@@ -1,10 +1,9 @@
 import { EmailService } from "@/modules/email/email.service";
-import { OrganizationsTeamsService } from "@/modules/organizations/teams/index/services/organizations-teams.service";
 import { CreateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/create-organization-user.input";
 import { UpdateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/update-organization-user.input";
 import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
 import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
-import { Injectable, ConflictException } from "@nestjs/common";
+import { Injectable, ConflictException, ForbiddenException } from "@nestjs/common";
 import { Team, CreationSource } from "@prisma/client";
 import { plainToInstance } from "class-transformer";
 
@@ -14,7 +13,6 @@ import { createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries";
 export class OrganizationsUsersService {
   constructor(
     private readonly organizationsUsersRepository: OrganizationsUsersRepository,
-    private readonly organizationsTeamsService: OrganizationsTeamsService,
     private readonly emailService: EmailService
   ) {}
 
@@ -117,5 +115,15 @@ export class OrganizationsUsersService {
     );
 
     if (isUsernameTaken) throw new ConflictException("Username is already taken");
+  }
+
+  async getUsersByIds(orgId: number, userIds: number[]) {
+    const orgUsers = await this.organizationsUsersRepository.getOrganizationUsersByIds(orgId, userIds);
+
+    if (!orgUsers?.length) {
+      throw new ForbiddenException("Provided user ids does not belong to the organization.");
+    }
+
+    return orgUsers;
   }
 }

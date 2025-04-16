@@ -13,7 +13,7 @@ import {
 
 import { SlotFormat } from "@calcom/platform-enums";
 
-class GetAvailableSlotsInput_2024_09_04 {
+export class GetAvailableSlotsInput_2024_09_04 {
   @IsDateString()
   @ApiProperty({
     type: String,

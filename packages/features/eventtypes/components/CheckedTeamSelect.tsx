@@ -7,7 +7,11 @@ import type { Props } from "react-select";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Avatar, Button, Icon, Select, Tooltip } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
+import { Select } from "@calcom/ui/components/form";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
 
 import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "./HostEditDialogs";

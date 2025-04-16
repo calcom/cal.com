@@ -3,7 +3,7 @@ import { EventAdvancedTab } from "@calcom/features/eventtypes/components/tabs/ad
 import { trpc } from "@calcom/trpc/react";
 
 const EventAdvancedWebWrapper = ({ ...props }: EventAdvancedBaseProps) => {
-  const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
+  const connectedCalendarsQuery = trpc.viewer.calendars.connectedCalendars.useQuery();
   return (
     <EventAdvancedTab
       {...props}

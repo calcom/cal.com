@@ -42,9 +42,6 @@ const withEmbedSsrAppDir =
 
     return {
       ...ssrResponse.props,
-      ...("trpcState" in ssrResponse.props && {
-        dehydratedState: ssrResponse.props.trpcState,
-      }),
       isEmbed: true,
     };
   };

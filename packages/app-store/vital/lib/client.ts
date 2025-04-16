@@ -8,10 +8,10 @@ type VitalEnv = ClientConfig & {
   webhook_secret: string;
 };
 
-export let vitalClient: VitalClient | null = null;
+export let vitalClient: any = null;
 export let vitalEnv: VitalEnv | null = null;
 
-export async function initVitalClient(): Promise<VitalClient> {
+export async function initVitalClient() {
   if (vitalClient) return vitalClient;
   const appKeys = (await getAppKeysFromSlug("vital-automation")) as unknown as VitalEnv;
   if (

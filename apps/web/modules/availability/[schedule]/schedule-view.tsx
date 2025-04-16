@@ -13,7 +13,7 @@ import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule"
 import type { TravelScheduleRepository } from "@calcom/lib/server/repository/travelSchedule";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 type PageProps = {
   scheduleFetched?: Awaited<ReturnType<typeof ScheduleRepository.findDetailedScheduleById>>;
@@ -41,7 +41,7 @@ export const AvailabilitySettingsWebWrapper = ({
   const isPending = isFetchingPending && !scheduleProp;
   const schedule = scheduleProp ?? scheduleData;
 
-  const { data: travelSchedulesData } = trpc.viewer.getTravelSchedules.useQuery(undefined, {
+  const { data: travelSchedulesData } = trpc.viewer.travelSchedules.get.useQuery(undefined, {
     enabled: !travelSchedulesProp,
   });
   const travelSchedules = travelSchedulesProp ?? travelSchedulesData;
@@ -70,7 +70,7 @@ export const AvailabilitySettingsWebWrapper = ({
   };
 
   const handleBulkEditDialogToggle = () => {
-    utils.viewer.getUsersDefaultConferencingApp.invalidate();
+    utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
   };
 
   const isDefaultSchedule = me.data?.defaultScheduleId === scheduleId;

@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 
+import { AppCard } from "@calcom/features/apps/components/AppCard";
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { AppCard, SkeletonText } from "@calcom/ui";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import type { CategoryDataProps } from "@lib/apps/categories/[category]/getStaticProps";
 
@@ -15,7 +16,6 @@ export default function Apps({ apps, category }: CategoryDataProps) {
     <>
       <Shell
         isPublic
-        withoutSeo
         backPath="/apps"
         title={t("app_store")}
         description={t("app_store_description")}
@@ -29,7 +29,7 @@ export default function Apps({ apps, category }: CategoryDataProps) {
             </Link>
             {category && (
               <span className="text-default gap-1">
-                <span>&nbsp;/&nbsp;</span>
+                <span>{t("slash_separator")}</span>
                 {t("category_apps", { category: category[0].toUpperCase() + category?.slice(1) })}
               </span>
             )}

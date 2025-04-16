@@ -87,6 +87,7 @@ const PlainChat = IS_PLAIN_CHAT_ENABLED
 
       const shouldOpenPlain = pathname === "/event-types" && searchParams?.has("openPlain");
       const userEmail = session?.user?.email;
+      const isPaidUser = session?.user.belongsToActiveTeam || !!session?.user.org;
 
       const isAppDomain = useMemo(() => {
         const restrictedPathsSet = new Set(
@@ -167,14 +168,6 @@ const PlainChat = IS_PLAIN_CHAT_ENABLED
             ],
             chatButtons: [
               {
-                icon: "chat",
-                text: "Ask a question",
-                threadDetails: {
-                  labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
-                  tierIdentifier: { externalId: data.userTier },
-                },
-              },
-              {
                 icon: "bulb",
                 text: "Send feedback",
                 threadDetails: {
@@ -237,6 +230,17 @@ const PlainChat = IS_PLAIN_CHAT_ENABLED
               right: "20px",
             },
           };
+
+          if (isPaidUser) {
+            plainChatConfig.chatButtons.push({
+              icon: "chat",
+              text: "Ask a question",
+              threadDetails: {
+                labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
+                tierIdentifier: { externalId: data.userTier },
+              },
+            });
+          }
 
           if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
             window.__PLAIN_CONFIG__ = plainChatConfig;

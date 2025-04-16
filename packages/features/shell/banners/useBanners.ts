@@ -1,3 +1,5 @@
+"use client";
+
 import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 
@@ -6,7 +8,7 @@ import { trpc } from "@calcom/trpc/react";
 
 import { type AllBannerProps } from "./LayoutBanner";
 
-const _useBanners = () => {
+const useBannersInternal = () => {
   const { data: getUserTopBanners, isPending } = trpc.viewer.me.getUserTopBanners.useQuery();
   const { data: userSession } = useSession();
 
@@ -39,7 +41,7 @@ const useBannersHeight = (banners: AllBannerProps | null) => {
 };
 
 const useBanners = () => {
-  const banners = _useBanners();
+  const banners = useBannersInternal();
   const bannersHeight = useBannersHeight(banners);
   return { banners, bannersHeight };
 };

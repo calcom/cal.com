@@ -7,7 +7,6 @@ import {
   findTeamMembersMatchingAttributeLogic,
   TroubleshooterCase,
 } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
-// import { EmailField } from "@calcom/ui";
 import * as getAttributesModule from "@calcom/lib/service/attribute/server/getAttributes";
 import type { AttributeType } from "@calcom/prisma/enums";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
@@ -17,7 +16,7 @@ vi.mock("@calcom/lib/service/attribute/server/getAttributes");
 vi.mock("../../components/react-awesome-query-builder/widgets", () => ({
   default: {},
 }));
-vi.mock("@calcom/ui", () => ({}));
+
 const orgId = 1001;
 function mockAttributesScenario({
   attributes,

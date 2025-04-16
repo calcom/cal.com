@@ -39,3 +39,6 @@ export const whatsappReminderTemplate = (
 
   return null;
 };
+
+export const plainTextTemplate =
+  "Hi {ATTENDEE}, this is a reminder that your meeting (*{EVENT_NAME}*) with {ORGANIZER} is on {EVENT_DATE_ddd, MMM D, YYYY h:mma} at {START_TIME_h:mma} {TIMEZONE}.";

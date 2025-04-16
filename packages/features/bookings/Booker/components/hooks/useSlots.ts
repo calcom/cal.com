@@ -5,7 +5,6 @@ import dayjs from "@calcom/dayjs";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useSlotReservationId } from "@calcom/features/bookings/Booker/useSlotReservationId";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
-import type { BookerEvent } from "@calcom/features/bookings/types";
 import {
   MINUTES_TO_BOOK,
   PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS,
@@ -78,7 +77,7 @@ const useQuickAvailabilityChecks = ({
 
 export type UseSlotsReturnType = ReturnType<typeof useSlots>;
 
-export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | null }) => {
+export const useSlots = (event: { id: number; length: number } | null) => {
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const searchParams = useCompatSearchParams();
   const [selectedTimeslot, setSelectedTimeslot, tentativeSelectedTimeslots, setTentativeSelectedTimeslots] =
@@ -92,7 +91,7 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
       shallow
     );
   const [slotReservationId, setSlotReservationId] = useSlotReservationId();
-  const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({
+  const reserveSlotMutation = trpc.viewer.slots.reserveSlot.useMutation({
     trpc: {
       context: {
         skipBatch: true,
@@ -102,18 +101,18 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
       setSlotReservationId(data.uid);
     },
   });
-  const removeSelectedSlot = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation({
+  const removeSelectedSlot = trpc.viewer.slots.removeSelectedSlotMark.useMutation({
     trpc: { context: { skipBatch: true } },
   });
 
   const handleRemoveSlot = () => {
-    if (event?.data) {
+    if (event?.id && slotReservationId) {
       removeSelectedSlot.mutate({ uid: slotReservationId });
     }
   };
 
-  const eventTypeId = event.data?.id;
-  const eventDuration = selectedDuration || event.data?.length || 0;
+  const eventTypeId = event?.id;
+  const eventDuration = selectedDuration || event?.length || 0;
   const allSelectedTimeslots = [...tentativeSelectedTimeslots, selectedTimeslot].filter(
     (slot): slot is string => slot !== null
   );
@@ -153,7 +152,7 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
       clearInterval(interval);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [event?.data?.id, timeSlotToBeBooked]);
+  }, [event?.id, timeSlotToBeBooked]);
 
   return {
     setSelectedTimeslot,

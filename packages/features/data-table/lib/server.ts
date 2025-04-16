@@ -6,7 +6,7 @@ import {
   isNumberFilterValue,
 } from "./utils";
 
-type makeWhereClauseProps = {
+type MakeWhereClauseProps = {
   columnName: string;
   filterValue: FilterValue;
   json?: true | { path: string[] };
@@ -20,7 +20,7 @@ export function makeOrderBy(sorting: SortingState) {
   }));
 }
 
-export function makeWhereClause(props: makeWhereClauseProps) {
+export function makeWhereClause(props: MakeWhereClauseProps) {
   const { columnName, filterValue } = props;
   const isJson = props.json === true || (typeof props.json === "object" && props.json.path?.length > 0);
   const jsonPath = isJson && typeof props.json === "object" ? props.json.path : undefined;

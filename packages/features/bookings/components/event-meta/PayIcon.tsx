@@ -1,4 +1,4 @@
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 
 export function PayIcon(props: { currency: string; className?: string }) {
   const { className, currency } = props;

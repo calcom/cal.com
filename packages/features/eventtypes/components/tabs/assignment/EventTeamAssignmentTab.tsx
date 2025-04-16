@@ -1,4 +1,4 @@
-import { Trans } from "next-i18next";
+import type { TFunction } from "i18next";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
@@ -12,7 +12,7 @@ import AddMembersWithSwitch, {
 import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
 import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
-import { sortHosts, weightDescription } from "@calcom/features/eventtypes/components/HostEditDialogs";
+import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
 import type {
   FormValues,
   TeamMember,
@@ -21,12 +21,17 @@ import type {
   SelectClassNames,
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { Label, Select, SettingsToggle, RadioGroup as RadioArea } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Label } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 
 import { EditWeightsForAllTeamMembers } from "../../EditWeightsForAllTeamMembers";
+import WeightDescription from "../../WeightDescription";
 
 export type EventTeamAssignmentTabCustomClassNames = {
   assignmentType?: {
@@ -111,16 +116,20 @@ const ChildrenEventTypesList = ({
   );
 };
 
-const FixedHostHelper = (
-  <Trans i18nKey="fixed_host_helper">
-    Add anyone who needs to attend the event.
-    <Link
-      className="underline underline-offset-2"
-      target="_blank"
-      href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#fixed-hosts">
-      Learn more
-    </Link>
-  </Trans>
+const FixedHostHelper = ({ t }: { t: TFunction }) => (
+  <ServerTrans
+    t={t}
+    i18nKey="fixed_host_helper"
+    components={[
+      <Link
+        key="fixed_host_helper"
+        className="underline underline-offset-2"
+        target="_blank"
+        href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#fixed-hosts">
+        Learn more
+      </Link>,
+    ]}
+  />
 );
 
 type FixedHostsCustomClassNames = SettingsToggleClassNames & {
@@ -169,7 +178,7 @@ const FixedHosts = ({
                 "text-subtle max-w-full break-words text-sm leading-tight",
                 customClassNames?.description
               )}>
-              {FixedHostHelper}
+              <FixedHostHelper t={t} />
             </p>
           </div>
           <div className="border-subtle rounded-b-md border border-t-0 px-6">
@@ -209,7 +218,7 @@ const FixedHosts = ({
           data-testid="fixed-hosts-switch"
           toggleSwitchAtTheEnd={true}
           title={t("fixed_hosts")}
-          description={FixedHostHelper}
+          description={<FixedHostHelper t={t} />}
           checked={isDisabled && !assignAllTeamMembers}
           hideSwitch={assignAllTeamMembers}
           labelClassName={classNames("text-sm", customClassNames?.label)}
@@ -331,7 +340,7 @@ const RoundRobinHosts = ({
             render={({ field: { value: isRRWeightsEnabled, onChange } }) => (
               <SettingsToggle
                 title={t("enable_weights")}
-                description={weightDescription}
+                description={<WeightDescription t={t} />}
                 checked={isRRWeightsEnabled}
                 switchContainerClassName={customClassNames?.enableWeights?.container}
                 labelClassName={customClassNames?.enableWeights?.label}

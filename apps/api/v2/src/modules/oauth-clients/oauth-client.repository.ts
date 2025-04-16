@@ -118,4 +118,19 @@ export class OAuthClientRepository {
       },
     });
   }
+
+  async getByEventTypeHosts(eventTypeId: number) {
+    const hostWithUserPlatformClient = await this.dbRead.prisma.host.findFirst({
+      select: {
+        user: { select: { platformOAuthClients: true } },
+      },
+      where: {
+        eventTypeId: eventTypeId,
+        user: {
+          isPlatformManaged: true,
+        },
+      },
+    });
+    return hostWithUserPlatformClient?.user?.platformOAuthClients?.[0] ?? null;
+  }
 }

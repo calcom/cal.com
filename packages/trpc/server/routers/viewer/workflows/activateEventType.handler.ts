@@ -8,7 +8,7 @@ import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
@@ -309,6 +309,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               template: step.template,
               sender: step.sender,
               workflowStepId: step.id,
+              verifiedAt: step.verifiedAt,
             });
           } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
             await scheduleSMSReminder({
@@ -326,6 +327,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               sender: step.sender,
               userId: booking.userId,
               teamId: eventTypeWorkflow.teamId,
+              verifiedAt: step.verifiedAt,
             });
           } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
             await scheduleWhatsappReminder({
@@ -342,6 +344,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               template: step.template,
               userId: booking.userId,
               teamId: eventTypeWorkflow.teamId,
+              verifiedAt: step.verifiedAt,
             });
           }
         }

@@ -5,7 +5,9 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { showToast, SettingsToggle, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
 
 const SkeletonLoader = () => {
   return (
@@ -24,7 +26,7 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
     user?.disableImpersonation
   );
 
-  const mutation = trpc.viewer.updateProfile.useMutation({
+  const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: () => {
       showToast(t("profile_updated_successfully"), "success");
     },

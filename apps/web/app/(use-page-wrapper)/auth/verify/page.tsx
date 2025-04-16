@@ -13,7 +13,7 @@ const querySchema = z.object({
 });
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
-  const p = { ...params, ...searchParams };
+  const p = { ...(await params), ...(await searchParams) };
   const { sessionId, stripeCustomerId } = querySchema.parse(p);
 
   const data = await StripeService.getCheckoutSession({

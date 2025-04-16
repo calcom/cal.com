@@ -24,13 +24,22 @@ export class RolesGuard implements CanActivate {
     const orgId = request.params.orgId as string;
     const user = request.user as ApiAuthGuardUser;
     const allowedRole = this.reflector.get(Roles, context.getHandler());
+    const { canAccess } = await this.checkUserRoleAccess(user, orgId, teamId, allowedRole);
+    return canAccess;
+  }
+  async checkUserRoleAccess(
+    user: ApiAuthGuardUser,
+    orgId: string,
+    teamId: string,
+    allowedRole: string
+  ): Promise<{ canAccess: boolean }> {
     const REDIS_CACHE_KEY = `apiv2:user:${user.id ?? "none"}:org:${orgId ?? "none"}:team:${
       teamId ?? "none"
     }:guard:roles:${allowedRole}`;
     const cachedAccess = JSON.parse((await this.redisService.redis.get(REDIS_CACHE_KEY)) ?? "false");
 
     if (cachedAccess) {
-      return cachedAccess;
+      return { canAccess: cachedAccess };
     }
 
     let canAccess = false;
@@ -130,7 +139,7 @@ export class RolesGuard implements CanActivate {
       }
     }
     await this.redisService.redis.set(REDIS_CACHE_KEY, String(canAccess), "EX", 300);
-    return canAccess;
+    return { canAccess };
   }
 }
 

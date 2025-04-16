@@ -1,4 +1,4 @@
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -36,7 +36,12 @@ export default class AttendeeDailyVideoDownloadTranscriptEmail extends BaseEmail
     return {
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
-      replyTo: [...this.calEvent.attendees.map(({ email }) => email), this.calEvent.organizer.email],
+      replyTo: [
+        ...this.calEvent.attendees
+          .filter(({ email }) => email !== this.attendee.email)
+          .map(({ email }) => email),
+        this.calEvent.organizer.email,
+      ],
       subject: `${this.t("download_transcript_email_subject", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),

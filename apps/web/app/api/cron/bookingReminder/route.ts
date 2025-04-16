@@ -55,6 +55,8 @@ async function postHandler(request: NextRequest) {
             locale: true,
             timeZone: true,
             destinationCalendar: true,
+            isPlatformManaged: true,
+            platformOAuthClients: { select: { id: true, areEmailsEnabled: true } },
           },
         },
         eventType: {
@@ -70,11 +72,18 @@ async function postHandler(request: NextRequest) {
       },
     });
 
+    const bookingsToRemind = bookings.filter(
+      (booking) =>
+        !booking.user ||
+        !booking.user.isPlatformManaged ||
+        (booking.user.isPlatformManaged && Boolean(booking.user.platformOAuthClients?.[0]?.areEmailsEnabled))
+    );
+
     const reminders = await prisma.reminderMail.findMany({
       where: {
         reminderType: ReminderType.PENDING_BOOKING_CONFIRMATION,
         referenceId: {
-          in: bookings.map((b) => b.id),
+          in: bookingsToRemind.map((b) => b.id),
         },
         elapsedMinutes: {
           gte: interval,
@@ -82,7 +91,7 @@ async function postHandler(request: NextRequest) {
       },
     });
 
-    for (const booking of bookings.filter((b) => !reminders.some((r) => r.referenceId == b.id))) {
+    for (const booking of bookingsToRemind.filter((b) => !reminders.some((r) => r.referenceId == b.id))) {
       const { user } = booking;
       const name = user?.name || user?.username;
       if (!user || !name || !user.timeZone) {

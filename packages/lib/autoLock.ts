@@ -20,6 +20,11 @@ interface HandleAutoLockInput {
   autolockDuration?: number; // in milliseconds
 }
 
+export enum LockReason {
+  RATE_LIMIT = "Auto-locking user due to rate limit exceeded",
+  SPAM_WORKFLOW_BODY = "Auto-locking user due to spam detected in workflow body",
+}
+
 const log = logger.getSubLogger({ prefix: ["[autoLock]"] });
 
 /**
@@ -69,7 +74,7 @@ export async function handleAutoLock({
             currentCount + 1
           }/${autolockThreshold}`
         );
-        await lockUser(identifierType, identifier);
+        await lockUser(identifierType, identifier, LockReason.RATE_LIMIT);
         await redis.del(lockKey);
         return true;
       }
@@ -90,7 +95,7 @@ export async function handleAutoLock({
   return false;
 }
 
-async function lockUser(identifierType: string, identifier: string) {
+export async function lockUser(identifierType: string, identifier: string, lockReason: LockReason) {
   if (!identifier) {
     return;
   }
@@ -163,7 +168,7 @@ async function lockUser(identifierType: string, identifier: string) {
   }
 
   if (user && process.env.NEXT_PUBLIC_SENTRY_DSN) {
-    log.warn("Auto-locking user due to rate limit exceeded", {
+    log.warn(lockReason, {
       userId: user.id,
       email: user.email,
       username: user.username,

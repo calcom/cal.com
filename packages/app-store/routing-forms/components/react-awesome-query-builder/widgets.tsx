@@ -9,12 +9,14 @@ import type {
 } from "react-awesome-query-builder";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button as CalButton, TextField, TextArea } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
+import { Button as CalButton } from "@calcom/ui/components/button";
+import { TextArea } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
 const Select = dynamic(
-  async () => (await import("@calcom/ui")).SelectWithValidation
-) as unknown as typeof import("@calcom/ui").SelectWithValidation;
+  async () => (await import("@calcom/ui/components/form")).SelectWithValidation
+) as unknown as typeof import("@calcom/ui/components/form").SelectWithValidation;
 
 export type CommonProps<
   TVal extends

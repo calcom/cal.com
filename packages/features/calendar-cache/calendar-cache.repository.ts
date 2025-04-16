@@ -11,28 +11,19 @@ import { getTimeMax, getTimeMin } from "./lib/datesForCache";
 
 const log = logger.getSubLogger({ prefix: ["CalendarCacheRepository"] });
 
-/** Enable or disable the expanded cache. Enabled by default. */
-const ENABLE_EXPANDED_CACHE = process.env.ENABLE_EXPANDED_CACHE !== "0";
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
 const CACHING_TIME = ONE_MONTH_IN_MS;
 
-export function parseKeyForCache(args: FreeBusyArgs): string {
-  const { timeMin: _timeMin, timeMax: _timeMax, items } = args;
+function parseKeyForCache(args: FreeBusyArgs): string {
   // Ensure that calendarIds are unique
-  const uniqueItems = uniqueBy(items, ["id"]);
-  const { timeMin, timeMax } = handleMinMax(_timeMin, _timeMax);
-  const key = JSON.stringify({ timeMin, timeMax, items: uniqueItems });
+  const uniqueItems = uniqueBy(args.items, ["id"]);
+  const key = JSON.stringify({
+    timeMin: getTimeMin(args.timeMin),
+    timeMax: getTimeMax(args.timeMax),
+    items: uniqueItems,
+  });
   return key;
-}
-
-/**
- * By expanding the cache to whole months, we can save round trips to the third party APIs.
- * In this case we already have the data in the database, so we can just return it.
- */
-function handleMinMax(min: string, max: string) {
-  if (!ENABLE_EXPANDED_CACHE) return { timeMin: min, timeMax: max };
-  return { timeMin: getTimeMin(min), timeMax: getTimeMax(max) };
 }
 
 type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };

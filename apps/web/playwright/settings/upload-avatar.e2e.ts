@@ -64,11 +64,10 @@ test.describe("User Avatar", async () => {
       );
       // verify objectKey is passed to the OG image
       // yes, OG image URI encodes at multiple places.. don't want to mess with that.
+      const ogImageLocator = page.locator('meta[property="og:image"]');
+      await expect(ogImageLocator).toHaveCount(1);
       const searchParam = `meetingImage=${encodeURIComponent(`${CAL_URL}/api/avatar/${objectKey}.png`)}`;
-      await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
-        "content",
-        new RegExp(encodeURIComponent(searchParam))
-      );
+      await expect(ogImageLocator).toHaveAttribute("content", new RegExp(encodeURIComponent(searchParam)));
     });
   });
 });

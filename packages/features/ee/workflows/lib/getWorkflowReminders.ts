@@ -89,9 +89,9 @@ export async function getAllRemindersToDelete(): Promise<RemindersToDeleteType[]
     },
   };
 
-  const select: Prisma.WorkflowReminderSelect = {
+  const select = Prisma.validator<Prisma.WorkflowReminderSelect>()({
     referenceId: true,
-  };
+  });
 
   const remindersToDelete = await getWorkflowReminders(whereFilter, select);
 
@@ -109,10 +109,10 @@ export async function getAllRemindersToCancel(): Promise<RemindersToCancelType[]
     },
   };
 
-  const select: Prisma.WorkflowReminderSelect = {
+  const select = Prisma.validator<Prisma.WorkflowReminderSelect>()({
     referenceId: true,
     id: true,
-  };
+  });
 
   const remindersToCancel = await getWorkflowReminders(whereFilter, select);
 

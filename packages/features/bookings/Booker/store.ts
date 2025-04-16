@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { create } from "zustand";
+import { createWithEqualityFn } from "zustand/traditional";
 
 import dayjs from "@calcom/dayjs";
 import { BOOKER_NUMBER_OF_DAYS_TO_LOAD } from "@calcom/lib/constants";
@@ -174,7 +174,7 @@ export type BookerStore = {
  *
  * See comments in interface above for more information on it's specific values.
  */
-export const useBookerStore = create<BookerStore>((set, get) => ({
+export const useBookerStore = createWithEqualityFn<BookerStore>((set, get) => ({
   state: "loading",
   setState: (state: BookerState) => set({ state }),
   layout: BookerLayouts.MONTH_VIEW,

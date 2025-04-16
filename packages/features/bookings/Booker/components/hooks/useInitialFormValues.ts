@@ -22,6 +22,7 @@ type UseInitialFormValuesProps = {
     name: string | null;
   };
   lastBookingResponse?: Record<string, string>;
+  clientId?: string;
 };
 
 // Add this stable hash function
@@ -63,6 +64,7 @@ export function useInitialFormValues({
   extraOptions,
   prefillFormParams,
   lastBookingResponse,
+  clientId,
 }: UseInitialFormValuesProps) {
   const stableHashExtraOptions = getStableHash(extraOptions);
 
@@ -119,6 +121,10 @@ export function useInitialFormValues({
             ? parsedQuery["name"]
             : name ?? username ?? parsedLastBookingResponse?.name ?? "",
       };
+
+      if (clientId) {
+        defaultUserValues.email = defaultUserValues.email.replace(`+${clientId}`, "");
+      }
 
       if (!isRescheduling) {
         const defaults = {

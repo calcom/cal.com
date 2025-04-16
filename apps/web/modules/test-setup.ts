@@ -151,11 +151,19 @@ vi.mock("@calcom/trpc/react", () => ({
   },
 }));
 
-vi.mock("@calcom/ui", () => ({
-  HeadSeo: vi.fn(),
+vi.mock("@calcom/ui/styles", () => ({
   useCalcomTheme: vi.fn(),
+}));
+
+vi.mock("@calcom/ui/components/icon", () => ({
   Icon: vi.fn(),
+}));
+
+vi.mock("@calcom/ui/components/unpublished-entity", () => ({
   UnpublishedEntity: vi.fn(),
+}));
+
+vi.mock("@calcom/ui/components/avatar", () => ({
   UserAvatar: vi.fn(),
 }));
 

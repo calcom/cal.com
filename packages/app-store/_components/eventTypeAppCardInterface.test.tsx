@@ -26,7 +26,9 @@ const mockProps = {
     name: "TestApp",
     slug: "testapp",
     credentialOwner: {},
-  } as RouterOutputs["viewer"]["integrations"]["items"][number] & { credentialOwner?: CredentialOwner },
+  } as RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
+    credentialOwner?: CredentialOwner;
+  },
   eventType: {},
   getAppData: getAppDataMock,
   setAppData: setAppDataMock,

@@ -4,8 +4,8 @@ import { EventTypeWebWrapper as EventType } from "@calcom/atoms/event-types/wrap
 
 import type { PageProps } from "@lib/event-types/[type]/getServerSideProps";
 
-const EventTypePageWrapper = ({ type, ...rest }: PageProps) => {
-  return <EventType {...rest} id={type} />;
+const EventTypePageWrapper = ({ type, data }: PageProps) => {
+  return <EventType data={data} id={type} />;
 };
 
 export default EventTypePageWrapper;

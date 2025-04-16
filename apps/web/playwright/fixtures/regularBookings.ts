@@ -2,7 +2,8 @@ import { expect, type Page } from "@playwright/test";
 
 import type { MembershipRole } from "@calcom/prisma/enums";
 
-import { localize, submitAndWaitForResponse } from "../lib/testUtils";
+import { localize } from "../lib/localize";
+import { submitAndWaitForResponse } from "../lib/testUtils";
 import type { createUsersFixture } from "./users";
 
 export const scheduleSuccessfullyText = "This meeting is scheduled";
@@ -10,7 +11,16 @@ export const scheduleSuccessfullyText = "This meeting is scheduled";
 type UserFixture = ReturnType<typeof createUsersFixture>;
 
 export async function loginUser(users: UserFixture) {
-  const pro = await users.create({ name: "testuser" });
+  const pro = await users.create({
+    name: "testuser",
+    eventTypes: [
+      {
+        title: "Test Event",
+        slug: "test-event",
+        length: 30,
+      },
+    ],
+  });
   await pro.apiLogin();
 }
 
@@ -184,18 +194,6 @@ export function createBookingPageFixture(page: Page) {
       await page.locator("#RANGE").click();
       await expect(page.locator("#RANGE")).toBeChecked();
       await limitBookingsSwitch.click();
-    },
-    checkOffsetTimes: async () => {
-      const offsetStart = (await localize("en"))("offset_start");
-      const offsetStartTimes = (await localize("en"))("offset_toggle");
-      const offsetLabel = page.getByLabel(offsetStart);
-
-      await page.locator("fieldset").filter({ hasText: offsetStartTimes }).getByRole("switch").click();
-      await offsetLabel.fill("10");
-      await expect(offsetLabel).toHaveValue("10");
-      await expect(
-        page.getByText("e.g. this will show time slots to your bookers at 9:10 AM instead of 9:00 AM")
-      ).toBeVisible();
     },
     checkTimeSlotsCount: async (eventTypePage: Page, count: number) => {
       await expect(eventTypePage.getByTestId("time")).toHaveCount(count);

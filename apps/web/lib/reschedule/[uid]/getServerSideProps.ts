@@ -4,9 +4,9 @@ import { URLSearchParams } from "url";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { getSafe } from "@calcom/lib/bookingSuccessRedirect";
 import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { getSafe } from "@calcom/lib/getSafe";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
@@ -58,6 +58,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           },
           slug: true,
           allowReschedulingPastBookings: true,
+          disableRescheduling: true,
           team: {
             select: {
               parentId: true,
@@ -96,15 +97,30 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
-  // If booking is already CANCELLED or REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.
+  const eventType = booking.eventType ? booking.eventType : getDefaultEvent(dynamicEventSlugRef);
+
+  const enrichedBookingUser = booking.user
+    ? await UserRepository.enrichUserWithItsProfile({ user: booking.user })
+    : null;
+
+  const eventUrl = await buildEventUrlFromBooking({
+    eventType,
+    dynamicGroupSlugRef: booking.dynamicGroupSlugRef ?? null,
+    profileEnrichedBookingUser: enrichedBookingUser,
+  });
+
+  // If booking is already REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.
+  // If the booking is CANCELLED and allowRescheduleForCancelledBooking is false, we redirect the user to the original event link.
   // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
+  const isDisabledRescheduling = booking.eventType?.disableRescheduling;
   if (
-    !allowRescheduleForCancelledBooking &&
-    (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED)
+    isDisabledRescheduling ||
+    (!allowRescheduleForCancelledBooking &&
+      (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED))
   ) {
     return {
       redirect: {
-        destination: `/booking/${uid}`,
+        destination: booking.status === BookingStatus.CANCELLED ? eventUrl : `/booking/${uid}`,
         permanent: false,
       },
     };
@@ -118,18 +134,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       notFound: true;
     };
   }
-
-  const eventType = booking.eventType ? booking.eventType : getDefaultEvent(dynamicEventSlugRef);
-
-  const enrichedBookingUser = booking.user
-    ? await UserRepository.enrichUserWithItsProfile({ user: booking.user })
-    : null;
-
-  const eventUrl = await buildEventUrlFromBooking({
-    eventType,
-    dynamicGroupSlugRef: booking.dynamicGroupSlugRef ?? null,
-    profileEnrichedBookingUser: enrichedBookingUser,
-  });
 
   const isBookingInPast = booking.endTime && new Date(booking.endTime) < new Date();
   if (isBookingInPast && !eventType.allowReschedulingPastBookings) {
@@ -180,6 +184,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const destinationUrlSearchParams = new URLSearchParams();
 
   destinationUrlSearchParams.set("rescheduleUid", seatReferenceUid || bookingUid);
+
+  if (allowRescheduleForCancelledBooking) {
+    destinationUrlSearchParams.set("allowRescheduleForCancelledBooking", "true");
+  }
 
   // TODO: I think we should just forward all the query params here including coep flag
   if (coepFlag) {

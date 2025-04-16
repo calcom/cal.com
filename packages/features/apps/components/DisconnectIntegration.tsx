@@ -5,8 +5,9 @@ import { useState } from "react";
 import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import type { ButtonProps } from "@calcom/ui";
-import { DisconnectIntegrationComponent, showToast } from "@calcom/ui";
+import type { ButtonProps } from "@calcom/ui/components/button";
+import { DisconnectIntegrationComponent } from "@calcom/ui/components/disconnect-calendar-integration";
+import { showToast } from "@calcom/ui/components/toast";
 
 export default function DisconnectIntegration(props: {
   credentialId: number;
@@ -22,7 +23,7 @@ export default function DisconnectIntegration(props: {
   const [modalOpen, setModalOpen] = useState(false);
   const utils = trpc.useUtils();
 
-  const mutation = trpc.viewer.deleteCredential.useMutation({
+  const mutation = trpc.viewer.credentials.delete.useMutation({
     onSuccess: () => {
       showToast(t("app_removed_successfully"), "success");
       setModalOpen(false);
@@ -33,8 +34,8 @@ export default function DisconnectIntegration(props: {
       setModalOpen(false);
     },
     async onSettled() {
-      await utils.viewer.connectedCalendars.invalidate();
-      await utils.viewer.integrations.invalidate();
+      await utils.viewer.calendars.connectedCalendars.invalidate();
+      await utils.viewer.apps.integrations.invalidate();
     },
   });
 

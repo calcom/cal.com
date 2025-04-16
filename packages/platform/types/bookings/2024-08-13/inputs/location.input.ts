@@ -91,7 +91,7 @@ export class BookingInputOrganizersDefaultAppLocation_2024_08_13 {
   @DocsProperty({
     example: "organizersDefaultApp",
     description:
-      "only allowed value for type is `organizersDefaultApp` - it refers to the default app defined by the organizer.",
+      "only available for team event types and the only allowed value for type is `organizersDefaultApp` - it refers to the default app defined by the organizer.",
   })
   type!: "organizersDefaultApp";
 }

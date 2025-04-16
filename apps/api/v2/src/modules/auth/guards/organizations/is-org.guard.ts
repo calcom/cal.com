@@ -18,7 +18,6 @@ export class IsOrgGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    let canAccess = false;
     const request = context.switchToHttp().getRequest<Request & { organization: Team }>();
     const organizationId: string = request.params.orgId;
 
@@ -26,33 +25,45 @@ export class IsOrgGuard implements CanActivate {
       throw new ForbiddenException("No organization id found in request params.");
     }
 
+    const { canAccess, org } = await this.checkOrgAccess(organizationId);
+
+    if (canAccess && org) {
+      request.organization = org;
+    }
+
+    return canAccess;
+  }
+
+  async checkOrgAccess(organizationId: string): Promise<{ canAccess: boolean; org?: Team | null }> {
     const REDIS_CACHE_KEY = `apiv2:org:${organizationId}:guard:isOrg`;
+    let canAccess = false;
     const cachedData = await this.redisService.redis.get(REDIS_CACHE_KEY);
 
     if (cachedData) {
       const { org: cachedOrg, canAccess: cachedCanAccess } = JSON.parse(cachedData) as CachedData;
       if (cachedOrg?.id === Number(organizationId) && cachedCanAccess !== undefined) {
-        request.organization = cachedOrg;
-        return cachedCanAccess;
+        return {
+          org: cachedOrg,
+          canAccess: cachedCanAccess,
+        };
       }
     }
 
     const org = await this.organizationsRepository.findById(Number(organizationId));
 
     if (org?.isOrganization) {
-      request.organization = org;
       canAccess = true;
     }
 
     if (org) {
       await this.redisService.redis.set(
         REDIS_CACHE_KEY,
-        JSON.stringify({ org: org, canAccess } satisfies CachedData),
+        JSON.stringify({ org, canAccess } satisfies CachedData),
         "EX",
         300
       );
     }
 
-    return canAccess;
+    return { canAccess, org };
   }
 }

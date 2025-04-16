@@ -2,6 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
@@ -9,12 +10,10 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
-import { RedirectType } from "@calcom/prisma/client";
+import { BookingStatus, RedirectType } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
@@ -26,6 +25,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const session = await getServerSession({ req });
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
   const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting, email } = query;
+  const allowRescheduleForCancelledBooking = query.allowRescheduleForCancelledBooking === "true";
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, params?.orgSlug);
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
 
@@ -49,6 +49,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const eventData = team.eventTypes[0];
+
+  if (rescheduleUid && eventData.disableRescheduling) {
+    return { redirect: { destination: `/booking/${rescheduleUid}`, permanent: false } };
+  }
+
   const eventTypeId = eventData.id;
   const eventHostsUserData = await getUsersData(
     team.isPrivate,
@@ -58,22 +63,52 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
   const name = team.parent?.name ?? team.name ?? null;
 
-  const booking = rescheduleUid ? await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id) : null;
-  const ssr = await ssrInit(context);
+  let booking: GetBookingType | null = null;
+  if (rescheduleUid) {
+    booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
+    if (booking?.status === BookingStatus.CANCELLED && !allowRescheduleForCancelledBooking) {
+      return {
+        redirect: {
+          permanent: false,
+          destination: `/team/${teamSlug}/${meetingSlug}`,
+        },
+      };
+    }
+  }
+
   const fromRedirectOfNonOrgLink = context.query.orgRedirection === "true";
   const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
 
-  const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
-    "@calcom/lib/server/getTeamMemberEmailFromCrm"
-  );
-  const {
-    email: teamMemberEmail,
-    recordType: crmOwnerRecordType,
-    crmAppSlug,
-  } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
-    query,
-    eventData,
-  });
+  const crmContactOwnerEmail = query["cal.crmContactOwnerEmail"];
+  const crmContactOwnerRecordType = query["cal.crmContactOwnerRecordType"];
+  const crmAppSlugParam = query["cal.crmAppSlug"];
+
+  // Handle string[] type from query params
+  let teamMemberEmail = Array.isArray(crmContactOwnerEmail) ? crmContactOwnerEmail[0] : crmContactOwnerEmail;
+
+  let crmOwnerRecordType = Array.isArray(crmContactOwnerRecordType)
+    ? crmContactOwnerRecordType[0]
+    : crmContactOwnerRecordType;
+
+  let crmAppSlug = Array.isArray(crmAppSlugParam) ? crmAppSlugParam[0] : crmAppSlugParam;
+
+  if (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug) {
+    const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
+      "@calcom/lib/server/getTeamMemberEmailFromCrm"
+    );
+    const {
+      email,
+      recordType,
+      crmAppSlug: crmAppSlugQuery,
+    } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
+      query,
+      eventData,
+    });
+
+    teamMemberEmail = email ?? undefined;
+    crmOwnerRecordType = recordType ?? undefined;
+    crmAppSlug = crmAppSlugQuery ?? undefined;
+  }
 
   const organizationSettings = getOrganizationSEOSettings(team);
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
@@ -106,7 +141,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       user: teamSlug,
       teamId: team.id,
       slug: meetingSlug,
-      trpcState: ssr.dehydrate(),
       isBrandingHidden: team?.hideBranding,
       isInstantMeeting: eventData && queryIsInstantMeeting ? true : false,
       themeBasis: null,
@@ -165,6 +199,8 @@ const getTeamWithEventsData = async (
           metadata: true,
           length: true,
           hidden: true,
+          disableCancelling: true,
+          disableRescheduling: true,
           hosts: {
             take: 3,
             select: {

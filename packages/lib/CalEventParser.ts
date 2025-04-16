@@ -1,4 +1,4 @@
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -69,7 +69,10 @@ export const getAdditionalNotes = (calEvent: Pick<CalendarEvent, "additionalNote
   return `${t("additional_notes")}:\n${calEvent.additionalNotes}`;
 };
 
-export const getUserFieldsResponses = (calEvent: Parameters<typeof getLabelValueMapFromResponses>[0]) => {
+export const getUserFieldsResponses = (
+  calEvent: Parameters<typeof getLabelValueMapFromResponses>[0],
+  t: TFunction
+) => {
   const labelValueMap = getLabelValueMapFromResponses(calEvent);
 
   if (!labelValueMap) {
@@ -80,7 +83,7 @@ export const getUserFieldsResponses = (calEvent: Parameters<typeof getLabelValue
       if (!labelValueMap) return "";
       if (labelValueMap[key] !== "") {
         return `
-${key}:
+${t(key)}:
 ${labelValueMap[key]}
   `;
       }
@@ -325,7 +328,7 @@ export const getRichDescription = (
     `${t("where")}:\n${getLocation(calEvent)}`,
     getDescription(calEvent, t),
     getAdditionalNotes(calEvent, t),
-    getUserFieldsResponses(calEvent),
+    getUserFieldsResponses(calEvent, t),
     includeAppStatus ? getAppsStatus(calEvent, t) : "",
     // TODO: Only the original attendee can make changes to the event
     // Guests cannot

@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 async function getHandler() {
-  const headersList = headers();
+  const headersList = await headers();
   const country = headersList.get("x-vercel-ip-country") || "Unknown";
 
   const response = NextResponse.json({ country });

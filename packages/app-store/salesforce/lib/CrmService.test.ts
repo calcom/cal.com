@@ -80,13 +80,14 @@ const accountQueryResponse = {
 
 describe("SalesforceCRMService", () => {
   let service: SalesforceCRMService;
-  let mockConnection: { query: any };
+  let mockConnection: { query: any; sobject: any };
 
   setupAndTeardown();
 
   beforeEach(() => {
     mockConnection = {
       query: vi.fn(),
+      sobject: vi.fn(),
     };
 
     const mockCredential: CredentialPayload = {
@@ -509,6 +510,81 @@ describe("SalesforceCRMService", () => {
           "SELECT Id, Email, OwnerId, AccountId, Account.Owner.Email, Account.Website FROM Contact WHERE Email = 'test@example.com' AND AccountId != null"
         );
       });
+    });
+  });
+
+  describe("createContacts", () => {
+    describe("createEventOn lead", () => {
+      describe("createNewContactUnderAccount enabled", () => {
+        it("when attendee has an account", async () => {
+          mockAppOptions({
+            createNewContactUnderAccount: true,
+            createEventOn: SalesforceRecordEnum.LEAD,
+          });
+
+          const querySpy = vi.spyOn(mockConnection, "query");
+          querySpy.mockResolvedValueOnce(accountQueryResponse);
+          querySpy.mockResolvedValueOnce({ records: [] });
+
+          mockConnection.sobject.mockReturnValue({
+            create: vi.fn().mockResolvedValue({
+              success: true,
+              id: "newContactId",
+              name: "New Contact",
+              email: "test@example.com",
+            }),
+          });
+
+          const result = await service.createContacts([{ name: "New Contact", email: "test@example.com" }]);
+          expect(result).toEqual([{ id: "newContactId", email: "test@example.com" }]);
+        });
+        it("attendee has no account", async () => {
+          mockAppOptions({
+            createNewContactUnderAccount: true,
+            createEventOn: SalesforceRecordEnum.LEAD,
+          });
+
+          const querySpy = vi.spyOn(mockConnection, "query");
+          querySpy.mockResolvedValueOnce({ records: [] });
+          querySpy.mockResolvedValueOnce({ records: [] });
+
+          mockConnection.sobject.mockReturnValue({
+            create: vi.fn().mockResolvedValue({
+              success: true,
+              id: "newLeadId",
+              name: "New Lead",
+              email: "test@newlead.com",
+            }),
+          });
+
+          const result = await service.createContacts([{ name: "New Lead", email: "test@newlead.com" }]);
+          expect(result).toEqual([{ id: "newLeadId", email: "test@newlead.com" }]);
+        });
+      });
+    });
+  });
+
+  describe("getAllPossibleAccountWebsiteFromEmailDomain", () => {
+    it("should return all possible account websites from email domain", () => {
+      const result = service.getAllPossibleAccountWebsiteFromEmailDomain("example.com");
+      expect(result).toEqual(
+        "'example.com', 'www.example.com', 'http://www.example.com', 'http://example.com', 'https://www.example.com', 'https://example.com'"
+      );
+    });
+  });
+
+  describe("getAccountBasedOnEmailDomainOfContacts", () => {
+    it("should return the account ID based on email domain", async () => {
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce(accountQueryResponse);
+
+      await service.getAccountBasedOnEmailDomainOfContacts("test@example.com");
+      expect(querySpy).toHaveBeenNthCalledWith(
+        1,
+        `SELECT Id, OwnerId, Owner.Email, Website FROM Account WHERE Website IN (${service.getAllPossibleAccountWebsiteFromEmailDomain(
+          "example.com"
+        )}) LIMIT 1`
+      );
     });
   });
 });

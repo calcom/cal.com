@@ -4,7 +4,7 @@ import { expect, type Page } from "@playwright/test";
 import prisma from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
-import { localize } from "../lib/testUtils";
+import { localize } from "../lib/localize";
 
 type CreateWorkflowProps = {
   name?: string;
@@ -29,7 +29,15 @@ export function createWorkflowPageFixture(page: Page) {
       page.getByText(trigger);
       await selectEventType("30 min");
     }
-    await saveWorkflow();
+    const workflow = await saveWorkflow();
+
+    for (const step of workflow.steps) {
+      await prisma.workflowStep.update({
+        where: { id: step.id },
+        data: { verifiedAt: new Date() },
+      });
+    }
+
     await page.getByTestId("go-back-button").click();
   };
 
@@ -38,6 +46,8 @@ export function createWorkflowPageFixture(page: Page) {
     await page.getByTestId("save-workflow").click();
     const response = await submitPromise;
     expect(response.status()).toBe(200);
+    const responseData = await response.json();
+    return responseData[0].result.data.json.workflow;
   };
 
   const assertListCount = async (count: number) => {

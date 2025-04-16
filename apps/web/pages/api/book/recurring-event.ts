@@ -10,7 +10,22 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 
 // @TODO: Didn't look at the contents of this function in order to not break old booking page.
 
-async function handler(req: NextApiRequest & { userId?: number }) {
+type PlatformParams = {
+  platformClientId?: string;
+  platformCancelUrl?: string;
+  platformBookingUrl?: string;
+  platformRescheduleUrl?: string;
+  platformBookingLocation?: string;
+};
+
+type RequestMeta = {
+  userId?: number;
+  hostname?: string;
+  forcedSlug?: string;
+  noEmail?: boolean;
+} & PlatformParams;
+
+async function handler(req: NextApiRequest & RequestMeta) {
   const userIp = getIP(req);
 
   if (process.env.NEXT_PUBLIC_CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1") {
@@ -26,9 +41,17 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   });
   const session = await getServerSession({ req });
   /* To mimic API behavior and comply with types */
-  req.userId = session?.user?.id || -1;
 
-  const createdBookings: BookingResponse[] = await handleNewRecurringBooking(req);
+  const createdBookings: BookingResponse[] = await handleNewRecurringBooking({
+    bookingData: req.body,
+    userId: session?.user?.id || -1,
+    platformClientId: req.platformClientId,
+    platformCancelUrl: req.platformCancelUrl,
+    platformBookingUrl: req.platformBookingUrl,
+    platformRescheduleUrl: req.platformRescheduleUrl,
+    platformBookingLocation: req.platformBookingLocation,
+    noEmail: req.noEmail,
+  });
 
   return createdBookings;
 }

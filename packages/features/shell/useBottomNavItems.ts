@@ -1,10 +1,8 @@
 import type { User as UserAuth } from "next-auth";
-import { useState } from "react";
 
-import { IS_CALCOM } from "@calcom/lib/constants";
-import { useCopy } from "@calcom/lib/hooks/useCopy";
+import { IS_DUB_REFERRALS_ENABLED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { type NavigationItemType } from "./navigation/NavigationItem";
 
@@ -20,8 +18,6 @@ export function useBottomNavItems({
   user,
 }: BottomNavItemsProps): NavigationItemType[] {
   const { t } = useLocale();
-  const [isReferalLoading, setIsReferalLoading] = useState(false);
-  const { fetchAndCopyToClipboard } = useCopy();
 
   return [
     {
@@ -40,31 +36,11 @@ export function useBottomNavItems({
       },
       icon: "copy",
     },
-    IS_CALCOM
+    IS_DUB_REFERRALS_ENABLED
       ? {
-          name: "copy_referral_link",
-          href: "",
-          onClick: (e: { preventDefault: () => void }) => {
-            e.preventDefault();
-            setIsReferalLoading(true);
-            // Create an artificial delay to show the loading state so it doesn't flicker if this request is fast
-            setTimeout(() => {
-              fetchAndCopyToClipboard(
-                fetch("/api/generate-referral-link", {
-                  method: "POST",
-                })
-                  .then((res) => res.json())
-                  .then((res) => res.shortLink),
-                {
-                  onSuccess: () => showToast(t("link_copied"), "success"),
-                  onFailure: () => showToast("Copy to clipboard failed", "error"),
-                }
-              );
-              setIsReferalLoading(false);
-            }, 1000);
-          },
+          name: "referral_text",
+          href: "/refer",
           icon: "gift",
-          isLoading: isReferalLoading,
         }
       : null,
     isAdmin

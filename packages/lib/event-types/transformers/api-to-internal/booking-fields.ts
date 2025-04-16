@@ -147,6 +147,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
       placeholder: field.placeholder,
       disableOnPrefill: !!field.disableOnPrefill,
       required: field.required,
+      hidden: !!field.hidden,
     };
   }
 
@@ -290,7 +291,9 @@ function fieldIsCustomSystemRescheduleReason(
 }
 
 function fieldIsDefaultAttendeePhone(field: InputBookingField): field is PhoneDefaultFieldOutput_2024_06_14 {
-  return "slug" in field && field.slug === "attendeePhoneNumber";
+  const isPhone = "type" in field && field.type === "phone";
+  const isAttendeePhoneNumber = "slug" in field && field.slug === "attendeePhoneNumber";
+  return isPhone && isAttendeePhoneNumber;
 }
 
 function fieldIsDefaultSystemLocation(

@@ -1,6 +1,5 @@
-// eslint-disable-next-line no-restricted-imports
-import { cloneDeep } from "lodash";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
+import { default as cloneDeep } from "lodash/cloneDeep";
 
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { TimeFormat } from "@calcom/lib/timeFormat";
@@ -40,7 +39,12 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       }),
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
-      replyTo: [...this.calEvent.attendees.map(({ email }) => email), this.calEvent.organizer.email],
+      replyTo: [
+        ...this.calEvent.attendees
+          .filter(({ email }) => email !== this.attendee.email)
+          .map(({ email }) => email),
+        this.calEvent.organizer.email,
+      ],
       subject: `${this.calEvent.title}`,
       html: await this.getHtml(clonedCalEvent, this.attendee),
       text: this.getTextBody(),

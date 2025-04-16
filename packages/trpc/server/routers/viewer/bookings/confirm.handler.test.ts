@@ -5,7 +5,7 @@ import { describe, it, beforeEach, vi, expect } from "vitest";
 
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import { confirmHandler } from "./confirm.handler";
 
 describe.skip("confirmHandler", () => {

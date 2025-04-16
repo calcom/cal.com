@@ -2,7 +2,7 @@ import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import { processUserAttributes } from "./attributeUtils";
 import type { ZBulkAssignAttributes } from "./bulkAssignAttributes.schema";
 

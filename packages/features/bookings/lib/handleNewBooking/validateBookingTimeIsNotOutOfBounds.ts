@@ -52,5 +52,5 @@ export const validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBook
     }
   }
 
-  if (timeOutOfBounds) throw new Error(ErrorCode.BookingTimeOutOfBounds);
+  if (timeOutOfBounds) throw new HttpError({ statusCode: 400, message: ErrorCode.BookingTimeOutOfBounds });
 };
