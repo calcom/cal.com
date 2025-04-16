@@ -1,5 +1,7 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
+import type { Dispatch, SetStateAction } from "react";
 import { useState, useMemo } from "react";
 import FormInputFields from "routing-forms/components/FormInputFields";
 import { getAbsoluteEventTypeRedirectUrl } from "routing-forms/getEventTypeRedirectUrl";
@@ -27,6 +29,71 @@ export type UptoDateForm = Brand<
   "UptoDateForm"
 >;
 
+const FormView = ({
+  form,
+  response,
+  setResponse,
+  areRequiredFieldsFilled,
+  onClose,
+  onSubmit,
+  renderFooter,
+}: {
+  form: UptoDateForm | RoutingForm;
+  response: FormResponse;
+  setResponse: Dispatch<SetStateAction<FormResponse>>;
+  areRequiredFieldsFilled: boolean;
+  onClose: () => void;
+  onSubmit: () => void;
+  renderFooter?: (onClose: () => void, onSubmit: () => void, isValid: boolean) => React.ReactNode;
+}) => {
+  const { t } = useLocale();
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20 }}
+      transition={{ duration: 0.2 }}>
+      <div className="px-1">
+        {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
+      </div>
+      {!renderFooter ? (
+        <div className="mt-4">
+          <Button onClick={onSubmit} disabled={!areRequiredFieldsFilled}>
+            {t("submit")}
+          </Button>
+        </div>
+      ) : (
+        renderFooter(onClose, onSubmit, areRequiredFieldsFilled)
+      )}
+    </motion.div>
+  );
+};
+
+const ResultsView = ({
+  showAllData,
+  renderTestResult,
+  onBack,
+}: {
+  showAllData: boolean;
+  renderTestResult: (showAllData: boolean) => React.ReactNode;
+  onBack: () => void;
+}) => {
+  const { t } = useLocale();
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      transition={{ duration: 0.2 }}>
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-emphasis text-lg font-semibold">{t("results")}</h3>
+        <Button color="minimal" size="sm" variant="icon" StartIcon="x" onClick={onBack} />
+      </div>
+      {renderTestResult(showAllData)}
+    </motion.div>
+  );
+};
+
 export const TestForm = ({
   form,
   supportsTeamMembersMatchingLogic,
@@ -44,9 +111,11 @@ export const TestForm = ({
   const [eventTypeUrlWithoutParams, setEventTypeUrlWithoutParams] = useState("");
   const searchParams = useCompatSearchParams();
   const [membersMatchResult, setMembersMatchResult] = useState<MembersMatchResultType | null>(null);
+  const [showResults, setShowResults] = useState(false);
 
   const resetMembersMatchResult = () => {
     setMembersMatchResult(null);
+    setShowResults(false);
   };
   const findTeamMembersMatchingAttributeLogicMutation =
     trpc.viewer.routingForms.findTeamMembersMatchingAttributeLogicOfRoute.useMutation({
@@ -88,6 +157,7 @@ export const TestForm = ({
     }
 
     setChosenRoute(route || null);
+    setShowResults(true);
 
     if (!route) return;
 
@@ -220,35 +290,33 @@ export const TestForm = ({
   const onClose = () => {
     setChosenRoute(null);
     setResponse({});
+    setShowResults(false);
   };
 
   return (
     <div>
-      <div className="px-1">
-        {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
-      </div>
-      {!renderFooter ? (
-        <div className="mt-4">
-          <Button
-            onClick={() => {
+      <AnimatePresence mode="wait">
+        {!showResults ? (
+          <FormView
+            form={form}
+            response={response}
+            setResponse={setResponse}
+            areRequiredFieldsFilled={areRequiredFieldsFilled}
+            onClose={onClose}
+            onSubmit={() => {
               resetMembersMatchResult();
               testRouting();
             }}
-            disabled={!areRequiredFieldsFilled}>
-            {t("submit")}
-          </Button>
-        </div>
-      ) : (
-        renderFooter(
-          onClose,
-          () => {
-            resetMembersMatchResult();
-            testRouting();
-          },
-          areRequiredFieldsFilled
-        )
-      )}
-      <div>{renderTestResult(showAllData)}</div>
+            renderFooter={renderFooter}
+          />
+        ) : (
+          <ResultsView
+            showAllData={showAllData}
+            renderTestResult={renderTestResult}
+            onBack={() => setShowResults(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -271,10 +339,6 @@ export const TestFormRenderer = ({
     if (isTestPreviewOpen) {
       return (
         <div className="border-muted bg-muted h-full border-l p-6">
-          <div className="mb-6 flex items-center justify-between">
-            <h3 className="text-emphasis text-lg font-semibold">{t("preview")}</h3>
-            <Button color="minimal" size="sm" variant="icon" StartIcon="x" />
-          </div>
           <TestForm form={testForm} supportsTeamMembersMatchingLogic={isSubTeamForm} />
         </div>
       );
