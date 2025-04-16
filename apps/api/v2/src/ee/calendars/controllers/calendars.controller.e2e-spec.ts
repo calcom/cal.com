@@ -129,7 +129,7 @@ describe("Platform Calendars Endpoints", () => {
 
   it(`/GET/v2/calendars/${GOOGLE_CALENDAR}/connect: it should redirect to auth-url for google calendar OAuth with valid access token `, async () => {
     const response = await request(app.getHttpServer())
-      .get(`/v2/calendars/${GOOGLE_CALENDAR}/connect`)
+      .get(`/v2/calendars/${GOOGLE_CALENDAR}/connect?redir=https://cal.com&isDryRun=false`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .set("Origin", CLIENT_REDIRECT_URI)
       .expect(200);

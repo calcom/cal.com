@@ -1151,6 +1151,7 @@ export default class SalesforceCRMService implements CRM {
     const writeOnRecordBody: Record<string, any> = {};
 
     for (const field of existingFields) {
+      let fieldTypeHandled = false;
       const fieldConfig = fieldsToWriteTo[field.name];
 
       if (!fieldConfig) {
@@ -1173,11 +1174,14 @@ export default class SalesforceCRMService implements CRM {
       }
 
       if (fieldConfig.fieldType === SalesforceFieldType.CUSTOM) {
+        fieldTypeHandled = true;
         const extractedValue = await this.getTextFieldValue({
           fieldValue: fieldConfig.value,
           fieldLength: field.length,
           calEventResponses,
           bookingUid,
+          recordId,
+          fieldName: field.name,
         });
         if (extractedValue) {
           writeOnRecordBody[field.name] = extractedValue;
@@ -1191,11 +1195,14 @@ export default class SalesforceCRMService implements CRM {
         field.type === SalesforceFieldType.TEXTAREA ||
         field.type === SalesforceFieldType.PHONE
       ) {
+        fieldTypeHandled = true;
         const extractedText = await this.getTextFieldValue({
           fieldValue: fieldConfig.value,
           fieldLength: field.length,
           calEventResponses,
           bookingUid,
+          recordId,
+          fieldName: field.name,
         });
         if (extractedText) {
           writeOnRecordBody[field.name] = extractedText;
@@ -1206,6 +1213,7 @@ export default class SalesforceCRMService implements CRM {
         startTime &&
         organizerEmail
       ) {
+        fieldTypeHandled = true;
         const dateValue = await this.getDateFieldValue(
           fieldConfig.value,
           startTime,
@@ -1217,6 +1225,7 @@ export default class SalesforceCRMService implements CRM {
           continue;
         }
       } else if (field.type === SalesforceFieldType.PICKLIST) {
+        fieldTypeHandled = true;
         const picklistValue = await this.getPicklistFieldValue({
           fieldConfigValue: fieldConfig.value,
           salesforceField: field,
@@ -1229,12 +1238,16 @@ export default class SalesforceCRMService implements CRM {
           continue;
         }
       } else if (field.type === SalesforceFieldType.CHECKBOX) {
+        fieldTypeHandled = true;
         // If the checkbox field value is not a boolean for some reason, default to if it's a falsely value
         const checkboxValue = !!fieldConfig.value;
         writeOnRecordBody[field.name] = checkboxValue;
         continue;
       }
 
+      if (!fieldTypeHandled) {
+        log.error(`Salesforce field type ${field.type} not handled for fieldConfig ${fieldConfig}`);
+      }
       log.error(
         `No value found for field ${field.name} with value ${
           personRecord[field.name]
@@ -1268,6 +1281,8 @@ export default class SalesforceCRMService implements CRM {
         fieldLength: field.length,
         calEventResponses: event.responses,
         bookingUid: event?.uid,
+        recordId: event?.uid ?? "Cal booking",
+        fieldName: field.name,
       });
     }
 
@@ -1279,34 +1294,60 @@ export default class SalesforceCRMService implements CRM {
     fieldLength,
     calEventResponses,
     bookingUid,
+    recordId,
+    fieldName,
   }: {
     fieldValue: string;
     fieldLength?: number;
     calEventResponses?: CalEventResponses | null;
     bookingUid?: string | null;
+    recordId: string;
+    fieldName: string;
   }) {
+    const log = logger.getSubLogger({ prefix: [`[getTextFieldValue]: ${recordId} - ${fieldName}`] });
+
     // If no {} then indicates we're passing a static value
-    if (!fieldValue.startsWith("{") && !fieldValue.endsWith("}")) return fieldValue;
+    if (!fieldValue.startsWith("{") && !fieldValue.endsWith("}")) {
+      log.info("Returning static value");
+      return fieldValue;
+    }
 
     let valueToWrite = fieldValue;
     if (fieldValue.startsWith("{form:")) {
       // Get routing from response
-      if (!bookingUid) return;
-      valueToWrite = await this.getTextValueFromRoutingFormResponse(fieldValue, bookingUid);
+      if (!bookingUid) {
+        log.error(`BookingUid not passed. Cannot get form responses without it`);
+        return;
+      }
+      valueToWrite = await this.getTextValueFromRoutingFormResponse(fieldValue, bookingUid, recordId);
     } else {
       // Get the value from the booking response
-      if (!calEventResponses) return;
+      if (!calEventResponses) {
+        log.error(`CalEventResponses not passed. Cannot get booking form responses`);
+        return;
+      }
       valueToWrite = this.getTextValueFromBookingResponse(fieldValue, calEventResponses);
     }
 
     // If a value wasn't found in the responses. Don't return the field name
-    if (valueToWrite === fieldValue) return;
+    if (valueToWrite === fieldValue) {
+      log.error("No responses found returning nothing");
+      return;
+    }
 
     // Trim incase the replacement values increased the length
     return fieldLength ? valueToWrite.substring(0, fieldLength) : valueToWrite;
   }
 
-  private async getTextValueFromRoutingFormResponse(fieldValue: string, bookingUid: string) {
+  private async getTextValueFromRoutingFormResponse(
+    fieldValue: string,
+    bookingUid: string,
+    recordId: string
+  ) {
+    const log = logger.getSubLogger({
+      prefix: [`[getTextValueFromRoutingFormResponse]: ${recordId} - bookingUid: ${bookingUid}`],
+    });
+
     // Get the form response
     const routingFormResponse = await prisma.app_RoutingForms_FormResponse.findFirst({
       where: {
@@ -1316,14 +1357,23 @@ export default class SalesforceCRMService implements CRM {
         response: true,
       },
     });
-    if (!routingFormResponse) return fieldValue;
+    if (!routingFormResponse) {
+      log.error("Routing form response not found");
+      return fieldValue;
+    }
     const response = routingFormResponse.response as FormResponse;
     const regex = /\{form:(.*?)\}/;
     const regexMatch = fieldValue.match(regex);
-    if (!regexMatch) return fieldValue;
+    if (!regexMatch) {
+      log.error("Could not find regex match to {form:}");
+      return fieldValue;
+    }
 
     const identifierField = regexMatch?.[1];
-    if (!identifierField) return fieldValue;
+    if (!identifierField) {
+      log.error(`Could not find matching regex string ${regexMatch}`);
+      return fieldValue;
+    }
 
     // Search for fieldValue, only handle raw text return for now
     for (const fieldId of Object.keys(response)) {
@@ -1332,6 +1382,11 @@ export default class SalesforceCRMService implements CRM {
         return field.value.toString();
       }
     }
+    log.error(
+      `Could not find form response value for identifierField ${identifierField} in response keys ${Object.keys(
+        response
+      )}`
+    );
 
     return fieldValue;
   }
@@ -1407,6 +1462,8 @@ export default class SalesforceCRMService implements CRM {
       fieldLength: salesforceField.length,
       calEventResponses,
       bookingUid,
+      recordId,
+      fieldName: salesforceField.name,
     });
 
     if (!fieldTextValue) {
@@ -1536,6 +1593,8 @@ export default class SalesforceCRMService implements CRM {
       fieldValue: onBookingWriteToRecordFields[companyFieldName].value as string,
       fieldLength: defaultTextValueLength,
       calEventResponses,
+      recordId: "New lead",
+      fieldName: companyFieldName,
     });
 
     if (companyValue && companyValue === onBookingWriteToRecordFields[companyFieldName].value) return;

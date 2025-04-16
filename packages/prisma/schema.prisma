@@ -1061,15 +1061,17 @@ model App_RoutingForms_Form {
 }
 
 model App_RoutingForms_FormResponse {
-  id                 Int                   @id @default(autoincrement())
-  formFillerId       String                @default(cuid())
-  form               App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
-  formId             String
-  response           Json
-  createdAt          DateTime              @default(now())
-  routedToBookingUid String?               @unique
+  id           Int                   @id @default(autoincrement())
+  formFillerId String                @default(cuid())
+  form         App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId       String
+  response     Json
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime?             @updatedAt
+
+  routedToBookingUid String?  @unique
   // We should not cascade delete the booking, because we want to keep the form response even if the routedToBooking is deleted
-  routedToBooking    Booking?              @relation(fields: [routedToBookingUid], references: [uid])
+  routedToBooking    Booking? @relation(fields: [routedToBookingUid], references: [uid])
   chosenRouteId      String?
 
   @@unique([formFillerId, formId])
@@ -1240,6 +1242,7 @@ enum TimeUnit {
 
 model WorkflowReminder {
   id                  Int             @id @default(autoincrement())
+  uuid                String?         @unique @default(uuid())
   bookingUid          String?
   booking             Booking?        @relation(fields: [bookingUid], references: [uid])
   method              WorkflowMethods
@@ -1669,6 +1672,7 @@ model Task {
   maxAttempts         Int       @default(3)
   lastError           String?
   lastFailedAttemptAt DateTime?
+  referenceUid        String?
 }
 
 enum SMSLockState {
