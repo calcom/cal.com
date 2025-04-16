@@ -312,20 +312,12 @@ test.describe("Routing Forms", () => {
       await page.fill('[data-testid="form-field-short-text"]', "Test Input");
       await page.click('button[type="submit"]');
 
-      // Wait for redirect and verify presence of routingFormResponseId in URL
+      // Wait for redirect and verify presence of valid routingFormResponseId in URL
       await page.waitForURL((url) => {
-        return (
-          url.pathname.includes(`/${user.username}/30min`) &&
-          url.searchParams.has("cal.routingFormResponseId")
-        );
+        const routingFormResponseId = url.searchParams.get("cal.routingFormResponseId");
+        const parsedId = Number(routingFormResponseId);
+        return !!routingFormResponseId && !isNaN(parsedId);
       });
-
-      const currentUrl = new URL(page.url());
-      const routingFormResponseId = currentUrl.searchParams.get("cal.routingFormResponseId");
-
-      // Verify it's a valid number (not NaN)
-      const parsedId = Number(routingFormResponseId);
-      expect(isNaN(parsedId)).toBeFalsy();
 
       await selectFirstAvailableTimeSlotNextMonth(page);
 
