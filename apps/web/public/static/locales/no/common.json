@@ -3053,5 +3053,17 @@
   "most_cancelled_bookings": "Flest kansellerte bestillinger",
   "name_or_email": "Navn eller e-post",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Hvis ingen kontakt blir funnet, fall tilbake til leadeier hvis den eksisterer",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time": "Dato og klokkeslett",
+  "email_reminder_upcoming_event_notice": "Dette er en påminnelse om din kommende hendelse.",
+  "email_reminder_triggered_by_workflow": "Denne påminnelsen ble utløst av en Workflow i Cal.",
+  "event_upper_case": "Arrangement",
+  "scheduling_by": "Planlagt av",
+  "experience_review_prompt": "Hvordan var din siste opplevelse?",
+  "improve_customer_experience_message": "Vi forbedrer hele tiden kundeopplevelsen.",
+  "meeting_satisfaction_question": "Hvor fornøyd var du med ditt siste møte?",
+  "meeting_not_joined_question": "deltok ikke i møtet?",
+  "reschedule_cta_short": "Planlegg på nytt her.",
+  "you_and_conjunction": "Du &",
+  "email_survey_triggered_by_workflow": "Denne undersøkelsen ble utløst av en arbeidsflyt i Cal."
 }
