@@ -26,15 +26,18 @@ type ImageUploaderProps = {
   uploadInstruction?: string;
   disabled?: boolean;
   testId?: string;
+  translations?: Record<string, string>;
 };
 
 // This is separate to prevent loading the component until file upload
 function CropContainer({
   onCropComplete,
   imageSrc,
+  translations = {},
 }: {
   imageSrc: string;
   onCropComplete: (croppedAreaPixels: Area) => void;
+  translations?: Record<string, string>;
 }) {
   const { t } = useLocale();
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -62,7 +65,7 @@ function CropContainer({
         min={1}
         max={3}
         step={0.1}
-        label={t("slide_zoom_drag_instructions")}
+        label={translations["slide_zoom_drag_instructions"] || t("slide_zoom_drag_instructions")}
         changeHandler={handleZoomSliderChange}
       />
     </div>
@@ -80,6 +83,7 @@ export default function ImageUploader({
   disabled = false,
   testId,
   buttonSize,
+  translations = {},
 }: ImageUploaderProps) {
   const { t } = useLocale();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
@@ -97,7 +101,7 @@ export default function ImageUploader({
     const file = e.target.files[0];
 
     if (file.size > limit) {
-      showToast(t("image_size_limit_exceed"), "error");
+      showToast(translations["image_size_limit_exceed"] || t("image_size_limit_exceed"), "error");
     } else {
       setFile(file);
     }
@@ -138,14 +142,21 @@ export default function ImageUploader({
           {buttonMsg}
         </Button>
       </DialogTrigger>
-      <DialogContent title={t("upload_target", { target })}>
+      <DialogContent
+        title={
+          translations["upload_target"]
+            ? translations["upload_target"].replace("{target}", target)
+            : t("upload_target", { target })
+        }>
         <div className="mb-4">
           <div className="cropper mt-6 flex flex-col items-center justify-center p-8">
             {!result && (
               <div className="bg-muted flex h-20 max-h-20 w-20 items-center justify-start rounded-full">
                 {!imageSrc || checkIfItFallbackImage(imageSrc) ? (
                   <p className="text-emphasis w-full text-center text-sm sm:text-xs">
-                    {t("no_target", { target })}
+                    {translations["no_target"]
+                      ? translations["no_target"].replace("{target}", target)
+                      : t("no_target", { target })}
                   </p>
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -153,7 +164,13 @@ export default function ImageUploader({
                 )}
               </div>
             )}
-            {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
+            {result && (
+              <CropContainer
+                imageSrc={result as string}
+                onCropComplete={setCroppedAreaPixels}
+                translations={translations}
+              />
+            )}
             <label
               data-testid={testId ? `open-upload-${testId}-filechooser` : "open-upload-image-filechooser"}
               className="bg-subtle hover:bg-muted hover:text-emphasis border-subtle text-default mt-8 cursor-pointer rounded-sm border px-3 py-1 text-xs font-medium leading-4 transition focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
@@ -161,11 +178,11 @@ export default function ImageUploader({
                 onInput={onInputFile}
                 type="file"
                 name={id}
-                placeholder={t("upload_image")}
+                placeholder={translations["upload_image"] || t("upload_image")}
                 className="text-default pointer-events-none absolute mt-4 opacity-0 "
                 accept="image/*"
               />
-              {t("choose_a_file")}
+              {translations["choose_a_file"] || t("choose_a_file")}
             </label>
             {uploadInstruction && (
               <p className="text-muted mt-4 text-center text-sm">({uploadInstruction})</p>
@@ -173,12 +190,12 @@ export default function ImageUploader({
           </div>
         </div>
         <DialogFooter className="relative">
-          <DialogClose color="minimal">{t("cancel")}</DialogClose>
+          <DialogClose color="minimal">{translations["cancel"] || t("cancel")}</DialogClose>
           <DialogClose
             data-testid={testId ? `upload-${testId}` : "upload-avatar"}
             color="primary"
             onClick={() => showCroppedImage(croppedAreaPixels)}>
-            {t("save")}
+            {translations["save"] || t("save")}
           </DialogClose>
         </DialogFooter>
       </DialogContent>

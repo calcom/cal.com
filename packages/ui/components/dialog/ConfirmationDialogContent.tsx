@@ -18,6 +18,7 @@ export type ConfirmationDialogContentProps = {
   onConfirm?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   title: string;
   variety?: "danger" | "warning" | "success";
+  translations?: Record<string, string>;
 } & ConfirmBtnType;
 
 export function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
@@ -34,9 +35,10 @@ export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogC
     title,
     variety,
     confirmBtn = null,
-    confirmBtnText = t("confirm"),
-    cancelBtnText = t("cancel"),
-    loadingText = t("loading"),
+    translations = {},
+    confirmBtnText = translations["confirm"] || t("confirm"),
+    cancelBtnText = translations["cancel"] || t("cancel"),
+    loadingText = translations["loading"] || t("loading"),
     isPending = false,
     onConfirm,
     children,

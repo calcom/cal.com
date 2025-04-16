@@ -11,9 +11,10 @@ interface MultiEmailProps {
   label: string;
   setValue: (value: string[]) => void;
   placeholder?: string;
+  translations?: Record<string, string>;
 }
 
-function MultiEmail({ value, readOnly, label, setValue, placeholder }: MultiEmailProps) {
+function MultiEmail({ value, readOnly, label, setValue, placeholder, translations = {} }: MultiEmailProps) {
   const { t } = useLocale();
   value = value || [];
   const inputClassName =
@@ -70,7 +71,7 @@ function MultiEmail({ value, readOnly, label, setValue, placeholder }: MultiEmai
                 updatedValue.push("");
                 setValue(updatedValue);
               }}>
-              {t("add_another")}
+              {translations["add_another"] || t("add_another")}
             </Button>
           )}
         </div>

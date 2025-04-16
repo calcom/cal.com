@@ -71,10 +71,19 @@ export type ListLinkItemProps = {
   subHeading: string;
   disabled?: boolean;
   actions?: JSX.Element;
+  translations?: Record<string, string>;
 } & JSX.IntrinsicElements["li"];
 
 export function ListLinkItem(props: ListLinkItemProps) {
-  const { href, heading = "", children, disabled = false, actions = <div />, className = "" } = props;
+  const {
+    href,
+    heading = "",
+    children,
+    disabled = false,
+    actions = <div />,
+    className = "",
+    translations = {},
+  } = props;
   const { t } = useLocale();
   let subHeading = props.subHeading;
   if (!subHeading) {
@@ -99,7 +108,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
           <h1 className="text-sm font-semibold leading-none">{heading}</h1>
           {disabled && (
             <Badge data-testid="badge" variant="gray" className="ml-2">
-              {t("readonly")}
+              {translations["readonly"] || t("readonly")}
             </Badge>
           )}
         </div>

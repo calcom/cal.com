@@ -46,6 +46,7 @@ type InputFieldProps = {
   label?: ReactNode;
   hint?: ReactNode;
   addOnLeading?: ReactNode;
+  translations?: Record<string, string>;
 } & React.ComponentProps<typeof Input> & {
     labelProps?: React.ComponentProps<typeof Label>;
   };
@@ -55,14 +56,14 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
   const { t } = useLocale();
   const methods = useFormContext();
   const {
-    label = t(props.name),
+    label = props.translations?.[props.name] || t(props.name),
     labelProps,
-    placeholder = t(`${props.name}_placeholder`) !== `${props.name}_placeholder`
-      ? t(`${props.name}_placeholder`)
-      : "",
+    placeholder = props.translations?.[`${props.name}_placeholder`] ||
+      (t(`${props.name}_placeholder`) !== `${props.name}_placeholder` ? t(`${props.name}_placeholder`) : ""),
     className,
     addOnLeading,
     hint,
+    translations = {},
     ...passThrough
   } = props;
   return (
@@ -156,6 +157,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
 
 type TextAreaFieldProps = {
   label?: ReactNode;
+  translations?: Record<string, string>;
 } & React.ComponentProps<typeof TextArea> & {
     labelProps?: React.ComponentProps<typeof Label>;
   };
@@ -168,11 +170,11 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
   const { t } = useLocale();
   const methods = useFormContext();
   const {
-    label = t(props.name as string),
+    label = props.translations?.[props.name as string] || t(props.name as string),
     labelProps,
-    placeholder = t(`${props.name}_placeholder`) !== `${props.name}_placeholder`
-      ? t(`${props.name}_placeholder`)
-      : "",
+    placeholder = props.translations?.[`${props.name}_placeholder`] ||
+      (t(`${props.name}_placeholder`) !== `${props.name}_placeholder` ? t(`${props.name}_placeholder`) : ""),
+    translations = {},
     ...passThrough
   } = props;
   return (

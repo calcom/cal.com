@@ -8,8 +8,10 @@ import { Badge } from "./Badge";
 
 export const UpgradeTeamsBadge = function UpgradeTeamsBadge({
   checkForActiveStatus,
+  translations = {},
 }: {
   checkForActiveStatus?: boolean;
+  translations?: Record<string, string>;
 }) {
   const { t } = useLocale();
   const { hasPaidPlan } = useHasPaidPlan();
@@ -19,13 +21,17 @@ export const UpgradeTeamsBadge = function UpgradeTeamsBadge({
     if (!checkForActiveStatus || hasActiveTeamPlan) return null;
   }
 
-  const badgeString = isTrial ? t("trial_mode") : hasPaidPlan ? t("inactive_team_plan") : t("upgrade");
+  const badgeString = isTrial
+    ? translations["trial_mode"] || t("trial_mode")
+    : hasPaidPlan
+    ? translations["inactive_team_plan"] || t("inactive_team_plan")
+    : translations["upgrade"] || t("upgrade");
 
   const tooltipString = isTrial
-    ? t("limited_access_trial_mode")
+    ? translations["limited_access_trial_mode"] || t("limited_access_trial_mode")
     : hasPaidPlan
-    ? t("inactive_team_plan_description")
-    : t("upgrade_to_enable_feature");
+    ? translations["inactive_team_plan_description"] || t("inactive_team_plan_description")
+    : translations["upgrade_to_enable_feature"] || t("upgrade_to_enable_feature");
 
   return (
     <Tooltip content={tooltipString}>

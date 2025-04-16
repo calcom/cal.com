@@ -17,6 +17,7 @@ export interface PaginationProps {
   onNext?: () => void;
   onPrevious?: () => void;
   pageSizeOptions?: number[];
+  translations?: Record<string, string>;
 }
 
 const DEFAULT_PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
@@ -30,6 +31,7 @@ export const Pagination = ({
   pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS,
   onNext,
   onPrevious,
+  translations = {},
 }: PaginationProps) => {
   const { t } = useLocale();
   const [internalPageSize, setInternalPageSize] = useState(pageSize);
@@ -76,14 +78,18 @@ export const Pagination = ({
           onChange={handlePageSizeChange}
           size="sm"
         />
-        <span className="text-default text-sm">{t("rows_per_page")}</span>
+        <span className="text-default text-sm">{translations["rows_per_page"] || t("rows_per_page")}</span>
       </div>
       <div className="flex items-center space-x-2">
         <span className="text-default text-sm">
-          {t("pagination_status", {
-            currentRange: `${startItem}-${endItem}`,
-            totalItems,
-          })}
+          {translations["pagination_status"]
+            ? translations["pagination_status"]
+                .replace("{currentRange}", `${startItem}-${endItem}`)
+                .replace("{totalItems}", `${totalItems}`)
+            : t("pagination_status", {
+                currentRange: `${startItem}-${endItem}`,
+                totalItems,
+              })}
         </span>
         <ButtonGroup containerProps={{ className: "space-x-1.5" }}>
           <Button
