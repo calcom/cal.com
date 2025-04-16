@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { createElement } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
 import { Badge } from "../badge";
@@ -84,7 +83,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
     className = "",
     translations = {},
   } = props;
-  const { t } = useLocale();
+
   let subHeading = props.subHeading;
   if (!subHeading) {
     subHeading = "";
@@ -108,7 +107,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
           <h1 className="text-sm font-semibold leading-none">{heading}</h1>
           {disabled && (
             <Badge data-testid="badge" variant="gray" className="ml-2">
-              {translations["readonly"] || t("readonly")}
+              {translations["readonly"]}
             </Badge>
           )}
         </div>
