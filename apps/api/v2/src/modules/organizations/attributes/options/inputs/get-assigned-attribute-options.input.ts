@@ -1,11 +1,18 @@
-import { GetUsersInput } from "@/modules/users/inputs/get-users.input";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { Expose } from "class-transformer";
-import { IsOptional, IsArray, ArrayMinSize, IsString, IsIn, IsNumber } from "class-validator";
+import { IsOptional, IsArray, ArrayMinSize, IsString, IsNumber } from "class-validator";
 
-export class GetOrganizationsUsersInput extends GetUsersInput {
-  @Expose()
+export class GetAssignedAttributeOptions {
+  @ApiPropertyOptional({ type: Number, description: "Number of responses to skip" })
+  @Transform(({ value }) => value && parseInt(value))
+  @IsOptional()
+  skip?: number;
+
+  @ApiPropertyOptional({ type: Number, description: "Number of responses to take" })
+  @Transform(({ value }) => value && parseInt(value))
+  @IsOptional()
+  take?: number;
+
   @IsOptional()
   @Transform(({ value }) => {
     if (typeof value === "string") {
@@ -22,16 +29,6 @@ export class GetOrganizationsUsersInput extends GetUsersInput {
   @IsString({ each: true })
   @ArrayMinSize(1, { message: "assignedOptionIds must contain at least 1 attribute option id" })
   assignedOptionIds?: string[];
-
-  @ApiPropertyOptional({
-    type: String,
-    description: "Query operator used to filter assigned options, AND by default.",
-    example: "NONE",
-  })
-  @IsOptional()
-  @IsString()
-  @IsIn(["OR", "AND", "NONE"])
-  attributeQueryOperator: "AND" | "OR" | "NONE" = "AND"; // Default value
 
   @IsOptional()
   @Transform(({ value }) => {
