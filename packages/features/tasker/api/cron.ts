@@ -1,8 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { scheduleDebouncedSeatBilling } from "@calcom/features/ee/teams/lib/payments";
-
 import tasker from "..";
 
 async function handler(request: NextRequest) {
@@ -12,12 +10,6 @@ async function handler(request: NextRequest) {
   }
 
   await tasker.processQueue();
-
-  try {
-    await scheduleDebouncedSeatBilling();
-  } catch (error) {
-    console.error("Failed to schedule debounced seat billing:", error);
-  }
 
   return NextResponse.json({ success: true });
 }
