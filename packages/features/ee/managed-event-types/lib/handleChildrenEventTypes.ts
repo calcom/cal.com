@@ -252,7 +252,7 @@ export default async function handleChildrenEventTypes({
           data: {
             ...updatePayloadFiltered,
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
-            ...(eventType.scheduleId ? { schedule: { connect: { id: eventType.scheduleId } } } : {}),
+            schedule: eventType.scheduleId ? { connect: { id: eventType.scheduleId } } : { disconnect: true },
             hashedLink:
               "multiplePrivateLinks" in unlockedFieldProps
                 ? undefined
