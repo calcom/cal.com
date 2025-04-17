@@ -85,10 +85,71 @@ export const ResultsView = ({
         transition={{ duration: 0.2 }}
         className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-emphasis text-lg font-semibold">{t("results")}</h3>
+          <h3 className="text-emphasis text-lg font-semibold">{t("results")}</h3>{" "}
           <Button color="minimal" size="sm" variant="icon" StartIcon="x" onClick={onBack} />
         </div>
-        <div>Loading...</div>
+
+        <div className="bg-default border-muted mb-0.5 flex flex-col gap-0.5 rounded-2xl border p-1">
+          <div className="flex items-center gap-2 px-2 py-1">
+            <div className="border-subtle rounded-lg border p-1">
+              <div className="h-4 w-4 animate-pulse rounded bg-gray-200" />
+            </div>
+            <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
+          </div>
+          <div className="border-subtle rounded-xl border px-3 py-2">
+            <div className="flex items-center gap-2">
+              <div className="border-subtle rounded-lg border p-1">
+                <div className="h-4 w-4 animate-pulse rounded bg-gray-200" />
+              </div>
+              <div className="h-4 w-48 animate-pulse rounded bg-gray-200" />
+            </div>
+          </div>
+        </div>
+
+        {supportsTeamMembersMatchingLogic && (
+          <>
+            <div className="bg-default border-muted mb-0.5 flex flex-col gap-0.5 rounded-2xl border p-1">
+              <div className="flex items-center gap-2 px-2 py-1">
+                <div className="border-subtle rounded-lg border p-1">
+                  <div className="h-4 w-4 animate-pulse rounded bg-gray-200" />
+                </div>
+                <div className="h-4 w-24 animate-pulse rounded bg-gray-200" />
+              </div>
+              <div className="border-subtle rounded-xl border px-3 py-2">
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
+                      <div className="h-4 w-16 animate-pulse rounded bg-gray-200" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-default border-muted mb-0.5 flex flex-col gap-0.5 rounded-2xl border p-1">
+              <div className="flex items-center gap-2 px-2 py-1">
+                <div className="border-subtle rounded-lg border p-1">
+                  <div className="h-4 w-4 animate-pulse rounded bg-gray-200" />
+                </div>
+                <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
+              </div>
+              <div className="border-subtle rounded-xl border px-3 py-2">
+                <div className="divide-subtle divide-y">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                      <div className="space-y-2">
+                        <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
+                        <div className="h-4 w-24 animate-pulse rounded bg-gray-200" />
+                      </div>
+                      <div className="h-4 w-8 animate-pulse rounded bg-gray-200" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </motion.div>
     );
   }
