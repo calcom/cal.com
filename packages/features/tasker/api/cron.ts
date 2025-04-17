@@ -8,9 +8,7 @@ async function handler(request: NextRequest) {
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return new Response("Unauthorized", { status: 401 });
   }
-
   await tasker.processQueue();
-
   return NextResponse.json({ success: true });
 }
 
