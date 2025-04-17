@@ -1320,6 +1320,12 @@ export default class SalesforceCRMService implements CRM {
         return;
       }
       valueToWrite = await this.getTextValueFromRoutingFormResponse(fieldValue, bookingUid, recordId);
+    } else if (fieldValue.startsWith("{utm:")) {
+      if (!bookingUid) {
+        log.error(`BookingUid not passed. Cannot get tracking values without it`);
+        return;
+      }
+      valueToWrite = await this.getTextValueFromBookingTracking(fieldValue, bookingUid);
     } else {
       // Get the value from the booking response
       if (!calEventResponses) {
@@ -1389,6 +1395,26 @@ export default class SalesforceCRMService implements CRM {
     );
 
     return fieldValue;
+  }
+
+  private async getTextValueFromBookingTracking(fieldValue: string, bookingUid: string) {
+    const log = logger.getSubLogger({
+      prefix: [`[getTextValueFromBookingTracking]: ${bookingUid}`],
+    });
+    const tracking = await prisma.tracking.findFirst({
+      where: {
+        booking: {
+          uid: bookingUid,
+        },
+      },
+    });
+    if (!tracking) {
+      log.warn(`No tracking found for bookingUid ${bookingUid}`);
+      return "";
+    }
+
+    const utmParam = fieldValue.split(":")[1];
+    return tracking[`utm_${utmParam}` as keyof typeof tracking]?.toString() ?? "";
   }
 
   private getTextValueFromBookingResponse(fieldValue: string, calEventResponses: CalEventResponses) {
