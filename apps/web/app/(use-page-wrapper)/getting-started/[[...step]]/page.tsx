@@ -12,7 +12,8 @@ import type { PageProps as ClientPageProps } from "~/getting-started/[[...step]]
 import Page from "~/getting-started/[[...step]]/onboarding-view";
 
 export const generateMetadata = async ({ params }: ServerPageProps) => {
-  const step = (await params).step ? (await params).step.join("/") : "";
+  const stepParam = (await params).step;
+  const step = stepParam && Array.isArray(stepParam) ? stepParam.join("/") : "";
   return await _generateMetadata(
     (t) => `${APP_NAME} - ${t("getting_started")}`,
     () => "",
