@@ -4,13 +4,18 @@ const DEBOUNCE_INTERVAL_MS = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
 
 export async function initializeDebouncedBillingScheduler() {
   try {
-    const tasks = (await tasker.getAll?.()) || [];
-    const existingTask = tasks.find(
-      (task) =>
-        task.type === "processDebouncedSeatBilling" &&
-        task.succeededAt === null &&
-        new Date(task.scheduledAt) > new Date()
-    );
+    let existingTask = false;
+    try {
+      const tasks = await tasker.list();
+      existingTask = tasks.some(
+        (task) =>
+          task.type === "processDebouncedSeatBilling" &&
+          task.succeededAt === null &&
+          new Date(task.scheduledAt) > new Date()
+      );
+    } catch (e) {
+      console.log("Could not check for existing tasks:", e);
+    }
 
     if (!existingTask) {
       console.log("Scheduling initial debounced seat billing task");
