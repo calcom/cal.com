@@ -336,13 +336,13 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
         data: {
           metadata: {
             ...team.metadata,
-            debouncedBillingTaskId: task.id,
+            debouncedBillingTaskId: task,
           },
         },
       });
 
       console.info(
-        `Updated subscription ${subscriptionId} for team ${teamId} to ${membershipCount} seats and scheduled billing task ${task.id}`
+        `Updated subscription ${subscriptionId} for team ${teamId} to ${membershipCount} seats and scheduled billing task ${task}`
       );
     } else {
       console.info(
