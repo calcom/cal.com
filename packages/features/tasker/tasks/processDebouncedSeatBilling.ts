@@ -20,7 +20,7 @@ export async function processDebouncedSeatBilling(payload: string): Promise<void
       where: {
         metadata: {
           path: ["lastSeatChangeAt"],
-          not: null,
+          not: undefined,
         },
       },
       select: {
