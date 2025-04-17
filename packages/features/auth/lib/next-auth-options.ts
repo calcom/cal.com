@@ -803,7 +803,6 @@ export const getOptions = ({
         // Use optional chaining for safety, especially with AdapterUser potentially having different structure initially.
         const isEmailVerified = user.emailVerified || (profile as any)?.email_verified;
 
-        // Skip the explicit email verification check only for Azure AD during signup/signin
         if (!isEmailVerified && idP !== IdentityProvider.AZUREAD) {
           log.error("Attention: SAML/Google User email is not verified in the IdP", safeStringify({ user }));
           return "/auth/error?error=unverified-email";

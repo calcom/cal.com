@@ -71,7 +71,7 @@ export default function CalComAdapter(prismaClient: PrismaClient) {
         throw error;
       }
     },
-    linkAccount: (data: any) => {
+    linkAccount: (data: Prisma.AccountCreateInput) => {
       // Filter out any fields that aren't defined in the schema
       // This ensures we only pass known fields to Prisma
       // We need to handle the additional fields that Azure AD returns (like ext_expires_in)
@@ -87,8 +87,8 @@ export default function CalComAdapter(prismaClient: PrismaClient) {
         id_token,
         session_state,
         providerEmail,
-        ...rest
-      } = data;
+        userId,
+      } = data as Prisma.AccountCreateInput & { userId: User["id"] };
 
       // Only pass the fields we know are in the schema
       return prismaClient.account.create({
@@ -105,7 +105,7 @@ export default function CalComAdapter(prismaClient: PrismaClient) {
           ...(id_token ? { id_token } : {}),
           ...(session_state ? { session_state } : {}),
           ...(providerEmail ? { providerEmail } : {}),
-          user: { connect: { id: data.userId } },
+          userId: userId,
         },
       });
     },
