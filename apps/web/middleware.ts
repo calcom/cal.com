@@ -217,8 +217,6 @@ export const config = {
     "/org/:orgSlug",
     "/team/:slug/:type",
     "/team/:slug",
-    "/:user/:type",
-    "/:user",
   ],
 };
 

@@ -7,6 +7,8 @@ import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 
 import { slugify } from "@calcom/platform-libraries";
 
+import { GetOrganizationAttributeAssignedOptionsProp } from "./services/organization-attributes-option.service";
+
 @Injectable()
 export class OrganizationAttributeOptionRepository {
   private readonly logger = new Logger("OrganizationAttributeOptionRepository");
@@ -88,6 +90,82 @@ export class OrganizationAttributeOptionRepository {
     });
 
     return options;
+  }
+
+  async getOrganizationAttributeAssignedOptions({
+    attributeId,
+    attributeSlug,
+    filters,
+    organizationId,
+    skip,
+    take,
+  }: GetOrganizationAttributeAssignedOptionsProp) {
+    const options = await this.dbRead.prisma.attributeOption.findMany({
+      where: {
+        attribute: {
+          ...(attributeId && { id: attributeId }),
+          ...(attributeSlug && { slug: attributeSlug }),
+          teamId: organizationId,
+        },
+        assignedUsers: {
+          some: {}, // empty {} statement checks if option is assigned to at least one user
+          ...(filters?.teamIds && {
+            some: { member: { user: { teams: { some: { teamId: { in: filters.teamIds } } } } } },
+          }),
+        },
+      },
+      include: { assignedUsers: { include: { member: true } } },
+      skip,
+      take,
+    });
+
+    // only return options that are assigned to users alongside assignedOptionIds filter
+    if (filters?.assignedOptionIds) {
+      const filteredAssignedOptions = await this.dbRead.prisma.attributeOption.findMany({
+        where: {
+          attribute: { teamId: organizationId },
+          assignedUsers: {
+            every: {
+              attributeOptionId: { in: filters?.assignedOptionIds },
+            },
+            ...(filters?.teamIds && {
+              some: { member: { user: { teams: { some: { teamId: { in: filters.teamIds } } } } } },
+            }),
+          },
+        },
+        include: { assignedUsers: { include: { member: true } } },
+      });
+
+      if (!filteredAssignedOptions?.length) {
+        throw new NotFoundException(
+          "Options provided in assignedOptionIds are not assigned to anyone, or the users are not part of the teams specified in teamIds filter."
+        );
+      }
+
+      const matchingUserIds = filteredAssignedOptions.flatMap((opt) =>
+        opt.assignedUsers.flatMap((assignedUser) => assignedUser.member.userId)
+      );
+      // reduce remove options that are not assigned alongside assignedOptionIds filter
+      return options.reduce((acc, opt) => {
+        if (opt.assignedUsers.some((assignedUser) => matchingUserIds.includes(assignedUser.member.userId))) {
+          return [
+            ...acc,
+            {
+              ...opt,
+              assignedUserIds: opt.assignedUsers.map((attributeToUser) => attributeToUser.member.userId),
+            },
+          ];
+        }
+        return acc;
+      }, [] as typeof options);
+    }
+
+    return options.map((opt) => {
+      return {
+        ...opt,
+        assignedUserIds: opt.assignedUsers.map((attributeToUser) => attributeToUser.member.userId),
+      };
+    });
   }
 
   async assignOrganizationAttributeOptionToUser({

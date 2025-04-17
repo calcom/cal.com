@@ -11,6 +11,9 @@ export class GetOrganizationsBookingsInput extends GetBookingsInput_2024_08_13 {
     if (typeof value === "string") {
       return value.split(",").map((userId: string) => parseInt(userId));
     }
+    if (Array.isArray(value)) {
+      return value.map((userId: string | number) => +userId);
+    }
     return value;
   })
   @IsNumber({}, { each: true })

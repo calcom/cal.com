@@ -2297,7 +2297,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.172"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.173"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -3174,6 +3174,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/lindy@workspace:packages/app-store/lindy":
+  version: 0.0.0-use.local
+  resolution: "@calcom/lindy@workspace:packages/app-store/lindy"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/linear@workspace:packages/app-store/linear":
   version: 0.0.0-use.local
   resolution: "@calcom/linear@workspace:packages/app-store/linear"
@@ -3346,13 +3355,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.172":
-  version: 0.0.172
-  resolution: "@calcom/platform-libraries@npm:0.0.172"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.173":
+  version: 0.0.173
+  resolution: "@calcom/platform-libraries@npm:0.0.173"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: b7086cff4367194a8495d3ae0081632d8b5afbde43633c2a290296f300f5a898dd13b194665efa2e11946a448d562153674f6922c36b595935c262ea7eb994b7
+  checksum: 07aabdac311643e6124aec136a5c992c054ec771e0b647ac32b1f90ebcea2268e64ef4b1e3f52bcd3e8ad05331f1b82d21ec34896dc072349861d233667b7d86
   languageName: node
   linkType: hard
 
