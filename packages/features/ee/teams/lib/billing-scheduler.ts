@@ -1,21 +1,19 @@
 import tasker from "@calcom/features/tasker";
+import prisma from "@calcom/prisma";
 
 const DEBOUNCE_INTERVAL_MS = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
 
 export async function initializeDebouncedBillingScheduler() {
   try {
-    let existingTask = false;
-    try {
-      const tasks = await tasker.list();
-      existingTask = tasks.some(
-        (task) =>
-          task.type === "processDebouncedSeatBilling" &&
-          task.succeededAt === null &&
-          new Date(task.scheduledAt) > new Date()
-      );
-    } catch (e) {
-      console.log("Could not check for existing tasks:", e);
-    }
+    const existingTask = await prisma.task.findFirst({
+      where: {
+        type: "processDebouncedSeatBilling",
+        succeededAt: null,
+        scheduledAt: {
+          gt: new Date(),
+        },
+      },
+    });
 
     if (!existingTask) {
       console.log("Scheduling initial debounced seat billing task");
