@@ -106,6 +106,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html
+      className="notranslate"
+      translate="no"
       lang={locale}
       dir={direction}
       style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}

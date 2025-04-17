@@ -66,7 +66,8 @@ async function verifyRobotsMetaTag({ page, orgSlug, urls, expectedContent }: Ver
   await doOnOrgDomain({ orgSlug, page }, async ({ page, goToUrlWithErrorHandling }) => {
     for (const relativeUrl of urls) {
       const { url } = await goToUrlWithErrorHandling(relativeUrl);
-      const metaTag = await page.locator('head > meta[name="robots"]');
+      const metaTag = page.locator('head > meta[name="robots"]');
+      await expect(metaTag).toBeAttached();
       const metaTagValue = await metaTag.getAttribute("content");
       expect(metaTagValue).not.toBeNull();
       expect(

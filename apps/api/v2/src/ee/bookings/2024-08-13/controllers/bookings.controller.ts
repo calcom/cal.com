@@ -100,9 +100,13 @@ export class BookingsController_2024_08_13 {
 
       The start needs to be in UTC aka if the timezone is GMT+2 in Rome and meeting should start at 11, then UTC time should have hours 09:00 aka without time zone.
 
-      Finally, there are 2 ways to book an event type:
+      Finally, there are 2 ways to book an event type belonging to an individual user:
       1. Provide \`eventTypeId\` in the request body.
       2. Provide \`eventTypeSlug\` and \`username\` and optionally \`organizationSlug\` if the user with the username is within an organization.
+
+      And 2 ways to book and event type belonging to a team:
+      1. Provide \`eventTypeId\` in the request body.
+      2. Provide \`eventTypeSlug\` and \`teamSlug\` and optionally \`organizationSlug\` if the team with the teamSlug is within an organization.
       `,
   })
   @ApiBody({
