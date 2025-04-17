@@ -14,6 +14,8 @@ export async function processDebouncedSeatBilling(payload: string): Promise<void
     console.log("Processing debounced seat billing");
     const parsedPayload = JSON.parse(payload);
 
+    const cutoffTime = new Date(Date.now() - DEBOUNCE_INTERVAL_MS);
+
     const teams = await prisma.team.findMany({
       where: {
         metadata: {
@@ -33,9 +35,21 @@ export async function processDebouncedSeatBilling(payload: string): Promise<void
       },
     });
 
-    for (const team of teams) {
+    const teamsWithRecentChanges = teams.filter((team) => {
+      const metadata = team.metadata as Record<string, any>;
+      if (!metadata.lastSeatChangeAt) return false;
+
+      const lastChangeDate =
+        typeof metadata.lastSeatChangeAt === "string"
+          ? new Date(metadata.lastSeatChangeAt)
+          : metadata.lastSeatChangeAt;
+
+      return lastChangeDate > cutoffTime;
+    });
+
+    for (const team of teamsWithRecentChanges) {
       try {
-        const metadata = team.metadata as any;
+        const metadata = team.metadata as Record<string, any>;
 
         if (!metadata.subscriptionId || !metadata.subscriptionItemId) {
           continue;
