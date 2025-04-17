@@ -1110,6 +1110,190 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/attributes/{attributeId}/options/assigned": {
+      "get": {
+        "operationId": "OrganizationsAttributesOptionsController_getOrganizationAttributeAssignedOptions",
+        "summary": "Get by attribute id all of the attribute options that are assigned to users",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "attributeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to skip",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to take",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "assignedOptionIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter by assigned attribute option ids. ids must be separated by a comma.",
+            "example": "?assignedOptionIds=aaaaaaaa-bbbb-cccc-dddd-eeeeee1eee,aaaaaaaa-bbbb-cccc-dddd-eeeeee2eee",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "teamIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter by teamIds. Team ids must be separated by a comma.",
+            "example": "?teamIds=100,200",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAllAttributeAssignedOptionOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Attributes / Options"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/attributes/slugs/{attributeSlug}/options/assigned": {
+      "get": {
+        "operationId": "OrganizationsAttributesOptionsController_getOrganizationAttributeAssignedOptionsBySlug",
+        "summary": "Get by attribute slug all of the attribute options that are assigned to users",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "attributeSlug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to skip",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to take",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "assignedOptionIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter by assigned attribute option ids. ids must be separated by a comma.",
+            "example": "?assignedOptionIds=aaaaaaaa-bbbb-cccc-dddd-eeeeee1eee,aaaaaaaa-bbbb-cccc-dddd-eeeeee2eee",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "teamIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter by teamIds. Team ids must be separated by a comma.",
+            "example": "?teamIds=100,200",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAllAttributeAssignedOptionOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Attributes / Options"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/attributes/options/{userId}": {
       "post": {
         "operationId": "OrganizationsAttributesOptionsController_assignOrganizationAttributeOptionToUser",
@@ -4775,6 +4959,48 @@
               "type": "array",
               "items": {
                 "type": "string"
+              }
+            }
+          },
+          {
+            "name": "assignedOptionIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter by assigned attribute option ids. ids must be separated by a comma.",
+            "example": "?assignedOptionIds=aaaaaaaa-bbbb-cccc-dddd-eeeeee1eee,aaaaaaaa-bbbb-cccc-dddd-eeeeee2eee",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "attributeQueryOperator",
+            "required": false,
+            "in": "query",
+            "description": "Query operator used to filter assigned options, AND by default.",
+            "example": "NONE",
+            "schema": {
+              "default": "AND",
+              "enum": [
+                "OR",
+                "AND",
+                "NONE"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter by teamIds. Team ids must be separated by a comma.",
+            "example": "?teamIds=100,200",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "number"
               }
             }
           }
@@ -18408,6 +18634,72 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OptionOutput"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "AssignedOptionOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The ID of the option",
+            "example": "attr_option_id"
+          },
+          "attributeId": {
+            "type": "string",
+            "description": "The ID of the attribute",
+            "example": "attr_id"
+          },
+          "value": {
+            "type": "string",
+            "description": "The value of the option",
+            "example": "option_value"
+          },
+          "slug": {
+            "type": "string",
+            "description": "The slug of the option",
+            "example": "option-slug"
+          },
+          "assignedUserIds": {
+            "description": "Ids of the users assigned to the attribute option.",
+            "example": [
+              124,
+              224
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "attributeId",
+          "value",
+          "slug",
+          "assignedUserIds"
+        ]
+      },
+      "GetAllAttributeAssignedOptionOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssignedOptionOutput"
             }
           }
         },

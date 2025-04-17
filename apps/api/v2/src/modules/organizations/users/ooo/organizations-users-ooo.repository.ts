@@ -11,7 +11,6 @@ export class OrgUsersOOORepository {
     sort?: { sortStart?: "asc" | "desc"; sortEnd?: "asc" | "desc" },
     filters?: { email?: string }
   ) {
-    console.log({ sort, filters });
     return this.dbRead.prisma.outOfOfficeEntry.findMany({
       where: {
         user: {
