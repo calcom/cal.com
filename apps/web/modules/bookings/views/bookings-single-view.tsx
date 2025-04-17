@@ -28,11 +28,7 @@ import {
 } from "@calcom/features/bookings/lib/SystemField";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/lib/bookings/getCalendarLinks";
 import { APP_NAME } from "@calcom/lib/constants";
-import {
-  formatToLocalizedDate,
-  formatToLocalizedTime,
-  formatToLocalizedTimezone,
-} from "@calcom/lib/dayjs";
+import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
 import type { nameObjectSchema } from "@calcom/lib/event";
 import { getEventName } from "@calcom/lib/event";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
@@ -691,7 +687,7 @@ export default function Success(props: PageProps) {
                               className="col-span-2 mb-2 mt-3"
                               onClick={() => setShowUtmParams((prev) => !prev)}>
                               <button className="flex items-center gap-2">
-                                <span>{showUtmParams ? "Hide" : "Show"}</span>
+                                <span>{showUtmParams ? t("hide") : t("show")}</span>
                                 <Icon name={showUtmParams ? "chevron-up" : "chevron-down"} />
                               </button>
                               {showUtmParams && (
