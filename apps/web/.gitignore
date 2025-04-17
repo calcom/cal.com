@@ -70,3 +70,5 @@ public/embed
 public/app-store
 
 certificates
+# Sentry Config File
+.env.sentry-build-plugin
