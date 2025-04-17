@@ -281,18 +281,22 @@ export const getTeamWithPaymentMetadata = async (teamId: number) => {
   return { ...team, metadata };
 };
 
-export const updateTeamSeatChangeMetadata = async (teamId: number) => {
+export const updateTeamSeatChangeMetadata = async (
+  teamId: number,
+  team?: Awaited<ReturnType<typeof getTeamWithPaymentMetadata>>
+) => {
   try {
-    const team = await getTeamWithPaymentMetadata(teamId);
-    const membershipCount = team.members.length;
+    // Use the team passed in if available, otherwise fetch it
+    const teamData = team || (await getTeamWithPaymentMetadata(teamId));
+    const membershipCount = teamData.members.length;
 
-    const lastInvoicedSeatCount = team.metadata.lastInvoicedSeatCount ?? membershipCount;
+    const lastInvoicedSeatCount = teamData.metadata.lastInvoicedSeatCount ?? membershipCount;
 
     await prisma.team.update({
       where: { id: teamId },
       data: {
         metadata: {
-          ...team.metadata,
+          ...teamData.metadata,
           lastInvoicedSeatCount,
           lastSeatChangeAt: new Date(),
         },
@@ -337,7 +341,7 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
       proration_behavior: "none",
     });
 
-    await updateTeamSeatChangeMetadata(teamId);
+    await updateTeamSeatChangeMetadata(teamId, team);
 
     console.info(
       `Updated subscription ${subscriptionId} for team ${teamId} to ${team.members.length} seats.`
@@ -351,6 +355,20 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
 export const scheduleDebouncedSeatBilling = async () => {
   try {
     const DEBOUNCE_INTERVAL_MS = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+
+    const tasks = (await tasker.getAll?.()) || [];
+    const existingTask = tasks.find(
+      (task) =>
+        task.type === "processDebouncedSeatBilling" &&
+        task.succeededAt === null &&
+        new Date(task.scheduledAt) > new Date()
+    );
+
+    if (existingTask) {
+      console.log("Debounced seat billing task already scheduled");
+      return;
+    }
+
     await tasker.create(
       "processDebouncedSeatBilling",
       {},
@@ -358,7 +376,7 @@ export const scheduleDebouncedSeatBilling = async () => {
         scheduledAt: new Date(Date.now() + DEBOUNCE_INTERVAL_MS),
       }
     );
-    console.log("Scheduled initial debounced seat billing task");
+    console.log("Scheduled debounced seat billing task");
   } catch (error) {
     let message = "Unknown error on scheduleDebouncedSeatBilling";
     if (error instanceof Error) message = error.message;
