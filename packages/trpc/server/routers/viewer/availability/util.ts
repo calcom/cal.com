@@ -54,7 +54,7 @@ export const setupDefaultSchedule = async (userId: number, scheduleId: number, p
   });
 };
 
-export const setupHostDefaultSchedule = async (
+export const updateHostsWithNewDefaultSchedule = async (
   userId: number,
   defaultScheduleId: number,
   scheduleId: number,
