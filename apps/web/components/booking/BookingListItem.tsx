@@ -10,7 +10,7 @@ import dayjs from "@calcom/dayjs";
 import "@calcom/dayjs/locales";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
-import { formatTime } from "@calcom/lib/date-fns";
+import { formatTime } from "@calcom/lib/dayjs";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -387,10 +387,14 @@ function BookingListItem(booking: BookingItemProps) {
     );
   };
 
+  const bookingYear = dayjs(booking.startTime).year();
+  const currentYear = dayjs().year();
+  const isDifferentYear = bookingYear !== currentYear;
+
   const startTime = dayjs(booking.startTime)
     .tz(userTimeZone)
     .locale(language)
-    .format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
+    .format(isUpcoming ? (isDifferentYear ? "ddd, D MMM YYYY" : "ddd, D MMM") : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
   const [isOpenReassignDialog, setIsOpenReassignDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);

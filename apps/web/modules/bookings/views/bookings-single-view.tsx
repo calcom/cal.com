@@ -28,11 +28,7 @@ import {
 } from "@calcom/features/bookings/lib/SystemField";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/lib/bookings/getCalendarLinks";
 import { APP_NAME } from "@calcom/lib/constants";
-import {
-  formatToLocalizedDate,
-  formatToLocalizedTime,
-  formatToLocalizedTimezone,
-} from "@calcom/lib/date-fns";
+import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
 import type { nameObjectSchema } from "@calcom/lib/event";
 import { getEventName } from "@calcom/lib/event";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
@@ -42,6 +38,7 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { RefundPolicy } from "@calcom/lib/payment/types";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
@@ -507,7 +504,37 @@ export default function Success(props: PageProps) {
                               t("booking_with_payment_cancelled")}
                             {props.paymentStatus.success &&
                               !props.paymentStatus.refunded &&
-                              t("booking_with_payment_cancelled_already_paid")}
+                              (() => {
+                                const refundPolicy = eventType?.metadata?.apps?.stripe?.refundPolicy;
+                                const refundDaysCount = eventType?.metadata?.apps?.stripe?.refundDaysCount;
+
+                                // Handle missing team or event type owner (same in processPaymentRefund.ts)
+                                if (!eventType?.teamId && !eventType?.owner) {
+                                  return t("booking_with_payment_cancelled_no_refund");
+                                }
+
+                                // Handle DAYS policy with expired refund window
+                                else if (refundPolicy === RefundPolicy.DAYS && refundDaysCount) {
+                                  const startTime = new Date(bookingInfo.startTime);
+                                  const cancelTime = new Date();
+                                  const daysDiff = Math.floor(
+                                    (cancelTime.getTime() - startTime.getTime()) / (1000 * 60 * 60 * 24)
+                                  );
+
+                                  if (daysDiff > refundDaysCount) {
+                                    return t("booking_with_payment_cancelled_refund_window_expired");
+                                  }
+                                }
+                                // Handle NEVER policy
+                                else if (refundPolicy === RefundPolicy.NEVER) {
+                                  return t("booking_with_payment_cancelled_no_refund");
+                                }
+
+                                // Handle ALWAYS policy
+                                else {
+                                  return t("booking_with_payment_cancelled_already_paid");
+                                }
+                              })()}
                             {props.paymentStatus.refunded && t("booking_with_payment_cancelled_refunded")}
                           </h4>
                         )}

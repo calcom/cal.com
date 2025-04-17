@@ -8,7 +8,7 @@ import { useState, useEffect, useRef } from "react";
 import dayjs from "@calcom/dayjs";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/constants";
-import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
+import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";

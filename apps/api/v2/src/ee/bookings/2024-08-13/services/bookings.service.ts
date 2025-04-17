@@ -146,8 +146,8 @@ export class BookingsService_2024_08_13 {
   }
 
   async hasRequiredBookingFieldsResponses(body: CreateBookingInput, eventType: EventType | null) {
-    const bookingFields = body.bookingFieldsResponses;
-    if (!bookingFields || !eventType || !eventType.bookingFields) {
+    const bookingFields = { ...body.bookingFieldsResponses, attendeePhoneNumber: body.attendee.phoneNumber };
+    if (!eventType?.bookingFields) {
       return true;
     }
 
@@ -156,11 +156,20 @@ export class BookingsService_2024_08_13 {
       .parse(eventType.bookingFields)
       .filter((field) => !field.editable.startsWith("system"));
 
+    if (!eventTypeBookingFields.length) {
+      return true;
+    }
+
     for (const field of eventTypeBookingFields) {
       if (field.required && !(field.name in bookingFields)) {
-        throw new BadRequestException(`
-          Missing required booking field response: ${field.name} - it is required by the event type booking fields, but missing in the bookingFieldsResponses.
-          You can fetch the event type with ID ${eventType.id} to see the required fields.`);
+        if (field.name === "attendeePhoneNumber") {
+          throw new BadRequestException(
+            `Missing attendee phone number - it is required by the event type. Pass it as "attendee.phoneNumber" in the request.`
+          );
+        }
+        throw new BadRequestException(
+          `Missing required booking field response: ${field.name} - it is required by the event type booking fields, but missing in the bookingFieldsResponses. You can fetch the event type with ID ${eventType.id} to see the required fields.`
+        );
       }
     }
 

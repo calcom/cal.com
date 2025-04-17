@@ -61,6 +61,7 @@ async function getBooking(prisma: PrismaClient, uid: string, isSeatedEvent?: boo
       smsReminderNumber: true,
       location: true,
       eventTypeId: true,
+      status: true,
       eventType: {
         select: {
           disableRescheduling: true,
@@ -231,6 +232,7 @@ export const getBookingForSeatedEvent = async (uid: string) => {
       uid: true,
       startTime: true,
       endTime: true,
+      status: true,
       attendees: {
         select: {
           id: true,

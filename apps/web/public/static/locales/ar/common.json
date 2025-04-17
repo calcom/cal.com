@@ -3053,5 +3053,17 @@
   "most_cancelled_bookings": "الحجوزات الأكثر إلغاءً",
   "name_or_email": "الاسم أو البريد الإلكتروني",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "إذا لم يتم العثور على جهة اتصال، يتم الرجوع إلى مالك العميل المحتمل إذا كان موجودًا",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time" : "التاريخ والوقت",
+  "email_reminder_upcoming_event_notice" : "هذا تذكير بالحدث القادم.",
+  "email_reminder_triggered_by_workflow" : "تم تشغيل هذا التذكير بواسطة سير العمل في Cal.",
+  "event_upper_case": "حدث",
+  "scheduling_by": "جدولة بواسطة",
+  "experience_review_prompt": "كيف كانت تجربتك الأخيرة؟",
+  "improve_customer_experience_message": "نحن نعمل دائمًا على تحسين تجربة عملائنا.",
+  "meeting_satisfaction_question": "ما مدى رضاك عن اجتماعك الأخير؟",
+  "meeting_not_joined_question": "لم تحضر الاجتماع؟",
+  "reschedule_cta_short": "أعد الجدولة من هنا",
+  "you_and_conjunction": "& أنت",
+  "email_survey_triggered_by_workflow": "تم تشغيل هذا الاستبيان بواسطة سير العمل في كال."
 }
