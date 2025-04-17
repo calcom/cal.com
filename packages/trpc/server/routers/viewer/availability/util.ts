@@ -53,3 +53,20 @@ export const setupDefaultSchedule = async (userId: number, scheduleId: number, p
     },
   });
 };
+
+export const setupHostDefaultSchedule = async (
+  userId: number,
+  defaultScheduleId: number,
+  scheduleId: number,
+  prisma: PrismaClient
+) => {
+  return prisma.host.updateMany({
+    where: {
+      id: userId,
+      scheduleId: defaultScheduleId,
+    },
+    data: {
+      scheduleId,
+    },
+  });
+};
