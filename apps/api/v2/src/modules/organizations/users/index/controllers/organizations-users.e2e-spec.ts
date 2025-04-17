@@ -251,11 +251,6 @@ describe("Organizations Users Endpoints", () => {
 
       expect(body.status).toBe(SUCCESS_STATUS);
       expect(userData.length).toBe(4);
-      console.log(
-        "profiles",
-        { userData },
-        userData.map((u) => u.profile)
-      );
       // Find and verify each member's data
       const member0 = userData.find((u) => u.profile.username === orgMembersData[0].username);
       const member1 = userData.find((u) => u.profile.username === orgMembersData[1].username);
@@ -704,7 +699,6 @@ describe("Organizations Users Endpoints", () => {
         .set("Accept", "application/json");
 
       const userData = body.data;
-      console.log(userData);
 
       expect(body.status).toBe(SUCCESS_STATUS);
       expect(userData.length).toBe(1);

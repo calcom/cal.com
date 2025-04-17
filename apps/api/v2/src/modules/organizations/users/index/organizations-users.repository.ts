@@ -29,7 +29,6 @@ export class OrganizationsUsersRepository {
     take?: number
   ) {
     const { teamIds, assignedOptionIds, attributeQueryOperator } = filters ?? {};
-    console.log("HERE TEAM IDS", teamIds);
     const attributeToUsersWithProfile = await this.dbRead.prisma.attributeToUser.findMany({
       include: {
         member: { include: { user: { include: { profiles: { where: { organizationId: orgId } } } } } },
