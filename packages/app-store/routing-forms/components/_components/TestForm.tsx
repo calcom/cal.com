@@ -23,7 +23,6 @@ import { TRPCClientError } from "@trpc/react-query";
 import type { SingleFormComponentProps } from "../../types/shared";
 import { ResultsView as Results } from "./ResultSection";
 import type { MembersMatchResultType } from "./TeamMembersMatchResult";
-import { TeamMembersMatchResult } from "./TeamMembersMatchResult";
 
 export type UptoDateForm = Brand<
   NonNullable<SingleFormComponentProps["enrichedWithUserProfileForm"]>,
@@ -184,29 +183,12 @@ export const TestForm = ({
       return `Route ${chosenRouteIndex + 1}`;
     };
 
-    const renderTeamMembersMatchResult = (showAllData: boolean, isPending: boolean) => {
-      if (!supportsTeamMembersMatchingLogic) return null;
-      if (isPending) return <div>Loading...</div>;
-
-      return (
-        <div className="border border-red-500">
-          <TeamMembersMatchResult
-            chosenRouteName={chosenRouteName()}
-            membersMatchResult={membersMatchResult}
-            showAllData={showAllData}
-          />
-        </div>
-      );
-    };
-
     if (!showAllData) {
       if (
         chosenRoute.action.type !== "customPageMessage" &&
         chosenRoute.action.type !== "externalRedirectUrl"
       ) {
-        {
-          return renderTeamMembersMatchResult(false, findTeamMembersMatchingAttributeLogicMutation.isPending);
-        }
+        return null;
       }
       return <div className="mt-4">{t("no_active_queues")}</div>;
     }
@@ -217,7 +199,6 @@ export const TestForm = ({
         <div className="mt-2">
           {RoutingPages.map((page) => {
             if (page.value !== chosenRoute.action.type) return null;
-            console.log("page", page);
             return (
               <span key={page.value} data-testid="test-routing-result-type">
                 {page.label}
@@ -258,10 +239,6 @@ export const TestForm = ({
                   {chosenRoute.action.value}
                 </a>
               </span>
-              {renderTeamMembersMatchResult(
-                showAllData,
-                findTeamMembersMatchingAttributeLogicMutation.isPending
-              )}
             </div>
           )}
         </div>
@@ -286,10 +263,14 @@ export const TestForm = ({
             renderFooter={renderFooter}
           />
         ) : (
-          <>
-            <Results onBack={() => setShowResults(false)} chosenRoute={chosenRoute} />
-            {renderTestResult(showAllData)}
-          </>
+          <Results
+            onBack={() => setShowResults(false)}
+            chosenRoute={chosenRoute}
+            supportsTeamMembersMatchingLogic={supportsTeamMembersMatchingLogic}
+            membersMatchResult={membersMatchResult}
+            isPending={findTeamMembersMatchingAttributeLogicMutation.isPending}
+            eventTypeUrlWithoutParams={eventTypeUrlWithoutParams}
+          />
         )}
       </AnimatePresence>
     </div>
