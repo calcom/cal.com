@@ -385,6 +385,7 @@ model User {
   createdOrganizationOnboardings OrganizationOnboarding[]     @relation("CreatedOrganizationOnboardings")
   filterSegments                 FilterSegment[]
   creditBalance                  CreditBalance?
+  whitelistWorkflows             Boolean                      @default(false)
 
   @@unique([email])
   @@unique([email, username])
