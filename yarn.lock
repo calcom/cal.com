@@ -20882,6 +20882,7 @@ __metadata:
     next-router-mock: ^0.9.12
     node-gyp: ^10.2.0
     node-ical: ^0.16.1
+    p-limit: ^6.2.0
     prettier: ^2.8.6
     prismock: ^1.33.4
     resize-observer-polyfill: ^1.5.1
@@ -36632,6 +36633,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"p-limit@npm:^6.2.0":
+  version: 6.2.0
+  resolution: "p-limit@npm:6.2.0"
+  dependencies:
+    yocto-queue: ^1.1.1
+  checksum: ea46ba4a3013daa3335833013156bdcdd8f5c67b49ad2f33b34832b0d528f003d29b55bf5beeedc39ba9d9ada3dab7b1f4b890db3ebc8260a044a011126c6fc9
+  languageName: node
+  linkType: hard
+
 "p-locate@npm:^2.0.0":
   version: 2.0.0
   resolution: "p-locate@npm:2.0.0"
@@ -44576,8 +44586,8 @@ __metadata:
   linkType: hard
 
 "twilio@npm:^3.80.1":
-  version: 3.80.1
-  resolution: "twilio@npm:3.80.1"
+  version: 3.84.1
+  resolution: "twilio@npm:3.84.1"
   dependencies:
     axios: ^0.26.1
     dayjs: ^1.8.29
@@ -44590,7 +44600,7 @@ __metadata:
     scmp: ^2.1.0
     url-parse: ^1.5.9
     xmlbuilder: ^13.0.2
-  checksum: 223655b5d20229f1a0a179596319284381d3524018229ad6eabdede4c7a9828c58d616c57fb7e14b80e372560cd97f4a270241c1598baea0e6f42e616d2ba6e7
+  checksum: 29bf7e75aa513bc47d3559f4011580cf1a5a994fe07fa4780af542b666e73b101cdc260f6ee96222c84c29638dc25584815535d20476ef3c11c562cc263a601a
   languageName: node
   linkType: hard
 
@@ -47152,6 +47162,13 @@ __metadata:
   version: 0.1.0
   resolution: "yocto-queue@npm:0.1.0"
   checksum: f77b3d8d00310def622123df93d4ee654fc6a0096182af8bd60679ddcdfb3474c56c6c7190817c84a2785648cdee9d721c0154eb45698c62176c322fb46fc700
+  languageName: node
+  linkType: hard
+
+"yocto-queue@npm:^1.1.1":
+  version: 1.2.1
+  resolution: "yocto-queue@npm:1.2.1"
+  checksum: 0843d6c2c0558e5c06e98edf9c17942f25c769e21b519303a5c2adefd5b738c9b2054204dc856ac0cd9d134b1bc27d928ce84fd23c9e2423b7e013d5a6f50577
   languageName: node
   linkType: hard
 
