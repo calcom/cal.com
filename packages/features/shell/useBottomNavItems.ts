@@ -39,6 +39,7 @@ export function useBottomNavItems({
       ? {
           name: "skip_trial",
           href: "",
+          isLoading: skipTeamTrialsMutation.isPending,
           icon: "clock",
           onClick: (e: { preventDefault: () => void }) => {
             e.preventDefault();
