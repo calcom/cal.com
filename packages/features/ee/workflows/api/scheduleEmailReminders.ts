@@ -42,24 +42,27 @@ export async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
-  // delete batch_ids with already past scheduled date from scheduled_sends
-  const remindersToDelete: { referenceId: string | null }[] = await getAllRemindersToDelete();
+  const isSendgridEnabled = process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL;
 
-  const deletePromises: Promise<any>[] = [];
+  if (isSendgridEnabled) {
+    // delete batch_ids with already past scheduled date from scheduled_sends
+    const remindersToDelete: { referenceId: string | null }[] = await getAllRemindersToDelete();
 
-  for (const reminder of remindersToDelete) {
-    const deletePromise = deleteScheduledSend(reminder.referenceId);
-    deletePromises.push(deletePromise);
-  }
+    const deletePromises: Promise<any>[] = [];
 
-  Promise.allSettled(deletePromises).then((results) => {
-    results.forEach((result) => {
-      if (result.status === "rejected") {
-        logger.error(`Error deleting batch id from scheduled_sends: ${result.reason}`);
-      }
+    for (const reminder of remindersToDelete) {
+      const deletePromise = deleteScheduledSend(reminder.referenceId);
+      deletePromises.push(deletePromise);
+    }
+
+    Promise.allSettled(deletePromises).then((results) => {
+      results.forEach((result) => {
+        if (result.status === "rejected") {
+          logger.error(`Error deleting batch id from scheduled_sends: ${result.reason}`);
+        }
+      });
     });
-  });
-
+  }
   //delete workflow reminders with past scheduled date
   await prisma.workflowReminder.deleteMany({
     where: {
@@ -69,8 +72,6 @@ export async function handler(req: NextRequest) {
       },
     },
   });
-
-  const isSendgridEnabled = process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL;
 
   if (isSendgridEnabled) {
     //cancel reminders for cancelled/rescheduled bookings that are scheduled within the next hour
@@ -305,7 +306,7 @@ export async function handler(req: NextRequest) {
         }
 
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
-          const batchId = await getBatchId();
+          const batchId = isSendgridEnabled ? await getBatchId() : undefined;
 
           const booking = reminder.booking;
 
@@ -343,7 +344,6 @@ export async function handler(req: NextRequest) {
           const mailData = {
             subject: emailContent.emailSubject,
             to: Array.isArray(sendTo) ? sendTo : [sendTo],
-            referenceUid: reminder.uuid ?? undefined,
             html: emailContent.emailBody,
             replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email ?? "",
             attachments: reminder.workflowStep.includeCalendarEvent
@@ -366,7 +366,7 @@ export async function handler(req: NextRequest) {
             sendEmailPromises.push(
               sendSendgridMail({
                 ...mailData,
-                batchId: batchId,
+                batchId,
                 sendAt: dayjs(reminder.scheduledDate).unix(),
               })
             );
@@ -428,7 +428,7 @@ export async function handler(req: NextRequest) {
           isBrandingDisabled: brandingDisabled,
         });
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
-          const batchId = await getBatchId();
+          const batchId = isSendgridEnabled ? await getBatchId() : undefined;
 
           const mailData = {
             subject: emailContent.emailSubject,
@@ -441,7 +441,7 @@ export async function handler(req: NextRequest) {
             sendEmailPromises.push(
               sendSendgridMail({
                 ...mailData,
-                batchId: batchId,
+                batchId,
                 sendAt: dayjs(reminder.scheduledDate).unix(),
               })
             );
