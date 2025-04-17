@@ -120,6 +120,18 @@ export class StripeBillingService implements BillingService {
     });
   }
 
+  async handleEndTrial(subscriptionId: string) {
+    const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
+
+    if (subscription.status !== "trialing") {
+      return; // Do nothing if not in trial
+    }
+
+    await this.stripe.subscriptions.update(subscriptionId, {
+      trial_end: "now",
+    });
+  }
+
   async checkoutSessionIsPaid(paymentId: string) {
     const checkoutSession = await this.stripe.checkout.sessions.retrieve(paymentId);
     return checkoutSession.payment_status === "paid";
