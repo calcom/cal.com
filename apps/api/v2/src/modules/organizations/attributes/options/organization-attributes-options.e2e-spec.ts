@@ -111,6 +111,8 @@ describe("Organizations Attributes Options Endpoints", () => {
     let org: Team;
     let team: Team;
     let membership: Membership;
+    let membership2: Membership;
+
     let attributeId: string;
     let attributeSlug: string;
 
@@ -163,7 +165,7 @@ describe("Organizations Attributes Options Endpoints", () => {
       });
 
       membership = await membershipFixtures.addUserToOrg(user, org, "ADMIN", true);
-      membership = await membershipFixtures.addUserToOrg(user2, org, "ADMIN", true);
+      membership2 = await membershipFixtures.addUserToOrg(user2, org, "ADMIN", true);
       await membershipFixtures.create({
         role: "MEMBER",
         accepted: true,
@@ -437,6 +439,7 @@ describe("Organizations Attributes Options Endpoints", () => {
 
     afterAll(async () => {
       await membershipFixtures.delete(membership.id);
+      await membershipFixtures.delete(membership2.id);
       await userRepositoryFixture.deleteByEmail(user.email);
       await userRepositoryFixture.deleteByEmail(user2.email);
       await organizationsRepositoryFixture.delete(org.id);
