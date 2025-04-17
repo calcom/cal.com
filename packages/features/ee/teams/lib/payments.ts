@@ -4,7 +4,6 @@ import { z } from "zod";
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import { getDubCustomer } from "@calcom/features/auth/lib/dub";
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import tasker from "@calcom/features/tasker";
 import {
   IS_PRODUCTION,
   MINIMUM_NUMBER_OF_ORG_SEATS,
@@ -354,29 +353,8 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
 };
 export const scheduleDebouncedSeatBilling = async () => {
   try {
-    const DEBOUNCE_INTERVAL_MS = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
-
-    const tasks = (await tasker.getAll?.()) || [];
-    const existingTask = tasks.find(
-      (task) =>
-        task.type === "processDebouncedSeatBilling" &&
-        task.succeededAt === null &&
-        new Date(task.scheduledAt) > new Date()
-    );
-
-    if (existingTask) {
-      console.log("Debounced seat billing task already scheduled");
-      return;
-    }
-
-    await tasker.create(
-      "processDebouncedSeatBilling",
-      {},
-      {
-        scheduledAt: new Date(Date.now() + DEBOUNCE_INTERVAL_MS),
-      }
-    );
-    console.log("Scheduled debounced seat billing task");
+    const { initializeDebouncedBillingScheduler } = await import("./billing-scheduler");
+    await initializeDebouncedBillingScheduler();
   } catch (error) {
     let message = "Unknown error on scheduleDebouncedSeatBilling";
     if (error instanceof Error) message = error.message;
