@@ -107,8 +107,16 @@ export class StripeController {
         const headers = {
           Authorization: `Bearer ${decodedCallbackState.accessToken}`,
         };
-        const response = await this.httpService.axiosRef.get(url, { params, headers });
-        return response.data;
+        try {
+          const response = await this.httpService.axiosRef.get(url, { params, headers });
+          // Always redirect to the URL provided by the downstream endpoint, or fallback to onErrorReturnTo
+          const redirectUrl = response.data?.url || decodedCallbackState.onErrorReturnTo || "";
+          return { url: redirectUrl };
+        } catch (err) {
+          // On error, redirect to error fallback
+          const fallbackUrl = decodedCallbackState.onErrorReturnTo || "";
+          return { url: fallbackUrl };
+        }
       }
 
       // user-level fallback
