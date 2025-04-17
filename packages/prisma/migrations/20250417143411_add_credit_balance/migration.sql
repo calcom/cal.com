@@ -17,10 +17,11 @@ CREATE TABLE "CreditBalance" (
 CREATE TABLE "CreditExpenseLog" (
     "id" TEXT NOT NULL,
     "creditBalanceId" TEXT NOT NULL,
-    "details" TEXT NOT NULL,
-    "credits" INTEGER NOT NULL,
-    "creditType" "CreditType" NOT NULL,
+    "bookingUid" TEXT,
+    "credits" INTEGER,
+    "creditType" "CreditType",
     "date" TIMESTAMP(3) NOT NULL,
+    "smsSid" TEXT,
 
     CONSTRAINT "CreditExpenseLog_pkey" PRIMARY KEY ("id")
 );
@@ -45,3 +46,6 @@ ALTER TABLE "CreditBalance" ADD CONSTRAINT "CreditBalance_userId_fkey" FOREIGN K
 
 -- AddForeignKey
 ALTER TABLE "CreditExpenseLog" ADD CONSTRAINT "CreditExpenseLog_creditBalanceId_fkey" FOREIGN KEY ("creditBalanceId") REFERENCES "CreditBalance"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CreditExpenseLog" ADD CONSTRAINT "CreditExpenseLog_bookingUid_fkey" FOREIGN KEY ("bookingUid") REFERENCES "Booking"("uid") ON DELETE CASCADE ON UPDATE CASCADE;

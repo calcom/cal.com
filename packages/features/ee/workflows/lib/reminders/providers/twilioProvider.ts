@@ -48,8 +48,6 @@ export const sendSMS = async ({
   teamId?: number | null;
   isWhatsapp?: boolean;
 }) => {
-  //check if there are available credits
-  //if no available credits, send email instead
   log.silly("sendSMS", JSON.stringify({ phoneNumber, body, sender, userId, teamId }));
 
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
@@ -264,7 +262,7 @@ export async function getCreditsForSMS(smsSid: string) {
 
   const message = await twilio.messages(smsSid).fetch();
 
-  const twilioPrice = message.price ? Math.abs(parseFloat(message.price)) : 0; //might not work because price is a string
+  const twilioPrice = message.price ? Math.abs(parseFloat(message.price)) : 0; // todo: might not work because price is a string
   const price = twilioPrice * 1.8;
   const credits = Math.ceil(price * 100);
 
