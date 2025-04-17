@@ -247,6 +247,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
                 scheduled: true,
                 referenceId: scheduledSMS.sid,
                 seatReferenceId: seatReferenceUid,
+                sendTo: reminderPhone,
               },
             });
           }
@@ -263,6 +264,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
             scheduledDate: scheduledDate.toDate(),
             scheduled: false,
             seatReferenceId: seatReferenceUid,
+            sendTo: reminderPhone,
           },
         });
       }
