@@ -1,7 +1,5 @@
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
-// import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
-// import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
 import { OrganizationsConferencingModule } from "@/modules/organizations/conferencing/organizations-conferencing.module";
 import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/event-types/pipes/team-event-types-response.transformer";
 import { InputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/input.service";

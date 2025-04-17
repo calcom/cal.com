@@ -2,11 +2,8 @@ import { AppConfig } from "@/config/type";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { OAuthCallbackState } from "@/modules/organizations/stripe/services/organizations-stripe.service";
-import { getReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturnToValueFromQueryState";
 import { stripeInstance } from "@/modules/stripe/utils/newStripeInstance";
 import { StripeData } from "@/modules/stripe/utils/stripeDataSchemas";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import {
   Injectable,
@@ -25,6 +22,15 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { stripeKeysResponseSchema } from "./utils/stripeDataSchemas";
 
 import stringify = require("qs-stringify");
+
+export type OAuthCallbackState = {
+  accessToken: string;
+  teamId?: string;
+  orgId?: string;
+  fromApp?: boolean;
+  returnTo?: string;
+  onErrorReturnTo?: string;
+};
 
 @Injectable()
 export class StripeService {
@@ -151,7 +157,6 @@ export class StripeService {
     const stripeKeyObject = JSON.parse(stripeKey);
 
     const stripeAccount = await stripeInstance.accounts.retrieve(stripeKeyObject?.stripe_user_id);
-    console.log("stripeAccounstripeAccountt: ", stripeAccount);
 
     // both of these should be true for an account to be fully active
     if (!stripeAccount.payouts_enabled || !stripeAccount.charges_enabled) {

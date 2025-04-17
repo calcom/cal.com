@@ -2,14 +2,13 @@ import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { OAuthCallbackState } from "@/modules/organizations/stripe/services/organizations-stripe.service";
 import {
   StripConnectOutputDto,
   StripConnectOutputResponseDto,
   StripCredentialsCheckOutputResponseDto,
   StripCredentialsSaveOutputResponseDto,
 } from "@/modules/stripe/outputs/stripe.output";
-import { StripeService } from "@/modules/stripe/stripe.service";
+import { OAuthCallbackState, StripeService } from "@/modules/stripe/stripe.service";
 import { getOnErrorReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturnToValueFromQueryState";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";

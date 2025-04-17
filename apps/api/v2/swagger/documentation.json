@@ -3393,6 +3393,62 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/oauth/callback": {
+      "get": {
+        "operationId": "OrganizationsConferencingController_saveTeamOauthCredentials",
+        "summary": "Save conferencing app OAuth credentials",
+        "parameters": [
+          {
+            "name": "state",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Conferencing"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/event-types": {
       "post": {
         "operationId": "OrganizationsEventTypesController_createTeamEventType",
@@ -9023,6 +9079,147 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/stripe/connect": {
+      "get": {
+        "operationId": "OrganizationsStripeController_getTeamStripeConnectUrl",
+        "summary": "Get stripe connect URL for a team",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "returnTo",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "onErrorReturnTo",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripConnectOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations/Teams Stripe"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/stripe/check": {
+      "get": {
+        "operationId": "OrganizationsStripeController_checkTeamStripeConnection",
+        "summary": "Check team stripe connection",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsCheckOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations/Teams Stripe"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/stripe/save": {
+      "get": {
+        "operationId": "OrganizationsStripeController_save",
+        "summary": "Save stripe credentials",
+        "parameters": [
+          {
+            "name": "state",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsSaveOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations/Teams Stripe"
+        ]
+      }
+    },
     "/v2/routing-forms/{routingFormId}/calculate-slots": {
       "post": {
         "operationId": "RoutingFormsController_calculateSlotsBasedOnRoutingFormResponse",
@@ -9981,46 +10178,6 @@
         "operationId": "StripeController_check",
         "summary": "Check stripe connection",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StripCredentialsCheckOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Stripe"
-        ]
-      }
-    },
-    "/v2/stripe/check/{teamId}": {
-      "get": {
-        "operationId": "StripeController_checkTeamStripeConnection",
-        "summary": "Check team stripe connection",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "Authorization",
             "in": "header",
@@ -18864,7 +19021,7 @@
         "type": "object",
         "properties": {
           "status": {
-            "type": "string",
+            "type": "object",
             "example": "success"
           }
         },
