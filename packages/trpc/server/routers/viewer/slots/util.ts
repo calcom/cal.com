@@ -313,7 +313,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   }
 
   // allow event owner to get slots without minimumBookingNotice
-  if (eventType.userId == userId) {
+  if (eventType.userId && userId && eventType.userId == Number(userId)) {
     eventType.minimumBookingNotice = 0;
   }
 
