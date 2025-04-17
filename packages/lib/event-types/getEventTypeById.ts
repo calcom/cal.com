@@ -48,6 +48,7 @@ export const getEventTypeById = async ({
     email: true,
     locale: true,
     defaultScheduleId: true,
+    isPlatformManaged: true,
   });
 
   const rawEventType = await EventTypeRepository.findById({ id: eventTypeId, userId });
