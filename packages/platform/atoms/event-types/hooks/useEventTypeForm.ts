@@ -298,6 +298,13 @@ export const useEventTypeForm = ({
     } = dirtyValues;
     if (length && !Number(length)) throw new Error(t("event_setup_length_error"));
 
+    const finalSeatsPerTimeSlot = seatsPerTimeSlot ?? values.seatsPerTimeSlot;
+    const finalRecurringEvent = recurringEvent ?? values.recurringEvent;
+
+    if (finalSeatsPerTimeSlot && finalRecurringEvent) {
+      throw new Error(t("recurring_event_seats_error"));
+    }
+
     if (bookingLimits) {
       const isValid = validateIntervalLimitOrder(bookingLimits);
       if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
