@@ -80,7 +80,7 @@ export default function BillingCredits() {
             <></>
           )}
           {/* for user credits before being part of the org */}
-          {creditsData.userCredits.additionalCredits > 0 && !teamId ? (
+          {creditsData.userCredits && creditsData.userCredits.additionalCredits > 0 && !teamId ? (
             <>
               <Label className="mt-4">
                 Additional credits {creditsData.teamCredits ? "(your user credits)" : ""}
@@ -112,8 +112,7 @@ export default function BillingCredits() {
                   min={50}
                   addOnSuffix={<>{t("credits")}</>}
                 />
-                {errors.quantity && <InputError message={errors.quantity.message} />}
-                {/* Show error message */}
+                {errors.quantity && <InputError message={errors.quantity.message ?? t("invalid_input")} />}
               </div>
             </div>
 
