@@ -54,7 +54,8 @@ export class InternalTasker implements Tasker {
     return task.id;
   }
 
-  async getId(referenceUid: string, type: TaskTypes): Promise<string | undefined> {
-    return await Task.getId(referenceUid, type);
+  async cancelWithReference(referenceUid: string, type: TaskTypes): Promise<string | null> {
+    const task = await Task.cancelWithReference(referenceUid, type);
+    return task?.id ?? null;
   }
 }

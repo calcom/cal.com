@@ -465,6 +465,7 @@ export async function handler(req: NextRequest) {
             data: {
               scheduled: true,
               referenceId: batchId,
+              uuid: referenceUid,
             },
           });
         }

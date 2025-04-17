@@ -154,7 +154,7 @@ export class Task {
     });
   }
 
-  static async getId(referenceUid: string, type: TaskTypes) {
+  static async cancelWithReference(referenceUid: string, type: TaskTypes) {
     const task = await db.task.findFirst({
       where: {
         referenceUid,
@@ -162,8 +162,15 @@ export class Task {
       },
     });
 
-    return task?.id;
+    if (!task) return null;
+
+    return await db.task.delete({
+      where: {
+        id: task.id,
+      },
+    });
   }
+
   static async cleanup() {
     // TODO: Uncomment this later
     // return db.task.deleteMany({
