@@ -1958,12 +1958,9 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
-
-          const createdBooking = await handleNewBooking(req);
 
           // Verify that previous booking gets cancelled
           await expectBookingToBeInDatabase({
