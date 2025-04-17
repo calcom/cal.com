@@ -154,6 +154,16 @@ export class Task {
     });
   }
 
+  static async getId(referenceUid: string, type: TaskTypes) {
+    const task = await db.task.findFirst({
+      where: {
+        referenceUid,
+        type,
+      },
+    });
+
+    return task?.id;
+  }
   static async cleanup() {
     // TODO: Uncomment this later
     // return db.task.deleteMany({

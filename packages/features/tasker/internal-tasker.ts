@@ -1,4 +1,5 @@
 import { Task } from "./repository";
+import type { TaskTypes } from "./tasker";
 import { type TaskerCreate, type Tasker } from "./tasker";
 import tasksMap, { tasksConfig } from "./tasks";
 
@@ -51,5 +52,9 @@ export class InternalTasker implements Tasker {
   async cancel(id: string): Promise<string> {
     const task = await Task.cancel(id);
     return task.id;
+  }
+
+  async getId(referenceUid: string, type: TaskTypes): Promise<string | undefined> {
+    return await Task.getId(referenceUid, type);
   }
 }
