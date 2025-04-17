@@ -1,3 +1,4 @@
+import type { NextRequest } from "next/server";
 import TwilioClient from "twilio";
 import { v4 as uuidv4 } from "uuid";
 
@@ -195,4 +196,42 @@ async function isLockedForSMSSending(userId?: number | null, teamId?: number | n
     });
     return user?.smsLockState === SMSLockState.LOCKED;
   }
+}
+
+export async function determineOptOutType(
+  req: NextRequest
+): Promise<{ phoneNumber: string; optOutStatus: boolean } | { error: string }> {
+  // Twilio sends webhook data as form data
+  const formData = await req.formData();
+
+  if (!formData) {
+    return { error: "Invalid request" };
+  }
+
+  const accountSid = formData.get("AccountSid")?.valueOf();
+
+  if (accountSid !== process.env.TWILIO_SID) {
+    return { error: "Invalid account SID" };
+  }
+
+  // Twilio returns phone numbers with a + prefix
+  const phoneNumber = formData.get("From")?.valueOf().toString();
+
+  if (!phoneNumber) {
+    return { error: "No phone number to handle" };
+  }
+
+  if (!formData.get("OptOutType")) {
+    return { error: "No opt out message to handle" };
+  }
+
+  const optOutMessage = formData.get("OptOutType")?.valueOf();
+
+  if (optOutMessage !== "STOP" && optOutMessage !== "START") {
+    return { error: "Invalid opt out type" };
+  }
+
+  const optOutStatus = optOutMessage === "STOP" ? true : false;
+
+  return { phoneNumber, optOutStatus };
 }
