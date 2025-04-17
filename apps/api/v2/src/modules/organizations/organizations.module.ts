@@ -163,7 +163,6 @@ import { Module } from "@nestjs/common";
     OrganizationsWebhooksController,
     OrganizationsTeamsSchedulesController,
     OrganizationsUsersOOOController,
-    OrganizationsConferencingController,
   ],
 })
 export class OrganizationsModule {}

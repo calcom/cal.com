@@ -7,7 +7,6 @@ import { Office365VideoService } from "@/modules/conferencing/services/office365
 import { ZoomVideoService } from "@/modules/conferencing/services/zoom-video.service";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { HttpModule } from "@nestjs/axios";

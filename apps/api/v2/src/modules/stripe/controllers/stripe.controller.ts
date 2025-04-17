@@ -98,7 +98,7 @@ export class StripeController {
     const decodedCallbackState: OAuthCallbackState = JSON.parse(state);
     try {
       // If teamId is present, proxy to team endpoint
-      if (decodedCallbackState.teamId) {
+      if (decodedCallbackState.teamId && decodedCallbackState.orgId) {
         let url = "";
         const apiUrl = this.config.get("api.url");
         url = `${apiUrl}/organizations/${decodedCallbackState.orgId}/teams/${decodedCallbackState.teamId}/stripe/save`;
@@ -109,11 +109,9 @@ export class StripeController {
         };
         try {
           const response = await this.httpService.axiosRef.get(url, { params, headers });
-          // Always redirect to the URL provided by the downstream endpoint, or fallback to onErrorReturnTo
           const redirectUrl = response.data?.url || decodedCallbackState.onErrorReturnTo || "";
           return { url: redirectUrl };
         } catch (err) {
-          // On error, redirect to error fallback
           const fallbackUrl = decodedCallbackState.onErrorReturnTo || "";
           return { url: fallbackUrl };
         }

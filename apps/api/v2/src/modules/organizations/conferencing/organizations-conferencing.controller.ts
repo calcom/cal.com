@@ -248,27 +248,11 @@ export class OrganizationsConferencingController {
 
     const decodedCallbackState: OAuthCallbackState = JSON.parse(state);
     try {
-      const userId = await this.tokensRepository.getAccessTokenOwnerId(decodedCallbackState.accessToken);
-
-      if (!userId) {
-        throw new BadRequestException("invalid token");
-      }
-
-      if (error === "access_denied") {
-        return { url: decodedCallbackState.onErrorReturnTo ?? "" };
-      }
-
-      if (error) {
-        throw new BadRequestException(stringify({ error, error_description }));
-      }
-
       return await this.organizationsConferencingService.connectTeamOauthApps({
         decodedCallbackState,
         code,
-        teamId,
-        orgId,
         app,
-        userId,
+        teamId,
       });
     } catch (error) {
       if (error instanceof Error) {

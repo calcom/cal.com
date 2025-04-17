@@ -39,28 +39,14 @@ export class OrganizationsConferencingService {
     decodedCallbackState,
     app,
     code,
-    userId,
-    orgId,
     teamId,
   }: {
-    userId: number;
     app: string;
     decodedCallbackState: OAuthCallbackState;
     code: string;
-    orgId: number;
     teamId: number;
   }) {
-    const user = await this.usersRepository.findByIdWithProfile(userId);
-
-    if (!orgId) {
-      throw new BadRequestException("orgId required");
-    }
-
-    if (!user) {
-      throw new BadRequestException("user not found");
-    }
-
-    return this.conferencingService.connectOauthApps(app, code, userId, decodedCallbackState, teamId);
+    return this.conferencingService.connectOauthApps(app, code, decodedCallbackState, teamId);
   }
 
   async getConferencingApps({ teamId }: { teamId: number }) {

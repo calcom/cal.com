@@ -145,12 +145,8 @@ export class ConferencingController {
 
     const decodedCallbackState: OAuthCallbackState = JSON.parse(state);
     try {
-      const userId = await this.tokensRepository.getAccessTokenOwnerId(decodedCallbackState.accessToken);
       if (error) {
         throw new BadRequestException(error_description);
-      }
-      if (!userId) {
-        throw new UnauthorizedException("Invalid Access token.");
       }
 
       if (decodedCallbackState.teamId && decodedCallbackState.orgId) {
@@ -162,17 +158,15 @@ export class ConferencingController {
         };
         try {
           const response = await this.httpService.axiosRef.get(url, { params, headers });
-          // Always redirect to the URL provided by the downstream endpoint, or fallback to onErrorReturnTo
           const redirectUrl = response.data?.url || decodedCallbackState.onErrorReturnTo || "";
           return { url: redirectUrl };
         } catch (err) {
-          // On error, redirect to error fallback
           const fallbackUrl = decodedCallbackState.onErrorReturnTo || "";
           return { url: fallbackUrl };
         }
       }
 
-      return this.conferencingService.connectOauthApps(app, code, userId, decodedCallbackState);
+      return this.conferencingService.connectOauthApps(app, code, decodedCallbackState);
     } catch (error) {
       if (error instanceof HttpException || error instanceof Error) {
         this.logger.error(error.message);
