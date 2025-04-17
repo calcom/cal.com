@@ -24,8 +24,7 @@ const teamPaymentMetadataSchema = z.object({
   subscriptionId: z.string(),
   subscriptionItemId: z.string(),
   orgSeats: teamMetadataSchema.unwrap().shape.orgSeats,
-  lastInvoicedSeatCount: z.number().optional(),
-  lastSeatChangeAt: z.date().optional(),
+  debouncedBillingTaskId: z.string().optional(),
 });
 
 /** Used to prevent double charges for the same team */
@@ -280,34 +279,6 @@ export const getTeamWithPaymentMetadata = async (teamId: number) => {
   return { ...team, metadata };
 };
 
-export const updateTeamSeatChangeMetadata = async (
-  teamId: number,
-  team?: Awaited<ReturnType<typeof getTeamWithPaymentMetadata>>
-) => {
-  try {
-    // Use the team passed in if available, otherwise fetch it
-    const teamData = team || (await getTeamWithPaymentMetadata(teamId));
-    const membershipCount = teamData.members.length;
-
-    const lastInvoicedSeatCount = teamData.metadata.lastInvoicedSeatCount ?? membershipCount;
-
-    await prisma.team.update({
-      where: { id: teamId },
-      data: {
-        metadata: {
-          ...teamData.metadata,
-          lastInvoicedSeatCount,
-          lastSeatChangeAt: new Date(),
-        },
-      },
-    });
-  } catch (error) {
-    let message = "Unknown error on updateTeamSeatChangeMetadata";
-    if (error instanceof Error) message = error.message;
-    console.error(message);
-  }
-};
-
 export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
   try {
     const { url } = await checkIfTeamPaymentRequired({ teamId });
@@ -317,7 +288,7 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
      **/
     if (!url) return;
     const team = await getTeamWithPaymentMetadata(teamId);
-    const { subscriptionId, subscriptionItemId, orgSeats } = team.metadata;
+    const { subscriptionId, subscriptionItemId, orgSeats, debouncedBillingTaskId } = team.metadata;
     // Either it would be custom pricing where minimum number of seats are changed(available in orgSeats) or it would be default MINIMUM_NUMBER_OF_ORG_SEATS
     // We can't go below this quantity for subscription
     const orgMinimumSubscriptionQuantity = orgSeats || MINIMUM_NUMBER_OF_ORG_SEATS;
@@ -340,23 +311,45 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
       proration_behavior: "none",
     });
 
-    await updateTeamSeatChangeMetadata(teamId, team);
+    if (debouncedBillingTaskId) {
+      console.info(`Team ${teamId} already has a pending billing task: ${debouncedBillingTaskId}`);
+      return;
+    }
 
-    console.info(
-      `Updated subscription ${subscriptionId} for team ${teamId} to ${team.members.length} seats.`
-    );
+    if (membershipCount > subscriptionQuantity) {
+      const DEBOUNCE_INTERVAL_MS = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+      const task = await tasker.create(
+        "processDebouncedSeatBilling",
+        {
+          teamId,
+          previousSeatCount: subscriptionQuantity,
+          currentSeatCount: membershipCount,
+        },
+        {
+          scheduledAt: new Date(Date.now() + DEBOUNCE_INTERVAL_MS),
+        }
+      );
+
+      await prisma.team.update({
+        where: { id: teamId },
+        data: {
+          metadata: {
+            ...team.metadata,
+            debouncedBillingTaskId: task.id,
+          },
+        },
+      });
+
+      console.info(
+        `Updated subscription ${subscriptionId} for team ${teamId} to ${membershipCount} seats and scheduled billing task ${task.id}`
+      );
+    } else {
+      console.info(
+        `Updated subscription ${subscriptionId} for team ${teamId} to ${membershipCount} seats (no billing task needed)`
+      );
+    }
   } catch (error) {
     let message = "Unknown error on updateQuantitySubscriptionFromStripe";
-    if (error instanceof Error) message = error.message;
-    console.error(message);
-  }
-};
-export const scheduleDebouncedSeatBilling = async () => {
-  try {
-    const { initializeDebouncedBillingScheduler } = await import("./billing-scheduler");
-    await initializeDebouncedBillingScheduler();
-  } catch (error) {
-    let message = "Unknown error on scheduleDebouncedSeatBilling";
     if (error instanceof Error) message = error.message;
     console.error(message);
   }
