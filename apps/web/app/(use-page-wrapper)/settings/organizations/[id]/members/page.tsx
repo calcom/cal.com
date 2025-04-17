@@ -8,7 +8,7 @@ export const generateMetadata = async ({ params }: { params: Promise<{ id: strin
     (t) => t("organization_description"),
     undefined,
     undefined,
-    `/settings/organizations/${await params.id}/members`
+    `/settings/organizations/${(await params).id}/members`
   );
 
 const ServerPageWrapper = () => {

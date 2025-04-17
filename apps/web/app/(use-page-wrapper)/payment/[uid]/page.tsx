@@ -19,7 +19,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     () => "",
     undefined,
     undefined,
-    `/payment/${await params.uid}`
+    `/payment/${(await params).uid}`
   );
 };
 

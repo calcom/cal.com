@@ -27,7 +27,7 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
       t(`booking_${needsConfirmation ? "submitted" : "confirmed"}${recurringBookings ? "_recurring" : ""}`),
     false,
     getOrgFullOrigin(orgSlug),
-    `/booking/${await params.uid}`
+    `/booking/${(await params).uid}`
   );
 };
 

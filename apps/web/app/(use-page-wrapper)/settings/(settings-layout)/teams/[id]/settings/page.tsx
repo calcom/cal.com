@@ -9,7 +9,7 @@ export const generateMetadata = async ({ params }: { params: Promise<{ id: strin
     (t) => t("team_settings_description"),
     undefined,
     undefined,
-    `/settings/teams/${await params.id}/settings`
+    `/settings/teams/${(await params).id}/settings`
   );
 
 const Page = async () => {

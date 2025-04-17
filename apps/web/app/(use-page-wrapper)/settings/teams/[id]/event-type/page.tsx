@@ -8,7 +8,7 @@ export const generateMetadata = async ({ params }: { params: Promise<{ id: strin
     (t) => t("new_event_type_to_book_description"),
     undefined,
     undefined,
-    `/settings/teams/${await params.id}/event-type`
+    `/settings/teams/${(await params).id}/event-type`
   );
 
 const ServerPage = async () => {

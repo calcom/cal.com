@@ -12,7 +12,7 @@ export const generateMetadata = async ({ params }: { params: Promise<{ id: strin
     (t) => t("add_webhook_description", { appName: APP_NAME }),
     undefined,
     undefined,
-    `/settings/developer/webhooks/${await params.id}`
+    `/settings/developer/webhooks/${(await params).id}`
   );
 
 const Page = async ({ params: _params }: PageProps) => {

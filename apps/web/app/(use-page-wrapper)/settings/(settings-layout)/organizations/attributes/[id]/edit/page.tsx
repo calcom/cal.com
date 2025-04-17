@@ -8,7 +8,7 @@ export const generateMetadata = async ({ params }: { params: Promise<{ id: strin
     (t) => t("edit_attribute_description"),
     undefined,
     undefined,
-    `/settings/organizations/attributes/${await params.id}/edit`
+    `/settings/organizations/attributes/${(await params).id}/edit`
   );
 
 const OrgAttributesEditPageWrapper = async () => {

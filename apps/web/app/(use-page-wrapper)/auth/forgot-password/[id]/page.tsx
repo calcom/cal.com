@@ -16,7 +16,7 @@ export const generateMetadata = async ({ params }: { params: Promise<{ id: strin
     (t) => t("change_your_password"),
     undefined,
     undefined,
-    `/auth/forgot-password/${await params.id}`
+    `/auth/forgot-password/${(await params).id}`
   );
 };
 

@@ -15,7 +15,7 @@ export const generateMetadata = async ({ params }: ServerPageProps) =>
     (t) => t("meeting_unavailable"),
     undefined,
     undefined,
-    `/video/meeting-ended/${await params.uid}`
+    `/video/meeting-ended/${(await params).uid}`
   );
 
 const getData = withAppDirSsr<ClientPageProps>(getServerSideProps);

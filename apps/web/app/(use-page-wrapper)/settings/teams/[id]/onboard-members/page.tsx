@@ -8,7 +8,7 @@ export const generateMetadata = async ({ params }: { params: Promise<{ id: strin
     (t) => t("add_team_members_description"),
     undefined,
     undefined,
-    `/settings/teams/${await params.id}/onboard-members`
+    `/settings/teams/${(await params).id}/onboard-members`
   );
 
 const ServerPage = async () => {

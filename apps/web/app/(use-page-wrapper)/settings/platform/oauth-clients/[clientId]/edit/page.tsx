@@ -8,7 +8,7 @@ export const generateMetadata = async ({ params }: { params: Promise<{ clientId:
     () => "",
     undefined,
     undefined,
-    `/settings/platform/oauth-clients/${await params.clientId}/edit`
+    `/settings/platform/oauth-clients/${(await params).clientId}/edit`
   );
 
 const ServerPageWrapper = () => {
