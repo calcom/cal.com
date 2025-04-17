@@ -438,7 +438,6 @@ const mapIdentityProvider = (providerName: string): IdentityProvider => {
     case "google":
       return IdentityProvider.GOOGLE;
     default:
-      log.warn(`Unknown identity provider mapping encountered: ${providerName}. Defaulting to GOOGLE.`);
       return IdentityProvider.GOOGLE;
   }
 };
