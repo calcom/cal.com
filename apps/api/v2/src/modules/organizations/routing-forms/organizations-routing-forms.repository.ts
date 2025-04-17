@@ -15,10 +15,10 @@ export class OrganizationsRoutingFormsRepository {
       name?: string;
       sortCreatedAt?: "asc" | "desc";
       sortUpdatedAt?: "asc" | "desc";
-      afterCreatedAt?: Date;
-      beforeCreatedAt?: Date;
-      afterUpdatedAt?: Date;
-      beforeUpdatedAt?: Date;
+      afterCreatedAt?: string;
+      beforeCreatedAt?: string;
+      afterUpdatedAt?: string;
+      beforeUpdatedAt?: string;
       teamIds?: number[];
     }
   ) {
@@ -61,10 +61,10 @@ export class OrganizationsRoutingFormsRepository {
     options?: {
       sortCreatedAt?: "asc" | "desc";
       sortUpdatedAt?: "asc" | "desc";
-      afterCreatedAt?: Date;
-      beforeCreatedAt?: Date;
-      afterUpdatedAt?: Date;
-      beforeUpdatedAt?: Date;
+      afterCreatedAt?: string;
+      beforeCreatedAt?: string;
+      afterUpdatedAt?: string;
+      beforeUpdatedAt?: string;
       routedToBookingUid?: string;
     }
   ) {
