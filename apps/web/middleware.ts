@@ -21,16 +21,6 @@ export const POST_METHODS_ALLOWED_APP_ROUTES = [
   "/settings/my-account/general",
   "/settings/developer/webhooks",
 ];
-const ROUTES_TO_ENFORCE_CSP = ["/auth/login", "/login"];
-const ROUTES_TO_SET_COOKIES = ["/apps/installed", "/auth/logout"];
-const MATCHER = [
-  ...POST_METHODS_ALLOWED_API_ROUTES,
-  ...POST_METHODS_ALLOWED_APP_ROUTES,
-  ...ROUTES_TO_ENFORCE_CSP,
-  ...ROUTES_TO_SET_COOKIES,
-  "/:path*/embed",
-  "/api/trpc/:path*",
-];
 export function checkPostMethod(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
   if (
@@ -183,9 +173,26 @@ function responseWithHeaders({ url, res, req }: { url: URL; res: NextResponse; r
 }
 
 export const config = {
+  // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
+  // https://github.com/vercel/next.js/discussions/42458
   // WARNING: DO NOT ADD AN ENDING SLASH "/" TO THE PATHS BELOW
   // THIS WILL MAKE THEM NOT MATCH AND HENCE NOT HIT MIDDLEWARE
-  matcher: MATCHER,
+  matcher: [
+    // Routes to enforce CSP
+    "/auth/login",
+    "/login",
+    // Routes to set cookies
+    "/apps/installed",
+    "/auth/logout",
+    // Embed Routes,
+    "/:path*/embed",
+    // API routes
+    "/api/auth/signup",
+    "/api/trpc/:path*",
+    // Routes allowed for POST method (matching `POST_METHODS_ALLOWED_APP_ROUTES` array)
+    "/settings/my-account/general",
+    "/settings/developer/webhooks",
+  ],
 };
 
 export default collectEvents({
