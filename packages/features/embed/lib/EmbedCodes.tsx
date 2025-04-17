@@ -142,10 +142,13 @@ export default function Booker( props : BookerProps ) {
       <BookerEmbed
         // Use the parsed username and event slug from calLink
         eventSlug={eventSlug}
-        // layout can be of three types: COLUMN_VIEW, MONTH_VIEW or WEEK_VIEW, you can choose whichever you prefer
+        // layout can be of three types: COLUMN_VIEW, MONTH_VIEW or WEEK_VIEW, 
+        // you can choose whichever you prefer
         view="MONTH_VIEW"
         username={calUsername}
-        // Pass style and config props similar to other inline embeds
+        // Pass style and config props similar to other inline embeds. 
+        // For more refer to how styling is done in embeds: 
+        // packages/platform/examples/base/src/pages/booking.tsx 
         style={{width:"${width}",height:"${height}",overflow:"scroll"}}
         config={${JSON.stringify(previewState.config)}}
         ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
