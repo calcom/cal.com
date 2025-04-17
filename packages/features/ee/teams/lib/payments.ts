@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import { getDubCustomer } from "@calcom/features/auth/lib/dub";
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import tasker from "@calcom/features/tasker";
 import {
   IS_PRODUCTION,
   MINIMUM_NUMBER_OF_ORG_SEATS,
