@@ -41,11 +41,9 @@ export const ResultsSection = ({
 
 export const TeamMember = ({ name, email, score }: { name: string | null; email: string; score: number }) => (
   <div className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
-    <div className="flex flex-col items-center space-y-2">
+    <div className="aspace-y-2 flex flex-col">
       <h4 className="text-emphasis font-medium">{name || "Nameless User"}</h4>
-      <Badge variant="gray" size="sm">
-        {email}
-      </Badge>
+      <Badge variant="gray">{email}</Badge>
     </div>
     <span
       className={`font-medium ${
@@ -124,19 +122,19 @@ export const ResultsView = ({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-default">Attribute logic matched</span>
-                <Badge variant={membersMatchResult.checkedFallback ? "error" : "success"} size="sm">
+                <Badge variant={membersMatchResult.checkedFallback ? "error" : "success"}>
                   {membersMatchResult.checkedFallback ? "No" : "Yes"}
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-default">Attribute fallback</span>
-                <Badge variant={membersMatchResult.checkedFallback ? "success" : "gray"} size="sm">
+                <Badge variant={membersMatchResult.checkedFallback ? "success" : "gray"}>
                   {membersMatchResult.checkedFallback ? "Yes" : "Not needed"}
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-default">Contact owner</span>
-                <Badge variant={membersMatchResult.contactOwnerEmail ? "success" : "gray"} size="sm">
+                <Badge variant={membersMatchResult.contactOwnerEmail ? "success" : "gray"}>
                   {membersMatchResult.contactOwnerEmail || "Not found"}
                 </Badge>
               </div>
