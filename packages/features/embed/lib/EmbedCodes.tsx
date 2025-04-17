@@ -130,25 +130,25 @@ export default function MyApp() {
     }) => {
       const width = getDimension(previewState.width);
       const height = getDimension(previewState.height);
+
       return code`
 import { BookerEmbed } from "@calcom/atoms";
 
 // You might need to define or import BookerProps depending on your setup
 // For example: type BookerProps = { eventTypeSlug: string; calUsername: string; /* other props */ };
-export default function Booker( props : BookerProps ) { 
+export default function Booker( props : BookerProps ) {
   return (
     <>
       <BookerEmbed
-        // Using calLink from embed generator where docs use props.eventTypeSlug
-        eventSlug="${calLink}"
-        // Example using layout from config, adjust as needed
-        ${previewState.config?.layout ? `view="${previewState.config.layout}"` : ""}
-        // Props like username can be added if needed and available in your component
-        // username={props.calUsername}
+        // Use the parsed username and event slug from calLink
+        eventSlug={eventSlug}
+        // layout can be of three types: COLUMN_VIEW, MONTH_VIEW or WEEK_VIEW, you can choose whichever you prefer
+        view="MONTH_VIEW"
+        username={calUsername}
+        // Pass style and config props similar to other inline embeds
         style={{width:"${width}",height:"${height}",overflow:"scroll"}}
         config={${JSON.stringify(previewState.config)}}
         ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
-        ${IS_SELF_HOSTED ? `embedJsUrl="${embedLibUrl}"` : ""}
         onCreateBookingSuccess={() => {
           console.log("booking created successfully");
         }}
