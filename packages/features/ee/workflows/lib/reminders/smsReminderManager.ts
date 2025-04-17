@@ -100,6 +100,14 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
     return;
   }
 
+  if (await WorkflowOptOutContactRepository.isOptedOut(reminderPhone)) {
+    log.warn(
+      `Phone number opted out of SMS workflows`,
+      safeStringify({ workflowStep: workflowStepId, eventUid: evt.uid })
+    );
+    return;
+  }
+
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
