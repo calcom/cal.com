@@ -784,6 +784,7 @@ describe("Organizations Users Endpoints", () => {
     afterAll(async () => {
       // await membershipFixtures.delete(membership.id);
       await userRepositoryFixture.deleteByEmail(user.email);
+      await userRepositoryFixture.deleteByEmail(user2.email);
       await organizationsRepositoryFixture.delete(org.id);
       await app.close();
 
