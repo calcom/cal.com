@@ -13,7 +13,6 @@ export class GetOrganizationsUsersInput extends GetUsersInput {
     }
     return value;
   })
-  @Expose()
   @ApiPropertyOptional({
     type: [String],
     description: "Filter by assigned attribute option ids. ids must be separated by a comma.",
