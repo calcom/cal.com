@@ -114,20 +114,44 @@ export class OrganizationAttributeOptionService {
     );
   }
 
-  async getOrganizationAttributeAssignedOptions(
-    organizationId: number,
-    attributeId: string,
-    skip = 0,
-    take = 250,
-    filters?: { assignedOptionIds?: string[] }
-  ) {
-    const options = await this.organizationAttributeOptionRepository.getOrganizationAttributeAssignedOptions(
+  async getOrganizationAttributeAssignedOptions({
+    organizationId,
+    attributeId,
+    attributeSlug,
+    skip,
+    take,
+    filters,
+  }: GetOrganizationAttributeAssignedOptionsProp) {
+    const options = await this.organizationAttributeOptionRepository.getOrganizationAttributeAssignedOptions({
       organizationId,
-      attributeId,
+      ...(attributeId ? { attributeId } : { attributeSlug }),
       skip,
       take,
-      filters
-    );
+      filters,
+    });
     return options.map((opt) => plainToClass(AssignedOptionOutput, opt, { strategy: "excludeAll" }));
   }
 }
+
+// Discriminative Union on attributeSlug / attributeId
+export type GetOrganizationAttributeAssignedOptionsProp =
+  | GetOrganizationAttributeAssignedOptionsPropById
+  | GetOrganizationAttributeAssignedOptionsPropBySlug;
+
+type GetOrganizationAttributeAssignedOptionsPropById = {
+  organizationId: number;
+  attributeId: string;
+  attributeSlug?: undefined;
+  skip: number;
+  take: number;
+  filters?: { assignedOptionIds?: string[]; teamIds?: number[] };
+};
+
+type GetOrganizationAttributeAssignedOptionsPropBySlug = {
+  organizationId: number;
+  attributeId?: undefined;
+  attributeSlug?: string;
+  skip: number;
+  take: number;
+  filters?: { assignedOptionIds?: string[]; teamIds?: number[] };
+};

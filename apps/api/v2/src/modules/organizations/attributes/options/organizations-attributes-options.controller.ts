@@ -142,13 +142,37 @@ export class OrganizationsAttributesOptionsController {
   ): Promise<GetAllAttributeAssignedOptionOutput> {
     const { skip, take, ...rest } = queryParams;
     const attributeOptions =
-      await this.organizationsAttributesOptionsService.getOrganizationAttributeAssignedOptions(
-        orgId,
+      await this.organizationsAttributesOptionsService.getOrganizationAttributeAssignedOptions({
+        organizationId: orgId,
         attributeId,
-        skip,
-        take,
-        rest
-      );
+        skip: skip ?? 0,
+        take: take ?? 250,
+        filters: rest,
+      });
+    return {
+      status: SUCCESS_STATUS,
+      data: attributeOptions,
+    };
+  }
+
+  @Roles("ORG_MEMBER")
+  @PlatformPlan("ESSENTIALS")
+  @Get("/attributes/slugs/:attributeSlug/options/assigned")
+  @ApiOperation({ summary: "Get all attribute options that are assigned to users" })
+  async getOrganizationAttributeAssignedOptionsBySlug(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("attributeSlug") attributeSlug: string,
+    @Query() queryParams: GetAssignedAttributeOptions
+  ): Promise<GetAllAttributeAssignedOptionOutput> {
+    const { skip, take, ...rest } = queryParams;
+    const attributeOptions =
+      await this.organizationsAttributesOptionsService.getOrganizationAttributeAssignedOptions({
+        organizationId: orgId,
+        attributeSlug,
+        skip: skip ?? 0,
+        take: take ?? 250,
+        filters: rest,
+      });
     return {
       status: SUCCESS_STATUS,
       data: attributeOptions,

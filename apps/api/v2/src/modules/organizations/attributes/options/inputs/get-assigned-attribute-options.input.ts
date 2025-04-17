@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsOptional, IsArray, ArrayMinSize, IsString } from "class-validator";
+import { IsOptional, IsArray, ArrayMinSize, IsString, IsNumber } from "class-validator";
 
 export class GetAssignedAttributeOptions {
   @ApiPropertyOptional({ type: Number, description: "Number of responses to skip" })
@@ -29,4 +29,21 @@ export class GetAssignedAttributeOptions {
   @IsString({ each: true })
   @ArrayMinSize(1, { message: "assignedOptionIds must contain at least 1 attribute option id" })
   assignedOptionIds?: string[];
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === "string") {
+      return value.split(",").map((teamId: string) => parseInt(teamId));
+    }
+    return value;
+  })
+  @ApiPropertyOptional({
+    type: [Number],
+    description: "Filter by teamIds. Team ids must be separated by a comma.",
+    example: "?teamIds=100,200",
+  })
+  @IsArray()
+  @IsNumber({}, { each: true })
+  @ArrayMinSize(1, { message: "teamIds must contain at least 1 team id" })
+  teamIds?: number[];
 }

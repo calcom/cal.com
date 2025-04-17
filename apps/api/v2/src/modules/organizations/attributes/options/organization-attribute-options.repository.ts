@@ -7,6 +7,8 @@ import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 
 import { slugify } from "@calcom/platform-libraries";
 
+import { GetOrganizationAttributeAssignedOptionsProp } from "./services/organization-attributes-option.service";
+
 @Injectable()
 export class OrganizationAttributeOptionRepository {
   private readonly logger = new Logger("OrganizationAttributeOptionRepository");
@@ -90,20 +92,27 @@ export class OrganizationAttributeOptionRepository {
     return options;
   }
 
-  async getOrganizationAttributeAssignedOptions(
-    organizationId: number,
-    attributeId: string,
-    skip = 0,
-    take = 250,
-    filters?: { assignedOptionIds?: string[] }
-  ) {
+  async getOrganizationAttributeAssignedOptions({
+    attributeId,
+    attributeSlug,
+    filters,
+    organizationId,
+    skip,
+    take,
+  }: GetOrganizationAttributeAssignedOptionsProp) {
     const options = await this.dbRead.prisma.attributeOption.findMany({
       where: {
         attribute: {
-          id: attributeId,
+          ...(attributeId && { id: attributeId }),
+          ...(attributeSlug && { slug: attributeSlug }),
           teamId: organizationId,
         },
-        assignedUsers: { some: {} },
+        assignedUsers: {
+          some: {}, // empty {} statement checks if option is assigned to at least one user
+          ...(filters?.teamIds && {
+            some: { member: { user: { teams: { some: { teamId: { in: filters.teamIds } } } } } },
+          }),
+        },
       },
       include: { assignedUsers: { include: { member: true } } },
       skip,
@@ -119,6 +128,7 @@ export class OrganizationAttributeOptionRepository {
             every: {
               attributeOptionId: { in: filters?.assignedOptionIds },
             },
+            ...(filters?.teamIds && { some: { member: { teamId: { in: filters?.teamIds } } } }),
           },
         },
         include: { assignedUsers: { include: { member: true } } },

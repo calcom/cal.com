@@ -15,6 +15,7 @@ import * as request from "supertest";
 import { AttributeRepositoryFixture } from "test/fixtures/repository/attributes.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
@@ -97,6 +98,8 @@ describe("Organizations Attributes Options Endpoints", () => {
     let app: INestApplication;
     let userRepositoryFixture: UserRepositoryFixture;
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
+    let teamsRepositoryFixtures: TeamRepositoryFixture;
+
     let membershipFixtures: MembershipRepositoryFixture;
     let attributeRepositoryFixture: AttributeRepositoryFixture;
 
@@ -106,8 +109,11 @@ describe("Organizations Attributes Options Endpoints", () => {
     let user: User;
     let user2: User;
     let org: Team;
+    let team: Team;
     let membership: Membership;
     let attributeId: string;
+    let attributeSlug: string;
+
     let createdOption: any;
     let createdOption2: any;
     let attribute2: Attribute;
@@ -133,6 +139,7 @@ describe("Organizations Attributes Options Endpoints", () => {
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+      teamsRepositoryFixtures = new TeamRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
       attributeRepositoryFixture = new AttributeRepositoryFixture(moduleRef);
 
@@ -140,6 +147,8 @@ describe("Organizations Attributes Options Endpoints", () => {
         name: `organization-attributes-options-admin-organization-${randomString()}`,
         isOrganization: true,
       });
+
+      team = await teamsRepositoryFixtures.create({ name: "org team", parent: { connect: { id: org.id } } });
 
       user = await userRepositoryFixture.create({
         email: userEmail,
@@ -155,6 +164,12 @@ describe("Organizations Attributes Options Endpoints", () => {
 
       membership = await membershipFixtures.addUserToOrg(user, org, "ADMIN", true);
       membership = await membershipFixtures.addUserToOrg(user2, org, "ADMIN", true);
+      await membershipFixtures.create({
+        role: "MEMBER",
+        accepted: true,
+        team: { connect: { id: team.id } },
+        user: { connect: { id: user.id } },
+      });
 
       // Create an attribute for testing
       const attribute = await attributeRepositoryFixture.create({
@@ -171,6 +186,7 @@ describe("Organizations Attributes Options Endpoints", () => {
         slug: "test-attribute-2",
       });
       attributeId = attribute.id;
+      attributeSlug = attribute.slug;
       attribute2Option = await attributeRepositoryFixture.createOption({
         slug: "optionA",
         value: "optionA",
@@ -315,6 +331,49 @@ describe("Organizations Attributes Options Endpoints", () => {
     it("should get attribute all assigned options", async () => {
       return request(app.getHttpServer())
         .get(`/v2/organizations/${org.id}/attributes/${attributeId}/options/assigned`)
+        .expect(200)
+        .then((response) => {
+          expect(response.body.status).toEqual(SUCCESS_STATUS);
+          const assignedOptions = response.body.data as AssignedOptionOutput[];
+          expect(assignedOptions?.length).toEqual(2);
+
+          expect(assignedOptions.find((opt) => createdOption.id === opt.id)).toBeDefined();
+          expect(
+            assignedOptions
+              .find((opt) => createdOption.id === opt.id)
+              ?.assignedUserIds.find((id) => id === user.id)
+          ).toBeDefined();
+
+          expect(assignedOptions.find((opt) => createdOption2.id === opt.id)).toBeDefined();
+          expect(
+            assignedOptions
+              .find((opt) => createdOption2.id === opt.id)
+              ?.assignedUserIds.find((id) => id === user2.id)
+          ).toBeDefined();
+        });
+    });
+
+    it("should get attribute all assigned options filtered by team id", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/attributes/${attributeId}/options/assigned?teamIds=${team.id}`)
+        .expect(200)
+        .then((response) => {
+          expect(response.body.status).toEqual(SUCCESS_STATUS);
+          const assignedOptions = response.body.data as AssignedOptionOutput[];
+          expect(assignedOptions?.length).toEqual(1);
+
+          expect(assignedOptions.find((opt) => createdOption.id === opt.id)).toBeDefined();
+          expect(
+            assignedOptions
+              .find((opt) => createdOption.id === opt.id)
+              ?.assignedUserIds.find((id) => id === user.id)
+          ).toBeDefined();
+        });
+    });
+
+    it("should get attribute all assigned options by attribute slug", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/attributes/slugs/${attributeSlug}/options/assigned`)
         .expect(200)
         .then((response) => {
           expect(response.body.status).toEqual(SUCCESS_STATUS);
