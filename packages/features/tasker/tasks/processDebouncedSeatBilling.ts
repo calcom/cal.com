@@ -16,15 +16,18 @@ export async function processDebouncedSeatBilling(payload: string): Promise<void
 
     const teams = await prisma.team.findMany({
       where: {
-        metadata: {
-          path: ["subscriptionId"],
-          not: null,
+        NOT: {
+          metadata: null,
         },
       },
       select: {
         id: true,
         metadata: true,
-        members: true,
+        members: {
+          select: {
+            id: true,
+          },
+        },
         createdAt: true,
       },
     });
