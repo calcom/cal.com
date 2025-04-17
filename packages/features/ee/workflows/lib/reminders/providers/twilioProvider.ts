@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import pLimit from "p-limit";
 import TwilioClient from "twilio";
 import { v4 as uuidv4 } from "uuid";
 
@@ -234,4 +235,17 @@ export async function determineOptOutType(
   const optOutStatus = optOutMessage === "STOP" ? true : false;
 
   return { phoneNumber, optOutStatus };
+}
+export async function deleteMultipleScheduledSMS(referenceIds: string[]) {
+  const twilio = createTwilioClient();
+
+  const limit = pLimit(10);
+
+  await Promise.allSettled(
+    referenceIds.map((referenceId) => {
+      return limit(() => twilio.messages(referenceId).update({ status: "canceled" })).catch((error) => {
+        log.error(`Error canceling scheduled SMS with id ${referenceId}`, error);
+      });
+    })
+  );
 }
