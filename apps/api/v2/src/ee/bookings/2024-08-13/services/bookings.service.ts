@@ -646,13 +646,24 @@ export class BookingsService_2024_08_13 {
 
     const profile = this.usersService.getUserMainProfile(requestUser);
 
-    await roundRobinReassignment({
-      bookingId: booking.id,
-      orgId: profile?.organizationId || null,
-      emailsEnabled,
-      platformClientParams,
-      reassignedById: requestUser.id,
-    });
+    try {
+      await roundRobinReassignment({
+        bookingId: booking.id,
+        orgId: profile?.organizationId || null,
+        emailsEnabled,
+        platformClientParams,
+        reassignedById: requestUser.id,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "no_available_users_found_error") {
+          throw new BadRequestException(
+            "Can't reassign the booking because no other host is available at that time."
+          );
+        }
+      }
+      throw error;
+    }
 
     const reassigned = await this.bookingsRepository.getByUidWithUser(bookingUid);
     if (!reassigned) {
