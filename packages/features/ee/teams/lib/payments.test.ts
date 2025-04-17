@@ -429,6 +429,7 @@ describe("updateQuantitySubscriptionFromStripe", () => {
             id: FAKE_SUBITEM_ID,
           },
         ],
+        proration_behavior: "none",
       });
     });
 
@@ -525,6 +526,7 @@ describe("updateQuantitySubscriptionFromStripe", () => {
             id: FAKE_SUBITEM_ID,
           },
         ],
+        proration_behavior: "none",
       });
     });
   });
