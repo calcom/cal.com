@@ -128,9 +128,6 @@ export default function MyApp() {
       embedCalOrigin: string;
       namespace: string;
     }) => {
-      const width = getDimension(previewState.width);
-      const height = getDimension(previewState.height);
-
       return code`
 import { BookerEmbed } from "@calcom/atoms";
 
@@ -146,12 +143,9 @@ export default function Booker( props : BookerProps ) {
         // you can choose whichever you prefer
         view="MONTH_VIEW"
         username={calUsername}
-        // Pass style and config props similar to other inline embeds. 
-        // For more refer to how styling is done in embeds: 
-        // packages/platform/examples/base/src/pages/booking.tsx 
-        style={{width:"${width}",height:"${height}",overflow:"scroll"}}
-        config={${JSON.stringify(previewState.config)}}
-        ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
+        customClassNames={{
+          bookerContainer: "border-subtle border",
+        }}
         onCreateBookingSuccess={() => {
           console.log("booking created successfully");
         }}
@@ -181,17 +175,15 @@ export default function Booker( props : BookerProps ) {
   return (
     <>
       <BookerEmbed
-        // Using calLink from embed generator where docs use props.eventTypeSlug
-        eventSlug="${calLink}"
-        // Example using layout from config, adjust as needed
-        ${previewState.config?.layout ? `view="${previewState.config.layout}"` : ""}
-        // username={props.calUsername}
-        config={${JSON.stringify(previewState.config)}}
-        ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
-        ${previewState.hideButtonIcon ? `hideButtonIcon={true}` : ""}
-        ${previewState.buttonPosition ? `buttonPosition="${previewState.buttonPosition}"` : ""}
-        ${previewState.buttonColor ? `buttonColor="${previewState.buttonColor}"` : ""}
-        ${previewState.buttonTextColor ? `buttonTextColor="${previewState.buttonTextColor}"` : ""}
+        // Use the parsed username and event slug from calLink
+        eventSlug={eventSlug}
+        // layout can be of three types: COLUMN_VIEW, MONTH_VIEW or WEEK_VIEW, 
+        // you can choose whichever you prefer
+        view="MONTH_VIEW"
+        username={calUsername}
+        customClassNames={{
+          bookerContainer: "border-subtle border",
+        }}
         onCreateBookingSuccess={() => {
           console.log("booking created successfully");
         }}
@@ -220,20 +212,20 @@ import { BookerEmbed } from "@calcom/atoms";
 export default function Booker( props : BookerProps ) {
   return (
     <>
-      <BookerEmbed.Button 
-        // Using calLink from embed generator where docs use props.eventTypeSlug
-        eventSlug="${calLink}"
-        // Example using layout from config, adjust as needed
-        ${previewState.config?.layout ? `view="${previewState.config.layout}"` : ""}
-        // username={props.calUsername}
-        config={${JSON.stringify(previewState.config)}}
-        ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
+      <BookerEmbed
+        // Use the parsed username and event slug from calLink
+        eventSlug={eventSlug}
+        // layout can be of three types: COLUMN_VIEW, MONTH_VIEW or WEEK_VIEW, 
+        // you can choose whichever you prefer
+        view="MONTH_VIEW"
+        username={calUsername}
+        customClassNames={{
+          bookerContainer: "border-subtle border",
+        }}
         onCreateBookingSuccess={() => {
           console.log("booking created successfully");
         }}
-      >
-        Book my calendar
-      </BookerEmbed.Button>
+      />
     </>
   );
 };`;
@@ -301,8 +293,7 @@ export default function Booker( props : BookerProps ) {
   ${uiInstructionCode}`;
     },
   },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} satisfies Record<string, Record<string, (...args: any[]) => string>>;
+};
 
 /**
  * It allows us to show code with certain reusable blocks indented according to the block variable placement
