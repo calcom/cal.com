@@ -134,7 +134,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   await checkIfUserIsAuthorizedToConfirmBooking({
     eventTypeId: booking.eventTypeId,
     loggedInUserId: user.id,
-    teamId: booking.eventType?.teamId,
+    teamId: teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
     bookingUserId: booking.userId,
     userRole: user.role,
   });
