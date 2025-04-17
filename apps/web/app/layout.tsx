@@ -5,10 +5,12 @@ import { headers, cookies } from "next/headers";
 import React from "react";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
+import { loadTranslations } from "@calcom/lib/server/i18n";
 import { IconSprites } from "@calcom/ui/components/icon";
 import { NotificationSoundHandler } from "@calcom/web/components/notification-sound-handler";
 
 import "../styles/globals.css";
+import { AppRouterI18nProvider } from "./AppRouterI18nProvider";
 import { SpeculationRules } from "./SpeculationRules";
 import { Providers } from "./providers";
 
@@ -83,10 +85,15 @@ const getInitialProps = async (url: string) => {
   const embedColorScheme = searchParams?.get("ui.color-scheme");
 
   const req = { headers: await headers(), cookies: await cookies() };
-  const newLocale = await getLocale(req);
+  const newLocale = (await getLocale(req)) ?? "en";
   const direction = dir(newLocale);
 
-  return { isEmbed, embedColorScheme, locale: newLocale, direction };
+  return {
+    isEmbed,
+    embedColorScheme,
+    locale: newLocale,
+    direction,
+  };
 };
 
 const getFallbackProps = () => ({
@@ -107,9 +114,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const { locale, direction, isEmbed, embedColorScheme } = isSSG
     ? getFallbackProps()
     : await getInitialProps(fullUrl);
+  const ns = "common";
+  const translations = await loadTranslations(locale, ns);
 
   return (
     <html
+      className="notranslate"
+      translate="no"
       lang={locale}
       dir={direction}
       style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}
@@ -153,7 +164,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             "/insights",
           ]}
         />
-        <Providers>{children}</Providers>
+
+        <Providers>
+          <AppRouterI18nProvider translations={translations} locale={locale} ns={ns}>
+            {children}
+          </AppRouterI18nProvider>
+        </Providers>
         {!isEmbed && <NotificationSoundHandler />}
         <NotificationSoundHandler />
       </body>

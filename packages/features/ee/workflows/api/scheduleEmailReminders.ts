@@ -1,4 +1,6 @@
-/* Schedule any workflow reminder that falls within 72 hours for email */
+/**
+ * @deprecated use smtp with tasker instead
+ */
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
@@ -243,10 +245,10 @@ export async function handler(req: NextRequest) {
           const brandingDisabled = reminder.booking.eventType?.team
             ? !!reminder.booking.eventType?.team?.hideBranding
             : !!reminder.booking.user?.hideBranding;
-
           emailContent = emailReminderTemplate({
             isEditingMode: false,
             locale: reminder.booking.user?.locale || "en",
+            t: await getTranslation(reminder.booking.user?.locale ?? "en", "common"),
             action: reminder.workflowStep.action,
             timeFormat: getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
             startTime: reminder.booking.startTime.toISOString() || "",
@@ -274,6 +276,7 @@ export async function handler(req: NextRequest) {
             isEditingMode: true,
             locale: reminder.booking.user?.locale || "en",
             action: reminder.workflowStep.action || WorkflowActions.EMAIL_ADDRESS,
+            t: await getTranslation(reminder.booking.user?.locale ?? "en", "common"),
             timeFormat: getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
             startTime: reminder.booking.startTime.toISOString() || "",
             endTime: reminder.booking.endTime.toISOString() || "",
@@ -323,30 +326,28 @@ export async function handler(req: NextRequest) {
           };
 
           sendEmailPromises.push(
-            sendSendgridMail(
-              {
-                to: sendTo,
-                subject: emailContent.emailSubject,
-                html: emailContent.emailBody,
-                batchId: batchId,
-                sendAt: dayjs(reminder.scheduledDate).unix(),
-                replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
-                attachments: reminder.workflowStep.includeCalendarEvent
-                  ? [
-                      {
-                        content: Buffer.from(
-                          generateIcsString({ event, status: "CONFIRMED" }) || ""
-                        ).toString("base64"),
-                        filename: "event.ics",
-                        type: "text/calendar; method=REQUEST",
-                        disposition: "attachment",
-                        contentId: uuidv4(),
-                      },
-                    ]
-                  : undefined,
-              },
-              { sender: reminder.workflowStep.sender }
-            )
+            sendSendgridMail({
+              to: sendTo,
+              subject: emailContent.emailSubject,
+              html: emailContent.emailBody,
+              batchId: batchId,
+              sendAt: dayjs(reminder.scheduledDate).unix(),
+              replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
+              attachments: reminder.workflowStep.includeCalendarEvent
+                ? [
+                    {
+                      content: Buffer.from(generateIcsString({ event, status: "CONFIRMED" }) || "").toString(
+                        "base64"
+                      ),
+                      filename: "event.ics",
+                      type: "text/calendar; method=REQUEST",
+                      disposition: "attachment",
+                      contentId: uuidv4(),
+                    },
+                  ]
+                : undefined,
+              sender: reminder.workflowStep.sender,
+            })
           );
 
           await prisma.workflowReminder.update({
@@ -383,6 +384,7 @@ export async function handler(req: NextRequest) {
         emailContent = emailReminderTemplate({
           isEditingMode: false,
           locale: reminder.booking.user?.locale || "en",
+          t: await getTranslation(reminder.booking.user?.locale ?? "en", "common"),
           action: WorkflowActions.EMAIL_ATTENDEE,
           timeFormat: getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
           startTime: reminder.booking.startTime.toISOString() || "",
@@ -399,17 +401,15 @@ export async function handler(req: NextRequest) {
           const batchId = await getBatchId();
 
           sendEmailPromises.push(
-            sendSendgridMail(
-              {
-                to: sendTo,
-                subject: emailContent.emailSubject,
-                html: emailContent.emailBody,
-                batchId: batchId,
-                sendAt: dayjs(reminder.scheduledDate).unix(),
-                replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
-              },
-              { sender: reminder.workflowStep?.sender }
-            )
+            sendSendgridMail({
+              to: sendTo,
+              subject: emailContent.emailSubject,
+              html: emailContent.emailBody,
+              batchId: batchId,
+              sendAt: dayjs(reminder.scheduledDate).unix(),
+              replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
+              sender: reminder.workflowStep?.sender,
+            })
           );
 
           await prisma.workflowReminder.update({

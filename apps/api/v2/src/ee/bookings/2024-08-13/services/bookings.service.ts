@@ -8,7 +8,11 @@ import { BillingService } from "@/modules/billing/services/billing.service";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
+import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
@@ -77,7 +81,11 @@ export class BookingsService_2024_08_13 {
     private readonly usersService: UsersService,
     private readonly usersRepository: UsersRepository,
     private readonly platformBookingsService: PlatformBookingsService,
-    private readonly oAuthClientRepository: OAuthClientRepository
+    private readonly oAuthClientRepository: OAuthClientRepository,
+    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
+    private readonly organizationsRepository: OrganizationsRepository,
+    private readonly teamsRepository: TeamsRepository,
+    private readonly teamsEventTypesRepository: TeamsEventTypesRepository
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput) {
@@ -92,6 +100,16 @@ export class BookingsService_2024_08_13 {
         if (body.username && body.eventTypeSlug && body.organizationSlug) {
           throw new NotFoundException(
             `Event type with slug ${body.eventTypeSlug} belonging to user ${body.username} within organization ${body.organizationSlug} not found.`
+          );
+        }
+        if (body.teamSlug && body.eventTypeSlug && !body.organizationSlug) {
+          throw new NotFoundException(
+            `Event type with slug ${body.eventTypeSlug} belonging to team ${body.teamSlug} not found.`
+          );
+        }
+        if (body.teamSlug && body.eventTypeSlug && body.organizationSlug) {
+          throw new NotFoundException(
+            `Event type with slug ${body.eventTypeSlug} belonging to team ${body.teamSlug} within organization ${body.organizationSlug} not found.`
           );
         }
         throw new NotFoundException(`Event type with id ${body.eventTypeId} not found.`);
@@ -141,13 +159,37 @@ export class BookingsService_2024_08_13 {
         user.id,
         body.eventTypeSlug
       );
+    } else if (body.teamSlug && body.eventTypeSlug) {
+      const team = await this.getBookedEventTypeTeam(body.teamSlug, body.organizationSlug);
+      if (!team) {
+        throw new NotFoundException(`Team with slug ${body.teamSlug} not found`);
+      }
+      return await this.teamsEventTypesRepository.getEventTypeByTeamIdAndSlugWithOwnerAndTeam(
+        team.id,
+        body.eventTypeSlug
+      );
     }
     return null;
   }
 
+  async getBookedEventTypeTeam(teamSlug: string, organizationSlug: string | undefined) {
+    if (!organizationSlug) {
+      return await this.teamsRepository.findTeamBySlug(teamSlug);
+    }
+
+    const organization = await this.organizationsRepository.findOrgBySlug(organizationSlug);
+    if (!organization) {
+      throw new NotFoundException(
+        `slots-input.service.ts: Organization with slug ${organizationSlug} not found`
+      );
+    }
+
+    return await this.organizationsTeamsRepository.findOrgTeamBySlug(organization.id, teamSlug);
+  }
+
   async hasRequiredBookingFieldsResponses(body: CreateBookingInput, eventType: EventType | null) {
-    const bookingFields = body.bookingFieldsResponses;
-    if (!bookingFields || !eventType || !eventType.bookingFields) {
+    const bookingFields = { ...body.bookingFieldsResponses, attendeePhoneNumber: body.attendee.phoneNumber };
+    if (!eventType?.bookingFields) {
       return true;
     }
 
@@ -156,11 +198,20 @@ export class BookingsService_2024_08_13 {
       .parse(eventType.bookingFields)
       .filter((field) => !field.editable.startsWith("system"));
 
+    if (!eventTypeBookingFields.length) {
+      return true;
+    }
+
     for (const field of eventTypeBookingFields) {
       if (field.required && !(field.name in bookingFields)) {
-        throw new BadRequestException(`
-          Missing required booking field response: ${field.name} - it is required by the event type booking fields, but missing in the bookingFieldsResponses.
-          You can fetch the event type with ID ${eventType.id} to see the required fields.`);
+        if (field.name === "attendeePhoneNumber") {
+          throw new BadRequestException(
+            `Missing attendee phone number - it is required by the event type. Pass it as "attendee.phoneNumber" in the request.`
+          );
+        }
+        throw new BadRequestException(
+          `Missing required booking field response: ${field.name} - it is required by the event type booking fields, but missing in the bookingFieldsResponses. You can fetch the event type with ID ${eventType.id} to see the required fields.`
+        );
       }
     }
 
@@ -185,7 +236,11 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputBooking(databaseBooking);
   }
 
-  async createRecurringBooking(request: Request, body: CreateRecurringBookingInput_2024_08_13, eventType: EventTypeWithOwnerAndTeam) {
+  async createRecurringBooking(
+    request: Request,
+    body: CreateRecurringBookingInput_2024_08_13,
+    eventType: EventTypeWithOwnerAndTeam
+  ) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body, eventType);
     const bookings = await handleNewRecurringBooking({
       bookingData: bookingRequest.body,
@@ -202,7 +257,11 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputRecurringBookings(ids);
   }
 
-  async createRecurringSeatedBooking(request: Request, body: CreateRecurringBookingInput_2024_08_13, eventType: EventTypeWithOwnerAndTeam) {
+  async createRecurringSeatedBooking(
+    request: Request,
+    body: CreateRecurringBookingInput_2024_08_13,
+    eventType: EventTypeWithOwnerAndTeam
+  ) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body, eventType);
     const bookings = await handleNewRecurringBooking({
       bookingData: bookingRequest.body,
@@ -219,7 +278,11 @@ export class BookingsService_2024_08_13 {
     );
   }
 
-  async createRegularBooking(request: Request, body: CreateBookingInput_2024_08_13,  eventType: EventTypeWithOwnerAndTeam) {
+  async createRegularBooking(
+    request: Request,
+    body: CreateBookingInput_2024_08_13,
+    eventType: EventTypeWithOwnerAndTeam
+  ) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
     const booking = await handleNewBooking({
       bookingData: bookingRequest.body,
@@ -244,7 +307,11 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputBooking(databaseBooking);
   }
 
-  async createSeatedBooking(request: Request, body: CreateBookingInput_2024_08_13, eventType: EventTypeWithOwnerAndTeam) {
+  async createSeatedBooking(
+    request: Request,
+    body: CreateBookingInput_2024_08_13,
+    eventType: EventTypeWithOwnerAndTeam
+  ) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
     const booking = await handleNewBooking({
       bookingData: bookingRequest.body,
