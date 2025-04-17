@@ -129,6 +129,8 @@ export async function handler(req: NextRequest) {
     if (!reminder.booking) {
       continue;
     }
+    const referenceUid = reminder.uuid ?? uuidv4();
+
     if (!reminder.isMandatoryReminder && reminder.workflowStep) {
       try {
         let sendTo;
@@ -374,7 +376,7 @@ export async function handler(req: NextRequest) {
             sendEmailPromises.push(
               sendOrScheduleWorkflowEmails({
                 ...mailData,
-                referenceUid: reminder.uuid ?? undefined,
+                referenceUid,
                 sendAt: reminder.scheduledDate,
               })
             );
@@ -387,6 +389,7 @@ export async function handler(req: NextRequest) {
             data: {
               scheduled: true,
               referenceId: batchId,
+              uuid: referenceUid,
             },
           });
         }
@@ -450,7 +453,7 @@ export async function handler(req: NextRequest) {
               sendOrScheduleWorkflowEmails({
                 ...mailData,
                 sendAt: reminder.scheduledDate,
-                referenceUid: reminder.uuid ?? undefined,
+                referenceUid,
               })
             );
           }
