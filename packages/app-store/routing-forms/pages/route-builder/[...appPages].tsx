@@ -34,6 +34,7 @@ import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
 import { EmptyState } from "../../components/_components/EmptyState";
+import { RoutingSkeleton } from "../../components/_components/RoutingSkeleton";
 import {
   withRaqbSettingsAndWidgets,
   ConfigFor,
@@ -1369,15 +1370,15 @@ function Page({
   // Only team form needs attributes
   if (values.teamId) {
     if (isAttributesLoading) {
-      return <div>Loading...</div>;
+      return <RoutingSkeleton />;
     }
     if (!attributes) {
       return <div>{t("something_went_wrong")}</div>;
     }
   }
 
-  if (areEventsLoading) {
-    return <div>Loading...</div>;
+  if (true) {
+    return <RoutingSkeleton />;
   }
 
   if (!eventTypesByGroup) {

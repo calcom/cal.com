@@ -62,12 +62,14 @@ const Actions = ({
   appUrl,
   setIsTestPreviewOpen,
   isTestPreviewOpen,
+  handleSubmit,
 }: {
   form: RoutingFormWithResponseCount;
   setIsTestPreviewOpen: (value: boolean) => void;
   isSaving: boolean;
   appUrl: string;
   isTestPreviewOpen: boolean;
+  handleSubmit: () => void;
 }) => {
   const { t } = useLocale();
   const formContext = useFormContext<RoutingFormWithResponseCount>();
@@ -180,6 +182,7 @@ export function Header({
   setShowInfoLostDialog,
   setIsTestPreviewOpen,
   isTestPreviewOpen,
+  handleSubmit,
 }: {
   routingForm: RoutingFormWithResponseCount;
   isSaving: boolean;
@@ -187,6 +190,7 @@ export function Header({
   setShowInfoLostDialog: (value: boolean) => void;
   setIsTestPreviewOpen: (value: boolean) => void;
   isTestPreviewOpen: boolean;
+  handleSubmit: () => void;
 }) {
   const { t } = useLocale();
   const [isEditing, setIsEditing] = useState(false);
@@ -251,7 +255,7 @@ export function Header({
               <span
                 className="text-default hover:bg-muted min-w-[100px] cursor-pointer truncate whitespace-nowrap rounded px-1 text-sm font-semibold leading-none"
                 onClick={() => setIsEditing(true)}>
-                {watchedName}
+                {watchedName || "Loading..."}
               </span>
               <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
             </div>
