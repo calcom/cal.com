@@ -3124,7 +3124,10 @@
   "resend_in_seconds": "Resend in {{seconds}} seconds",
   "resend": "Resend",
   "verification_email_sent": "Verification email sent",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "remove_whitelist_status": "Remove whitelist status",
+  "whitelist_user_workflows": "Whitelist user workflows",
+  "user_workflows_whitelisted": "User workflows whitelisted",
+  "user_workflows_unwhitelisted": "User workflows unwhitelisted",
   "date_and_time": "Date & Time",
   "email_reminder_upcoming_event_notice": "This is a reminder about your upcoming event.",
   "email_reminder_triggered_by_workflow": "This reminder was triggered by a Workflow in Cal.",
@@ -3136,5 +3139,6 @@
   "meeting_not_joined_question": "didn't join the meeting?",
   "reschedule_cta_short": "Reschedule here.",
   "you_and_conjunction": "You &",
-  "email_survey_triggered_by_workflow": "This survey was triggered by a Workflow in Cal."
+  "email_survey_triggered_by_workflow": "This survey was triggered by a Workflow in Cal.",
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
