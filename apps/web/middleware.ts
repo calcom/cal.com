@@ -15,7 +15,7 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   }
 };
 
-export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/"]; // trailing slash in "/api/" is actually important to block edge cases like `/api.php`
+export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/auth/signup", "/api/trpc/"];
 // Some app routes are allowed because "revalidatePath()" is used to revalidate the cache for them
 export const POST_METHODS_ALLOWED_APP_ROUTES = [
   "/settings/my-account/general",
@@ -24,11 +24,12 @@ export const POST_METHODS_ALLOWED_APP_ROUTES = [
 const ROUTES_TO_ENFORCE_CSP = ["/auth/login", "/login"];
 const ROUTES_TO_SET_COOKIES = ["/apps/installed", "/auth/logout"];
 const MATCHER = [
-  "/:path*/embed",
-  "/api/auth/signup",
-  "/api/trpc/:path*",
+  ...POST_METHODS_ALLOWED_API_ROUTES,
+  ...POST_METHODS_ALLOWED_APP_ROUTES,
   ...ROUTES_TO_ENFORCE_CSP,
   ...ROUTES_TO_SET_COOKIES,
+  "/:path*/embed",
+  "/api/trpc/:path*",
 ];
 export function checkPostMethod(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
