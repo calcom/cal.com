@@ -19,13 +19,17 @@ export class OrganizationsUsersRepository {
 
   async getOrganizationUsersByEmailsAndAttributeFilters(
     orgId: number,
-    attributeFilters: { assignedOptionIds: string[]; attributeQueryOperator?: "AND" | "OR" | "NONE" },
+    filters: {
+      teamIds?: number[];
+      assignedOptionIds: string[];
+      attributeQueryOperator?: "AND" | "OR" | "NONE";
+    },
     emailArray?: string[],
     skip?: number,
     take?: number
   ) {
-    const attributeQueryOperator = attributeFilters?.attributeQueryOperator ?? "AND";
-    const assignedOptionIds = attributeFilters.assignedOptionIds;
+    const { teamIds, assignedOptionIds, attributeQueryOperator } = filters ?? {};
+    console.log("HERE TEAM IDS", teamIds);
     const attributeToUsersWithProfile = await this.dbRead.prisma.attributeToUser.findMany({
       include: {
         member: { include: { user: { include: { profiles: { where: { organizationId: orgId } } } } } },
@@ -34,6 +38,7 @@ export class OrganizationsUsersRepository {
       where: {
         member: {
           teamId: orgId,
+          ...(teamIds && { user: { teams: { some: { teamId: { in: teamIds } } } } }),
           // Filter to only get users which have ALL of the assigned attribue options
           ...(attributeQueryOperator === "AND" && {
             AND: assignedOptionIds.map((optionId) => ({
@@ -59,11 +64,18 @@ export class OrganizationsUsersRepository {
     return attributeToUsersWithProfile.map((attributeToUser) => attributeToUser.member.user);
   }
 
-  async getOrganizationUsersByEmails(orgId: number, emailArray?: string[], skip?: number, take?: number) {
+  async getOrganizationUsersByEmails(
+    orgId: number,
+    emailArray?: string[],
+    teamIds?: number[],
+    skip?: number,
+    take?: number
+  ) {
     return await this.dbRead.prisma.user.findMany({
       where: {
         ...this.filterOnOrgMembership(orgId),
         ...(emailArray && emailArray.length ? { email: { in: emailArray } } : {}),
+        ...(teamIds && { teams: { some: { teamId: { in: teamIds } } } }),
       },
       include: {
         profiles: {

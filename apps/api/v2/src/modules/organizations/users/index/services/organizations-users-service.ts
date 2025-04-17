@@ -19,18 +19,23 @@ export class OrganizationsUsersService {
   async getUsers(
     orgId: number,
     emailInput?: string[],
-    attributeFilters?: { assignedOptionIds?: string[]; attributeQueryOperator?: "AND" | "OR" | "NONE" },
+    filters?: {
+      teamIds?: number[];
+      assignedOptionIds?: string[];
+      attributeQueryOperator?: "AND" | "OR" | "NONE";
+    },
     skip?: number,
     take?: number
   ) {
     const emailArray = !emailInput ? [] : emailInput;
 
-    if (attributeFilters?.assignedOptionIds && attributeFilters?.assignedOptionIds?.length) {
+    if (filters?.assignedOptionIds && filters?.assignedOptionIds?.length) {
       return await this.organizationsUsersRepository.getOrganizationUsersByEmailsAndAttributeFilters(
         orgId,
         {
-          assignedOptionIds: attributeFilters.assignedOptionIds,
-          attributeQueryOperator: attributeFilters?.attributeQueryOperator ?? "AND",
+          assignedOptionIds: filters.assignedOptionIds,
+          attributeQueryOperator: filters?.attributeQueryOperator ?? "AND",
+          teamIds: filters?.teamIds,
         },
         emailArray,
         skip,
@@ -41,6 +46,7 @@ export class OrganizationsUsersService {
     const users = await this.organizationsUsersRepository.getOrganizationUsersByEmails(
       orgId,
       emailArray,
+      filters?.teamIds,
       skip,
       take
     );

@@ -556,6 +556,7 @@ describe("Organizations Users Endpoints", () => {
     let userRepositoryFixture: UserRepositoryFixture;
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
+    let teamsRepositoryFixtures: TeamRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
     let attributeRepositoryFixture: AttributeRepositoryFixture;
 
@@ -566,6 +567,7 @@ describe("Organizations Users Endpoints", () => {
     let user2: User;
 
     let org: Team;
+    let team: Team;
     let assignedOption1: AttributeOption;
     let assignedOption2: AttributeOption;
 
@@ -579,6 +581,7 @@ describe("Organizations Users Endpoints", () => {
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+      teamsRepositoryFixtures = new TeamRepositoryFixture(moduleRef);
 
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
@@ -587,6 +590,8 @@ describe("Organizations Users Endpoints", () => {
         name: `organizations-users-organization-${randomString()}`,
         isOrganization: true,
       });
+
+      team = await teamsRepositoryFixtures.create({ name: "org team", parent: { connect: { id: org.id } } });
 
       user = await userRepositoryFixture.create({
         email: authEmail,
@@ -610,6 +615,13 @@ describe("Organizations Users Endpoints", () => {
       });
 
       const membership = await membershipFixtures.addUserToOrg(user, org, "ADMIN", true);
+
+      await membershipFixtures.create({
+        role: "MEMBER",
+        accepted: true,
+        team: { connect: { id: team.id } },
+        user: { connect: { id: user.id } },
+      });
 
       user2 = await userRepositoryFixture.create({
         email: user2Email,
@@ -733,6 +745,30 @@ describe("Organizations Users Endpoints", () => {
       expect(userWithAssignedOptions2).toBeDefined();
       expect(userWithAssignedOptions2?.email).toBe(user2.email);
       expect(userWithAssignedOptions2?.profile.username).toBe(user2.username);
+    });
+
+    it("should get users with at least one of the specified assigned attribute options filtered by teams", async () => {
+      const { body } = await request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/users`)
+        .query({
+          assignedOptionIds: [assignedOption1.id, assignedOption2.id],
+          attributeQueryOperator: "OR",
+          teamIds: [team.id],
+        } as GetOrganizationsUsersInput)
+        .set("Content-Type", "application/json")
+        .set("Accept", "application/json");
+
+      const userData = body.data;
+
+      expect(body.status).toBe(SUCCESS_STATUS);
+      expect(userData.length).toBe(1);
+
+      const userWithAssignedOptions = userData.find(
+        (u: GetOrgUsersWithProfileOutput) => u.email === user.email
+      );
+      expect(userWithAssignedOptions).toBeDefined();
+      expect(userWithAssignedOptions?.email).toBe(user.email);
+      expect(userWithAssignedOptions?.profile.username).toBe(user.username);
     });
 
     it("should get users with none of the specified assigned attribute options", async () => {
