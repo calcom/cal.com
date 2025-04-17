@@ -686,7 +686,7 @@ export default function Success(props: PageProps) {
                             <div
                               className="col-span-2 mb-2 mt-3"
                               onClick={() => setShowUtmParams((prev) => !prev)}>
-                              <button className="flex items-center gap-2">
+                              <button className="flex items-center gap-1">
                                 <span>{showUtmParams ? t("hide") : t("show")}</span>
                                 <Icon name={showUtmParams ? "chevron-up" : "chevron-down"} />
                               </button>
@@ -694,9 +694,7 @@ export default function Success(props: PageProps) {
                                 <div className="mt-1">
                                   <ul className="list-disc pl-5">
                                     {Object.entries(bookingInfo.tracking)
-                                      .filter(
-                                        ([_, value]) => value !== null && value !== undefined && value !== ""
-                                      )
+                                      .filter(([_, value]) => value !== null && value !== "")
                                       .map(([key, value]) => (
                                         <li key={key} className="text-subtle break-words">
                                           {key}: {value}
