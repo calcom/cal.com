@@ -714,9 +714,11 @@ class CalApi {
 
     const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`);
     // Reset iframe should also consider change in config parameter of the fn
-    const resetIframe = previousCalLinkUrlObject?.toString() !== newCalLinkUrlObject.toString();
+    const shouldResetIframe =
+      previousCalLinkUrlObject?.toString() !== newCalLinkUrlObject.toString() ||
+      (existingModalEl && existingModalEl.getAttribute("state") === "failed");
     if (existingModalEl) {
-      if (isConnectingToPreloadedModal || resetIframe) {
+      if (isConnectingToPreloadedModal || shouldResetIframe) {
         lastLoadedUrlInInframeObject = new URL(
           lastLoadedUrlInInframeObject!.pathname.replace(/\/embed$/, ""),
           lastLoadedUrlInInframeObject!.origin
@@ -731,22 +733,37 @@ class CalApi {
           }).then((result) => {
             if ("redirect" in result) {
               const newUrlThatWeWantToLoad = result.redirect;
-              let newUrlThatWeWantToLoadObject = new URL(newUrlThatWeWantToLoad);
-              newUrlThatWeWantToLoadObject = new URL(
-                newUrlThatWeWantToLoadObject.pathname.replace(/^\/team/, ""),
-                newUrlThatWeWantToLoadObject.origin
+              const newUrlThatWeWantToLoadObject = new URL(newUrlThatWeWantToLoad);
+              newUrlThatWeWantToLoadObject.pathname = newUrlThatWeWantToLoadObject.pathname.replace(
+                /^\/team/,
+                ""
               );
               if (lastLoadedUrlInInframeObject!.pathname === newUrlThatWeWantToLoadObject.pathname) {
+                const paramsFromRedirect = fromEntriesWithDuplicateKeys(
+                  newUrlThatWeWantToLoadObject.searchParams.entries()
+                );
                 this.cal.doInIframe({
                   method: "connect",
-                  arg: configWithGuestKeyAndColorScheme,
+                  arg: {
+                    ...configWithGuestKeyAndColorScheme,
+                    ...paramsFromRedirect,
+                  },
                 });
+                this.modalUid = uid;
               } else {
                 console.error("Preloaded modal couldn't be used", {
                   oldPath: lastLoadedUrlInInframeObject!.pathname,
                   newPath: newUrlThatWeWantToLoadObject.pathname,
                 });
+                this.modalUid = uid;
               }
+            } else if ("error" in result) {
+              // We need to show this message in the modal
+              existingModalEl.setAttribute("data-error-code", "routerError");
+              // TODO: We might need to sanitize the error message and error code before setting it
+              existingModalEl.setAttribute("data-error-message", result.error);
+              existingModalEl.setAttribute("state", "failed");
+              this.modalUid = uid;
             }
           });
         } else {
@@ -754,12 +771,12 @@ class CalApi {
             method: "connect",
             arg: configWithGuestKeyAndColorScheme,
           });
+          this.modalUid = uid;
         }
-        this.modalUid = uid;
         existingModalEl.setAttribute("state", "loading");
         return;
       } else {
-        existingModalEl.setAttribute("state", "reopening");
+        existingModalEl.setAttribute("state", "reopened");
         return;
       }
     }

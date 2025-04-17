@@ -46,7 +46,7 @@ declare global {
 /**
  * This is in-memory persistence needed so that when user browses through the embed, the configurations from the instructions aren't lost.
  */
-const embedStore = {
+export const embedStore = {
   // Handles the commands of routing received from parent even when React hasn't initialized and nextRouter isn't available
   router: {
     /**
@@ -61,27 +61,40 @@ const embedStore = {
       toBeThereSearchParams: URLSearchParams;
       toRemoveParams: string[];
     }) {
-      const interval = setInterval(() => {
+      let stopUpdating = false;
+      function updateIfNeeded() {
+        if (stopUpdating) {
+          return;
+        }
         const url = new URL(document.URL);
         let hasChanged = false;
+
+        // Ensuring toBeThereSearchParams
         for (const [key, value] of toBeThereSearchParams.entries()) {
           if (url.searchParams.get(key) !== value) {
             url.searchParams.set(key, value);
             hasChanged = true;
           }
         }
+
+        // Ensuring toRemoveParams
         for (const key of toRemoveParams) {
           if (url.searchParams.has(key)) {
             url.searchParams.delete(key);
             hasChanged = true;
           }
         }
+
         if (hasChanged) {
-          console.log("history.pushState", url);
-          window.history.pushState({}, "", url.toString());
+          // Avoid unnecessary history push
+          window.history.replaceState({}, "", url.toString());
         }
-      }, 100);
-      return () => clearInterval(interval);
+        requestAnimationFrame(updateIfNeeded);
+      }
+      updateIfNeeded();
+      return () => {
+        stopUpdating = true;
+      };
     },
   },
 

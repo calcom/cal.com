@@ -672,7 +672,7 @@ if (only === "all" || only === "ns:skeletonDemoElementClick") {
 if (only === "all" || only === "ns:routingFormPrerender") {
   Cal("init", "routingFormPrerender", {
     debug: true,
-    origin: "http://acme.cal.local:3000",
+    origin: "http://acme.cal.remote:3000",
   });
 
   Cal.ns.routingFormPrerender("prerender", {

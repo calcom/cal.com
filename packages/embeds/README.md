@@ -75,3 +75,12 @@ Status:
     - Event fired when: Parent knows that iframe is ready to receive messages
     - Event fired by: Parent
     
+
+
+## How Routing Prerendering works
+- Use API to prerender a booking link for "modal"
+- When CTA is clicked by user, we check if there is a "prerendered"/"being prerendered" modal for this namespace.
+- If yes, we open up the modal showing the skeleton loader and send the POST request to /api/router endpoint
+- When we get the response from the endpoint, we pass on all the query params to the already rendered/being rendered iframe and embed-iframe updates the URL of the iframe to have the new query params through history.replaceState(i.e. without reloading the page)
+
+

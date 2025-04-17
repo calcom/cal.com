@@ -80,12 +80,11 @@
   <body>
     <div id="cal-booking-place-routingFormPrerender">
       <a href="?only=ns:routingFormPrerender">Routing Form Prerender Demo</a>
-      <h3><button data-cal-namespace="routingFormPrerender" data-cal-preload="team1/team1-event-1" data-cal-origin="http://acme.cal.local:3000" data-cal-link="router?form=48994044-62dc-474c-8ad4-ce239c67f889&email=john@example.com&name=John Doe" data-cal-config='{"cal.embed.pageType":"team.event.booking.slots"}'>Routing Form Prerender Demo</button></h3>
       <form id="cal-booking-place-routingFormPrerender-form">
         <input type="text" name="name" placeholder="John Doe" />
         <input type="email" name="email" placeholder="john@example.com" />
       </form>
-      <button id="cal-booking-place-routingFormPrerender-submit" data-cal-namespace="routingFormPrerender" data-cal-preload="team1/team1-event-1" data-cal-origin="http://acme.cal.local:3000"  data-cal-config='{"cal.embed.pageType":"team.event.booking.slots"}'>Submit</button>
+      <button id="cal-booking-place-routingFormPrerender-submit" data-cal-namespace="routingFormPrerender" data-cal-preload="team1/team1-event-1" data-cal-origin="http://acme.cal.remote:3000"  data-cal-config='{"cal.embed.pageType":"team.event.booking.slots"}'>Submit</button>
       <script>
         requestAnimationFrame(function updateSubmitButtonLink() {
           const form = document.getElementById("cal-booking-place-routingFormPrerender-form");

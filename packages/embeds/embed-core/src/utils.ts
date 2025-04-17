@@ -1,10 +1,22 @@
 import type { KnownConfig } from "./types";
 
-export const getErrorString = (errorCode: string | undefined) => {
+export const getErrorString = ({
+  errorCode,
+  errorMessage,
+}: {
+  errorCode: string | undefined;
+  errorMessage: string | undefined;
+}) => {
+  const defaultErrorMessage = "Something went wrong.";
   if (errorCode === "404") {
-    return `Error Code: 404. Cal Link seems to be wrong.`;
+    errorMessage = errorMessage ?? "Cal Link seems to be wrong.";
+    return `Error Code: 404. ${errorMessage}`;
+  } else if (errorCode === "routerError") {
+    errorMessage = errorMessage ?? defaultErrorMessage;
+    return `Error Code: routerError. ${errorMessage}`;
   } else {
-    return `Error Code: ${errorCode}. Something went wrong.`;
+    errorMessage = errorMessage ?? defaultErrorMessage;
+    return `Error Code: ${errorCode}. ${errorMessage}`;
   }
 };
 

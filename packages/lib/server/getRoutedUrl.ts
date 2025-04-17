@@ -150,7 +150,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
         props: {
           ...pageProps,
           form: serializableForm,
-          message: e.message,
+          errorMessage: e.message,
         },
       };
     }
@@ -214,7 +214,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     props: {
       ...pageProps,
       form: serializableForm,
-      message: "Unhandled type of action",
+      errorMessage: "Unhandled type of action",
     },
   };
 };

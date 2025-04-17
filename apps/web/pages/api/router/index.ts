@@ -3,6 +3,14 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
 
 export default defaultHandler({
+  OPTIONS: Promise.resolve({
+    default: defaultResponder(async (req, res) => {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+      res.status(204).end();
+    }),
+  }),
   POST: Promise.resolve({
     default: defaultResponder(async (req, res) => {
       const payload = JSON.parse(req.body);
@@ -19,15 +27,18 @@ export default defaultHandler({
           .json({ status: "success", data: { redirect: routedUrlData.redirect.destination } });
       }
 
-      if (routedUrlData?.props) {
-        return res
-          .status(200)
-          .json({ status: "success", data: { message: routedUrlData.props.message ?? "" } });
+      console.log("routedUrlData", routedUrlData);
+      if (routedUrlData?.props?.errorMessage) {
+        return res.status(400).json({ status: "error", data: { message: routedUrlData.props.errorMessage } });
+      }
+
+      if (routedUrlData?.props?.message) {
+        return res.status(200).json({ status: "success", data: { message: routedUrlData.props.message } });
       }
 
       return res
         .status(500)
-        .json({ status: "error", data: { message: "No Route nor custom message found." } });
+        .json({ status: "error", data: { message: "Neither Route nor custom message found." } });
     }),
   }),
 });

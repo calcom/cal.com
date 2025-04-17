@@ -33,7 +33,7 @@ export class ModalBox extends EmbedElement {
 
   private isLoaderRunning() {
     const state = this.getAttribute("state");
-    return !state || state === "loading" || state === "reopening";
+    return !state || state === "loading";
   }
 
   private explicitClose() {
@@ -42,8 +42,12 @@ export class ModalBox extends EmbedElement {
     this.dispatchEvent(event);
   }
 
+  isInErrorState() {
+    return this.getAttribute("state") === "failed";
+  }
+
   close() {
-    if (this.isLoaderRunning()) {
+    if (this.isLoaderRunning() || this.isInErrorState()) {
       return;
     }
     this.explicitClose();
@@ -52,11 +56,25 @@ export class ModalBox extends EmbedElement {
   hideIframe() {
     const iframe = this.querySelector("iframe");
     if (iframe) {
+      iframe.style.display = "none";
+    }
+  }
+
+  unhideIframe() {
+    const iframe = this.querySelector("iframe");
+    if (iframe) {
+      iframe.style.display = "";
+    }
+  }
+
+  makeIframeInvisible() {
+    const iframe = this.querySelector("iframe");
+    if (iframe) {
       iframe.style.visibility = "hidden";
     }
   }
 
-  showIframe() {
+  makeIframeVisible() {
     const iframe = this.querySelector("iframe");
     if (iframe) {
       // Don't use visibility visible as that will make the iframe visible even when the modal is closed
@@ -75,6 +93,15 @@ export class ModalBox extends EmbedElement {
     return element;
   }
 
+  toggleErrorElement(show: boolean) {
+    const errorElement = this.getErrorElement();
+    if (show) {
+      errorElement.style.display = "inline-block";
+    } else {
+      errorElement.style.display = "none";
+    }
+  }
+
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
     if (name !== "state") {
       return;
@@ -83,19 +110,26 @@ export class ModalBox extends EmbedElement {
     if (newValue === "loading") {
       this.toggleLoader(true);
       this.open();
-      this.hideIframe();
-    } else if (newValue == "loaded" || newValue === "reopening") {
+      // Unhide in case we are moving from "failed" state to "loading" state
+      this.unhideIframe();
+      this.toggleErrorElement(false);
+      this.makeIframeInvisible();
+    } else if (newValue == "loaded" || newValue === "reopened") {
       this.toggleLoader(false);
       this.open();
-      this.showIframe();
+      this.makeIframeVisible();
     } else if (newValue == "closed") {
       this.explicitClose();
     } else if (newValue === "failed") {
       this.getLoaderElement().style.display = "none";
       this.getSkeletonElement().style.display = "none";
-      this.getErrorElement().style.display = "inline-block";
-      const errorString = getErrorString(this.dataset.errorCode);
+      this.toggleErrorElement(true);
+      const errorString = getErrorString({
+        errorCode: this.dataset.errorCode,
+        errorMessage: this.dataset.errorMessage,
+      });
       this.getErrorElement().innerText = errorString;
+      this.hideIframe();
     } else if (newValue === "prerendering") {
       // We do a close here because we don't want the loaders to show up when the modal is prerendering
       // As per HTML, both skeleton/loader are configured to be shown by default, so we need to hide them and infact we don't want to show up anything unexpected so we completely hide the customElement itself
