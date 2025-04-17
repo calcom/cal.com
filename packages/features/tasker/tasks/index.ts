@@ -24,6 +24,8 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
   createCRMEvent: () => import("./crm/createCRMEvent").then((module) => module.createCRMEvent),
   sendWorkflowEmails: () => import("./sendWorkflowEmails").then((module) => module.sendWorkflowEmails),
   scanWorkflowBody: () => import("./scanWorkflowBody").then((module) => module.scanWorkflowBody),
+  processDebouncedSeatBilling: () =>
+    import("./processDebouncedSeatBilling").then((module) => module.processDebouncedSeatBilling),
 };
 
 export const tasksConfig = {

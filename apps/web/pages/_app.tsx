@@ -4,6 +4,7 @@ import type { AppContextType } from "next/dist/shared/lib/utils";
 import React from "react";
 import CacheProvider from "react-inlinesvg/provider";
 
+import { initializeDebouncedBillingScheduler } from "@calcom/features/ee/teams/lib/billing-scheduler";
 import { WebPushProvider } from "@calcom/features/notifications/WebPushContext";
 import { trpc } from "@calcom/trpc/react";
 
@@ -13,6 +14,12 @@ import "../styles/globals.css";
 
 function MyApp(props: AppProps) {
   const { Component, pageProps } = props;
+
+  if (typeof window === "undefined") {
+    initializeDebouncedBillingScheduler().catch((error) => {
+      console.error("Failed to initialize debounced billing scheduler:", error);
+    });
+  }
 
   return (
     <SessionProvider session={pageProps.session ?? undefined}>

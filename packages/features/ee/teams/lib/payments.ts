@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import { getDubCustomer } from "@calcom/features/auth/lib/dub";
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import tasker from "@calcom/features/tasker";
 import {
   IS_PRODUCTION,
   MINIMUM_NUMBER_OF_ORG_SEATS,
@@ -24,6 +25,8 @@ const teamPaymentMetadataSchema = z.object({
   subscriptionId: z.string(),
   subscriptionItemId: z.string(),
   orgSeats: teamMetadataSchema.unwrap().shape.orgSeats,
+  lastInvoicedSeatCount: z.number().optional(),
+  lastSeatChangeAt: z.date().optional(),
 });
 
 /** Used to prevent double charges for the same team */
@@ -278,6 +281,30 @@ export const getTeamWithPaymentMetadata = async (teamId: number) => {
   return { ...team, metadata };
 };
 
+export const updateTeamSeatChangeMetadata = async (teamId: number) => {
+  try {
+    const team = await getTeamWithPaymentMetadata(teamId);
+    const membershipCount = team.members.length;
+
+    const lastInvoicedSeatCount = team.metadata.lastInvoicedSeatCount ?? membershipCount;
+
+    await prisma.team.update({
+      where: { id: teamId },
+      data: {
+        metadata: {
+          ...team.metadata,
+          lastInvoicedSeatCount,
+          lastSeatChangeAt: new Date(),
+        },
+      },
+    });
+  } catch (error) {
+    let message = "Unknown error on updateTeamSeatChangeMetadata";
+    if (error instanceof Error) message = error.message;
+    console.error(message);
+  }
+};
+
 export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
   try {
     const { url } = await checkIfTeamPaymentRequired({ teamId });
@@ -307,12 +334,33 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
 
     await stripe.subscriptions.update(subscriptionId, {
       items: [{ quantity: membershipCount, id: subscriptionItemId }],
+      proration_behavior: "none",
     });
+
+    await updateTeamSeatChangeMetadata(teamId);
+
     console.info(
       `Updated subscription ${subscriptionId} for team ${teamId} to ${team.members.length} seats.`
     );
   } catch (error) {
     let message = "Unknown error on updateQuantitySubscriptionFromStripe";
+    if (error instanceof Error) message = error.message;
+    console.error(message);
+  }
+};
+export const scheduleDebouncedSeatBilling = async () => {
+  try {
+    const DEBOUNCE_INTERVAL_MS = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+    await tasker.create(
+      "processDebouncedSeatBilling",
+      {},
+      {
+        scheduledAt: new Date(Date.now() + DEBOUNCE_INTERVAL_MS),
+      }
+    );
+    console.log("Scheduled initial debounced seat billing task");
+  } catch (error) {
+    let message = "Unknown error on scheduleDebouncedSeatBilling";
     if (error instanceof Error) message = error.message;
     console.error(message);
   }

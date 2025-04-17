@@ -62,4 +62,11 @@ export interface BillingService {
   getCustomer(customerId: string): Promise<Stripe.Customer | Stripe.DeletedCustomer | null>;
   getSubscriptions(customerId: string): Promise<Stripe.Subscription[] | null>;
   updateCustomer(args: { customerId: string; email: string; userId?: number }): Promise<void>;
+  createInvoiceItem(args: {
+    customerId: string;
+    subscriptionId: string;
+    amount: number;
+    description: string;
+    metadata?: Record<string, string | number>;
+  }): Promise<{ invoiceItemId: string }>;
 }
