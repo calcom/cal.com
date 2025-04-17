@@ -1,0 +1,99 @@
+name: Deploy and Upload Source Maps
+
+on:
+  push:
+    branches:
+      - main
+      - production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    outputs:
+      deployment-url: ${{ steps.vercel-deployment.outputs.preview-url }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+          
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+        
+      - name: Install Vercel CLI
+        run: yarn global add vercel
+        
+      - name: Deploy to Vercel (Main)
+        if: github.ref == 'refs/heads/main'
+        id: vercel-deployment-main
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_QA }}
+        run: |
+          vercel deploy --prod --token $VERCEL_TOKEN --scope $VERCEL_ORG_ID --project $VERCEL_PROJECT_ID
+          echo "preview-url=$(vercel ls --token $VERCEL_TOKEN --scope $VERCEL_ORG_ID --project $VERCEL_PROJECT_ID --limit 1 --json | jq -r '.[0].url')" >> $GITHUB_OUTPUT
+
+      - name: Deploy to Vercel (Production)
+        if: github.ref == 'refs/heads/production'
+        id: vercel-deployment-prod
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_PROD }}
+        run: |
+          vercel deploy --prod --token $VERCEL_TOKEN --scope $VERCEL_ORG_ID --project $VERCEL_PROJECT_ID
+          echo "preview-url=$(vercel ls --token $VERCEL_TOKEN --scope $VERCEL_ORG_ID --project $VERCEL_PROJECT_ID --limit 1 --json | jq -r '.[0].url')" >> $GITHUB_OUTPUT
+
+      - name: Set deployment URL
+        id: vercel-deployment
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "preview-url=${{ steps.vercel-deployment-main.outputs.preview-url }}" >> $GITHUB_OUTPUT
+          else
+            echo "preview-url=${{ steps.vercel-deployment-prod.outputs.preview-url }}" >> $GITHUB_OUTPUT
+          fi
+
+  upload-sourcemaps:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+          
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+        
+      - name: Install Sentry CLI
+        run: yarn add -D @sentry/cli
+        
+      - name: Upload source maps to Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+          VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
+          VERCEL_URL: ${{ needs.deploy.outputs.deployment-url }}
+          ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'staging' || 'production' }}
+        run: |
+          # Create a Sentry release
+          yarn sentry-cli releases new $VERCEL_GIT_COMMIT_SHA
+          yarn sentry-cli releases set-commits $VERCEL_GIT_COMMIT_SHA --auto
+          
+          # Upload source maps
+          yarn sentry-cli releases files $VERCEL_GIT_COMMIT_SHA upload-sourcemaps ./apps/web/.next --url-prefix "~/_next"
+          
+          # Finalize the release
+          yarn sentry-cli releases finalize $VERCEL_GIT_COMMIT_SHA
+          
+          # Associate release with deployment environment
+          yarn sentry-cli releases deploys $VERCEL_GIT_COMMIT_SHA new -e $ENVIRONMENT
