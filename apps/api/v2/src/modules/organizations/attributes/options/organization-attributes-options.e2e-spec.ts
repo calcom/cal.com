@@ -417,6 +417,33 @@ describe("Organizations Attributes Options Endpoints", () => {
         });
     });
 
+    it("should not get attribute all assigned options filtered by other assigned options and teamIds in which the user is not part of", async () => {
+      return request(app.getHttpServer())
+        .get(
+          `/v2/organizations/${org.id}/attributes/${attributeId}/options/assigned?assignedOptionIds=${attribute2Option.id}&teamIds=${team.id}`
+        )
+        .expect(404);
+    });
+
+    it("should get attribute all assigned options filtered by other assigned options and teamIds", async () => {
+      return request(app.getHttpServer())
+        .get(
+          `/v2/organizations/${org.id}/attributes/${attributeId}/options/assigned?assignedOptionIds=${createdOption.id}&teamIds=${team.id}`
+        )
+        .expect(200)
+        .then((response) => {
+          expect(response.body.status).toEqual(SUCCESS_STATUS);
+          const assignedOptions = response.body.data as AssignedOptionOutput[];
+          expect(assignedOptions?.length).toEqual(1);
+          expect(assignedOptions.find((opt) => createdOption.id === opt.id)).toBeDefined();
+          expect(
+            assignedOptions
+              .find((opt) => createdOption.id === opt.id)
+              ?.assignedUserIds.find((id) => id === user.id)
+          ).toBeDefined();
+        });
+    });
+
     it("should unassign attribute option from user", async () => {
       return request(app.getHttpServer())
         .delete(`/v2/organizations/${org.id}/attributes/options/${user.id}/${createdOption.id}`)

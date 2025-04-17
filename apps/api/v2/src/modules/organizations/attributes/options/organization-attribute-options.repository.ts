@@ -128,14 +128,18 @@ export class OrganizationAttributeOptionRepository {
             every: {
               attributeOptionId: { in: filters?.assignedOptionIds },
             },
-            ...(filters?.teamIds && { some: { member: { teamId: { in: filters?.teamIds } } } }),
+            ...(filters?.teamIds && {
+              some: { member: { user: { teams: { some: { teamId: { in: filters.teamIds } } } } } },
+            }),
           },
         },
         include: { assignedUsers: { include: { member: true } } },
       });
 
       if (!filteredAssignedOptions?.length) {
-        throw new NotFoundException("Options provided in assignedOptionIds are not assigned to anyone.");
+        throw new NotFoundException(
+          "Options provided in assignedOptionIds are not assigned to anyone, or the users are not part of the teams specified in teamIds filter."
+        );
       }
 
       const matchingUserIds = filteredAssignedOptions.flatMap((opt) =>
