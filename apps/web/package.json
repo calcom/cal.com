@@ -96,7 +96,7 @@
     "jotai": "^2.12.2",
     "jsdom": "^22.0.0",
     "kbar": "^0.1.0-beta.36",
-    "libphonenumber-js": "^1.11.18",
+    "libphonenumber-js": "^1.12.7",
     "lodash": "^4.17.21",
     "lottie-react": "^2.3.1",
     "markdown-it": "^13.0.1",
