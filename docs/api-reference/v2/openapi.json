@@ -1069,7 +1069,7 @@
     "/v2/organizations/{orgId}/attributes/{attributeId}/options/assigned": {
       "get": {
         "operationId": "OrganizationsAttributesOptionsController_getOrganizationAttributeAssignedOptions",
-        "summary": "Get all attribute options that are assigned to users",
+        "summary": "Get by attribute id all of the attribute options that are assigned to users",
         "parameters": [
           {
             "name": "Authorization",
@@ -1156,10 +1156,10 @@
         "tags": ["Orgs / Attributes / Options"]
       }
     },
-    "/v2/organizations/{orgId}/attributes/{attributeSlug}/options/assigned": {
+    "/v2/organizations/{orgId}/attributes/slugs/{attributeSlug}/options/assigned": {
       "get": {
         "operationId": "OrganizationsAttributesOptionsController_getOrganizationAttributeAssignedOptionsBySlug",
-        "summary": "Get all attribute options that are assigned to users",
+        "summary": "Get by attribute slug all of the attribute options that are assigned to users",
         "parameters": [
           {
             "name": "Authorization",

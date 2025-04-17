@@ -134,7 +134,7 @@ export class OrganizationsAttributesOptionsController {
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
   @Get("/attributes/:attributeId/options/assigned")
-  @ApiOperation({ summary: "Get all attribute options that are assigned to users" })
+  @ApiOperation({ summary: "Get by attribute id all of the attribute options that are assigned to users" })
   async getOrganizationAttributeAssignedOptions(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("attributeId") attributeId: string,
@@ -158,7 +158,7 @@ export class OrganizationsAttributesOptionsController {
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
   @Get("/attributes/slugs/:attributeSlug/options/assigned")
-  @ApiOperation({ summary: "Get all attribute options that are assigned to users" })
+  @ApiOperation({ summary: "Get by attribute slug all of the attribute options that are assigned to users" })
   async getOrganizationAttributeAssignedOptionsBySlug(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("attributeSlug") attributeSlug: string,
