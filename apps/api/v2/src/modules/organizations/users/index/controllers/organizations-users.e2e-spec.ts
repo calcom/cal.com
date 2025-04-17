@@ -116,8 +116,6 @@ describe("Organizations Users Endpoints", () => {
       await Promise.all([userRepositoryFixture.deleteByEmail(user.email)]);
       await organizationsRepositoryFixture.delete(org.id);
       await app.close();
-
-      await app.close();
     });
   });
   describe("Admin role", () => {
@@ -540,8 +538,6 @@ describe("Organizations Users Endpoints", () => {
       await userRepositoryFixture.deleteByEmail(createdUser.email);
       await organizationsRepositoryFixture.delete(org.id);
       await app.close();
-
-      await app.close();
     });
   });
 
@@ -646,14 +642,14 @@ describe("Organizations Users Endpoints", () => {
         name: "Test Attribute",
         team: { connect: { id: org.id } },
         type: "TEXT",
-        slug: "test-attribute",
+        slug: `test-attribute-${randomString()}`,
       });
 
       const attribute2 = await attributeRepositoryFixture.create({
         name: "Test Attribute 2",
         team: { connect: { id: org.id } },
         type: "TEXT",
-        slug: "test-attribute-2",
+        slug: `test-attribute-2-${randomString()}`,
       });
       const attributeId = attribute.id;
 
@@ -786,8 +782,6 @@ describe("Organizations Users Endpoints", () => {
       await userRepositoryFixture.deleteByEmail(user.email);
       await userRepositoryFixture.deleteByEmail(user2.email);
       await organizationsRepositoryFixture.delete(org.id);
-      await app.close();
-
       await app.close();
     });
   });

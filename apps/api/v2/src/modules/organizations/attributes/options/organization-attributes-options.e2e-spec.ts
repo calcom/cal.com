@@ -123,12 +123,12 @@ describe("Organizations Attributes Options Endpoints", () => {
 
     const createOptionInput: CreateOrganizationAttributeOptionInput = {
       value: "option1",
-      slug: "option1",
+      slug: `option1-${randomString()}`,
     };
 
     const createOption2Input: CreateOrganizationAttributeOptionInput = {
       value: "option2",
-      slug: "option2",
+      slug: `option2${randomString()}`,
     };
 
     beforeAll(async () => {
@@ -178,19 +178,19 @@ describe("Organizations Attributes Options Endpoints", () => {
         name: "Test Attribute",
         team: { connect: { id: org.id } },
         type: "TEXT",
-        slug: "test-attribute",
+        slug: `test-attribute-${randomString()}`,
       });
 
       attribute2 = await attributeRepositoryFixture.create({
         name: "Test Attribute 2",
         team: { connect: { id: org.id } },
         type: "TEXT",
-        slug: "test-attribute-2",
+        slug: `test-attribute-2-${randomString()}`,
       });
       attributeId = attribute.id;
       attributeSlug = attribute.slug;
       attribute2Option = await attributeRepositoryFixture.createOption({
-        slug: "optionA",
+        slug: `optionA-${randomString()}`,
         value: "optionA",
         attribute: { connect: { id: attribute2.id } },
       });
