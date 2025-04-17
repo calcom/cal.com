@@ -14,6 +14,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { SystemField } from "../../../lib/SystemField";
 
+type Fields = NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
 export const BookingFields = ({
   fields,
   locations,
@@ -23,7 +24,7 @@ export const BookingFields = ({
   isPaidEvent,
   paymentCurrency = "USD",
 }: {
-  fields: NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
+  fields: Fields;
   locations: LocationObject[];
   rescheduleUid?: string;
   bookingData?: GetBookingType | null;
@@ -42,6 +43,43 @@ export const BookingFields = ({
       style: "currency",
       currency: paymentCurrency,
     }).format(price)})`;
+
+  const getFieldWithDirectPricing = (field: Fields[number]) => {
+    if (!fieldTypesConfigMap[field.type]?.supportsPricing || !field.label || !field.price) {
+      return field;
+    }
+
+    const price = typeof field.price === "string" ? parseFloat(field.price) : field.price;
+    const label = getPriceFormattedLabel(field.label, price);
+
+    return {
+      ...field,
+      label,
+      ...(fieldsThatSupportLabelAsSafeHtml.includes(field.type) && field.labelAsSafeHtml
+        ? { labelAsSafeHtml: markdownToSafeHTML(label) }
+        : { labelAsSafeHtml: undefined }),
+    };
+  };
+
+  const getFieldWithOptionLevelPrices = (field: Fields[number]) => {
+    if (!fieldTypesConfigMap[field.type]?.optionsSupportPricing || !field.options) return field;
+
+    return {
+      ...field,
+      options: field.options.map((opt) => {
+        const option = opt as { value: string; label: string; price?: number };
+        const optionPrice = option.price;
+
+        // Only add price to label if there's a price
+        if (!optionPrice) return option;
+
+        return {
+          ...option,
+          label: getPriceFormattedLabel(option.label, optionPrice),
+        };
+      }),
+    };
+  };
 
   return (
     // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
@@ -152,35 +190,13 @@ export const BookingFields = ({
 
         if (isPaidEvent) {
           // Handle number fields and boolean (single checkbox) fields
-          if (fieldTypesConfigMap[field.type]?.supportsPricing && field.label && field.price) {
-            const price = typeof field.price === "string" ? parseFloat(field.price) : field.price;
-            const label = getPriceFormattedLabel(field.label, price);
-            fieldWithPrice = {
-              ...field,
-              label,
-              ...(fieldsThatSupportLabelAsSafeHtml.includes(field.type) && field.labelAsSafeHtml
-                ? { labelAsSafeHtml: markdownToSafeHTML(label) }
-                : { labelAsSafeHtml: undefined }),
-            };
+          if (fieldTypesConfigMap[field.type]?.supportsPricing) {
+            fieldWithPrice = getFieldWithDirectPricing(field);
           }
 
           // Handle fields with option-level prices (select, multiselect, and checkbox group)
-          if (fieldTypesConfigMap[field.type]?.optionsSupportPricing && field.options) {
-            fieldWithPrice = {
-              ...field,
-              options: field.options.map((opt) => {
-                const option = opt as { value: string; label: string; price?: number };
-                const optionPrice = option.price;
-
-                // Only add price to label if there's a price
-                if (!optionPrice) return option;
-
-                return {
-                  ...option,
-                  label: getPriceFormattedLabel(option.label, optionPrice),
-                };
-              }),
-            };
+          if (fieldTypesConfigMap[field.type]?.optionsSupportPricing) {
+            fieldWithPrice = getFieldWithOptionLevelPrices(fieldWithPrice);
           }
         }
 

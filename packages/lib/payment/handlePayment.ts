@@ -77,51 +77,75 @@ const handlePayment = async ({
 
   if ((bookingFields || [])?.length > 0) {
     let addonsPrice = 0;
+
+    // Process each booking field
     (bookingFields || []).forEach((field) => {
+      // Skip fields that don't support pricing
       if (
-        fieldTypesConfigMap[field.type]?.supportsPricing ||
-        fieldTypesConfigMap[field.type]?.optionsSupportPricing
+        !fieldTypesConfigMap[field.type]?.supportsPricing &&
+        !fieldTypesConfigMap[field.type]?.optionsSupportPricing
       ) {
-        const typedInput = field as { price?: number; options?: { value: string; price?: number }[] };
-        if (evt.responses?.[field.name]) {
-          switch (field.type) {
-            case "number":
-              addonsPrice += Number(evt.responses[field.name]?.value || 0) * (typedInput.price || 0);
-              break;
-            case "boolean":
-              if (evt.responses[field.name]?.value) {
-                addonsPrice += typedInput.price || 0;
-              }
-              break;
-            case "select":
-            case "radio":
-              // For select and radio, find the selected option and add its price
-              const selectedValue = evt.responses[field.name]?.value;
-              let selectedOption = typedInput.options?.find((opt) => opt.value === selectedValue);
-              // For radio, the value coming is the label itself
-              if (field.type === "radio") {
-                selectedOption = typedInput.options?.find((opt) => {
-                  const formattedValue = `${opt.value} (${Intl.NumberFormat("en", {
-                    style: "currency",
-                    currency: paymentCurrency,
-                  }).format(opt.price || 0)})`;
-                  return formattedValue === selectedValue;
-                });
-              }
-              addonsPrice += selectedOption?.price || 0;
-              break;
-            case "checkbox":
-            case "multiselect":
-              // For checkbox and multiselect, add prices of all selected options
-              const response = evt.responses[field.name]?.value;
-              const selectedValues = Array.isArray(response) ? response : response ? [response] : [];
-              selectedValues.forEach((value) => {
-                const option = typedInput.options?.find((opt) => opt.value === value);
-                addonsPrice += option?.price || 0;
-              });
-              break;
+        return;
+      }
+
+      // Type assertion for price-related fields
+      const typedInput = field as { price?: number; options?: { value: string; price?: number }[] };
+      const response = evt.responses?.[field.name];
+
+      // Skip if no response for this field
+      if (!response) return;
+
+      switch (field.type) {
+        case "number":
+          // Multiply the numeric value by the field's price
+          addonsPrice += Number(response.value || 0) * (typedInput.price || 0);
+          break;
+
+        case "boolean":
+          // Add price if boolean field is true
+          if (response.value) {
+            addonsPrice += typedInput.price || 0;
           }
-        }
+          break;
+
+        case "select":
+        case "radio":
+          // For select and radio, find the selected option and add its price
+          const selectedValue = response.value;
+          let selectedOption;
+
+          if (field.type === "radio") {
+            // For radio, the value coming is the label itself
+            selectedOption = typedInput.options?.find((opt) => {
+              const formattedValue = `${opt.value} (${Intl.NumberFormat("en", {
+                style: "currency",
+                currency: paymentCurrency,
+              }).format(opt.price || 0)})`;
+              return formattedValue === selectedValue;
+            });
+          } else {
+            // For select, match by direct value
+            selectedOption = typedInput.options?.find((opt) => opt.value === selectedValue);
+          }
+
+          addonsPrice += selectedOption?.price || 0;
+          break;
+
+        case "checkbox":
+        case "multiselect":
+          // For checkbox and multiselect, add prices of all selected options
+          const responseValue = response.value;
+          const selectedValues = Array.isArray(responseValue)
+            ? responseValue
+            : responseValue
+            ? [responseValue]
+            : [];
+
+          selectedValues.forEach((value) => {
+            const option = typedInput.options?.find((opt) => opt.value === value);
+            addonsPrice += option?.price || 0;
+          });
+          break;
       }
     });
 
