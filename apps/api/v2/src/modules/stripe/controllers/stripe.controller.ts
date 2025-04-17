@@ -82,8 +82,12 @@ export class StripeController {
   @Redirect(undefined, 301)
   @ApiOperation({ summary: "Save stripe credentials" })
   /**
-   * Save stripe credentials. If orgId and teamId are present in the callback state,
-   * proxy the request to the new organization/team-level endpoint. Otherwise, save at user level.
+   * Handles saving Stripe credentials.
+   * If both orgId and teamId are present in the callback state, the request is proxied to the organization/team-level endpoint;
+   * otherwise, credentials are saved at the user level.
+   *
+   * Proxying ensures that permission checks—such as whether the user is allowed to install Stripe for a team or organization—
+   * are enforced via controller route guards, avoiding duplication of this logic within the service layer.
    */
   async save(
     @Query("state") state: string,

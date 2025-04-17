@@ -15,7 +15,6 @@ import {
 import { GetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/get-default-conferencing-app.output";
 import { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/set-default-conferencing-app.output";
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { HttpService } from "@nestjs/axios";
 import { Logger } from "@nestjs/common";
@@ -32,7 +31,6 @@ import {
   Delete,
   Headers,
   Redirect,
-  UnauthorizedException,
   Req,
   HttpException,
 } from "@nestjs/common";
@@ -61,7 +59,6 @@ export class ConferencingController {
   private readonly logger = new Logger("ConferencingController");
 
   constructor(
-    private readonly tokensRepository: TokensRepository,
     private readonly conferencingService: ConferencingService,
     private readonly config: ConfigService,
     private readonly httpService: HttpService
@@ -122,6 +119,14 @@ export class ConferencingController {
     };
   }
 
+  /**
+   * Handles saving conferencing app credentials.
+   * If both orgId and teamId are present in the callback state, the request is proxied to the organization/team-level endpoint;
+   * otherwise, credentials are saved at the user level.
+   *
+   * Proxying ensures that permission checks—such as whether the user is allowed to install conferencing app for a team or organization—
+   * are enforced via controller route guards, avoiding duplication of this logic within the service layer.
+   */
   @Get("/:app/oauth/callback")
   @UseGuards()
   @Redirect(undefined, 301)
