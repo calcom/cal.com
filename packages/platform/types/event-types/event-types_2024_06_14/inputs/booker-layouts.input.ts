@@ -44,28 +44,6 @@ function IsValidLayout(validationOptions?: ValidationOptions) {
   };
 }
 
-@IsDefaultLayoutWithinEnabledLayouts()
-export class BookerLayouts_2024_06_14 {
-  @IsValidLayout({ message: "defaultLayout must be one of the valid layouts - month, week or column" })
-  @ApiProperty({ type: String, enum: BookerLayoutsInputEnum_2024_06_14 })
-  @IsEnum(BookerLayoutsInputEnum_2024_06_14)
-  defaultLayout!: BookerLayoutsInputEnum_2024_06_14;
-
-  @IsValidLayout({
-    message: "enabledLayouts must be an array containing valid layouts - month, week or column",
-  })
-  @ApiProperty({
-    type: [String],
-    enum: BookerLayoutsInputEnum_2024_06_14,
-    description: "Array of valid layouts - month, week or column",
-  })
-  @IsEnum(BookerLayoutsInputEnum_2024_06_14, {
-    each: true,
-    message: "enabledLayouts must contain only valid layouts - month, week or column",
-  })
-  enabledLayouts!: BookerLayoutsInputEnum_2024_06_14[];
-}
-
 @ValidatorConstraint({ name: "isDefaultLayoutWithinEnabledLayouts", async: false })
 export class DefaultLayoutEnabledValidator implements ValidatorConstraintInterface {
   validate(_: unknown, args: ValidationArguments) {
@@ -93,4 +71,25 @@ function IsDefaultLayoutWithinEnabledLayouts(validationOptions?: ValidationOptio
       validator: DefaultLayoutEnabledValidator,
     });
   };
+}
+@IsDefaultLayoutWithinEnabledLayouts()
+export class BookerLayouts_2024_06_14 {
+  @IsValidLayout({ message: "defaultLayout must be one of the valid layouts - month, week or column" })
+  @ApiProperty({ type: String, enum: BookerLayoutsInputEnum_2024_06_14 })
+  @IsEnum(BookerLayoutsInputEnum_2024_06_14)
+  defaultLayout!: BookerLayoutsInputEnum_2024_06_14;
+
+  @IsValidLayout({
+    message: "enabledLayouts must be an array containing valid layouts - month, week or column",
+  })
+  @ApiProperty({
+    type: [String],
+    enum: BookerLayoutsInputEnum_2024_06_14,
+    description: "Array of valid layouts - month, week or column",
+  })
+  @IsEnum(BookerLayoutsInputEnum_2024_06_14, {
+    each: true,
+    message: "enabledLayouts must contain only valid layouts - month, week or column",
+  })
+  enabledLayouts!: BookerLayoutsInputEnum_2024_06_14[];
 }
