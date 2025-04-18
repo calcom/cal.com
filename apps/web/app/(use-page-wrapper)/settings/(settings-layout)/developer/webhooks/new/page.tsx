@@ -9,7 +9,10 @@ import { webhookRouter } from "@calcom/trpc/server/routers/viewer/webhook/_route
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("webhooks"),
-    (t) => t("add_webhook_description", { appName: APP_NAME })
+    (t) => t("add_webhook_description", { appName: APP_NAME }),
+    undefined,
+    undefined,
+    "/settings/developer/webhooks/new"
   );
 
 const Page = async () => {
