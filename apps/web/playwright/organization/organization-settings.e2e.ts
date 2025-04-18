@@ -97,7 +97,7 @@ test.describe("Organization Settings", () => {
       await users.deleteAll();
     });
 
-    test.skip("Disabling SEO indexing updates settings and meta tags", async ({ page }) => {
+    test("Disabling SEO indexing updates settings and meta tags", async ({ page }) => {
       await test.step("Disable 'Allow search engine indexing' for organization", async () => {
         await page.goto(`/settings/organizations/profile`);
         const seoSwitch = await page.getByTestId(`${ctx.org.id}-seo-indexing-switch`);
@@ -120,7 +120,7 @@ test.describe("Organization Settings", () => {
       });
     });
 
-    test.skip("Enabling SEO indexing updates settings and meta tags", async ({ page }) => {
+    test("Enabling SEO indexing updates settings and meta tags", async ({ page }) => {
       await test.step("Enable 'Allow search engine indexing' for organization", async () => {
         await page.goto(`/settings/organizations/profile`);
         await toggleSeoSwitch({
