@@ -387,6 +387,8 @@ export async function getMonthlyCredits(teamId: number) {
 
   if (!team) return 0;
 
+  let totalMonthlyCredits = 0;
+
   const teamBillingService = new InternalTeamBilling(team);
   const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
 
@@ -398,7 +400,7 @@ export async function getMonthlyCredits(teamId: number) {
 
   // todo: where do I get price per seat from? --> different for team and org
   const pricePerSeat = 15;
-  const totalMonthlyCredits = activeMembers * ((pricePerSeat / 2) * 100);
+  totalMonthlyCredits = activeMembers * ((pricePerSeat / 2) * 100);
 
   return totalMonthlyCredits;
 }

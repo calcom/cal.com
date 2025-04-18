@@ -43,10 +43,13 @@ export default function BillingCredits() {
     buyCreditsMutation.mutate({ quantity: data.quantity, teamId });
   };
 
-  const teamCreditsPercentageUsed = creditsData.teamCredits
-    ? (creditsData.teamCredits.totalRemainingMonthlyCredits / creditsData.teamCredits.totalMonthlyCredits) *
-      100
-    : 0;
+  if (!creditsData) return <>Todo: skeleton loader</>;
+
+  const teamCreditsPercentageUsed =
+    creditsData && creditsData.teamCredits && creditsData.teamCredits.totalMonthlyCredits
+      ? (creditsData.teamCredits.totalRemainingMonthlyCredits / creditsData.teamCredits.totalMonthlyCredits) *
+        100
+      : 0;
 
   return (
     <div className="pb-6mt-6 border-subtle mt-8 space-y-6 rounded-lg border px-6 py-6 text-sm sm:space-y-8">
