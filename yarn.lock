@@ -3945,7 +3945,7 @@ __metadata:
     react-easy-crop: ^3.5.2
     react-hook-form: ^7.43.3
     react-live-chat-loader: ^2.8.1
-    react-multi-email: ^0.5.3
+    react-multi-email: ^1.0.25
     react-phone-input-2: ^2.15.1
     react-phone-number-input: ^3.2.7
     react-schemaorg: ^2.0.0
@@ -38190,13 +38190,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-multi-email@npm:^0.5.3":
-  version: 0.5.3
-  resolution: "react-multi-email@npm:0.5.3"
+"react-multi-email@npm:^1.0.25":
+  version: 1.0.25
+  resolution: "react-multi-email@npm:1.0.25"
   peerDependencies:
-    react: ^16.3.2
-    react-dom: ^16.3.2
-  checksum: d115e76c0ee3b26792a82cd9c4b5b3c6f90f15b1e5ca6f617e7985d324bb5e6b61c09588d9b2156701555c3917cf262523ce1607c2ea26fd95ed15a8d52b5ec7
+    react: ^18.2.0
+    react-dom: ^18.2.0
+  checksum: 4a1778326167283a5e0a4b20aaff46e6ca77cf217f40e6c981caa1a7300f81df8191ff1a32df1ae1d09e050e94b7953fc6fe392f487e609068d95469a801e168
   languageName: node
   linkType: hard
 
