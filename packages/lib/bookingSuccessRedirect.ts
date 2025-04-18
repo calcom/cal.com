@@ -149,6 +149,10 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
   return queryCompatibleParams;
 };
 
+export const filterEmbedParameter = (params: URLSearchParams) => {
+  return new URLSearchParams(Array.from(params.entries()).filter(([key]) => key !== "embed"));
+};
+
 export const useBookingSuccessRedirect = () => {
   const router = useRouter();
   const searchParams = useCompatSearchParams();
@@ -185,7 +189,7 @@ export const useBookingSuccessRedirect = () => {
           ...query,
           ...bookingExtraParams,
         },
-        searchParams: new URLSearchParams(searchParams.toString()),
+        searchParams: filterEmbedParameter(new URLSearchParams(searchParams.toString())),
       });
 
       newSearchParams.forEach((value, key) => {
