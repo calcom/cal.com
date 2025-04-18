@@ -145,6 +145,8 @@ export class BookingsService_2024_08_13 {
           throw new BadRequestException(
             `The event type can't be booked at selected time ${body.start}. This could be because it's too soon (violating the minimum booking notice) or too far in the future (outside the event's scheduling window). Try fetching available slots first using the GET /v2/slots endpoint and then make a booking with "start" time equal to one of the available slots: https://cal.com/docs/api-reference/v2/slots`
           );
+        } else if (error.message === "Attempting to book a meeting in the past.") {
+          throw new BadRequestException("Attempting to book a meeting in the past.");
         }
       }
       throw error;
