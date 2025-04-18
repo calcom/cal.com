@@ -25,7 +25,6 @@ export async function chargeCredits({
   smsSid: string;
 }) {
   let teamToCharge: number | null = credits === 0 && teamId ? teamId : null;
-  let userToCharge: number | null = credits === 0 && userId ? userId : null;
   let creditType: CreditType = CreditType.ADDITIONAL;
   let remainingCredits;
   if (credits !== 0) {
@@ -35,12 +34,11 @@ export async function chargeCredits({
       teamId,
     });
     teamToCharge = result?.teamId ?? null;
-    userToCharge = result?.userId ?? null;
     creditType = result?.creditType ?? creditType;
     remainingCredits = result?.availableCredits;
   }
 
-  if (!teamToCharge && !userToCharge) {
+  if (!teamToCharge) {
     log.error("No team or user found to charge. No credit expense log created");
     return null;
   }
@@ -49,23 +47,18 @@ export async function chargeCredits({
     bookingUid,
     smsSid,
     teamId: teamToCharge,
-    userId: !teamToCharge ? userToCharge : null,
     credits,
     creditType,
   });
 
   if (credits) {
     await handleLowCreditBalance({
-      userId: userToCharge,
       teamId: teamToCharge,
       remainingCredits,
     });
   }
 
-  return {
-    teamId: teamToCharge,
-    userId: teamToCharge ? null : userToCharge,
-  };
+  return teamToCharge;
 }
 
 export async function hasAvailableCredits({
@@ -119,6 +112,7 @@ async function getTeamWithAvailableCredits(userId: number, credits?: number) {
         id: team.id,
       },
       select: {
+        id: true,
         credits: {
           select: {
             limitReachedAt: true,
@@ -128,15 +122,12 @@ async function getTeamWithAvailableCredits(userId: number, credits?: number) {
     });
 
     if (teamWithCredits && !teamWithCredits.credits?.limitReachedAt) {
-      if (!credits) return { teamId: teamWithCredits.credits };
-      const allCredits = await getAllCreditsForTeam(team.id);
-      if (allCredits.totalRemainingMonthlyCredits + allCredits.additionalCredits >= credits)
-        return {
-          teamId: teamWithCredits.credits,
-          availableCredits: allCredits.totalRemainingMonthlyCredits + allCredits.additionalCredits,
-          creditType:
-            allCredits.totalRemainingMonthlyCredits > 0 ? CreditType.MONTHLY : CreditType.ADDITIONAL,
-        };
+      const allCredits = await getAllCreditsForTeam(teamWithCredits.id);
+      return {
+        teamId: teamWithCredits.id,
+        availableCredits: allCredits.totalRemainingMonthlyCredits + allCredits.additionalCredits,
+        creditType: allCredits.totalRemainingMonthlyCredits > 0 ? CreditType.MONTHLY : CreditType.ADDITIONAL,
+      };
     }
   }
   return null;
@@ -154,31 +145,19 @@ export async function getTeamToCharge({
   userId?: number | null;
   teamId?: number | null;
 }) {
-  // todo
-
   if (teamId) {
-    let creditBalance = await prisma.creditBalance.findFirst({
-      where: {
-        teamId,
-      },
-    });
-
-    if (!creditBalance) {
-      creditBalance = await prisma.creditBalance.create({
-        data: { teamId },
-      });
-    }
+    const teamCredits = await getAllCreditsForTeam(teamId);
 
     return {
       teamId,
-      availableCredits: 0, //todo: get available credits, montlhy + additional - credits
-      creditType: CreditType.ADDITIONAL, // todo
+      availableCredits: teamCredits.totalRemainingMonthlyCredits + teamCredits.additionalCredits - credits,
+      creditType: teamCredits.totalRemainingMonthlyCredits > 0 ? CreditType.MONTHLY : CreditType.ADDITIONAL,
     };
   }
 
   if (userId) {
     const team = await getTeamWithAvailableCredits(userId, credits);
-    if (team?.availableCredits) return team;
+    return team;
   }
 
   return null;
@@ -188,42 +167,29 @@ export async function getTeamToCharge({
 async function createExpenseLog(props: {
   bookingUid: string;
   smsSid: string;
-  teamId: number | null;
-  userId: number | null;
+  teamId: number;
   credits: number | null;
   creditType: CreditType;
 }) {
-  const { credits, creditType, bookingUid, smsSid, teamId, userId } = props;
-
-  if (!userId && !teamId) return;
-
+  const { credits, creditType, bookingUid, smsSid, teamId } = props;
   let creditBalance: { id: string } | null = null;
 
-  if (teamId) {
-    creditBalance = await prisma.creditBalance.findUnique({
-      where: {
-        teamId: teamId,
-      },
-    });
-  } else if (userId) {
-    creditBalance = await prisma.creditBalance.findUnique({
-      where: {
-        userId: userId,
-      },
-    });
-  }
+  creditBalance = await prisma.creditBalance.findUnique({
+    where: {
+      teamId: teamId,
+    },
+  });
 
   if (!creditBalance) {
     creditBalance = await prisma.creditBalance.create({
       data: {
         teamId: teamId,
-        userId: teamId ? null : userId,
       },
     });
   }
 
   if (credits && creditType === CreditType.ADDITIONAL) {
-    prisma.creditBalance.update({
+    await prisma.creditBalance.update({
       where: {
         id: creditBalance.id,
       },

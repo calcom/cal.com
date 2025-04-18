@@ -95,7 +95,7 @@ export const sendSMS = async ({
     to: getSMSNumber(phoneNumber, isWhatsapp),
     from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender ? sender : getDefaultSender(),
     statusCallback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/webhook?userId=${userId}${
-      teamId ? "&teamId=${teamId}" : ""
+      teamId ? `&teamId=${teamId}` : ""
     }&bookingUid=${bookingUid}`,
   });
 
