@@ -40,6 +40,7 @@ export const FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE =
   "Either eventTypeId or eventTypeSlug + username or eventTypeSlug + teamSlug must be provided";
 
 function RequireEventTypeIdentification(validationOptions?: ValidationOptions) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return function (object: any) {
     registerDecorator({
       name: "requireEventTypeIdentification",
@@ -48,7 +49,7 @@ function RequireEventTypeIdentification(validationOptions?: ValidationOptions) {
       options: validationOptions,
       constraints: [],
       validator: {
-        validate(_value: any, args: ValidationArguments) {
+        validate(_: unknown, args: ValidationArguments) {
           const obj = args.object as CreateBookingInput_2024_08_13;
 
           const hasEventTypeId = !!obj?.eventTypeId;
@@ -68,28 +69,31 @@ function RequireEventTypeIdentification(validationOptions?: ValidationOptions) {
 }
 
 function RequireEmailOrPhone(validationOptions?: ValidationOptions) {
-  return function (target: object, propertyName: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return function (object: any) {
     registerDecorator({
       name: "requireEmailOrPhone",
-      target: target.constructor,
-      propertyName: propertyName,
+      target: object,
+      propertyName: "attendee email or phone",
       options: validationOptions,
+      constraints: [],
       validator: {
-        validate(value: any, args: ValidationArguments) {
+        validate(_: unknown, args: ValidationArguments) {
           const obj = args.object as Attendee;
 
-          const hasPhoneNumber = !!obj.phoneNumber && obj.phoneNumber.trim().length > 0;
-          const hasEmail = !!obj.email && obj.email.trim().length > 0;
+          const hasPhoneNumber = !!obj.phoneNumber;
+          const hasEmail = !!obj.email;
           return hasPhoneNumber || hasEmail;
         },
         defaultMessage(): string {
-          return "At least one contact method (email or phone number) must be provided";
+          return "Attendee must have at least one contact method (email or phone number)";
         },
       },
     });
   };
 }
 
+@RequireEmailOrPhone()
 class Attendee {
   @ApiProperty({
     type: String,
@@ -108,7 +112,6 @@ class Attendee {
   @Validate((value: string) => !value || isEmail(value), {
     message: "Invalid email format",
   })
-  @RequireEmailOrPhone()
   email?: string;
 
   @ApiProperty({
