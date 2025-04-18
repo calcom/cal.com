@@ -1,8 +1,9 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {
   getOrgDomainConfigFromHostname,
@@ -60,24 +61,25 @@ export function NotFound() {
 
   const [redirected, setRedirected] = useState(false);
 
-  useEffect(() => {
-    if (pageType === PageType.USER && !isSubpage && !redirected && username) {
-      fetch(`/api/users/username/${username}?checkPrevious=true`)
-        .then((response) => {
-          if (response.ok) return response.json();
-          throw new Error("Username not found");
-        })
-        .then((data) => {
-          if (data.currentUsername) {
-            window.location.href = `/${data.currentUsername}`;
-            setRedirected(true);
-          }
-        })
-        .catch((error) => {
-          console.error("Failed to check previous username:", error);
-        });
-    }
-  }, [pageType, isSubpage, username, redirected]);
+  useQuery({
+    queryKey: ["previousUsername", username],
+    queryFn: async () => {
+      const response = await fetch(`/api/users/username/${username}?checkPrevious=true`);
+      if (!response.ok) throw new Error("Username not found");
+      return response.json();
+    },
+    enabled: pageType === PageType.USER && !isSubpage && !redirected && !!username,
+    onSuccess: (data) => {
+      if (data.currentUsername) {
+        window.location.href = `/${data.currentUsername}`;
+        setRedirected(true);
+      }
+    },
+    onError: (error) => {
+      console.error("Failed to check previous username:", error);
+    },
+    retry: false,
+  });
 
   const links = [
     {
