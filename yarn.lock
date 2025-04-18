@@ -2332,7 +2332,7 @@ __metadata:
     "@types/fs-extra": ^11.0.4
     "@types/jest": ^29.5.10
     "@types/luxon": ^3.3.7
-    "@types/passport-jwt": ^3.0.13
+    "@types/passport-jwt": ^4.0.1
     "@types/supertest": ^2.0.12
     body-parser: ^2.0.0
     bull: ^4.12.4
@@ -16803,14 +16803,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/passport-jwt@npm:^3.0.13":
-  version: 3.0.13
-  resolution: "@types/passport-jwt@npm:3.0.13"
+"@types/passport-jwt@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "@types/passport-jwt@npm:4.0.1"
   dependencies:
-    "@types/express": "*"
     "@types/jsonwebtoken": "*"
     "@types/passport-strategy": "*"
-  checksum: 89e206659f38fd520c0d72561606ef1860dc23e59d401bcb429052001ef069a713b1a745ec1208273454e52336a175fb6692dcd3422ecebb552a21cf4b03dc56
+  checksum: 778f88eaefe39d845ba4824760f9b149c1e408249357514ea9b3d302c180af1faadc164af3fbf41596a23ad01f0a1c95501e193693f4db804f34713853fdc727
   languageName: node
   linkType: hard
 
