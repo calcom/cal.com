@@ -11,7 +11,10 @@ import AppsPage from "~/apps/apps-view";
 export const generateMetadata = async () => {
   return await _generateMetadata(
     (t) => t("app_store"),
-    (t) => t("app_store_description")
+    (t) => t("app_store_description"),
+    undefined,
+    undefined,
+    "/apps"
   );
 };
 

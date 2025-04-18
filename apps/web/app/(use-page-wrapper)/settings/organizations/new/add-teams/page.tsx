@@ -11,7 +11,10 @@ import LegacyPage, { LayoutWrapper } from "~/settings/organizations/new/add-team
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("create_your_teams"),
-    (t) => t("create_your_teams_description")
+    (t) => t("create_your_teams_description"),
+    undefined,
+    undefined,
+    "/settings/organizations/new/add-teams"
   );
 
 const getData = withAppDirSsr(getServerSideProps);
