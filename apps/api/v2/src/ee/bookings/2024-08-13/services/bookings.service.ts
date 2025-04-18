@@ -8,7 +8,11 @@ import { BillingService } from "@/modules/billing/services/billing.service";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
+import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
@@ -77,7 +81,11 @@ export class BookingsService_2024_08_13 {
     private readonly usersService: UsersService,
     private readonly usersRepository: UsersRepository,
     private readonly platformBookingsService: PlatformBookingsService,
-    private readonly oAuthClientRepository: OAuthClientRepository
+    private readonly oAuthClientRepository: OAuthClientRepository,
+    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
+    private readonly organizationsRepository: OrganizationsRepository,
+    private readonly teamsRepository: TeamsRepository,
+    private readonly teamsEventTypesRepository: TeamsEventTypesRepository
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput) {
@@ -92,6 +100,16 @@ export class BookingsService_2024_08_13 {
         if (body.username && body.eventTypeSlug && body.organizationSlug) {
           throw new NotFoundException(
             `Event type with slug ${body.eventTypeSlug} belonging to user ${body.username} within organization ${body.organizationSlug} not found.`
+          );
+        }
+        if (body.teamSlug && body.eventTypeSlug && !body.organizationSlug) {
+          throw new NotFoundException(
+            `Event type with slug ${body.eventTypeSlug} belonging to team ${body.teamSlug} not found.`
+          );
+        }
+        if (body.teamSlug && body.eventTypeSlug && body.organizationSlug) {
+          throw new NotFoundException(
+            `Event type with slug ${body.eventTypeSlug} belonging to team ${body.teamSlug} within organization ${body.organizationSlug} not found.`
           );
         }
         throw new NotFoundException(`Event type with id ${body.eventTypeId} not found.`);
@@ -141,8 +159,32 @@ export class BookingsService_2024_08_13 {
         user.id,
         body.eventTypeSlug
       );
+    } else if (body.teamSlug && body.eventTypeSlug) {
+      const team = await this.getBookedEventTypeTeam(body.teamSlug, body.organizationSlug);
+      if (!team) {
+        throw new NotFoundException(`Team with slug ${body.teamSlug} not found`);
+      }
+      return await this.teamsEventTypesRepository.getEventTypeByTeamIdAndSlugWithOwnerAndTeam(
+        team.id,
+        body.eventTypeSlug
+      );
     }
     return null;
+  }
+
+  async getBookedEventTypeTeam(teamSlug: string, organizationSlug: string | undefined) {
+    if (!organizationSlug) {
+      return await this.teamsRepository.findTeamBySlug(teamSlug);
+    }
+
+    const organization = await this.organizationsRepository.findOrgBySlug(organizationSlug);
+    if (!organization) {
+      throw new NotFoundException(
+        `slots-input.service.ts: Organization with slug ${organizationSlug} not found`
+      );
+    }
+
+    return await this.organizationsTeamsRepository.findOrgTeamBySlug(organization.id, teamSlug);
   }
 
   async hasRequiredBookingFieldsResponses(body: CreateBookingInput, eventType: EventType | null) {
@@ -604,13 +646,24 @@ export class BookingsService_2024_08_13 {
 
     const profile = this.usersService.getUserMainProfile(requestUser);
 
-    await roundRobinReassignment({
-      bookingId: booking.id,
-      orgId: profile?.organizationId || null,
-      emailsEnabled,
-      platformClientParams,
-      reassignedById: requestUser.id,
-    });
+    try {
+      await roundRobinReassignment({
+        bookingId: booking.id,
+        orgId: profile?.organizationId || null,
+        emailsEnabled,
+        platformClientParams,
+        reassignedById: requestUser.id,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "no_available_users_found_error") {
+          throw new BadRequestException(
+            "Can't reassign the booking because no other host is available at that time."
+          );
+        }
+      }
+      throw error;
+    }
 
     const reassigned = await this.bookingsRepository.getByUidWithUser(bookingUid);
     if (!reassigned) {
