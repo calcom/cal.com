@@ -24,7 +24,7 @@
     "react-sticky-box": "^2.0.4",
     "stripe-event-types": "^3.1.0",
     "web-push": "^3.6.7",
-    "zustand": "^4.3.2"
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@testing-library/react-hooks": "^8.0.1",
