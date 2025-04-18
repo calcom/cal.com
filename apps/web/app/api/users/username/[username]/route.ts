@@ -17,7 +17,7 @@ export async function GET(request: Request, { params }: { params: { username: st
     const ip = getIP({ headers: request.headers } as any) || "127.0.0.1";
 
     await checkRateLimitAndThrowError({
-      rateLimitingType: "username_check",
+      rateLimitingType: "core", // Using "core" rate limiting type which is supported
       identifier: ip,
     });
 
@@ -50,10 +50,15 @@ export async function GET(request: Request, { params }: { params: { username: st
     }
 
     return NextResponse.json({ available: true });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(error);
-    if (error.code === "TOO_MANY_REQUESTS") {
-      return NextResponse.json({ message: error.message }, { status: 429 });
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "TOO_MANY_REQUESTS"
+    ) {
+      return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
     }
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }

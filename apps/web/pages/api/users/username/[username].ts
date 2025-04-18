@@ -25,7 +25,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const ip = getIP(req) || "127.0.0.1";
 
     await checkRateLimitAndThrowError({
-      rateLimitingType: "username_check",
+      rateLimitingType: "core", // Using "core" rate limiting type which is supported
       identifier: ip,
     });
 
@@ -58,10 +58,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     return res.status(200).json({ available: true });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(error);
-    if (error.code === "TOO_MANY_REQUESTS") {
-      return res.status(429).json({ message: error.message });
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "TOO_MANY_REQUESTS"
+    ) {
+      return res.status(429).json({ message: "Too many requests. Please try again later." });
     }
     return res.status(500).json({ message: "Internal server error" });
   }

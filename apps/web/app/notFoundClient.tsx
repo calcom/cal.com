@@ -61,7 +61,7 @@ export function NotFound() {
 
   const [redirected, setRedirected] = useState(false);
 
-  useQuery({
+  const { data } = useQuery({
     queryKey: ["previousUsername", username],
     queryFn: async () => {
       const response = await fetch(`/api/users/username/${username}?checkPrevious=true`);
@@ -69,17 +69,13 @@ export function NotFound() {
       return response.json();
     },
     enabled: pageType === PageType.USER && !isSubpage && !redirected && !!username,
-    onSuccess: (data) => {
-      if (data.currentUsername) {
-        window.location.href = `/${data.currentUsername}`;
-        setRedirected(true);
-      }
-    },
-    onError: (error) => {
-      console.error("Failed to check previous username:", error);
-    },
     retry: false,
   });
+
+  if (data?.currentUsername && !redirected) {
+    window.location.href = `/${data.currentUsername}`;
+    setRedirected(true);
+  }
 
   const links = [
     {
