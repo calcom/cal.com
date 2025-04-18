@@ -744,12 +744,7 @@ export const sendBookingRedirectNotification = async (bookingRedirect: IBookingR
 };
 
 export const sendCreditBalanceLowWarningEmails = async (input: {
-  user?: {
-    name: string;
-    email: string;
-    t: TFunction;
-  };
-  team?: {
+  team: {
     name: string;
     adminAndOwners: {
       name: string;
@@ -759,13 +754,8 @@ export const sendCreditBalanceLowWarningEmails = async (input: {
   };
   balance: number;
 }) => {
-  const { team, user } = input;
-  const toUsers = team?.adminAndOwners.map((admin) => admin) ?? (user ? [user] : []);
+  const { team, balance } = input;
+  if (!!team.adminAndOwners.length) return;
 
-  const emailsToSend: Promise<unknown>[] = [];
-
-  for (const user of toUsers) {
-    emailsToSend.push(sendEmail(() => new CreditBalanceLowWarningEmail(user, input.balance, team?.name)));
-  }
-  await Promise.all(emailsToSend);
+  await sendEmail(() => new CreditBalanceLowWarningEmail(adminAndOwners, input.balance, team?.name));
 };

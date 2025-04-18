@@ -39,10 +39,6 @@ export default function BillingCredits() {
     },
   });
 
-  if (!creditsData || (!creditsData.teamCredits && !creditsData.userCredits)) {
-    return null;
-  }
-
   const onSubmit = (data: { quantity: number }) => {
     buyCreditsMutation.mutate({ quantity: data.quantity, teamId });
   };
@@ -61,7 +57,7 @@ export default function BillingCredits() {
           <hr className="border-subtle" />
         </div>
         <div className="mt-6">
-          {creditsData.teamCredits ? (
+          {creditsData && creditsData.teamCredits ? (
             <>
               <div className="mb-4">
                 <Label>Monthly credits</Label>
@@ -79,20 +75,8 @@ export default function BillingCredits() {
               <div className="mt-2 text-sm">{creditsData.teamCredits.additionalCredits}</div>{" "}
             </>
           ) : (
-            <></>
+            <>No available credits</>
           )}
-          {/* for user credits before being part of the org */}
-          {(creditsData.userCredits && creditsData.userCredits.additionalCredits > 0) || !teamId ? (
-            <>
-              <Label className="mt-4">
-                {creditsData.teamCredits ? "Additional credits (your user credits)" : "Available credits"}
-              </Label>
-              <div className="mt-2 text-sm">{creditsData.userCredits.additionalCredits}</div>{" "}
-            </>
-          ) : (
-            <></>
-          )}
-
           <div className="-mx-6 mb-6 mt-6">
             <hr className="border-subtle mb-3 mt-3" />
           </div>
@@ -118,7 +102,7 @@ export default function BillingCredits() {
               </div>
             </div>
 
-            {/* disable button if 0 credits*/}
+            {/* todo: disable button if 0 credits*/}
             <div className="mb-1 mt-auto">
               <Button color="primary" target="_blank" EndIcon="external-link" type="submit">
                 {t("buy_credits")}

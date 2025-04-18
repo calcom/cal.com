@@ -30,34 +30,21 @@ const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
 
   const teamId = session.metadata?.teamId ? Number(session.metadata.teamId) : null;
 
-  await saveToCreditBalance({ userId: user.id, teamId, nrOfCredits });
+  if (!teamId) {
+    throw new HttpCode(400, "Team id missing but required");
+  }
+
+  await saveToCreditBalance({ teamId, nrOfCredits });
 
   return { success: true };
 };
 
-export async function saveToCreditBalance({
-  teamId,
-  userId,
-  nrOfCredits,
-}: {
-  userId: number;
-  teamId: number | null;
-  nrOfCredits: number;
-}) {
-  let creditBalance: { id: string } | null;
-  if (teamId) {
-    creditBalance = await prisma.creditBalance.findUnique({
-      where: {
-        teamId,
-      },
-    });
-  } else {
-    creditBalance = await prisma.creditBalance.findUnique({
-      where: {
-        userId,
-      },
-    });
-  }
+export async function saveToCreditBalance({ teamId, nrOfCredits }: { teamId: number; nrOfCredits: number }) {
+  const creditBalance = await prisma.creditBalance.findUnique({
+    where: {
+      teamId,
+    },
+  });
 
   if (creditBalance) {
     await prisma.creditBalance.update({
@@ -69,8 +56,7 @@ export async function saveToCreditBalance({
   } else {
     await prisma.creditBalance.create({
       data: {
-        teamId: teamId ? teamId : undefined,
-        userId: teamId ? undefined : userId,
+        teamId: teamId,
         additionalCredits: nrOfCredits,
       },
     });
