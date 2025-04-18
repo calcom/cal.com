@@ -21,8 +21,10 @@ export default function BillingCredits() {
   } = useForm<{ quantity: number }>({ defaultValues: { quantity: 50 } });
 
   const params = useParamsWithFallback();
-  //if this is given we are on the teams billing page
+
+  // if given, it's team billing page (not org)
   const teamId = params.id ? Number(params.id) : undefined;
+  if (!teamId) return null;
 
   const { data: creditsData } = trpc.viewer.credits.getAllCredits.useQuery({ teamId: teamId });
 
@@ -80,10 +82,10 @@ export default function BillingCredits() {
             <></>
           )}
           {/* for user credits before being part of the org */}
-          {creditsData.userCredits && creditsData.userCredits.additionalCredits > 0 && !teamId ? (
+          {(creditsData.userCredits && creditsData.userCredits.additionalCredits > 0) || !teamId ? (
             <>
               <Label className="mt-4">
-                Additional credits {creditsData.teamCredits ? "(your user credits)" : ""}
+                {creditsData.teamCredits ? "Additional credits (your user credits)" : "Available credits"}
               </Label>
               <div className="mt-2 text-sm">{creditsData.userCredits.additionalCredits}</div>{" "}
             </>

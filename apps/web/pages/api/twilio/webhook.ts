@@ -25,6 +25,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const { userId, teamId, bookingUid } = req.query;
 
       if (messageStatus === "delivered" || messageStatus === "undelivered") {
+        if (!IS_SMS_CREDITS_ENABLED) {
+          return res.status(200).send(`SMS credits are not enabled.`);
+        }
+
         const countryCode = await twilio.getCountryCodeForNumber(req.body.To);
 
         const parsedTeamId = !!teamId ? Number(teamId) : undefined;
@@ -35,17 +39,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         const smsSid = req.body.SmsSid;
         if (!parsedUserId && !parsedTeamId) {
           return res.status(401).send("Team or user id is required");
-        }
-
-        if (!IS_SMS_CREDITS_ENABLED) {
-          await chargeCredits({
-            credits: 0,
-            teamId: parsedTeamId,
-            userId: parsedUserId,
-            bookingUid: parsedBookingUid,
-            smsSid,
-          });
-          return res.status(200).send(`SMS credits are not enabled. Credits set to 0`);
         }
 
         if (countryCode === "US" || countryCode === "CA") {
@@ -59,7 +52,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
                 accepted: true,
               },
             });
-
             teamIdToCharge = teamMembership?.teamId;
           }
 
@@ -109,13 +101,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         });
 
         if (billingInfo) {
-          return res
-            .status(200)
-            .send(
-              `Expense log with ${credits ? credits : "no"} credits created for ${
-                billingInfo.teamId ? `teamId ${billingInfo.teamId}` : `userId: ${billingInfo.userId}`
-              }`
-            );
+          return res.status(200).send(
+            `Expense log with ${credits ? credits : "no"} credits created for
+                teamId ${billingInfo.teamId}`
+          );
         }
         // this should never happen - even when out of credits we still charge a team/user
         return res.status(500).send("No team or users found to be charged");
