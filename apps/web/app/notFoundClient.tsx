@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import {
   getOrgDomainConfigFromHostname,
@@ -56,6 +57,27 @@ export function NotFound() {
   const isBookingSuccessPage = pathname?.startsWith("/booking");
   const isSubpage = pathname?.includes("/", 2) || isBookingSuccessPage;
   const isInsights = pathname?.startsWith("/insights");
+
+  const [redirected, setRedirected] = useState(false);
+
+  useEffect(() => {
+    if (pageType === PageType.USER && !isSubpage && !redirected && username) {
+      fetch(`/api/users/username/${username}?checkPrevious=true`)
+        .then((response) => {
+          if (response.ok) return response.json();
+          throw new Error("Username not found");
+        })
+        .then((data) => {
+          if (data.currentUsername) {
+            window.location.href = `/${data.currentUsername}`;
+            setRedirected(true);
+          }
+        })
+        .catch((error) => {
+          console.error("Failed to check previous username:", error);
+        });
+    }
+  }, [pageType, isSubpage, username, redirected]);
 
   const links = [
     {

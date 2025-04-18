@@ -221,10 +221,16 @@ export class UsersRepository {
   }
 
   async updateUsername(userId: number, newUsername: string) {
+    const user = await this.dbRead.prisma.user.findUnique({
+      where: { id: userId },
+      select: { username: true },
+    });
+
     return this.dbWrite.prisma.user.update({
       where: { id: userId },
       data: {
         username: newUsername,
+        previousUsername: user?.username || undefined,
       },
     });
   }

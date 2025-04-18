@@ -278,6 +278,7 @@ model TravelSchedule {
 model User {
   id                  Int                  @id @default(autoincrement())
   username            String?
+  previousUsername    String?
   name                String?
   /// @zod.custom(imports.emailSchema)
   email               String

@@ -189,9 +189,18 @@ export class UserRepository {
             },
           }
         : {
-            username: {
-              in: usernameList,
-            },
+            OR: [
+              {
+                username: {
+                  in: usernameList,
+                },
+              },
+              {
+                previousUsername: {
+                  in: usernameList,
+                },
+              },
+            ],
             ...(orgSlug
               ? {
                   organization: whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
