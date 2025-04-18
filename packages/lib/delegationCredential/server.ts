@@ -11,7 +11,11 @@ import { DelegationCredentialRepository } from "@calcom/lib/server/repository/de
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
 import { UserRepository } from "../server/repository/user";
-import { buildNonDelegationCredentials, isDelegationCredential } from "./clientAndServer";
+import {
+  buildNonDelegationCredential,
+  buildNonDelegationCredentials,
+  isDelegationCredential,
+} from "./clientAndServer";
 
 export { buildNonDelegationCredentials, buildNonDelegationCredential } from "./clientAndServer";
 
