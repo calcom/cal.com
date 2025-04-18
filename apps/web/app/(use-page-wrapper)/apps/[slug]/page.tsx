@@ -28,7 +28,10 @@ export const generateMetadata = async ({ params }: _PageProps) => {
   return await generateAppMetadata(
     { slug: logo, name, description },
     () => name,
-    () => description
+    () => description,
+    undefined,
+    undefined,
+    `/apps/${p.data.slug}`
   );
 };
 

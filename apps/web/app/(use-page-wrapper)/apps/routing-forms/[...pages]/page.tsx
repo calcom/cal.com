@@ -25,7 +25,10 @@ export const generateMetadata = async ({ params }: { params: Promise<{ pages: st
   return await _generateMetadata(
     // TODO: Need to show the actual form name instead of "Form"
     (t) => (mainPage === "routing-link" ? `Form | Cal.com Forms` : `${t("routing_forms")} | Cal.com Forms`),
-    () => ""
+    () => "",
+    undefined,
+    undefined,
+    `/apps/routing-forms/${(await params).pages.join("/")}`
   );
 };
 

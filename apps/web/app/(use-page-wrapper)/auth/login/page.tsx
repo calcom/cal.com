@@ -13,7 +13,10 @@ import Login from "~/auth/login-view";
 export const generateMetadata = async () => {
   return await _generateMetadata(
     (t) => t("login"),
-    (t) => t("login")
+    (t) => t("login"),
+    undefined,
+    undefined,
+    "/auth/login"
   );
 };
 

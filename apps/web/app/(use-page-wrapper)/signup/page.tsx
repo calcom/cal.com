@@ -12,7 +12,10 @@ import Signup from "~/signup-view";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("sign_up"),
-    (t) => t("sign_up")
+    (t) => t("sign_up"),
+    undefined,
+    undefined,
+    "/signup"
   );
 
 const getData = withAppDirSsr<SignupProps>(getServerSideProps);

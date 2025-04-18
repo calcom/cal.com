@@ -6,7 +6,7 @@ import type { ButtonColor } from "@calcom/ui/components/button";
 import type { IconName } from "@calcom/ui/components/icon";
 
 import type { OnCheckErrorType, UseCheckProps } from "../../hooks/connect/useCheck";
-import { useTeamCheck, useCheck } from "../../hooks/stripe/useCheck";
+import { useCheck } from "../../hooks/stripe/useCheck";
 import { useConnect } from "../../hooks/stripe/useConnect";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { cn } from "../../src/lib/utils";
@@ -46,24 +46,16 @@ export const StripeConnect: FC<Partial<StripeConnectProps>> = ({
   let displayedLabel = label || t("stripe_connect_atom_label");
 
   const { connect } = useConnect(redir, errorRedir, teamId);
-  const { allowConnect, checked } = useCheck({
+  const { allowConnect, checked, isLoading } = useCheck({
     onCheckError,
     onCheckSuccess,
     initialData,
-  });
-  const { allowConnect: allowConnectTeam, checked: checkedTeam } = useTeamCheck({
     teamId,
-    onCheckError,
-    onCheckSuccess,
-    initialData,
   });
 
-  const isChecking = teamId ? !checkedTeam : !checked;
-  const isAllowConnect = teamId ? allowConnectTeam : allowConnect;
+  const isDisabled = !checked || !allowConnect;
 
-  const isDisabled = isChecking || !isAllowConnect;
-
-  if (isChecking) {
+  if (!checked) {
     displayedLabel = loadingLabel || t("stripe_connect_atom_loading_label");
   } else if (!allowConnect) {
     displayedLabel = alreadyConnectedLabel || t("stripe_connect_atom_already_connected_label");
@@ -79,7 +71,7 @@ export const StripeConnect: FC<Partial<StripeConnectProps>> = ({
           "",
           "md:rounded-md",
           className,
-          isChecking && "animate-pulse",
+          isLoading && "animate-pulse bg-gray-200",
           isDisabled && "cursor-not-allowed",
           !isDisabled && "cursor-pointer"
         )}

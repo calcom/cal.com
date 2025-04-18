@@ -139,7 +139,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
                 form.reset();
                 setIsDialogOpen(false);
                 toast({
-                  description: "Calendar credentials added successfully", 
+                  description: "Calendar credentials added successfully",
                 });
                 onSuccess?.();
               } else {

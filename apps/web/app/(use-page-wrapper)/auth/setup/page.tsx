@@ -13,7 +13,10 @@ import type { PageProps as ClientPageProps } from "~/auth/setup-view";
 export const generateMetadata = async () => {
   return await _generateMetadata(
     (t) => t("setup"),
-    (t) => t("setup_description")
+    (t) => t("setup_description"),
+    undefined,
+    undefined,
+    "/auth/setup"
   );
 };
 

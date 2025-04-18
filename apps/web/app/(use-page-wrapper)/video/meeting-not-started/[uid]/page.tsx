@@ -28,7 +28,10 @@ export const generateMetadata = async ({ params }: ServerPageProps) => {
 
   return await _generateMetadata(
     (t) => t("this_meeting_has_not_started_yet"),
-    () => booking?.title ?? ""
+    () => booking?.title ?? "",
+    undefined,
+    undefined,
+    `/video/meeting-not-started/${parsed.data.uid}`
   );
 };
 

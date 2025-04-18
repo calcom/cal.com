@@ -1110,6 +1110,190 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/attributes/{attributeId}/options/assigned": {
+      "get": {
+        "operationId": "OrganizationsAttributesOptionsController_getOrganizationAttributeAssignedOptions",
+        "summary": "Get by attribute id all of the attribute options that are assigned to users",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "attributeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to skip",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to take",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "assignedOptionIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter by assigned attribute option ids. ids must be separated by a comma.",
+            "example": "?assignedOptionIds=aaaaaaaa-bbbb-cccc-dddd-eeeeee1eee,aaaaaaaa-bbbb-cccc-dddd-eeeeee2eee",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "teamIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter by teamIds. Team ids must be separated by a comma.",
+            "example": "?teamIds=100,200",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAllAttributeAssignedOptionOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Attributes / Options"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/attributes/slugs/{attributeSlug}/options/assigned": {
+      "get": {
+        "operationId": "OrganizationsAttributesOptionsController_getOrganizationAttributeAssignedOptionsBySlug",
+        "summary": "Get by attribute slug all of the attribute options that are assigned to users",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "attributeSlug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to skip",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Number of responses to take",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "assignedOptionIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter by assigned attribute option ids. ids must be separated by a comma.",
+            "example": "?assignedOptionIds=aaaaaaaa-bbbb-cccc-dddd-eeeeee1eee,aaaaaaaa-bbbb-cccc-dddd-eeeeee2eee",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "teamIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter by teamIds. Team ids must be separated by a comma.",
+            "example": "?teamIds=100,200",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAllAttributeAssignedOptionOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Attributes / Options"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/attributes/options/{userId}": {
       "post": {
         "operationId": "OrganizationsAttributesOptionsController_assignOrganizationAttributeOptionToUser",
@@ -3393,6 +3577,62 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/oauth/callback": {
+      "get": {
+        "operationId": "OrganizationsConferencingController_saveTeamOauthCredentials",
+        "summary": "Save conferencing app OAuth credentials",
+        "parameters": [
+          {
+            "name": "state",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Conferencing"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/event-types": {
       "post": {
         "operationId": "OrganizationsEventTypesController_createTeamEventType",
@@ -4775,6 +5015,48 @@
               "type": "array",
               "items": {
                 "type": "string"
+              }
+            }
+          },
+          {
+            "name": "assignedOptionIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter by assigned attribute option ids. ids must be separated by a comma.",
+            "example": "?assignedOptionIds=aaaaaaaa-bbbb-cccc-dddd-eeeeee1eee,aaaaaaaa-bbbb-cccc-dddd-eeeeee2eee",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "attributeQueryOperator",
+            "required": false,
+            "in": "query",
+            "description": "Query operator used to filter assigned options, AND by default.",
+            "example": "NONE",
+            "schema": {
+              "default": "AND",
+              "enum": [
+                "OR",
+                "AND",
+                "NONE"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter by teamIds. Team ids must be separated by a comma.",
+            "example": "?teamIds=100,200",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "number"
               }
             }
           }
@@ -6353,7 +6635,7 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_createBooking",
         "summary": "Create a booking",
-        "description": "\n      POST /v2/bookings is used to create regular bookings, recurring bookings and instant bookings. The request bodies for all 3 are almost the same except:\n      If eventTypeId in the request body is id of a regular event, then regular booking is created.\n\n      If it is an id of a recurring event type, then recurring booking is created.\n\n      Meaning that the request bodies are equal but the outcome depends on what kind of event type it is with the goal of making it as seamless for developers as possible.\n\n      For team event types it is possible to create instant meeting. To do that just pass `\"instant\": true` to the request body.\n\n      The start needs to be in UTC aka if the timezone is GMT+2 in Rome and meeting should start at 11, then UTC time should have hours 09:00 aka without time zone.\n\n      Finally, there are 2 ways to book an event type:\n      1. Provide `eventTypeId` in the request body.\n      2. Provide `eventTypeSlug` and `username` and optionally `organizationSlug` if the user with the username is within an organization.\n      ",
+        "description": "\n      POST /v2/bookings is used to create regular bookings, recurring bookings and instant bookings. The request bodies for all 3 are almost the same except:\n      If eventTypeId in the request body is id of a regular event, then regular booking is created.\n\n      If it is an id of a recurring event type, then recurring booking is created.\n\n      Meaning that the request bodies are equal but the outcome depends on what kind of event type it is with the goal of making it as seamless for developers as possible.\n\n      For team event types it is possible to create instant meeting. To do that just pass `\"instant\": true` to the request body.\n\n      The start needs to be in UTC aka if the timezone is GMT+2 in Rome and meeting should start at 11, then UTC time should have hours 09:00 aka without time zone.\n\n      Finally, there are 2 ways to book an event type belonging to an individual user:\n      1. Provide `eventTypeId` in the request body.\n      2. Provide `eventTypeSlug` and `username` and optionally `organizationSlug` if the user with the username is within an organization.\n\n      And 2 ways to book and event type belonging to a team:\n      1. Provide `eventTypeId` in the request body.\n      2. Provide `eventTypeSlug` and `teamSlug` and optionally `organizationSlug` if the team with the teamSlug is within an organization.\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -9023,6 +9305,147 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/stripe/connect": {
+      "get": {
+        "operationId": "OrganizationsStripeController_getTeamStripeConnectUrl",
+        "summary": "Get stripe connect URL for a team",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "returnTo",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "onErrorReturnTo",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripConnectOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations/Teams Stripe"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/stripe/check": {
+      "get": {
+        "operationId": "OrganizationsStripeController_checkTeamStripeConnection",
+        "summary": "Check team stripe connection",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsCheckOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations/Teams Stripe"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/stripe/save": {
+      "get": {
+        "operationId": "OrganizationsStripeController_save",
+        "summary": "Save stripe credentials",
+        "parameters": [
+          {
+            "name": "state",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsSaveOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations/Teams Stripe"
+        ]
+      }
+    },
     "/v2/routing-forms/{routingFormId}/calculate-slots": {
       "post": {
         "operationId": "RoutingFormsController_calculateSlotsBasedOnRoutingFormResponse",
@@ -9981,46 +10404,6 @@
         "operationId": "StripeController_check",
         "summary": "Check stripe connection",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StripCredentialsCheckOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Stripe"
-        ]
-      }
-    },
-    "/v2/stripe/check/{teamId}": {
-      "get": {
-        "operationId": "StripeController_checkTeamStripeConnection",
-        "summary": "Check team stripe connection",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "Authorization",
             "in": "header",
@@ -18416,6 +18799,72 @@
           "data"
         ]
       },
+      "AssignedOptionOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The ID of the option",
+            "example": "attr_option_id"
+          },
+          "attributeId": {
+            "type": "string",
+            "description": "The ID of the attribute",
+            "example": "attr_id"
+          },
+          "value": {
+            "type": "string",
+            "description": "The value of the option",
+            "example": "option_value"
+          },
+          "slug": {
+            "type": "string",
+            "description": "The slug of the option",
+            "example": "option-slug"
+          },
+          "assignedUserIds": {
+            "description": "Ids of the users assigned to the attribute option.",
+            "example": [
+              124,
+              224
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "attributeId",
+          "value",
+          "slug",
+          "assignedUserIds"
+        ]
+      },
+      "GetAllAttributeAssignedOptionOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssignedOptionOutput"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "AssignOrganizationAttributeOptionToUserInput": {
         "type": "object",
         "properties": {
@@ -18864,7 +19313,7 @@
         "type": "object",
         "properties": {
           "status": {
-            "type": "string",
+            "type": "object",
             "example": "success"
           }
         },
@@ -20666,7 +21115,7 @@
           },
           "eventTypeSlug": {
             "type": "string",
-            "description": "The slug of the event type. Required along with username and optionally organizationSlug if eventTypeId is not provided.",
+            "description": "The slug of the event type. Required along with username / teamSlug and optionally organizationSlug if eventTypeId is not provided.",
             "example": "my-event-type"
           },
           "username": {
@@ -20674,9 +21123,14 @@
             "description": "The username of the event owner. Required along with eventTypeSlug and optionally organizationSlug if eventTypeId is not provided.",
             "example": "john-doe"
           },
+          "teamSlug": {
+            "type": "string",
+            "description": "Team slug for team that owns event type for which slots are fetched. Required along with eventTypeSlug and optionally organizationSlug if the team is part of organization",
+            "example": "john-doe"
+          },
           "organizationSlug": {
             "type": "string",
-            "description": "The organization slug. Optional, only used when booking with eventTypeSlug + username.",
+            "description": "The organization slug. Optional, only used when booking with eventTypeSlug + username or eventTypeSlug + teamSlug.",
             "example": "acme-corp"
           },
           "attendee": {
@@ -20773,7 +21227,7 @@
           },
           "eventTypeSlug": {
             "type": "string",
-            "description": "The slug of the event type. Required along with username and optionally organizationSlug if eventTypeId is not provided.",
+            "description": "The slug of the event type. Required along with username / teamSlug and optionally organizationSlug if eventTypeId is not provided.",
             "example": "my-event-type"
           },
           "username": {
@@ -20781,9 +21235,14 @@
             "description": "The username of the event owner. Required along with eventTypeSlug and optionally organizationSlug if eventTypeId is not provided.",
             "example": "john-doe"
           },
+          "teamSlug": {
+            "type": "string",
+            "description": "Team slug for team that owns event type for which slots are fetched. Required along with eventTypeSlug and optionally organizationSlug if the team is part of organization",
+            "example": "john-doe"
+          },
           "organizationSlug": {
             "type": "string",
-            "description": "The organization slug. Optional, only used when booking with eventTypeSlug + username.",
+            "description": "The organization slug. Optional, only used when booking with eventTypeSlug + username or eventTypeSlug + teamSlug.",
             "example": "acme-corp"
           },
           "attendee": {
@@ -20886,7 +21345,7 @@
           },
           "eventTypeSlug": {
             "type": "string",
-            "description": "The slug of the event type. Required along with username and optionally organizationSlug if eventTypeId is not provided.",
+            "description": "The slug of the event type. Required along with username / teamSlug and optionally organizationSlug if eventTypeId is not provided.",
             "example": "my-event-type"
           },
           "username": {
@@ -20894,9 +21353,14 @@
             "description": "The username of the event owner. Required along with eventTypeSlug and optionally organizationSlug if eventTypeId is not provided.",
             "example": "john-doe"
           },
+          "teamSlug": {
+            "type": "string",
+            "description": "Team slug for team that owns event type for which slots are fetched. Required along with eventTypeSlug and optionally organizationSlug if the team is part of organization",
+            "example": "john-doe"
+          },
           "organizationSlug": {
             "type": "string",
-            "description": "The organization slug. Optional, only used when booking with eventTypeSlug + username.",
+            "description": "The organization slug. Optional, only used when booking with eventTypeSlug + username or eventTypeSlug + teamSlug.",
             "example": "acme-corp"
           },
           "attendee": {

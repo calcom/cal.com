@@ -8,7 +8,10 @@ import AppearancePage from "~/settings/my-account/appearance-view";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("appearance"),
-    (t) => t("appearance_description")
+    (t) => t("appearance_description"),
+    undefined,
+    undefined,
+    "/settings/my-account/appearance"
   );
 
 const Page = async () => {

@@ -6,7 +6,10 @@ import { ConferencingAppsViewWebWrapper } from "@calcom/atoms/connect/conferenci
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("conferencing"),
-    (t) => t("conferencing_description")
+    (t) => t("conferencing_description"),
+    undefined,
+    undefined,
+    "/settings/my-account/conferencing"
   );
 
 const Page = async () => {
