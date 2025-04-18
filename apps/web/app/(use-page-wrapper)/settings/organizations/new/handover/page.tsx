@@ -12,7 +12,10 @@ import LegacyPage, { LayoutWrapper } from "~/settings/organizations/new/onboardi
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("handover_onboarding_page_title"),
-    (t) => t("handover_onboarding_page_description")
+    (t) => t("handover_onboarding_page_description"),
+    undefined,
+    undefined,
+    "/settings/organizations/new/handover"
   );
 
 const getData = withAppDirSsr(getServerSideProps);

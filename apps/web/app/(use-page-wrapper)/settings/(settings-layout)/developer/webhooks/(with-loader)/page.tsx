@@ -14,7 +14,10 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("webhooks"),
-    (t) => t("add_webhook_description", { appName: APP_NAME })
+    (t) => t("add_webhook_description", { appName: APP_NAME }),
+    undefined,
+    undefined,
+    "/settings/developer/webhooks"
   );
 
 const WebhooksViewServerWrapper = async () => {

@@ -24,7 +24,10 @@ export const generateMetadata = async ({ params }: _PageProps) => {
   if (!parsed.success) {
     return await _generateMetadata(
       (t) => `${t("event_type")}`,
-      () => ""
+      () => "",
+      undefined,
+      undefined,
+      "/event-types"
     );
   }
 
@@ -34,7 +37,10 @@ export const generateMetadata = async ({ params }: _PageProps) => {
 
   return await _generateMetadata(
     (t) => (data?.title ? `${data.title} | ${t("event_type")}` : `${t("event_type")}`),
-    () => ""
+    () => "",
+    undefined,
+    undefined,
+    `/event-types/${parsed.data.type}`
   );
 };
 
