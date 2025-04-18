@@ -352,7 +352,7 @@ async function handler(
   });
 
   // allow event owner to book/reschedule without minimumBookingNotice
-  if (eventType.userId && userId && eventType.userId == userId) {
+  if (eventType.userId && userId && eventType.userId.toString() === userId.toString()) {
     eventType.minimumBookingNotice = 0;
   }
 
