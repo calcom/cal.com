@@ -375,7 +375,7 @@ function Options({
   return (
     <div className={className}>
       <Label>{label}</Label>
-      <div className="bg-muted rounded-md p-4">
+      <div className="bg-muted rounded-md p-4" data-testid="options-container">
         <ul ref={animationRef} className="flex flex-col gap-1">
           {value?.map((option, index) => (
             <li key={index}>

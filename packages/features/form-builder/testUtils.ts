@@ -180,32 +180,25 @@ export const pageObject = {
       label: string;
       price?: number;
     }) => {
-      // First click "Add an Option" button if needed
-      if (index > 0) {
-        const addButton = dialog.getByText("Add an Option");
-        fireEvent.click(addButton);
-      }
+      pageObject.dialog.addOption({ dialog });
 
+      const optionInputs = dialog.getByTestId("options-container");
       await waitFor(() => {
-        const optionInputs = dialog
-          .getAllByRole("textbox")
-          .filter((input: HTMLElement) => !input.id.includes("react-select"));
-        expect(optionInputs.length).toBeGreaterThan(index + 2);
+        const listItems = optionInputs.querySelectorAll("li");
+        expect(listItems.length).toBeGreaterThan(index);
+        const optionInput = within(listItems[index]).getByRole("textbox");
+        expect(optionInput).toBeInTheDocument();
+        fireEvent.change(optionInput, { target: { value: label } });
       });
-
-      const optionInputs = dialog
-        .getAllByRole("textbox")
-        .filter((input: HTMLElement) => !input.id.includes("react-select"));
-      fireEvent.change(optionInputs[index + 2], { target: { value: label } });
 
       if (price !== undefined) {
         await waitFor(() => {
-          const priceInputs = dialog.getAllByLabelText(/Price \d+/);
-          expect(priceInputs.length).toBeGreaterThan(index);
+          const listItems = optionInputs.querySelectorAll("li");
+          expect(listItems.length).toBeGreaterThan(index);
+          const priceInput = within(listItems[index]).getByRole("spinbutton");
+          expect(priceInput).toBeInTheDocument();
+          fireEvent.change(priceInput, { target: { value: price.toString() } });
         });
-
-        const priceInputs = dialog.getAllByLabelText(/Price \d+/);
-        fireEvent.change(priceInputs[index], { target: { value: price.toString() } });
       }
     },
     close: ({ dialog }: { dialog: TestingLibraryElement }) => {
@@ -250,13 +243,11 @@ export const verifier = {
     }
 
     if (props.options) {
-      for (const [index, option] of props.options.entries()) {
-        if (index > 0) {
-          pageObject.dialog.addOption({ dialog });
-        }
-        pageObject.dialog.fillInOption({
+      for (let index = 0; index < props.options.length; index++) {
+        const option = props.options[index];
+        await pageObject.dialog.fillInOption({
           dialog,
-          index: index + 1,
+          index,
           label: option.label,
           price: option.price,
         });
@@ -303,6 +294,15 @@ export const verifier = {
       expect(screen.getByTestId("optional")).toBeInTheDocument();
     });
   },
+  verifyOptionPrices: ({ identifier, prices }: { identifier: string; prices: number[] }) => {
+    const dialog = pageObject.openEditFieldDialog({ identifier });
+    const optionPriceInputs = dialog.getAllByTestId("input-field");
+    expect(optionPriceInputs).toHaveLength(prices.length);
+
+    prices.forEach((price, index) => {
+      expect(optionPriceInputs[index]).toHaveValue(price);
+    });
+  },
 };
 
 export const expectScenario = {
@@ -341,12 +341,14 @@ export const expectScenario = {
     const field = getFieldInTheList({ identifier });
     expect(field.getByText("required")).not.toBeNull();
   },
-  toHavePriceField: async ({ identifier }: { identifier: string }) => {
+  toHavePriceField: async ({ identifier, price }: { identifier: string; price: number }) => {
     const dialog = pageObject.openEditFieldDialog({ identifier });
     await waitFor(() => {
       // Find the spinbutton input with $ suffix
       const priceInput = dialog.getByRole("spinbutton");
       expect(priceInput).toBeInTheDocument();
+      // Verify the price value is set
+      expect(priceInput).toHaveValue(price);
     });
   },
 };

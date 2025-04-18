@@ -597,7 +597,7 @@ export const EventAdvancedTab = ({
             return field.name === "location" ? true : field.required;
           }}
           showPriceField={isPaidEvent}
-          paymentCurrency={paymentAppData?.currency || "USD"}
+          paymentCurrency={paymentAppData?.currency || "usd"}
         />
       </div>
       <RequiresConfirmationController
