@@ -141,6 +141,10 @@ export class BookingsService_2024_08_13 {
       if (error instanceof Error) {
         if (error.message === "no_available_users_found_error") {
           throw new BadRequestException("User either already has booking at this time or is not available");
+        } else if (error.message === "booking_time_out_of_bounds_error") {
+          throw new BadRequestException(
+            `The event type can't be booked at selected time ${body.start}. This could be because it's too soon (violating the minimum booking notice) or too far in the future (outside the event's scheduling window). Try fetching available slots first using the GET /v2/slots endpoint and then make a booking with "start" time equal to one of the available slots: https://cal.com/docs/api-reference/v2/slots`
+          );
         }
       }
       throw error;
