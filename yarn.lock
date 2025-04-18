@@ -2658,7 +2658,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.173"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.174"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -2666,6 +2666,7 @@ __metadata:
     "@golevelup/ts-jest": ^0.4.0
     "@microsoft/microsoft-graph-types-beta": ^0.42.0-preview
     "@nest-lab/throttler-storage-redis": 1.0.0
+    "@nestjs/axios": ^4.0.0
     "@nestjs/bull": ^10.1.1
     "@nestjs/cli": ^10.0.0
     "@nestjs/common": ^10.0.0
@@ -3572,6 +3573,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/lindy@workspace:packages/app-store/lindy":
+  version: 0.0.0-use.local
+  resolution: "@calcom/lindy@workspace:packages/app-store/lindy"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/linear@workspace:packages/app-store/linear":
   version: 0.0.0-use.local
   resolution: "@calcom/linear@workspace:packages/app-store/linear"
@@ -3744,13 +3754,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.173":
-  version: 0.0.173
-  resolution: "@calcom/platform-libraries@npm:0.0.173"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.174":
+  version: 0.0.174
+  resolution: "@calcom/platform-libraries@npm:0.0.174"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 07aabdac311643e6124aec136a5c992c054ec771e0b647ac32b1f90ebcea2268e64ef4b1e3f52bcd3e8ad05331f1b82d21ec34896dc072349861d233667b7d86
+  checksum: 347ed0dccc20c4afd7c4a4f87ee31ded0119ef6f3d1087842a939ed70aecb9dfdac4d568bfd771fe75b7f5b88c24f112652a101cccd8edd12af850003ef00017
   languageName: node
   linkType: hard
 
@@ -6177,6 +6187,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fastify/busboy@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "@fastify/busboy@npm:3.1.1"
+  checksum: 7d8cb4bd8eaacad849d1842a54a0ae8d35808bbdd9c364bf4b953f1e70fdb786f59e1f580b6366a2459bc0d1bc4ade6a6c52ba8de74f1e704404ad7cd7d357f0
+  languageName: node
+  linkType: hard
+
 "@floating-ui/core@npm:^1.2.6":
   version: 1.2.6
   resolution: "@floating-ui/core@npm:1.2.6"
@@ -6849,9 +6866,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@graphql-tools/load@npm:^8.0.0":
-  version: 8.0.19
-  resolution: "@graphql-tools/load@npm:8.0.19"
+"@graphql-tools/load@npm:^8.0.0, @graphql-tools/load@npm:^8.1.0":
+  version: 8.1.0
+  resolution: "@graphql-tools/load@npm:8.1.0"
   dependencies:
     "@graphql-tools/schema": ^10.0.23
     "@graphql-tools/utils": ^10.8.6
@@ -6859,7 +6876,7 @@ __metadata:
     tslib: ^2.4.0
   peerDependencies:
     graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
-  checksum: 485fbac7f5ae1b0b88eb399cf8fdb4f6765a1c66e796df0ba0cd0c9449dfcfd26344bc177bae38362089dc62db378d0dfb97f88ac2af740f908ddfc98a21b985
+  checksum: 1c19861025b8e6188fa406038733db430667c8ff8c64c6cc576431dd4e7828c5249488df59b9326608bf9ddc51fac81017de1e7a566082bf3577645f9ab148e7
   languageName: node
   linkType: hard
 
@@ -8911,6 +8928,17 @@ __metadata:
     reflect-metadata:
       optional: false
   checksum: ed6913f789e73a94370547c6fc1336d582e56b635dda951f18be297508cf732849cf45190e19df081c3849aede7cc5fe3940bd43373eb33201e91363651e19c8
+  languageName: node
+  linkType: hard
+
+"@nestjs/axios@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "@nestjs/axios@npm:4.0.0"
+  peerDependencies:
+    "@nestjs/common": ^10.0.0 || ^11.0.0
+    axios: ^1.3.1
+    rxjs: ^7.0.0
+  checksum: ab05bc772a7ad45e3ea79ea3acd04e6971d17495387d543b3e17355d0f4164982c20ed830eab48e8c7373546259b50ff770708c176832716f4fd126142d18ca7
   languageName: node
   linkType: hard
 
@@ -20589,12 +20617,12 @@ __metadata:
   linkType: hard
 
 "@whatwg-node/fetch@npm:^0.10.0, @whatwg-node/fetch@npm:^0.10.4":
-  version: 0.10.5
-  resolution: "@whatwg-node/fetch@npm:0.10.5"
+  version: 0.10.6
+  resolution: "@whatwg-node/fetch@npm:0.10.6"
   dependencies:
-    "@whatwg-node/node-fetch": ^0.7.11
+    "@whatwg-node/node-fetch": ^0.7.18
     urlpattern-polyfill: ^10.0.0
-  checksum: c70e61e858d08fd9c6766265752314dcbb10e1198d037e5177eee47c1579cb5583faa6bf5bb5c4fa592bed526afe2ee4c0f76bef40a71e328c6d1dc2a3cb92a0
+  checksum: e43047dfb8271f3d76820a680ddb0dd641f7ac015c1e5bcb70794b1485052c53afddbd34e042f97ff263b2f93d52daa30deaaa8ef289ece31073d1ddd85c7480
   languageName: node
   linkType: hard
 
@@ -20614,24 +20642,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@whatwg-node/node-fetch@npm:^0.7.11":
-  version: 0.7.17
-  resolution: "@whatwg-node/node-fetch@npm:0.7.17"
+"@whatwg-node/node-fetch@npm:^0.7.18":
+  version: 0.7.18
+  resolution: "@whatwg-node/node-fetch@npm:0.7.18"
   dependencies:
+    "@fastify/busboy": ^3.1.1
     "@whatwg-node/disposablestack": ^0.0.6
-    "@whatwg-node/promise-helpers": ^1.2.5
-    busboy: ^1.6.0
+    "@whatwg-node/promise-helpers": ^1.3.1
     tslib: ^2.6.3
-  checksum: 7fb2317687d8f49e2473b262ced284ecac840a9462d320e57b7ddf6c7dfdd782e99f998041d5cee9841ffe329a854170ec52bdd1ce80a7b7f59524d57245afcd
+  checksum: 7e0798c1b253185c2497ebc56bee592d1bf4de38a70f37c7a3007ba43a23dfbf6730109cd2b0e4c7bb075a93f1e73fb703e747670a82c2c2d20aac1c9741ac0c
   languageName: node
   linkType: hard
 
-"@whatwg-node/promise-helpers@npm:^1.0.0, @whatwg-node/promise-helpers@npm:^1.2.1, @whatwg-node/promise-helpers@npm:^1.2.4, @whatwg-node/promise-helpers@npm:^1.2.5, @whatwg-node/promise-helpers@npm:^1.3.0":
-  version: 1.3.0
-  resolution: "@whatwg-node/promise-helpers@npm:1.3.0"
+"@whatwg-node/promise-helpers@npm:^1.0.0, @whatwg-node/promise-helpers@npm:^1.2.1, @whatwg-node/promise-helpers@npm:^1.2.4, @whatwg-node/promise-helpers@npm:^1.3.0, @whatwg-node/promise-helpers@npm:^1.3.1":
+  version: 1.3.1
+  resolution: "@whatwg-node/promise-helpers@npm:1.3.1"
   dependencies:
     tslib: ^2.6.3
-  checksum: c7d64d38d6898452daee26e19d874d69e1b6bc4aaf0951ac1c72990bc5be7da49e389151d3d8b2cd78515c8e54e03ce75527db3c68cf07a83dac25a66e3ef391
+  checksum: f46658990c5d34ae0f11146ba1cd08328196d26c01cf7844d36a13893a70fdfa38f76379ec256586cf912441c8f7fbbbd316bed12f550144e724e8ddbeda7412
   languageName: node
   linkType: hard
 
@@ -23253,9 +23281,9 @@ __metadata:
   linkType: hard
 
 "caniuse-lite@npm:^1.0.30001688":
-  version: 1.0.30001713
-  resolution: "caniuse-lite@npm:1.0.30001713"
-  checksum: 45fd9ae77965a694818d495671ba3e9a87e4eed063824b2244c0b83b1ab0ba2d8e71dcd45441f638caadf8f0c99e154a4326bbef5c291327090cdc38feeda6fd
+  version: 1.0.30001714
+  resolution: "caniuse-lite@npm:1.0.30001714"
+  checksum: e68fbee9a115f842f0d907e033f14e8d476f965473556fb993c8870854a2608573eebf4dbc2aa5b03caa9c6224ff4afe63ea8c702566fbbcb78c369fba72395b
   languageName: node
   linkType: hard
 
@@ -24752,7 +24780,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cosmiconfig@npm:^8.1.0, cosmiconfig@npm:^8.1.3, cosmiconfig@npm:^8.2.0":
+"cosmiconfig@npm:^8.1.3, cosmiconfig@npm:^8.2.0":
   version: 8.3.6
   resolution: "cosmiconfig@npm:8.3.6"
   dependencies:
@@ -24766,6 +24794,23 @@ __metadata:
     typescript:
       optional: true
   checksum: dc339ebea427898c9e03bf01b56ba7afbac07fc7d2a2d5a15d6e9c14de98275a9565da949375aee1809591c152c0a3877bb86dbeaf74d5bd5aaa79955ad9e7a0
+  languageName: node
+  linkType: hard
+
+"cosmiconfig@npm:^9.0.0":
+  version: 9.0.0
+  resolution: "cosmiconfig@npm:9.0.0"
+  dependencies:
+    env-paths: ^2.2.1
+    import-fresh: ^3.3.0
+    js-yaml: ^4.1.0
+    parse-json: ^5.2.0
+  peerDependencies:
+    typescript: ">=4.9.5"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: a30c424b53d442ea0bdd24cb1b3d0d8687c8dda4a17ab6afcdc439f8964438801619cdb66e8e79f63b9caa3e6586b60d8bab9ce203e72df6c5e80179b971fe8f
   languageName: node
   linkType: hard
 
@@ -26407,9 +26452,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.5.73":
-  version: 1.5.135
-  resolution: "electron-to-chromium@npm:1.5.135"
-  checksum: daba16981a21b37b99be3b5bfd60b0c93c59d53d8f9c5bf80e36a3e6a6c1d61c2b20d9ed610eb1ae57abe32bdc514e9c7fe63b2adce7814c1211f57357ed7349
+  version: 1.5.137
+  resolution: "electron-to-chromium@npm:1.5.137"
+  checksum: 000803b46f87a52fda756ffcb92b7e8baa1ccd5c2545fde46f35b8f10f9d7e1d0d8681532f8ef2e9ee2e0367c63772554f04966abd8576b3403204fdf684a2b5
   languageName: node
   linkType: hard
 
@@ -30861,18 +30906,18 @@ __metadata:
   linkType: hard
 
 "graphql-config@npm:^5.1.1":
-  version: 5.1.3
-  resolution: "graphql-config@npm:5.1.3"
+  version: 5.1.4
+  resolution: "graphql-config@npm:5.1.4"
   dependencies:
     "@graphql-tools/graphql-file-loader": ^8.0.0
     "@graphql-tools/json-file-loader": ^8.0.0
-    "@graphql-tools/load": ^8.0.0
+    "@graphql-tools/load": ^8.1.0
     "@graphql-tools/merge": ^9.0.0
     "@graphql-tools/url-loader": ^8.0.0
     "@graphql-tools/utils": ^10.0.0
-    cosmiconfig: ^8.1.0
+    cosmiconfig: ^9.0.0
     jiti: ^2.0.0
-    minimatch: ^9.0.5
+    minimatch: ^10.0.0
     string-env-interpolation: ^1.0.1
     tslib: ^2.4.0
   peerDependencies:
@@ -30881,7 +30926,7 @@ __metadata:
   peerDependenciesMeta:
     cosmiconfig-toml-loader:
       optional: true
-  checksum: fde8aee849def42a5eaf02fbe3e404c91be94a53782c22ff58b29bfcfed7e9be2fba114fa94b4a97e12ea1e5970267ebaa119ba6915b2d4d9bb8f5ae9c5485c2
+  checksum: 6b05e5013bc23c1b333db6a2d1f90319f5068a19d5a5cff03601da2ace705923306b3682ae023261ec29a58d015d84fa2d52c6255c967716b2422036ff66c349
   languageName: node
   linkType: hard
 
@@ -37594,6 +37639,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"minimatch@npm:^10.0.0":
+  version: 10.0.1
+  resolution: "minimatch@npm:10.0.1"
+  dependencies:
+    brace-expansion: ^2.0.1
+  checksum: f5b63c2f30606091a057c5f679b067f84a2cd0ffbd2dbc9143bda850afd353c7be81949ff11ae0c86988f07390eeca64efd7143ee05a0dab37f6c6b38a2ebb6c
+  languageName: node
+  linkType: hard
+
 "minimatch@npm:^3.0.4, minimatch@npm:^3.0.5, minimatch@npm:^3.1.1, minimatch@npm:^3.1.2":
   version: 3.1.2
   resolution: "minimatch@npm:3.1.2"
@@ -37621,7 +37675,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:^9.0.4, minimatch@npm:^9.0.5":
+"minimatch@npm:^9.0.4":
   version: 9.0.5
   resolution: "minimatch@npm:9.0.5"
   dependencies:
