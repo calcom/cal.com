@@ -13337,6 +13337,7 @@
           },
           "enabledLayouts": {
             "type": "array",
+            "description": "Array of valid layouts - month, week or column",
             "items": {
               "type": "string",
               "enum": [
