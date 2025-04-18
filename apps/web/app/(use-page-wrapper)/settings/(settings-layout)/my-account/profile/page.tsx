@@ -9,7 +9,10 @@ import ProfileView from "~/settings/my-account/profile-view";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("profile"),
-    (t) => t("profile_description")
+    (t) => t("profile_description"),
+    undefined,
+    undefined,
+    "/settings/my-account/profile"
   );
 
 const Page = async () => {

@@ -7,7 +7,10 @@ import LockedSMSView from "~/settings/admin/locked-sms-view";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("lockedSMS"),
-    (t) => t("admin_lockedSMS_description")
+    (t) => t("admin_lockedSMS_description"),
+    undefined,
+    undefined,
+    "/settings/admin/lockedSMS"
   );
 
 const Page = async () => {

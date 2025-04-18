@@ -8,7 +8,10 @@ import ImpersonationView from "~/settings/admin/impersonation-view";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("admin"),
-    (t) => t("impersonation")
+    (t) => t("impersonation"),
+    undefined,
+    undefined,
+    "/settings/admin/impersonation"
   );
 
 const Page = async () => {
