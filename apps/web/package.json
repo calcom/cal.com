@@ -47,7 +47,7 @@
     "@dub/analytics": "^0.0.27",
     "@dub/embed-core": "^0.0.10",
     "@dub/embed-react": "^0.0.10",
-    "@formkit/auto-animate": "1.0.0-beta.5",
+    "@formkit/auto-animate": "1.0.0-pre-alpha.3",
     "@glidejs/glide": "^3.5.2",
     "@googleapis/admin": "^23.0.0",
     "@googleapis/calendar": "^9.7.9",
