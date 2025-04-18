@@ -29,7 +29,7 @@ export default class AttendeeDailyVideoDownloadRecordingEmail extends BaseEmail 
         ...this.calEvent.attendees
           .filter(({ email }) => email !== this.attendee.email)
           .map(({ email }) => email),
-        this.calEvent.organizer.email,
+        this.calEvent.customReplyToEmail || this.calEvent.organizer.email,
       ],
       subject: `${this.t("download_recording_subject", {
         title: this.calEvent.title,

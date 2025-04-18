@@ -18,7 +18,7 @@ export default class AttendeeRescheduledEmail extends AttendeeScheduledEmail {
         ...this.calEvent.attendees
           .filter(({ email }) => email !== this.attendee.email)
           .map(({ email }) => email),
-        this.calEvent.organizer.email,
+        this.calEvent.customReplyToEmail || this.calEvent.organizer.email,
       ],
       subject: `${this.attendee.language.translate("event_type_has_been_rescheduled_on_time_date", {
         title: this.calEvent.title,

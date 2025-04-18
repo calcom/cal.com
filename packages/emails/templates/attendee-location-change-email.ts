@@ -12,7 +12,7 @@ export default class AttendeeLocationChangeEmail extends AttendeeScheduledEmail 
       }),
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
-      replyTo: this.calEvent.organizer.email,
+      replyTo: this.calEvent.customReplyToEmail || this.calEvent.organizer.email,
       subject: `${this.t("location_changed_event_type_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.team?.name || this.calEvent.organizer.name,

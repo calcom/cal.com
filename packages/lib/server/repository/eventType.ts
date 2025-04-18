@@ -526,6 +526,7 @@ export class EventTypeRepository {
       currency: true,
       bookingFields: true,
       useEventTypeDestinationCalendarEmail: true,
+      customReplyToEmail: true,
       owner: {
         select: {
           id: true,

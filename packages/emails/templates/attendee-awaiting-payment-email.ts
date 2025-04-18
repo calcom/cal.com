@@ -6,7 +6,7 @@ export default class AttendeeAwaitingPaymentEmail extends AttendeeScheduledEmail
     return {
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
-      replyTo: this.calEvent.organizer.email,
+      replyTo: this.calEvent.customReplyToEmail || this.calEvent.organizer.email,
       subject: `${this.attendee.language.translate("complete_your_booking_subject", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),

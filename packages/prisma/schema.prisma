@@ -171,6 +171,8 @@ model EventType {
   maxLeadThreshold                        Int?
   selectedCalendars                       SelectedCalendar[]
   allowReschedulingPastBookings           Boolean                   @default(false)
+  /// @zod.custom(imports.emailSchema)
+  customReplyToEmail                      String?
 
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                   Json?

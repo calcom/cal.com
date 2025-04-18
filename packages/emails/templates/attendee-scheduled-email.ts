@@ -43,7 +43,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
         ...this.calEvent.attendees
           .filter(({ email }) => email !== this.attendee.email)
           .map(({ email }) => email),
-        this.calEvent.organizer.email,
+        this.calEvent.customReplyToEmail || this.calEvent.organizer.email,
       ],
       subject: `${this.calEvent.title}`,
       html: await this.getHtml(clonedCalEvent, this.attendee),

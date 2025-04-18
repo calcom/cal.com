@@ -332,7 +332,10 @@ export async function handler(req: NextRequest) {
               html: emailContent.emailBody,
               batchId: batchId,
               sendAt: dayjs(reminder.scheduledDate).unix(),
-              replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
+              replyTo:
+                reminder.booking?.customReplyToEmail ??
+                reminder.booking?.userPrimaryEmail ??
+                reminder.booking.user?.email,
               attachments: reminder.workflowStep.includeCalendarEvent
                 ? [
                     {
@@ -407,7 +410,10 @@ export async function handler(req: NextRequest) {
               html: emailContent.emailBody,
               batchId: batchId,
               sendAt: dayjs(reminder.scheduledDate).unix(),
-              replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
+              replyTo:
+                reminder.booking?.customReplyToEmail ??
+                reminder.booking?.userPrimaryEmail ??
+                reminder.booking.user?.email,
               sender: reminder.workflowStep?.sender,
             })
           );
