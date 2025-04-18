@@ -5,7 +5,6 @@ import { OrganizationsRoutingFormsResponsesService } from "@/modules/organizatio
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
-import { RedisService } from "@/modules/redis/redis.service";
 import { RoutingFormsModule } from "@/modules/routing-forms/routing-forms.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
 import { Module } from "@nestjs/common";

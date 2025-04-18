@@ -461,6 +461,7 @@ export class EventTypeRepository {
       email: true,
       locale: true,
       defaultScheduleId: true,
+      isPlatformManaged: true,
     });
 
     const CompleteEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
