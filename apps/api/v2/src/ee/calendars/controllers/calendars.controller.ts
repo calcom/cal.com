@@ -150,7 +150,7 @@ export class CalendarsController {
     @Headers("Authorization") authorization: string,
     @Param("calendar") calendar: string,
     @Query("redir") redir?: string | null,
-    @Query("isDryRun", ParseBoolPipe) isDryRun?: boolean
+    @Query("isDryRun", new ParseBoolPipe({ optional: true })) isDryRun?: boolean
   ): Promise<ApiResponse<{ authUrl: string }>> {
     switch (calendar) {
       case OFFICE_365_CALENDAR:
