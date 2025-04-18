@@ -6,17 +6,17 @@ import { renderEmail } from "..";
 import BaseEmail from "./_base-email";
 
 export default class CreditBalanceLowWarningEmail extends BaseEmail {
-  toUsers: {
+  user: {
     name: string;
     email: string;
     t: TFunction;
-  }[];
+  };
   teamName: string;
   balance: number;
 
-  constructor(toUsers: { name: string; email: string; t: TFunction }[], balance: number, teamName: string) {
+  constructor(user: { name: string; email: string; t: TFunction }, balance: number, teamName: string) {
     super();
-    this.toUsers = toUsers;
+    this.user = user;
     this.teamName = teamName;
     this.balance = balance;
   }
@@ -27,11 +27,12 @@ export default class CreditBalanceLowWarningEmail extends BaseEmail {
 
     return {
       from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
-      to: this.toUsers.map((user) => user.email),
+      to: this.user.email,
       subject: `[Action Required] your team ${this.teamName} is running low on credits`,
       html: await renderEmail("CreditBalanceLowWarningEmail", {
         balance: this.balance,
         teamName: this.teamName,
+        user: this.user,
       }),
       text: this.getTextBody(),
     };

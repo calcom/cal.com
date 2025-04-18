@@ -757,5 +757,15 @@ export const sendCreditBalanceLowWarningEmails = async (input: {
   const { team, balance } = input;
   if (!!team.adminAndOwners.length) return;
 
-  await sendEmail(() => new CreditBalanceLowWarningEmail(adminAndOwners, input.balance, team?.name));
+  const emailsAndSMSToSend: Promise<unknown>[] = [];
+
+  for (const admin of team.adminAndOwners) {
+    emailsAndSMSToSend.push(
+      sendEmail(() => new CreditBalanceLowWarningEmail(admin, input.balance, team?.name))
+    );
+  }
+
+  await Promise.all(emailsAndSMSToSend);
+
+  ƒ;
 };
