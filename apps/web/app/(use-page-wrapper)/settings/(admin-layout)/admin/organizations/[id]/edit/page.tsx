@@ -15,7 +15,10 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
   if (!input.success) {
     return await _generateMetadata(
       (t) => t("editing_org"),
-      (t) => t("admin_orgs_edit_description")
+      (t) => t("admin_orgs_edit_description"),
+      undefined,
+      undefined,
+      "/settings/admin/organizations/edit"
     );
   }
 
@@ -23,7 +26,10 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
 
   return await _generateMetadata(
     (t) => `${t("editing_org")}: ${org.name}`,
-    (t) => t("admin_orgs_edit_description")
+    (t) => t("admin_orgs_edit_description"),
+    undefined,
+    undefined,
+    `/settings/admin/organizations/${input.data.id}/edit`
   );
 };
 
