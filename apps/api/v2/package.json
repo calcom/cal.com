@@ -46,6 +46,7 @@
     "@golevelup/ts-jest": "^0.4.0",
     "@microsoft/microsoft-graph-types-beta": "^0.42.0-preview",
     "@nest-lab/throttler-storage-redis": "1.0.0",
+    "@nestjs/axios": "^4.0.0",
     "@nestjs/bull": "^10.1.1",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.1.1",
