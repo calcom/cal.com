@@ -42,28 +42,57 @@ const generateDatePickerSkeleton = () => {
       () => `
       <div class="text-emphasis my-4 text-xs font-medium uppercase tracking-widest">
         <div class="animate-pulse bg-emphasis h-4 w-8 rounded-sm"></div>
-      </div>
+      </div> 
     `
     )
     .join("");
 
-  const datesToRender = 7 * 5; // columns * rows in a month view
-  const dates = Array.from({ length: datesToRender })
-    .map(
-      () => `
+  const now = new Date();
+  const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const weekStart = 0;
+
+  const firstDayOfMonth = currentMonth.getDay();
+
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+
+  const leadingEmptyCells = (firstDayOfMonth - weekStart + 7) % 7;
+
+  const totalCells = 42;
+  const trailingEmptyCells = totalCells - leadingEmptyCells - daysInMonth;
+
+  let dates = "";
+
+  // Leading empty cells
+  for (let i = 0; i < leadingEmptyCells; i++) {
+    dates += `
+  <div class="relative w-full pt-[100%]"></div>`;
+  }
+
+  // Filled cells for actual days in the month
+  for (let i = 1; i <= daysInMonth; i++) {
+    dates += `
   <div class="relative w-full pt-[100%]">
     <button class="bg-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-90 transition" disabled="">
       <span class="font-size-0 bg-emphasis inline-block animate-pulse rounded-md empty:before:inline-block empty:before:content-[''] h-9 w-9"></span>
     </button>
-  </div>`
-    )
-    .join("");
+  </div>`;
+  }
+
+  for (let i = 0; i < trailingEmptyCells; i++) {
+    dates += `
+  <div class="relative w-full pt-[100%]"></div>`;
+  }
+
+  const formattedMonth = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}`;
 
   return ` 
           <div>
             <div class="mb-1 flex items-center justify-between text-xl">
               <span class="text-default w-1/2 text-base">
-                <time datetime="2025-05" data-testid="selected-month-label">
+                <time datetime="${formattedMonth}" data-testid="selected-month-label">
                   <span class="text-emphasis font-semibold">
                     <div class="animate-pulse bg-emphasis h-4 w-20 rounded-sm"></div>
                   </span> 
@@ -71,7 +100,7 @@ const generateDatePickerSkeleton = () => {
               </span>
               <div class="text-emphasis">
                 <div class="flex">
-                  <button class="group whitespace-nowrap items-center font-medium relative rounded-[10px] disabled:cursor-not-allowed gap-1 flex justify-center text-subtle border border-transparent enabled:hover:bg-subtle enabled:hover:text-emphasis enabled:hover:border-subtle hover:border disabled:opacity-30 focus-visible:bg-subtle focus-visible:outline-none focus-visible:ring-0 focus-visible:border-subtle focus-visible:shadow-button-outline-gray-focused enabled:active:shadow-outline-gray-active duration-200 text-sm leading-none min-h-[36px] min-w-[36px] !p-2 hover:border-default group p-1 opacity-70 transition hover:opacity-100 rtl:rotate-180" data-testid="decrementMonth" aria-label="View previous month" type="button">
+                  <button class="group whitespace-nowrap items-center font-medium relative rounded-[10px] disabled:cursor-not-allowed gap-1 flex justify-center text-subtle border border-transparent enabled:hover:bg-subtle enabled:hover:text-emphasis enabled:hover:border-subtle hover:border disabled:opacity-30 focus-visible:bg-subtle focus-visible:outline-none focus-visible:ring-0 focus-visible:border-subtle focus-visible:shadow-button-outline-gray-focused enabled:active:shadow-outline-gray-active duration-200 text-sm leading-none min-h-[36px] min-w-[36px] !p-2 hover:border-default group p-1 opacity-70 transition hover:opacity-100 rtl:rotate-180" data-testid="decrementMonth" aria-label="View previous month" type="button" disabled>
                     <svg height="16" width="16" class="fill-transparent visible button-icon group-active:translate-y-[0.5px] h-4 w-4" data-name="start-icon" aria-hidden="true">
                       <use href="#chevron-left"></use>
                     </svg>

@@ -19,9 +19,14 @@ import { CredentialsRepository } from "@/modules/credentials/credentials.reposit
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
+import { StripeModule } from "@/modules/stripe/stripe.module";
+import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";
+import { TeamsModule } from "@/modules/teams/teams/teams.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersModule } from "@/modules/users/users.module";
@@ -38,6 +43,9 @@ import { Module } from "@nestjs/common";
     SchedulesModule_2024_04_15,
     EventTypesModule_2024_04_15,
     EventTypesModule_2024_06_14,
+    StripeModule,
+    TeamsModule,
+    TeamsEventTypesModule,
   ],
   providers: [
     TokensRepository,
@@ -57,6 +65,8 @@ import { Module } from "@nestjs/common";
     AppsRepository,
     CalendarsRepository,
     SelectedCalendarsRepository,
+    OrganizationsTeamsRepository,
+    OrganizationsRepository,
   ],
   controllers: [BookingsController_2024_08_13],
   exports: [InputBookingsService_2024_08_13, OutputBookingsService_2024_08_13, BookingsService_2024_08_13],
