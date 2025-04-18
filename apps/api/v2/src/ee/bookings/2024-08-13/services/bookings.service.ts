@@ -223,6 +223,12 @@ export class BookingsService_2024_08_13 {
     body: CreateInstantBookingInput_2024_08_13,
     eventType: EventTypeWithOwnerAndTeam
   ) {
+    if (!eventType.team?.id) {
+      throw new BadRequestException(
+        "Instant bookings are only supported for team event types, not individual user event types."
+      );
+    }
+
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
     const booking = await handleInstantMeeting(bookingRequest);
 
