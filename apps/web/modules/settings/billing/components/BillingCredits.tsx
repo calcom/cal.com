@@ -67,7 +67,7 @@ export default function BillingCredits() {
                 <ProgressBar
                   color="green"
                   percentageValue={teamCreditsPercentageUsed}
-                  label={`${Math.round(teamCreditsPercentageUsed)}%`}
+                  label={`${Math.max(0, Math.round(teamCreditsPercentageUsed))}%`}
                 />
                 <div className="text-subtle">
                   <div>Total credits: {creditsData.teamCredits.totalMonthlyCredits} </div>

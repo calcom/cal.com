@@ -755,8 +755,7 @@ export const sendCreditBalanceLowWarningEmails = async (input: {
   balance: number;
 }) => {
   const { team, balance } = input;
-  if (!!team.adminAndOwners.length) return;
-
+  if (!team.adminAndOwners.length) return;
   const emailsAndSMSToSend: Promise<unknown>[] = [];
 
   for (const admin of team.adminAndOwners) {
@@ -766,6 +765,4 @@ export const sendCreditBalanceLowWarningEmails = async (input: {
   }
 
   await Promise.all(emailsAndSMSToSend);
-
-  ƒ;
 };

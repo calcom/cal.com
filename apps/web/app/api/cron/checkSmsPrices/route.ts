@@ -3,9 +3,11 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
+import { getAllCreditsForTeam, handleLowCreditBalance } from "@calcom/features/ee/billing/lib/credits";
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import { CreditType } from "@calcom/prisma/enums";
 
 async function postHandler(req: NextRequest) {
   const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
@@ -39,14 +41,36 @@ async function postHandler(req: NextRequest) {
           return;
         }
 
-        await prisma.creditExpenseLog.update({
+        const updatedLog = await prisma.creditExpenseLog.update({
           where: { id: log.id },
           data: { credits },
         });
 
-        pricesUpdated++;
+        const creditBalance = await prisma.creditBalance.update({
+          where: { id: updatedLog.creditBalanceId },
+          data: {
+            additionalCredits: {
+              decrement: updatedLog.creditType === CreditType.ADDITIONAL ? credits : 0,
+            },
+          },
+        });
 
-        // await handleLowCreditBalance;
+        pricesUpdated++;
+        console.log("after update");
+        if (!creditBalance.teamId) {
+          logger.error("Team id missing in checkSmsPrices");
+          return;
+        }
+        console.log("get all team for credits");
+
+        const teamCredits = await getAllCreditsForTeam(creditBalance.teamId);
+        const remaningMonthlyCredits =
+          teamCredits.totalRemainingMonthlyCredits > 0 ? teamCredits.totalRemainingMonthlyCredits : 0;
+
+        await handleLowCreditBalance({
+          teamId: creditBalance.teamId,
+          remainingCredits: remaningMonthlyCredits + teamCredits.additionalCredits,
+        });
       } catch (err) {
         logger.error(`Failed to fetch/update SMS log ${log.smsSid}. SMS credits set to 0`, err);
         await prisma.creditExpenseLog.update({

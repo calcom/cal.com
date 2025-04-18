@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { chargeCredits } from "@calcom/features/ee/billing/lib/credits";
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
-import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
+import { IS_SMS_CREDITS_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
@@ -13,7 +13,7 @@ import prisma from "@calcom/prisma";
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const authToken = process.env.TWILIO_TOKEN;
   const twilioSignature = req.headers["x-twilio-signature"];
-  const baseUrl = `https://f091-93-83-143-142.ngrok-free.app/api/twilio/webhook`;
+  const baseUrl = `${WEBAPP_URL}/api/twilio/webhook`;
 
   const queryParams = new URLSearchParams(req.query as Record<string, string>).toString();
   const url = queryParams ? `${baseUrl}?${queryParams}` : baseUrl;
@@ -92,7 +92,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
         const credits = await twilio.getCreditsForSMS(smsSid);
 
-        const billingInfo = await chargeCredits({
+        const chargedTeamId = await chargeCredits({
           credits,
           teamId: parsedTeamId,
           userId: parsedUserId,
@@ -100,10 +100,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           bookingUid: parsedBookingUid,
         });
 
-        if (billingInfo) {
+        if (teamId) {
           return res.status(200).send(
             `Expense log with ${credits ? credits : "no"} credits created for
-                teamId ${billingInfo.teamId}`
+                teamId ${chargedTeamId}`
           );
         }
         // this should never happen - even when out of credits we still charge a team/user

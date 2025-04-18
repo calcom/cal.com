@@ -20,15 +20,29 @@ export const CreditBalanceLowWarningEmail = (
 
   return (
     <V2BaseEmailHtml subject="Credit balance low">
-      <div>Hi {user.name},</div>
-      <div style={{ width: "89px", marginBottom: "35px" }}>
-        Your team ${teamName} is running low on credits.
-      </div>
-      <div>Current balance: {balance}</div>
-      <div>
-        <CallToAction label="Buy Credits" href={WEBAPP_URL} endIconName="linkIcon" />
-      </div>
-      <div>This email was sent to all team admins.</div>
+      <p
+        style={{
+          fontSize: "16px",
+          fontWeight: "400",
+          lineHeight: "18px",
+          color: "#000",
+          textAlign: "center",
+        }}>
+        Your cal.com team {teamName} is running low on credits.
+      </p>
+      <p
+        style={{
+          fontSize: "18px",
+          fontWeight: "500",
+          lineHeight: "26px",
+          color: "#000",
+          textAlign: "center",
+        }}>
+        Current balance: {balance} credits
+      </p>
+      <div style={{ textAlign: "center", marginTop: "24px" }}>
+        <CallToAction label="Buy Credits" href={WEBAPP_URL} endIconName="linkIcon" /> {/* add team id */}
+      </div>{" "}
     </V2BaseEmailHtml>
   );
 };
