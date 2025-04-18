@@ -23,7 +23,7 @@ import {
   getAllUnscheduledReminders,
   select,
 } from "../lib/getWorkflowReminders";
-import { sendOrScheduleWorkflowEmails } from "../lib/reminders/providers/emailProvider";
+import { sendOrScheduleWorkflowEmail } from "../lib/reminders/providers/emailProvider";
 import {
   cancelScheduledEmail,
   deleteScheduledSend,
@@ -374,7 +374,7 @@ export async function handler(req: NextRequest) {
             );
           } else {
             sendEmailPromises.push(
-              sendOrScheduleWorkflowEmails({
+              sendOrScheduleWorkflowEmail({
                 ...mailData,
                 referenceUid,
                 sendAt: reminder.scheduledDate,
@@ -450,7 +450,7 @@ export async function handler(req: NextRequest) {
             );
           } else {
             sendEmailPromises.push(
-              sendOrScheduleWorkflowEmails({
+              sendOrScheduleWorkflowEmail({
                 ...mailData,
                 sendAt: reminder.scheduledDate,
                 referenceUid,

@@ -18,7 +18,7 @@ import {
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
+import { sendOrScheduleWorkflowEmail } from "./providers/emailProvider";
 import { getBatchId, sendSendgridMail } from "./providers/sendgridProvider";
 import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
@@ -276,7 +276,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       reminderUid = reminder.uuid;
     }
 
-    await sendOrScheduleWorkflowEmails({
+    await sendOrScheduleWorkflowEmail({
       ...mailData,
       to: sendTo,
       sendAt: scheduledDate?.toDate(),

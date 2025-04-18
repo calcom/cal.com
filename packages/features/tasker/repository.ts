@@ -160,6 +160,9 @@ export class Task {
         referenceUid,
         type,
       },
+      select: {
+        id: true,
+      },
     });
 
     if (!task) return null;
