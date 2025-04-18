@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import { countBy } from "lodash";
 import { getToken } from "next-auth/jwt";
+import type { GetTokenParams } from "next-auth/jwt";
 import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 
@@ -300,11 +301,9 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
 
   let userId: string | null = null;
   try {
-    const token = await getToken({ req: ctx?.req as any });
+    const token = await getToken({ req: ctx?.req as GetTokenParams["req"] });
     userId = token?.sub ?? null;
-  } catch (e) {
-    logger.error("Failed to get user id", e);
-  }
+  } catch (_e) {}
 
   const eventType = await monitorCallbackAsync(getRegularOrDynamicEventType, input, orgDetails);
 
@@ -313,7 +312,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   }
 
   // allow event owner to get slots without minimumBookingNotice
-  if (eventType.userId && userId && eventType.userId === Number(userId)) {
+  if (eventType.userId && userId && eventType.userId == userId) {
     eventType.minimumBookingNotice = 0;
   }
 
