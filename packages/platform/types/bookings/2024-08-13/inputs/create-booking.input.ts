@@ -162,15 +162,24 @@ export class CreateBookingInput_2024_08_13 {
   @IsDateString()
   start!: string;
 
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  @ApiPropertyOptional({
-    example: 30,
-    description: `If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.
-    If not provided then event type default length will be used for the booking.`,
+  @ApiProperty({
+    type: Attendee,
+    description: "The attendee's details.",
   })
-  lengthInMinutes?: number;
+  @ValidateNested()
+  @Type(() => Attendee)
+  attendee!: Attendee;
+
+  @ApiPropertyOptional({
+    type: Object,
+    description:
+      "Booking field responses consisting of an object with booking field slug as keys and user response as values for custom booking fields added by you.",
+    example: { customField: "customValue" },
+    required: false,
+  })
+  @IsObject()
+  @IsOptional()
+  bookingFieldsResponses?: Record<string, unknown>;
 
   @ApiPropertyOptional({
     type: Number,
@@ -221,14 +230,6 @@ export class CreateBookingInput_2024_08_13 {
   @IsOptional()
   @IsString()
   organizationSlug?: string;
-
-  @ApiProperty({
-    type: Attendee,
-    description: "The attendee's details.",
-  })
-  @ValidateNested()
-  @Type(() => Attendee)
-  attendee!: Attendee;
 
   @ApiPropertyOptional({
     type: [String],
@@ -287,16 +288,15 @@ export class CreateBookingInput_2024_08_13 {
   })
   metadata?: Record<string, string>;
 
-  @ApiPropertyOptional({
-    type: Object,
-    description:
-      "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
-    example: { customField: "customValue" },
-    required: false,
-  })
-  @IsObject()
   @IsOptional()
-  bookingFieldsResponses?: Record<string, unknown>;
+  @IsInt()
+  @Min(1)
+  @ApiPropertyOptional({
+    example: 30,
+    description: `If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.
+    If not provided then event type default length will be used for the booking.`,
+  })
+  lengthInMinutes?: number;
 }
 
 export class CreateInstantBookingInput_2024_08_13 extends CreateBookingInput_2024_08_13 {
