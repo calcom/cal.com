@@ -1413,7 +1413,8 @@ export default class SalesforceCRMService implements CRM {
       return "";
     }
 
-    const utmParam = fieldValue.split(":")[1];
+    // Remove the {utm: and trailing } from the field value
+    const utmParam = fieldValue.split(":")[1].slice(0, -1);
     return tracking[`utm_${utmParam}` as keyof typeof tracking]?.toString() ?? "";
   }
 
