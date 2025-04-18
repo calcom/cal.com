@@ -1391,6 +1391,27 @@ export default class SalesforceCRMService implements CRM {
     return fieldValue;
   }
 
+  private async getTextValueFromBookingTracking(fieldValue: string, bookingUid: string) {
+    const log = logger.getSubLogger({
+      prefix: [`[getTextValueFromBookingTracking]: ${bookingUid}`],
+    });
+    const tracking = await prisma.tracking.findFirst({
+      where: {
+        booking: {
+          uid: bookingUid,
+        },
+      },
+    });
+    if (!tracking) {
+      log.warn(`No tracking found for bookingUid ${bookingUid}`);
+      return "";
+    }
+
+    // Remove the {utm: and trailing } from the field value
+    const utmParam = fieldValue.split(":")[1].slice(0, -1);
+    return tracking[`utm_${utmParam}` as keyof typeof tracking]?.toString() ?? "";
+  }
+
   private getTextValueFromBookingResponse(fieldValue: string, calEventResponses: CalEventResponses) {
     const regexValueToReplace = /\{(.*?)\}/g;
     return fieldValue.replace(regexValueToReplace, (match, captured) => {
