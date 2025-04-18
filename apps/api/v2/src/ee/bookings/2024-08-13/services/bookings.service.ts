@@ -711,17 +711,28 @@ export class BookingsService_2024_08_13 {
 
     const profile = this.usersService.getUserMainProfile(user);
 
-    const reassigned = await roundRobinManualReassignment({
-      bookingId: booking.id,
-      newUserId,
-      orgId: profile?.organizationId || null,
-      reassignReason: body.reason,
-      reassignedById,
-      emailsEnabled,
-      platformClientParams,
-    });
+    try {
+      const reassigned = await roundRobinManualReassignment({
+        bookingId: booking.id,
+        newUserId,
+        orgId: profile?.organizationId || null,
+        reassignReason: body.reason,
+        reassignedById,
+        emailsEnabled,
+        platformClientParams,
+      });
 
-    return this.outputService.getOutputReassignedBooking(reassigned);
+      return this.outputService.getOutputReassignedBooking(reassigned);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "invalid_round_robin_host") {
+          throw new BadRequestException(
+            `User with id=${newUserId} is not a valid Round Robin host - the user to which you reassign this booking must be one of the booking hosts. Fetch the booking using following endpoint and select id of one of the hosts: https://cal.com/docs/api-reference/v2/bookings/get-a-booking`
+          );
+        }
+      }
+      throw error;
+    }
   }
 
   async confirmBooking(bookingUid: string, requestUser: UserWithProfile) {
