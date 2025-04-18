@@ -6,7 +6,10 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("directory_sync"),
-    (t) => t("directory_sync_description")
+    (t) => t("directory_sync_description"),
+    undefined,
+    undefined,
+    "/settings/organizations/dsync"
   );
 
 const Page = async () => {

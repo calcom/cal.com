@@ -10,7 +10,8 @@ import { type PageProps } from "@lib/d/[link]/[slug]/getServerSideProps";
 import Type from "~/d/[link]/d-type-view";
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
-  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
+  const _params = await params;
+  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), _params, await searchParams);
   const pageProps = await getData(legacyCtx);
 
   const { booking, eventData, isBrandingHidden } = pageProps;
@@ -21,7 +22,9 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
   return await _generateMetadata(
     (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
     (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`,
-    isBrandingHidden
+    isBrandingHidden,
+    undefined,
+    `/d/${_params.link}/${_params.slug}`
   );
 };
 

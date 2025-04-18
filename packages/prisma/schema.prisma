@@ -385,6 +385,7 @@ model User {
   createdOrganizationOnboardings OrganizationOnboarding[]     @relation("CreatedOrganizationOnboardings")
   calendarCaches                 CalendarCache[]
   filterSegments                 FilterSegment[]
+  whitelistWorkflows             Boolean                      @default(false)
 
   @@unique([email])
   @@unique([email, username])

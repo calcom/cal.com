@@ -8,7 +8,10 @@ import PasswordViewWrapper from "~/settings/security/password-view";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("password"),
-    (t) => t("password_description")
+    (t) => t("password_description"),
+    undefined,
+    undefined,
+    "/settings/security/password"
   );
 
 const Page = async () => {

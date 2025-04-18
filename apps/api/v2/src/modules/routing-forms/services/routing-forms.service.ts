@@ -4,7 +4,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { Request } from "express";
 
 import { getRoutedUrl } from "@calcom/platform-libraries";
-import { GetAvailableSlotsInput_2024_09_04 } from "@calcom/platform-types";
+import { ById_2024_09_04_type, GetAvailableSlotsInput_2024_09_04 } from "@calcom/platform-types";
 
 @Injectable()
 export class RoutingFormsService {
@@ -25,6 +25,7 @@ export class RoutingFormsService {
     }
 
     const slots = await this.slotsService.getAvailableSlots({
+      type: ById_2024_09_04_type,
       eventTypeId,
       ...slotsQuery,
     });

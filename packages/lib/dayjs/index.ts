@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 
@@ -238,3 +240,14 @@ export function getUTCOffsetByTimezone(timeZone: string, date?: string | Date | 
 
   return dayjs(date).tz(timeZone).utcOffset();
 }
+
+/**
+ * Converts a string into a dayjs object with the timezone set.
+ */
+export const stringToDayjs = (val: string) => {
+  const matches = val.match(/([+-]\d{2}:\d{2})$/);
+  const timezone = matches ? matches[1] : "+00:00";
+  return dayjs(val).utcOffset(timezone);
+};
+
+export const stringToDayjsZod = z.string().transform(stringToDayjs);
