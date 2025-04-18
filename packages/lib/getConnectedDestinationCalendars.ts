@@ -43,32 +43,51 @@ const _ensureNoConflictingNonDelegatedConnectedCalendar = <
   connectedCalendars: T[];
   loggedInUser: { email: string };
 }) => {
-  return connectedCalendars.filter((connectedCalendar, index, array) => {
-    const allCalendarsWithSameAppSlug = array.filter(
-      (cal) => cal.integration.slug === connectedCalendar.integration.slug
-    );
+  return connectedCalendars
+    .filter((connectedCalendar, index, array) => {
+      const allCalendarsWithSameAppSlug = array.filter(
+        (cal) => cal.integration.slug === connectedCalendar.integration.slug
+      );
 
-    // If no other calendar with this slug, keep it
-    if (allCalendarsWithSameAppSlug.length === 1) return true;
+      // If no other calendar with this slug, keep it
+      if (allCalendarsWithSameAppSlug.length === 1) return true;
 
-    const delegatedCalendarsWithSameAppSlug = allCalendarsWithSameAppSlug.filter(
-      (cal) => cal.delegationCredentialId
-    );
-    if (!delegatedCalendarsWithSameAppSlug.length) {
-      return true;
-    }
+      const delegatedCalendarsWithSameAppSlug = allCalendarsWithSameAppSlug.filter(
+        (cal) => cal.delegationCredentialId
+      );
+      if (!delegatedCalendarsWithSameAppSlug.length) {
+        return true;
+      }
 
-    if (connectedCalendar.delegationCredentialId) {
-      return true;
-    }
+      if (connectedCalendar.delegationCredentialId) {
+        return true;
+      }
 
-    // DelegationCredential Credential is always of the loggedInUser
-    if (!connectedCalendar.primary?.email || connectedCalendar.primary.email !== loggedInUser.email) {
-      return true;
-    }
+      // DelegationCredential Credential is always of the loggedInUser
+      if (!connectedCalendar.primary?.email || connectedCalendar.primary.email !== loggedInUser.email) {
+        return true;
+      }
 
-    return false;
-  });
+      return false;
+    })
+    .map((connectedCalendar) => {
+      if (connectedCalendar.integration.credential) {
+        const { delegatedTo: _1, ...safeCredential } = connectedCalendar.integration.credential || null;
+        const safeCredentials = (connectedCalendar.integration.credentials || []).map((cred) => {
+          const { delegatedTo: _1, ...safeCredential } = cred;
+          return safeCredential;
+        });
+        return {
+          ...connectedCalendar,
+          integration: {
+            ...connectedCalendar.integration,
+            credential: safeCredential,
+            credentials: safeCredentials,
+          },
+        };
+      }
+      return connectedCalendar;
+    });
 };
 
 async function handleNoConnectedCalendars(user: UserWithCalendars) {

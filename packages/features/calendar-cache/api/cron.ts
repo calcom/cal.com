@@ -68,24 +68,20 @@ const handleCalendarsToUnwatch = async () => {
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToUnwatch);
   const result = await Promise.allSettled(
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
-      async ([externalId, { eventTypeIds, credentialId, userId, delegationCredentialId, id }]) => {
-        if (!credentialId && !delegationCredentialId) {
+      async ([externalId, { eventTypeIds, credentialId, id }]) => {
+        if (!credentialId) {
           // So we don't retry on next cron run
 
           // FIXME: There could actually be multiple calendars with the same externalId and thus we need to technically update error for all of them
           await SelectedCalendarRepository.updateById(id, {
-            error: "Missing credentialId and delegationCredentialId",
+            error: "Missing credentialId",
           });
-          log.error("no credentialId and delegationCredentialId for SelectedCalendar: ", id);
+          log.error("no credentialId for SelectedCalendar: ", id);
           return;
         }
 
         try {
-          const cc = await CalendarCache.initFromDelegationOrRegularCredential({
-            credentialId,
-            delegationCredentialId,
-            userId,
-          });
+          const cc = await CalendarCache.initFromCredentialId(credentialId);
           await cc.unwatchCalendar({ calendarId: externalId, eventTypeIds });
         } catch (error) {
           let errorMessage = "Unknown error";
@@ -109,22 +105,18 @@ const handleCalendarsToWatch = async () => {
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToWatch);
   const result = await Promise.allSettled(
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
-      async ([externalId, { credentialId, delegationCredentialId, eventTypeIds, id, userId }]) => {
-        if (!credentialId && !delegationCredentialId) {
+      async ([externalId, { credentialId, eventTypeIds, id }]) => {
+        if (!credentialId) {
           // So we don't retry on next cron run
           await SelectedCalendarRepository.updateById(id, {
-            error: "Missing credentialId and delegationCredentialId",
+            error: "Missing credentialId",
           });
-          log.error("no credentialId and delegationCredentialId for SelectedCalendar: ", id);
+          log.error("no credentialId for SelectedCalendar: ", id);
           return;
         }
 
         try {
-          const cc = await CalendarCache.initFromDelegationOrRegularCredential({
-            credentialId,
-            delegationCredentialId,
-            userId,
-          });
+          const cc = await CalendarCache.initFromCredentialId(credentialId);
           await cc.watchCalendar({ calendarId: externalId, eventTypeIds });
         } catch (error) {
           let errorMessage = "Unknown error";

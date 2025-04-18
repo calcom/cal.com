@@ -177,7 +177,7 @@ model EventType {
   rescheduleWithSameRoundRobinHost Boolean @default(false)
 
   secondaryEmailId Int?
-  secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
+  secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id])
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -213,6 +213,8 @@ model Credential {
   invalid              Boolean?              @default(false)
   CalendarCache        CalendarCache[]
   references           BookingReference[]
+  delegationCredentialId String?              
+  delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([appId])
@@ -383,7 +385,6 @@ model User {
   BookingInternalNote            BookingInternalNote[]
   creationSource                 CreationSource?
   createdOrganizationOnboardings OrganizationOnboarding[]     @relation("CreatedOrganizationOnboardings")
-  calendarCaches                 CalendarCache[]
   filterSegments                 FilterSegment[]
   whitelistWorkflows             Boolean                      @default(false)
 
@@ -1468,27 +1469,18 @@ view BookingTimeStatus {
 }
 
 model CalendarCache {
-  // Addition of this model field is to be done in a separate migration where it would be optional first, followed
-  id           String      @id @default(uuid())
+  // To be made required in a followup
+  id String? @default(uuid())
   // The key would be the unique URL that is requested by the user
   key          String
   value        Json
   expiresAt    DateTime
-  // credentialId won't be set for CalendarCache of a DelegationCredential
-  credentialId Int?
+  credentialId Int
+  userId       Int?
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-
-  // This field won't be set for CalendarCache of a regular credential
-  delegationCredentialId String?
-  delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
-
-  userId Int?
-  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  @@id([credentialId, key])
+  @@index([userId, key])
   @@unique([credentialId, key])
-  // In case of Delegation, we don't have credentialId.
-  // But delegationCredentialId and userId together represent a user's credential when Delegation is used. 
-  @@unique([delegationCredentialId, userId, key])
 }
 
 enum RedirectType {
@@ -1851,8 +1843,7 @@ model DelegationCredential {
   bookingReferences   BookingReference[]
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
-  // Holds the calendar-cache for different members of an organization corresponding this delegation credential
-  calendarCaches      CalendarCache[]
+  credentials         Credential[]
 
   // Should be fair to assume that one domain can be only on one workspace platform at a time. So, one can't have two different workspace platforms for the same domain
   // Because we don't know which domain the organization might have, we couldn't make "domain" unique here as that would prevent an actual owner of the domain to be unable to use that domain if it is used by someone else.

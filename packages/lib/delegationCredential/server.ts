@@ -548,3 +548,37 @@ export async function findUniqueDelegationCalendarCredential({
   });
   return dwdCredential;
 }
+
+/**
+ * CredentialForCalendarCache is different from CredentialForCalendarService in the sense that CredentialForCalendarCache.id is greater than 0 and CredentialForCalendarService.id is -1
+ * Thus it is a Credential from DB and and also a Delegation User Credential(when CredentialForCalendarCache.delegatedTo is not null)
+ */
+export async function getCredentialForCalendarCache({ credentialId }: { credentialId: number }) {
+  const credential = await CredentialRepository.findByIdIncludeDelegationCredential({
+    id: credentialId,
+  });
+
+  let credentialForCalendarService;
+
+  if (credential?.delegationCredential) {
+    if (!credential.userId) {
+      throw new Error(`Credential ${credentialId} doesn't have a user`);
+    }
+    const delegationCredential = await findUniqueDelegationCalendarCredential({
+      userId: credential.userId,
+      delegationCredentialId: credential.delegationCredential.id,
+    });
+
+    if (!delegationCredential) {
+      credentialForCalendarService = null;
+    } else {
+      credentialForCalendarService = {
+        ...delegationCredential,
+        id: credential.id,
+      };
+    }
+  } else {
+    credentialForCalendarService = buildNonDelegationCredential(credential);
+  }
+  return credentialForCalendarService;
+}

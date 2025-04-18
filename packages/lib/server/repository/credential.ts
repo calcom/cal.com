@@ -75,4 +75,13 @@ export class CredentialRepository {
 
     return buildNonDelegationCredential(dbCredential);
   }
+
+  static async findByIdIncludeDelegationCredential({ id }: { id: number }) {
+    const dbCredential = await prisma.credential.findUnique({
+      where: { id },
+      select: { ...credentialForCalendarServiceSelect, delegationCredential: true },
+    });
+
+    return dbCredential;
+  }
 }
