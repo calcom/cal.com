@@ -8,7 +8,10 @@ import ProfileImpersonationViewWrapper from "~/settings/security/impersonation-v
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("impersonation"),
-    (t) => t("impersonation_description")
+    (t) => t("impersonation_description"),
+    undefined,
+    undefined,
+    "/settings/security/impersonation"
   );
 
 const Page = async () => {

@@ -38,7 +38,10 @@ export const generateMetadata = async ({ params }: PageProps) => {
 
   return await _generateMetadata(
     (t) => (schedule.name ? `${schedule.name} | ${t("availability")}` : t("availability")),
-    () => ""
+    () => "",
+    undefined,
+    undefined,
+    `/availability/${parsed.data.schedule}`
   );
 };
 

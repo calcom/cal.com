@@ -5,7 +5,10 @@ import ManagedUsersView from "~/settings/platform/managed-users/managed-users-vi
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("platform_members"),
-    (t) => t("platform_members_description")
+    (t) => t("platform_members_description"),
+    undefined,
+    undefined,
+    "/settings/platform/managed-users"
   );
 
 const ServerPageWrapper = () => {

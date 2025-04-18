@@ -13,7 +13,10 @@ import ForgotPassword from "~/auth/forgot-password/forgot-password-view";
 export const generateMetadata = async () => {
   return await _generateMetadata(
     (t) => t("forgot_password"),
-    (t) => t("request_password_reset")
+    (t) => t("request_password_reset"),
+    undefined,
+    undefined,
+    "/auth/forgot-password"
   );
 };
 

@@ -13,7 +13,10 @@ import LegacyPage, { LayoutWrapper } from "~/settings/organizations/new/create-n
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("set_up_your_organization"),
-    (t) => t("organizations_description")
+    (t) => t("organizations_description"),
+    undefined,
+    undefined,
+    "/settings/organizations/new"
   );
 
 type Props = {

@@ -16,12 +16,37 @@ export class OrganizationsUsersService {
     private readonly emailService: EmailService
   ) {}
 
-  async getUsers(orgId: number, emailInput?: string[], skip?: number, take?: number) {
+  async getUsers(
+    orgId: number,
+    emailInput?: string[],
+    filters?: {
+      teamIds?: number[];
+      assignedOptionIds?: string[];
+      attributeQueryOperator?: "AND" | "OR" | "NONE";
+    },
+    skip?: number,
+    take?: number
+  ) {
     const emailArray = !emailInput ? [] : emailInput;
+
+    if (filters?.assignedOptionIds && filters?.assignedOptionIds?.length) {
+      return await this.organizationsUsersRepository.getOrganizationUsersByEmailsAndAttributeFilters(
+        orgId,
+        {
+          assignedOptionIds: filters.assignedOptionIds,
+          attributeQueryOperator: filters?.attributeQueryOperator ?? "AND",
+          teamIds: filters?.teamIds,
+        },
+        emailArray,
+        skip,
+        take
+      );
+    }
 
     const users = await this.organizationsUsersRepository.getOrganizationUsersByEmails(
       orgId,
       emailArray,
+      filters?.teamIds,
       skip,
       take
     );

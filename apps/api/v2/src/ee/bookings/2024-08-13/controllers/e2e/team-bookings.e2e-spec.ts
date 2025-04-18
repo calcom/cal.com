@@ -39,7 +39,10 @@ import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Team bookings", () => {
     let app: INestApplication;
+    const organizationSlug = `team-bookings-organization-${randomString()}`;
     let organization: Team;
+    const team1Slug = `team-bookings-team1-${randomString()}`;
+    const team2Slug = `team-bookings-team2-${randomString()}`;
     let team1: Team;
     let team2: Team;
 
@@ -95,12 +98,15 @@ describe("Bookings Endpoints 2024-08-13", () => {
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
       organization = await organizationsRepositoryFixture.create({
-        name: `team-bookings-organization-${randomString()}`,
+        name: organizationSlug,
+        slug: organizationSlug,
+        isOrganization: true,
       });
       oAuthClient = await createOAuthClient(organization.id);
 
       team1 = await teamRepositoryFixture.create({
-        name: `team-bookings-team1-${randomString()}`,
+        name: team1Slug,
+        slug: team1Slug,
         isOrganization: false,
         parent: { connect: { id: organization.id } },
         createdByOAuthClient: {
@@ -111,7 +117,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       team2 = await teamRepositoryFixture.create({
-        name: `team-bookings-team2-${randomString()}`,
+        name: team2Slug,
+        slug: team2Slug,
         isOrganization: false,
         parent: { connect: { id: organization.id } },
         createdByOAuthClient: {
@@ -659,6 +666,84 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 phoneBasedBooking.bookingFieldsResponses.attendeePhoneNumber
               );
               phoneBasedBooking = data;
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
+    });
+
+    describe("book using teamSlug, eventTypeSlug and organizationSlug", () => {
+      it("should not be able to book if missing organizationSlug", async () => {
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
+          teamSlug: team1Slug,
+          eventTypeSlug: team1EventTypeSlug,
+          attendee: {
+            name: "alice",
+            email: "alice@gmail.com",
+            timeZone: "Europe/Madrid",
+            language: "es",
+          },
+          meetingUrl: "https://meet.google.com/abc-def-ghi",
+        };
+
+        return request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(404);
+      });
+
+      it("should book using teamSlug and eventTypeSlug and organizationSlug", async () => {
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
+          teamSlug: team1Slug,
+          eventTypeSlug: team1EventTypeSlug,
+          organizationSlug: organizationSlug,
+          attendee: {
+            name: "alice",
+            email: "alice@gmail.com",
+            timeZone: "Europe/Madrid",
+            language: "es",
+          },
+          meetingUrl: "https://meet.google.com/abc-def-ghi",
+        };
+
+        return request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toBeDefined();
+              expect(data.uid).toBeDefined();
+              expect(data.hosts.length).toEqual(1);
+              expect(data.hosts[0].id).toEqual(teamUser.id);
+              expect(data.status).toEqual("accepted");
+              expect(data.start).toEqual(body.start);
+              expect(data.end).toEqual(new Date(Date.UTC(2040, 0, 9, 14, 0, 0)).toISOString());
+              expect(data.duration).toEqual(60);
+              expect(data.eventTypeId).toEqual(team1EventTypeId);
+              expect(data.attendees.length).toEqual(1);
+              expect(data.attendees[0]).toEqual({
+                name: body.attendee.name,
+                email: body.attendee.email,
+                timeZone: body.attendee.timeZone,
+                language: body.attendee.language,
+                absent: false,
+              });
+              expect(data.meetingUrl).toEqual(body.meetingUrl);
+              expect(data.absentHost).toEqual(false);
             } else {
               throw new Error(
                 "Invalid response data - expected booking but received array of possibly recurring bookings"

@@ -6,7 +6,10 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("privacy"),
-    (t) => t("privacy_organization_description")
+    (t) => t("privacy_organization_description"),
+    undefined,
+    undefined,
+    "/settings/organizations/privacy"
   );
 
 const Page = async () => {
