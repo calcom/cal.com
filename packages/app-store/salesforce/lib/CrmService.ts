@@ -1320,6 +1320,12 @@ export default class SalesforceCRMService implements CRM {
         return;
       }
       valueToWrite = await this.getTextValueFromRoutingFormResponse(fieldValue, bookingUid, recordId);
+    } else if (fieldValue.startsWith("{utm:")) {
+      if (!bookingUid) {
+        log.error(`BookingUid not passed. Cannot get tracking values without it`);
+        return;
+      }
+      valueToWrite = await this.getTextValueFromBookingTracking(fieldValue, bookingUid);
     } else {
       // Get the value from the booking response
       if (!calEventResponses) {
