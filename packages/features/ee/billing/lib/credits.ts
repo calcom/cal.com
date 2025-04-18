@@ -6,7 +6,6 @@ import { getTranslation } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
 import { CreditType } from "@calcom/prisma/enums";
 import { getAllCreditsForTeam } from "@calcom/trpc/server/routers/viewer/credits/util";
-import { isSubscriptionActive } from "@calcom/trpc/server/routers/viewer/teams/util";
 
 import { InternalTeamBilling } from "../../billing/teams/internal-team-billing";
 
@@ -422,7 +421,7 @@ export async function getMonthlyCredits(teamId: number) {
   const teamBillingService = new InternalTeamBilling(team);
   const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
 
-  if (isSubscriptionActive(subscriptionStatus)) {
+  if (subscriptionStatus !== "active" && subscriptionStatus !== "past_due") {
     return 0;
   }
 
