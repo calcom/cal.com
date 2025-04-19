@@ -1,12 +1,14 @@
+import { createRouterCaller } from "app/_trpc/context";
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
+import { getSession } from "next-auth/react";
+import { cookies, headers } from "next/headers";
 
-// import { cookies, headers } from "next/headers";
-// import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-// import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-// import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-// import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
-import LegacyPage from "@calcom/features/ee/workflows/pages/index";
+import WorkflowsPage from "@calcom/features/ee/workflows/pages/index";
+import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
+import { workflowsRouter } from "@calcom/trpc/server/routers/viewer/workflows/_router";
+
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -15,26 +17,26 @@ export const generateMetadata = async () =>
   );
 
 const Page = async ({ params, searchParams }: PageProps) => {
-  // const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
-  // const user = session?.user;
+  const _searchParams = await searchParams;
+  const context = buildLegacyCtx(await headers(), await cookies(), await params, _searchParams);
+  const session = await getSession(context);
 
-  // const filters = getTeamsFiltersFromQuery({ ...searchParams, ...params });
+  const filters = getTeamsFiltersFromQuery(_searchParams);
 
-  // let filteredList;
-  // try {
-  //   filteredList = await WorkflowRepository.getFilteredList({
-  //     userId: user?.id,
-  //     input: {
-  //       filters,
-  //     },
-  //   });
-  // } catch (err) {}
+  if (!session || !session.user) {
+    return {
+      redirect: {
+        destination: "/login",
+        permanent: false,
+      },
+    };
+  }
+  const hasValidLicense = session?.hasValidLicense ?? false;
+  const caller = await createRouterCaller(workflowsRouter);
 
-  return (
-    <LegacyPage
-    //  filteredList={filteredList}
-    />
-  );
+  const initialData = await caller.filteredList({ filters });
+
+  return <WorkflowsPage initialData={initialData} hasValidLicense={hasValidLicense} />;
 };
 
 export default Page;
