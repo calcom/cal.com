@@ -35,7 +35,7 @@ function WorkflowsPage({ initialData, hasValidLicense }: PageProps) {
   const router = useRouter();
   const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
-      await router.replace(`/workflows/${workflow.id}`);
+      router.replace(`/workflows/${workflow.id}`);
     },
     onError: (err) => {
       if (err instanceof HttpError) {
