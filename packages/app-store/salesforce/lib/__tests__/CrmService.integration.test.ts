@@ -59,6 +59,7 @@ const createMockCredential = () => {
     teamId: 1,
     appId: "test_app_id",
     invalid: false,
+    delegationCredentialId: null,
   };
 };
 

@@ -29,9 +29,7 @@ function getUniqueCalendarsByExternalId<
     externalId: string;
     eventTypeId: number | null;
     credentialId: number | null;
-    userId: number;
     id: string;
-    delegationCredentialId: string | null;
   }
 >(calendars: T[]) {
   type ExternalId = string;
@@ -41,9 +39,7 @@ function getUniqueCalendarsByExternalId<
         acc[sc.externalId] = {
           eventTypeIds: [sc.eventTypeId],
           credentialId: sc.credentialId,
-          userId: sc.userId,
           id: sc.id,
-          delegationCredentialId: sc.delegationCredentialId,
         };
       } else {
         acc[sc.externalId].eventTypeIds.push(sc.eventTypeId);
@@ -56,8 +52,6 @@ function getUniqueCalendarsByExternalId<
         eventTypeIds: SelectedCalendarEventTypeIds;
         credentialId: number | null;
         id: string;
-        userId: number;
-        delegationCredentialId: string | null;
       }
     >
   );

@@ -177,7 +177,7 @@ model EventType {
   rescheduleWithSameRoundRobinHost Boolean @default(false)
 
   secondaryEmailId Int?
-  secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id])
+  secondaryEmail SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -778,9 +778,6 @@ model SelectedCalendar {
   googleChannelResourceUri String?
   googleChannelExpiration  String?
 
-  // Note that delegationCredentialId or credentialId aren't part of the unique constraint.
-  // This is so that if there are duplicate connections to the same Calendar for a user, still SelectedCalendar entry remains same.
-  // It also allows a situation where when an organization switch from Regular Credentials to Delegation Credentials, the existing SelectedCalendar entries(for Regular Credentials ) are reused and vice versa.
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId String?
 
@@ -1471,6 +1468,7 @@ view BookingTimeStatus {
 model CalendarCache {
   // To be made required in a followup
   id String? @default(uuid())
+  
   // The key would be the unique URL that is requested by the user
   key          String
   value        Json

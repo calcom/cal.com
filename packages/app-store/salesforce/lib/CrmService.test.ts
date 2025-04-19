@@ -105,6 +105,7 @@ describe("SalesforceCRMService", () => {
       user: {
         email: "test-user@example.com",
       },
+      delegationCredentialId: null,
     };
 
     service = new SalesforceCRMService(mockCredential, {}, true);

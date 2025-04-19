@@ -32,5 +32,4 @@ export const tasksConfig = {
     maxAttempts: 10,
   },
 };
-
 export default tasks;

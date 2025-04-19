@@ -85,6 +85,10 @@ export default class GoogleCalendarService implements Calendar {
     this.log = log.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
+  public getCredentialId() {
+    return this.credential.id;
+  }
+
   private async getMyGoogleAuthSingleton() {
     if (this.myGoogleAuth) {
       return this.myGoogleAuth;

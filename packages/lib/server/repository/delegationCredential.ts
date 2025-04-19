@@ -221,7 +221,7 @@ export class DelegationCredentialRepository {
     });
   }
 
-  static async findAllEnabledAndIncludeNextBatchOfMembersToProcess() {
+  static async findAllEnabledIncludeDelegatedMembers() {
     const delegationCredentials = await prisma.delegationCredential.findMany({
       where: {
         enabled: true,
@@ -257,18 +257,19 @@ export class DelegationCredentialRepository {
     });
 
     return delegationCredentials.map((delegationCredential) => {
-      const members = delegationCredential.organization.members;
-      const membersThatAreActuallyPartOfDelegationCredential = members.filter((member) => {
+      // Members for whom delegation credential is applicable
+      const delegatedMembers = delegationCredential.organization.members.filter((member) => {
         return doesEmailMatchDelegationCredentialDomain({
           memberEmail: member.user.email,
           delegationCredentialEmailDomain: delegationCredential.domain,
         });
       });
+
       return {
         ...delegationCredential,
         organization: {
           ...delegationCredential.organization,
-          members: membersThatAreActuallyPartOfDelegationCredential,
+          delegatedMembers,
         },
       };
     });

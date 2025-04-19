@@ -254,6 +254,7 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
 export type SelectedCalendarEventTypeIds = (number | null)[];
 
 export interface Calendar {
+  getCredentialId?(): number;
   createEvent(
     event: CalendarEvent,
     credentialId: number,

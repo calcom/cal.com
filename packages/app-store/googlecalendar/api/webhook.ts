@@ -44,11 +44,9 @@ async function postHandler(req: NextApiRequest) {
     });
   const { selectedCalendars } = credential;
   const credentialForCalendarCache = await getCredentialForCalendarCache({ credentialId: credential.id });
-  const calendar = await getCalendar(credentialForCalendarCache);
+  const calendarServiceForCalendarCache = await getCalendar(credentialForCalendarCache);
 
-  // Make sure to pass unique SelectedCalendars to avoid unnecessary third party api calls
-  // Necessary to do here so that it is ensure for all calendar apps
-  await calendar?.fetchAvailabilityAndSetCache?.(selectedCalendars);
+  await calendarServiceForCalendarCache?.fetchAvailabilityAndSetCache?.(selectedCalendars);
   return { message: "ok" };
 }
 

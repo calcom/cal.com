@@ -118,6 +118,7 @@ export class AppleCalendarService implements CredentialSyncCalendarApp {
         teamId: null,
         appId: APPLE_CALENDAR_ID,
         invalid: false,
+        delegationCredentialId: null,
       };
 
       const dav = new CalendarService({

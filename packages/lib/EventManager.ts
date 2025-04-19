@@ -738,6 +738,7 @@ export default class EventManager {
                   user: credentialFromDB.user,
                   delegatedToId: credentialFromDB.delegatedToId,
                   delegatedTo: credentialFromDB.delegatedTo,
+                  delegationCredentialId: credentialFromDB.delegationCredentialId,
                 };
               }
             } else if (destination.delegationCredentialId) {
@@ -938,6 +939,7 @@ export default class EventManager {
                 user: credentialFromDB.user,
                 delegatedToId: credentialFromDB.delegatedToId,
                 delegatedTo: credentialFromDB.delegatedTo,
+                delegationCredentialId: credentialFromDB.delegationCredentialId,
               };
             }
           }

@@ -54,13 +54,14 @@ export const getConnectedCalendars = async (
     calendarCredentials.map(async (item) => {
       try {
         const { integration, credential } = item;
+        const safeToSendIntegration = cleanIntegrationKeys(integration);
         const calendar = await item.calendar;
         // Don't leak credentials to the client
         const credentialId = credential.id;
         const delegationCredentialId = credential.delegatedToId ?? null;
         if (!calendar) {
           return {
-            integration,
+            integration: safeToSendIntegration,
             credentialId,
             delegationCredentialId,
           };
@@ -83,7 +84,7 @@ export const getConnectedCalendars = async (
         const primary = calendars.find((item) => item.primary) ?? calendars.find((cal) => cal !== undefined);
         if (!primary) {
           return {
-            integration,
+            integration: safeToSendIntegration,
             credentialId,
             error: {
               message: "No primary calendar found",
@@ -98,7 +99,7 @@ export const getConnectedCalendars = async (
         }
 
         return {
-          integration: cleanIntegrationKeys(integration),
+          integration: safeToSendIntegration,
           credentialId,
           delegationCredentialId,
           primary,

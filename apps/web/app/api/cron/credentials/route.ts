@@ -1,24 +1,25 @@
-import type { NextApiRequest } from "next";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
-import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
-import { prisma } from "@calcom/prisma";
+
+import { defaultResponderForAppDir } from "../../defaultResponderForAppDir";
 
 const log = logger.getSubLogger({ prefix: ["CreateCredentials"] });
 const batchSizeToCreateCredentials = 100;
-const validateRequest = (req: NextApiRequest) => {
-  const apiKey = req.headers.authorization || req.query.apiKey;
+const validateRequest = (req: NextRequest) => {
+  const url = new URL(req.url);
+  const apiKey = req.headers.get("authorization") || url.searchParams.get("apiKey");
   if (![process.env.CRON_API_KEY, `Bearer ${process.env.CRON_SECRET}`].includes(`${apiKey}`)) {
     throw new HttpError({ statusCode: 401, message: "Unauthorized" });
   }
 };
 
 async function handleCreateCredentials() {
-  const delegationCredentials =
-    await DelegationCredentialRepository.findAllEnabledAndIncludeNextBatchOfMembersToProcess();
+  const delegationCredentials = await DelegationCredentialRepository.findAllEnabledIncludeDelegatedMembers();
 
   if (!delegationCredentials.length) {
     return {
@@ -39,21 +40,18 @@ async function handleCreateCredentials() {
       return;
     }
 
-    const existingCredentials = await prisma.credential.findMany({
-      where: {
-        userId: {
-          in: organization.members.map((member) => member.userId),
-        },
+    // We can't know by looking at a Credential record in DB, if it has access to the `user.email` calendar in Google Calendar.
+    // It could be a credential of a personal calendar of the same user. So, we can't just reuse any existing credential for the user, we have to check if this specific delegationCredential's UserCredential exists or not
+    const existingCredentials =
+      await CredentialRepository.findAllDelegationByUserIdsListAndDelegationCredentialIdAndType({
+        userIds: organization.delegatedMembers.map((member) => member.userId),
+        delegationCredentialId: delegationCredential.id,
         type: "google_calendar",
-      },
-      select: {
-        userId: true,
-      },
-    });
+      });
 
     const existingCredentialUserIds = new Set(existingCredentials.map((cred) => cred.userId));
 
-    const membersNeedingCredentials = organization.members.filter(
+    const membersNeedingCredentials = organization.delegatedMembers.filter(
       (member) => !existingCredentialUserIds.has(member.userId)
     );
 
@@ -65,17 +63,15 @@ async function handleCreateCredentials() {
 
     const credentialCreationPromises = toProcessMembers.map(async (member) => {
       try {
-        await prisma.credential.create({
-          data: {
-            type: "google_calendar",
-            key: {
-              access_token: "NOOP_UNUSED_DELEGATION_TOKEN",
-            },
-            userId: member.userId,
-            appId: "google-calendar",
-            invalid: false,
-            delegationCredentialId: delegationCredential.id,
+        await CredentialRepository.create({
+          type: "google_calendar",
+          key: {
+            // The in-memory credential that we create for Delegation Credential has access_token as "NOOP_UNUSED_DELEGATION_TOKEN. This is to mark it is in DB, in case we need to identify that.
+            access_token: "NOOP_UNUSED_DELEGATION_TOKEN_DB",
           },
+          userId: member.userId,
+          appId: "google-calendar",
+          delegationCredentialId: delegationCredential.id,
         });
         log.info(`Created credential for member ${member.userId}`);
       } catch (error) {
@@ -121,10 +117,8 @@ async function handleDeleteCredentials() {
     }
 
     // DB?: can deleting all credentials at once be problematic?
-    const { count } = await prisma.credential.deleteMany({
-      where: {
-        delegationCredentialId: delegationCredential.id,
-      },
+    const { count } = await CredentialRepository.deleteAllByDelegationCredentialId({
+      delegationCredentialId: delegationCredential.id,
     });
     totalSuccess += count;
   }
@@ -137,7 +131,7 @@ async function handleDeleteCredentials() {
   };
 }
 
-const handler = defaultResponder(async (request: NextApiRequest) => {
+const handler = async (request: NextRequest) => {
   validateRequest(request);
   const result = await Promise.allSettled([handleCreateCredentials(), handleDeleteCredentials()]);
   const response = result.map((r, index) => {
@@ -152,9 +146,7 @@ const handler = defaultResponder(async (request: NextApiRequest) => {
       message: `Failed to execute ${index === 0 ? "create" : "delete"} credentials`,
     };
   });
-  return response;
-});
+  return NextResponse.json(response);
+};
 
-export default defaultHandler({
-  GET: Promise.resolve({ default: defaultResponder(handler) }),
-});
+export const GET = defaultResponderForAppDir(handler);

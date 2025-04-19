@@ -94,6 +94,7 @@ const _buildCommonUserCredential = ({
     invalid: false,
     teamId: null,
     team: null,
+    delegationCredentialId: delegationCredential.id,
     delegatedTo: delegationCredential.serviceAccountKey
       ? {
           serviceAccountKey: delegationCredential.serviceAccountKey,
@@ -576,6 +577,7 @@ export async function getCredentialForCalendarCache({ credentialId }: { credenti
     if (!delegationCredential) {
       credentialForCalendarService = null;
     } else {
+      // We preparare a credential that is in-db(in constrast with an in-memory credential used elsewhere where we generate CredentialForCalendarService)
       credentialForCalendarService = {
         ...delegationCredential,
         id: credential.id,

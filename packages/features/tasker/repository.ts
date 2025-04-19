@@ -1,11 +1,8 @@
 import { type Prisma } from "@prisma/client";
 
-import logger from "@calcom/lib/logger";
 import db from "@calcom/prisma";
 
 import { type TaskTypes } from "./tasker";
-
-const log = logger.getSubLogger({ prefix: ["[tasker] repository"] });
 
 const whereSucceeded: Prisma.TaskWhereInput = {
   succeededAt: { not: null },
@@ -60,7 +57,7 @@ export class Task {
   }
 
   static async getNextBatch() {
-    log.info("Getting next batch of tasks", makeWhereUpcomingTasks());
+    console.info("Getting next batch of tasks", makeWhereUpcomingTasks());
     return db.task.findMany({
       where: makeWhereUpcomingTasks(),
       orderBy: {
@@ -138,7 +135,6 @@ export class Task {
   }
 
   static async succeed(taskId: string) {
-    log.info("Mark task as succeeded", { taskId });
     return db.task.update({
       where: {
         id: taskId,

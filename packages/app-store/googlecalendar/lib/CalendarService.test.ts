@@ -85,81 +85,63 @@ vi.mock("googleapis-common", async () => {
 vi.mock("@googleapis/admin", () => adminMock);
 vi.mock("@googleapis/calendar", () => calendarMock);
 
-async function expectCacheToBeNotSet({
-  credentialId,
-  delegationCredential,
-}: {
-  credentialId: number | null;
-  delegationCredential: {
-    userId: number | null;
-    delegationCredentialId: string;
-  };
-}) {
-  let caches;
-  if (delegationCredential) {
-    if (!delegationCredential.userId) {
-      throw new Error("userId is required for delegationCredential");
-    }
-    caches = await prismock.calendarCache.findMany({
-      where: {
-        credentialId,
-        userId: delegationCredential.userId,
-        delegationCredentialId: delegationCredential.delegationCredentialId,
-      },
-    });
-  } else if (credentialId) {
-    caches = await prismock.calendarCache.findMany({
-      where: {
-        credentialId,
-      },
-    });
-  } else {
-    throw new Error("Either credentialId or delegationCredential must be provided");
-  }
+async function expectCacheToBeNotSet({ credentialId }: { credentialId: number }) {
+  const caches = await prismock.calendarCache.findMany({
+    where: {
+      credentialId,
+    },
+  });
 
   expect(caches).toHaveLength(0);
 }
 
 async function expectCacheToBeSet({
   credentialId,
-  delegationCredential,
   itemsInKey,
 }: {
-  credentialId: number | null;
-  delegationCredential: {
-    userId: number | null;
-    delegationCredentialId: string;
-  } | null;
+  credentialId: number;
   itemsInKey: { id: string }[];
 }) {
-  let caches;
-  if (delegationCredential) {
-    if (!delegationCredential.userId) {
-      throw new Error("userId is required for delegationCredential");
-    }
-    caches = await prismock.calendarCache.findMany({
-      where: {
-        userId: delegationCredential.userId,
-        delegationCredentialId: delegationCredential.delegationCredentialId,
-      },
-    });
-
-    console.log("caches", caches);
-  } else if (credentialId) {
-    caches = await prismock.calendarCache.findMany({
-      where: {
-        credentialId,
-      },
-    });
-  } else {
-    throw new Error("Either credentialId or delegationCredential must be provided");
-  }
+  const caches = await prismock.calendarCache.findMany({
+    where: {
+      credentialId,
+    },
+  });
   expect(caches).toHaveLength(1);
   expect(JSON.parse(caches[0].key)).toEqual(
     expect.objectContaining({
       items: itemsInKey,
     })
   );
+}
+
+function createInMemoryCredential({
+  userId,
+  delegationCredentialId,
+  delegatedTo,
+}: {
+  userId: number;
+  delegationCredentialId: string | null;
+  delegatedTo: NonNullable<CredentialForCalendarServiceWithEmail["delegatedTo"]>;
+}) {
+  return {
+    id: -1,
+    userId,
+    key: {
+      access_token: "NOOP_UNUSED_DELEGATION_TOKEN",
+    },
+    invalid: false,
+    teamId: null,
+    team: null,
+    type: "google_calendar",
+    appId: "google-calendar",
+    delegatedToId: delegationCredentialId,
+    delegatedTo: delegatedTo.serviceAccountKey
+      ? {
+          serviceAccountKey: delegatedTo.serviceAccountKey,
+        }
+      : null,
+  };
 }
 
 async function createCredentialForCalendarService({
@@ -186,6 +168,7 @@ async function createCredentialForCalendarService({
 
   const credential = {
     ...getSampleCredential(),
+    ...(delegationCredentialId ? { delegationCredential: { connect: { id: delegationCredentialId } } } : {}),
     key: {
       ...googleTestCredentialKey,
       expiry_date: Date.now() - 1000,
@@ -211,34 +194,22 @@ async function createCredentialForCalendarService({
           user: true,
         },
       })
-    : {
-        id: -1,
+    : createInMemoryCredential({
         userId: defaultUser.id,
-        key: {
-          access_token: "NOOP_UNUSED_DELEGATION_TOKEN",
-        },
-        invalid: false,
-        teamId: null,
-        team: null,
-        type: "google_calendar",
-        appId: "google-calendar",
-        delegatedToId: delegationCredentialId,
-        delegatedTo: delegatedTo.serviceAccountKey
-          ? {
-              serviceAccountKey: delegatedTo.serviceAccountKey,
-            }
-          : null,
-      };
+        delegationCredentialId,
+        delegatedTo,
+      });
 
   return {
     ...credentialInDb,
     user: user ? { email: user.email ?? "" } : null,
+    delegatedTo,
   } as CredentialForCalendarServiceWithEmail;
 }
 
 async function createSelectedCalendarForDelegationCredential(data: {
   userId: number;
-  credentialId: null;
+  credentialId: number | null;
   delegationCredentialId: string;
   externalId: string;
   integration: string;
@@ -254,7 +225,6 @@ async function createSelectedCalendarForDelegationCredential(data: {
   return await prismock.selectedCalendar.create({
     data: {
       ...data,
-      credentialId: null,
     },
   });
 }
@@ -282,6 +252,7 @@ async function createSelectedCalendarForRegularCredential(data: {
   return await prismock.selectedCalendar.create({
     data: {
       ...data,
+      delegationCredentialId: null,
       credentialId: data.credentialId,
     },
   });
@@ -311,6 +282,36 @@ async function createDelegationCredentialForCalendarService({
     delegatedTo: delegatedTo || defaultDelegatedCredential,
     delegationCredentialId,
   });
+}
+
+/**
+ * The flow that sets CalendarCache must use CredentialForCalendarCache
+ */
+
+async function createDelegationCredentialForCalendarCache({
+  user,
+  delegatedTo,
+  delegationCredentialId,
+}: {
+  user?: { email: string } | null;
+  delegatedTo?: typeof defaultDelegatedCredential;
+  delegationCredentialId: string;
+}) {
+  delegatedTo = delegatedTo || defaultDelegatedCredential;
+  const credentialInDb = await createCredentialForCalendarService({
+    user: user || {
+      email: "service@example.com",
+    },
+  });
+
+  return {
+    ...createInMemoryCredential({
+      userId: credentialInDb.userId!,
+      delegationCredentialId,
+      delegatedTo,
+    }),
+    ...credentialInDb,
+  };
 }
 
 const createMockJWTInstance = ({
@@ -391,23 +392,18 @@ const calendarCacheHelpers = {
   },
   setCache: async ({
     credentialId,
-    delegationCredentialId,
     key,
     value,
     userId,
     expiresAt,
   }: {
-    credentialId: number | null;
-    delegationCredentialId: string | null;
+    credentialId: number;
     key: string;
     value: string;
     userId: number | null;
     expiresAt: Date;
   }) => {
-    log.info(
-      "Setting Calendar Cache",
-      safeStringify({ key, value, expiresAt, credentialId, userId, delegationCredentialId })
-    );
+    log.info("Setting Calendar Cache", safeStringify({ key, value, expiresAt, credentialId, userId }));
     await prismock.calendarCache.create({
       data: {
         key,
@@ -415,7 +411,6 @@ const calendarCacheHelpers = {
         expiresAt,
         credentialId,
         userId,
-        delegationCredentialId,
       },
     });
   },
@@ -435,98 +430,11 @@ const calendarCacheHelpers = {
   }) => {
     await calendarCacheHelpers.setCache({
       credentialId,
-      delegationCredentialId: null,
       key,
       value,
       userId,
       expiresAt,
     });
-  },
-
-  setDwdCredentialCache: async ({
-    delegationCredentialId,
-    userId,
-    key,
-    value,
-    expiresAt,
-  }: {
-    delegationCredentialId: string;
-    userId: number | null;
-    key: {
-      timeMin: string;
-      timeMax: string;
-      items: { id: string }[];
-    };
-    value: {
-      kind: string;
-      timeMax: string;
-      timeMin: string;
-      calendars: {
-        [key: string]: {
-          busy: { end: string; start: string }[];
-        };
-      };
-    };
-    expiresAt: Date;
-  }) => {
-    await calendarCacheHelpers.setCache({
-      credentialId: null,
-      delegationCredentialId,
-      key: JSON.stringify(key),
-      //@ts-expect-error Setting it as object so that prismock returns it as object, unlike prisma which returns an object when set as string
-      value: value,
-      userId,
-      expiresAt,
-    });
-  },
-  setCacheSimpleForDwd: async ({
-    delegationCredentialId,
-    userId,
-    busyTimes,
-  }: {
-    delegationCredentialId: string;
-    userId: number | null;
-    busyTimes: { start: string; end: string }[];
-  }) => {
-    const { dateFrom, dateTo, minDateFrom, maxDateTo } = calendarCacheHelpers.getDatePair();
-
-    await calendarCacheHelpers.setDwdCredentialCache({
-      delegationCredentialId,
-      userId,
-      key: {
-        timeMin: minDateFrom,
-        timeMax: maxDateTo,
-        items: [{ id: testSelectedCalendar.externalId }],
-      },
-      value: {
-        kind: "calendar#freeBusy",
-        timeMin: minDateFrom,
-        timeMax: maxDateTo,
-        calendars: {
-          [testSelectedCalendar.externalId]: {
-            busy: busyTimes,
-          },
-        },
-      },
-      expiresAt: calendarCacheHelpers.FUTURE_EXPIRATION_DATE,
-    });
-
-    return {
-      dateFrom,
-      dateTo,
-    };
-  },
-};
-
-const calendarHelpers = {
-  buildBusyTimes: (count: number) => {
-    const busyTimes = [];
-    for (let i = 0; i < count; i++) {
-      const start = new Date(Date.now() + Math.random() * 100000000).toISOString();
-      const end = new Date(Date.now() + Math.random() * 100000000).toISOString();
-      busyTimes.push({ start, end });
-    }
-    return busyTimes;
   },
 };
 
@@ -628,7 +536,6 @@ describe("Calendar Cache", () => {
     await calendarCache.upsertCachedAvailability({
       credentialId: credentialInDb1.id,
       userId: credentialInDb1.userId,
-      delegationCredentialId: null,
       args: {
         timeMin: dateFrom1,
         timeMax: dateTo1,
@@ -678,7 +585,6 @@ describe("Calendar Cache", () => {
     const cachedAvailability = await calendarCache.getCachedAvailability({
       credentialId: credentialInDb.id,
       userId: null,
-      delegationCredentialId: null,
       args: {
         timeMin: dateFrom,
         timeMax: dateTo,
@@ -823,127 +729,6 @@ describe("Calendar Cache", () => {
 
     // expect(busyCalendarTimesResult).toEqual(mockedBusyTimes);
   });
-
-  describe("Delegation Credential + Calendar Cache", () => {
-    describe("getAvailability", () => {
-      test("cache should be isolated between users", async () => {
-        const domain = "workspace.com";
-        const user1Email = `user1@${domain}`;
-        const user2Email = `user2@${domain}`;
-        const delegationCredentialId = "delegation-credential-id-1";
-
-        // Create DWD credentials for two different users
-        const credentialUser1 = await createCredentialForCalendarService({
-          user: { email: user1Email },
-          delegatedTo: defaultDelegatedCredential,
-          delegationCredentialId,
-        });
-
-        const credentialUser2 = await createCredentialForCalendarService({
-          user: { email: user2Email },
-          delegatedTo: defaultDelegatedCredential,
-          delegationCredentialId,
-        });
-
-        // Initialize calendar services
-        const calendarService1 = new CalendarService(credentialUser1);
-        const calendarService2 = new CalendarService(credentialUser2);
-
-        const user1BusyTimes = calendarHelpers.buildBusyTimes(2);
-        const user2BusyTimes = calendarHelpers.buildBusyTimes(2);
-        const { dateFrom, dateTo } = calendarCacheHelpers.getDatePair();
-        await calendarCacheHelpers.setCacheSimpleForDwd({
-          delegationCredentialId,
-          userId: credentialUser1.userId,
-          busyTimes: user1BusyTimes,
-        });
-
-        await calendarCacheHelpers.setCacheSimpleForDwd({
-          delegationCredentialId,
-          userId: credentialUser2.userId,
-          busyTimes: user2BusyTimes,
-        });
-        const result1 = await calendarService1.getAvailability(
-          dateFrom,
-          dateTo,
-          [testSelectedCalendar],
-          true
-        );
-        expect(result1).toEqual(user1BusyTimes);
-
-        const result2 = await calendarService2.getAvailability(
-          dateFrom,
-          dateTo,
-          [testSelectedCalendar],
-          true
-        );
-        expect(result2).toEqual(user2BusyTimes);
-      });
-    });
-
-    describe("fetchAvailabilityAndSetCache", () => {
-      test("cache should be isolated between users", async () => {
-        const domain = "workspace.com";
-        const user1Email = `user1@${domain}`;
-        const user2Email = `user2@${domain}`;
-        const delegationCredentialId = "delegation-credential-id-1";
-
-        // Create DWD credentials for two different users
-        const credentialUser1 = await createCredentialForCalendarService({
-          user: { email: user1Email },
-          delegatedTo: defaultDelegatedCredential,
-          delegationCredentialId,
-        });
-
-        const credentialUser2 = await createCredentialForCalendarService({
-          user: { email: user2Email },
-          delegatedTo: defaultDelegatedCredential,
-          delegationCredentialId,
-        });
-
-        const dwdCredential1 = {
-          userId: credentialUser1.userId,
-          delegationCredentialId,
-        };
-        const dwdCredential2 = {
-          userId: credentialUser2.userId,
-          delegationCredentialId,
-        };
-
-        const calendarService1 = new CalendarService(credentialUser1);
-        const calendarService2 = new CalendarService(credentialUser2);
-
-        expectCacheToBeNotSet({
-          credentialId: null,
-          delegationCredential: dwdCredential1,
-        });
-
-        expectCacheToBeNotSet({
-          credentialId: null,
-          delegationCredential: dwdCredential2,
-        });
-
-        await calendarService1.fetchAvailabilityAndSetCache([testSelectedCalendar]);
-        expectCacheToBeSet({
-          credentialId: null,
-          delegationCredential: dwdCredential1,
-          itemsInKey: [{ id: testSelectedCalendar.externalId }],
-        });
-
-        expectCacheToBeNotSet({
-          credentialId: null,
-          delegationCredential: dwdCredential2,
-        });
-
-        await calendarService2.fetchAvailabilityAndSetCache([testSelectedCalendar]);
-        expectCacheToBeSet({
-          credentialId: null,
-          delegationCredential: dwdCredential2,
-          itemsInKey: [{ id: testSelectedCalendar.externalId }],
-        });
-      });
-    });
-  });
 });
 
 describe("Watching and unwatching calendar", () => {
@@ -1052,55 +837,16 @@ describe("Watching and unwatching calendar", () => {
       });
     });
 
-    test("On unwatching a SelectedCalendar connected to a Regular Credential, it should remove googleChannelId and other props", async () => {
-      const delegationCredential1Member1 = await createDelegationCredentialForCalendarService({
-        user: { email: "user1@example.com" },
-        delegationCredentialId: "delegation-credential-id-1",
-      });
-
-      await createSelectedCalendarForRegularCredential({
-        userId: delegationCredential1Member1.userId!,
-        credentialId: 1,
-        delegationCredentialId: null,
-        externalId: testSelectedCalendar.externalId,
-        integration: "google_calendar",
-        googleChannelId: "mock-channel-id",
-        googleChannelKind: "api#channel",
-        googleChannelResourceId: "mock-resource-id",
-        googleChannelResourceUri: "mock-resource-uri",
-        googleChannelExpiration: "1111111111",
-      });
-
-      const calendarService = new CalendarService(delegationCredential1Member1);
-      await calendarService.unwatchCalendar({
-        calendarId: testSelectedCalendar.externalId,
-        eventTypeIds: [null],
-      });
-
-      expectGoogleUnsubscriptionToHaveOccurredAndClearMock([
-        {
-          resourceId: "mock-resource-id",
-          channelId: "mock-channel-id",
-        },
-      ]);
-
-      const calendars = await prismock.selectedCalendar.findMany();
-      expect(calendars).toHaveLength(1);
-      const calendarAfterUnwatch = calendars[0];
-
-      expectSelectedCalendarToNotHaveGoogleChannelProps(calendarAfterUnwatch.id);
-    });
-
     test("On unwatching a SelectedCalendar connected to Delegation Credential, it should remove googleChannelId and other props", async () => {
-      const delegationCredential1Member1 = await createDelegationCredentialForCalendarService({
+      const delegationCredential1Member1 = await createDelegationCredentialForCalendarCache({
         user: { email: "user1@example.com" },
         delegationCredentialId: "delegation-credential-id-1",
       });
 
-      await createSelectedCalendarForDelegationCredential({
+      const selectedCalendar = await createSelectedCalendarForDelegationCredential({
         userId: delegationCredential1Member1.userId!,
         delegationCredentialId: delegationCredential1Member1.delegatedToId!,
-        credentialId: null,
+        credentialId: delegationCredential1Member1.id,
         externalId: testSelectedCalendar.externalId,
         integration: "google_calendar",
         googleChannelId: "mock-channel-id",
@@ -1112,7 +858,7 @@ describe("Watching and unwatching calendar", () => {
 
       const calendarService = new CalendarService(delegationCredential1Member1);
       await calendarService.unwatchCalendar({
-        calendarId: testSelectedCalendar.externalId,
+        calendarId: selectedCalendar.externalId,
         eventTypeIds: [null],
       });
 
@@ -1318,14 +1064,12 @@ describe("Watching and unwatching calendar", () => {
     ]);
 
     // Concerned cache will just have remaining externalIds
-    expectCacheToBeSet({
-      delegationCredential: null,
+    await expectCacheToBeSet({
       credentialId: credentialInDb1.id,
       itemsInKey: [{ id: eventTypeLevelCalendarForSomeOtherExternalIdButSameCredentialId.externalId }],
     });
 
-    expectCacheToBeSet({
-      delegationCredential: null,
+    await expectCacheToBeSet({
       credentialId: someOtherCache.credentialId,
       itemsInKey: JSON.parse(someOtherCache.key).items,
     });
