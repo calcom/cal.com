@@ -68,6 +68,9 @@ export const buttonClasses = cva(
           "transition-shadow",
           "transition-transform",
           "duration-100",
+          // Dark mode active state
+          "dark:enabled:active:text-emphasis",
+          "dark:enabled:active:bg-subtle",
         ],
 
         secondary: [
@@ -93,6 +96,9 @@ export const buttonClasses = cva(
           "enabled:active:shadow-outline-gray-active",
           "transition-shadow",
           "duration-200",
+          // Dark mode active state
+          "dark:enabled:active:text-emphasis",
+          "dark:enabled:active:bg-subtle",
         ],
 
         minimal: [
@@ -111,11 +117,13 @@ export const buttonClasses = cva(
           "focus-visible:ring-0",
           "focus-visible:border-subtle",
           "focus-visible:shadow-button-outline-gray-focused",
-
           // Shadows and effects
           "enabled:active:shadow-outline-gray-active",
           "transition-shadow",
           "duration-200",
+          // Dark mode active state
+          "dark:enabled:active:text-emphasis",
+          "dark:enabled:active:bg-subtle",
         ],
 
         destructive: [
@@ -145,6 +153,9 @@ export const buttonClasses = cva(
           "enabled:active:shadow-outline-red-active",
           "transition-shadow",
           "duration-200",
+          // Dark mode active state
+          "dark:enabled:active:text-emphasis",
+          "dark:enabled:active:bg-subtle",
         ],
       },
       size: {
