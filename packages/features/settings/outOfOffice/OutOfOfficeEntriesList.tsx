@@ -1,5 +1,6 @@
 "use client";
 
+import type { InfiniteData } from "@tanstack/query-core";
 import { keepPreviousData } from "@tanstack/react-query";
 import {
   createColumnHelper,
@@ -28,6 +29,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
@@ -35,6 +37,8 @@ import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+
+import type { inferRouterOutputs } from "@trpc/server";
 
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
@@ -62,15 +66,17 @@ interface OutOfOfficeEntry {
   canEditAndDelete: boolean;
 }
 
-export default function OutOfOfficeEntriesList() {
+type OooListOutput = inferRouterOutputs<AppRouter>["viewer"]["ooo"]["outOfOfficeEntriesList"];
+
+export default function OutOfOfficeEntriesList({ rawInitialData }: { rawInitialData?: OooListOutput }) {
   return (
     <DataTableProvider useSegments={useSegments}>
-      <OutOfOfficeEntriesListContent />
+      <OutOfOfficeEntriesListContent rawInitialData={rawInitialData} />
     </DataTableProvider>
   );
 }
 
-function OutOfOfficeEntriesListContent() {
+function OutOfOfficeEntriesListContent({ rawInitialData }: { rawInitialData?: OooListOutput }) {
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [deletedEntry, setDeletedEntry] = useState(0);
@@ -87,6 +93,14 @@ function OutOfOfficeEntriesListContent() {
   const selectedTab = searchParams?.get("type") ?? OutOfOfficeTab.MINE;
 
   const endDateRange = useFilterValue("dateRange", ZDateRangeFilterValue)?.data;
+
+  const initialData = useMemo(() => {
+    if (!rawInitialData) return undefined;
+    return {
+      pages: [rawInitialData],
+      pageParams: [undefined],
+    } as InfiniteData<OooListOutput>;
+  }, [rawInitialData]);
 
   const { data, isPending, fetchNextPage, isFetching, refetch, hasNextPage } =
     trpc.viewer.ooo.outOfOfficeEntriesList.useInfiniteQuery(
