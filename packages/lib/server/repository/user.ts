@@ -180,6 +180,9 @@ export class UserRepository {
           organization: getParsedTeam(profile.organization),
         }))
       : null;
+
+    const hasCombinedUsernames = usernameList.some((username) => username.includes("+"));
+
     const where =
       profiles && profiles.length > 0
         ? {
@@ -189,18 +192,26 @@ export class UserRepository {
             },
           }
         : {
-            OR: [
-              {
-                username: {
-                  in: usernameList,
-                },
-              },
-              {
-                previousUsername: {
-                  in: usernameList,
-                },
-              },
-            ],
+            ...(hasCombinedUsernames
+              ? {
+                  username: {
+                    in: usernameList,
+                  },
+                }
+              : {
+                  OR: [
+                    {
+                      username: {
+                        in: usernameList,
+                      },
+                    },
+                    {
+                      previousUsername: {
+                        in: usernameList,
+                      },
+                    },
+                  ],
+                }),
             ...(orgSlug
               ? {
                   organization: whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
