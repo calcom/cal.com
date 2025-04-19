@@ -28,6 +28,7 @@ import classNames from "@calcom/ui/classNames";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 
 import { EditWeightsForAllTeamMembers } from "../../EditWeightsForAllTeamMembers";
@@ -334,39 +335,65 @@ const RoundRobinHosts = ({
         </p>
       </div>
       <div className="border-subtle rounded-b-md border border-t-0 px-6 pt-4">
-        <>
-          <Controller<FormValues>
-            name="isRRWeightsEnabled"
-            render={({ field: { value: isRRWeightsEnabled, onChange } }) => (
+        <Controller<FormValues>
+          name="roundRobinHostsCount"
+          render={({ field: { value: roundRobinHostsCount, onChange } }) => (
+            <div className="pb-4 pt-4">
               <SettingsToggle
-                title={t("enable_weights")}
+                title="Enable more than one round robin host to attend the event"
                 description={<WeightDescription t={t} />}
-                checked={isRRWeightsEnabled}
+                checked={roundRobinHostsCount > 1}
                 switchContainerClassName={customClassNames?.enableWeights?.container}
                 labelClassName={customClassNames?.enableWeights?.label}
                 descriptionClassName={customClassNames?.enableWeights?.description}
                 onCheckedChange={(active) => {
-                  onChange(active);
-                  const rrHosts = getValues("hosts").filter((host) => !host.isFixed);
-                  const sortedRRHosts = rrHosts.sort((a, b) => sortHosts(a, b, active));
-                  setValue("hosts", sortedRRHosts);
+                  active ? onChange(2) : onChange(1);
                 }}>
-                <EditWeightsForAllTeamMembers
-                  teamMembers={teamMembers}
-                  value={value}
-                  onChange={(hosts) => {
-                    const sortedRRHosts = hosts.sort((a, b) => sortHosts(a, b, true));
-                    setValue("hosts", sortedRRHosts, { shouldDirty: true });
-                  }}
-                  assignAllTeamMembers={assignAllTeamMembers}
-                  assignRRMembersUsingSegment={assignRRMembersUsingSegment}
-                  teamId={teamId}
-                  queryValue={rrSegmentQueryValue}
+                <TextField
+                  required
+                  type="number"
+                  value={roundRobinHostsCount}
+                  onChange={onChange}
+                  min={1}
+                  containerClassName={classNames("max-w-80")}
+                  addOnSuffix="hosts"
+                  data-testid=""
                 />
               </SettingsToggle>
-            )}
-          />
-        </>
+            </div>
+          )}
+        />
+        <Controller<FormValues>
+          name="isRRWeightsEnabled"
+          render={({ field: { value: isRRWeightsEnabled, onChange } }) => (
+            <SettingsToggle
+              title={t("enable_weights")}
+              description={<WeightDescription t={t} />}
+              checked={isRRWeightsEnabled}
+              switchContainerClassName={customClassNames?.enableWeights?.container}
+              labelClassName={customClassNames?.enableWeights?.label}
+              descriptionClassName={customClassNames?.enableWeights?.description}
+              onCheckedChange={(active) => {
+                onChange(active);
+                const rrHosts = getValues("hosts").filter((host) => !host.isFixed);
+                const sortedRRHosts = rrHosts.sort((a, b) => sortHosts(a, b, active));
+                setValue("hosts", sortedRRHosts);
+              }}>
+              <EditWeightsForAllTeamMembers
+                teamMembers={teamMembers}
+                value={value}
+                onChange={(hosts) => {
+                  const sortedRRHosts = hosts.sort((a, b) => sortHosts(a, b, true));
+                  setValue("hosts", sortedRRHosts, { shouldDirty: true });
+                }}
+                assignAllTeamMembers={assignAllTeamMembers}
+                assignRRMembersUsingSegment={assignRRMembersUsingSegment}
+                teamId={teamId}
+                queryValue={rrSegmentQueryValue}
+              />
+            </SettingsToggle>
+          )}
+        />
         <AddMembersWithSwitch
           placeholder={t("add_a_member")}
           teamId={teamId}

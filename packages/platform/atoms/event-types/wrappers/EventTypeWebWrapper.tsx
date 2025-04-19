@@ -93,6 +93,11 @@ export type EventTypeWebWrapperProps = {
 
 export const EventTypeWebWrapper = ({ id, data }: EventTypeWebWrapperProps) => {
   const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery({ id }, { initialData: data });
+  console.log("--------- event type trpc query data -----------", eventTypeQueryData);
+  console.log(
+    "--------- roundRobinHostsCount -----------",
+    eventTypeQueryData.eventType.roundRobinHostsCount
+  );
 
   if (!eventTypeQueryData) return null;
 
