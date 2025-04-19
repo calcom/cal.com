@@ -5,7 +5,7 @@ import { getSession } from "next-auth/react";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import WorkflowsPage from "@calcom/features/ee/workflows/pages/index";
+import LegacyPage from "@calcom/features/ee/workflows/pages/index";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { workflowsRouter } from "@calcom/trpc/server/routers/viewer/workflows/_router";
 
@@ -36,7 +36,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
 
   const initialData = await caller.filteredList({ filters });
 
-  return <WorkflowsPage initialData={initialData} hasValidLicense={hasValidLicense} />;
+  return <LegacyPage initialData={initialData} hasValidLicense={hasValidLicense} />;
 };
 
 export default Page;
