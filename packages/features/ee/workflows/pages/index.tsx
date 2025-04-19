@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
+import { FilterResults } from "@calcom/features/filters/components/FilterResults";
+import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,9 +20,6 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { AnimatedPopover } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { FilterResults } from "../../../filters/components/FilterResults";
-import { TeamsFilter } from "../../../filters/components/TeamsFilter";
-import LicenseRequired from "../../common/components/LicenseRequired";
 import EmptyScreen from "../components/EmptyScreen";
 import WorkflowList from "../components/WorkflowListPage";
 
