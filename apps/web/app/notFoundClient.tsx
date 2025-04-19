@@ -1,9 +1,7 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 
 import {
   getOrgDomainConfigFromHostname,
@@ -58,24 +56,6 @@ export function NotFound() {
   const isBookingSuccessPage = pathname?.startsWith("/booking");
   const isSubpage = pathname?.includes("/", 2) || isBookingSuccessPage;
   const isInsights = pathname?.startsWith("/insights");
-
-  const [redirected, setRedirected] = useState(false);
-
-  const { data } = useQuery({
-    queryKey: ["previousUsername", username],
-    queryFn: async () => {
-      const response = await fetch(`/api/users/username/${username}?checkPrevious=true`);
-      if (!response.ok) throw new Error("Username not found");
-      return response.json();
-    },
-    enabled: pageType === PageType.USER && !isSubpage && !redirected && !!username,
-    retry: false,
-  });
-
-  if (data?.currentUsername && !redirected) {
-    window.location.href = `/${data.currentUsername}`;
-    setRedirected(true);
-  }
 
   const links = [
     {
