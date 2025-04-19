@@ -3,6 +3,7 @@ import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { getSession } from "next-auth/react";
 import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 import WorkflowsPage from "@calcom/features/ee/workflows/pages/index";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
@@ -23,14 +24,10 @@ const Page = async ({ params, searchParams }: PageProps) => {
 
   const filters = getTeamsFiltersFromQuery(_searchParams);
 
-  if (!session || !session.user) {
-    return {
-      redirect: {
-        destination: "/login",
-        permanent: false,
-      },
-    };
+  if (!session?.user?.id) {
+    redirect("/auth/login");
   }
+
   const hasValidLicense = session?.hasValidLicense ?? false;
   const caller = await createRouterCaller(workflowsRouter);
 
