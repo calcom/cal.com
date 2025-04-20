@@ -26,7 +26,7 @@ export const generateMetadata = async ({ params }: _PageProps) => {
       (t) => `${t("event_type")}`,
       () => "",
       undefined,
-      undmfined,
+      undefined,
       "/event-types"
     );
   }
