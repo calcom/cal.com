@@ -343,11 +343,15 @@ function BookingsContent({ status }: BookingsProps) {
     getFacetedUniqueValues,
   });
 
+  const filteredTabs = tabs.filter(
+    (tab) => tab.name !== "recurring" || (query.data?.recurringInfo && query.data.recurringInfo.length > 0)
+  );
+
   return (
     <div className="flex flex-col">
       <div className="flex flex-row flex-wrap justify-between">
         <HorizontalTabs
-          tabs={tabs.map((tab) => ({
+          tabs={filteredTabs.map((tab) => ({
             ...tab,
             name: t(tab.name),
           }))}
