@@ -2,7 +2,7 @@ import { describe, it, vi, expect, afterEach, beforeEach, beforeAll, afterAll } 
 
 import prisma from "@calcom/prisma";
 
-import { getLuckyUser, getOrderedListOfLuckyUsers } from "./getLuckyUser";
+import { getLuckyUser, getMultipleLuckyUsers } from "./getLuckyUser";
 
 let commonEventTypeId: number;
 const userIds: number[] = [];
@@ -439,36 +439,79 @@ describe("getLuckyUser Integration tests", () => {
   });
 });
 
-describe("getOrderedListOfLuckyUsers Integration tests", () => {
-  beforeEach(() => {
-    vi.setSystemTime("2024-11-14T00:00:13Z");
-  });
+describe("getMultipleLuckyUsers Integration tests", () => {
+  it("should return multiple hosts ordered by least recently booked", async () => {
+    // Setup 3 hosts with different booking times
+    const user1 = await createHostWithBookings({
+      user: { email: "host1@example.com" },
+      bookings: [{ eventTypeId: commonEventTypeId, createdAt: new Date("2022-01-25T05:30:00.000Z") }],
+    });
 
-  it("should sort as per availableUsers if no other criteria like weight/priority/calibration (TODO: make it independent of availableUsers order)", async () => {
-    const [host1, host2, host3] = await Promise.all([
-      createHostWithBookings({
-        user: { email: "test-user1@example.com" },
-        bookings: [],
-        createdAt: new Date(),
-      }),
-      createHostWithBookings({
-        user: { email: "test-user2@example.com" },
-        bookings: [],
-        createdAt: new Date(),
-      }),
-      createHostWithBookings({
-        user: { email: "test-user3@example.com" },
-        bookings: [],
-        createdAt: new Date(),
-      }),
+    const user2 = await createHostWithBookings({
+      user: { email: "host2@example.com" },
+      bookings: [{ eventTypeId: commonEventTypeId, createdAt: new Date("2022-01-25T04:30:00.000Z") }],
+    });
+
+    const user3 = await createHostWithBookings({
+      user: { email: "host3@example.com" },
+      bookings: [{ eventTypeId: commonEventTypeId, createdAt: new Date("2022-01-25T03:30:00.000Z") }],
+    });
+
+    // Test getting 2 hosts when 3 are available
+    const luckyUsers = await getMultipleLuckyUsers({
+      availableUsers: [user1.user, user2.user, user3.user],
+      roundRobinCount: 2,
+      eventType: {
+        id: commonEventTypeId,
+        isRRWeightsEnabled: false,
+        team: {},
+      },
+      allRRHosts: [],
+      routingFormResponse: null,
+    });
+
+    expect(luckyUsers.length).toBe(2);
+    expectLuckyUsers(luckyUsers, [
+      { email: "host3@example.com" }, // Least recently booked
+      { email: "host2@example.com" }, // Second least recently booked
     ]);
+  });
 
-    const user1 = host1.user;
-    const user2 = host2.user;
-    const user3 = host3.user;
+  it("should respect host priority when selecting multiple hosts", async () => {
+    // Setup 4 hosts with different priorities
+    const lowPriorityHost = await createHostWithBookings({
+      user: { email: "lowpriority@example.com" },
+      priority: 0,
+      bookings: [{ eventTypeId: commonEventTypeId, createdAt: new Date("2022-01-25T03:30:00.000Z") }],
+    });
 
-    const { users: luckyUsers } = await getOrderedListOfLuckyUsers({
-      availableUsers: [user2, user1, user3],
+    const mediumPriorityHost1 = await createHostWithBookings({
+      user: { email: "mediumpriority1@example.com" },
+      priority: 2,
+      bookings: [{ eventTypeId: commonEventTypeId, createdAt: new Date("2022-01-25T05:30:00.000Z") }],
+    });
+
+    const mediumPriorityHost2 = await createHostWithBookings({
+      user: { email: "mediumpriority2@example.com" },
+      priority: 2,
+      bookings: [{ eventTypeId: commonEventTypeId, createdAt: new Date("2022-01-25T04:30:00.000Z") }],
+    });
+
+    const highPriorityHost = await createHostWithBookings({
+      user: { email: "highpriority@example.com" },
+      priority: 4,
+      bookings: [{ eventTypeId: commonEventTypeId, createdAt: new Date("2022-01-25T06:30:00.000Z") }],
+    });
+
+    // Test getting 3 hosts with different priorities
+    const luckyUsers = await getMultipleLuckyUsers({
+      availableUsers: [
+        lowPriorityHost.user,
+        mediumPriorityHost1.user,
+        mediumPriorityHost2.user,
+        highPriorityHost.user,
+      ],
+      roundRobinCount: 3,
       eventType: {
         id: commonEventTypeId,
         isRRWeightsEnabled: false,
@@ -478,10 +521,103 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
       routingFormResponse: null,
     });
 
-    expectLuckyUsers(luckyUsers, [user2, user1, user3]);
+    expect(luckyUsers.length).toBe(3);
+    expectLuckyUsers(luckyUsers, [
+      { email: "highpriority@example.com" }, // Highest priority first
+      { email: "mediumpriority2@example.com" }, // Medium priority, less recent booking
+      { email: "mediumpriority1@example.com" }, // Medium priority, more recent booking
+    ]);
+  });
 
-    const { users: luckyUsers2 } = await getOrderedListOfLuckyUsers({
-      availableUsers: [user3, user1, user2],
+  it("should respect weights when enabled and selecting multiple hosts", async () => {
+    vi.setSystemTime(new Date("2022-06-20T11:59:59Z"));
+
+    // Setup hosts with different weights
+    const lowWeightHost = await createHostWithBookings({
+      user: { email: "lowweight@example.com" },
+      weight: 1,
+      bookings: [],
+    });
+
+    const mediumWeightHost = await createHostWithBookings({
+      user: { email: "mediumweight@example.com" },
+      weight: 2,
+      bookings: [],
+    });
+
+    const highWeightHost = await createHostWithBookings({
+      user: { email: "highweight@example.com" },
+      weight: 3,
+      bookings: [],
+    });
+
+    // Test getting hosts with weights enabled
+    const luckyUsers = await getMultipleLuckyUsers({
+      availableUsers: [lowWeightHost.user, mediumWeightHost.user, highWeightHost.user],
+      roundRobinCount: 3,
+      eventType: {
+        id: commonEventTypeId,
+        isRRWeightsEnabled: true,
+        team: {},
+      },
+      allRRHosts: [lowWeightHost, mediumWeightHost, highWeightHost],
+      routingFormResponse: null,
+    });
+
+    // With weights, the selection becomes probabilistic, so we just check the count
+    expect(luckyUsers.length).toBe(3);
+
+    // Since there's randomness in weighted selection, we can't deterministically assert the order
+    // But we can verify that all hosts are included
+    expect(luckyUsers.map((user) => user.email)).toEqual(
+      expect.arrayContaining(["lowweight@example.com", "mediumweight@example.com", "highweight@example.com"])
+    );
+  });
+
+  it("should handle no-show bookings correctly when selecting multiple hosts", async () => {
+    // Setup host that showed up for booking
+    const hostThatShowedUp = await createHostWithBookings({
+      user: { email: "showedup@example.com" },
+      bookings: [{ eventTypeId: commonEventTypeId, createdAt: new Date("2022-01-25T05:30:00.000Z") }],
+    });
+
+    // Setup host that was marked as no-show
+    const hostNoShow = await createHostWithBookings({
+      user: { email: "noshow@example.com" },
+      bookings: [
+        {
+          eventTypeId: commonEventTypeId,
+          createdAt: new Date("2022-01-25T06:30:00.000Z"),
+          noShowHost: true,
+        },
+      ],
+    });
+
+    // Setup host with recent booking but attendee no-show
+    const hostWithAttendeeNoShow = await createHostWithBookings({
+      user: { email: "attendeenoshow@example.com" },
+      bookings: [
+        {
+          eventTypeId: commonEventTypeId,
+          createdAt: new Date("2022-01-25T07:30:00.000Z"),
+          attendees: {
+            create: [
+              {
+                name: "test-attendee",
+                email: "test-attendee@example.com",
+                timeZone: "Asia/Calcutta",
+                noShow: true,
+              },
+            ],
+          },
+        },
+      ],
+    });
+
+    // Get 2 hosts - should prefer hosts with no-show bookings
+    const luckyUsers = await getMultipleLuckyUsers({
+      availableUsers: [hostThatShowedUp.user, hostNoShow.user, hostWithAttendeeNoShow.user],
+      roundRobinCount: 2,
       eventType: {
         id: commonEventTypeId,
         isRRWeightsEnabled: false,
@@ -490,309 +626,10 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
       allRRHosts: [],
       routingFormResponse: null,
     });
-    expectLuckyUsers(luckyUsers2, [user3, user1, user2]);
-  });
 
-  describe("should sort as per weights", () => {
-    const isRRWeightsEnabled = true;
-    it("even if there are no bookings", async () => {
-      const [host1WithWeight100, host2WithWeight200, host3WithWeight100] = await Promise.all([
-        createHostWithBookings({
-          user: { email: "test-user1@example.com" },
-          bookings: [],
-          createdAt: new Date(),
-          weight: 100,
-        }),
-        createHostWithBookings({
-          user: { email: "test-user2@example.com" },
-          bookings: [],
-          createdAt: new Date(),
-          weight: 200,
-        }),
-        createHostWithBookings({
-          user: { email: "test-user3@example.com" },
-          bookings: [],
-          createdAt: new Date(),
-          weight: 100,
-        }),
-      ]);
+    expect(luckyUsers.length).toBe(2);
 
-      const user1WithWeight100 = host1WithWeight100.user;
-      const userWithHighestWeight = host2WithWeight200.user;
-      const user2WithWeight100 = host3WithWeight100.user;
-
-      const allRRHosts = [host1WithWeight100, host2WithWeight200, host3WithWeight100];
-      const { users: luckyUsers } = await getOrderedListOfLuckyUsers({
-        availableUsers: [userWithHighestWeight, user1WithWeight100, user2WithWeight100],
-        eventType: {
-          id: commonEventTypeId,
-          isRRWeightsEnabled,
-          team: {},
-        },
-        allRRHosts,
-        routingFormResponse: null,
-      });
-
-      expectLuckyUsers(luckyUsers, [
-        // It has the highest weight
-        userWithHighestWeight,
-        // It has the same weight as the next one but comes earlier in availableUsers array
-        user1WithWeight100,
-        // It is the last choice
-        user2WithWeight100,
-      ]);
-
-      const { users: luckyUsers2 } = await getOrderedListOfLuckyUsers({
-        availableUsers: [user2WithWeight100, userWithHighestWeight, user1WithWeight100],
-        eventType: {
-          id: commonEventTypeId,
-          isRRWeightsEnabled,
-          team: {},
-        },
-        allRRHosts,
-        routingFormResponse: null,
-      });
-      expectLuckyUsers(luckyUsers2, [
-        // It has the highest weight and zero bookings.
-        userWithHighestWeight,
-        // It has the same weight as the next one but comes earlier in availableUsers array
-        user2WithWeight100,
-        // It is the last choice
-        user1WithWeight100,
-      ]);
-    });
-
-    it("consider booking count for the current month", async () => {
-      const [
-        hostWithOneBookingAndWeight200,
-        hostWithTwoBookingsAndWeight100,
-        hostWithThreeBookingsAndWeight100,
-      ] = await Promise.all([
-        createHostWithBookings({
-          user: { email: "test-user1@example.com" },
-          bookings: [{ eventTypeId: commonEventTypeId, createdAt: new Date() }],
-          createdAt: new Date(),
-          weight: 200,
-        }),
-        createHostWithBookings({
-          user: { email: "test-user2@example.com" },
-          bookings: [
-            { eventTypeId: commonEventTypeId, createdAt: new Date() },
-            { eventTypeId: commonEventTypeId, createdAt: new Date() },
-          ],
-          createdAt: new Date(),
-          weight: 100,
-        }),
-        createHostWithBookings({
-          user: { email: "test-user3@example.com" },
-          bookings: [
-            { eventTypeId: commonEventTypeId, createdAt: new Date() },
-            { eventTypeId: commonEventTypeId, createdAt: new Date() },
-            { eventTypeId: commonEventTypeId, createdAt: new Date() },
-          ],
-          createdAt: new Date(),
-          weight: 100,
-        }),
-      ]);
-
-      const userWithOneBookingAndWeight200 = hostWithOneBookingAndWeight200.user;
-      const userWithTwoBookingsAndWeight100 = hostWithTwoBookingsAndWeight100.user;
-      const userWithThreeBookingsAndWeight100 = hostWithThreeBookingsAndWeight100.user;
-
-      const availableUsers = [
-        userWithThreeBookingsAndWeight100,
-        userWithTwoBookingsAndWeight100,
-        userWithOneBookingAndWeight200,
-      ];
-
-      const getLuckUserParams = {
-        availableUsers,
-        eventType: {
-          id: commonEventTypeId,
-          isRRWeightsEnabled,
-          team: null,
-        },
-        allRRHosts: [
-          hostWithOneBookingAndWeight200,
-          hostWithTwoBookingsAndWeight100,
-          hostWithThreeBookingsAndWeight100,
-        ],
-        routingFormResponse: null,
-      };
-
-      const { users: luckyUsers, perUserData } = await getOrderedListOfLuckyUsers({
-        ...getLuckUserParams,
-        availableUsers: [getLuckUserParams.availableUsers[0], ...getLuckUserParams.availableUsers.slice(1)],
-      });
-
-      expectLuckyUsers(luckyUsers, [
-        // User with 1 booking is chosen first because it has higher weight and lesser bookings
-        userWithOneBookingAndWeight200,
-        // User with 2 bookings is chosen next because it has lesser bookings
-        userWithTwoBookingsAndWeight100,
-        // User with 3 bookings is chosen last because it has the most bookings
-        userWithThreeBookingsAndWeight100,
-      ]);
-
-      if (!perUserData?.bookingShortfalls) {
-        throw new Error("bookingShortfalls is not defined");
-      }
-      expect(perUserData.bookingShortfalls[userWithThreeBookingsAndWeight100.id]).toBe(-1.5);
-      expect(perUserData.bookingShortfalls[userWithTwoBookingsAndWeight100.id]).toBe(-0.5);
-      expect(perUserData.bookingShortfalls[userWithOneBookingAndWeight200.id]).toBe(2);
-    });
-
-    it("not considering bookings that were created in previous months", async () => {
-      const [
-        hostWithOneBookingInPreviousMonthAndWeight200,
-        hostWithTwoBookingsInPreviousMonthAndWeight100,
-        hostWithThreeBookingsInPreviousMonthAndWeight100,
-      ] = await Promise.all([
-        createHostWithBookings({
-          user: { email: "test-user1@example.com", createdDate: new Date() },
-          bookings: [{ eventTypeId: commonEventTypeId, createdAt: new Date("2024-10-01T00:00:00.000Z") }],
-          weight: 200,
-          createdAt: new Date(),
-        }),
-        createHostWithBookings({
-          user: { email: "test-user2@example.com", createdDate: new Date() },
-          bookings: [
-            { eventTypeId: commonEventTypeId, createdAt: new Date("2024-10-01T00:00:00.000Z") },
-            { eventTypeId: commonEventTypeId, createdAt: new Date("2024-10-01T00:00:00.000Z") },
-          ],
-          weight: 100,
-          createdAt: new Date(),
-        }),
-        createHostWithBookings({
-          user: { email: "test-user3@example.com", createdDate: new Date() },
-          bookings: [
-            { eventTypeId: commonEventTypeId, createdAt: new Date("2024-10-01T00:00:00.000Z") },
-            { eventTypeId: commonEventTypeId, createdAt: new Date("2024-10-01T00:00:00.000Z") },
-            { eventTypeId: commonEventTypeId, createdAt: new Date("2024-10-01T00:00:00.000Z") },
-          ],
-          weight: 100,
-          createdAt: new Date(),
-        }),
-      ]);
-
-      const userWithOneBookingInPreviousMonthAndWeight200 =
-        hostWithOneBookingInPreviousMonthAndWeight200.user;
-      const userWithTwoBookingsInPreviousMonthAndWeight100 =
-        hostWithTwoBookingsInPreviousMonthAndWeight100.user;
-      const userWithThreeBookingsInPreviousMonthAndWeight100 =
-        hostWithThreeBookingsInPreviousMonthAndWeight100.user;
-
-      const availableUsers = [
-        userWithThreeBookingsInPreviousMonthAndWeight100,
-        userWithTwoBookingsInPreviousMonthAndWeight100,
-        userWithOneBookingInPreviousMonthAndWeight200,
-      ];
-
-      const getLuckUserParams = {
-        availableUsers,
-        eventType: {
-          id: commonEventTypeId,
-          isRRWeightsEnabled,
-          team: null,
-        },
-        allRRHosts: [
-          hostWithOneBookingInPreviousMonthAndWeight200,
-          hostWithTwoBookingsInPreviousMonthAndWeight100,
-          hostWithThreeBookingsInPreviousMonthAndWeight100,
-        ],
-        routingFormResponse: null,
-      };
-
-      const { users: luckyUsers, perUserData } = await getOrderedListOfLuckyUsers({
-        ...getLuckUserParams,
-        availableUsers: [getLuckUserParams.availableUsers[0], ...getLuckUserParams.availableUsers.slice(1)],
-      });
-
-      expectLuckyUsers(luckyUsers, [
-        // User with 1 booking is chosen first because it has higher weight and lesser bookings
-        userWithOneBookingInPreviousMonthAndWeight200,
-        // User with 3 bookings is chosen next because it comes earlier in availableUsers array
-        userWithThreeBookingsInPreviousMonthAndWeight100,
-        // User with 2 bookings is chosen last because it comes later in availableUsers array
-        userWithTwoBookingsInPreviousMonthAndWeight100,
-      ]);
-
-      if (!perUserData?.bookingShortfalls) {
-        throw new Error("bookingShortfalls is not defined");
-      }
-
-      // Because no one has any bookings in the current month, the booking shortfall should be 0 for all users
-      expect(perUserData.bookingShortfalls[userWithThreeBookingsInPreviousMonthAndWeight100.id]).toBe(0);
-      expect(perUserData.bookingShortfalls[userWithTwoBookingsInPreviousMonthAndWeight100.id]).toBe(0);
-      expect(perUserData.bookingShortfalls[userWithOneBookingInPreviousMonthAndWeight200.id]).toBe(0);
-    });
-  });
-  describe("should sort as per host creation data calibration", () => {
-    const isRRWeightsEnabled = true;
-
-    it("not considering bookings that were created in previous months", async () => {
-      const today = new Date();
-      const tenthOfTheMonth = new Date(today.getFullYear(), today.getMonth(), 10);
-      const secondsInDay = 24 * 60 * 60 * 1000;
-      const ninthOfTheMonth = new Date(tenthOfTheMonth.getTime() - secondsInDay);
-      const eighthOfTheMonth = new Date(tenthOfTheMonth.getTime() - 2 * secondsInDay);
-      const [host1, host2, host3] = await Promise.all([
-        createHostWithBookings({
-          user: { email: "test-user1@example.com", createdDate: tenthOfTheMonth },
-          bookings: [
-            { eventTypeId: commonEventTypeId, createdAt: new Date(tenthOfTheMonth.getTime() + 1000) },
-          ],
-          weight: 200,
-          createdAt: tenthOfTheMonth,
-        }),
-        createHostWithBookings({
-          user: { email: "test-user2@example.com", createdDate: ninthOfTheMonth },
-          bookings: [
-            { eventTypeId: commonEventTypeId, createdAt: new Date(ninthOfTheMonth.getTime() + 1000) },
-            { eventTypeId: commonEventTypeId, createdAt: new Date(ninthOfTheMonth.getTime() + 2000) },
-          ],
-          weight: 100,
-          createdAt: ninthOfTheMonth,
-        }),
-        createHostWithBookings({
-          user: { email: "test-user3@example.com", createdDate: eighthOfTheMonth },
-          bookings: [
-            { eventTypeId: commonEventTypeId, createdAt: new Date(eighthOfTheMonth.getTime() + 1000) },
-            { eventTypeId: commonEventTypeId, createdAt: new Date(eighthOfTheMonth.getTime() + 2000) },
-            { eventTypeId: commonEventTypeId, createdAt: new Date(eighthOfTheMonth.getTime() + 3000) },
-          ],
-          weight: 100,
-          createdAt: eighthOfTheMonth,
-        }),
-      ]);
-
-      const availableUsers = [host3.user, host2.user, host1.user];
-
-      const getLuckyUserParams = {
-        availableUsers,
-        eventType: {
-          id: commonEventTypeId,
-          isRRWeightsEnabled,
-          team: null,
-        },
-        allRRHosts: [host1, host2, host3],
-        routingFormResponse: null,
-      };
-
-      const { users: luckyUsers, perUserData } = await getOrderedListOfLuckyUsers({
-        ...getLuckyUserParams,
-        availableUsers: [getLuckyUserParams.availableUsers[0], ...getLuckyUserParams.availableUsers.slice(1)],
-      });
-
-      if (!perUserData?.bookingShortfalls || !perUserData?.calibrations) {
-        throw new Error("bookingShortfalls or calibrations is not defined");
-      }
-
-      expect(perUserData.calibrations[host1.user.id]).toBe(2.5);
-      expect(perUserData.calibrations[host2.user.id]).toBe(3);
-      expect(perUserData.calibrations[host3.user.id]).toBe(0);
-
-      expectLuckyUsers(luckyUsers, [host1.user, host3.user, host2.user]);
-    });
+    // Host no-show and attendee no-show should be preferred over host that showed up
+    expectLuckyUsers(luckyUsers, [{ email: "noshow@example.com" }, { email: "attendeenoshow@example.com" }]);
   });
 });

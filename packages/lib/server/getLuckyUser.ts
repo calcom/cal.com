@@ -1134,3 +1134,27 @@ function getAttributesForVirtualQueues(
   });
   return selectionOptions;
 }
+
+/**
+ * This extends the functionality of getLuckyUser to select multiple hosts
+ */
+export async function getMultipleLuckyUsers<
+  T extends PartialUser & {
+    priority?: number | null;
+    weight?: number | null;
+  }
+>(getLuckyUserParams: GetLuckyUserParams<T> & { roundRobinCount: number }) {
+  const { roundRobinCount, ...params } = getLuckyUserParams;
+
+  // If roundRobinCount is 1, use the existing function
+  if (roundRobinCount === 1) {
+    const luckyUser = await getLuckyUser(params);
+    return [luckyUser];
+  }
+
+  // For multiple hosts, use getOrderedListOfLuckyUsers and take the first roundRobinCount users
+  const { users: orderedLuckyUsers } = await getOrderedListOfLuckyUsers(params);
+
+  // Return only the number of hosts requested, or all available if fewer hosts are available
+  return orderedLuckyUsers.slice(0, roundRobinCount);
+}

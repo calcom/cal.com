@@ -28,6 +28,7 @@ import classNames from "@calcom/ui/classNames";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
+import { Input } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 
 import { EditWeightsForAllTeamMembers } from "../../EditWeightsForAllTeamMembers";
@@ -315,6 +316,10 @@ const RoundRobinHosts = ({
     name: "rrSegmentQueryValue",
   });
 
+  // Get the initial roundRobinCount from the event type or default to 1
+  const eventType = getValues("eventType");
+  const initialRoundRobinCount = eventType?.roundRobinCount || 1;
+
   return (
     <div className={classNames("rounded-lg")}>
       <div
@@ -335,6 +340,50 @@ const RoundRobinHosts = ({
       </div>
       <div className="border-subtle rounded-b-md border border-t-0 px-6 pt-4">
         <>
+          <Controller<FormValues>
+            name="roundRobinCount"
+            defaultValue={initialRoundRobinCount}
+            render={({ field: { value, onChange } }) => (
+              <div className="mb-6">
+                <Label htmlFor="roundRobinCount" className="mb-2 text-sm font-semibold">
+                  {t("number_of_hosts_per_booking")}
+                </Label>
+                <div className="flex items-center">
+                  <Input
+                    type="number"
+                    id="roundRobinCount"
+                    min={1}
+                    max={
+                      assignAllTeamMembers
+                        ? teamMembers.length
+                        : value.filter((host: Host) => !host.isFixed).length || 1
+                    }
+                    value={value}
+                    onChange={(e) => {
+                      // Get the max allowed count based on available hosts
+                      const maxAllowedCount = assignAllTeamMembers
+                        ? teamMembers.length
+                        : getValues("hosts").filter((host) => !host.isFixed).length;
+
+                      // Convert to number and validate
+                      let count = parseInt(e.target.value);
+
+                      // Ensure the value is at least 1
+                      if (isNaN(count) || count < 1) count = 1;
+
+                      // Ensure the value doesn't exceed available hosts
+                      if (count > maxAllowedCount) count = maxAllowedCount;
+
+                      onChange(count);
+                    }}
+                    className="w-20"
+                  />
+                </div>
+                <p className="text-subtle mt-2 text-sm">{t("number_of_hosts_per_booking_description")}</p>
+              </div>
+            )}
+          />
+
           <Controller<FormValues>
             name="isRRWeightsEnabled"
             render={({ field: { value: isRRWeightsEnabled, onChange } }) => (
@@ -625,6 +674,15 @@ export const EventTeamAssignmentTab = ({
   const [assignAllTeamMembers, setAssignAllTeamMembers] = useState<boolean>(
     getValues("assignAllTeamMembers") ?? false
   );
+
+  // Set initial roundRobinCount from eventType
+  useEffect(() => {
+    if (eventType.roundRobinCount) {
+      setValue("roundRobinCount", eventType.roundRobinCount);
+    } else {
+      setValue("roundRobinCount", 1);
+    }
+  }, [eventType.roundRobinCount, setValue]);
 
   const resetRROptions = () => {
     setValue("assignRRMembersUsingSegment", false, { shouldDirty: true });

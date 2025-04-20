@@ -171,6 +171,7 @@ model EventType {
   maxLeadThreshold                        Int?
   selectedCalendars                       SelectedCalendar[]
   allowReschedulingPastBookings           Boolean                   @default(false)
+  roundRobinCount                         Int                       @default(1)
 
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                   Json?
