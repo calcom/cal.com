@@ -169,13 +169,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const getEmailVerificationStatus = () =>
     !!step &&
-    !!verifiedEmails.find((email: string) => email === form.getValues(`steps.${step.stepNumber - 1}.sendTo`));
+    !!verifiedEmails?.find(
+      (email: string) => email === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
+    );
 
   const [numberVerified, setNumberVerified] = useState(getNumberVerificationStatus());
   const [emailVerified, setEmailVerified] = useState(getEmailVerificationStatus());
 
   useEffect(() => setNumberVerified(getNumberVerificationStatus()), [verifiedNumbers.length]);
-  useEffect(() => setEmailVerified(getEmailVerificationStatus()), [verifiedEmails.length]);
+  useEffect(() => setEmailVerified(getEmailVerificationStatus()), [verifiedEmails?.length]);
 
   const addVariableEmailSubject = (variable: string) => {
     if (step) {
