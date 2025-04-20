@@ -79,6 +79,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       rescheduleWithSameRoundRobinHost: true,
       assignAllTeamMembers: true,
       isRRWeightsEnabled: true,
+      roundRobinHostsCount: true,
       beforeEventBuffer: true,
       afterEventBuffer: true,
       parentId: true,

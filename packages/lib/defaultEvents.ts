@@ -119,6 +119,7 @@ const commons = {
   assignRRMembersUsingSegment: false,
   rrSegmentQueryValue: null,
   isRRWeightsEnabled: false,
+  roundRobinHostsCount: 1,
   rescheduleWithSameRoundRobinHost: false,
   useEventTypeDestinationCalendarEmail: false,
   secondaryEmailId: null,

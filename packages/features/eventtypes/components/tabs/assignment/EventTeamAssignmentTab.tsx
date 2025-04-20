@@ -338,14 +338,15 @@ const RoundRobinHosts = ({
         <Controller<FormValues>
           name="roundRobinHostsCount"
           render={({ field: { value: roundRobinHostsCount, onChange } }) => (
-            <div className="pb-4 pt-4">
+            <div className="pb-8">
               <SettingsToggle
-                title="Enable more than one round robin host to attend the event"
-                description={<WeightDescription t={t} />}
+                title={t("round_robin_multiple_hosts")}
+                description={<p>{t("round_robin_multiple_hosts_description")}</p>}
                 checked={roundRobinHostsCount > 1}
-                switchContainerClassName={customClassNames?.enableWeights?.container}
-                labelClassName={customClassNames?.enableWeights?.label}
-                descriptionClassName={customClassNames?.enableWeights?.description}
+                switchContainerClassName=""
+                labelClassName=""
+                descriptionClassName=""
+                data-testid="round-robin-multiple-hosts-toggle"
                 onCheckedChange={(active) => {
                   active ? onChange(2) : onChange(1);
                 }}>
@@ -353,11 +354,15 @@ const RoundRobinHosts = ({
                   required
                   type="number"
                   value={roundRobinHostsCount}
-                  onChange={onChange}
-                  min={1}
+                  onChange={(e) => {
+                    let hostCount = Number(e.target.value);
+                    if (hostCount < 2) hostCount = 2;
+                    onChange(hostCount);
+                  }}
+                  min={2}
                   containerClassName={classNames("max-w-80")}
                   addOnSuffix="hosts"
-                  data-testid=""
+                  data-testid="round-robin-multiple-hosts-count-input"
                 />
               </SettingsToggle>
             </div>
