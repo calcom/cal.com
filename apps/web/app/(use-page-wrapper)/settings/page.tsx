@@ -165,7 +165,7 @@ const SettingsHomePage = async () => {
               <a
                 key={item.name}
                 href={item.href}
-                className="hover:bg-subtle group flex items-center gap-4 rounded-md border p-4 transition">
+                className="hover:bg-subtle group flex items-center gap-4 rounded-md p-4 transition">
                 <div className="bg-subtle text-emphasis flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md">
                   <Icon name={item.icon} className="h-5 w-5" />
                 </div>
@@ -185,7 +185,7 @@ const SettingsHomePage = async () => {
               <a
                 key={item.name}
                 href={item.href}
-                className="hover:bg-subtle group flex items-center gap-4 rounded-md border p-4 transition">
+                className="hover:bg-subtle group flex items-center gap-4 rounded-md p-4 transition">
                 <div className="bg-subtle text-emphasis flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md">
                   <Icon name={item.icon} className="h-5 w-5" />
                 </div>
@@ -205,7 +205,7 @@ const SettingsHomePage = async () => {
               <a
                 key={item.name}
                 href={item.href}
-                className="hover:bg-subtle group flex items-center gap-4 rounded-md border p-4 transition">
+                className="hover:bg-subtle group flex items-center gap-4 rounded-md p-4 transition">
                 <div className="bg-subtle text-emphasis flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md">
                   <Icon name={item.icon} className="h-5 w-5" />
                 </div>
@@ -225,7 +225,7 @@ const SettingsHomePage = async () => {
               <a
                 key={item.name}
                 href={item.href}
-                className="hover:bg-subtle group flex items-center gap-4 rounded-md border p-4 transition">
+                className="hover:bg-subtle group flex items-center gap-4 rounded-md p-4 transition">
                 <div className="bg-subtle text-emphasis flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md">
                   <Icon name={item.icon} className="h-5 w-5" />
                 </div>
