@@ -440,7 +440,8 @@ export default class EventManager {
     rescheduleUid: string,
     newBookingId?: number,
     changedOrganizer?: boolean,
-    previousHostDestinationCalendar?: DestinationCalendar[] | null
+    previousHostDestinationCalendar?: DestinationCalendar[] | null,
+    isBookingFromHostRequestedReschedule?: boolean | null
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
     const evt = cloneDeep(originalEvt);
@@ -516,7 +517,7 @@ export default class EventManager {
         // If the reschedule doesn't require confirmation, we can "update" the events and meetings to new time.
         const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
         // If and only if event type is a dedicated meeting, update the dedicated video meeting.
-        if (isDedicated) {
+        if (isDedicated && !isBookingFromHostRequestedReschedule) {
           const result = await this.updateVideoEvent(evt, booking);
           const [updatedEvent] = Array.isArray(result.updatedEvent)
             ? result.updatedEvent
@@ -526,6 +527,43 @@ export default class EventManager {
             evt.videoCallData = updatedEvent;
             evt.location = updatedEvent.url;
           }
+          results.push(result);
+        }
+
+        if (isBookingFromHostRequestedReschedule) {
+          const result = await this.createVideoEvent(originalEvt);
+          if (result?.createdEvent) {
+            event.videoCallData = result.createdEvent;
+            event.location = result.originalEvent.location;
+            result.type = result.createdEvent.type;
+            //responses data is later sent to webhook
+            if (event.location && event.responses) {
+              event.responses["location"] = {
+                ...(event.responses["location"] ?? {}),
+                value: {
+                  optionValue: "",
+                  value: event.location,
+                },
+              };
+            }
+
+            const videoEventRefIndex = booking.references.findIndex((ref) =>
+              ref.type.includes(result.createdEvent?.type ?? "")
+            );
+
+            if (videoEventRefIndex !== -1) {
+              booking.references[videoEventRefIndex] = {
+                type: result.type,
+                uid: result.createdEvent.id?.toString() ?? "",
+                meetingId: result.createdEvent.id?.toString(),
+                meetingPassword: result.createdEvent.password,
+                meetingUrl: result.createdEvent.url,
+                externalCalendarId: null,
+                credentialId: result.credentialId ?? undefined,
+              };
+            }
+          }
+
           results.push(result);
         }
 

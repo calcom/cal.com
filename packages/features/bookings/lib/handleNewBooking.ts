@@ -1401,13 +1401,18 @@ async function handler(
         )
         .build();
     }
-
+    const isBookingFromHostRequestedReschedule =
+      !!originalRescheduledBooking?.cancellationReason &&
+      !!originalRescheduledBooking?.cancelledBy &&
+      originalRescheduledBooking?.rescheduled;
+    if (isBookingFromHostRequestedReschedule) evt.videoCallData = undefined;
     const updateManager = await eventManager.reschedule(
       evt,
       originalRescheduledBooking.uid,
       undefined,
       changedOrganizer,
-      previousHostDestinationCalendar
+      previousHostDestinationCalendar,
+      isBookingFromHostRequestedReschedule
     );
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
@@ -1416,6 +1421,11 @@ async function handler(
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
 
+    // videoCallUrl = isBookingFromHostRequestedReschedule
+    //   ? updateManager.results.find((result) => result.type.includes("_video"))?.createdEvent?.url
+    //   : evt.videoCallData && evt.videoCallData.url
+    //   ? evt.videoCallData.url
+    //   : null;
     videoCallUrl = evt.videoCallData && evt.videoCallData.url ? evt.videoCallData.url : null;
 
     // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
