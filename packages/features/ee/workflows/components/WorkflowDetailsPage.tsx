@@ -25,10 +25,8 @@ import WorkflowStepContainer from "./WorkflowStepContainer";
 type User = RouterOutputs["viewer"]["me"]["get"];
 
 interface Props {
-  verifiedNumbers: {
-    number: string;
-  };
-  verifiedEmails: string[];
+  verifiedNumbers: RouterOutputs["viewer"]["workflows"]["getVerifiedNumbers"];
+  verifiedEmails: RouterOutputs["viewer"]["workflows"]["getVerifiedEmails"];
   form: UseFormReturn<FormValues>;
   workflowId: number;
   selectedOptions: Option[];
@@ -192,7 +190,7 @@ export default function WorkflowDetailsPage(props: Props) {
 
         {/* Workflow Trigger Event & Steps */}
         <div className="bg-muted border-subtle w-full rounded-md border p-3 py-5 md:ml-3 md:p-8">
-          {form.getValues("trigger") ? (
+          {form.getValues("trigger") && (
             <WorkflowStepContainer
               verifiedNumbers={verifiedNumbers}
               verifiedEmails={verifiedEmails}
