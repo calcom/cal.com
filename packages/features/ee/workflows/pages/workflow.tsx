@@ -58,6 +58,10 @@ function WorkflowPage({
   const { t, i18n } = useLocale();
   const [selectedOptions, setSelectedOptions] = useState<Option[]>([]);
   const [isMixedEventType, setIsMixedEventType] = useState(false); //for old event types before team workflows existed
+
+  const [workflowNameOnShell, setWorkflowNameOnShell] = useState(
+    workflow && workflow?.name ? workflow.name : t("untitled")
+  );
   const form = useForm<FormValues>({
     mode: "onBlur",
     resolver: zodResolver(formSchema),
@@ -163,6 +167,7 @@ function WorkflowPage({
       if (workflow) {
         utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
         setFormData(workflow);
+        setWorkflowNameOnShell(workflow.name);
         showToast(
           t("workflow_updated_successfully", {
             workflowName: workflow.name,
@@ -278,7 +283,7 @@ function WorkflowPage({
             heading={
               <div className="flex">
                 <div className={classNames(workflow && !workflow.name ? "text-muted" : "")}>
-                  {workflow && workflow.name ? workflow.name : "untitled"}
+                  {workflowNameOnShell}
                 </div>
                 {workflow && workflow.team && (
                   <Badge className="ml-4 mt-1" variant="gray">
