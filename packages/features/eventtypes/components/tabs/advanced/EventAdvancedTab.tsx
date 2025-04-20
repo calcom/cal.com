@@ -560,7 +560,7 @@ export const EventAdvancedTab = ({
           isUserLoading={isUserLoading}
         />
       )}
-      <div className="">
+      <div className="border-subtle space-y-6 rounded-lg border p-6">
         <FormBuilder
           title={t("booking_questions_title")}
           description={t("booking_questions_description")}
