@@ -572,6 +572,7 @@ async function handler(
         },
       }),
     };
+
     if (input.bookingData.allRecurringDates && input.bookingData.isFirstRecurringSlot) {
       const isTeamEvent =
         eventType.schedulingType === SchedulingType.COLLECTIVE ||
@@ -692,7 +693,7 @@ async function handler(
 
       // loop through all non-fixed hosts and get the lucky users
       // This logic doesn't run when contactOwner is used because in that case, luckUsers.length === 1
-      while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
+      while (luckyUserPool.length > 0 && luckyUsers.length < eventType.roundRobinHostsCount) {
         const freeUsers = luckyUserPool.filter(
           (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
         );
@@ -706,77 +707,74 @@ async function handler(
           memberId: eventTypeWithUsers.users[0].id ?? null,
           teamId: eventType.teamId,
         });
-        console.log("--------- adding multiple lucky users -----------", eventType.roundRobinHostsCount);
-        console.log("--------- freeUsers -----------", freeUsers);
-        if (eventType.roundRobinHostsCount > freeUsers.length) {
-          throw new Error("Not enough available users for round robin");
-        }
-        for (let i = 0; i < eventType.roundRobinHostsCount; i++) {
-          const newLuckyUser = await getLuckyUser({
-            // find a lucky user that is not already in the luckyUsers array
-            availableUsers: freeUsers,
-            allRRHosts: (
-              await enrichHostsWithDelegationCredentials({
-                orgId: firstUserOrgId ?? null,
-                hosts: eventTypeWithUsers.hosts,
-              })
-            ).filter((host) => !host.isFixed && userIdsSet.has(host.user.id)),
-            eventType,
-            routingFormResponse,
-          });
-          if (!newLuckyUser) {
-            break; // prevent infinite loop
-          }
-          if (
-            input.bookingData.isFirstRecurringSlot &&
-            eventType.schedulingType === SchedulingType.ROUND_ROBIN
-          ) {
-            // for recurring round robin events check if lucky user is available for next slots
-            try {
-              for (
-                let i = 0;
-                i < input.bookingData.allRecurringDates.length &&
-                i < input.bookingData.numSlotsToCheckForAvailability;
-                i++
-              ) {
-                const start = input.bookingData.allRecurringDates[i].start;
-                const end = input.bookingData.allRecurringDates[i].end;
 
-                await ensureAvailableUsers(
-                  { ...eventTypeWithUsers, users: [newLuckyUser] },
-                  {
-                    dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
-                    dateTo: dayjs(end).tz(reqBody.timeZone).format(),
-                    timeZone: reqBody.timeZone,
-                    originalRescheduledBooking,
-                  },
-                  loggerWithEventDetails,
-                  shouldServeCache
-                );
-              }
-              // if no error, then lucky user is available for the next slots
-              luckyUsers.push(newLuckyUser);
-              freeUsers.splice(freeUsers.indexOf(newLuckyUser), 1);
-            } catch {
-              notAvailableLuckyUsers.push(newLuckyUser);
-              freeUsers.splice(freeUsers.indexOf(newLuckyUser), 1);
-              loggerWithEventDetails.info(
-                `Round robin host ${newLuckyUser.name} not available for first two slots. Trying to find another host.`
+        const newLuckyUser = await getLuckyUser({
+          // find a lucky user that is not already in the luckyUsers array
+          availableUsers: freeUsers,
+          allRRHosts: (
+            await enrichHostsWithDelegationCredentials({
+              orgId: firstUserOrgId ?? null,
+              hosts: eventTypeWithUsers.hosts,
+            })
+          ).filter((host) => !host.isFixed && userIdsSet.has(host.user.id)),
+          eventType,
+          routingFormResponse,
+        });
+        if (!newLuckyUser) {
+          break; // prevent infinite loop
+        }
+        if (
+          input.bookingData.isFirstRecurringSlot &&
+          eventType.schedulingType === SchedulingType.ROUND_ROBIN
+        ) {
+          // for recurring round robin events check if lucky user is available for next slots
+          try {
+            for (
+              let i = 0;
+              i < input.bookingData.allRecurringDates.length &&
+              i < input.bookingData.numSlotsToCheckForAvailability;
+              i++
+            ) {
+              const start = input.bookingData.allRecurringDates[i].start;
+              const end = input.bookingData.allRecurringDates[i].end;
+
+              await ensureAvailableUsers(
+                { ...eventTypeWithUsers, users: [newLuckyUser] },
+                {
+                  dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
+                  dateTo: dayjs(end).tz(reqBody.timeZone).format(),
+                  timeZone: reqBody.timeZone,
+                  originalRescheduledBooking,
+                },
+                loggerWithEventDetails,
+                shouldServeCache
               );
             }
-          } else {
-            freeUsers.splice(freeUsers.indexOf(newLuckyUser), 1);
+            // if no error, then lucky user is available for the next slots
             luckyUsers.push(newLuckyUser);
+            freeUsers.splice(freeUsers.indexOf(newLuckyUser), 1);
+          } catch {
+            notAvailableLuckyUsers.push(newLuckyUser);
+            freeUsers.splice(freeUsers.indexOf(newLuckyUser), 1);
+            loggerWithEventDetails.info(
+              `Round robin host ${newLuckyUser.name} not available for first two slots. Trying to find another host.`
+            );
           }
+        } else {
+          freeUsers.splice(freeUsers.indexOf(newLuckyUser), 1);
+          luckyUsers.push(newLuckyUser);
         }
+      }
+
+      // luckyUsers.length must be equal to eventType.roundRobinHostsCount
+      if (luckyUsers.length < eventType.roundRobinHostsCount) {
+        throw new Error(ErrorCode.NotEnoughAvailableHosts);
       }
       // ALL fixed users must be available
       if (fixedUserPool.length !== users.filter((user) => user.isFixed).length) {
         throw new Error(ErrorCode.HostsUnavailableForBooking);
       }
       // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
-      console.log("--------- luckyUsers -----------", luckyUsers);
-      console.log("--------- fixedUserPool -----------", fixedUserPool);
       users = [...fixedUserPool, ...luckyUsers];
       luckyUserResponse = { luckyUsers: luckyUsers.map((u) => u.id) };
       troubleshooterData = {
