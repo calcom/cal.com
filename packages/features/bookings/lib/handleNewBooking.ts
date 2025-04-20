@@ -707,7 +707,6 @@ async function handler(
           memberId: eventTypeWithUsers.users[0].id ?? null,
           teamId: eventType.teamId,
         });
-
         const newLuckyUser = await getLuckyUser({
           // find a lucky user that is not already in the luckyUsers array
           availableUsers: freeUsers,
@@ -752,10 +751,8 @@ async function handler(
             }
             // if no error, then lucky user is available for the next slots
             luckyUsers.push(newLuckyUser);
-            freeUsers.splice(freeUsers.indexOf(newLuckyUser), 1);
           } catch {
             notAvailableLuckyUsers.push(newLuckyUser);
-            freeUsers.splice(freeUsers.indexOf(newLuckyUser), 1);
             loggerWithEventDetails.info(
               `Round robin host ${newLuckyUser.name} not available for first two slots. Trying to find another host.`
             );
