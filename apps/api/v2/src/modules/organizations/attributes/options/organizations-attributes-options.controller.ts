@@ -1,4 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -7,20 +8,33 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/create-organization-attribute-option.input";
+import { GetAssignedAttributeOptions } from "@/modules/organizations/attributes/options/inputs/get-assigned-attribute-options.input";
 import { AssignOrganizationAttributeOptionToUserInput } from "@/modules/organizations/attributes/options/inputs/organizations-attributes-options-assign.input";
 import { UpdateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/update-organizaiton-attribute-option.input.ts";
 import {
   AssignOptionUserOutput,
   UnassignOptionUserOutput,
 } from "@/modules/organizations/attributes/options/outputs/assign-option-user.output";
+import { GetAllAttributeAssignedOptionOutput } from "@/modules/organizations/attributes/options/outputs/assigned-options.output";
 import { CreateAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/create-option.output";
 import { DeleteAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/delete-option.output";
 import { GetOptionUserOutput } from "@/modules/organizations/attributes/options/outputs/get-option-user.output";
 import { GetAllAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/get-option.output";
 import { UpdateAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/update-option.output";
 import { OrganizationAttributeOptionService } from "@/modules/organizations/attributes/options/services/organization-attributes-option.service";
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
@@ -30,6 +44,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Attributes / Options")
+@ApiHeader(API_KEY_HEADER)
 export class OrganizationsAttributesOptionsController {
   constructor(private readonly organizationsAttributesOptionsService: OrganizationAttributeOptionService) {}
 
@@ -110,6 +125,54 @@ export class OrganizationsAttributesOptionsController {
       orgId,
       attributeId
     );
+    return {
+      status: SUCCESS_STATUS,
+      data: attributeOptions,
+    };
+  }
+
+  @Roles("ORG_MEMBER")
+  @PlatformPlan("ESSENTIALS")
+  @Get("/attributes/:attributeId/options/assigned")
+  @ApiOperation({ summary: "Get by attribute id all of the attribute options that are assigned to users" })
+  async getOrganizationAttributeAssignedOptions(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("attributeId") attributeId: string,
+    @Query() queryParams: GetAssignedAttributeOptions
+  ): Promise<GetAllAttributeAssignedOptionOutput> {
+    const { skip, take, ...rest } = queryParams;
+    const attributeOptions =
+      await this.organizationsAttributesOptionsService.getOrganizationAttributeAssignedOptions({
+        organizationId: orgId,
+        attributeId,
+        skip: skip ?? 0,
+        take: take ?? 250,
+        filters: rest,
+      });
+    return {
+      status: SUCCESS_STATUS,
+      data: attributeOptions,
+    };
+  }
+
+  @Roles("ORG_MEMBER")
+  @PlatformPlan("ESSENTIALS")
+  @Get("/attributes/slugs/:attributeSlug/options/assigned")
+  @ApiOperation({ summary: "Get by attribute slug all of the attribute options that are assigned to users" })
+  async getOrganizationAttributeAssignedOptionsBySlug(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("attributeSlug") attributeSlug: string,
+    @Query() queryParams: GetAssignedAttributeOptions
+  ): Promise<GetAllAttributeAssignedOptionOutput> {
+    const { skip, take, ...rest } = queryParams;
+    const attributeOptions =
+      await this.organizationsAttributesOptionsService.getOrganizationAttributeAssignedOptions({
+        organizationId: orgId,
+        attributeSlug,
+        skip: skip ?? 0,
+        take: take ?? 250,
+        filters: rest,
+      });
     return {
       status: SUCCESS_STATUS,
       data: attributeOptions,

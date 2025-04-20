@@ -8,22 +8,26 @@ import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/
 import type { getServerSideProps } from "@lib/org/[orgSlug]/instant-meeting/team/[slug]/[type]/getServerSideProps";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import BookingPageErrorBoundary from "@components/error/BookingPageErrorBoundary";
+
 export type Props = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
 function Type({ slug, user, booking, isEmbed, isBrandingHidden, entity, eventTypeId, duration }: Props) {
   return (
-    <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
-      <Booker
-        username={user}
-        eventSlug={slug}
-        bookingData={booking}
-        hideBranding={isBrandingHidden}
-        isTeamEvent
-        isInstantMeeting
-        entity={{ ...entity, eventTypeId: eventTypeId }}
-        duration={duration}
-      />
-    </main>
+    <BookingPageErrorBoundary>
+      <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
+        <Booker
+          username={user}
+          eventSlug={slug}
+          bookingData={booking}
+          hideBranding={isBrandingHidden}
+          isTeamEvent
+          isInstantMeeting
+          entity={{ ...entity, eventTypeId: eventTypeId }}
+          duration={duration}
+        />
+      </main>
+    </BookingPageErrorBoundary>
   );
 }
 

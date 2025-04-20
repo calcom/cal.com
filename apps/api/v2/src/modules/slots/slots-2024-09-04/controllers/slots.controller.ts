@@ -1,4 +1,5 @@
 import { VERSION_2024_09_04 } from "@/lib/api-versions";
+import { OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER, OPTIONAL_X_CAL_CLIENT_ID_HEADER } from "@/lib/docs/headers";
 import { GetOptionalUser } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
 import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
 import { GetReservedSlotOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-reserved-slot.output";
@@ -13,12 +14,10 @@ import {
   Delete,
   Post,
   Param,
-  Res,
   HttpCode,
   HttpStatus,
   Patch,
   UseGuards,
-  BadRequestException,
 } from "@nestjs/common";
 import {
   ApiOperation,
@@ -61,7 +60,7 @@ export class SlotsController_2024_09_04 {
   @ApiOperation({
     summary: "Find out when is an event type ready to be booked.",
     description: `
-      There are 4 ways to get available slots:
+      There are 4 ways to get available slots for event type of an individual user:
       
       1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'
 
@@ -70,6 +69,14 @@ export class SlotsController_2024_09_04 {
       3. By event type slug + username + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'
 
       4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.
+
+      And 3 ways to get available slots for team event type:
+
+      1. By team event type id. Example '/v2/slots?teamEventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'
+
+      2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'
+
+      3. By team event type slug + team slug + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'
 
       All of them require "start" and "end" query parameters which define the time range for which available slots should be checked.
       Optional parameters are:
@@ -118,14 +125,29 @@ export class SlotsController_2024_09_04 {
     name: "eventTypeSlug",
     required: false,
     description:
-      "The slug of the event type for which available slots should be checked. If slug is provided then username must be provided too.",
+      "The slug of the event type for which available slots should be checked. If slug is provided then username or teamSlug must be provided too and if relevant organizationSlug too.",
     example: "event-type-slug",
   })
   @ApiQuery({
     name: "username",
     required: false,
-    description: "The username of the user to get event types for.",
+    description:
+      "The username of the user who owns event type with eventTypeSlug - used when slots are checked for individual user event type.",
     example: "bob",
+  })
+  @ApiQuery({
+    name: "teamSlug",
+    required: false,
+    description:
+      "The slug of the team who owns event type with eventTypeSlug - used when slots are checked for team event type.",
+    example: "team-slug",
+  })
+  @ApiQuery({
+    name: "organizationSlug",
+    required: false,
+    description:
+      "The slug of the organization to which user with username belongs or team with teamSlug belongs.",
+    example: "org-slug",
   })
   @ApiQuery({
     name: "end",
@@ -223,8 +245,12 @@ export class SlotsController_2024_09_04 {
   @UseGuards(OptionalApiAuthGuard)
   @ApiOperation({
     summary: "Reserve a slot",
-    description: "Make a slot not available for others to book for a certain period of time.",
+    description: `Make a slot not available for others to book for a certain period of time. If you authenticate using oAuth credentials, api key or access token
+    then you can also specify custom duration for how long the slot should be reserved for (defaults to 5 minutes).`,
   })
+  @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+  @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+  @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
   async reserveSlot(
     @Body() body: ReserveSlotInput_2024_09_04,
     @GetOptionalUser() user: User

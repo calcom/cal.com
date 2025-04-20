@@ -448,7 +448,7 @@ test.describe("authorized user sees changed translations (de->ar)", async () => 
       await page.locator(".bg-default > div > div:nth-child(2)").first().click();
       await page.getByTestId("select-option-ar").click();
 
-      await submitAndWaitForResponse(page, "/api/trpc/viewer/updateProfile?batch=1", {
+      await submitAndWaitForResponse(page, "/api/trpc/me/updateProfile?batch=1", {
         action: () => page.click("[data-testid=general-submit-button]"),
       });
 
@@ -508,7 +508,7 @@ test.describe("authorized user sees changed translations (de->pt-BR) [locale1]",
       await page.locator(".bg-default > div > div:nth-child(2)").first().click();
       await page.locator("text=Português (Brasil)").click();
 
-      await submitAndWaitForResponse(page, "/api/trpc/viewer/updateProfile?batch=1", {
+      await submitAndWaitForResponse(page, "/api/trpc/me/updateProfile?batch=1", {
         action: () => page.click("[data-testid=general-submit-button]"),
       });
 

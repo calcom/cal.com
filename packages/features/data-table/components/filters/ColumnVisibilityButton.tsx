@@ -6,8 +6,7 @@ import { forwardRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import type { ButtonProps } from "@calcom/ui/components/button";
-import { Button, buttonClasses } from "@calcom/ui/components/button";
+import { type ButtonProps, Button, buttonClasses } from "@calcom/ui/components/button";
 import {
   Command,
   CommandInput,

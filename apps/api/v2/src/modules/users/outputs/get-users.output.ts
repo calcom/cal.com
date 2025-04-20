@@ -1,7 +1,16 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Transform, Type } from "class-transformer";
 import { Expose } from "class-transformer";
-import { IsBoolean, IsDateString, IsInt, IsString, ValidateNested, IsArray } from "class-validator";
+import {
+  IsBoolean,
+  IsDateString,
+  IsInt,
+  IsString,
+  ValidateNested,
+  IsArray,
+  IsObject,
+  IsOptional,
+} from "class-validator";
 
 export class GetUserOutput {
   @IsInt()
@@ -223,6 +232,21 @@ export class GetUserOutput {
     example: 1,
   })
   invitedTo!: number | null;
+
+  @ApiPropertyOptional({
+    type: Object,
+    example: { key: "value" },
+  })
+  @IsObject()
+  @IsOptional()
+  @Expose()
+  @Transform(
+    // note(Lauris): added this transform because without it metadata is removed for some reason
+    ({ obj }: { obj: { metadata: Record<string, unknown> | null | undefined } }) => {
+      return obj.metadata || undefined;
+    }
+  )
+  metadata?: Record<string, string | boolean | number>;
 }
 
 export class GetUsersOutput {

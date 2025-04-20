@@ -10,12 +10,14 @@ import {
   DataTableProvider,
   DataTableWrapper,
   DataTableFilters,
+  DataTableSegment,
   ColumnFilterType,
   useFilterValue,
   ZMultiSelectFilterValue,
   ZDateRangeFilterValue,
   ZTextFilterValue,
 } from "@calcom/features/data-table";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -85,7 +87,7 @@ type BookingsProps = {
 
 export default function Bookings(props: BookingsProps) {
   return (
-    <DataTableProvider>
+    <DataTableProvider useSegments={useSegments}>
       <BookingsContent {...props} />
     </DataTableProvider>
   );
@@ -374,10 +376,14 @@ function BookingsContent({ status }: BookingsProps) {
                 paginationMode="standard"
                 ToolbarLeft={
                   <>
-                    <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
-                    <DataTableFilters.ActiveFilters table={table} />
-                    <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
+                    <DataTableFilters.FilterBar table={table} />
+                  </>
+                }
+                ToolbarRight={
+                  <>
                     <DataTableFilters.ClearFiltersButton />
+                    <DataTableSegment.SaveButton />
+                    <DataTableSegment.Select />
                   </>
                 }
                 LoaderView={<SkeletonLoader />}

@@ -1,9 +1,10 @@
 import { z } from "zod";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import { MembershipRole, PeriodType } from "@calcom/prisma/enums";
+import { PeriodType } from "@calcom/prisma/enums";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -60,7 +61,7 @@ export const eventOwnerProcedure = authedProcedure
         const isOrgAdmin = !!ctx.user?.organization?.isOrgAdmin;
         return (
           event.team.members
-            .filter((member) => member.role === MembershipRole.OWNER || member.role === MembershipRole.ADMIN)
+            .filter((member) => checkAdminOrOwner(member.role))
             .map((member) => member.userId)
             .includes(ctx.user.id) || isOrgAdmin
         );

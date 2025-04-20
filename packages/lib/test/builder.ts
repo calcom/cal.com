@@ -124,6 +124,8 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     onlyShowFirstAvailableSlot: false,
     seatsPerTimeSlot: null,
     seatsShowAttendees: null,
+    disableCancelling: false,
+    disableRescheduling: false,
     seatsShowAvailabilityCount: null,
     maxLeadThreshold: null,
     schedulingType: null,

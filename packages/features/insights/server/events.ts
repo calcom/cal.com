@@ -381,7 +381,7 @@ class EventsInsights {
     }
   ) => {
     // Obtain the where conditional
-    const whereConditional = await this.obtainWhereConditional(props);
+    const whereConditional = await this.obtainWhereConditionalForDownload(props);
 
     const csvData = await prisma.bookingTimeStatus.findMany({
       select: {
@@ -452,7 +452,9 @@ class EventsInsights {
   };
 
   /*
-   * This is meant to be used for all functions inside insights router, ideally we should have a view that have all of this data
+   * This is meant to be used for all functions inside insights router,
+   * but it's currently used only for CSV download.
+   * Ideally we should have a view that have all of this data
    * The order where will be from the most specific to the least specific
    * starting from the top will be:
    * - memberUserId
@@ -466,7 +468,7 @@ class EventsInsights {
    * @param props
    * @returns
    */
-  static obtainWhereConditional = async (
+  static obtainWhereConditionalForDownload = async (
     props: RawDataInput & { organizationId: number | null; isOrgAdminOrOwner: boolean | null }
   ) => {
     const {
@@ -492,14 +494,7 @@ class EventsInsights {
     }
 
     if (eventTypeId) {
-      whereConditional["OR"] = [
-        {
-          eventTypeId,
-        },
-        {
-          eventParentId: eventTypeId,
-        },
-      ];
+      whereConditional["eventTypeId"] = eventTypeId;
     }
     if (memberUserId) {
       whereConditional["userId"] = memberUserId;

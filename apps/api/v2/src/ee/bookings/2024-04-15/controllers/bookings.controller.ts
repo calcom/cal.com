@@ -17,7 +17,8 @@ import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repo
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { UsersService } from "@/modules/users/services/users.service";
+import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
   Post,
@@ -36,7 +37,6 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiQuery, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
-import { User } from "@prisma/client";
 import { CreationSource } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
@@ -104,7 +104,8 @@ export class BookingsController_2024_04_15 {
     private readonly config: ConfigService,
     private readonly apiKeyRepository: ApiKeysRepository,
     private readonly platformBookingsService: PlatformBookingsService,
-    private readonly usersRepository: UsersRepository
+    private readonly usersRepository: UsersRepository,
+    private readonly usersService: UsersService
   ) {}
 
   @Get("/")
@@ -114,18 +115,19 @@ export class BookingsController_2024_04_15 {
   @ApiQuery({ name: "limit", type: "number", required: false })
   @ApiQuery({ name: "cursor", type: "number", required: false })
   async getBookings(
-    @GetUser() user: User,
+    @GetUser() user: UserWithProfile,
     @Query() queryParams: GetBookingsInput_2024_04_15
   ): Promise<GetBookingsOutput_2024_04_15> {
     const { filters, cursor, limit } = queryParams;
     const bookingListingByStatus = filters?.status ?? Status_2024_04_15["upcoming"];
+    const profile = this.usersService.getUserMainProfile(user);
     const bookings = await getAllUserBookings({
       bookingListingByStatus: [bookingListingByStatus],
       skip: cursor ?? 0,
       take: limit ?? 10,
       filters,
       ctx: {
-        user: { email: user.email, id: user.id },
+        user: { email: user.email, id: user.id, orgId: profile?.organizationId },
         prisma: this.prismaReadService.prisma as unknown as PrismaClient,
       },
     });
@@ -174,11 +176,19 @@ export class BookingsController_2024_04_15 {
     const oAuthClientId =
       clientId?.toString() || (await this.getOAuthClientIdFromEventType(body.eventTypeId));
     const { orgSlug, locationUrl } = body;
-    req.headers["x-cal-force-slug"] = orgSlug;
     try {
-      const booking = await handleNewBooking(
-        await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbed)
-      );
+      const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbed);
+      const booking = await handleNewBooking({
+        bookingData: bookingRequest.body,
+        userId: bookingRequest.userId,
+        hostname: bookingRequest.headers?.host || "",
+        forcedSlug: orgSlug,
+        platformClientId: bookingRequest.platformClientId,
+        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+        platformCancelUrl: bookingRequest.platformCancelUrl,
+        platformBookingUrl: bookingRequest.platformBookingUrl,
+        platformBookingLocation: bookingRequest.platformBookingLocation,
+      });
       if (booking.userId && booking.uid && booking.startTime) {
         void (await this.billingService.increaseUsageByUserId(booking.userId, {
           uid: booking.uid,
@@ -214,9 +224,16 @@ export class BookingsController_2024_04_15 {
     if (bookingUid) {
       try {
         req.body.uid = bookingUid;
-        const res = await handleCancelBooking(
-          await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed)
-        );
+        const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
+        const res = await handleCancelBooking({
+          bookingData: bookingRequest.body,
+          userId: bookingRequest.userId,
+          arePlatformEmailsEnabled: bookingRequest.arePlatformEmailsEnabled,
+          platformClientId: bookingRequest.platformClientId,
+          platformCancelUrl: bookingRequest.platformCancelUrl,
+          platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+          platformBookingUrl: bookingRequest.platformBookingUrl,
+        });
         if (!res.onlyRemovedAttendee) {
           void (await this.billingService.cancelUsageByBookingUid(res.bookingUid));
         }
@@ -277,9 +294,18 @@ export class BookingsController_2024_04_15 {
         }
       }
 
-      const createdBookings: BookingResponse[] = await handleNewRecurringBooking(
-        await this.createNextApiRecurringBookingRequest(req, oAuthClientId, undefined, isEmbed)
-      );
+      const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
+
+      const createdBookings: BookingResponse[] = await handleNewRecurringBooking({
+        bookingData: bookingRequest.body,
+        userId: bookingRequest.userId,
+        hostname: bookingRequest.headers?.host || "",
+        platformClientId: bookingRequest.platformClientId,
+        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+        platformCancelUrl: bookingRequest.platformCancelUrl,
+        platformBookingUrl: bookingRequest.platformBookingUrl,
+        platformBookingLocation: bookingRequest.platformBookingLocation,
+      });
 
       createdBookings.forEach(async (booking) => {
         if (booking.userId && booking.uid && booking.startTime) {

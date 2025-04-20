@@ -1,4 +1,5 @@
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
+import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
@@ -25,13 +26,15 @@ export class InputOrganizationsEventTypesService {
     private readonly inputEventTypesService: InputEventTypesService_2024_06_14,
     private readonly teamsRepository: TeamsRepository,
     private readonly usersRepository: UsersRepository,
-    private readonly teamsEventTypesRepository: TeamsEventTypesRepository
+    private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
+    private readonly conferencingService: OrganizationsConferencingService
   ) {}
   async transformAndValidateCreateTeamEventTypeInput(
     userId: number,
     teamId: number,
     inputEventType: CreateTeamEventTypeInput_2024_06_14
   ) {
+    await this.validateInputLocations(teamId, inputEventType.locations);
     await this.validateHosts(teamId, inputEventType.hosts);
     await this.validateTeamEventTypeSlug(teamId, inputEventType.slug);
 
@@ -62,6 +65,7 @@ export class InputOrganizationsEventTypesService {
     teamId: number,
     inputEventType: UpdateTeamEventTypeInput_2024_06_14
   ) {
+    await this.validateInputLocations(teamId, inputEventType.locations);
     await this.validateHosts(teamId, inputEventType.hosts);
     if (inputEventType.slug) {
       await this.validateTeamEventTypeSlug(teamId, inputEventType.slug);
@@ -104,13 +108,6 @@ export class InputOrganizationsEventTypesService {
     teamId: number,
     inputEventType: CreateTeamEventTypeInput_2024_06_14
   ) {
-    const hasHosts = !!inputEventType.hosts && !!inputEventType.hosts.length;
-    const hasAssignAllTeamMembers = inputEventType.assignAllTeamMembers === true;
-
-    if (!hasHosts && !hasAssignAllTeamMembers) {
-      throw new BadRequestException("Either hosts must be provided or assignAllTeamMembers must be true");
-    }
-
     const { hosts, assignAllTeamMembers, locations, ...rest } = inputEventType;
 
     const eventType = this.inputEventTypesService.transformInputCreateEventType(rest);
@@ -292,6 +289,22 @@ export class InputOrganizationsEventTypesService {
         );
       }
     }
+  }
+
+  async validateInputLocations(
+    teamId: number,
+    inputLocations?: CreateTeamEventTypeInput_2024_06_14["locations"]
+  ) {
+    await Promise.all(
+      inputLocations?.map(async (location) => {
+        if (location.type === "integration") {
+          // cal-video is global, so we can skip this check
+          if (location.integration !== "cal-video") {
+            await this.conferencingService.checkAppIsValidAndConnected(teamId, location.integration);
+          }
+        }
+      }) ?? []
+    );
   }
 }
 

@@ -5,7 +5,6 @@ import {
   ApiExtraModels,
 } from "@nestjs/swagger";
 import { Type, Transform, Expose } from "class-transformer";
-import type { ValidationOptions, ValidationArguments } from "class-validator";
 import {
   IsString,
   IsInt,
@@ -18,7 +17,6 @@ import {
   ValidateNested,
   ArrayNotEmpty,
   ArrayUnique,
-  registerDecorator,
 } from "class-validator";
 
 import { SchedulingType } from "@calcom/platform-enums";
@@ -447,33 +445,6 @@ export class Host {
   @DocsPropertyOptional({ enum: HostPriority })
   priority?: keyof typeof HostPriority = "medium";
 }
-
-function RequireHostsOrAssignAllMembers(validationOptions?: ValidationOptions) {
-  return function (object: any) {
-    registerDecorator({
-      name: "requireHostsOrAssignAllMembers",
-      target: object,
-      propertyName: "hosts OR assignAllTeamMembers",
-      options: validationOptions,
-      constraints: [],
-      validator: {
-        validate(_value: any, args: ValidationArguments) {
-          const obj = args.object as CreateTeamEventTypeInput_2024_06_14;
-
-          const hasHosts = !!obj.hosts && !!obj.hosts.length;
-          const hasAssignAllTeamMembers = obj.assignAllTeamMembers === true;
-
-          return hasHosts || hasAssignAllTeamMembers;
-        },
-        defaultMessage(): string {
-          return "Either hosts OR assignAllTeamMembers set to true is required";
-        },
-      },
-    });
-  };
-}
-
-@RequireHostsOrAssignAllMembers()
 export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @Transform(({ value }) => {
     if (value === "collective") {

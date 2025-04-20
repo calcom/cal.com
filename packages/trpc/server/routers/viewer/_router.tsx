@@ -15,10 +15,14 @@ import { attributesRouter } from "./attributes/_router";
 import { authRouter } from "./auth/_router";
 import { availabilityRouter } from "./availability/_router";
 import { bookingsRouter } from "./bookings/_router";
+import { calVideoRouter } from "./calVideo/_router";
+import { calendarsRouter } from "./calendars/_router";
+import { credentialsRouter } from "./credentials/_router";
 import { delegationCredentialRouter } from "./delegationCredential/_router";
 import { deploymentSetupRouter } from "./deploymentSetup/_router";
 import { dsyncRouter } from "./dsync/_router";
 import { eventTypesRouter } from "./eventTypes/_router";
+import { filterSegmentsRouter } from "./filterSegments/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
 import { highPerfRouter } from "./highPerf/_router";
 import { i18nRouter } from "./i18n/_router";
@@ -45,6 +49,9 @@ export const viewerRouter = mergeRouters(
     auth: authRouter,
     deploymentSetup: deploymentSetupRouter,
     bookings: bookingsRouter,
+    calendars: calendarsRouter,
+    calVideo: calVideoRouter,
+    credentials: credentialsRouter,
     eventTypes: eventTypesRouter,
     availability: availabilityRouter,
     teams: viewerTeamsRouter,
@@ -60,6 +67,7 @@ export const viewerRouter = mergeRouters(
     i18n: i18nRouter,
     insights: insightsRouter,
     payments: paymentsRouter,
+    filterSegments: filterSegmentsRouter,
     // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
     // After that there would just one merge call here for all the apps.
     appRoutingForms: app_RoutingForms,

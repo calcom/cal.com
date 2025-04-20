@@ -36,6 +36,37 @@ import {
 } from "./location.input";
 import { ValidateMetadata } from "./validators/validate-metadata";
 
+export const FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE =
+  "Either eventTypeId or eventTypeSlug + username or eventTypeSlug + teamSlug must be provided";
+
+function RequireEventTypeIdentification(validationOptions?: ValidationOptions) {
+  return function (object: any) {
+    registerDecorator({
+      name: "requireEventTypeIdentification",
+      target: object,
+      propertyName: "eventTypeId or eventTypeSlug + username",
+      options: validationOptions,
+      constraints: [],
+      validator: {
+        validate(_value: any, args: ValidationArguments) {
+          const obj = args.object as CreateBookingInput_2024_08_13;
+
+          const hasEventTypeId = !!obj?.eventTypeId;
+
+          const hasSlugAndUsername = !!obj?.eventTypeSlug && !!obj?.username;
+
+          const hasSlugAndTeamSlug = !!obj?.eventTypeSlug && !!obj?.teamSlug;
+
+          return hasEventTypeId || hasSlugAndUsername || hasSlugAndTeamSlug;
+        },
+        defaultMessage(): string {
+          return FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE;
+        },
+      },
+    });
+  };
+}
+
 function RequireEmailOrPhone(validationOptions?: ValidationOptions) {
   return function (target: object, propertyName: string) {
     registerDecorator({
@@ -121,6 +152,7 @@ class Attendee {
   BookingInputOrganizersDefaultAppLocation_2024_08_13,
   ValidateBookingLocation_2024_08_13
 )
+@RequireEventTypeIdentification()
 export class CreateBookingInput_2024_08_13 {
   @ApiProperty({
     type: String,
@@ -140,13 +172,55 @@ export class CreateBookingInput_2024_08_13 {
   })
   lengthInMinutes?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: Number,
-    description: "The ID of the event type that is booked.",
+    description:
+      "The ID of the event type that is booked. Required unless eventTypeSlug and username are provided as an alternative to identifying the event type.",
     example: 123,
   })
+  @IsOptional()
   @IsInt()
-  eventTypeId!: number;
+  eventTypeId?: number;
+
+  @ApiPropertyOptional({
+    type: String,
+    description:
+      "The slug of the event type. Required along with username / teamSlug and optionally organizationSlug if eventTypeId is not provided.",
+    example: "my-event-type",
+  })
+  @IsOptional()
+  @IsString()
+  eventTypeSlug?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description:
+      "The username of the event owner. Required along with eventTypeSlug and optionally organizationSlug if eventTypeId is not provided.",
+    example: "john-doe",
+  })
+  @IsOptional()
+  @IsString()
+  username?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description:
+      "Team slug for team that owns event type for which slots are fetched. Required along with eventTypeSlug and optionally organizationSlug if the team is part of organization",
+    example: "john-doe",
+  })
+  @IsOptional()
+  @IsString()
+  teamSlug?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description:
+      "The organization slug. Optional, only used when booking with eventTypeSlug + username or eventTypeSlug + teamSlug.",
+    example: "acme-corp",
+  })
+  @IsOptional()
+  @IsString()
+  organizationSlug?: string;
 
   @ApiProperty({
     type: Attendee,

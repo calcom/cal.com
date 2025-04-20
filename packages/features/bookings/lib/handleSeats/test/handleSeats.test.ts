@@ -87,12 +87,9 @@ describe("handleSeats", () => {
         },
       });
 
-      const { req } = createMockNextJsRequest({
-        method: "POST",
-        body: mockBookingData,
+      await handleNewBooking({
+        bookingData: mockBookingData,
       });
-
-      await handleNewBooking(req);
 
       expect(spy).toHaveBeenCalledTimes(1);
     });
@@ -191,7 +188,9 @@ describe("handleSeats", () => {
         body: mockBookingData,
       });
 
-      const createdBooking = await handleNewBooking(req);
+      const createdBooking = await handleNewBooking({
+        bookingData: mockBookingData,
+      });
 
       expect(createdBooking.metadata).toHaveProperty("videoCallUrl");
 
@@ -330,12 +329,9 @@ describe("handleSeats", () => {
         },
       });
 
-      const { req } = createMockNextJsRequest({
-        method: "POST",
-        body: mockBookingData,
+      await handleNewBooking({
+        bookingData: mockBookingData,
       });
-
-      await handleNewBooking(req);
 
       const handleSeatsCall = spy.mock.calls[0][0];
 
@@ -488,12 +484,9 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        await handleNewBooking(req);
 
         const newAttendee = await prismaMock.attendee.findFirst({
           where: {
@@ -617,12 +610,9 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        await handleNewBooking(req);
 
         const newAttendee = await prismaMock.attendee.findFirst({
           where: {
@@ -746,12 +736,11 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
-        });
-
-        await expect(() => handleNewBooking(req)).rejects.toThrowError(ErrorCode.AlreadySignedUpForBooking);
+        await expect(() =>
+          handleNewBooking({
+            bookingData: mockBookingData,
+          })
+        ).rejects.toThrowError(ErrorCode.AlreadySignedUpForBooking);
       });
 
       test("If event is already full, fail", async () => {
@@ -869,12 +858,11 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
-        });
-
-        await expect(() => handleNewBooking(req)).rejects.toThrowError(ErrorCode.BookingSeatsFull);
+        await expect(() =>
+          handleNewBooking({
+            bookingData: mockBookingData,
+          })
+        ).rejects.toThrowError(ErrorCode.BookingSeatsFull);
       });
 
       test("Verify Seat Availability Calculation Based on Booked Seats, Not Total Attendees", async () => {
@@ -1021,12 +1009,9 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        await handleNewBooking(req);
 
         const newAttendee = await prismaMock.attendee.findFirst({
           where: {
@@ -1219,12 +1204,9 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        await handleNewBooking(req);
 
         // Ensure that the attendee is no longer a part of the old booking
         const oldBookingAttendees = await prismaMock.attendee.findMany({
@@ -1393,7 +1375,9 @@ describe("handleSeats", () => {
           body: mockBookingData,
         });
 
-        const createdBooking = await handleNewBooking(req);
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData,
+        });
 
         // Ensure that the attendee is no longer a part of the old booking
         const oldBookingAttendees = await prismaMock.attendee.findMany({
@@ -1532,12 +1516,9 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        const createdBooking = await handleNewBooking(req);
 
         // Ensure that the old booking is cancelled
         const oldBooking = await prismaMock.booking.findFirst({
@@ -1671,15 +1652,13 @@ describe("handleSeats", () => {
           seatReferenceUid: bookingSeatToBeCancelledUid,
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockCancelBookingData,
+        await handleCancelBooking({
+          bookingData: {
+            ...mockCancelBookingData,
+            cancellationReason: "test cancellation reason",
+          },
+          userId: organizer.id,
         });
-
-        req.userId = organizer.id;
-        req.body.cancellationReason = "test cancellation reason";
-
-        await handleCancelBooking(req);
 
         // Ensure that the booking has been cancelled
         const cancelledBooking = await prismaMock.booking.findFirst({
@@ -1812,15 +1791,13 @@ describe("handleSeats", () => {
           seatReferenceUid: bookingSeatToBeCancelledUid,
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockCancelBookingData,
+        await handleCancelBooking({
+          bookingData: {
+            ...mockCancelBookingData,
+            cancellationReason: "test cancellation reason",
+          },
+          userId: organizer.id,
         });
-
-        req.userId = organizer.id;
-        req.body.cancellationReason = "test cancellation reason";
-
-        await handleCancelBooking(req);
 
         // Ensure that the booking has been cancelled
         const cancelledBooking = await prismaMock.booking.findFirst({
@@ -1994,14 +1971,10 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        const rescheduledBooking = await handleNewBooking({
+          bookingData: mockBookingData,
+          userId: organizer.id,
         });
-
-        req.userId = organizer.id;
-
-        const rescheduledBooking = await handleNewBooking(req);
 
         // Ensure that the booking has been moved
         expect(rescheduledBooking?.startTime).toEqual(secondBookingStartTime);
@@ -2194,14 +2167,10 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        const rescheduledBooking = await handleNewBooking({
+          bookingData: mockBookingData,
+          userId: organizer.id,
         });
-
-        req.userId = organizer.id;
-
-        const rescheduledBooking = await handleNewBooking(req);
 
         // Ensure that the booking has been moved
         expect(rescheduledBooking?.startTime).toEqual(new Date(secondBookingStartTime));
@@ -2405,15 +2374,13 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
-        });
-
-        req.userId = organizer.id;
-
         // const rescheduledBooking = await handleNewBooking(req);
-        await expect(() => handleNewBooking(req)).rejects.toThrowError(ErrorCode.NotEnoughAvailableSeats);
+        await expect(() =>
+          handleNewBooking({
+            bookingData: mockBookingData,
+            userId: organizer.id,
+          })
+        ).rejects.toThrowError(ErrorCode.NotEnoughAvailableSeats);
       });
 
       test("When trying to reschedule in a non-available slot, throw an error", async () => {
@@ -2551,14 +2518,12 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
-        });
-
-        req.userId = organizer.id;
-
-        await expect(() => handleNewBooking(req)).rejects.toThrowError(ErrorCode.NoAvailableUsersFound);
+        await expect(() =>
+          handleNewBooking({
+            bookingData: mockBookingData,
+            userId: organizer.id,
+          })
+        ).rejects.toThrowError(ErrorCode.NoAvailableUsersFound);
       });
     });
 
@@ -2678,15 +2643,13 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        await handleCancelBooking({
+          bookingData: {
+            ...mockBookingData,
+            cancellationReason: "test cancellation reason",
+          },
+          userId: organizer.id,
         });
-
-        req.userId = organizer.id;
-        req.body.cancellationReason = "test cancellation reason";
-
-        await handleCancelBooking(req);
 
         // Ensure that the booking has been cancelled
         const cancelledBooking = await prismaMock.booking.findFirst({

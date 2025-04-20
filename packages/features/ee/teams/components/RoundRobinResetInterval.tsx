@@ -2,14 +2,15 @@
 
 import { useForm, Controller } from "react-hook-form";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole, RRResetInterval } from "@calcom/prisma/enums";
+import { RRResetInterval } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/components/button";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
-import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -51,8 +52,7 @@ const RoundRobinResetInterval = ({ team }: ProfileViewProps) => {
     },
   });
 
-  const isAdmin =
-    team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
+  const isAdmin = team && checkAdminOrOwner(team.membership.role);
 
   if (!isAdmin) {
     return (

@@ -6,7 +6,14 @@ import { AttributeType, MembershipRole, SchedulingType } from "@calcom/prisma/en
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 import { test } from "@calcom/web/playwright/lib/fixtures";
 import { selectInteractions } from "@calcom/web/playwright/lib/pageObject";
-import { getEmailsReceivedByUser, gotoRoutingLink } from "@calcom/web/playwright/lib/testUtils";
+import {
+  confirmBooking,
+  getEmailsReceivedByUser,
+  gotoRoutingLink,
+  selectFirstAvailableTimeSlotNextMonth,
+  testEmail,
+  testName,
+} from "@calcom/web/playwright/lib/testUtils";
 
 import {
   addForm,
@@ -280,6 +287,58 @@ test.describe("Routing Forms", () => {
 
   todo("should be able to duplicate form");
 
+  test.describe("Routing Form to Event Booking", () => {
+    test("should redirect to event page and successfully complete booking", async ({ page, users }) => {
+      const user = await users.create(
+        { username: "routing-to-booking" },
+        {
+          hasTeam: true,
+        }
+      );
+      await user.apiLogin();
+
+      // Create a routing form
+      const formId = await addForm(page, { name: "Event Redirect Form" });
+
+      await addShortTextFieldAndSaveForm({ page, formId });
+
+      await page.click('[href*="/route-builder/"]');
+      await selectNewRoute(page);
+      await selectFirstEventRedirectOption(page);
+
+      await saveCurrentForm(page);
+
+      await gotoRoutingLink({ page, formId });
+      await page.fill('[data-testid="form-field-short-text"]', "Test Input");
+      await page.click('button[type="submit"]');
+
+      // Wait for redirect and verify presence of valid routingFormResponseId in URL
+      await page.waitForURL((url) => {
+        const routingFormResponseId = url.searchParams.get("cal.routingFormResponseId");
+        const parsedId = Number(routingFormResponseId);
+        return !!routingFormResponseId && !isNaN(parsedId);
+      });
+
+      await selectFirstAvailableTimeSlotNextMonth(page);
+
+      // Fill booking form
+      await page.fill('[name="name"]', testName);
+      await page.fill('[name="email"]', testEmail);
+      await page.fill('[name="notes"]', "Booked via routing form");
+
+      await confirmBooking(page);
+
+      // Verify booking was successful
+      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+      await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toBeVisible();
+      await expect(page.locator(`[data-testid="attendee-email-${testEmail}"]`)).toBeVisible();
+    });
+
+    test.afterEach(async ({ users }) => {
+      await users.deleteAll();
+    });
+  });
+
   test.describe("Seeded Routing Form ", () => {
     test.beforeEach(async ({ page }) => {
       await page.goto(`/routing-forms/forms`);
@@ -439,7 +498,7 @@ test.describe("Routing Forms", () => {
       const user = await createUserAndLogin({ users, page });
       const routingForm = user.routingForms[0];
       await gotoRoutingLink({ page, formId: routingForm.id });
-      page.click('button[type="submit"]');
+      await page.click('button[type="submit"]');
       const firstInputMissingValue = await page.evaluate(() => {
         return document.querySelectorAll("input")[0].validity.valueMissing;
       });
@@ -828,11 +887,8 @@ async function addAllTypesOfFieldsAndSaveForm(
   page: Page,
   form: { description: string; label: string }
 ) {
-  const appRoutingFormsRespPromise = page.waitForResponse((response) =>
-    /\/api\/trpc\/appRoutingForms*/.test(response.url())
-  );
   await page.goto(`apps/routing-forms/form-edit/${formId}`);
-  await appRoutingFormsRespPromise;
+  await expect(page.locator('text="Test Preview"')).toBeVisible();
   await page.click('[data-testid="add-field"]');
 
   const { optionsInUi: fieldTypesList } = await verifySelectOptions(

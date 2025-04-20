@@ -1,3 +1,5 @@
+import { captureException } from "@sentry/nextjs";
+
 import db from "@calcom/prisma";
 
 import type { AppFlags } from "./config";
@@ -9,7 +11,6 @@ export class FeaturesRepository implements IFeaturesRepository {
     try {
       return await getFeatureFlag(db, slug);
     } catch (err) {
-      const captureException = (await import("@sentry/nextjs")).captureException;
       captureException(err);
       throw err;
     }
@@ -34,7 +35,6 @@ export class FeaturesRepository implements IFeaturesRepository {
       if (userBelongsToTeamWithFeature) return true;
       return false;
     } catch (err) {
-      const captureException = (await import("@sentry/nextjs")).captureException;
       captureException(err);
       throw err;
     }
@@ -61,7 +61,6 @@ export class FeaturesRepository implements IFeaturesRepository {
       if (user) return true;
       return false;
     } catch (err) {
-      const captureException = (await import("@sentry/nextjs")).captureException;
       captureException(err);
       throw err;
     }
@@ -73,7 +72,6 @@ export class FeaturesRepository implements IFeaturesRepository {
       });
       return !!teamFeature;
     } catch (err) {
-      const captureException = (await import("@sentry/nextjs")).captureException;
       captureException(err);
       throw err;
     }

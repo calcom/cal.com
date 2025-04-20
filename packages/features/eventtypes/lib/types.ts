@@ -96,7 +96,8 @@ export type FormValues = {
   customInputs: CustomInputParsed[];
   schedule: number | null;
   useEventLevelSelectedCalendars: boolean;
-
+  disabledCancelling: boolean;
+  disabledRescheduling: boolean;
   periodType: PeriodType;
   /**
    * Number of days(Applicable only for ROLLING period type)

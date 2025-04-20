@@ -9,6 +9,7 @@ import type {
 
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import getLabelValueMapFromResponses from "@calcom/lib/getLabelValueMapFromResponses";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -44,11 +45,20 @@ export default class HubspotCalendarService implements CRM {
   }
 
   private getHubspotMeetingBody = (event: CalendarEvent): string => {
+    const userFields = getLabelValueMapFromResponses(event);
+    const userFieldsHtml = Object.entries(userFields)
+      .map(([key, value]) => {
+        const formattedValue = typeof value === "boolean" ? (value ? "Yes" : "No") : value || "-";
+        return `<b>${key}:</b> ${formattedValue}`;
+      })
+      .join("<br><br>");
+
     return `<b>${event.organizer.language.translate("invitee_timezone")}:</b> ${
       event.attendees[0].timeZone
     }<br><br><b>${event.organizer.language.translate("share_additional_notes")}</b><br>${
       event.additionalNotes || "-"
-    }`;
+    }<br><br>
+    ${userFieldsHtml}`;
   };
 
   private hubspotCreateMeeting = async (event: CalendarEvent) => {

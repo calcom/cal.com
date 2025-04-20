@@ -55,5 +55,6 @@ const RadioAreaGroup = ({
 
 const Item = RadioArea;
 const Group = RadioAreaGroup;
+const Root = RadioGroupPrimitive.Root;
 
-export { RadioArea, RadioAreaGroup, Item, Group };
+export { RadioArea, RadioAreaGroup, Item, Group, Root };

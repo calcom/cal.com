@@ -7,10 +7,12 @@ import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outpu
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
+import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -33,7 +35,6 @@ import {
   ApiBody,
   ApiExtraModels,
 } from "@nestjs/swagger";
-import { User } from "@prisma/client";
 import { Request } from "express";
 
 import { BOOKING_READ, BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -79,7 +80,10 @@ import {
 export class BookingsController_2024_08_13 {
   private readonly logger = new Logger("BookingsController_2024_08_13");
 
-  constructor(private readonly bookingsService: BookingsService_2024_08_13) {}
+  constructor(
+    private readonly bookingsService: BookingsService_2024_08_13,
+    private readonly usersService: UsersService
+  ) {}
 
   @Post("/")
   @ApiOperation({
@@ -95,6 +99,14 @@ export class BookingsController_2024_08_13 {
       For team event types it is possible to create instant meeting. To do that just pass \`"instant": true\` to the request body.
 
       The start needs to be in UTC aka if the timezone is GMT+2 in Rome and meeting should start at 11, then UTC time should have hours 09:00 aka without time zone.
+
+      Finally, there are 2 ways to book an event type belonging to an individual user:
+      1. Provide \`eventTypeId\` in the request body.
+      2. Provide \`eventTypeSlug\` and \`username\` and optionally \`organizationSlug\` if the user with the username is within an organization.
+
+      And 2 ways to book and event type belonging to a team:
+      1. Provide \`eventTypeId\` in the request body.
+      2. Provide \`eventTypeSlug\` and \`teamSlug\` and optionally \`organizationSlug\` if the team with the teamSlug is within an organization.
       `,
   })
   @ApiBody({
@@ -155,19 +167,20 @@ export class BookingsController_2024_08_13 {
 
   @Get("/")
   @UseGuards(ApiAuthGuard)
-  @ApiHeader({
-    name: "Authorization",
-    description:
-      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
-    required: true,
-  })
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Permissions([BOOKING_READ])
   @ApiOperation({ summary: "Get all bookings" })
   async getBookings(
     @Query() queryParams: GetBookingsInput_2024_08_13,
-    @GetUser() user: User
+    @GetUser() user: UserWithProfile
   ): Promise<GetBookingsOutput_2024_08_13> {
-    const bookings = await this.bookingsService.getBookings(queryParams, user);
+    const profile = this.usersService.getUserMainProfile(user);
+
+    const bookings = await this.bookingsService.getBookings(queryParams, {
+      email: user.email,
+      id: user.id,
+      orgId: profile?.organizationId,
+    });
 
     return {
       status: SUCCESS_STATUS,
@@ -245,13 +258,11 @@ export class BookingsController_2024_08_13 {
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
-  @ApiHeader({
-    name: "Authorization",
-    description:
-      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
-    required: true,
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Mark a booking absence",
+    description: "The provided authorization header refers to the owner of the booking.",
   })
-  @ApiOperation({ summary: "Mark a booking absence" })
   async markNoShow(
     @Param("bookingUid") bookingUid: string,
     @Body() body: MarkAbsentBookingInput_2024_08_13,
@@ -269,13 +280,11 @@ export class BookingsController_2024_08_13 {
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
-  @ApiHeader({
-    name: "Authorization",
-    description:
-      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
-    required: true,
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Reassign a booking to auto-selected host",
+    description: "The provided authorization header refers to the owner of the booking.",
   })
-  @ApiOperation({ summary: "Automatically reassign booking to a new host" })
   async reassignBooking(
     @Param("bookingUid") bookingUid: string,
     @GetUser() user: UserWithProfile
@@ -292,13 +301,11 @@ export class BookingsController_2024_08_13 {
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
-  @ApiHeader({
-    name: "Authorization",
-    description:
-      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
-    required: true,
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Reassign a booking to a specific host",
+    description: "The provided authorization header refers to the owner of the booking.",
   })
-  @ApiOperation({ summary: "Reassign a booking to a specific user" })
   async reassignBookingToUser(
     @Param("bookingUid") bookingUid: string,
     @Param("userId") userId: number,
@@ -322,13 +329,11 @@ export class BookingsController_2024_08_13 {
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
-  @ApiHeader({
-    name: "Authorization",
-    description:
-      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
-    required: true,
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Confirm a booking",
+    description: "The provided authorization header refers to the owner of the booking.",
   })
-  @ApiOperation({ summary: "Confirm booking that requires a confirmation" })
   async confirmBooking(
     @Param("bookingUid") bookingUid: string,
     @GetUser() user: UserWithProfile
@@ -345,13 +350,11 @@ export class BookingsController_2024_08_13 {
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
-  @ApiHeader({
-    name: "Authorization",
-    description:
-      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
-    required: true,
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Decline a booking",
+    description: "The provided authorization header refers to the owner of the booking.",
   })
-  @ApiOperation({ summary: "Decline booking that requires a confirmation" })
   async declineBooking(
     @Param("bookingUid") bookingUid: string,
     @Body() body: DeclineBookingInput_2024_08_13,
@@ -368,6 +371,7 @@ export class BookingsController_2024_08_13 {
   @Get("/:bookingUid/calendar-links")
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @Permissions([BOOKING_READ])
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get 'Add to Calendar' links for a booking",
     description:

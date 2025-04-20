@@ -57,7 +57,7 @@ test.describe("Change App Theme Test", () => {
 
     await page.waitForTimeout(3000);
     const themeValue = await page.evaluate(() => localStorage.getItem("app-theme"));
-    expect(themeValue).toBe("system");
+    expect(themeValue).toBe("light");
 
     const systemTheme = await page.evaluate(() => {
       return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";

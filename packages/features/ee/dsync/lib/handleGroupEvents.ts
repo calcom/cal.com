@@ -1,9 +1,10 @@
 import type { DirectorySyncEvent, Group } from "@boxyhq/saml-jackson";
 
-import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { addNewMembersToEventTypes } from "@calcom/lib/server/queries";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import {
@@ -14,17 +15,27 @@ import {
 
 import createUsersAndConnectToOrg from "./users/createUsersAndConnectToOrg";
 
-const log = logger.getSubLogger({ prefix: ["dsync/handleGroupEvents"] });
-
 const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: number) => {
-  log.debug("called", safeStringify(event));
+  const log = logger.getSubLogger({
+    prefix: [`dsync/handleGroupEvents: directoryId: ${event.directory_id}`],
+  });
+
+  log.info(
+    "called",
+    safeStringify({
+      event: event.event,
+      tenant: event.tenant,
+      product: event.product,
+    })
+  );
   // Find the group name associated with the event
   const eventData = event.data as Group;
-
   // If the group doesn't have any members assigned then return early
   if (!eventData.raw.members.length) {
     return;
   }
+
+  log.info(`Event contains ${eventData.raw.members.length} members`);
 
   const groupNames = await prisma.dSyncTeamGroupMapping.findMany({
     where: {
@@ -66,6 +77,8 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
     userEmails = eventData.raw.members.map((member: { display: string }) => member.display);
   }
 
+  log.info(`Event contains ${userEmails.length} emails`);
+
   // Find existing users
   const users = await prisma.user.findMany({
     where: {
@@ -95,6 +108,10 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
   const translation = await getTranslation("en", "common");
 
   const newUserEmails = userEmails.filter((email) => !users.find((user) => user.email === email));
+  let newUsers;
+
+  log.info(`Event processing ${newUserEmails.length} new users and ${users.length} existing users`);
+
   // For each team linked to the dsync group name provision members
   for (const group of groupNames) {
     if (newUserEmails.length) {
@@ -103,7 +120,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
         identityProvider: IdentityProvider.CAL,
         identityProviderId: null,
       };
-      const newUsers = await createUsersAndConnectToOrg({
+      newUsers = await createUsersAndConnectToOrg({
         createUsersAndConnectToOrgProps,
         org,
       });
@@ -115,7 +132,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
           accepted: true,
         })),
       });
-      await Promise.all(
+      await Promise.allSettled(
         newUserEmails.map((email) => {
           return sendSignupToOrganizationEmail({
             usernameOrEmail: email,
@@ -124,6 +141,16 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
             inviterName: org.name,
             teamId: group.teamId,
             isOrg: false,
+          }).catch((error) => {
+            log.error(
+              "Failed to send signup to organization email",
+              safeStringify({
+                email,
+                organizationId,
+                teamId: group.teamId,
+              }),
+              error
+            );
           });
         })
       );
@@ -159,8 +186,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
     const newOrgMembers = users.filter(
       (user) => !user.profiles.find((profile) => profile.organizationId === organizationId)
     );
-
-    await Promise.all([
+    await Promise.allSettled([
       ...newMembers.map(async (user) => {
         const translation = await getTranslation(user.locale || "en", "common");
         return sendExistingUserTeamInviteEmails({
@@ -177,19 +203,31 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
           isAutoJoin: true,
           currentUserParentTeamName: org.name,
           orgSlug: null,
-        });
-      }),
-      ...newOrgMembers.map((user) => {
-        return createAProfileForAnExistingUser({
-          user: {
-            id: user.id,
-            email: user.email,
-            currentUsername: user.username,
-          },
-          organizationId,
+        }).catch((error) => {
+          log.error(
+            "Failed to send team invite to existing user",
+            safeStringify({
+              email: user.email,
+              organizationId,
+              teamId: group.teamId,
+            }),
+            error
+          );
         });
       }),
     ]);
+
+    await ProfileRepository.createManyForExistingUsers({
+      users: newOrgMembers,
+      organizationId,
+      orgAutoAcceptEmail: org.organizationSettings?.orgAutoAcceptEmail ?? "",
+    });
+
+    // Add users to team event types if assignAllTeamMembers is enabled
+    await addNewMembersToEventTypes({
+      userIds: [...(newUsers ? newUsers.map((user) => user.id) : []), ...users.map((user) => user.id)],
+      teamId: group.teamId,
+    });
   }
 };
 

@@ -430,6 +430,7 @@ async function handleWorkflowsUpdate({
           reminderBody: true,
           sender: true,
           includeCalendarEvent: true,
+          verifiedAt: true,
         },
       },
     },
@@ -456,7 +457,7 @@ async function handleWorkflowsUpdate({
           time: workflow.time,
           timeUnit: workflow.timeUnit,
         },
-        sendTo: newUser.email,
+        sendTo: [newUser.email],
         template: workflowStep.template,
         emailSubject: workflowStep.emailSubject || undefined,
         emailBody: workflowStep.reminderBody || undefined,
@@ -464,10 +465,11 @@ async function handleWorkflowsUpdate({
         hideBranding: true,
         includeCalendarEvent: workflowStep.includeCalendarEvent,
         workflowStepId: workflowStep.id,
+        verifiedAt: workflowStep.verifiedAt,
       });
     }
 
-    await deleteScheduledEmailReminder(workflowReminder.id, workflowReminder.referenceId);
+    await deleteScheduledEmailReminder(workflowReminder.id);
   }
 
   // Send new event workflows to new organizer
