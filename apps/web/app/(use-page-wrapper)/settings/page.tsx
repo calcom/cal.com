@@ -4,14 +4,12 @@ import { getTranslate } from "app/_utils";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { Card } from "@calcom/ui/components/card";
 import { Icon } from "@calcom/ui/components/icon";
+import type { IconName } from "@calcom/ui/components/icon/icon-names";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    (t) => ({
-      title: t("settings"),
-      description: t("settings_description", { appName: "Cal.com" }),
-    }),
-    ["settings", "settings_description"]
+    (t) => t("settings"),
+    (t) => t("settings_home_description")
   );
 
 const SettingsHomePage = async () => {
@@ -27,42 +25,42 @@ const SettingsHomePage = async () => {
           title: t("profile"),
           description: t("profile_description"),
           href: "/settings/my-account/profile",
-          icon: "user",
+          icon: "user" as IconName,
         },
         {
           name: "general",
           title: t("general"),
           description: t("general_description"),
           href: "/settings/my-account/general",
-          icon: "settings",
+          icon: "settings" as IconName,
         },
         {
           name: "calendars",
           title: t("calendars"),
           description: t("calendars_description"),
           href: "/settings/my-account/calendars",
-          icon: "calendar",
+          icon: "calendar" as IconName,
         },
         {
           name: "conferencing",
           title: t("conferencing"),
           description: t("conferencing_description"),
           href: "/settings/my-account/conferencing",
-          icon: "video",
+          icon: "video" as IconName,
         },
         {
           name: "appearance",
           title: t("appearance"),
           description: t("appearance_description"),
           href: "/settings/my-account/appearance",
-          icon: "palette",
+          icon: "palette" as IconName,
         },
         {
           name: "out_of_office",
           title: t("out_of_office"),
           description: t("out_of_office_description"),
           href: "/settings/my-account/out-of-office",
-          icon: "beach",
+          icon: "beach" as IconName,
         },
       ],
     },
@@ -75,21 +73,21 @@ const SettingsHomePage = async () => {
           title: t("password"),
           description: t("password_description"),
           href: "/settings/security/password",
-          icon: "key",
+          icon: "key" as IconName,
         },
         {
           name: "impersonation",
           title: t("impersonation"),
           description: t("impersonation_description"),
           href: "/settings/security/impersonation",
-          icon: "users",
+          icon: "users" as IconName,
         },
         {
           name: "two_factor_auth",
           title: t("2fa"),
           description: t("2fa_description"),
           href: "/settings/security/two-factor-auth",
-          icon: "shield",
+          icon: "shield" as IconName,
         },
       ],
     },
@@ -102,28 +100,28 @@ const SettingsHomePage = async () => {
           title: t("profile"),
           description: t("org_profile_description"),
           href: "/settings/organizations/profile",
-          icon: "building",
+          icon: "building" as IconName,
         },
         {
           name: "general",
           title: t("general"),
           description: t("org_general_description"),
           href: "/settings/organizations/general",
-          icon: "settings",
+          icon: "settings" as IconName,
         },
         {
           name: "members",
           title: t("members"),
           description: t("org_members_description"),
           href: "/settings/organizations/members",
-          icon: "users",
+          icon: "users" as IconName,
         },
         {
           name: "teams",
           title: t("teams"),
           description: t("org_teams_description"),
           href: "/teams",
-          icon: "users-2",
+          icon: "users-2" as IconName,
         },
       ],
     },
@@ -136,14 +134,14 @@ const SettingsHomePage = async () => {
           title: t("webhooks"),
           description: t("webhooks_description"),
           href: "/settings/developer/webhooks",
-          icon: "link",
+          icon: "link" as IconName,
         },
         {
           name: "api_keys",
           title: t("api_keys"),
           description: t("api_keys_description"),
           href: "/settings/developer/api-keys",
-          icon: "key",
+          icon: "key" as IconName,
         },
       ],
     },
