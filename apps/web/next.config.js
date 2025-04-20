@@ -573,11 +573,11 @@ const nextConfig = {
         destination: "/auth/login",
         permanent: false,
       },
-      {
-        source: "/settings",
-        destination: "/settings/my-account/profile",
-        permanent: true,
-      },
+      // {
+      //   source: "/settings",
+      //   destination: "/settings/my-account/profile",
+      //   permanent: true,
+      // },
       {
         source: "/settings/teams",
         destination: "/teams",
