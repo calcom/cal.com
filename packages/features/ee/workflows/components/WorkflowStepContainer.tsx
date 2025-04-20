@@ -65,7 +65,7 @@ type WorkflowStepProps = {
   setReload?: Dispatch<SetStateAction<boolean>>;
   teamId?: number;
   readOnly: boolean;
-  actionOptions?: RouterOutputs["viewer"]["workflows"]["getActionOptions"];
+  actionOptions?: RouterOutputs["viewer"]["workflows"]["getWorkflowActionOptions"];
 };
 
 const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {

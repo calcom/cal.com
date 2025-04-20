@@ -36,7 +36,7 @@ interface Props {
   readOnly: boolean;
   isOrg: boolean;
   allOptions: Option[];
-  actionOptions?: RouterOutputs["viewer"]["workflows"]["getActionOptions"];
+  actionOptions?: RouterOutputs["viewer"]["workflows"]["getWorkflowActionOptions"];
 }
 
 export default function WorkflowDetailsPage(props: Props) {

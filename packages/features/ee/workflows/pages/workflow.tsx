@@ -43,7 +43,7 @@ type PageProps = {
   workflow?: RouterOutputs["viewer"]["workflows"]["get"];
   verifiedNumbers?: RouterOutputs["viewer"]["workflows"]["getVerifiedNumbers"];
   verifiedEmails?: RouterOutputs["viewer"]["workflows"]["getVerifiedEmails"];
-  actionOptions?: RouterOutputs["viewer"]["workflows"]["getActionOptions"];
+  actionOptions?: RouterOutputs["viewer"]["workflows"]["getWorkflowActionOptions"];
 };
 
 function WorkflowPage({
