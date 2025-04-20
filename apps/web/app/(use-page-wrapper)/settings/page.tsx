@@ -168,8 +168,8 @@ const SettingsHomePage = async () => {
               <a
                 key={item.name}
                 href={item.href}
-                className="hover:bg-subtle group flex items-center gap-4 rounded-md p-4 transition"
-                style={{ border: "none" }}>
+                className="hover:bg-subtle group flex items-center gap-4 rounded-md !border-0 p-4 !shadow-none transition"
+                style={{ border: "none", boxShadow: "none" }}>
                 <div className="bg-subtle text-emphasis flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md">
                   <Icon name={item.icon} className="h-5 w-5" />
                 </div>
@@ -189,8 +189,8 @@ const SettingsHomePage = async () => {
               <a
                 key={item.name}
                 href={item.href}
-                className="hover:bg-subtle group flex items-center gap-4 rounded-md p-4 transition"
-                style={{ border: "none" }}>
+                className="hover:bg-subtle group flex items-center gap-4 rounded-md !border-0 p-4 !shadow-none transition"
+                style={{ border: "none", boxShadow: "none" }}>
                 <div className="bg-subtle text-emphasis flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md">
                   <Icon name={item.icon} className="h-5 w-5" />
                 </div>
@@ -210,8 +210,8 @@ const SettingsHomePage = async () => {
               <a
                 key={item.name}
                 href={item.href}
-                className="hover:bg-subtle group flex items-center gap-4 rounded-md p-4 transition"
-                style={{ border: "none" }}>
+                className="hover:bg-subtle group flex items-center gap-4 rounded-md !border-0 p-4 !shadow-none transition"
+                style={{ border: "none", boxShadow: "none" }}>
                 <div className="bg-subtle text-emphasis flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md">
                   <Icon name={item.icon} className="h-5 w-5" />
                 </div>
@@ -231,8 +231,8 @@ const SettingsHomePage = async () => {
               <a
                 key={item.name}
                 href={item.href}
-                className="hover:bg-subtle group flex items-center gap-4 rounded-md p-4 transition"
-                style={{ border: "none" }}>
+                className="hover:bg-subtle group flex items-center gap-4 rounded-md !border-0 p-4 !shadow-none transition"
+                style={{ border: "none", boxShadow: "none" }}>
                 <div className="bg-subtle text-emphasis flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md">
                   <Icon name={item.icon} className="h-5 w-5" />
                 </div>
