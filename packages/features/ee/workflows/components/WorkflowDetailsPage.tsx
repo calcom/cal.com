@@ -15,6 +15,7 @@ import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/compo
 import { Label, MultiSelectCheckbox, TextField, CheckboxField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
+import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import { isSMSAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
@@ -24,6 +25,10 @@ import WorkflowStepContainer from "./WorkflowStepContainer";
 type User = RouterOutputs["viewer"]["me"]["get"];
 
 interface Props {
+  verifiedNumbers: {
+    number: string;
+  };
+  verifiedEmails: string[];
   form: UseFormReturn<FormValues>;
   workflowId: number;
   selectedOptions: Option[];
@@ -33,10 +38,22 @@ interface Props {
   readOnly: boolean;
   isOrg: boolean;
   allOptions: Option[];
+  actionOptions?: RouterOutputs["viewer"]["workflows"]["getActionOptions"];
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const { form, workflowId, selectedOptions, setSelectedOptions, teamId, isOrg, allOptions } = props;
+  const {
+    form,
+    workflowId,
+    verifiedEmails,
+    verifiedNumbers,
+    selectedOptions,
+    setSelectedOptions,
+    teamId,
+    isOrg,
+    allOptions,
+    actionOptions,
+  } = props;
   const { t } = useLocale();
   const router = useRouter();
 
@@ -175,21 +192,28 @@ export default function WorkflowDetailsPage(props: Props) {
 
         {/* Workflow Trigger Event & Steps */}
         <div className="bg-muted border-subtle w-full rounded-md border p-3 py-5 md:ml-3 md:p-8">
-          {form.getValues("trigger") && (
+          {form.getValues("trigger") ? (
             <div>
               <WorkflowStepContainer
+                verifiedNumbers={verifiedNumbers}
+                verifiedEmails={verifiedEmails}
                 form={form}
                 user={props.user}
                 teamId={teamId}
                 readOnly={props.readOnly}
+                actionOptions={actionOptions}
               />
             </div>
+          ) : (
+            <SkeletonLoader />
           )}
           {form.getValues("steps") && (
             <>
               {form.getValues("steps")?.map((step) => {
                 return (
                   <WorkflowStepContainer
+                    verifiedNumbers={verifiedNumbers}
+                    verifiedEmails={verifiedEmails}
                     key={step.id}
                     form={form}
                     user={props.user}
@@ -198,6 +222,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     setReload={setReload}
                     teamId={teamId}
                     readOnly={props.readOnly}
+                    actionOptions={actionOptions}
                   />
                 );
               })}

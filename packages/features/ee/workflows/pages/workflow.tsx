@@ -2,22 +2,18 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { WorkflowStep } from "@prisma/client";
-import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
-import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import type { TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { MembershipRole, WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import classNames from "@calcom/ui/classNames";
-import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
@@ -25,7 +21,6 @@ import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
-import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
 import { isSMSAction, isSMSOrWhatsappAction } from "../lib/actionHelperFunctions";
 import { formSchema } from "../lib/schema";
@@ -42,25 +37,27 @@ export type FormValues = {
 };
 
 type PageProps = {
-  workflow: number;
-  workflowData?: Awaited<ReturnType<typeof WorkflowRepository.getById>>;
-  verifiedNumbers?: Awaited<ReturnType<typeof WorkflowRepository.getVerifiedNumbers>>;
-  verifiedEmails?: Awaited<ReturnType<typeof WorkflowRepository.getVerifiedEmails>>;
+  user: RouterOutputs["viewer"]["me"]["get"];
+  eventsData: RouterOutputs["viewer"]["eventTypes"]["getTeamAndEventTypeOptions"];
+  workflowId: number;
+  workflow?: RouterOutputs["viewer"]["workflows"]["get"];
+  verifiedNumbers?: RouterOutputs["viewer"]["workflows"]["getVerifiedNumbers"];
+  verifiedEmails?: RouterOutputs["viewer"]["workflows"]["getVerifiedEmails"];
+  actionOptions?: RouterOutputs["viewer"]["workflows"]["getActionOptions"];
 };
 
 function WorkflowPage({
-  workflow: workflowId,
-  workflowData: workflowDataProp,
-  verifiedNumbers: verifiedNumbersProp,
-  verifiedEmails: verifiedEmailsProp,
+  user,
+  eventsData,
+  workflowId,
+  workflow,
+  verifiedNumbers,
+  verifiedEmails,
+  actionOptions,
 }: PageProps) {
   const { t, i18n } = useLocale();
-  const session = useSession();
-
   const [selectedOptions, setSelectedOptions] = useState<Option[]>([]);
-  const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
   const [isMixedEventType, setIsMixedEventType] = useState(false); //for old event types before team workflows existed
-
   const form = useForm<FormValues>({
     mode: "onBlur",
     resolver: zodResolver(formSchema),
@@ -68,53 +65,13 @@ function WorkflowPage({
 
   const utils = trpc.useUtils();
 
-  const userQuery = useMeQuery();
-  const user = userQuery.data;
-
-  const {
-    data: workflowData,
-    isError: _isError,
-    error,
-    isPending: _isPendingWorkflow,
-  } = trpc.viewer.workflows.get.useQuery(
-    { id: +workflowId },
-    {
-      enabled: workflowDataProp ? false : !!workflowId,
-    }
-  );
-
-  const workflow = workflowDataProp || workflowData;
-  const isPendingWorkflow = workflowDataProp ? false : _isPendingWorkflow;
-  const isError = workflowDataProp ? false : _isError;
-
-  const { data: verifiedNumbersData } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
-    { teamId: workflow?.team?.id },
-    {
-      enabled: verifiedNumbersProp ? false : !!workflow?.id,
-    }
-  );
-  const verifiedNumbers = verifiedNumbersProp || verifiedNumbersData;
-
-  const { data: verifiedEmailsData } = trpc.viewer.workflows.getVerifiedEmails.useQuery(
-    {
-      teamId: workflow?.team?.id,
-    },
-    { enabled: !verifiedEmailsProp }
-  );
-  const verifiedEmails = verifiedEmailsProp || verifiedEmailsData;
-
   const isOrg = workflow?.team?.isOrganization ?? false;
 
   const teamId = workflow?.teamId ?? undefined;
 
-  const { data, isPending: isPendingEventTypes } = trpc.viewer.eventTypes.getTeamAndEventTypeOptions.useQuery(
-    { teamId, isOrg },
-    { enabled: !isPendingWorkflow }
-  );
+  const teamOptions = eventsData?.teamOptions ?? [];
 
-  const teamOptions = data?.teamOptions ?? [];
-
-  let allEventTypeOptions = data?.eventTypeOptions ?? [];
+  let allEventTypeOptions = eventsData?.eventTypeOptions ?? [];
   const distinctEventTypes = new Set();
 
   if (!teamId && isMixedEventType) {
@@ -127,16 +84,11 @@ function WorkflowPage({
   }
 
   const readOnly =
-    workflow?.team?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
-    MembershipRole.MEMBER;
-
-  const isPending = isPendingWorkflow || isPendingEventTypes;
+    workflow?.team?.members?.find((member) => member.userId === user.id)?.role === MembershipRole.MEMBER;
 
   useEffect(() => {
-    if (!isPending) {
-      setFormData(workflow);
-    }
-  }, [isPending]);
+    setFormData(workflow);
+  }, []);
 
   function setFormData(workflowData: RouterOutputs["viewer"]["workflows"]["get"] | undefined) {
     if (workflowData) {
@@ -203,7 +155,6 @@ function WorkflowPage({
       form.setValue("timeUnit", workflowData.timeUnit || undefined);
       form.setValue("activeOn", activeOn || []);
       form.setValue("selectAll", workflowData.isActiveOnAll ?? false);
-      setIsAllDataLoaded(true);
     }
   }
 
@@ -228,7 +179,7 @@ function WorkflowPage({
     },
   });
 
-  return session.data ? (
+  return (
     <Shell withoutMain backPath="/workflows">
       <LicenseRequired>
         <Form
@@ -325,53 +276,40 @@ function WorkflowPage({
               )
             }
             heading={
-              isAllDataLoaded && (
-                <div className="flex">
-                  <div className={classNames(workflow && !workflow.name ? "text-muted" : "")}>
-                    {workflow && workflow.name ? workflow.name : "untitled"}
-                  </div>
-                  {workflow && workflow.team && (
-                    <Badge className="ml-4 mt-1" variant="gray">
-                      {workflow.team.name}
-                    </Badge>
-                  )}
-                  {readOnly && (
-                    <Badge className="ml-4 mt-1" variant="gray">
-                      {t("readonly")}
-                    </Badge>
-                  )}
+              <div className="flex">
+                <div className={classNames(workflow && !workflow.name ? "text-muted" : "")}>
+                  {workflow && workflow.name ? workflow.name : "untitled"}
                 </div>
-              )
-            }>
-            {!isError ? (
-              <>
-                {isAllDataLoaded && user ? (
-                  <>
-                    <WorkflowDetailsPage
-                      form={form}
-                      workflowId={+workflowId}
-                      user={user}
-                      selectedOptions={selectedOptions}
-                      setSelectedOptions={setSelectedOptions}
-                      teamId={workflow ? workflow.teamId || undefined : undefined}
-                      readOnly={readOnly}
-                      isOrg={isOrg}
-                      allOptions={isOrg ? teamOptions : allEventTypeOptions}
-                    />
-                  </>
-                ) : (
-                  <SkeletonLoader />
+                {workflow && workflow.team && (
+                  <Badge className="ml-4 mt-1" variant="gray">
+                    {workflow.team.name}
+                  </Badge>
                 )}
-              </>
-            ) : (
-              <Alert severity="error" title="Something went wrong" message={error?.message ?? ""} />
-            )}
+                {readOnly && (
+                  <Badge className="ml-4 mt-1" variant="gray">
+                    {t("readonly")}
+                  </Badge>
+                )}
+              </div>
+            }>
+            <WorkflowDetailsPage
+              form={form}
+              workflowId={+workflowId}
+              user={user}
+              verifiedNumbers={verifiedNumbers}
+              verifiedEmails={verifiedEmails}
+              selectedOptions={selectedOptions}
+              setSelectedOptions={setSelectedOptions}
+              teamId={workflow ? workflow.teamId || undefined : undefined}
+              readOnly={readOnly}
+              isOrg={isOrg}
+              allOptions={isOrg ? teamOptions : allEventTypeOptions}
+              actionOptions={actionOptions}
+            />
           </ShellMain>
         </Form>
       </LicenseRequired>
     </Shell>
-  ) : (
-    <></>
   );
 }
 
