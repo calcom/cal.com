@@ -14,8 +14,8 @@ import { Button } from "@calcom/ui/components/button";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Label, MultiSelectCheckbox, TextField, CheckboxField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import { isSMSAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
@@ -190,7 +190,7 @@ export default function WorkflowDetailsPage(props: Props) {
 
         {/* Workflow Trigger Event & Steps */}
         <div className="bg-muted border-subtle w-full rounded-md border p-3 py-5 md:ml-3 md:p-8">
-          {form.getValues("trigger") && (
+          {form.getValues("trigger") ? (
             <WorkflowStepContainer
               verifiedNumbers={verifiedNumbers}
               verifiedEmails={verifiedEmails}
@@ -201,7 +201,7 @@ export default function WorkflowDetailsPage(props: Props) {
               actionOptions={actionOptions}
             />
           ) : (
-            <SkeletonLoader />
+            <SkeletonText className="mb-8 h-64" />
           )}
           {form.getValues("steps") ? (
             <>
@@ -224,7 +224,7 @@ export default function WorkflowDetailsPage(props: Props) {
               })}
             </>
           ) : (
-            <SkeletonLoader />
+            <SkeletonText className="h-64 w-full" />
           )}
           {!props.readOnly && (
             <>
