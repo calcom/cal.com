@@ -56,8 +56,8 @@ import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 type User = RouterOutputs["viewer"]["me"]["get"];
 
 type WorkflowStepProps = {
-  verifiedNumbers?: RouterOutputs["viewer"]["workflows"]["getVerifiedNumbers"];
-  verifiedEmails?: RouterOutputs["viewer"]["workflows"]["getVerifiedEmails"];
+  verifiedNumbers?: RouterOutputs["viewer"]["workflows"]["getVerifiedNumbers"] | undefined;
+  verifiedEmails?: RouterOutputs["viewer"]["workflows"]["getVerifiedEmails"] | undefined;
   step?: WorkflowStep;
   form: UseFormReturn<FormValues>;
   user: User;

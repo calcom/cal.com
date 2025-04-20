@@ -25,8 +25,8 @@ import WorkflowStepContainer from "./WorkflowStepContainer";
 type User = RouterOutputs["viewer"]["me"]["get"];
 
 interface Props {
-  verifiedNumbers: RouterOutputs["viewer"]["workflows"]["getVerifiedNumbers"];
-  verifiedEmails: RouterOutputs["viewer"]["workflows"]["getVerifiedEmails"];
+  verifiedNumbers: RouterOutputs["viewer"]["workflows"]["getVerifiedNumbers"] | undefined;
+  verifiedEmails: RouterOutputs["viewer"]["workflows"]["getVerifiedEmails"] | undefined;
   form: UseFormReturn<FormValues>;
   workflowId: number;
   selectedOptions: Option[];
