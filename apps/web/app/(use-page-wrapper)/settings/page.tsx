@@ -1,7 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 import { getTranslate } from "app/_utils";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { Icon } from "@calcom/ui/components/icon";
 import type { IconName } from "@calcom/ui/components/icon/icon-names";
 
@@ -153,11 +152,15 @@ const SettingsHomePage = async () => {
   ];
 
   return (
-    <SettingsHeader
-      title={t("settings")}
-      description={t("settings_home_description")}
-      borderInShellHeader={true}>
-      <div className="space-y-8 py-6">
+    <div className="mx-auto w-full max-w-[1600px] px-4 py-8 md:px-8">
+      <div className="mb-8">
+        <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
+          {t("settings")}
+        </h1>
+        <p className="text-default text-sm">{t("settings_home_description")}</p>
+      </div>
+
+      <div className="space-y-8">
         <div className="mb-8">
           <h2 className="text-emphasis mb-4 text-lg font-medium">{t("personal_settings")}</h2>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -165,7 +168,8 @@ const SettingsHomePage = async () => {
               <a
                 key={item.name}
                 href={item.href}
-                className="hover:bg-subtle group flex items-center gap-4 rounded-md !border-none p-4 transition">
+                className="hover:bg-subtle group flex items-center gap-4 rounded-md p-4 transition"
+                style={{ border: "none" }}>
                 <div className="bg-subtle text-emphasis flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md">
                   <Icon name={item.icon} className="h-5 w-5" />
                 </div>
@@ -185,7 +189,8 @@ const SettingsHomePage = async () => {
               <a
                 key={item.name}
                 href={item.href}
-                className="hover:bg-subtle group flex items-center gap-4 rounded-md !border-none p-4 transition">
+                className="hover:bg-subtle group flex items-center gap-4 rounded-md p-4 transition"
+                style={{ border: "none" }}>
                 <div className="bg-subtle text-emphasis flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md">
                   <Icon name={item.icon} className="h-5 w-5" />
                 </div>
@@ -205,7 +210,8 @@ const SettingsHomePage = async () => {
               <a
                 key={item.name}
                 href={item.href}
-                className="hover:bg-subtle group flex items-center gap-4 rounded-md !border-none p-4 transition">
+                className="hover:bg-subtle group flex items-center gap-4 rounded-md p-4 transition"
+                style={{ border: "none" }}>
                 <div className="bg-subtle text-emphasis flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md">
                   <Icon name={item.icon} className="h-5 w-5" />
                 </div>
@@ -225,7 +231,8 @@ const SettingsHomePage = async () => {
               <a
                 key={item.name}
                 href={item.href}
-                className="hover:bg-subtle group flex items-center gap-4 rounded-md !border-none p-4 transition">
+                className="hover:bg-subtle group flex items-center gap-4 rounded-md p-4 transition"
+                style={{ border: "none" }}>
                 <div className="bg-subtle text-emphasis flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md">
                   <Icon name={item.icon} className="h-5 w-5" />
                 </div>
@@ -238,7 +245,7 @@ const SettingsHomePage = async () => {
           </div>
         </div>
       </div>
-    </SettingsHeader>
+    </div>
   );
 };
 
