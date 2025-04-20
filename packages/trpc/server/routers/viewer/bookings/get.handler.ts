@@ -102,6 +102,7 @@ export async function getBookings({
         seatsShowAvailabilityCount: true,
         eventTypeColor: true,
         allowReschedulingPastBookings: true,
+        hideOrganizerEmail: true,
         disableCancelling: true,
         disableRescheduling: true,
         schedulingType: true,

@@ -36,6 +36,7 @@ type EventType = {
   recurringEvent: Prisma.JsonValue | null;
   seatsPerTimeSlot: number | null;
   seatsShowAttendees: boolean | null;
+  hideOrganizerEmail: boolean | null;
 };
 
 type Booking = {
@@ -87,7 +88,7 @@ export const buildCalEventFromBooking = async ({
     startTime: booking.startTime ? dayjs(booking.startTime).format() : "",
     endTime: booking.endTime ? dayjs(booking.endTime).format() : "",
     organizer: {
-      email: booking.userPrimaryEmail ?? organizer.email,
+      email: booking.eventType?.hideOrganizerEmail ? "" : booking.userPrimaryEmail ?? organizer.email,
       name: organizer.name ?? "Nameless",
       timeZone: organizer.timeZone,
       language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
