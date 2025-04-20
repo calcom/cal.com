@@ -99,6 +99,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       },
       isRRWeightsEnabled: true,
+      roundRobinHostsCount: true,
       hosts: {
         select: {
           userId: true,
@@ -201,6 +202,17 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     seatsPerTimeSlot,
   };
   data.locations = locations ?? undefined;
+
+  if (data.roundRobinHostsCount !== undefined && data.roundRobinHostsCount < 1) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Round Robin Hosts Count must be greater than or equal to 0.",
+    });
+  }
+
+  if (data.schedulingType !== SchedulingType.ROUND_ROBIN && eventType.roundRobinHostsCount !== 1) {
+    data.roundRobinHostsCount = 1;
+  }
 
   if (periodType) {
     data.periodType = handlePeriodType(periodType);

@@ -763,8 +763,11 @@ async function handler(
         }
       }
 
-      // luckyUsers.length must be equal to eventType.roundRobinHostsCount
-      if (luckyUsers.length < eventType.roundRobinHostsCount) {
+      // for round robin, luckyUsers.length must be equal to eventType.roundRobinHostsCount
+      if (
+        eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+        luckyUsers.length < eventType.roundRobinHostsCount
+      ) {
         throw new Error(ErrorCode.NotEnoughAvailableHosts);
       }
       // ALL fixed users must be available
