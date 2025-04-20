@@ -160,7 +160,7 @@ const SettingsHomePage = async () => {
       <div className="space-y-8 py-6">
         <div className="mb-8">
           <h2 className="text-emphasis mb-4 text-lg font-medium">{t("personal_settings")}</h2>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {personalSettings.map((item) => (
               <a
                 key={item.name}
@@ -180,7 +180,7 @@ const SettingsHomePage = async () => {
 
         <div className="mb-8">
           <h2 className="text-emphasis mb-4 text-lg font-medium">{t("security")}</h2>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {securitySettings.map((item) => (
               <a
                 key={item.name}
@@ -200,7 +200,7 @@ const SettingsHomePage = async () => {
 
         <div className="mb-8">
           <h2 className="text-emphasis mb-4 text-lg font-medium">{t("organization_settings")}</h2>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {organizationSettings.map((item) => (
               <a
                 key={item.name}
@@ -220,7 +220,7 @@ const SettingsHomePage = async () => {
 
         <div className="mb-8">
           <h2 className="text-emphasis mb-4 text-lg font-medium">{t("developer")}</h2>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {developerSettings.map((item) => (
               <a
                 key={item.name}
