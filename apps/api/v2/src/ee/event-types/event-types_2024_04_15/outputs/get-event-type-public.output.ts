@@ -351,10 +351,6 @@ class PublicEventTypeOutput {
   @ApiProperty()
   lockTimeZoneToggleOnBookingPage!: boolean;
 
-  @IsString()
-  @ApiHideProperty()
-  lockedTimeZone!: string;
-
   @IsBoolean()
   @ApiProperty()
   requiresConfirmation!: boolean;

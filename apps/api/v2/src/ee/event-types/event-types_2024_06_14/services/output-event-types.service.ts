@@ -58,7 +58,6 @@ type Input = Pick<
   | "price"
   | "currency"
   | "lockTimeZoneToggleOnBookingPage"
-  | "lockedTimeZone"
   | "seatsPerTimeSlot"
   | "forwardParamsSuccessRedirect"
   | "successRedirectUrl"
@@ -111,7 +110,6 @@ export class OutputEventTypesService_2024_06_14 {
       price,
       currency,
       lockTimeZoneToggleOnBookingPage,
-      lockedTimeZone,
       seatsPerTimeSlot,
       forwardParamsSuccessRedirect,
       successRedirectUrl,
@@ -179,7 +177,6 @@ export class OutputEventTypesService_2024_06_14 {
       price,
       currency,
       lockTimeZoneToggleOnBookingPage,
-      lockedTimeZone,
       forwardParamsSuccessRedirect,
       successRedirectUrl,
       isInstantEvent,

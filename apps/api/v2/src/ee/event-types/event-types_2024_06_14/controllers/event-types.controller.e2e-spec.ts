@@ -377,6 +377,27 @@ describe("Event types Endpoints", () => {
       );
     });
 
+    it("should not allow creating an event type with integration not installed on user", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class",
+        slug: "coding-class",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "zoom",
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(400);
+    });
+
     it("should create an event type", async () => {
       const nameBookingField: NameDefaultFieldInput_2024_06_14 = {
         type: "name",
@@ -470,7 +491,6 @@ describe("Event types Endpoints", () => {
         hideCalendarNotes: false,
         hideCalendarEventDetails: false,
         lockTimeZoneToggleOnBookingPage: true,
-        lockedTimeZone: "Europe/London",
         color: {
           darkThemeHex: "#292929",
           lightThemeHex: "#fafafa",
@@ -511,9 +531,6 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
           expect(createdEventType.lockTimeZoneToggleOnBookingPage).toEqual(
             body.lockTimeZoneToggleOnBookingPage
-          );
-          expect(createdEventType.lockedTimeZone).toEqual(
-            body.lockedTimeZone
           );
           expect(createdEventType.color).toEqual(body.color);
 
@@ -595,9 +612,6 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.hideCalendarEventDetails).toEqual(eventType.hideCalendarEventDetails);
       expect(fetchedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
         eventType.lockTimeZoneToggleOnBookingPage
-      );
-      expect(fetchedEventType.lockedTimeZone).toEqual(
-        eventType.lockedTimeZone
       );
       expect(fetchedEventType.color).toEqual(eventType.color);
     });
@@ -996,7 +1010,6 @@ describe("Event types Endpoints", () => {
         hideCalendarNotes: true,
         hideCalendarEventDetails: true,
         lockTimeZoneToggleOnBookingPage: true,
-        lockedTimeZone: "Europe/London",
         color: {
           darkThemeHex: "#292929",
           lightThemeHex: "#fafafa",
@@ -1063,9 +1076,6 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
             body.lockTimeZoneToggleOnBookingPage
           );
-          expect(updatedEventType.lockedTimeZone).toEqual(
-            body.lockedTimeZone
-          );
           expect(updatedEventType.color).toEqual(body.color);
 
           eventType.title = newTitle;
@@ -1084,7 +1094,6 @@ describe("Event types Endpoints", () => {
           eventType.hideCalendarNotes = updatedEventType.hideCalendarNotes;
           eventType.hideCalendarEventDetails = updatedEventType.hideCalendarEventDetails;
           eventType.lockTimeZoneToggleOnBookingPage = updatedEventType.lockTimeZoneToggleOnBookingPage;
-          eventType.lockedTimeZone = updatedEventType.lockedTimeZone;
           eventType.color = updatedEventType.color;
           eventType.bookingFields = updatedEventType.bookingFields;
         });
@@ -1100,6 +1109,23 @@ describe("Event types Endpoints", () => {
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .send(body)
         .expect(404);
+    });
+
+    it("should not allow to update event type with integration not installed on user", async () => {
+      const body: UpdateEventTypeInput_2024_06_14 = {
+        locations: [
+          {
+            type: "integration",
+            integration: "office365-video",
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${eventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(400);
     });
 
     it(`/GET/:id`, async () => {
@@ -1139,9 +1165,6 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.hideCalendarEventDetails).toEqual(eventType.hideCalendarEventDetails);
       expect(fetchedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
         eventType.lockTimeZoneToggleOnBookingPage
-      );
-      expect(fetchedEventType.lockedTimeZone).toEqual(
-        eventType.lockedTimeZone
       );
       expect(fetchedEventType.color).toEqual(eventType.color);
     });
@@ -1183,9 +1206,6 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.hideCalendarEventDetails).toEqual(eventType.hideCalendarEventDetails);
       expect(fetchedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
         eventType.lockTimeZoneToggleOnBookingPage
-      );
-      expect(fetchedEventType.lockedTimeZone).toEqual(
-        eventType.lockedTimeZone
       );
       expect(fetchedEventType.color).toEqual(eventType.color);
     });
