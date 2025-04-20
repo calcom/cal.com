@@ -530,6 +530,7 @@ export default class EventManager {
           results.push(result);
         }
 
+        // In case of host requested reschedule, old meeting URL was deleted, hence create a new one
         if (isBookingFromHostRequestedReschedule) {
           const result = await this.createVideoEvent(originalEvt);
           if (result?.createdEvent) {

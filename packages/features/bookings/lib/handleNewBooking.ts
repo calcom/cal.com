@@ -1405,6 +1405,7 @@ async function handler(
       !!originalRescheduledBooking?.cancellationReason &&
       !!originalRescheduledBooking?.cancelledBy &&
       originalRescheduledBooking?.rescheduled;
+    // In case of host requested reschedule, old meeting URL was deleted, new one will be created in eventManager.reschedule
     if (isBookingFromHostRequestedReschedule) evt.videoCallData = undefined;
     const updateManager = await eventManager.reschedule(
       evt,
@@ -1421,11 +1422,6 @@ async function handler(
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
 
-    // videoCallUrl = isBookingFromHostRequestedReschedule
-    //   ? updateManager.results.find((result) => result.type.includes("_video"))?.createdEvent?.url
-    //   : evt.videoCallData && evt.videoCallData.url
-    //   ? evt.videoCallData.url
-    //   : null;
     videoCallUrl = evt.videoCallData && evt.videoCallData.url ? evt.videoCallData.url : null;
 
     // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
