@@ -193,21 +193,19 @@ export default function WorkflowDetailsPage(props: Props) {
         {/* Workflow Trigger Event & Steps */}
         <div className="bg-muted border-subtle w-full rounded-md border p-3 py-5 md:ml-3 md:p-8">
           {form.getValues("trigger") ? (
-            <div>
-              <WorkflowStepContainer
-                verifiedNumbers={verifiedNumbers}
-                verifiedEmails={verifiedEmails}
-                form={form}
-                user={props.user}
-                teamId={teamId}
-                readOnly={props.readOnly}
-                actionOptions={actionOptions}
-              />
-            </div>
+            <WorkflowStepContainer
+              verifiedNumbers={verifiedNumbers}
+              verifiedEmails={verifiedEmails}
+              form={form}
+              user={props.user}
+              teamId={teamId}
+              readOnly={props.readOnly}
+              actionOptions={actionOptions}
+            />
           ) : (
             <SkeletonLoader />
           )}
-          {form.getValues("steps") && (
+          {form.getValues("steps") ? (
             <>
               {form.getValues("steps")?.map((step) => {
                 return (
@@ -227,6 +225,8 @@ export default function WorkflowDetailsPage(props: Props) {
                 );
               })}
             </>
+          ) : (
+            <SkeletonLoader />
           )}
           {!props.readOnly && (
             <>
