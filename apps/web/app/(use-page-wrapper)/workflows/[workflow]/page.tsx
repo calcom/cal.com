@@ -54,28 +54,28 @@ const Page = async ({ params }: PageProps) => {
   if (!parsed.success) {
     notFound();
   }
-
   const workFlowId = parsed.data.workflow;
 
-  const caller = await createRouterCaller(workflowsRouter);
-  const workflowData = await caller.get({ id: workFlowId });
+  const [workflowCaller, eventCaller, userCaller] = await Promise.all([
+    createRouterCaller(workflowsRouter),
+    createRouterCaller(eventTypesRouter),
+    createRouterCaller(meRouter),
+  ]);
+
+  const workflowData = await workflowCaller.get({ id: workFlowId });
+
+  if (!workflowData) return notFound();
 
   const isOrg = workflowData?.team?.isOrganization ?? false;
   const teamId = workflowData?.teamId ?? undefined;
 
-  const verifiedEmails = await caller.getVerifiedEmails({ teamId });
-  const verifiedNumbers = await caller.getVerifiedNumbers({ teamId });
-
-  const eventCaller = await createRouterCaller(eventTypesRouter);
-  const eventsData = await eventCaller.getTeamAndEventTypeOptions({
-    teamId,
-    isOrg,
-  });
-
-  const userCaller = await createRouterCaller(meRouter);
-  const user = await userCaller.get();
-
-  const actionOptions = await caller.getWorkflowActionOptions();
+  const [verifiedEmails, verifiedNumbers, eventsData, user, actionOptions] = await Promise.all([
+    workflowCaller.getVerifiedEmails({ teamId }),
+    workflowCaller.getVerifiedNumbers({ teamId }),
+    eventCaller.getTeamAndEventTypeOptions({ teamId, isOrg }),
+    userCaller.get(),
+    workflowCaller.getWorkflowActionOptions(),
+  ]);
 
   return (
     <LegacyPage
