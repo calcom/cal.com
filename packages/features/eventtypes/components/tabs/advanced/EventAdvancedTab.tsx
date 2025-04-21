@@ -1038,7 +1038,8 @@ export const EventAdvancedTab = ({
                   data-testid="custom-reply-to-email-input"
                   required={isCustomReplyToEmailChecked}
                   type="email"
-                  {...formMethods.register("customReplyToEmail")}
+                  value={value || ""}
+                  onChange={onChange}
                 />
               </div>
             </SettingsToggle>
