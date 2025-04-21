@@ -30,5 +30,9 @@ export default async function SettingsLayoutAppDir(props: SettingsLayoutAppDirPr
     });
   } catch (err) {}
 
-  return <SettingsLayoutAppDirClient {...props} currentOrg={currentOrg} otherTeams={otherTeams} />;
+  return (
+    <>
+      <SettingsLayoutAppDirClient {...props} currentOrg={currentOrg} otherTeams={otherTeams} />;
+    </>
+  );
 }

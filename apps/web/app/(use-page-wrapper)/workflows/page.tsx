@@ -1,5 +1,3 @@
-import type { PageProps } from "app/_types";
-
 // import { cookies, headers } from "next/headers";
 // import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 // import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -7,7 +5,7 @@ import type { PageProps } from "app/_types";
 // import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import LegacyPage from "@calcom/features/ee/workflows/pages/index";
 
-const Page = async ({ params, searchParams }: PageProps) => {
+const Page = async () => {
   // const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   // const user = session?.user;
 
