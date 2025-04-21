@@ -2,11 +2,12 @@ import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
 import { selectFirstAvailableTimeSlotNextMonth, bookTimeSlot } from "./lib/testUtils";
+import { submitAndWaitForResponse } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
 test.describe("Team Availability", () => {
-  test.beforeEach(async ({ page, users }) => {
+  test.beforeEach(async ({ users }) => {
     const teamMatesObj = [
       { name: "teammate-1" },
       { name: "teammate-2" },
@@ -31,6 +32,7 @@ test.describe("Team Availability", () => {
 
   test("success booking with multiple hosts", async ({ page, users }) => {
     await page.goto("/event-types");
+    await expect(page).toHaveURL(/.*\/event-types/);
 
     // creating new team round robin event
     await page.getByTestId("new-event-type").click();
@@ -47,7 +49,9 @@ test.describe("Team Availability", () => {
     await page.getByTestId("assign-all-team-members-toggle").click();
 
     // updating event type
-    await page.getByTestId("update-eventtype").click();
+    await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+      action: () => page.locator("[data-testid=update-eventtype]").click(),
+    });
     const page2Promise = page.waitForEvent("popup");
 
     // booking event
@@ -63,6 +67,7 @@ test.describe("Team Availability", () => {
 
   test("show alert if multiple hosts count is more than available hosts", async ({ page, users }) => {
     await page.goto("/event-types");
+    await expect(page).toHaveURL(/.*\/event-types/);
 
     // creating new team round robin event
     await page.getByTestId("new-event-type").click();
@@ -79,7 +84,9 @@ test.describe("Team Availability", () => {
     await page.getByTestId("assign-all-team-members-toggle").click();
 
     // updating event type
-    await page.getByTestId("update-eventtype").click();
+    await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+      action: () => page.locator("[data-testid=update-eventtype]").click(),
+    });
     const page2Promise = page.waitForEvent("popup");
 
     // booking event
