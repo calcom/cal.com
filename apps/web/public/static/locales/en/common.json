@@ -1024,6 +1024,8 @@
   "account_created_with_identity_provider": "Your account was created using an Identity Provider.",
   "account_managed_by_identity_provider": "Your account is managed by {{provider}}",
   "account_managed_by_identity_provider_description": "To change your email, password, enable two-factor authentication and more, please visit your {{provider}} account settings.",
+  "account_managed_by_identity_provider_error": "Your account is managed by different identity provider. Try logging in with {{provider}}.",
+  "user_creation_error": "Error creating a new user. Please try again.",
   "signin_with_google": "Sign in with Google",
   "signin_with_saml": "Sign in with SAML",
   "signin_with_saml_oidc": "Sign in with SAML/OIDC",
