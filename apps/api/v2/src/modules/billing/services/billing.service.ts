@@ -98,7 +98,6 @@ export class BillingService implements OnModuleDestroy {
   }
 
   async updateSubscriptionForTeam(teamId: number, plan: PlatformPlan) {
-    // check this
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
     const customerId = teamWithBilling?.platformBilling?.customerId;
 
@@ -132,7 +131,6 @@ export class BillingService implements OnModuleDestroy {
     );
   }
 
-  // maybe this is useful
   async handleStripeSubscriptionDeleted(event: Stripe.Event) {
     const subscription = event.data.object as Stripe.Subscription;
     const teamId = subscription?.metadata?.teamId;
