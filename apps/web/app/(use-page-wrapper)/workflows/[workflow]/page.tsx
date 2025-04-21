@@ -72,12 +72,11 @@ const Page = async ({ params }: PageProps) => {
   const isOrg = workflowData?.team?.isOrganization ?? false;
   const teamId = workflowData?.teamId ?? undefined;
 
-  const [verifiedEmails, verifiedNumbers, eventsData, user, actionOptions] = await Promise.all([
+  const [verifiedEmails, verifiedNumbers, eventsData, user] = await Promise.all([
     workflowCaller.getVerifiedEmails({ teamId }),
-    workflowCaller.getVerifiedNumbers({ teamId }),
+    teamId ? workflowCaller.getVerifiedNumbers({ teamId }) : Promise.resolve([]),
     eventCaller.getTeamAndEventTypeOptions({ teamId, isOrg }),
     userCaller.get(),
-    workflowCaller.getWorkflowActionOptions(),
   ]);
 
   return (
@@ -88,7 +87,6 @@ const Page = async ({ params }: PageProps) => {
       workflow={workflowData}
       verifiedNumbers={verifiedNumbers}
       verifiedEmails={verifiedEmails}
-      actionOptions={actionOptions}
     />
   );
 };
