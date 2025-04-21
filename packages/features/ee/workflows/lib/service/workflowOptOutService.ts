@@ -1,3 +1,5 @@
+import { getTranslation } from "@calcom/lib/server/i18n";
+
 import { deleteMultipleScheduledSMS } from "../reminders/providers/twilioProvider";
 import { WorkflowOptOutContactRepository } from "../repository/workflowOptOutContact";
 import { WorkflowReminderRepository } from "../repository/workflowReminder";
@@ -21,7 +23,8 @@ export class WorkflowOptOutService {
     );
   }
 
-  static addOptOutMessage(message: string) {
-    return `${message}\n\nText STOP to opt-out of SMS messages`;
+  static async addOptOutMessage(message: string, locale: string) {
+    const t = await getTranslation(locale, "common");
+    return `${message}\n\n${t("sms_opt_out_message")}`;
   }
 }

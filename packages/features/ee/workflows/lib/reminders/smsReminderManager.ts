@@ -218,7 +218,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
 
   if (smsMessage.length > 0 && reminderPhone && isNumberVerified) {
     if (process.env.TWILIO_OPT_OUT_ENABLED === "true") {
-      smsMessage = WorkflowOptOutService.addOptOutMessage(smsMessage);
+      smsMessage = await WorkflowOptOutService.addOptOutMessage(smsMessage, evt.organizer.language.locale);
     }
 
     //send SMS when event is booked/cancelled/rescheduled
