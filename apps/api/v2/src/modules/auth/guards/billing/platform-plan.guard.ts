@@ -42,16 +42,15 @@ export class PlatformPlanGuard implements CanActivate {
     }
 
     const organization = await this.organizationsRepository.findByIdIncludeBilling(Number(orgId));
-    const isPlatform = organization && organization?.isPlatform;
+    const isPlatform = organization?.isPlatform;
     const hasSubscription = organization?.platformBilling?.subscriptionId;
-
-    if (!isPlatform) {
-      await this.redisService.redis.set(REDIS_CACHE_KEY, "true", "EX", 300);
-      return true;
-    }
 
     if (!organization) {
       throw new ForbiddenException(`PlatformPlanGuard - No organization found with id=${orgId}.`);
+    }
+    if (!isPlatform) {
+      await this.redisService.redis.set(REDIS_CACHE_KEY, "true", "EX", 300);
+      return true;
     }
     if (!hasSubscription) {
       throw new ForbiddenException(
