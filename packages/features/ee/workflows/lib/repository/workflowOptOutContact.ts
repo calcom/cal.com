@@ -38,10 +38,8 @@ export class WorkflowOptOutContactRepository {
   static async isOptedOut(phoneNumber: string) {
     const optOutContact = await prisma.workflowOptOutContact.findFirst({
       where: {
-        type_value: {
-          type: WorkflowContactType.PHONE,
-          value: phoneNumber,
-        },
+        type: WorkflowContactType.PHONE,
+        value: phoneNumber,
         optedOut: true,
       },
     });
