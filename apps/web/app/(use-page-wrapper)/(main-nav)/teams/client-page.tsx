@@ -12,14 +12,14 @@ const ClientPage = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const session = useSession();
+  const { t } = useLocale();
   const _token = searchParams?.get("token");
   const token = Array.isArray(_token) ? _token[0] : _token;
   const callbackUrl = token ? `/teams?token=${encodeURIComponent(token)}` : null;
-  if (session.status !== "loading" && !session.data?.user) {
+  if (session.status === "unauthenticated" || (session.status !== "loading" && !session.data?.user)) {
     router.push(callbackUrl ? `/auth/login?callbackUrl=${callbackUrl}` : "/auth/login");
+    return;
   }
-
-  const { t } = useLocale();
 
   return (
     <ShellMainAppDir
