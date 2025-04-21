@@ -110,8 +110,8 @@ $ yarn run test:cov
 ## Conventions
 
 ### Guards
-1. In case a guard would return "false" for "canActive" instead throw ForbiddenException with an error message containing guard name and the error.
-2. In case a guard would return "false" for "canActive" DO NOT cache the result in redis, because we don't want that someone is forbidden, updates whatever was the problem, and then has to wait for cache to expire. We only cache in redis guard results where "canAccess" is "true".
+1. In case a guard would return "false" for "canActivate" instead throw ForbiddenException with an error message containing guard name and the error.
+2. In case a guard would return "false" for "canActivate" DO NOT cache the result in redis, because we don't want that someone is forbidden, updates whatever was the problem, and then has to wait for cache to expire. We only cache in redis guard results where "canAccess" is "true".
 
 ## Support
 

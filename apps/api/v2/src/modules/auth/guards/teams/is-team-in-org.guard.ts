@@ -29,16 +29,13 @@ export class IsTeamInOrg implements CanActivate {
 
     const { canAccess, team } = await this.checkIfTeamIsInOrg(orgId, teamId);
 
-    if (canAccess && team) {
-      request.team = team;
-    }
-
     if (!canAccess) {
       throw new ForbiddenException(
         `IsTeamInOrg - Team with id=${teamId} is not part of the organization with id=${orgId}.`
       );
     }
 
+    request.team = team;
     return true;
   }
 
@@ -46,7 +43,7 @@ export class IsTeamInOrg implements CanActivate {
     const team = await this.organizationsTeamsRepository.findOrgTeam(Number(orgId), Number(teamId));
 
     if (!team) {
-      throw new NotFoundException(`IsTeamInOrg -Team (${teamId}) not found.`);
+      throw new NotFoundException(`IsTeamInOrg - Team (${teamId}) not found.`);
     }
 
     if (!team.isOrganization && team.parentId === Number(orgId)) {

@@ -1,5 +1,11 @@
 import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  NotFoundException,
+} from "@nestjs/common";
 import { Request } from "express";
 
 import { Membership } from "@calcom/prisma/client";
@@ -27,7 +33,7 @@ export class IsMembershipInOrg implements CanActivate {
     );
 
     if (!membership) {
-      throw new ForbiddenException(`IsMembershipInOrg - Membership (${membershipId}) not found.`);
+      throw new NotFoundException(`IsMembershipInOrg - Membership (${membershipId}) not found.`);
     }
 
     request.membership = membership;
