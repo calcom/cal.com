@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import Shell from "@calcom/features/shell/Shell";
@@ -9,6 +10,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { PlatformPricing } from "@calcom/web/components/settings/platform/pricing/platform-pricing/index";
+
+import { useUnsubscribeTeamToStripe } from "@lib/hooks/settings/platform/billing/useUnsubscribeTeamToStripe";
 
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
@@ -26,6 +29,7 @@ declare global {
 }
 
 export default function PlatformBillingUpgrade() {
+  const router = useRouter();
   const pathname = usePathname();
   const { t } = useLocale();
   const returnTo = pathname;
@@ -38,6 +42,17 @@ export default function PlatformBillingUpgrade() {
   };
   const { isUserLoading, isUserBillingDataLoading, isPlatformUser, userBillingData, isPaidUser, userOrgId } =
     useGetUserAttributes();
+
+  const { mutateAsync: removeTeamSubscription, isPending: isRemoveTeamSubscriptionLoading } =
+    useUnsubscribeTeamToStripe({
+      onSuccess: () => {
+        window.location.href = "/settings/platform/";
+      },
+      onError: () => {
+        console.log("error");
+      },
+      teamId: userOrgId,
+    });
 
   if (isUserLoading || (isUserBillingDataLoading && !userBillingData)) {
     return <div className="m-5">{t("loading")}</div>;
@@ -97,10 +112,9 @@ export default function PlatformBillingUpgrade() {
             <CtaRow title="Cancel subscription" description={t("Cancel your existing platform subscription")}>
               <CancelSubscriptionButton
                 buttonClassName="hidden me-2 sm:inline"
-                disabled={false}
-                isPending={false}
+                isPending={isRemoveTeamSubscriptionLoading}
                 handleDelete={() => {
-                  console.log("plan deleted successfully!");
+                  removeTeamSubscription();
                 }}
               />
             </CtaRow>
@@ -120,13 +134,11 @@ export default function PlatformBillingUpgrade() {
 }
 
 const CancelSubscriptionButton = ({
-  disabled,
   buttonClassName,
   isPending,
   onDeleteConfirmed,
   handleDelete,
 }: {
-  disabled?: boolean;
   onDeleteConfirmed?: () => void;
   buttonClassName: string;
   handleDelete: () => void;
