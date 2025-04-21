@@ -18,10 +18,10 @@ export class OrganizationsTeamsRoutingFormsResponsesService {
     options?: {
       sortCreatedAt?: "asc" | "desc";
       sortUpdatedAt?: "asc" | "desc";
-      afterCreatedAt?: Date;
-      beforeCreatedAt?: Date;
-      afterUpdatedAt?: Date;
-      beforeUpdatedAt?: Date;
+      afterCreatedAt?: string;
+      beforeCreatedAt?: string;
+      afterUpdatedAt?: string;
+      beforeUpdatedAt?: string;
       routedToBookingUid?: string;
     }
   ) {
