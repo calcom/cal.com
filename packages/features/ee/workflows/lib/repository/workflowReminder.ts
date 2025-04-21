@@ -6,9 +6,11 @@ export class WorkflowReminderRepository {
     return prisma.workflowReminder.findMany({
       where: {
         method: WorkflowMethods.SMS,
-        sendTo: phoneNumber,
         cancelled: null,
         scheduledDate: { gte: new Date() },
+        booking: {
+          smsReminderNumber: phoneNumber,
+        },
       },
     });
   }
