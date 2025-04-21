@@ -325,11 +325,13 @@ export class BillingService implements OnModuleDestroy {
       throw new NotFoundException("Team plan not found");
     }
 
-    // get current user subscription to cancel it
-    // ideally when this customer subscription is deleted, the customer.subscription.deleted webhook should be called
-    // and we alreday have a handler for that
-    // so in our db it should be deleted
-    await this.stripeService.getStripe().subscriptions.del(teamWithBilling?.platformBilling?.subscriptionId);
+    try {
+      await this.stripeService
+        .getStripe()
+        .subscriptions.cancel(teamWithBilling?.platformBilling?.subscriptionId);
+    } catch (error) {
+      this.logger.log(error, "error");
+    }
   }
 
   async onModuleDestroy() {
