@@ -25,11 +25,11 @@ const Page = async ({ params, searchParams }: PageProps) => {
   const context = buildLegacyCtx(await headers(), await cookies(), await params, _searchParams);
   const session = await getSession(context);
 
-  const filters = getTeamsFiltersFromQuery(_searchParams);
-
   if (!session?.user?.id) {
     redirect("/auth/login");
   }
+  
+  const filters = getTeamsFiltersFromQuery(_searchParams);
 
   const hasValidLicense = session?.hasValidLicense ?? false;
   const caller = await createRouterCaller(workflowsRouter);

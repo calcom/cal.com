@@ -5,13 +5,13 @@ export function FilterResults({
   emptyScreen,
   children,
 }: {
-  queryRes: { isPending?: boolean; data: { totalCount: number; filtered: unknown[] } | undefined };
-  SkeletonLoader?: React.FC;
+  queryRes: { isPending: boolean; data: { totalCount: number; filtered: unknown[] } | undefined };
+  SkeletonLoader: React.FC;
   noResultsScreen: React.ReactNode;
   emptyScreen: React.ReactNode;
   children: React.ReactNode;
 }) {
-  if (queryRes?.isPending && SkeletonLoader) return <SkeletonLoader />;
+  if (queryRes?.isPending) return <SkeletonLoader />;
   if (!queryRes.data?.totalCount) return <>{emptyScreen}</>;
 
   return queryRes.data?.totalCount ? (

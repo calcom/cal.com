@@ -89,9 +89,10 @@ function WorkflowsPage({ initialData, hasValidLicense }: PageProps) {
               </div>
             ) : null}
             <FilterResults
-              queryRes={{ data: filteredWorkflows }}
+              queryRes={{ isPending={false}, data: filteredWorkflows }}
               emptyScreen={<EmptyScreen isFilteredView={false} />}
-              noResultsScreen={<EmptyScreen isFilteredView={true} />}>
+              noResultsScreen={<EmptyScreen isFilteredView={true} />}
+             >
               <WorkflowList workflows={filteredWorkflows?.filtered} />
             </FilterResults>
           </>
