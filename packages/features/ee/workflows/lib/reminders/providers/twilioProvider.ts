@@ -201,25 +201,22 @@ async function isLockedForSMSSending(userId?: number | null, teamId?: number | n
 
 export async function validateWebhookRequest({
   requestUrl,
-  body,
+  params,
   signature,
 }: {
   requestUrl: string;
-  body: string;
+  params: object;
   signature: string;
 }) {
   if (!process.env.TWILIO_TOKEN) {
     throw new Error("TWILIO_TOKEN is not set");
   }
-  console.log("🚀 ~ file: twilioProvider.ts:223 ~ signature:", signature);
-  console.log("🚀 ~ file: twilioProvider.ts:224 ~ requestUrl:", requestUrl);
-  console.log("🚀 ~ file: twilioProvider.ts:225 ~ body:", body);
 
-  const isSignatureValid = TwilioClient.validateRequestWithBody(
+  const isSignatureValid = TwilioClient.validateRequest(
     process.env.TWILIO_TOKEN,
     signature,
     requestUrl,
-    body
+    params
   );
   return isSignatureValid;
 }
@@ -227,74 +224,34 @@ export async function validateWebhookRequest({
 export async function determineOptOutType(
   req: NextRequest
 ): Promise<{ phoneNumber: string; optOutStatus: boolean } | { error: string }> {
-  // Twilio sends webhook data as form data
-  const formData = await req.formData();
-  const headers = req.headers;
-  console.log("🚀 ~ file: twilioProvider.ts:207 ~ headers:", headers);
-
-  if (!formData) {
-    return { error: "Invalid request" };
-  }
-
-  const accountSid = formData.get("AccountSid")?.valueOf();
-
-  if (accountSid !== process.env.TWILIO_SID) {
-    return { error: "Invalid account SID" };
-  }
-
-  const optOutUrl = `${WEBAPP_URL}/api/workflows/sms/user-response`;
-  const reader = req.body?.getReader();
-  const chunks = [];
-
-  if (!reader) {
-    return { error: "Could not read request body stream" };
-  }
-  let done = false,
-    value;
-  while (!done) {
-    ({ done, value } = await reader.read());
-    if (value) {
-      chunks.push(value);
-    }
-  }
-
-  console.log("🚀 ~ file: twilioProvider.ts:258 ~ chunks:", chunks);
-
-  const rawBodyBuffer = Buffer.concat(chunks);
-  console.log("🚀 ~ file: twilioProvider.ts:264 ~ rawBodyBuffer:", rawBodyBuffer);
-  // const body = aawreq.text();
-  const body = rawBodyBuffer.toString();
-  console.log("🚀 ~ file: twilioProvider.ts:244 ~ body:", body);
-
   const signature = req.headers.get("X-Twilio-Signature");
+  const formData = await req.formData();
+  const params = Object.fromEntries(formData.entries());
 
   if (!signature) {
     return { error: "Missing Twilio signature" };
   }
 
-  const protocol = req.headers["x-forwarded-proto"] || "https"; // Default to https
-  const host = req.headers["host"];
-  // req.url contains the path and query string (e.g., /api/twilio-webhook?foo=bar)
-  const fullUrl = `${req.url}`;
+  const fullUrl = `${WEBAPP_URL}${req.nextUrl.pathname}`;
 
-  console.log("🚀 ~ file: twilioProvider.ts:272 ~ fullUrl:", fullUrl);
   const isSignatureValid = await validateWebhookRequest({
     requestUrl: fullUrl,
-    body: body,
+    params: params,
     signature: signature,
   });
 
-  console.log(
-    `🚀 ~ file: twilioProvider.ts:245 ~ headers.get("x-twilio-signature"):`,
-    headers.get("x-twilio-signature")
-  );
-  console.log(`🚀 ~ file: twilioProvider.ts:246 ~ isSignatureValid:`, isSignatureValid);
   if (!isSignatureValid) {
     return { error: "Invalid signature" };
   }
 
+  const accountSid = params["AccountSid"]?.valueOf();
+
+  if (accountSid !== process.env.TWILIO_SID) {
+    return { error: "Invalid account SID" };
+  }
+
   // Twilio returns phone numbers with a + prefix
-  const phoneNumberRaw = formData.get("From")?.valueOf();
+  const phoneNumberRaw = params["From"]?.valueOf();
 
   if (!phoneNumberRaw) {
     return { error: "No phone number to handle" };
