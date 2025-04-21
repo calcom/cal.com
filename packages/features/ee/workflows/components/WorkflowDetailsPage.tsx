@@ -9,6 +9,7 @@ import { SENDER_ID, SENDER_NAME, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/con
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
+import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -36,7 +37,6 @@ interface Props {
   readOnly: boolean;
   isOrg: boolean;
   allOptions: Option[];
-  actionOptions?: RouterOutputs["viewer"]["workflows"]["getWorkflowActionOptions"];
 }
 
 export default function WorkflowDetailsPage(props: Props) {
@@ -50,10 +50,11 @@ export default function WorkflowDetailsPage(props: Props) {
     teamId,
     isOrg,
     allOptions,
-    actionOptions,
   } = props;
   const { t } = useLocale();
   const router = useRouter();
+
+  const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
 
