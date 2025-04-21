@@ -446,7 +446,7 @@ describe("handleChildrenEventTypes", () => {
           durationLimits: undefined,
           recurringEvent: undefined,
           eventTypeColor: undefined,
-          customReplyToEmail: undefined,
+          customReplyToEmail: null,
           instantMeetingScheduleId: undefined,
           locations: [],
           lockTimeZoneToggleOnBookingPage: false,
