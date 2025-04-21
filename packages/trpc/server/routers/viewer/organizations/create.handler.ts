@@ -176,7 +176,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   if (!!hasExistingPlatformOrOrgTeam?.team && isPlatform) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `You can't create a new team because you are already a part of "${hasExistingPlatformOrOrgTeam.team.name}`,
+      message: `You can't create a new team because you are already a part of ${hasExistingPlatformOrOrgTeam.team.name}`,
     });
   }
 
