@@ -22,14 +22,19 @@ export class IsAdminAPIEnabledGuard implements CanActivate {
     const organizationId: string = request.params.orgId;
 
     if (!organizationId) {
-      throw new ForbiddenException("No organization id found in request params.");
+      throw new ForbiddenException("IsAdminAPIEnabledGuard - No organization id found in request params.");
     }
 
     const { canAccess, organization } = await this.checkAdminAPIEnabled(organizationId);
     if (organization) {
       request.organization = organization;
     }
-    return canAccess;
+    if (!canAccess) {
+      throw new ForbiddenException(
+        `IsAdminAPIEnabledGuard - Organization with id=${organizationId} does not have Admin API access. Please contact https://cal.com/sales to upgrade.`
+      );
+    }
+    return true;
   }
 
   async checkAdminAPIEnabled(
@@ -57,7 +62,7 @@ export class IsAdminAPIEnabledGuard implements CanActivate {
       );
       if (!adminAPIAccessIsEnabledInOrg) {
         throw new ForbiddenException(
-          `Organization does not have Admin API access, please contact https://cal.com/sales to upgrade`
+          `IsAdminAPIEnabledGuard - Organization does not have Admin API access, please contact https://cal.com/sales to upgrade`
         );
       }
     }
