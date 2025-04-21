@@ -1,5 +1,4 @@
 import type { NextRequest } from "next/server";
-import pLimit from "p-limit";
 import TwilioClient from "twilio";
 import { v4 as uuidv4 } from "uuid";
 
@@ -239,6 +238,7 @@ export async function determineOptOutType(
 export async function deleteMultipleScheduledSMS(referenceIds: string[]) {
   const twilio = createTwilioClient();
 
+  const pLimit = (await import("p-limit")).default;
   const limit = pLimit(10);
 
   await Promise.allSettled(
