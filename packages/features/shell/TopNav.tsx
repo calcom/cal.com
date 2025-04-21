@@ -32,7 +32,7 @@ function TopNav() {
           </span>
           <button className="hover:bg-muted hover:text-subtle text-muted rounded-full p-1 transition focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
             <span className="sr-only">{t("settings")}</span>
-            <Link href="/settings/my-account/profile">
+            <Link href="/settings">
               <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
             </Link>
           </button>
