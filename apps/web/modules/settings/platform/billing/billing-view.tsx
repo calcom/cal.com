@@ -2,10 +2,12 @@
 
 import { usePathname } from "next/navigation";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
+import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { PlatformPricing } from "@calcom/web/components/settings/platform/pricing/platform-pricing/index";
 
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
@@ -92,6 +94,19 @@ export default function PlatformBillingUpgrade() {
 
             <hr className="border-subtle" />
 
+            <CtaRow title="Cancel subscription" description={t("Cancel your existing platform subscription")}>
+              <CancelSubscriptionButton
+                buttonClassName="hidden me-2 sm:inline"
+                disabled={false}
+                isPending={false}
+                handleDelete={() => {
+                  console.log("plan deleted successfully!");
+                }}
+              />
+            </CtaRow>
+
+            <hr className="border-subtle" />
+
             <CtaRow title={t("need_anything_else")} description={t("further_billing_help")}>
               <Button color="secondary" onClick={onContactSupportClick}>
                 {t("contact_support")}
@@ -103,3 +118,42 @@ export default function PlatformBillingUpgrade() {
     </div>
   );
 }
+
+const CancelSubscriptionButton = ({
+  disabled,
+  buttonClassName,
+  isPending,
+  onDeleteConfirmed,
+  handleDelete,
+}: {
+  disabled?: boolean;
+  onDeleteConfirmed?: () => void;
+  buttonClassName: string;
+  handleDelete: () => void;
+  isPending: boolean;
+}) => {
+  const { t } = useLocale();
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button color="destructive" className={buttonClassName}>
+          Cancel
+        </Button>
+      </DialogTrigger>
+
+      <ConfirmationDialogContent
+        isPending={isPending}
+        variety="danger"
+        title="Cancel subscription"
+        confirmBtnText={t("delete")}
+        loadingText={t("delete")}
+        onConfirm={() => {
+          handleDelete();
+          onDeleteConfirmed?.();
+        }}>
+        Some description for user cancellation user subscription!
+      </ConfirmationDialogContent>
+    </Dialog>
+  );
+};
