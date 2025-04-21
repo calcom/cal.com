@@ -70,6 +70,15 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
   });
 
   try {
+    logger.info(
+      safeStringify({
+        orgId: organizationOnboarding.organizationId,
+        orgSlug: organizationOnboarding.slug,
+        isDomainConfigured: organizationOnboarding.isDomainConfigured,
+        createdAt: organizationOnboarding.createdAt,
+        stripeSubscriptionId: organizationOnboarding.stripeSubscriptionId,
+      })
+    );
     const { organization } = await createOrganizationFromOnboarding({
       organizationOnboarding,
       paymentSubscriptionId,
