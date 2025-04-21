@@ -41,7 +41,7 @@ const SettingsHomePage = () => {
       title: t("out_of_office"),
       description: t("out_of_office_settings_description"),
       href: "/settings/my-account/out-of-office",
-      icon: "beach" as IconName,
+      icon: "tree-palm" as IconName,
     },
     {
       name: "appearance",
@@ -110,7 +110,7 @@ const SettingsHomePage = () => {
       title: t("attributes"),
       description: t("attributes_settings_description"),
       href: "/settings/organizations/attributes",
-      icon: "tag" as IconName,
+      icon: "tags" as IconName,
     },
     {
       name: "oauth_clients",
