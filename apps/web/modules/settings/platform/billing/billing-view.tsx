@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useRouter } from "next/navigation";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import Shell from "@calcom/features/shell/Shell";
@@ -29,7 +28,6 @@ declare global {
 }
 
 export default function PlatformBillingUpgrade() {
-  const router = useRouter();
   const pathname = usePathname();
   const { t } = useLocale();
   const returnTo = pathname;
@@ -164,7 +162,8 @@ const CancelSubscriptionButton = ({
           handleDelete();
           onDeleteConfirmed?.();
         }}>
-        Some description for user cancellation user subscription!
+        Cancelling subscription will cancel your current subscription to the platform plan permanently. This
+        action cannot be undone.
       </ConfirmationDialogContent>
     </Dialog>
   );
