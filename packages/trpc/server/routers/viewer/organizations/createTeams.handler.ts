@@ -227,7 +227,7 @@ async function moveTeam({
     );
     return;
   }
-  log.info("Moving team", safeStringify({ teamId, newSlug, org, oldSlug: team.slug }));
+  log.info("Moving team", safeStringify({ teamId, newSlug, oldSlug: team.slug }));
 
   newSlug = newSlug ?? team.slug;
   const orgMetadata = teamMetadataSchema.parse(org.metadata);
