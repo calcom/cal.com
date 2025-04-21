@@ -57,6 +57,7 @@ export const bookingSelect = {
       slug: true,
       id: true,
       schedulingType: true,
+      customReplyToEmail: true,
       hosts: {
         select: {
           user: {
@@ -648,6 +649,7 @@ export async function scheduleBookingReminders(
           hosts: booking.eventType?.hosts,
         },
         metadata: booking.metadata,
+        customReplyToEmail: booking.eventType?.customReplyToEmail,
       };
       if (
         step.action === WorkflowActions.EMAIL_HOST ||
