@@ -758,7 +758,6 @@ async function handler(
             );
           }
         } else {
-          freeUsers.splice(freeUsers.indexOf(newLuckyUser), 1);
           luckyUsers.push(newLuckyUser);
         }
       }
