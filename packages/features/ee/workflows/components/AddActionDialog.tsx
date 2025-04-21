@@ -10,7 +10,7 @@ import PhoneInput from "@calcom/features/components/phone-input";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WorkflowActions } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { EmailField } from "@calcom/ui/components/form";
@@ -35,6 +35,7 @@ interface IAddActionDialog {
     senderId?: string,
     senderName?: string
   ) => void;
+  actionOptions?: RouterOutputs["viewer"]["workflows"]["getWorkflowActionOptions"];
 }
 
 interface ISelectActionOption {
@@ -52,11 +53,10 @@ type AddActionFormValues = {
 
 export const AddActionDialog = (props: IAddActionDialog) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, addAction } = props;
+  const { isOpenDialog, setIsOpenDialog, addAction, actionOptions } = props;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(false);
   const [isSenderIdNeeded, setIsSenderIdNeeded] = useState(false);
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(false);
-  const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
 
   const formSchema = z.object({
     action: z.enum(WORKFLOW_ACTIONS),
