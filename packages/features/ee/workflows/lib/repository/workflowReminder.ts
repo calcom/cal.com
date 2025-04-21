@@ -16,6 +16,10 @@ export class WorkflowReminderRepository {
   }
 
   static deleteWorkflowReminders(ids: number[]) {
+    if (!ids.length) {
+      return [];
+    }
+
     return prisma.workflowReminder.deleteMany({
       where: {
         id: {
