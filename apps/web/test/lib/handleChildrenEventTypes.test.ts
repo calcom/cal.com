@@ -145,6 +145,7 @@ describe("handleChildrenEventTypes", () => {
           userId: 4,
           rrSegmentQueryValue: undefined,
           assignRRMembersUsingSegment: false,
+          customReplyToEmail: null,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -197,6 +198,7 @@ describe("handleChildrenEventTypes", () => {
           scheduleId: null,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          customReplyToEmail: null,
           hashedLink: {
             deleteMany: {},
           },
@@ -306,6 +308,7 @@ describe("handleChildrenEventTypes", () => {
           workflows: undefined,
           hashedLink: undefined,
           rrSegmentQueryValue: undefined,
+          customReplyToEmail: null,
           assignRRMembersUsingSegment: false,
         },
       });
@@ -445,6 +448,7 @@ describe("handleChildrenEventTypes", () => {
           recurringEvent: undefined,
           eventTypeColor: undefined,
           instantMeetingScheduleId: undefined,
+          customReplyToEmail: null,
           locations: [],
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
