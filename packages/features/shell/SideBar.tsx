@@ -62,7 +62,6 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
   const bottomNavItems = useBottomNavItems({
     publicPageUrl,
     isAdmin,
-    user,
   });
 
   const sidebarStylingAttributes = {
