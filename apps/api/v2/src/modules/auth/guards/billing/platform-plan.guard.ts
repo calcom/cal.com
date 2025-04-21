@@ -89,7 +89,7 @@ export function hasMinimumPlan(props: HasMinimumPlanProp): boolean {
 
   if (currentPlanIndex === -1 || minimumPlanIndex === -1) {
     throw new Error(
-      `Invalid platform billing plan provided. Current plan: ${props.currentPlan}, Minimum plan: ${props.minimumPlan}`
+      `PlatformPlanGuard - Invalid platform billing plan provided. Current plan: ${props.currentPlan}, Minimum plan: ${props.minimumPlan}`
     );
   }
 
