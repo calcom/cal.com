@@ -23,13 +23,13 @@ export class IsUserInOrg implements CanActivate {
 
     const user = await this.organizationsRepository.findOrgUser(Number(orgId), Number(userId));
 
-    if (user) {
-      request.user = user;
-      return true;
+    if (!user) {
+      throw new ForbiddenException(
+        `IsUserInOrg - user with id=${userId} is not part of the organization with id=${orgId}.`
+      );
     }
 
-    throw new ForbiddenException(
-      `IsUserInOrg - user with id=${userId} is not part of the organization with id=${orgId}.`
-    );
+    request.user = user;
+    return true;
   }
 }

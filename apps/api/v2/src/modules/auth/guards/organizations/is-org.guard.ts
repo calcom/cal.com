@@ -22,7 +22,7 @@ export class IsOrgGuard implements CanActivate {
     const organizationId: string = request.params.orgId;
 
     if (!organizationId) {
-      throw new ForbiddenException("No organization id found in request params.");
+      throw new ForbiddenException("IsOrgGuard - No organization id found in request params.");
     }
 
     const { canAccess, org } = await this.checkOrgAccess(organizationId);

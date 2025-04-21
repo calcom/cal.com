@@ -190,7 +190,7 @@ export function hasMinimumRole(props: HasMinimumRoleProp): boolean {
 
   // minimum role given does not exist
   if (checkedRoleIndex === -1 || requiredRoleIndex === -1) {
-    throw new Error("Invalid role");
+    throw new Error("RolesGuard - Invalid role");
   }
 
   return checkedRoleIndex <= requiredRoleIndex;
