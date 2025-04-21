@@ -8,7 +8,9 @@ export class WorkflowOptOutService {
   static async optOutPhoneNumber(phoneNumber: string) {
     await WorkflowOptOutContactRepository.addPhoneNumber(phoneNumber);
     // Delete scheduled workflows
-    const scheduledReminders = await WorkflowReminderRepository.getFutureScheduledSMSReminders(phoneNumber);
+    const scheduledReminders = await WorkflowReminderRepository.getFutureScheduledAttendeeSMSReminders(
+      phoneNumber
+    );
 
     // Get twilio scheduled workflows reminders
     await deleteMultipleScheduledSMS(

@@ -1,8 +1,8 @@
 import prisma from "@calcom/prisma";
-import { WorkflowMethods } from "@calcom/prisma/enums";
+import { WorkflowMethods, WorkflowActions } from "@calcom/prisma/enums";
 
 export class WorkflowReminderRepository {
-  static getFutureScheduledSMSReminders(phoneNumber: string) {
+  static getFutureScheduledAttendeeSMSReminders(phoneNumber: string) {
     return prisma.workflowReminder.findMany({
       where: {
         method: WorkflowMethods.SMS,
@@ -10,6 +10,9 @@ export class WorkflowReminderRepository {
         scheduledDate: { gte: new Date() },
         booking: {
           smsReminderNumber: phoneNumber,
+        },
+        workflowStep: {
+          action: WorkflowActions.SMS_ATTENDEE,
         },
       },
     });
