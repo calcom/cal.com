@@ -177,6 +177,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     emailContent = emailReminderTemplate({
       isEditingMode: false,
       locale: evt.organizer.language.locale,
+      t: await getTranslation(evt.organizer.language.locale || "en", "common"),
       action,
       timeFormat: evt.organizer.timeFormat,
       startTime,
@@ -193,6 +194,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       isEditingMode: true,
       locale: evt.organizer.language.locale,
       action,
+      t: await getTranslation(evt.organizer.language.locale || "en", "common"),
       timeFormat: evt.organizer.timeFormat,
       startTime,
       endTime,

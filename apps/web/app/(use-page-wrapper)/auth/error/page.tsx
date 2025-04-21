@@ -12,7 +12,10 @@ import AuthContainer from "@components/ui/AuthContainer";
 export const generateMetadata = async () => {
   return await _generateMetadata(
     (t) => t("error"),
-    () => ""
+    () => "",
+    undefined,
+    undefined,
+    "/auth/error"
   );
 };
 

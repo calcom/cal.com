@@ -1,6 +1,6 @@
 // `responses` is merged with it during handleNewBooking call because `responses` schema is dynamic and depends on eventType
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
-import { isSupportedTimeZone } from "@calcom/lib/date-fns";
+import { isSupportedTimeZone } from "@calcom/lib/dayjs";
 // TODO: Move this out of here. Importing from app-store is a circular package dependency.
 import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
 
