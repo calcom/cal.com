@@ -61,7 +61,7 @@ export class IsOrgGuard implements CanActivate {
       canAccess = true;
     }
 
-    if (org) {
+    if (org && canAccess) {
       await this.redisService.redis.set(
         REDIS_CACHE_KEY,
         JSON.stringify({ org, canAccess } satisfies CachedData),

@@ -62,13 +62,16 @@ export class IsAdminAPIEnabledGuard implements CanActivate {
       }
     }
     canAccess = true;
-    org &&
-      (await this.redisService.redis.set(
+
+    if (org && canAccess) {
+      await this.redisService.redis.set(
         REDIS_CACHE_KEY,
         JSON.stringify({ org: org, canAccess } satisfies CachedData),
         "EX",
         300
-      ));
+      );
+    }
+
     return { canAccess, organization: org };
   }
 }
