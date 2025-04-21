@@ -14,11 +14,11 @@ export class IsUserInOrg implements CanActivate {
     const userId: string = request.params.userId;
 
     if (!userId) {
-      throw new ForbiddenException("No user id found in request params.");
+      throw new ForbiddenException("IsUserInOrg - No user id found in request params.");
     }
 
     if (!orgId) {
-      throw new ForbiddenException("No org id found in request params.");
+      throw new ForbiddenException("IsUserInOrg - No org id found in request params.");
     }
 
     const user = await this.organizationsRepository.findOrgUser(Number(orgId), Number(userId));
@@ -28,6 +28,8 @@ export class IsUserInOrg implements CanActivate {
       return true;
     }
 
-    return false;
+    throw new ForbiddenException(
+      `IsUserInOrg - user with id=${userId} is not part of the organization with id=${orgId}.`
+    );
   }
 }
