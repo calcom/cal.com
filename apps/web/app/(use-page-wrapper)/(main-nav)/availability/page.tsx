@@ -24,45 +24,46 @@ export const generateMetadata = async () => {
 };
 
 const Page = async ({ searchParams: _searchParams }: PageProps) => {
+  const searchParams = await _searchParams;
+  const t = await getTranslate();
   try {
-    const searchParams = await _searchParams;
-    const t = await getTranslate();
-    const [meCaller, orgCaller] = await Promise.all([
+    const [meCaller, orgCaller, availabilityCaller] = await Promise.all([
       createRouterCaller(meRouter),
       createRouterCaller(viewerOrganizationsRouter),
+      createRouterCaller(availabilityRouter),
     ]);
+
     const [currentOrgs, me] = await Promise.all([orgCaller.listCurrent(), meCaller.get()]);
 
     const isOrg = Boolean(currentOrgs);
-    const isOrgAdminOrOwner = (currentOrgs && checkAdminOrOwner(currentOrgs.user.role)) ?? false;
+    const isOrgAdminOrOwner = currentOrgs && checkAdminOrOwner(currentOrgs.user.role);
     const isOrgAndPrivate = currentOrgs?.isOrganization && currentOrgs.isPrivate;
-
     const canViewTeamAvailability = isOrgAdminOrOwner || !isOrgAndPrivate;
 
+    // Create toggle options based on permissions
     const toggleGroupOptions = [{ value: "mine", label: t("my_availability") }];
 
     if (canViewTeamAvailability) {
       toggleGroupOptions.push({ value: "team", label: t("team_availability") });
     }
 
-    let contents = null;
-    if (searchParams?.type === "team" && canViewTeamAvailability) {
-      contents = <AvailabilitySliderTable userTimeFormat={me?.timeFormat ?? null} isOrg={isOrg} />;
-    } else {
-      const availabilityCaller = await createRouterCaller(availabilityRouter);
-      const availabilities = await availabilityCaller.list();
-      contents = <AvailabilityList availabilities={availabilities} me={me} />;
-    }
+    const isTeamView = searchParams?.type === "team" && canViewTeamAvailability;
+    const availabilities = !isTeamView ? await availabilityCaller.list() : null;
 
     return (
       <ShellMainAppDir
         heading={t("availability")}
         subtitle={t("configure_availability")}
         CTA={<AvailabilityCTA />}>
-        {contents}
+        {isTeamView ? (
+          <AvailabilitySliderTable userTimeFormat={me?.timeFormat ?? null} isOrg={isOrg} />
+        ) : (
+          <AvailabilityList availabilities={availabilities!} me={me} />
+        )}
       </ShellMainAppDir>
     );
-  } catch {
+  } catch (error) {
+    console.error("Error in Availability Page:", error);
     notFound();
   }
 };
