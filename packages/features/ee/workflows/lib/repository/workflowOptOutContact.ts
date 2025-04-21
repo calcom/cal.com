@@ -42,7 +42,10 @@ export class WorkflowOptOutContactRepository {
         value: phoneNumber,
         optedOut: true,
       },
+      select: {
+        optedOut: true,
+      },
     });
-    return !!optOutContact;
+    return !!optOutContact?.optedOut;
   }
 }
