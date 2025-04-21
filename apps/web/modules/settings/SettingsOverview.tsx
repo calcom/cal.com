@@ -146,7 +146,7 @@ const SettingsHomePage = () => {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-[1600px] px-4 py-8 md:px-8">
+    <div className="w-full px-4 py-8 md:px-8">
       <div className="mb-8">
         <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
           {t("settings")}
