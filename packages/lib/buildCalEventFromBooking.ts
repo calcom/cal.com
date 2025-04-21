@@ -36,6 +36,7 @@ type EventType = {
   recurringEvent: Prisma.JsonValue | null;
   seatsPerTimeSlot: number | null;
   seatsShowAttendees: boolean | null;
+  customReplyToEmail: string | null;
 };
 
 type Booking = {
