@@ -1,6 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/availability/actions";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useCallback, useState } from "react";
@@ -50,6 +51,7 @@ export function AvailabilityList({ availabilities, me }: AvailabilityListProps) 
     },
     onSettled: () => {
       utils.viewer.availability.list.invalidate();
+      revalidateAvailabilityList();
     },
     onSuccess: () => {
       showToast(t("schedule_deleted_successfully"), "success");
@@ -59,6 +61,7 @@ export function AvailabilityList({ availabilities, me }: AvailabilityListProps) 
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async ({ schedule }) => {
       await utils.viewer.availability.list.invalidate();
+      revalidateAvailabilityList();
       showToast(
         t("availability_updated_successfully", {
           scheduleName: schedule.name,
@@ -89,6 +92,7 @@ export function AvailabilityList({ availabilities, me }: AvailabilityListProps) 
       {
         onSuccess: () => {
           utils.viewer.availability.list.invalidate();
+          revalidateAvailabilityList();
           showToast(t("success"), "success");
           callback();
         },
