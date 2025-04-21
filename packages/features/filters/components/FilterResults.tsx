@@ -11,7 +11,7 @@ export function FilterResults({
   emptyScreen: React.ReactNode;
   children: React.ReactNode;
 }) {
-  if (queryRes?.isPending) return <SkeletonLoader />;
+  if (queryRes.isPending) return <SkeletonLoader />;
   if (!queryRes.data?.totalCount) return <>{emptyScreen}</>;
 
   return queryRes.data?.totalCount ? (
