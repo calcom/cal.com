@@ -26,10 +26,10 @@ export class IsWebhookInOrg implements CanActivate {
     const organizationId: string = request.params.orgId;
 
     if (!organizationId) {
-      throw new ForbiddenException("No organization id found in request params.");
+      throw new ForbiddenException("IsWebhookInOrg - No organization id found in request params.");
     }
     if (!webhookId) {
-      throw new ForbiddenException("No webhook id found in request params.");
+      throw new ForbiddenException("IsWebhookInOrg - No webhook id found in request params.");
     }
 
     const REDIS_CACHE_KEY = `apiv2:org:${webhookId}:guard:isWebhookInOrg`;
@@ -62,6 +62,12 @@ export class IsWebhookInOrg implements CanActivate {
       );
     }
 
-    return canAccess;
+    if (!canAccess) {
+      throw new ForbiddenException(
+        `IsWebhookInOrg - webhook with id=${webhookId} is not part of the organization with id=${organizationId}.`
+      );
+    }
+
+    return true;
   }
 }
