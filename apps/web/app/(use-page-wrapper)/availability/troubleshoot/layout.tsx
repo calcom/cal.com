@@ -1,18 +1,15 @@
-"use client";
+import { _generateMetadata } from "app/_utils";
 
-import React, { Suspense } from "react";
-
-import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
-import { Icon } from "@calcom/ui/components/icon";
+export const generateMetadata = async () => {
+  return await _generateMetadata(
+    (t) => t("troubleshoot"),
+    (t) => t("troubleshoot_availability"),
+    undefined,
+    undefined,
+    "/availability/troubleshoot"
+  );
+};
 
 export default function TroubleshooterLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <div className="flex flex-1 [&>*]:flex-1">
-        <ErrorBoundary>
-          <Suspense fallback={<Icon name="loader" />}>{children}</Suspense>
-        </ErrorBoundary>
-      </div>
-    </>
-  );
+  return <>{children}</>;
 }

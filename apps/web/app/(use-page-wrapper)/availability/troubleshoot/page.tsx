@@ -1,19 +1,22 @@
-import { _generateMetadata } from "app/_utils";
+"use client";
+
+import { Suspense } from "react";
+
+import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
+import { Icon } from "@calcom/ui/components/icon";
 
 import Troubleshoot from "~/availability/troubleshoot/troubleshoot-view";
 
-export const generateMetadata = async () => {
-  return await _generateMetadata(
-    (t) => t("troubleshoot"),
-    (t) => t("troubleshoot_availability"),
-    undefined,
-    undefined,
-    "/availability/troubleshoot"
+const ClientPage = () => {
+  return (
+    <div className="flex flex-1 [&>*]:flex-1">
+      <ErrorBoundary>
+        <Suspense fallback={<Icon name="loader" />}>
+          <Troubleshoot />
+        </Suspense>
+      </ErrorBoundary>
+    </div>
   );
 };
 
-const ServerPage = async () => {
-  return <Troubleshoot />;
-};
-
-export default ServerPage;
+export default ClientPage;
