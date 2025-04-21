@@ -384,6 +384,7 @@ model User {
   creationSource                 CreationSource?
   createdOrganizationOnboardings OrganizationOnboarding[]     @relation("CreatedOrganizationOnboardings")
   filterSegments                 FilterSegment[]
+  whitelistWorkflows             Boolean                      @default(false)
 
   @@unique([email])
   @@unique([email, username])

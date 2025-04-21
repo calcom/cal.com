@@ -5,7 +5,10 @@ import OutOfOfficeEntriesList from "@calcom/features/settings/outOfOffice/OutOfO
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("out_of_office"),
-    (t) => t("out_of_office_description")
+    (t) => t("out_of_office_description"),
+    undefined,
+    undefined,
+    "/settings/my-account/out-of-office"
   );
 
 const Page = () => {

@@ -3,7 +3,6 @@ import { collectEvents } from "next-collect/server";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
 import { csp } from "./lib/csp";
@@ -16,13 +15,12 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   }
 };
 
-export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/"]; // trailing slash in "/api/" is actually important to block edge cases like `/api.php`
+export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/auth/signup", "/api/trpc/"];
 // Some app routes are allowed because "revalidatePath()" is used to revalidate the cache for them
 export const POST_METHODS_ALLOWED_APP_ROUTES = [
   "/settings/my-account/general",
   "/settings/developer/webhooks",
 ];
-
 export function checkPostMethod(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
   if (
@@ -59,7 +57,6 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
 
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
-  requestHeaders.set("x-url", req.url);
 
   if (!url.pathname.startsWith("/api")) {
     //
@@ -110,12 +107,6 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     }
   }
 
-  requestHeaders.set("x-pathname", url.pathname);
-
-  const locale = await getLocale(req);
-
-  requestHeaders.set("x-locale", locale);
-
   const res = NextResponse.next({
     request: {
       headers: requestHeaders,
@@ -148,6 +139,13 @@ const embeds = {
     if (isCOEPEnabled) {
       res.headers.set("Cross-Origin-Embedder-Policy", "require-corp");
     }
+
+    const embedColorScheme = url.searchParams.get("ui.color-scheme");
+    if (embedColorScheme) {
+      res.headers.set("x-embedColorScheme", embedColorScheme);
+    }
+
+    res.headers.set("x-isEmbed", "true");
     return res;
   },
 };
@@ -180,45 +178,20 @@ export const config = {
   // WARNING: DO NOT ADD AN ENDING SLASH "/" TO THE PATHS BELOW
   // THIS WILL MAKE THEM NOT MATCH AND HENCE NOT HIT MIDDLEWARE
   matcher: [
-    "/403",
-    "/500",
-    "/icons",
-    "/d/:path*",
-    "/more/:path*",
-    "/maintenance/:path*",
-    "/enterprise/:path*",
-    "/upgrade/:path*",
-    "/connect-and-join/:path*",
-    "/insights/:path*",
+    // Routes to enforce CSP
+    "/auth/login",
+    "/login",
+    // Routes to set cookies
+    "/apps/installed",
+    "/auth/logout",
+    // Embed Routes,
     "/:path*/embed",
+    // API routes
     "/api/auth/signup",
     "/api/trpc/:path*",
-    "/login",
-    "/apps/:path*",
-    "/auth/:path*",
-    "/event-types/:path*",
-    "/workflows/:path*",
-    "/getting-started/:path*",
-    "/bookings/:path*",
-    "/video/:path*",
-    "/teams/:path*",
-    "/signup/:path*",
-    "/settings/:path*",
-    "/reschedule/:path*",
-    "/availability/:path*",
-    "/booking/:path*",
-    "/payment/:path*",
-    "/routing-forms/:path*",
-    "/org/:orgSlug/instant-meeting/team/:slug/:type",
-    "/org/:orgSlug/team/:slug/:type",
-    "/org/:orgSlug/team/:slug",
-    "/org/:orgSlug/:user/:type",
-    "/org/:orgSlug/:user",
-    "/org/:orgSlug",
-    "/team/:slug/:type",
-    "/team/:slug",
-    "/:user/:type",
-    "/:user",
+    // Routes allowed for POST method (matching `POST_METHODS_ALLOWED_APP_ROUTES` array)
+    "/settings/my-account/general",
+    "/settings/developer/webhooks",
   ],
 };
 

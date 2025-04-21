@@ -216,9 +216,9 @@ export const AvailabilityCTA = () => {
   }
 
   return (
-    <div className="flex gap-2">
+    <div className="flex items-center gap-2">
       <ToggleGroup
-        className="min-h-10 hidden p-1 md:flex md:items-center"
+        className="hidden h-fit md:block"
         defaultValue={searchParams?.get("type") ?? "mine"}
         onValueChange={(value) => {
           if (!value) return;

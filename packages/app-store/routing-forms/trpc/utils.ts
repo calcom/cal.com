@@ -159,54 +159,51 @@ export async function onFormSubmission(
     });
   });
 
-  let tasker: Tasker;
-
   if (typeof window === "undefined") {
-    import("@calcom/features/tasker")
-      .then((module) => {
-        tasker = module.default;
-      })
-      .catch((error) => {
-        console.error("Failed to load tasker:", error);
+    try {
+      const tasker: Tasker = await (await import("@calcom/features/tasker")).default;
+      const promisesFormSubmittedNoEvent = webhooksFormSubmittedNoEvent.map((webhook) => {
+        const scheduledAt = dayjs().add(15, "minute").toDate();
+
+        return tasker.create(
+          "triggerFormSubmittedNoEventWebhook",
+          {
+            responseId,
+            form,
+            responses: fieldResponsesByIdentifier,
+            redirect: chosenAction,
+            webhook,
+          },
+          { scheduledAt }
+        );
       });
-  }
 
-  const promisesFormSubmittedNoEvent = webhooksFormSubmittedNoEvent.map((webhook) => {
-    const scheduledAt = dayjs().add(15, "minute").toDate();
+      const promises = [...promisesFormSubmitted, ...promisesFormSubmittedNoEvent];
 
-    return tasker.create(
-      "triggerFormSubmittedNoEventWebhook",
-      {
-        responseId,
-        form,
-        responses: fieldResponsesByIdentifier,
-        redirect: chosenAction,
-        webhook,
-      },
-      { scheduledAt }
-    );
-  });
+      await Promise.all(promises);
+      const orderedResponses = form.fields.reduce((acc, field) => {
+        acc.push(response[field.id]);
+        return acc;
+      }, [] as OrderedResponses);
 
-  const promises = [...promisesFormSubmitted, ...promisesFormSubmittedNoEvent];
-
-  await Promise.all(promises);
-  const orderedResponses = form.fields.reduce((acc, field) => {
-    acc.push(response[field.id]);
-    return acc;
-  }, [] as OrderedResponses);
-
-  if (form.teamId) {
-    if (form.userWithEmails?.length) {
-      moduleLogger.debug(
-        `Preparing to send Form Response email for Form:${form.id} to users: ${form.userWithEmails.join(",")}`
-      );
-      await sendResponseEmail(form, orderedResponses, form.userWithEmails);
+      if (form.teamId) {
+        if (form.userWithEmails?.length) {
+          moduleLogger.debug(
+            `Preparing to send Form Response email for Form:${form.id} to users: ${form.userWithEmails.join(
+              ","
+            )}`
+          );
+          await sendResponseEmail(form, orderedResponses, form.userWithEmails);
+        }
+      } else if (form.settings?.emailOwnerOnSubmission) {
+        moduleLogger.debug(
+          `Preparing to send Form Response email for Form:${form.id} to form owner: ${form.user.email}`
+        );
+        await sendResponseEmail(form, orderedResponses, [form.user.email]);
+      }
+    } catch (e) {
+      moduleLogger.error("Error triggering routing form response side effects", e);
     }
-  } else if (form.settings?.emailOwnerOnSubmission) {
-    moduleLogger.debug(
-      `Preparing to send Form Response email for Form:${form.id} to form owner: ${form.user.email}`
-    );
-    await sendResponseEmail(form, orderedResponses, [form.user.email]);
   }
 }
 

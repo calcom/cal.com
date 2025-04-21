@@ -11,7 +11,10 @@ import LegacyPage, { LayoutWrapper } from "~/settings/organizations/new/onboard-
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("invite_organization_admins"),
-    (t) => t("invite_organization_admins_description")
+    (t) => t("invite_organization_admins_description"),
+    undefined,
+    undefined,
+    "/settings/organizations/new/onboard-members"
   );
 
 const getData = withAppDirSsr(getServerSideProps);
