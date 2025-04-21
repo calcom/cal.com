@@ -1,6 +1,5 @@
 "use client";
 
-import type { InfiniteData } from "@tanstack/query-core";
 import { keepPreviousData } from "@tanstack/react-query";
 import {
   createColumnHelper,
@@ -93,14 +92,6 @@ function OutOfOfficeEntriesListContent({ rawInitialData }: { rawInitialData?: Oo
   const selectedTab = searchParams?.get("type") ?? OutOfOfficeTab.MINE;
 
   const endDateRange = useFilterValue("dateRange", ZDateRangeFilterValue)?.data;
-
-  const initialData = useMemo(() => {
-    if (!rawInitialData) return undefined;
-    return {
-      pages: [rawInitialData],
-      pageParams: [undefined],
-    } as InfiniteData<OooListOutput>;
-  }, [rawInitialData]);
 
   const { data, isPending, fetchNextPage, isFetching, refetch, hasNextPage } =
     trpc.viewer.ooo.outOfOfficeEntriesList.useInfiniteQuery(
