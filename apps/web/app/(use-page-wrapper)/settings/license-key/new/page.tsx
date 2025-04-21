@@ -13,7 +13,10 @@ import CreateANewLicenseKeyForm, { LayoutWrapper } from "~/settings/license-key/
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("set_up_your_organization"),
-    (t) => t("organizations_description")
+    (t) => t("organizations_description"),
+    undefined,
+    undefined,
+    "/settings/license-key/new"
   );
 
 const getData = withAppDirSsr<inferSSRProps<typeof getServerSideProps>>(getServerSideProps);

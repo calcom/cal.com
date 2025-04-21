@@ -876,8 +876,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const ThemeOptions = [
     { value: EmbedTheme.auto, label: "Auto" },
-    { value: EmbedTheme.dark, label: "Dark EmbedTheme" },
-    { value: EmbedTheme.light, label: "Light EmbedTheme" },
+    { value: EmbedTheme.dark, label: "Dark Theme" },
+    { value: EmbedTheme.light, label: "Light Theme" },
   ];
 
   const layoutOptions = [
@@ -1106,7 +1106,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   <CollapsibleContent>
                     <div className="text-sm">
                       <Label className="mb-6">
-                        <div className="mb-2">EmbedTheme</div>
+                        <div className="mb-2">Theme</div>
                         <Select
                           className="w-full"
                           defaultValue={ThemeOptions[0]}
