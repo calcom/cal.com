@@ -13,8 +13,7 @@ const ClientPage = () => {
   const router = useRouter();
   const session = useSession();
   const { t } = useLocale();
-  const _token = searchParams?.get("token");
-  const token = Array.isArray(_token) ? _token[0] : _token;
+  const token = searchParams?.get("token");
   const callbackUrl = token ? `/teams?token=${encodeURIComponent(token)}` : null;
   if (session.status === "unauthenticated" || (session.status !== "loading" && !session.data?.user)) {
     router.push(callbackUrl ? `/auth/login?callbackUrl=${callbackUrl}` : "/auth/login");
