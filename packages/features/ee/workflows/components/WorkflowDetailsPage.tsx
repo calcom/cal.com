@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 
+import WorkFlowFormSkeleton from "@calcom/features/ee/workflows/components/WorkFlowFormSkeleton";
 import { SENDER_ID, SENDER_NAME, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WorkflowActions } from "@calcom/prisma/enums";
@@ -14,7 +15,6 @@ import { Button } from "@calcom/ui/components/button";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Label, MultiSelectCheckbox, TextField, CheckboxField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { isSMSAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
@@ -201,9 +201,9 @@ export default function WorkflowDetailsPage(props: Props) {
               actionOptions={actionOptions}
             />
           ) : (
-            <SkeletonText className="mb-8 h-64" />
+            <WorkFlowFormSkeleton />
           )}
-          {form.getValues("steps") ? (
+          {form.getValues("steps") && (
             <>
               {form.getValues("steps")?.map((step) => {
                 return (
@@ -223,8 +223,6 @@ export default function WorkflowDetailsPage(props: Props) {
                 );
               })}
             </>
-          ) : (
-            <SkeletonText className="h-64 w-full" />
           )}
           {!props.readOnly && (
             <>
