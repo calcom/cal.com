@@ -39,7 +39,7 @@ export const getEnv = <K extends keyof Environment>(key: K, fallback?: Environme
 
   if (value === undefined) {
     // handle fallback falsy cases that should still be used as value
-    if (fallback === false || fallback === "") {
+    if (fallback === false || fallback === "" || fallback === 0) {
       return fallback;
     }
     if (fallback) {
