@@ -36,12 +36,19 @@ import { BookerSection } from "./components/Section";
 import { NotFound } from "./components/Unavailable";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "./components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
+import framerFeatures from "./framer-features";
 import { useBookerStore } from "./store";
-import type { BookerProps, WrappedBookerProps } from "./types";
+import type { BookerProps, WrappedBookerProps, BookerState } from "./types";
 import { isBookingDryRun } from "./utils/isBookingDryRun";
 import { isTimeSlotAvailable } from "./utils/isTimeslotAvailable";
 
-const loadFramerFeatures = () => import("./framer-features").then((res) => res.default);
+function updateEmbedBookerState({ bookerState }: { bookerState: BookerState }) {
+  // Ensure that only after the bookerState is reflected, we update the embedIsBookerReady
+  if (typeof window !== "undefined") {
+    (window as Window & { _embedBookerState?: "initializing" | "done" })._embedBookerState =
+      bookerState && bookerState !== "loading" ? "done" : "initializing";
+  }
+}
 
 const BookerComponent = ({
   username,
@@ -179,6 +186,8 @@ const BookerComponent = ({
     (bookerState === "booking" || (bookerState === "selecting_time" && skipConfirmStep))
   );
 
+  updateEmbedBookerState({ bookerState });
+
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
@@ -315,6 +324,7 @@ const BookerComponent = ({
           // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
           "main",
           "text-default flex min-h-full w-full flex-col items-center",
+          layout === BookerLayouts.MONTH_VIEW && !isEmbed && "my-20 ",
           layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip",
           `${customClassNames?.bookerWrapper}`
         )}>
@@ -580,7 +590,7 @@ const BookerComponent = ({
 
 export const Booker = (props: BookerProps & WrappedBookerProps) => {
   return (
-    <LazyMotion strict features={loadFramerFeatures}>
+    <LazyMotion strict features={framerFeatures}>
       <BookerComponent {...props} />
     </LazyMotion>
   );

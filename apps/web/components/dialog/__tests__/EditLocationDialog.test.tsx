@@ -11,8 +11,10 @@ import { EditLocationDialog } from "../EditLocationDialog";
 vi.mock("@calcom/trpc/react", () => ({
   trpc: {
     viewer: {
-      locationOptions: {
-        useQuery: vi.fn(),
+      apps: {
+        locationOptions: {
+          useQuery: vi.fn(),
+        },
       },
     },
   },

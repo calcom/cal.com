@@ -38,7 +38,7 @@ const UserProfile = () => {
   const [firstRender, setFirstRender] = useState(true);
 
   // Create a separate mutation for avatar updates
-  const avatarMutation = trpc.viewer.updateProfile.useMutation({
+  const avatarMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (data) => {
       showToast(t("your_user_profile_updated_successfully"), "success");
       setImageSrc(data.avatarUrl ?? "");
@@ -49,7 +49,7 @@ const UserProfile = () => {
   });
 
   // Original mutation remains for onboarding completion
-  const mutation = trpc.viewer.updateProfile.useMutation({
+  const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async () => {
       try {
         if (eventTypes?.length === 0) {

@@ -54,12 +54,13 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     const { context } = requestProps;
 
     const request = context.switchToHttp().getRequest<Request>();
+    const IP = request?.headers?.["cf-connecting-ip"] ?? request?.headers?.["CF-Connecting-IP"] ?? request.ip;
     const response = context.switchToHttp().getResponse<Response>();
     const tracker = await this.getTracker(request);
     this.logger.verbose(
       `Tracker "${tracker}" generated based on: Bearer token "${request.get(
         "Authorization"
-      )}", OAuth client ID "${request.get(X_CAL_CLIENT_ID)}" and IP "${request.ip}"`
+      )}", OAuth client ID "${request.get(X_CAL_CLIENT_ID)}" and IP "${IP}"`
     );
 
     if (tracker.startsWith("api_key_")) {
@@ -209,6 +210,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
 
   protected async getTracker(request: Request): Promise<string> {
     const authorizationHeader = request.get("Authorization")?.replace("Bearer ", "");
+    const IP = request?.headers?.["cf-connecting-ip"] ?? request?.headers?.["CF-Connecting-IP"] ?? request.ip;
 
     if (authorizationHeader) {
       const apiKeyPrefix = getEnv("API_KEY_PREFIX", "cal_");
@@ -223,8 +225,8 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
       return `oauth_client_${oauthClientId}`;
     }
 
-    if (request.ip) {
-      return `ip_${request.ip}`;
+    if (IP) {
+      return `ip_${IP}`;
     }
 
     this.logger.verbose(`no tracker found: ${request.url}`);

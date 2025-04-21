@@ -11,19 +11,14 @@ import { IdentityProvider } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { PasswordField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
-import { Alert } from "@calcom/ui/components/alert";
-import { Button } from "@calcom/ui/components/button";
-import classNames from "@calcom/ui/classNames";
-import {
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
-  SkeletonAvatar,
-} from "@calcom/ui/components/skeleton";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
 type ChangePasswordSessionFormValues = {
@@ -63,7 +58,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
 
   const [sessionTimeout, setSessionTimeout] = useState<number | undefined>(initialSessionTimeout);
 
-  const sessionMutation = trpc.viewer.updateProfile.useMutation({
+  const sessionMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: (data) => {
       showToast(t("session_timeout_changed"), "success");
       formMethods.reset(formMethods.getValues());

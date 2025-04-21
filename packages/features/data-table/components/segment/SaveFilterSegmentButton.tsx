@@ -50,8 +50,10 @@ export function SaveFilterSegmentButton() {
     columnSizing,
     selectedSegment,
     canSaveSegment,
+    isSegmentEnabled,
     setSegmentId,
     pageSize,
+    searchTerm,
   } = useDataTable();
 
   const [saveMode, setSaveMode] = useState<"create" | "update">(() =>
@@ -105,6 +107,7 @@ export function SaveFilterSegmentButton() {
       columnVisibility,
       columnSizing,
       perPage: pageSize,
+      searchTerm,
     };
 
     if (saveMode === "update") {
@@ -158,6 +161,14 @@ export function SaveFilterSegmentButton() {
     }
     setIsOpen(open);
   };
+
+  if (!isSegmentEnabled) {
+    return (
+      <Button StartIcon="bookmark" color="secondary" disabled>
+        {t("save")}
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>

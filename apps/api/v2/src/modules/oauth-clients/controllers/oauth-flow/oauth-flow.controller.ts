@@ -95,7 +95,7 @@ export class OAuthFlowController {
       throw new BadRequestException("Missing 'Bearer' Authorization header.");
     }
 
-    const tokens = await this.oAuthFlowService.exchangeOAuthClientAuthorizationToken(
+    const tokens = await this.oAuthFlowService.exchangeAuthorizationToken(
       authorizeEndpointCode,
       clientId,
       body.clientSecret
@@ -126,7 +126,7 @@ export class OAuthFlowController {
     @Headers(X_CAL_SECRET_KEY) secretKey: string,
     @Body() body: RefreshTokenInput
   ): Promise<KeysResponseDto> {
-    const tokens = await this.oAuthFlowService.refreshUserTokens(clientId, secretKey, body.refreshToken);
+    const tokens = await this.oAuthFlowService.refreshToken(clientId, secretKey, body.refreshToken);
 
     return {
       status: SUCCESS_STATUS,

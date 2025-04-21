@@ -2,6 +2,7 @@ export enum SalesforceRecordEnum {
   CONTACT = "Contact",
   LEAD = "Lead",
   ACCOUNT = "Account",
+  EVENT = "Event",
 }
 
 export enum WhenToWriteToRecord {
@@ -23,6 +24,7 @@ export enum SalesforceFieldType {
 export enum DateFieldTypeData {
   BOOKING_START_DATE = "booking_start_date",
   BOOKING_CREATED_DATE = "booking_created_date",
+  BOOKING_CANCEL_DATE = "booking_cancel_date",
 }
 
 export enum RoutingReasons {
