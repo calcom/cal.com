@@ -50,6 +50,7 @@ export type BookingInfo = {
   eventType?: {
     slug: string;
     recurringEvent?: RecurringEvent | null;
+    customReplyToEmail?: string | null;
   };
   startTime: string;
   endTime: string;
