@@ -2,6 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { bulkShortenLinks } from "@calcom/ee/workflows/lib/reminders/utils";
 import { SENDER_ID, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
@@ -12,6 +13,8 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
 import { getSenderId } from "../alphanumericSenderIdSupport";
+import { WorkflowOptOutContactRepository } from "../repository/workflowOptOutContact";
+import { WorkflowOptOutService } from "../service/workflowOptOutService";
 import type { ScheduleReminderArgs } from "./emailReminderManager";
 import * as twilio from "./providers/twilioProvider";
 import type { VariablesType } from "./templates/customTemplate";
@@ -100,7 +103,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
     return;
   }
 
-  if (await WorkflowOptOutContactRepository.isOptedOut(reminderPhone)) {
+  if (reminderPhone && (await WorkflowOptOutContactRepository.isOptedOut(reminderPhone))) {
     log.warn(
       `Phone number opted out of SMS workflows`,
       safeStringify({ workflowStep: workflowStepId, eventUid: evt.uid })
@@ -214,6 +217,10 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
   log.debug(`Sending sms for trigger ${triggerEvent}`, smsMessage);
 
   if (smsMessage.length > 0 && reminderPhone && isNumberVerified) {
+    if (process.env.TWILIO_OPT_OUT_ENABLED === "true") {
+      smsMessage = WorkflowOptOutService.addOptOutMessage(smsMessage);
+    }
+
     //send SMS when event is booked/cancelled/rescheduled
     if (
       triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
@@ -255,7 +262,6 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
                 scheduled: true,
                 referenceId: scheduledSMS.sid,
                 seatReferenceId: seatReferenceUid,
-                sendTo: reminderPhone,
               },
             });
           }
@@ -272,7 +278,6 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
             scheduledDate: scheduledDate.toDate(),
             scheduled: false,
             seatReferenceId: seatReferenceUid,
-            sendTo: reminderPhone,
           },
         });
       }

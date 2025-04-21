@@ -20,4 +20,8 @@ export class WorkflowOptOutService {
       scheduledReminders.filter((reminder) => !reminder.referenceId).map((reminder) => reminder.id)
     );
   }
+
+  static addOptOutMessage(message: string) {
+    return `${message}\n\nText STOP to opt-out of SMS messages`;
+  }
 }
