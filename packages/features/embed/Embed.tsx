@@ -875,7 +875,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   }
 
   const ThemeOptions = [
-    { value: EmbedTheme.auto, label: "Auto" },
+    { value: EmbedTheme.auto, label: t("auto") },
     { value: EmbedTheme.dark, label: `${t("dark")} ${t("theme")}` },
     { value: EmbedTheme.light, label: `${t("light")} ${t("theme")}` },
   ];
