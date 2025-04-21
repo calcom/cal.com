@@ -1,3 +1,4 @@
+import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 import React from "react";
 
@@ -8,6 +9,15 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import type { SettingsLayoutProps } from "./SettingsLayoutAppDirClient";
 import SettingsLayoutAppDirClient from "./SettingsLayoutAppDirClient";
+
+export const generateMetadata = async () =>
+  await _generateMetadata(
+    (t) => t("settings"),
+    (t) => t("settings_home_description"),
+    undefined,
+    undefined,
+    "/settings"
+  );
 
 type SettingsLayoutAppDirProps = Omit<SettingsLayoutProps, "currentOrg" | "otherTeams">;
 
