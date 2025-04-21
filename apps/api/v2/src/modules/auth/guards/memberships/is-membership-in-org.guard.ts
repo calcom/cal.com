@@ -1,11 +1,5 @@
 import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
-import {
-  Injectable,
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-  NotFoundException,
-} from "@nestjs/common";
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Request } from "express";
 
 import { Membership } from "@calcom/prisma/client";
@@ -20,11 +14,11 @@ export class IsMembershipInOrg implements CanActivate {
     const orgId: string = request.params.orgId;
 
     if (!orgId) {
-      throw new ForbiddenException("No org id found in request params.");
+      throw new ForbiddenException("IsMembershipInOrg - No org id found in request params.");
     }
 
     if (!membershipId) {
-      throw new ForbiddenException("No membership id found in request params.");
+      throw new ForbiddenException("IsMembershipInOrg - No membership id found in request params.");
     }
 
     const membership = await this.organizationsMembershipRepository.findOrgMembership(
@@ -33,7 +27,7 @@ export class IsMembershipInOrg implements CanActivate {
     );
 
     if (!membership) {
-      throw new NotFoundException(`Membership (${membershipId}) not found.`);
+      throw new ForbiddenException(`IsMembershipInOrg - Membership (${membershipId}) not found.`);
     }
 
     request.membership = membership;
