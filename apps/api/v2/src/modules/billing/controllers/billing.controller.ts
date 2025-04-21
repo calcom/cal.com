@@ -96,6 +96,17 @@ export class BillingController {
     };
   }
 
+  @Post("/:teamId/unsubscribe")
+  @UseGuards(NextAuthGuard, OrganizationRolesGuard)
+  @MembershipRoles(["OWNER", "ADMIN"])
+  async unsubscribeTeamToStripe(@Param("teamId") teamId: number): Promise<ApiResponse> {
+    await this.billingService.cancelTeamSubscription(teamId);
+
+    return {
+      status: "success",
+    };
+  }
+
   @Post("/webhook")
   @HttpCode(HttpStatus.OK)
   async stripeWebhook(

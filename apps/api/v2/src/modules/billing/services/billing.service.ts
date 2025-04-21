@@ -98,6 +98,7 @@ export class BillingService implements OnModuleDestroy {
   }
 
   async updateSubscriptionForTeam(teamId: number, plan: PlatformPlan) {
+    // check this
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
     const customerId = teamWithBilling?.platformBilling?.customerId;
 
@@ -131,6 +132,7 @@ export class BillingService implements OnModuleDestroy {
     );
   }
 
+  // maybe this is useful
   async handleStripeSubscriptionDeleted(event: Stripe.Event) {
     const subscription = event.data.object as Stripe.Subscription;
     const teamId = subscription?.metadata?.teamId;
@@ -311,6 +313,25 @@ export class BillingService implements OnModuleDestroy {
       await job.remove();
       this.logger.log(`Removed increment job for cancelled booking ${bookingUid}`);
     }
+  }
+
+  async cancelTeamSubscription(teamId: number) {
+    const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
+    const customerId = teamWithBilling?.platformBilling?.customerId;
+
+    if (!customerId) {
+      throw new NotFoundException("No customer id found for team in Stripe");
+    }
+
+    if (!teamWithBilling?.platformBilling || !teamWithBilling?.platformBilling.subscriptionId) {
+      throw new NotFoundException("Team plan not found");
+    }
+
+    // get current user subscription to cancel it
+    // ideally when this customer subscription is deleted, the customer.subscription.deleted webhook should be called
+    // and we alreday have a handler for that
+    // so in our db it should be deleted
+    await this.stripeService.getStripe().subscriptions.del(teamWithBilling?.platformBilling?.subscriptionId);
   }
 
   async onModuleDestroy() {
