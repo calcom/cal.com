@@ -31,7 +31,13 @@ export class IsOrgGuard implements CanActivate {
       request.organization = org;
     }
 
-    return canAccess;
+    if (!canAccess) {
+      throw new ForbiddenException(
+        `IsOrgGuard - provided organization id=${organizationId} does not represent any existing organization.`
+      );
+    }
+
+    return true;
   }
 
   async checkOrgAccess(organizationId: string): Promise<{ canAccess: boolean; org?: Team | null }> {
