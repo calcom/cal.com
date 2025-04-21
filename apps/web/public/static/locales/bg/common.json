@@ -3053,5 +3053,17 @@
   "most_cancelled_bookings": "Най-много отменени резервации",
   "name_or_email": "Име или имейл",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Ако не е намерен контакт, връщане към собственика на лийда, ако съществува",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time" : "Дата и час",
+  "email_reminder_upcoming_event_notice" : "Това е напомняне за предстоящото ви събитие.",
+  "email_reminder_triggered_by_workflow" : "Това напомняне е задействано от работен процес в Cal.",
+  "event_upper_case": "Събитие",
+  "scheduling_by": "График от",
+  "experience_review_prompt": "Как бе вашето последно преживяване?",
+  "improve_customer_experience_message": "Винаги се стремим да подобрим клиентското изживяване.",
+  "meeting_satisfaction_question": "Колко сте доволни от последната си среща?",
+  "meeting_not_joined_question": "не присъствахте на срещата?",
+  "reschedule_cta_short": "Пренасрочете тук.",
+  "you_and_conjunction": "Вие &",
+  "email_survey_triggered_by_workflow": "Тази анкета беше стартирана от Workflow в Cal."
 }

@@ -15,10 +15,9 @@ export async function loginUser(users: UserFixture) {
     name: "testuser",
     eventTypes: [
       {
-        title: "Offset Event",
-        slug: "offset-event",
+        title: "Test Event",
+        slug: "test-event",
         length: 30,
-        offsetStart: 10,
       },
     ],
   });
@@ -195,17 +194,6 @@ export function createBookingPageFixture(page: Page) {
       await page.locator("#RANGE").click();
       await expect(page.locator("#RANGE")).toBeChecked();
       await limitBookingsSwitch.click();
-    },
-    checkOffsetTimes: async () => {
-      const offsetStart = (await localize("en"))("offset_start");
-      const offsetStartTimes = (await localize("en"))("offset_toggle");
-      const offsetLabel = page.getByLabel(offsetStart);
-
-      await offsetLabel.fill("10");
-      await expect(offsetLabel).toHaveValue("10");
-      await expect(
-        page.getByText("e.g. this will show time slots to your bookers at 9:10 AM instead of 9:00 AM")
-      ).toBeVisible();
     },
     checkTimeSlotsCount: async (eventTypePage: Page, count: number) => {
       await expect(eventTypePage.getByTestId("time")).toHaveCount(count);
