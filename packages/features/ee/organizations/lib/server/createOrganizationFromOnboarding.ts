@@ -468,6 +468,13 @@ export const createOrganizationFromOnboarding = async ({
   paymentSubscriptionId: string;
   paymentSubscriptionItemId: string;
 }) => {
+  log.info(
+    "createOrganizationFromOnboarding",
+    safeStringify({
+      orgId: organizationOnboarding.organizationId,
+      orgSlug: organizationOnboarding.slug,
+    })
+  );
   if (
     await hasConflictingOrganization({
       slug: organizationOnboarding.slug,

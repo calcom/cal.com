@@ -74,8 +74,6 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
       safeStringify({
         orgId: organizationOnboarding.organizationId,
         orgSlug: organizationOnboarding.slug,
-        teams: organizationOnboarding.teams,
-        invitedMembers: organizationOnboarding.invitedMembers,
         isDomainConfigured: organizationOnboarding.isDomainConfigured,
         createdAt: organizationOnboarding.createdAt,
         stripeSubscriptionId: organizationOnboarding.stripeSubscriptionId,
