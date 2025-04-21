@@ -25,8 +25,27 @@ export class RolesGuard implements CanActivate {
     const user = request.user as ApiAuthGuardUser;
     const allowedRole = this.reflector.get(Roles, context.getHandler());
     const { canAccess } = await this.checkUserRoleAccess(user, orgId, teamId, allowedRole);
-    return canAccess;
+
+    if (!canAccess) {
+      this.throwForbiddenError(user, orgId, teamId, allowedRole);
+    }
+
+    return true;
   }
+
+  throwForbiddenError(user: ApiAuthGuardUser, orgId: string, teamId: string, allowedRole: string) {
+    let errorMessage = `RolesGuard - user with id=${user.id} does not have the minimum required role=${allowedRole} within`;
+    if (orgId) {
+      errorMessage += ` organization with id=${orgId}`;
+    }
+    if (teamId) {
+      errorMessage += ` team with id=${teamId}`;
+    }
+    errorMessage += `.`;
+
+    throw new ForbiddenException(errorMessage);
+  }
+
   async checkUserRoleAccess(
     user: ApiAuthGuardUser,
     orgId: string,

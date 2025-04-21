@@ -107,6 +107,9 @@ $ yarn test:e2e:watch --testPathPattern=filePath
 $ yarn run test:cov
 ```
 
+## Conventions
+1. In case a guard would return "false" for "canActive" instead throw ForbiddenException with an error message containing guard name and the error.
+
 ## Support
 
 Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
