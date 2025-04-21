@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useCallback, useState } from "react";
 
-import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
@@ -175,8 +174,13 @@ export function AvailabilityList({ availabilities, me }: AvailabilityListProps) 
   );
 }
 
-export const AvailabilityCTA = () => {
-  const { t } = useLocale();
+type AvailabilityCTAProps = {
+  toggleGroupOptions: {
+    value: string;
+    label: string;
+  }[];
+};
+export const AvailabilityCTA = ({ toggleGroupOptions }: AvailabilityCTAProps) => {
   const searchParams = useCompatSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -192,18 +196,6 @@ export const AvailabilityCTA = () => {
     },
     [searchParams]
   );
-
-  const { data } = trpc.viewer.organizations.listCurrent.useQuery();
-  const isOrgAdminOrOwner = (data && checkAdminOrOwner(data.user.role)) ?? false;
-  const isOrgAndPrivate = data?.isOrganization && data.isPrivate;
-
-  const canViewTeamAvailability = isOrgAdminOrOwner || !isOrgAndPrivate;
-
-  const toggleGroupOptions = [{ value: "mine", label: t("my_availability") }];
-
-  if (canViewTeamAvailability) {
-    toggleGroupOptions.push({ value: "team", label: t("team_availability") });
-  }
 
   return (
     <div className="flex items-center gap-2">

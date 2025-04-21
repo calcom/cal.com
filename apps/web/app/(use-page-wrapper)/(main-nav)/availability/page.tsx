@@ -42,7 +42,6 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
 
     // Create toggle options based on permissions
     const toggleGroupOptions = [{ value: "mine", label: t("my_availability") }];
-
     if (canViewTeamAvailability) {
       toggleGroupOptions.push({ value: "team", label: t("team_availability") });
     }
@@ -54,7 +53,7 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
       <ShellMainAppDir
         heading={t("availability")}
         subtitle={t("configure_availability")}
-        CTA={<AvailabilityCTA />}>
+        CTA={<AvailabilityCTA toggleGroupOptions={toggleGroupOptions} />}>
         {isTeamView ? (
           <AvailabilitySliderTable userTimeFormat={me?.timeFormat ?? null} isOrg={isOrg} />
         ) : (
