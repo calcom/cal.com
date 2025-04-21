@@ -8,10 +8,14 @@ import { BillingService } from "@/modules/billing/services/billing.service";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
+import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { ConflictException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
 import { z } from "zod";
@@ -77,7 +81,11 @@ export class BookingsService_2024_08_13 {
     private readonly usersService: UsersService,
     private readonly usersRepository: UsersRepository,
     private readonly platformBookingsService: PlatformBookingsService,
-    private readonly oAuthClientRepository: OAuthClientRepository
+    private readonly oAuthClientRepository: OAuthClientRepository,
+    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
+    private readonly organizationsRepository: OrganizationsRepository,
+    private readonly teamsRepository: TeamsRepository,
+    private readonly teamsEventTypesRepository: TeamsEventTypesRepository
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput) {
@@ -92,6 +100,16 @@ export class BookingsService_2024_08_13 {
         if (body.username && body.eventTypeSlug && body.organizationSlug) {
           throw new NotFoundException(
             `Event type with slug ${body.eventTypeSlug} belonging to user ${body.username} within organization ${body.organizationSlug} not found.`
+          );
+        }
+        if (body.teamSlug && body.eventTypeSlug && !body.organizationSlug) {
+          throw new NotFoundException(
+            `Event type with slug ${body.eventTypeSlug} belonging to team ${body.teamSlug} not found.`
+          );
+        }
+        if (body.teamSlug && body.eventTypeSlug && body.organizationSlug) {
+          throw new NotFoundException(
+            `Event type with slug ${body.eventTypeSlug} belonging to team ${body.teamSlug} within organization ${body.organizationSlug} not found.`
           );
         }
         throw new NotFoundException(`Event type with id ${body.eventTypeId} not found.`);
@@ -123,6 +141,12 @@ export class BookingsService_2024_08_13 {
       if (error instanceof Error) {
         if (error.message === "no_available_users_found_error") {
           throw new BadRequestException("User either already has booking at this time or is not available");
+        } else if (error.message === "booking_time_out_of_bounds_error") {
+          throw new BadRequestException(
+            `The event type can't be booked at selected time ${body.start}. This could be because it's too soon (violating the minimum booking notice) or too far in the future (outside the event's scheduling window). Try fetching available slots first using the GET /v2/slots endpoint and then make a booking with "start" time equal to one of the available slots: https://cal.com/docs/api-reference/v2/slots`
+          );
+        } else if (error.message === "Attempting to book a meeting in the past.") {
+          throw new BadRequestException("Attempting to book a meeting in the past.");
         }
       }
       throw error;
@@ -141,8 +165,32 @@ export class BookingsService_2024_08_13 {
         user.id,
         body.eventTypeSlug
       );
+    } else if (body.teamSlug && body.eventTypeSlug) {
+      const team = await this.getBookedEventTypeTeam(body.teamSlug, body.organizationSlug);
+      if (!team) {
+        throw new NotFoundException(`Team with slug ${body.teamSlug} not found`);
+      }
+      return await this.teamsEventTypesRepository.getEventTypeByTeamIdAndSlugWithOwnerAndTeam(
+        team.id,
+        body.eventTypeSlug
+      );
     }
     return null;
+  }
+
+  async getBookedEventTypeTeam(teamSlug: string, organizationSlug: string | undefined) {
+    if (!organizationSlug) {
+      return await this.teamsRepository.findTeamBySlug(teamSlug);
+    }
+
+    const organization = await this.organizationsRepository.findOrgBySlug(organizationSlug);
+    if (!organization) {
+      throw new NotFoundException(
+        `slots-input.service.ts: Organization with slug ${organizationSlug} not found`
+      );
+    }
+
+    return await this.organizationsTeamsRepository.findOrgTeamBySlug(organization.id, teamSlug);
   }
 
   async hasRequiredBookingFieldsResponses(body: CreateBookingInput, eventType: EventType | null) {
@@ -181,6 +229,12 @@ export class BookingsService_2024_08_13 {
     body: CreateInstantBookingInput_2024_08_13,
     eventType: EventTypeWithOwnerAndTeam
   ) {
+    if (!eventType.team?.id) {
+      throw new BadRequestException(
+        "Instant bookings are only supported for team event types, not individual user event types."
+      );
+    }
+
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
     const booking = await handleInstantMeeting(bookingRequest);
 
@@ -271,29 +325,37 @@ export class BookingsService_2024_08_13 {
     eventType: EventTypeWithOwnerAndTeam
   ) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
-    const booking = await handleNewBooking({
-      bookingData: bookingRequest.body,
-      userId: bookingRequest.userId,
-      hostname: bookingRequest.headers?.host || "",
-      platformClientId: bookingRequest.platformClientId,
-      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
-      platformCancelUrl: bookingRequest.platformCancelUrl,
-      platformBookingUrl: bookingRequest.platformBookingUrl,
-      platformBookingLocation: bookingRequest.platformBookingLocation,
-    });
+    try {
+      const booking = await handleNewBooking({
+        bookingData: bookingRequest.body,
+        userId: bookingRequest.userId,
+        hostname: bookingRequest.headers?.host || "",
+        platformClientId: bookingRequest.platformClientId,
+        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+        platformCancelUrl: bookingRequest.platformCancelUrl,
+        platformBookingUrl: bookingRequest.platformBookingUrl,
+        platformBookingLocation: bookingRequest.platformBookingLocation,
+      });
 
-    if (!booking.uid) {
-      throw new Error("Booking missing uid");
+      if (!booking.uid) {
+        throw new Error("Booking missing uid");
+      }
+
+      const databaseBooking =
+        await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(booking.uid);
+      if (!databaseBooking) {
+        throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
+      }
+
+      return this.outputService.getOutputCreateSeatedBooking(databaseBooking, booking.seatReferenceUid || "");
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "booking_seats_full_error") {
+          throw new ConflictException("No more seats left at this seated booking.");
+        }
+      }
+      throw error;
     }
-
-    const databaseBooking = await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(
-      booking.uid
-    );
-    if (!databaseBooking) {
-      throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
-    }
-
-    return this.outputService.getOutputCreateSeatedBooking(databaseBooking, booking.seatReferenceUid || "");
   }
 
   async getBooking(uid: string) {
@@ -604,13 +666,24 @@ export class BookingsService_2024_08_13 {
 
     const profile = this.usersService.getUserMainProfile(requestUser);
 
-    await roundRobinReassignment({
-      bookingId: booking.id,
-      orgId: profile?.organizationId || null,
-      emailsEnabled,
-      platformClientParams,
-      reassignedById: requestUser.id,
-    });
+    try {
+      await roundRobinReassignment({
+        bookingId: booking.id,
+        orgId: profile?.organizationId || null,
+        emailsEnabled,
+        platformClientParams,
+        reassignedById: requestUser.id,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "no_available_users_found_error") {
+          throw new BadRequestException(
+            "Can't reassign the booking because no other host is available at that time."
+          );
+        }
+      }
+      throw error;
+    }
 
     const reassigned = await this.bookingsRepository.getByUidWithUser(bookingUid);
     if (!reassigned) {
@@ -644,17 +717,28 @@ export class BookingsService_2024_08_13 {
 
     const profile = this.usersService.getUserMainProfile(user);
 
-    const reassigned = await roundRobinManualReassignment({
-      bookingId: booking.id,
-      newUserId,
-      orgId: profile?.organizationId || null,
-      reassignReason: body.reason,
-      reassignedById,
-      emailsEnabled,
-      platformClientParams,
-    });
+    try {
+      const reassigned = await roundRobinManualReassignment({
+        bookingId: booking.id,
+        newUserId,
+        orgId: profile?.organizationId || null,
+        reassignReason: body.reason,
+        reassignedById,
+        emailsEnabled,
+        platformClientParams,
+      });
 
-    return this.outputService.getOutputReassignedBooking(reassigned);
+      return this.outputService.getOutputReassignedBooking(reassigned);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "invalid_round_robin_host") {
+          throw new BadRequestException(
+            `User with id=${newUserId} is not a valid Round Robin host - the user to which you reassign this booking must be one of the booking hosts. Fetch the booking using following endpoint and select id of one of the hosts: https://cal.com/docs/api-reference/v2/bookings/get-a-booking`
+          );
+        }
+      }
+      throw error;
+    }
   }
 
   async confirmBooking(bookingUid: string, requestUser: UserWithProfile) {

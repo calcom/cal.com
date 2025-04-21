@@ -3,9 +3,15 @@ import { ConferencingRepository } from "@/modules/conferencing/repositories/conf
 import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
 import { Office365VideoService } from "@/modules/conferencing/services/office365-video.service";
 import { ZoomVideoService } from "@/modules/conferencing/services/zoom-video.service";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, InternalServerErrorException, Logger } from "@nestjs/common";
+import {
+  BadRequestException,
+  InternalServerErrorException,
+  Logger,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
 import {
@@ -25,6 +31,7 @@ export class ConferencingService {
   constructor(
     private readonly conferencingRepository: ConferencingRepository,
     private readonly usersRepository: UsersRepository,
+    private readonly tokensRepository: TokensRepository,
     private readonly googleMeetService: GoogleMeetService,
     private readonly zoomVideoService: ZoomVideoService,
     private readonly office365VideoService: Office365VideoService
@@ -47,10 +54,13 @@ export class ConferencingService {
   async connectOauthApps(
     app: string,
     code: string,
-    userId: number,
     decodedCallbackState: OAuthCallbackState,
     teamId?: number
   ) {
+    const userId = await this.tokensRepository.getAccessTokenOwnerId(decodedCallbackState.accessToken);
+    if (!userId) {
+      throw new UnauthorizedException("Invalid Access token.");
+    }
     switch (app) {
       case ZOOM:
         return await this.zoomVideoService.connectZoomApp(decodedCallbackState, code, userId, teamId);

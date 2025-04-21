@@ -1,5 +1,6 @@
 /**/package.json @calcom/Foundation
 /apps/api/**/* @calcom/Platform @calcom/Foundation
+/apps/web/**/layout.tsx @calcom/Foundation
 /deploy/**/* @calcom/Foundation
 /infra/**/* @calcom/Foundation
 /packages/app-store/applecalendar/**/* @calcom/Foundation
