@@ -20,6 +20,7 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
+  Delete,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiExcludeController } from "@nestjs/swagger";
@@ -96,7 +97,7 @@ export class BillingController {
     };
   }
 
-  @Post("/:teamId/unsubscribe")
+  @Delete("/:teamId/unsubscribe")
   @UseGuards(NextAuthGuard, OrganizationRolesGuard)
   @MembershipRoles(["OWNER", "ADMIN"])
   async unsubscribeTeamToStripe(@Param("teamId") teamId: number): Promise<ApiResponse> {
