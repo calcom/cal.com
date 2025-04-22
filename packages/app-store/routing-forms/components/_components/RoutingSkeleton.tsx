@@ -2,14 +2,18 @@ export function RoutingSkeleton() {
   return (
     <div className="w-full py-4 lg:py-8">
       <div className="flex w-full flex-col rounded-md">
-        <div className="bg-muted border-muted rounded-2xl border p-1">
+        <div className="bg-muted border-muted rounded-2xl border p-2.5">
           {[1, 2, 3].map((index) => (
             <div key={index}>
               {/* Title */}
-              <div className="mb-0.5 flex flex-col gap-0.5 p-1">
+              <div
+                className="mb-0.5 flex flex-col gap-0.5 p-1"
+                style={{
+                  height: "52px",
+                }}>
                 <div className="flex items-center gap-2 px-2 py-1">
                   <div className="h-4 w-4 animate-pulse rounded bg-gray-200" />
-                  <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
+                  <div className="h-8 w-32 animate-pulse rounded bg-gray-200" />
                 </div>
               </div>
               {/* Form Fields */}

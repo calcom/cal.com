@@ -1377,7 +1377,7 @@ function Page({
     }
   }
 
-  if (true) {
+  if (areEventsLoading) {
     return <RoutingSkeleton />;
   }
 
