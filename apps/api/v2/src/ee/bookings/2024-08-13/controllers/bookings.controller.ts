@@ -100,9 +100,13 @@ export class BookingsController_2024_08_13 {
 
       The start needs to be in UTC aka if the timezone is GMT+2 in Rome and meeting should start at 11, then UTC time should have hours 09:00 aka without time zone.
 
-      Finally, there are 2 ways to book an event type:
+      Finally, there are 2 ways to book an event type belonging to an individual user:
       1. Provide \`eventTypeId\` in the request body.
       2. Provide \`eventTypeSlug\` and \`username\` and optionally \`organizationSlug\` if the user with the username is within an organization.
+
+      And 2 ways to book and event type belonging to a team:
+      1. Provide \`eventTypeId\` in the request body.
+      2. Provide \`eventTypeSlug\` and \`teamSlug\` and optionally \`organizationSlug\` if the team with the teamSlug is within an organization.
       `,
   })
   @ApiBody({
@@ -256,7 +260,8 @@ export class BookingsController_2024_08_13 {
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary: "Mark a booking absence - provided authorization header refers to owner of the booking.",
+    summary: "Mark a booking absence",
+    description: "The provided authorization header refers to the owner of the booking.",
   })
   async markNoShow(
     @Param("bookingUid") bookingUid: string,
@@ -277,8 +282,8 @@ export class BookingsController_2024_08_13 {
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary:
-      "Automatically reassign booking to a new host automatically - provided authorization header refers to person who reassigned the booking.",
+    summary: "Reassign a booking to auto-selected host",
+    description: "The provided authorization header refers to the owner of the booking.",
   })
   async reassignBooking(
     @Param("bookingUid") bookingUid: string,
@@ -298,8 +303,8 @@ export class BookingsController_2024_08_13 {
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary:
-      "Reassign a booking to a specific user specified by the :userId - provided authorization header refers to person who reassigned the booking.",
+    summary: "Reassign a booking to a specific host",
+    description: "The provided authorization header refers to the owner of the booking.",
   })
   async reassignBookingToUser(
     @Param("bookingUid") bookingUid: string,
@@ -326,8 +331,8 @@ export class BookingsController_2024_08_13 {
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary:
-      "Confirm booking that requires a confirmation - provided authorization header refers to owner of the booking.",
+    summary: "Confirm a booking",
+    description: "The provided authorization header refers to the owner of the booking.",
   })
   async confirmBooking(
     @Param("bookingUid") bookingUid: string,
@@ -347,8 +352,8 @@ export class BookingsController_2024_08_13 {
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary:
-      "Decline booking that requires a confirmation - provided authorization header refers to owner of the booking.",
+    summary: "Decline a booking",
+    description: "The provided authorization header refers to the owner of the booking.",
   })
   async declineBooking(
     @Param("bookingUid") bookingUid: string,
