@@ -9,7 +9,10 @@ import ApiKeysView from "~/settings/developer/api-keys-view";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("api_keys"),
-    (t) => t("create_first_api_key_description", { appName: APP_NAME })
+    (t) => t("create_first_api_key_description", { appName: APP_NAME }),
+    undefined,
+    undefined,
+    "/settings/developer/api-keys"
   );
 
 const Page = async () => {

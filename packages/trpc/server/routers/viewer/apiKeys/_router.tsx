@@ -13,39 +13,21 @@ type ApiKeysRouterHandlerCache = {
   delete?: typeof import("./delete.handler").deleteHandler;
 };
 
-const UNSTABLE_HANDLER_CACHE: ApiKeysRouterHandlerCache = {};
-
 export const apiKeysRouter = router({
   // List keys
   list: authedProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.list) {
-      UNSTABLE_HANDLER_CACHE.list = await import("./list.handler").then((mod) => mod.listHandler);
-    }
+    const { listHandler } = await import("./list.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.list) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.list({
+    return listHandler({
       ctx,
     });
   }),
 
   // Find key of type
   findKeyOfType: authedProcedure.input(ZFindKeyOfTypeInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.findKeyOfType) {
-      UNSTABLE_HANDLER_CACHE.findKeyOfType = await import("./findKeyOfType.handler").then(
-        (mod) => mod.findKeyOfTypeHandler
-      );
-    }
+    const { findKeyOfTypeHandler } = await import("./findKeyOfType.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.findKeyOfType) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.findKeyOfType({
+    return findKeyOfTypeHandler({
       ctx,
       input,
     });
@@ -53,48 +35,27 @@ export const apiKeysRouter = router({
 
   // Create a new key
   create: authedProcedure.input(ZCreateInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.create) {
-      UNSTABLE_HANDLER_CACHE.create = await import("./create.handler").then((mod) => mod.createHandler);
-    }
+    const { createHandler } = await import("./create.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.create) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.create({
+    return createHandler({
       ctx,
       input,
     });
   }),
 
   edit: authedProcedure.input(ZEditInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.edit) {
-      UNSTABLE_HANDLER_CACHE.edit = await import("./edit.handler").then((mod) => mod.editHandler);
-    }
+    const { editHandler } = await import("./edit.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.edit) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.edit({
+    return editHandler({
       ctx,
       input,
     });
   }),
 
   delete: authedProcedure.input(ZDeleteInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.delete) {
-      UNSTABLE_HANDLER_CACHE.delete = await import("./delete.handler").then((mod) => mod.deleteHandler);
-    }
+    const { deleteHandler } = await import("./delete.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.delete) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.delete({
+    return deleteHandler({
       ctx,
       input,
     });
