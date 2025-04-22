@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo } from "react";
 
+import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -82,6 +83,7 @@ export function TeamsListing({
       description: t("disable_cal_branding_description", { appName: APP_NAME }),
     },
   ];
+
   useEffect(() => {
     if (!token) {
       return;
@@ -114,31 +116,32 @@ export function TeamsListing({
         </div>
       )}
 
-      <UpgradeTip
-        plan="team"
-        title={t("calcom_is_better_with_team", { appName: APP_NAME })}
-        description="add_your_team_members"
-        features={features}
-        background="/tips/teams"
-        buttons={
-          !user?.organizationId || user?.organization.isOrgAdmin ? (
-            <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
-              <ButtonGroup>
-                <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
-                  {t("create_team")}
-                </Button>
-                <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
-                  {t("learn_more")}
-                </Button>
-              </ButtonGroup>
-            </div>
-          ) : (
-            <p>{t("org_admins_can_create_new_teams")}</p>
-          )
-        }>
-        {teams.length > 0 ? (
-          <TeamList user={user} teams={teams} />
-        ) : (
+      {teams.length > 0 && <TeamList user={user} teams={teams} />}
+
+      {teams.length === 0 && (
+        <UpgradeTip
+          plan="team"
+          title={t("calcom_is_better_with_team", { appName: APP_NAME })}
+          description={t("add_your_team_members")}
+          features={features}
+          background="/tips/teams"
+          buttons={
+            !user?.organizationId || user?.organization.isOrgAdmin ? (
+              <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+                <ButtonGroup>
+                  <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
+                    {t("create_team")}
+                  </Button>
+                  <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
+                    {t("learn_more")}
+                  </Button>
+                </ButtonGroup>
+              </div>
+            ) : (
+              <p>{t("org_admins_can_create_new_teams")}</p>
+            )
+          }
+          isParentLoading={<SkeletonLoaderTeamList />}>
           <EmptyScreen
             Icon="users"
             headline={t("create_team_to_get_started")}
@@ -156,8 +159,8 @@ export function TeamsListing({
               </Button>
             }
           />
-        )}
-      </UpgradeTip>
+        </UpgradeTip>
+      )}
 
       <p className="text-subtle mb-8 mt-4 flex w-full items-center gap-1 text-sm md:justify-center md:text-center">
         <Icon className="hidden sm:block" name="info" /> {t("tip_username_plus")}
