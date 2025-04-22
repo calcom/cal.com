@@ -29,7 +29,7 @@ export const ServerTeamsListing = async ({ searchParams }: { searchParams: Searc
       });
     } catch (e) {
       errorMsgFromInvite = "Error while fetching teams";
-      if (e instanceof TRPCError) errorMsgFromInvite = (e as TRPCError).message;
+      if (e instanceof TRPCError) errorMsgFromInvite = e.message;
     }
   }
 
