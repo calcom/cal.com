@@ -1019,6 +1019,7 @@ async function handler(
       id: eventType.id,
       hideCalendarNotes: eventType.hideCalendarNotes,
       hideCalendarEventDetails: eventType.hideCalendarEventDetails,
+      hideOrganizerEmail: eventType.hideOrganizerEmail,
       schedulingType: eventType.schedulingType,
       seatsPerTimeSlot: eventType.seatsPerTimeSlot,
       // if seats are not enabled we should default true

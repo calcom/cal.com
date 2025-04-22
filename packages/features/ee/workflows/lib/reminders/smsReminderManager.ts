@@ -60,6 +60,7 @@ export type BookingInfo = {
   metadata?: Prisma.JsonValue;
   cancellationReason?: string | null;
   rescheduleReason?: string | null;
+  hideOrganizerEmail?: boolean;
 };
 
 export type ScheduleTextReminderAction = Extract<

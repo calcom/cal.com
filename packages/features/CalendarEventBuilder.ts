@@ -47,6 +47,7 @@ export class CalendarEventBuilder {
     id: number;
     hideCalendarNotes?: boolean;
     hideCalendarEventDetails?: boolean;
+    hideOrganizerEmail?: boolean;
     schedulingType?: SchedulingType | null;
     seatsPerTimeSlot?: number | null;
     seatsShowAttendees?: boolean | null;

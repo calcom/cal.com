@@ -219,6 +219,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
                   },
                 },
               },
+              hideOrganizerEmail: true,
             },
           },
           user: true,
@@ -253,6 +254,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
           endTime: booking.endTime.toISOString(),
           title: booking.title,
           language: { locale: booking?.user?.locale || defaultLocale },
+          hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
           eventType: {
             slug: booking.eventType?.slug || "",
             schedulingType: booking.eventType?.schedulingType,

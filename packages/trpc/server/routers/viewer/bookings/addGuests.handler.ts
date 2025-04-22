@@ -133,6 +133,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
       timeZone: organizer.timeZone,
       language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
     },
+    hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     attendees: attendeesList,
     uid: booking.uid,
     recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),

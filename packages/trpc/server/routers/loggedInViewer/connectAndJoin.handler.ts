@@ -126,6 +126,7 @@ export const Handler = async ({ ctx, input }: Options) => {
           bookingFields: true,
           disableGuests: true,
           metadata: true,
+          hideOrganizerEmail: true,
           customInputs: true,
           parentId: true,
           team: {
@@ -202,6 +203,7 @@ export const Handler = async ({ ctx, input }: Options) => {
       timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
       language: { translate: tOrganizer, locale: user.locale ?? "en" },
     },
+    hideOrganizerEmail: updatedBooking.eventType?.hideOrganizerEmail,
     attendees: attendeesList,
     location: updatedBooking.location ?? "",
     uid: updatedBooking.uid,
