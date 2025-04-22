@@ -18,8 +18,8 @@ enum PageType {
   OTHER = "OTHER",
 }
 
-function getPageInfo(pathname: string, host: string) {
-  const { isValidOrgDomain, currentOrgDomain } = getOrgDomainConfigFromHostname({ hostname: host });
+function getPageInfo(pathname: string, hostname: string) {
+  const { isValidOrgDomain, currentOrgDomain } = getOrgDomainConfigFromHostname({ hostname: hostname });
   const [routerUsername] = pathname?.replace("%20", "-").split(/[?#]/) ?? [];
   if (routerUsername && (!isValidOrgDomain || !currentOrgDomain)) {
     const splitPath = routerUsername.split("/");
@@ -47,12 +47,11 @@ function getPageInfo(pathname: string, host: string) {
   }
 }
 
-export function NotFound() {
+export function NotFound({ hostname }: { hostname: string }) {
   const { t } = useLocale();
   const pathname = usePathname() ?? "";
-  const host = window.location.hostname;
 
-  const { username, pageType, url } = getPageInfo(pathname, host);
+  const { username, pageType, url } = getPageInfo(pathname, hostname);
   const isBookingSuccessPage = pathname?.startsWith("/booking");
   const isSubpage = pathname?.includes("/", 2) || isBookingSuccessPage;
   const isInsights = pathname?.startsWith("/insights");

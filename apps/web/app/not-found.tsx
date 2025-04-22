@@ -22,9 +22,10 @@ export const generateMetadata = async () => {
 const ServerPage = async () => {
   const h = await headers();
   const nonce = h.get("x-nonce") ?? undefined;
+  const hostname = h.get("x-forwarded-host") ?? "";
   return (
     <PageWrapper requiresLicense={false} nonce={nonce}>
-      <NotFound />
+      <NotFound hostname={hostname} />
     </PageWrapper>
   );
 };
