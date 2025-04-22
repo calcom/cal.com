@@ -48,6 +48,7 @@ export const apiHandlers = {
   jelly: import("./jelly/api"),
   jitsivideo: import("./jitsivideo/api"),
   larkcalendar: import("./larkcalendar/api"),
+  lindy: import("./lindy/api"),
   linear: import("./linear/api"),
   make: import("./make/api"),
   matomo: import("./matomo/api"),

@@ -3053,5 +3053,17 @@
   "most_cancelled_bookings": "Eniten perutut varaukset",
   "name_or_email": "Nimi tai sähköposti",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Jos yhteyshenkilöä ei löydy, käytä liidin omistajaa, jos sellainen on olemassa",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time" : "Päivämäärä ja aika",
+  "email_reminder_upcoming_event_notice" : "Tämä on muistutus tulevasta tapahtumastasi.",
+  "email_reminder_triggered_by_workflow" : "Tämän muistutuksen laukaisi Cal.",
+  "event_upper_case": "Tapahtuma",
+  "scheduling_by": "Aikatauluttaja",
+  "experience_review_prompt": "Minkälainen oli viimeisin kokemuksesi?",
+  "improve_customer_experience_message": "Pyrimme jatkuvasti parantamaan asiakaskokemusta.",
+  "meeting_satisfaction_question": "Kuinka tyytyväinen olit viime kokoukseen?",
+  "meeting_not_joined_question": "et osallistunut kokoukseen?",
+  "reschedule_cta_short": "Uudelleenaikatauluta tästä.",
+  "you_and_conjunction": "Sinä &",
+  "email_survey_triggered_by_workflow": "Tämä kysely käynnistettiin Workflow-ohjelmalla Cal-palvelussa."
 }

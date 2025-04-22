@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger, parseAsString } from "nuqs";
 import { createContext, useCallback, useEffect, useRef, useMemo } from "react";
 
-import { useSegments } from "./lib/segments";
+import { useSegmentsNoop } from "./hooks/useSegmentsNoop";
 import {
   type FilterValue,
   ZSorting,
@@ -16,6 +16,7 @@ import {
   ZColumnSizing,
   type FilterSegmentOutput,
   type ActiveFilters,
+  type UseSegments,
 } from "./lib/types";
 import { CTA_CONTAINER_CLASS_NAME } from "./lib/utils";
 
@@ -51,6 +52,7 @@ export type DataTableContextType = {
   segmentId: number | undefined;
   setSegmentId: (id: number | null) => void;
   canSaveSegment: boolean;
+  isSegmentEnabled: boolean;
 
   searchTerm: string;
   setSearchTerm: (searchTerm: string | null) => void;
@@ -65,6 +67,7 @@ const DEFAULT_COLUMN_SIZING: ColumnSizingState = {};
 const DEFAULT_PAGE_SIZE = 10;
 
 interface DataTableProviderProps {
+  useSegments?: UseSegments;
   tableIdentifier?: string;
   children: React.ReactNode;
   ctaContainerClassName?: string;
@@ -74,6 +77,7 @@ interface DataTableProviderProps {
 export function DataTableProvider({
   tableIdentifier: _tableIdentifier,
   children,
+  useSegments = useSegmentsNoop,
   defaultPageSize = DEFAULT_PAGE_SIZE,
   ctaContainerClassName = CTA_CONTAINER_CLASS_NAME,
 }: DataTableProviderProps) {
@@ -165,36 +169,38 @@ export function DataTableProvider({
     [setPageSize, setPageIndex, defaultPageSize]
   );
 
-  const { segments, selectedSegment, canSaveSegment, setSegmentIdAndSaveToLocalStorage } = useSegments({
-    tableIdentifier,
-    activeFilters,
-    sorting,
-    columnVisibility,
-    columnSizing,
-    pageSize,
-    searchTerm,
-    defaultPageSize,
-    segmentId,
-    setSegmentId,
-    setActiveFilters,
-    setSorting,
-    setColumnVisibility,
-    setColumnSizing,
-    setPageSize,
-    setPageIndex,
-    setSearchTerm,
-  });
+  const { segments, selectedSegment, canSaveSegment, setAndPersistSegmentId, isSegmentEnabled } = useSegments(
+    {
+      tableIdentifier,
+      activeFilters,
+      sorting,
+      columnVisibility,
+      columnSizing,
+      pageSize,
+      searchTerm,
+      defaultPageSize,
+      segmentId,
+      setSegmentId,
+      setActiveFilters,
+      setSorting,
+      setColumnVisibility,
+      setColumnSizing,
+      setPageSize,
+      setPageIndex,
+      setSearchTerm,
+    }
+  );
 
   const clearAll = useCallback(
     (exclude?: string[]) => {
-      setSegmentIdAndSaveToLocalStorage(null);
+      setAndPersistSegmentId(null);
       setPageIndex(null);
       setActiveFilters((prev) => {
         const remainingFilters = prev.filter((filter) => exclude?.includes(filter.f));
         return remainingFilters.length === 0 ? null : remainingFilters;
       });
     },
-    [setActiveFilters, setPageIndex, setSegmentIdAndSaveToLocalStorage]
+    [setActiveFilters, setPageIndex, setAndPersistSegmentId]
   );
 
   const ctaContainerRef = useRef<HTMLDivElement | null>(null);
@@ -230,8 +236,9 @@ export function DataTableProvider({
         segments,
         selectedSegment,
         segmentId: segmentId || undefined,
-        setSegmentId: setSegmentIdAndSaveToLocalStorage,
+        setSegmentId: setAndPersistSegmentId,
         canSaveSegment,
+        isSegmentEnabled,
         searchTerm,
         setSearchTerm: setDebouncedSearchTerm,
       }}>

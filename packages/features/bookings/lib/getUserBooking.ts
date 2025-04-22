@@ -24,6 +24,7 @@ const getUserBooking = async (uid: string) => {
       userPrimaryEmail: true,
       fromReschedule: true,
       rescheduled: true,
+      rescheduledBy: true,
       user: {
         select: {
           id: true,
