@@ -26,42 +26,45 @@ const AvailabilitySettingsSkeleton = () => {
 
   return (
     <SkeletonContainer>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-8 flex items-center justify-between">
         <div className="flex items-center">
-          <SkeletonText className="h-8 w-40" /> {/* Title */}
-          <div className="ml-3">
-            <SkeletonText className="h-4 w-72" /> {/* Schedule description */}
+          <div className="flex items-center">
+            <SkeletonText className="h-8 w-32" /> {/* Title */}
+            <SkeletonText className="ml-2 h-4 w-4 rounded-md" /> {/* Pencil icon */}
+          </div>
+          <div className="ml-2">
+            <SkeletonText className="h-4 w-64" /> {/* Schedule description */}
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <SkeletonText className="h-4 w-28" /> {/* Set to Default text */}
-          <div className="h-5 w-10 rounded-full bg-gray-200" /> {/* Toggle */}
-          <div className="mx-2 h-4 w-px bg-gray-200">|</div>
-          <SkeletonButton className="h-9 w-24 rounded-md" /> {/* Save button */}
+        <div className="flex items-center gap-2">
+          <SkeletonText className="h-4 w-24" /> {/* Set to Default text */}
+          <div className="h-6 w-12 rounded-full bg-gray-200" /> {/* Toggle */}
+          <div className="mx-2 h-4 w-px bg-gray-200" />
+          <SkeletonButton className="h-9 w-20 rounded-md" /> {/* Save button */}
         </div>
       </div>
 
-      <div className="flex flex-col sm:mx-0 xl:flex-row xl:space-x-8">
+      <div className="flex flex-col sm:mx-0 xl:flex-row xl:space-x-6">
         <div className="flex-1 flex-row xl:mr-0">
           <div className="border-subtle mb-8 rounded-md border p-6">
             {/* Schedule skeleton */}
             {Array(7)
               .fill(0)
               .map((_, i) => (
-                <div key={i} className="mb-5 flex items-center">
-                  <div className="mr-6 flex w-32 items-center">
+                <div key={i} className="mb-4 flex items-center">
+                  <div className="mr-4 flex w-28 items-center">
                     <div className="mr-3 h-5 w-10 rounded-full bg-gray-200" /> {/* Toggle */}
-                    <SkeletonText className="h-5 w-20" /> {/* Day name */}
+                    <SkeletonText className="h-5 w-16" /> {/* Day name */}
                   </div>
                   <div className="flex flex-1 items-center">
-                    <SkeletonText className="h-10 w-28 rounded-md" /> {/* Time input */}
+                    <SkeletonText className="h-9 w-24 rounded-md" /> {/* Time input */}
                     <div className="mx-2">
                       <SkeletonText className="h-5 w-2" /> {/* Dash */}
                     </div>
-                    <SkeletonText className="h-10 w-28 rounded-md" /> {/* Time input */}
+                    <SkeletonText className="h-9 w-24 rounded-md" /> {/* Time input */}
                     <div className="ml-4 flex gap-2">
-                      <SkeletonText className="h-10 w-10 rounded-md" /> {/* Add button */}
-                      <SkeletonText className="h-10 w-10 rounded-md" /> {/* Duplicate button */}
+                      <SkeletonText className="h-9 w-9 rounded-md" /> {/* Add button */}
+                      <SkeletonText className="h-9 w-9 rounded-md" /> {/* Duplicate button */}
                     </div>
                   </div>
                 </div>
@@ -71,25 +74,25 @@ const AvailabilitySettingsSkeleton = () => {
           {/* Date overrides section */}
           <div className="mb-8">
             <div className="mb-2 flex items-center">
-              <SkeletonText className="h-5 w-36" /> {/* Date overrides */}
+              <SkeletonText className="h-5 w-32" /> {/* Date overrides */}
               <SkeletonText className="ml-2 h-5 w-5 rounded-full" /> {/* Info icon */}
             </div>
-            <SkeletonText className="h-4 w-full max-w-lg" /> {/* Description */}
-            <div className="mt-5">
-              <SkeletonButton className="h-10 w-40 rounded-md" /> {/* Add an override button */}
+            <SkeletonText className="h-4 w-full max-w-md" /> {/* Description */}
+            <div className="mt-4">
+              <SkeletonButton className="h-9 w-36 rounded-md" /> {/* Add an override button */}
             </div>
           </div>
         </div>
 
-        <div className="min-w-64 space-y-8 md:block">
+        <div className="min-w-40 space-y-6 md:block">
           <div className="w-full">
             <SkeletonText className="mb-2 h-4 w-24" /> {/* Timezone */}
-            <SkeletonText className="h-10 w-full rounded-md" /> {/* Timezone selector */}
+            <SkeletonText className="h-10 w-64 rounded-md" /> {/* Timezone selector */}
           </div>
 
-          <div className="mt-8 w-full">
+          <div className="mt-6 w-full">
             <SkeletonText className="mb-2 h-4 w-64" /> {/* Something doesn't look right? */}
-            <SkeletonButton className="h-10 w-56 rounded-md" /> {/* Launch troubleshooter */}
+            <SkeletonButton className="h-9 w-48 rounded-md" /> {/* Launch troubleshooter */}
           </div>
         </div>
       </div>
