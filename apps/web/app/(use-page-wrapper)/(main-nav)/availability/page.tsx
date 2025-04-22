@@ -60,7 +60,6 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
       </ShellMainAppDir>
     );
   } catch (error) {
-    console.error("Error in Availability Page:", error);
     notFound();
   }
 };
