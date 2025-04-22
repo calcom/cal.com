@@ -932,58 +932,58 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   open={isEmbedCustomizationOpen}
                   onOpenChange={() => setIsEmbedCustomizationOpen((val) => !val)}>
                   <CollapsibleContent className="text-sm">
-                    <div
-                      className={classNames(
-                        embedType === "inline" && !eventTypeHideOptionDisabled ? "block" : "hidden"
-                      )}>
-                      {/*TODO: Add Auto/Fixed toggle from Figma */}
-                      <div className="text-default mb-[9px] text-sm">Window sizing</div>
-                      <div className="justify-left mb-6 flex items-center !font-normal ">
-                        <div className="mr-[9px]">
+                    {/* Conditionally render Window Sizing only if inline embed AND NOT React Atom */}
+                    {embedType === "inline" && embedParams.embedTabName !== "embed-react-atom" && (
+                      <div>
+                        {/*TODO: Add Auto/Fixed toggle from Figma */}
+                        <div className="text-default mb-[9px] text-sm">Window sizing</div>
+                        <div className="justify-left mb-6 flex items-center !font-normal ">
+                          <div className="mr-[9px]">
+                            <TextField
+                              labelProps={{ className: "hidden" }}
+                              className="focus:ring-offset-0"
+                              required
+                              value={previewState.inline.width}
+                              onChange={(e) => {
+                                setPreviewState((previewState) => {
+                                  const width = e.target.value || "100%";
+
+                                  return {
+                                    ...previewState,
+                                    inline: {
+                                      ...previewState.inline,
+                                      width,
+                                    },
+                                  };
+                                });
+                              }}
+                              addOnLeading={<>W</>}
+                            />
+                          </div>
+
                           <TextField
                             labelProps={{ className: "hidden" }}
                             className="focus:ring-offset-0"
+                            value={previewState.inline.height}
                             required
-                            value={previewState.inline.width}
                             onChange={(e) => {
-                              setPreviewState((previewState) => {
-                                const width = e.target.value || "100%";
+                              const height = e.target.value || "100%";
 
+                              setPreviewState((previewState) => {
                                 return {
                                   ...previewState,
                                   inline: {
                                     ...previewState.inline,
-                                    width,
+                                    height,
                                   },
                                 };
                               });
                             }}
-                            addOnLeading={<>W</>}
+                            addOnLeading={<>H</>}
                           />
                         </div>
-
-                        <TextField
-                          labelProps={{ className: "hidden" }}
-                          className="focus:ring-offset-0"
-                          value={previewState.inline.height}
-                          required
-                          onChange={(e) => {
-                            const height = e.target.value || "100%";
-
-                            setPreviewState((previewState) => {
-                              return {
-                                ...previewState,
-                                inline: {
-                                  ...previewState.inline,
-                                  height,
-                                },
-                              };
-                            });
-                          }}
-                          addOnLeading={<>H</>}
-                        />
                       </div>
-                    </div>
+                    )}
                     <div
                       className={classNames(
                         "items-center justify-between",
@@ -1108,7 +1108,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   onOpenChange={() => setIsBookingCustomizationOpen((val) => !val)}>
                   <CollapsibleContent>
                     <div className="text-sm">
-                      {!eventTypeHideOptionDisabled && (
+                      {/* Conditionally render EmbedTheme only if NOT React Atom */}
+                      {embedParams.embedTabName !== "embed-react-atom" && (
                         <Label className="mb-6">
                           <div className="mb-2">EmbedTheme</div>
                           <Select
@@ -1151,7 +1152,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           />
                         </Label>
                       )}
-                      {!eventTypeHideOptionDisabled ? (
+                      {/* Conditionally render Hide Details Switch only if NOT Atom embed AND not disabled by prop */}
+                      {!eventTypeHideOptionDisabled && embedParams.embedTabName !== "embed-react-atom" ? (
                         <div className="mb-6 flex items-center justify-start space-x-2 rtl:space-x-reverse">
                           <Switch
                             checked={previewState.hideEventTypeDetails}
@@ -1167,7 +1169,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           <div className="text-default text-sm">{t("hide_eventtype_details")}</div>
                         </div>
                       ) : null}
-                      {!eventTypeHideOptionDisabled &&
+                      {/* Conditionally render Brand Colors only if NOT React Atom */}
+                      {embedParams.embedTabName !== "embed-react-atom" &&
                         [
                           { name: "brandColor", title: "light_brand_color" },
                           { name: "darkBrandColor", title: "dark_brand_color" },
