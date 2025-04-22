@@ -1,5 +1,5 @@
-import SkeletonLoader from "@calcom/features/availability/components/SkeletonLoader";
+import AvailabilityLoader from "app/(use-page-wrapper)/(main-nav)/availability/clientLoader";
 
 export default function Loading() {
-  return <SkeletonLoader />;
+  return <AvailabilityLoader />;
 }
