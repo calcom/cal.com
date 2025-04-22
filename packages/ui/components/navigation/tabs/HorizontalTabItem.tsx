@@ -33,8 +33,24 @@ const HorizontalTabItem = function ({
   matchFullPath,
   ...props
 }: HorizontalTabItemProps) {
-  const isCurrent = useUrlMatchesCurrentUrl(href, matchFullPath) || props?.isActive;
+  const urlMatches = useUrlMatchesCurrentUrl(href, matchFullPath);
   const { t } = useLocale();
+
+  let isCurrent = props?.isActive;
+  if (isCurrent === undefined) {
+    const isEmbedTab = href.includes("embedTabName=");
+    if (isEmbedTab) {
+      const urlSearchParams = new URLSearchParams(window.location.search);
+      const currentEmbedTabName = urlSearchParams.get("embedTabName");
+
+      const embedTabNameMatch = href.match(/embedTabName=([^&]*)/);
+      const tabEmbedTabName = embedTabNameMatch ? embedTabNameMatch[1] : null;
+
+      isCurrent = currentEmbedTabName === tabEmbedTabName;
+    } else {
+      isCurrent = urlMatches;
+    }
+  }
 
   return (
     <Link
