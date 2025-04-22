@@ -160,12 +160,6 @@ export class WorkflowRepository {
         select: {
           id: true,
           email: true,
-          teams: {
-            select: {
-              teamId: true,
-              role: true,
-            },
-          },
           secondaryEmails: {
             where: {
               emailVerified: {
