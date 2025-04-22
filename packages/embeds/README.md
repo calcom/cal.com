@@ -84,3 +84,12 @@ Status:
 - When we get the response from the endpoint, we pass on all the query params to the already rendered/being rendered iframe and embed-iframe updates the URL of the iframe to have the new query params through history.replaceState(i.e. without reloading the page)
 
 
+## Prerendering vs Preloading
+- Preloading loads the calLink in iframe with the sole purpose of preloading the static assets, so that when the embed actually opens, it uses the static assets from browser cache.
+- Prerendering means continuing over the preloaded iframe, so that the user books on the prerendered iframe only. So, it is much more complex than preloading and gives much more benefits in terms of performance.
+Note: API wise `prerender` delegates its task to `preload` API which then identifies whether to preload or prerender.
+  - Note: On Booker page, when prerendering with __skipGetSchedule:true, the slots are never fetched and thus the booker never reaches slotsLoaded state and thus linkReady won't fire for booking links during prerendering. It would fire only after connect.
+
+
+## Modalbox re-opening performance optimization
+- ModalBox supports reusing the same cal-modal-box element and thus same iframe and thus providing a lightning fast experience when the same modal is opened multiple times [This feature is currently disabled in code because of stale booking page UI issues]

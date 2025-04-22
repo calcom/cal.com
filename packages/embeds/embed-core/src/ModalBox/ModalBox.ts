@@ -12,6 +12,9 @@ export class ModalBox extends EmbedElement {
     return ["state"];
   }
 
+  /**
+   * Show the modal box, regardless of anything else - Kind of like forced open
+   */
   show(show: boolean) {
     this.assertHasShadowRoot();
     // We can't make it display none as that takes iframe width and height calculations to 0
@@ -21,6 +24,9 @@ export class ModalBox extends EmbedElement {
     }
   }
 
+  /**
+   * Open the modal box if it makes sense to do so.
+   */
   open() {
     if (this.getAttribute("state") === "prerendering") {
       // You can't show a modal thats prerendering or prerendered
@@ -53,14 +59,14 @@ export class ModalBox extends EmbedElement {
     this.explicitClose();
   }
 
-  hideIframe() {
+  collapseIframe() {
     const iframe = this.querySelector("iframe");
     if (iframe) {
       iframe.style.display = "none";
     }
   }
 
-  unhideIframe() {
+  uncollapseIframe() {
     const iframe = this.querySelector("iframe");
     if (iframe) {
       iframe.style.display = "";
@@ -74,6 +80,7 @@ export class ModalBox extends EmbedElement {
     }
   }
 
+  // Iframe when added is invisible
   makeIframeVisible() {
     const iframe = this.querySelector("iframe");
     if (iframe) {
@@ -102,6 +109,22 @@ export class ModalBox extends EmbedElement {
     }
   }
 
+  ensureIframeFullyVisible() {
+    // Iframe when added is invisible, so we ensure that it is visible
+    this.makeIframeVisible();
+    // Iframe is collapsed(doesn't take any space) when error is to be shown, so we ensure that it is uncollapsed
+    this.uncollapseIframe();
+  }
+
+  onStateLoaded() {
+    // Hide Loader
+    this.toggleLoader(false);
+    // Open Modal
+    this.open();
+    // Ensure Iframe is fully visible
+    this.ensureIframeFullyVisible();
+  }
+
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
     if (name !== "state") {
       return;
@@ -110,14 +133,15 @@ export class ModalBox extends EmbedElement {
     if (newValue === "loading") {
       this.toggleLoader(true);
       this.open();
-      // Unhide in case we are moving from "failed" state to "loading" state
-      this.unhideIframe();
-      this.toggleErrorElement(false);
+
+      // Ensure iframe takes its available space as it could be possible that we are moving from "failed" state to "loading" state or some other case.
+      this.uncollapseIframe();
+
+      // Keep iframe invisible as it will be made visible when the state changes to "loaded"
       this.makeIframeInvisible();
-    } else if (newValue == "loaded" || newValue === "reopened") {
-      this.toggleLoader(false);
-      this.open();
-      this.makeIframeVisible();
+      this.toggleErrorElement(false);
+    } else if (newValue == "loaded") {
+      this.onStateLoaded();
     } else if (newValue == "closed") {
       this.explicitClose();
     } else if (newValue === "failed") {
@@ -129,11 +153,14 @@ export class ModalBox extends EmbedElement {
         errorMessage: this.dataset.errorMessage,
       });
       this.getErrorElement().innerText = errorString;
-      this.hideIframe();
+      this.collapseIframe();
     } else if (newValue === "prerendering") {
       // We do a close here because we don't want the loaders to show up when the modal is prerendering
       // As per HTML, both skeleton/loader are configured to be shown by default, so we need to hide them and infact we don't want to show up anything unexpected so we completely hide the customElement itself
       this.explicitClose();
+    } else if (newValue === "reopened") {
+      // Show in whatever state it is
+      this.open();
     }
   }
 

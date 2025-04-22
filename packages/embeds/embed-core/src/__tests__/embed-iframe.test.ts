@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { embedStore } from "../embed-iframe";
+import { embedStore, getEmbedBookerState } from "../embed-iframe";
 
 // Test helper functions
 type fakeCurrentDocumentUrlParams = {
@@ -75,7 +75,7 @@ describe("embedStore.router.ensureQueryParamsInUrl", () => {
     fakeCurrentDocumentUrl();
 
     // Execute
-    const cleanup = embedStore.router.ensureQueryParamsInUrl({
+    const { stopEnsuringQueryParamsInUrl } = embedStore.router.ensureQueryParamsInUrl({
       toBeThereSearchParams: createSearchParams({
         theme: "dark",
         layout: "month",
@@ -88,7 +88,7 @@ describe("embedStore.router.ensureQueryParamsInUrl", () => {
     expect(document.URL).toContain("layout=month");
 
     // Cleanup
-    cleanup();
+    stopEnsuringQueryParamsInUrl();
   });
 
   it("should remove specified parameters from URL", async () => {
@@ -96,7 +96,7 @@ describe("embedStore.router.ensureQueryParamsInUrl", () => {
     fakeCurrentDocumentUrl({ params: { remove: "true", keep: "yes" } });
 
     // Execute
-    const cleanup = embedStore.router.ensureQueryParamsInUrl({
+    const { stopEnsuringQueryParamsInUrl } = embedStore.router.ensureQueryParamsInUrl({
       toBeThereSearchParams: new URLSearchParams(),
       toRemoveParams: ["remove"],
     });
@@ -106,7 +106,7 @@ describe("embedStore.router.ensureQueryParamsInUrl", () => {
     expect(document.URL).toContain("keep=yes");
 
     // Cleanup
-    cleanup();
+    stopEnsuringQueryParamsInUrl();
   });
 
   it("should not call pushState if no changes needed", async () => {
@@ -114,23 +114,23 @@ describe("embedStore.router.ensureQueryParamsInUrl", () => {
     fakeCurrentDocumentUrl({ params: { theme: "dark" } });
 
     // Execute
-    const cleanup = embedStore.router.ensureQueryParamsInUrl({
+    const { stopEnsuringQueryParamsInUrl } = embedStore.router.ensureQueryParamsInUrl({
       toBeThereSearchParams: createSearchParams({ theme: "dark" }),
       toRemoveParams: [],
     });
 
     // Cleanup
-    cleanup();
+    stopEnsuringQueryParamsInUrl();
   });
 
   it("should handle empty parameters", async () => {
     fakeCurrentDocumentUrl();
-    const cleanup = embedStore.router.ensureQueryParamsInUrl({
+    const { stopEnsuringQueryParamsInUrl } = embedStore.router.ensureQueryParamsInUrl({
       toBeThereSearchParams: new URLSearchParams(),
       toRemoveParams: [],
     });
     await nextTick();
-    cleanup();
+    stopEnsuringQueryParamsInUrl();
   });
 
   it("should restore parameters if they are changed before cleanup", async () => {
@@ -138,7 +138,7 @@ describe("embedStore.router.ensureQueryParamsInUrl", () => {
     fakeCurrentDocumentUrl();
 
     // Execute
-    const cleanup = embedStore.router.ensureQueryParamsInUrl({
+    const { stopEnsuringQueryParamsInUrl } = embedStore.router.ensureQueryParamsInUrl({
       toBeThereSearchParams: createSearchParams({ theme: "dark" }),
       toRemoveParams: [],
     });
@@ -154,9 +154,89 @@ describe("embedStore.router.ensureQueryParamsInUrl", () => {
     expect(document.URL).toContain("theme=dark");
 
     // After cleanup, changes should not be restored
-    cleanup();
+    stopEnsuringQueryParamsInUrl();
     fakeCurrentDocumentUrl({ params: { theme: "light" } });
     await nextTick();
     expect(document.URL).toContain("theme=light");
+  });
+});
+
+describe.only("getEmbedBookerState", () => {
+  it("should return 'initializing' when bookerState is 'loading'", () => {
+    const result = getEmbedBookerState({
+      bookerState: "loading",
+      slotsQuery: {
+        isLoading: false,
+        isPending: false,
+        isSuccess: false,
+        isError: false,
+      },
+    });
+    expect(result).toBe("initializing");
+  });
+
+  it("should return 'slotsLoading' when slotsQuery.isLoading is true", () => {
+    const result = getEmbedBookerState({
+      bookerState: "selecting_date",
+      slotsQuery: {
+        isLoading: true,
+        isPending: false,
+        isSuccess: false,
+        isError: false,
+      },
+    });
+    expect(result).toBe("slotsLoading");
+  });
+
+  it("should return 'slotsLoaded' when slotsQuery.isPending is true but not loading", () => {
+    const result = getEmbedBookerState({
+      bookerState: "selecting_date",
+      slotsQuery: {
+        isLoading: false,
+        isPending: true,
+        isSuccess: false,
+        isError: false,
+      },
+    });
+    expect(result).toBe("slotsLoaded");
+  });
+
+  it("should return 'slotsLoaded' when slotsQuery.isSuccess is true", () => {
+    const result = getEmbedBookerState({
+      bookerState: "selecting_date",
+      slotsQuery: {
+        isLoading: false,
+        isPending: false,
+        isSuccess: true,
+        isError: false,
+      },
+    });
+    expect(result).toBe("slotsLoaded");
+  });
+
+  it("should return 'slotsLoadingError' when slotsQuery.isError is true", () => {
+    const result = getEmbedBookerState({
+      bookerState: "selecting_date",
+      slotsQuery: {
+        isLoading: false,
+        isPending: false,
+        isSuccess: false,
+        isError: true,
+      },
+    });
+    expect(result).toBe("slotsLoadingError");
+  });
+
+  it("should return 'slotsPending' when no other conditions are met", () => {
+    const result = getEmbedBookerState({
+      bookerState: "selecting_date",
+      slotsQuery: {
+        isLoading: false,
+        isPending: false,
+        isSuccess: false,
+        isError: false,
+      },
+    });
+    expect(result).toBe("slotsPending");
   });
 });

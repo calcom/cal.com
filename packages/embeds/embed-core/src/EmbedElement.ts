@@ -119,9 +119,9 @@ export class EmbedElement extends HTMLElement {
   }
 
   public toggleLoader(show: boolean) {
-    if (this.getAttribute("state") === "prerendering") {
-      return;
-    }
+    // if (this.getAttribute("state") === "prerendering") {
+    //   return;
+    // }
     const skeletonEl = this.getSkeletonElement();
 
     const loaderEl = this.getLoaderElement();

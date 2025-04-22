@@ -676,9 +676,10 @@ if (only === "all" || only === "ns:routingFormPrerender") {
   });
 
   Cal.ns.routingFormPrerender("prerender", {
-    calLink: "team1/team1-event-1?cal.skipGetSchedule=true",
+    calLink: "team1/team1-event-1",
     type: "modal",
     pageType: "team.event.booking.slots",
+    toBeUsedByRouter: true,
   });
 
   Cal.ns.routingFormPrerender("on", {

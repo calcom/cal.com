@@ -1,5 +1,7 @@
 import { useSearchParams } from "next/navigation";
 
+import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
+import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS } from "@calcom/lib/constants";
@@ -23,18 +25,6 @@ export type UseScheduleWithCacheArgs = {
   teamMemberEmail?: string | null;
 };
 
-function updateEmbedBookerState({ isGetSchedulePending }: { isGetSchedulePending: boolean }) {
-  // Ensure that only after the bookerState is reflected, we update the embedIsBookerReady
-  if (typeof window !== "undefined") {
-    const _window = window as Window & {
-      _embedBookerState?: "initializing" | "slotsLoading" | "slotsLoaded";
-    };
-    if (!isGetSchedulePending) {
-      _window._embedBookerState = "slotsLoaded";
-    }
-  }
-}
-
 export const useSchedule = ({
   month,
   timezone,
@@ -51,6 +41,8 @@ export const useSchedule = ({
   orgSlug,
   teamMemberEmail,
 }: UseScheduleWithCacheArgs) => {
+  const bookerState = useBookerStore((state) => state.state);
+
   const [startTime, endTime] = useTimesForSchedule({
     month,
     monthCount,
@@ -126,7 +118,10 @@ export const useSchedule = ({
     schedule = trpc.viewer.slots.getSchedule.useQuery(input, options);
   }
 
-  updateEmbedBookerState({ isGetSchedulePending: schedule.isPending });
+  updateEmbedBookerState({
+    bookerState,
+    slotsQuery: schedule,
+  });
 
   return {
     ...schedule,

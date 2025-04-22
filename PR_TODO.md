@@ -10,3 +10,11 @@
 
   To Test
   - [ ] Modal CTA is clicked again, before waiting for embed link to be ready . I think it just removes the skeleton showing what is there. This is wrog
+
+
+  Unit Test
+  - [ ] Ensure that modalBox when prerendering never shows up.
+
+
+  FOllowup
+  - A 404 pag elike http://acme.cal.remote:3000/team1/team1-dvent-1 doesn't correctly set CalcomPageStatus to 404. Infact it serems that notFoundClient.tsx is not being rendered. Thus, iframe isn't able to correctly fire linkFailed event and thus, the modal box(on clicked again) doesn't retry on 404 error.

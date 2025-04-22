@@ -69,4 +69,18 @@ export type KnownConfig = {
   "cal.embed.pageType"?: EmbedPageType;
 };
 
+export type EmbedBookerState =
+  | "initializing"
+  | "slotsPending"
+  | "slotsLoading"
+  | "slotsLoaded"
+  | "slotsLoadingError";
+
+export type SlotsStatus = "loading" | "success" | "error" | "unchanged";
+export type SlotsQuery = {
+  isPending?: boolean;
+  isError?: boolean;
+  isSuccess?: boolean;
+  isLoading?: boolean;
+};
 export {};

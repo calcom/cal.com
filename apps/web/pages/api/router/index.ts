@@ -18,7 +18,7 @@ export default defaultHandler({
       res.setHeader("Access-Control-Allow-Origin", "*");
       const routedUrlData = await getRoutedUrl({ req, query: { ...payload } });
       if (routedUrlData?.notFound) {
-        return res.status(404).json({ error: "Form not found" });
+        return res.status(404).json({ status: "error", data: { message: "Form not found" } });
       }
 
       if (routedUrlData?.redirect?.destination) {

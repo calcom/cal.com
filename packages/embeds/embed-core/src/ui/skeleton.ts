@@ -43,7 +43,7 @@ const generateDatePickerSkeleton = () => {
       () => `
       <div class="text-emphasis my-4 text-xs font-medium uppercase tracking-widest">
         <div class="animate-pulse bg-emphasis h-4 w-8 rounded-sm"></div>
-      </div>
+      </div> 
     `
     )
     .join("");

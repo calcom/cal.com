@@ -140,3 +140,9 @@ export async function submitResponseAndGetRoutingResult({
     return { error: result.data.message } as { error: string };
   }
 }
+
+export function isSameBookingLink(bookingLinkPath1: string, bookingLinkPath2: string) {
+  // Headless router redirects to /team/event-booking-url at the moment. In future it might fix it to /event-booking-url
+  // So, stripe /team from both the URLs if present so that they can be compared easily
+  return bookingLinkPath1.replace(/^\/team\//, "/") === bookingLinkPath2.replace(/^\/team\//, "/");
+}

@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 
+// eslint-disable-next-line no-restricted-imports
+import type { BookerState } from "@calcom/features/bookings/Booker/types";
+
 import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
 import type {
@@ -11,8 +14,19 @@ import type {
   BookerLayouts,
   EmbedStyles,
   KnownConfig,
+  EmbedBookerState,
+  SlotsQuery,
 } from "./types";
 import { useCompatSearchParams } from "./useCompatSearchParams";
+
+const eventsAllowedInPrerendering = [
+  // so that Postmessage communication starts
+  "__iframeReady",
+  // so that iframe height is adjusted according to the content, and iframe is ready to be shown when needed
+  "__dimensionChanged",
+
+  // For other events, we should consider introducing prerender specific events and not reuse existing events
+];
 
 type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
 type setNonStylesConfig = React.Dispatch<React.SetStateAction<EmbedNonStylesConfig>>;
@@ -39,7 +53,7 @@ declare global {
       applyCssVars: (cssVarsPerTheme: UiConfig["cssVarsPerTheme"]) => void;
     };
     // Marks that Booker has moved to some non-"loading" state
-    _embedBookerState?: "initializing" | "slotsLoading" | "slotsLoaded";
+    _embedBookerState?: EmbedBookerState;
   }
 }
 
@@ -47,6 +61,11 @@ declare global {
  * This is in-memory persistence needed so that when user browses through the embed, the configurations from the instructions aren't lost.
  */
 export const embedStore = {
+  /**
+   * Tracks whether the prerender has been completed or not.
+   * prerenderState would be "completed" even after the iframe was switched from isPrerendering to notPrerendering(which happensafter connect)
+   */
+  prerenderState: null as null | "inProgress" | "completed",
   // Handles the commands of routing received from parent even when React hasn't initialized and nextRouter isn't available
   router: {
     /**
@@ -64,13 +83,14 @@ export const embedStore = {
       let stopUpdating = false;
       function updateIfNeeded() {
         if (stopUpdating) {
-          return;
+          return { hasChanged: false };
         }
         const url = new URL(document.URL);
         let hasChanged = false;
+        const entries = Array.from(toBeThereSearchParams.entries());
 
         // Ensuring toBeThereSearchParams
-        for (const [key, value] of toBeThereSearchParams.entries()) {
+        for (const [key, value] of entries) {
           if (url.searchParams.get(key) !== value) {
             url.searchParams.set(key, value);
             hasChanged = true;
@@ -90,10 +110,16 @@ export const embedStore = {
           window.history.replaceState({}, "", url.toString());
         }
         requestAnimationFrame(updateIfNeeded);
+        return {
+          hasChanged,
+        };
       }
-      updateIfNeeded();
-      return () => {
-        stopUpdating = true;
+      const { hasChanged } = updateIfNeeded();
+      return {
+        stopEnsuringQueryParamsInUrl: () => {
+          stopUpdating = true;
+        },
+        hasChanged,
       };
     },
   },
@@ -383,14 +409,35 @@ export const useEmbedType = () => {
   return state;
 };
 
-function unhideBody() {
+function makeBodyVisible() {
   if (document.body.style.visibility !== "visible") {
     document.body.style.visibility = "visible";
   }
   // Ensure that it stays visible and not reverted by React
   runAsap(() => {
-    unhideBody();
+    makeBodyVisible();
   });
+}
+
+/**
+ * On an embed page, there are two changes done
+ * - Body is made invisible
+ * - Background is set to transparent
+ *
+ * This function reverses both of them
+ */
+function showPageAsNonEmbed() {
+  makeBodyVisible();
+  resetTransparentBackground();
+  function resetTransparentBackground() {
+    if (document.body.style.background === "transparent") {
+      document.body.style.background = "";
+    }
+    // Ensure that it stays and not reverted by React
+    runAsap(() => {
+      resetTransparentBackground();
+    });
+  }
 }
 
 // It is a map of methods that can be called by parent using doInIframe({method: "methodName", arg: "argument"})
@@ -443,30 +490,49 @@ const methods = {
   parentKnowsIframeReady: (_unused: unknown) => {
     log("Method: `parentKnowsIframeReady` called");
 
-    runAsap(function tryInformingLinkReady() {
+    runAsap(function tryIfLinkIsReady() {
       if (!isLinkReady()) {
-        runAsap(tryInformingLinkReady);
+        runAsap(tryIfLinkIsReady);
         return;
       }
 
       // No UI change should happen in sight. Let the parent height adjust and in next cycle show it.
-      unhideBody();
-      if (!isPrerendering()) {
-        sdkActionManager?.fire("linkReady", {});
+      // Embed background must still remain transparent
+      makeBodyVisible();
+      if (isPrerendering()) {
+        embedStore.prerenderState = "completed";
       }
+      sdkActionManager?.fire("linkReady", {});
     });
   },
+  /**
+   * Connects new config to prerendered page
+   */
   connect: function connect(queryObject: PrefillAndIframeAttrsConfig) {
-    log("Method: connect, connected already loaded iframe and updated with query params", queryObject);
+    log("Method: connect, requested with params", queryObject);
     const toBeThereSearchParams = new URLSearchParams();
     // TODO: Do we need to handle duplicate params here?
     for (const [key, value] of Object.entries(queryObject)) {
       toBeThereSearchParams.set(key, value as string);
     }
 
-    connectPreloadedEmbed({
-      toBeThereSearchParams,
-      toRemoveParams: ["preload", "cal.skipGetSchedule"],
+    if (!embedStore.prerenderState) {
+      log("Method: connect, prerenderState is not inProgress. Skipping");
+      // Connect is for prerendered page. So, we expect it to be atleast inProgress state
+      return;
+    }
+
+    runAsap(function tryToConnect() {
+      if (embedStore.prerenderState !== "completed") {
+        runAsap(tryToConnect);
+        return;
+      }
+
+      log("Method: connect, prerenderState is completed. Connecting");
+      connectPreloadedEmbed({
+        toBeThereSearchParams,
+        toRemoveParams: ["preload", "prerender", "cal.skipGetSchedule"],
+      });
     });
   },
 };
@@ -586,7 +652,7 @@ function main() {
   actOnColorScheme(embedStore.uiConfig.colorScheme);
   // If embed link is opened in top, and not in iframe. Let the page be visible.
   if (top === window) {
-    unhideBody();
+    showPageAsNonEmbed();
     // We would want to avoid a situation where Cal.com embeds cal.com and then embed-iframe is in the top as well. In such case, we would want to avoid infinite loop of events being passed.
     log("Embed SDK Skipped as we are in top");
     return;
@@ -618,6 +684,9 @@ function main() {
   });
 
   sdkActionManager?.on("*", (e) => {
+    if (isPrerendering() && !eventsAllowedInPrerendering.includes(e.detail.type)) {
+      return;
+    }
     const detail = e.detail;
     log(detail);
     messageParent(detail);
@@ -634,6 +703,10 @@ function initializeAndSetupEmbed() {
   sdkActionManager?.fire("__iframeReady", {
     isPrerendering: isPrerendering(),
   });
+
+  if (isPrerendering()) {
+    embedStore.prerenderState = "inProgress";
+  }
 
   // Only NOT_INITIALIZED -> INITIALIZED transition is allowed
   if (embedStore.state !== EMBED_IFRAME_STATE.NOT_INITIALIZED) {
@@ -681,14 +754,26 @@ function connectPreloadedEmbed({
   toBeThereSearchParams: URLSearchParams;
   toRemoveParams: string[];
 }) {
-  const stopEnsuringQueryParamsInUrl = embedStore.router.ensureQueryParamsInUrl({
+  const { hasChanged, stopEnsuringQueryParamsInUrl } = embedStore.router.ensureQueryParamsInUrl({
     toBeThereSearchParams,
     toRemoveParams,
   });
+
+  let waitForFrames = 0;
+
+  if (isBookerReady() && hasChanged) {
+    // Give some time for react to update state that might lead booker to go to slotsLoading state
+    waitForFrames = 5;
+  }
+
+  // Booker might alreadyu be in slotsLoaded state. But we don't know if new getTeamSchedule request would intitiate or not. It would initiate when React updates the state but it might not go depending on if there is no actual state change in useSchedule components
+  // But we can know if cal.routedTeamMemberIds is changed. If it is changed, then we reset slotsLoaded -> slotsLoading.
+
   // Firing this event would stop the loader and show the embed
   // This causes loader to go away later.
   runAsap(function tryToFireLinkReady() {
-    if (!isLinkReady()) {
+    if (!isLinkReady() || waitForFrames > 0) {
+      waitForFrames--;
       runAsap(tryToFireLinkReady);
       return;
     }
@@ -702,5 +787,56 @@ function connectPreloadedEmbed({
 const isPrerendering = () => {
   return new URL(document.URL).searchParams.get("prerender") === "true";
 };
+
+export function getEmbedBookerState({
+  bookerState,
+  slotsQuery,
+}: {
+  bookerState: BookerState;
+  slotsQuery: SlotsQuery;
+}): EmbedBookerState {
+  if (bookerState === "loading") {
+    return "initializing";
+  }
+
+  if (slotsQuery.isLoading) {
+    return "slotsLoading";
+  }
+
+  // Pending but not loading, it means that request is intentionally disabled via enabled:false in useQuery
+  if (slotsQuery.isPending) {
+    return "slotsLoaded";
+  }
+
+  if (slotsQuery.isSuccess) {
+    return "slotsLoaded";
+  }
+
+  if (slotsQuery.isError) {
+    return "slotsLoadingError";
+  }
+
+  return "slotsPending";
+}
+
+export function updateEmbedBookerState({
+  bookerState,
+  slotsQuery,
+}: {
+  bookerState: BookerState;
+  slotsQuery: SlotsQuery;
+}) {
+  // Ensure that only after the bookerState is reflected, we update the embedIsBookerReady
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const _window = window as Window & {
+    _embedBookerState?: EmbedBookerState;
+  };
+
+  const embedBookerState = getEmbedBookerState({ bookerState, slotsQuery });
+  _window._embedBookerState = embedBookerState;
+}
 
 main();

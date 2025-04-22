@@ -13,6 +13,10 @@
       if (!location.search.includes("nonResponsive")) {
         document.write('<meta name="viewport" content="width=device-width"/>');
       }
+
+      if (!location.search.includes("only")) {
+        location.href="?only=ns:routingFormPrerender"
+      }
   
     </script>
     <script>
@@ -84,14 +88,15 @@
         <input type="text" name="name" placeholder="John Doe" />
         <input type="email" name="email" placeholder="john@example.com" />
       </form>
-      <button id="cal-booking-place-routingFormPrerender-submit" data-cal-namespace="routingFormPrerender" data-cal-preload="team1/team1-event-1" data-cal-origin="http://acme.cal.remote:3000"  data-cal-config='{"cal.embed.pageType":"team.event.booking.slots"}'>Submit</button>
+      <button id="cal-booking-place-routingFormPrerender-submit" data-cal-namespace="routingFormPrerender" data-cal-origin="http://acme.cal.remote:3000"  data-cal-config='{"cal.embed.pageType":"team.event.booking.slots"}'>Submit</button>
       <script>
         requestAnimationFrame(function updateSubmitButtonLink() {
           const form = document.getElementById("cal-booking-place-routingFormPrerender-form");
           const name = form.querySelector("input[name='name']").value;
           const email = form.querySelector("input[name='email']").value;
           if (name && email) {
-            document.getElementById("cal-booking-place-routingFormPrerender-submit").setAttribute("data-cal-link", `router?form=48994044-62dc-474c-8ad4-ce239c67f889&email=${email}&name=${name}`);
+            document.getElementById("cal-booking-place-routingFormPrerender-submit").setAttribute("data-cal-link", `router?form=ead288e0-87c2-44ae-8afa-d0af3f274851&email=${email}&name=${name}`);
+            // document.getElementById("cal-booking-place-routingFormPrerender-submit").setAttribute("data-cal-link", `team1/team1-devent-1`);
           }
           requestAnimationFrame(updateSubmitButtonLink);
         });
