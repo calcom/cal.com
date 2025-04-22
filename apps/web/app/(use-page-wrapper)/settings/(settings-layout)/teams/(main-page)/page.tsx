@@ -13,9 +13,9 @@ export const generateMetadata = async () =>
     "/settings/teams"
   );
 
-const Page = async ({ params, searchParams }: PageProps) => {
+const Page = async ({ searchParams }: PageProps) => {
   const t = await getTranslate();
-  const { Main } = await ServerTeamsListing({ params, searchParams });
+  const { Main } = await ServerTeamsListing({ searchParams: await searchParams });
 
   return (
     <SettingsHeader title={t("teams")} description={t("create_manage_teams_collaborative")}>

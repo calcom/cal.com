@@ -1,7 +1,7 @@
 import { createRouterCaller } from "app/_trpc/context";
-import type { PageProps } from "app/_types";
+import type { SearchParams } from "app/_types";
 
-import { TeamsListing } from "@calcom/features/ee/teams/components";
+import { TeamsListing } from "@calcom/features/ee/teams/components/TeamsListing";
 import { CreationSource } from "@calcom/prisma/enums";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
@@ -10,8 +10,7 @@ import { TRPCError } from "@trpc/server";
 
 import { TeamsCTA } from "./CTA";
 
-export const ServerTeamsListing = async ({ searchParams: _searchParams }: PageProps) => {
-  const searchParams = await _searchParams;
+export const ServerTeamsListing = async ({ searchParams }: { searchParams: SearchParams }) => {
   const token = Array.isArray(searchParams?.token) ? searchParams.token[0] : searchParams?.token;
 
   const [teamsCaller, meCaller] = await Promise.all([

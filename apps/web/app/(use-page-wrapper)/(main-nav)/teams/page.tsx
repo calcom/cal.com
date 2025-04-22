@@ -19,7 +19,7 @@ export const generateMetadata = async () =>
     "/teams"
   );
 
-const ServerPage = async ({ params, searchParams: _searchParams }: ServerPageProps) => {
+const ServerPage = async ({ searchParams: _searchParams }: ServerPageProps) => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const searchParams = await _searchParams;
   const token = Array.isArray(searchParams?.token) ? searchParams.token[0] : searchParams?.token;
@@ -30,7 +30,7 @@ const ServerPage = async ({ params, searchParams: _searchParams }: ServerPagePro
   }
 
   const t = await getTranslate();
-  const { Main, CTA } = await ServerTeamsListing({ params, searchParams: _searchParams });
+  const { Main, CTA } = await ServerTeamsListing({ searchParams });
 
   return (
     <ShellMainAppDir CTA={CTA} heading={t("teams")} subtitle={t("create_manage_teams_collaborative")}>
