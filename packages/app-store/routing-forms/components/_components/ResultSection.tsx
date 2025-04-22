@@ -172,7 +172,7 @@ export const ResultsView = ({
             <div className="border-subtle rounded-lg border p-1">
               <Icon name="calendar" className="h-4 w-4" />
             </div>
-            <span className="text-default">{chosenRoute.action.value}</span>
+            <span className="text-emphasis text-sm font-medium leading-none">{chosenRoute.action.value}</span>
           </div>
         </ResultsSection>
       )}
@@ -180,21 +180,41 @@ export const ResultsView = ({
       {supportsTeamMembersMatchingLogic && membersMatchResult && (
         <>
           <ResultsSection title="Matching" icon="atom">
-            <div className="space-y-3">
+            <div className="relative flex flex-col gap-3">
+              {/* Seperator */}
+              <div className="absolute bottom-3 left-[0.75rem] top-3 w-[1px] bg-gray-200" />
+
               <div className="flex items-center justify-between">
-                <span className="text-default">Attribute logic matched</span>
+                <div className="flex items-center gap-1">
+                  <div className="border-subtle z-10 rounded-lg border bg-white p-1">
+                    <Icon name="activity" className="h-4 w-4" />
+                  </div>
+                  <span className="text-emphasis text-sm font-medium leading-none">
+                    Attribute logic matched
+                  </span>
+                </div>
                 <Badge variant={membersMatchResult.checkedFallback ? "error" : "success"}>
                   {membersMatchResult.checkedFallback ? "No" : "Yes"}
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-default">Attribute fallback</span>
+                <div className="flex items-center gap-1">
+                  <div className="border-subtle z-10 rotate-180 rounded-lg border bg-white p-1">
+                    <Icon name="split" className="h-4 w-4" />
+                  </div>
+                  <span className="text-emphasis text-sm font-medium leading-none">Attribute fallback</span>
+                </div>
                 <Badge variant={membersMatchResult.checkedFallback ? "success" : "gray"}>
                   {membersMatchResult.checkedFallback ? "Yes" : "Not needed"}
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-default">Contact owner</span>
+                <div className="flex items-center gap-1">
+                  <div className="border-subtle z-10 rounded-lg border bg-white p-1">
+                    <Icon name="user" className="h-4 w-4" />
+                  </div>
+                  <span className="text-emphasis text-sm font-medium leading-none">Contact owner</span>
+                </div>
                 <Badge variant={membersMatchResult.contactOwnerEmail ? "success" : "gray"}>
                   {membersMatchResult.contactOwnerEmail || "Not found"}
                 </Badge>

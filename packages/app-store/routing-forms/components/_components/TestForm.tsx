@@ -8,7 +8,6 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import type { Brand } from "@calcom/types/utils";
-import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogHeader, DialogFooter } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
@@ -16,7 +15,6 @@ import { showToast } from "@calcom/ui/components/toast";
 import { TRPCClientError } from "@trpc/react-query";
 
 import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
-import { RoutingPages } from "../../lib/RoutingPages";
 import { findMatchingRoute } from "../../lib/processRoute";
 import type { SingleFormComponentProps } from "../../types/shared";
 import type { RoutingForm, FormResponse, NonRouterRoute } from "../../types/types";
@@ -170,81 +168,6 @@ export const TestForm = ({
         }
       },
     });
-
-  const renderTestResult = (showAllData: boolean) => {
-    if (!form.routes || !chosenRoute) return null;
-
-    const chosenRouteIndex = form.routes.findIndex((route) => route.id === chosenRoute.id);
-
-    const chosenRouteName = () => {
-      if (chosenRoute.isFallback) {
-        return t("fallback_route");
-      }
-      return `Route ${chosenRouteIndex + 1}`;
-    };
-
-    if (!showAllData) {
-      if (
-        chosenRoute.action.type !== "customPageMessage" &&
-        chosenRoute.action.type !== "externalRedirectUrl"
-      ) {
-        return null;
-      }
-      return <div className="mt-4">{t("no_active_queues")}</div>;
-    }
-
-    return (
-      <div className="bg-subtle text-default mt-5 rounded-md p-3">
-        <div className="font-bold ">{t("route_to")}:</div>
-        <div className="mt-2">
-          {RoutingPages.map((page) => {
-            if (page.value !== chosenRoute.action.type) return null;
-            return (
-              <span key={page.value} data-testid="test-routing-result-type">
-                {page.label}
-              </span>
-            );
-          })}
-          :{" "}
-          {chosenRoute.action.type === "customPageMessage" ? (
-            <span className="text-default" data-testid="test-routing-result">
-              {chosenRoute.action.value}
-            </span>
-          ) : chosenRoute.action.type === "externalRedirectUrl" ? (
-            <span className="text-default underline">
-              <a
-                target="_blank"
-                data-testid="test-routing-result"
-                href={
-                  chosenRoute.action.value.includes("https://") ||
-                  chosenRoute.action.value.includes("http://")
-                    ? chosenRoute.action.value
-                    : `http://${chosenRoute.action.value}`
-                }
-                rel="noreferrer">
-                {chosenRoute.action.value}
-              </a>
-            </span>
-          ) : (
-            <div className="flex flex-col space-y-2">
-              <span className="text-default underline">
-                <a
-                  target="_blank"
-                  className={classNames(
-                    findTeamMembersMatchingAttributeLogicMutation.isPending && "pointer-events-none"
-                  )}
-                  href={membersMatchResult?.eventTypeRedirectUrl ?? eventTypeUrlWithoutParams}
-                  rel="noreferrer"
-                  data-testid="test-routing-result">
-                  {chosenRoute.action.value}
-                </a>
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div>
