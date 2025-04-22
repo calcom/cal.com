@@ -13,11 +13,55 @@ import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule"
 import type { TravelScheduleRepository } from "@calcom/lib/server/repository/travelSchedule";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import { SkeletonText, SkeletonContainer, SkeletonButton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
 type PageProps = {
   scheduleFetched?: Awaited<ReturnType<typeof ScheduleRepository.findDetailedScheduleById>>;
   travelSchedules?: Awaited<ReturnType<typeof TravelScheduleRepository.findTravelSchedulesByUserId>>;
+};
+
+const AvailabilitySettingsSkeleton = () => {
+  const { t } = useLocale();
+
+  return (
+    <SkeletonContainer>
+      <div className="mb-4">
+        <SkeletonText className="h-8 w-48" />
+        <div className="mt-2">
+          <SkeletonText className="h-4 w-32" />
+          <SkeletonText className="mt-1 h-4 w-40" />
+        </div>
+      </div>
+
+      <div className="mb-4 flex justify-end gap-2">
+        <SkeletonButton className="h-9 w-20 rounded-md" />
+        <SkeletonButton className="h-9 w-20 rounded-md" />
+      </div>
+
+      <div className="flex flex-col sm:mx-0 xl:flex-row xl:space-x-6">
+        <div className="flex-1 flex-row xl:mr-0">
+          <div className="border-subtle mb-6 rounded-md border p-6">
+            {/* Schedule skeleton */}
+            {Array(7)
+              .fill(0)
+              .map((_, i) => (
+                <div key={i} className="mb-4 flex">
+                  <SkeletonText className="mr-4 h-6 w-28" />
+                  <SkeletonText className="h-6 w-full" />
+                </div>
+              ))}
+          </div>
+        </div>
+        <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1">
+          <div className="w-full pr-4 sm:ml-0 sm:p-0">
+            <SkeletonText className="mb-2 h-4 w-24" />
+            <SkeletonText className="h-10 w-64 rounded-md" />
+          </div>
+        </div>
+      </div>
+    </SkeletonContainer>
+  );
 };
 
 export const AvailabilitySettingsWebWrapper = ({
@@ -115,8 +159,7 @@ export const AvailabilitySettingsWebWrapper = ({
     },
   });
 
-  // TODO: reimplement Skeletons for this page in here
-  if (isPending) return null;
+  if (isPending) return <AvailabilitySettingsSkeleton />;
 
   // We wait for the schedule to be loaded before rendering the form inside AvailabilitySettings
   // since `defaultValues` cannot be redeclared after first render and using `values` will
