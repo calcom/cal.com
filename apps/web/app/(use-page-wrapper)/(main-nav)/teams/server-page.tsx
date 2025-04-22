@@ -49,6 +49,6 @@ export const ServerTeamsListing = async ({ searchParams }: { searchParams: Searc
         errorMsgFromInvite={errorMsgFromInvite}
       />
     ),
-    CTA: <TeamsCTA user={user} />,
+    CTA: !user.organizationId || user.organization.isOrgAdmin ? <TeamsCTA /> : null,
   };
 };
