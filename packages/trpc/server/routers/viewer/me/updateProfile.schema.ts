@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { bookerLayouts, userMetadata } from "@calcom/prisma/zod-utils";
 
 export const updateUserMetadataAllowedKeys = z.object({
@@ -14,7 +15,7 @@ export const ZUpdateProfileInputSchema = z.object({
   email: z.string().optional(),
   bio: z.string().optional(),
   avatarUrl: z.string().nullable().optional(),
-  timeZone: z.string().optional(),
+  timeZone: timeZoneSchema.optional(),
   weekStart: z.string().optional(),
   hideBranding: z.boolean().optional(),
   allowDynamicBooking: z.boolean().optional(),
@@ -33,7 +34,7 @@ export const ZUpdateProfileInputSchema = z.object({
     .array(
       z.object({
         id: z.number().optional(),
-        timeZone: z.string(),
+        timeZone: timeZoneSchema,
         endDate: z.date().optional(),
         startDate: z.date(),
       })

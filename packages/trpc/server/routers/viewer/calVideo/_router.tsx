@@ -8,40 +8,22 @@ type CalVideoRouterHandlerCache = {
   getDownloadLinkOfCalVideoRecordings?: typeof import("./getDownloadLinkOfCalVideoRecordings.handler").getDownloadLinkOfCalVideoRecordingsHandler;
 };
 
-const UNSTABLE_HANDLER_CACHE: CalVideoRouterHandlerCache = {};
-
 export const calVideoRouter = router({
   getCalVideoRecordings: authedProcedure
     .input(ZGetCalVideoRecordingsInputSchema)
     .query(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.getCalVideoRecordings) {
-        UNSTABLE_HANDLER_CACHE.getCalVideoRecordings = (
-          await import("./getCalVideoRecordings.handler")
-        ).getCalVideoRecordingsHandler;
-      }
+      const { getCalVideoRecordingsHandler } = await import("./getCalVideoRecordings.handler");
 
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.getCalVideoRecordings) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.getCalVideoRecordings({ ctx, input });
+      return getCalVideoRecordingsHandler({ ctx, input });
     }),
 
   getDownloadLinkOfCalVideoRecordings: authedProcedure
     .input(ZGetDownloadLinkOfCalVideoRecordingsInputSchema)
     .query(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.getDownloadLinkOfCalVideoRecordings) {
-        UNSTABLE_HANDLER_CACHE.getDownloadLinkOfCalVideoRecordings = (
-          await import("./getDownloadLinkOfCalVideoRecordings.handler")
-        ).getDownloadLinkOfCalVideoRecordingsHandler;
-      }
+      const { getDownloadLinkOfCalVideoRecordingsHandler } = await import(
+        "./getDownloadLinkOfCalVideoRecordings.handler"
+      );
 
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.getDownloadLinkOfCalVideoRecordings) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.getDownloadLinkOfCalVideoRecordings({ ctx, input });
+      return getDownloadLinkOfCalVideoRecordingsHandler({ ctx, input });
     }),
 });

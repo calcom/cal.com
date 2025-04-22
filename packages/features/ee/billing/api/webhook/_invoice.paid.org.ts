@@ -49,14 +49,13 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
   );
 
   if (!organizationOnboarding) {
-    logger.error(
-      `NonRecoverableError: No onboarding record found for stripe customer id: ${invoice.customer}.`
+    // Invoice Paid is received for all organizations, even those that were created before Organization Onboarding was introduced.
+    logger.info(
+      `No onboarding record found for stripe customer id: ${invoice.customer}, Organization created before Organization Onboarding was introduced, so ignoring the webhook`
     );
 
-    // Don't throw as we don't want to retry.
     return {
-      success: false,
-      error: `No onboarding record found for stripe customer id: ${invoice.customer}.`,
+      success: true,
     };
   }
 
@@ -70,6 +69,15 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
   });
 
   try {
+    logger.info(
+      safeStringify({
+        orgId: organizationOnboarding.organizationId,
+        orgSlug: organizationOnboarding.slug,
+        isDomainConfigured: organizationOnboarding.isDomainConfigured,
+        createdAt: organizationOnboarding.createdAt,
+        stripeSubscriptionId: organizationOnboarding.stripeSubscriptionId,
+      })
+    );
     const { organization } = await createOrganizationFromOnboarding({
       organizationOnboarding,
       paymentSubscriptionId,
