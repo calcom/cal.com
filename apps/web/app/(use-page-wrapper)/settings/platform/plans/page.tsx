@@ -1,10 +1,11 @@
-import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-import { getServerSideProps } from "@lib/settings/platform/plans/getServerSideProps";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import PlatformPlansView from "~/settings/platform/plans/platform-plans-view";
 
@@ -18,10 +19,14 @@ export const generateMetadata = async () => {
   );
 };
 
-const getData = withAppDirSsr(getServerSideProps);
+const ServerPageWrapper = async () => {
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const callbackUrl = `${WEBAPP_URL}/settings/platform/plans`;
 
-const ServerPageWrapper = async ({ params, searchParams }: PageProps) => {
-  await getData(buildLegacyCtx(await headers(), await cookies(), await params, await searchParams));
+  if (!session?.user) {
+    redirect(`/login?callbackUrl=${callbackUrl}`);
+  }
+
   return <PlatformPlansView />;
 };
 
