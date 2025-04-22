@@ -170,8 +170,12 @@ export class UserRepository {
             in: usernameList,
           },
           isPlatformManaged: false,
-          organization: {
-            isPlatform: true,
+          profiles: {
+            some: {
+              organization: {
+                isPlatform: true,
+              },
+            },
           },
         },
       })
