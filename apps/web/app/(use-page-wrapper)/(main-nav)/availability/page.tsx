@@ -35,14 +35,11 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
 
     const me = await meCaller.get();
     const organizationId = me.organization?.id ?? me.profiles[0]?.organizationId;
-
     let currentOrgs = null;
-    let isOrg = false;
-    let canViewTeamAvailability = false;
+    let canViewTeamAvailability = me.isTeamAdminOrOwner;
 
     if (organizationId) {
       currentOrgs = await orgCaller.listCurrent();
-      isOrg = Boolean(currentOrgs);
       const isOrgAdminOrOwner = currentOrgs && checkAdminOrOwner(currentOrgs.user.role);
       const isOrgAndPrivate = currentOrgs?.isOrganization && currentOrgs.isPrivate;
       canViewTeamAvailability = isOrgAdminOrOwner || !isOrgAndPrivate;
@@ -64,7 +61,7 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
           />
         }>
         {isTeamView ? (
-          <AvailabilitySliderTable userTimeFormat={me?.timeFormat ?? null} isOrg={isOrg} />
+          <AvailabilitySliderTable userTimeFormat={me?.timeFormat ?? null} isOrg={!!organizationId} />
         ) : (
           <AvailabilityList availabilities={availabilities ?? { schedules: [] }} me={me} />
         )}
