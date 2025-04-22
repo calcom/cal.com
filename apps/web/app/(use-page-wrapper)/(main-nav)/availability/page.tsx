@@ -57,7 +57,7 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
         {isTeamView ? (
           <AvailabilitySliderTable userTimeFormat={me?.timeFormat ?? null} isOrg={isOrg} />
         ) : (
-          <AvailabilityList availabilities={availabilities!} me={me} />
+          <AvailabilityList availabilities={availabilities ?? { schedules: [] }} me={me} />
         )}
       </ShellMainAppDir>
     );
