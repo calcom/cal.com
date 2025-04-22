@@ -2,10 +2,8 @@ import { createRouterCaller } from "app/_trpc/context";
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { notFound } from "next/navigation";
-import { cache } from "react";
 import { z } from "zod";
 
-import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
 import { travelSchedulesRouter } from "@calcom/trpc/server/routers/viewer/travelSchedules/_router";
 
@@ -20,26 +18,13 @@ const querySchema = z.object({
     .transform((val) => Number(val)),
 });
 
-const getSchedule = cache((id: number) => ScheduleRepository.findScheduleById({ id }));
-
-export const generateMetadata = async ({ params }: PageProps) => {
-  const parsed = querySchema.safeParse(await params);
-  if (!parsed.success) {
-    notFound();
-  }
-
-  const schedule = await getSchedule(parsed.data.schedule);
-
-  if (!schedule) {
-    notFound();
-  }
-
+export const generateMetadata = async () => {
   return await _generateMetadata(
-    (t) => (schedule.name ? `${schedule.name} | ${t("availability")}` : t("availability")),
+    (t) => t("availability"),
     () => "",
     undefined,
     undefined,
-    `/availability/${parsed.data.schedule}`
+    "/availability"
   );
 };
 
