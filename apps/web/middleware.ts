@@ -20,6 +20,7 @@ export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/auth/signup", "/api/trpc/"
 export const POST_METHODS_ALLOWED_APP_ROUTES = [
   "/settings/my-account/general",
   "/settings/developer/webhooks",
+  "/settings/developer/api-keys",
   "/teams",
 ];
 export function checkPostMethod(req: NextRequest) {
@@ -193,6 +194,7 @@ export const config = {
     // Routes allowed for POST method (matching `POST_METHODS_ALLOWED_APP_ROUTES` array)
     "/settings/my-account/general",
     "/settings/developer/webhooks",
+    "/settings/developer/api-keys",
     "/teams",
   ],
 };
