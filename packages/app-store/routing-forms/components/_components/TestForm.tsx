@@ -72,11 +72,13 @@ export const TestForm = ({
   supportsTeamMembersMatchingLogic,
   showAllData = true,
   renderFooter,
+  isDialog = false,
 }: {
   form: UptoDateForm | RoutingForm;
   supportsTeamMembersMatchingLogic: boolean;
   showAllData?: boolean;
   renderFooter?: (onClose: () => void, onSubmit: () => void, isValid: boolean) => React.ReactNode;
+  isDialog?: boolean;
 }) => {
   const { t } = useLocale();
   const [response, setResponse] = useState<FormResponse>({});
@@ -173,27 +175,55 @@ export const TestForm = ({
     <div>
       <AnimatePresence mode="wait">
         {!showResults ? (
-          <FormView
-            form={form}
-            response={response}
-            setResponse={setResponse}
-            areRequiredFieldsFilled={areRequiredFieldsFilled}
-            onClose={onClose}
-            onSubmit={() => {
-              resetMembersMatchResult();
-              testRouting();
-            }}
-            renderFooter={renderFooter}
-          />
+          <>
+            {isDialog ? (
+              <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
+            ) : (
+              <div className="mb-6 flex items-center justify-between">
+                <h3 className="text-emphasis text-xl font-semibold">{t("preview")}</h3>
+                <div>
+                  <Button color="secondary" onClick={onClose} variant="icon" StartIcon="x" size="sm">
+                    <span className="sr-only">{t("close")}</span>
+                  </Button>
+                </div>
+              </div>
+            )}
+            <FormView
+              form={form}
+              response={response}
+              setResponse={setResponse}
+              areRequiredFieldsFilled={areRequiredFieldsFilled}
+              onClose={onClose}
+              onSubmit={() => {
+                resetMembersMatchResult();
+                testRouting();
+              }}
+              renderFooter={renderFooter}
+            />
+          </>
         ) : (
-          <Results
-            onBack={() => setShowResults(false)}
-            chosenRoute={chosenRoute}
-            supportsTeamMembersMatchingLogic={supportsTeamMembersMatchingLogic}
-            membersMatchResult={membersMatchResult}
-            isPending={findTeamMembersMatchingAttributeLogicMutation.isPending}
-            eventTypeUrlWithoutParams={eventTypeUrlWithoutParams}
-          />
+          <>
+            {isDialog ? (
+              <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
+            ) : (
+              <div className="mb-6 flex items-center justify-between">
+                <h3 className="text-emphasis text-xl font-semibold">{t("results")}</h3>
+                <div>
+                  <Button color="secondary" onClick={onClose} variant="icon" StartIcon="x" size="sm">
+                    <span className="sr-only">{t("close")}</span>
+                  </Button>
+                </div>
+              </div>
+            )}
+            <Results
+              onBack={() => setShowResults(false)}
+              chosenRoute={chosenRoute}
+              supportsTeamMembersMatchingLogic={supportsTeamMembersMatchingLogic}
+              membersMatchResult={membersMatchResult}
+              isPending={findTeamMembersMatchingAttributeLogicMutation.isPending}
+              eventTypeUrlWithoutParams={eventTypeUrlWithoutParams}
+            />
+          </>
         )}
       </AnimatePresence>
     </div>
@@ -226,24 +256,22 @@ export const TestFormRenderer = ({
 
   return (
     <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
-      <DialogContent size="md" enableOverflow>
-        <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
-        <div>
-          <TestForm
-            form={testForm}
-            supportsTeamMembersMatchingLogic={isSubTeamForm}
-            renderFooter={(onClose, onSubmit, isValid) => (
-              <DialogFooter>
-                <Button onClick={onClose} color="secondary">
-                  {t("close")}
-                </Button>
-                <Button onClick={onSubmit} disabled={!isValid}>
-                  {t("submit")}
-                </Button>
-              </DialogFooter>
-            )}
-          />
-        </div>
+      <DialogContent size="md">
+        <TestForm
+          isDialog
+          form={testForm}
+          supportsTeamMembersMatchingLogic={isSubTeamForm}
+          renderFooter={(onClose, onSubmit, isValid) => (
+            <DialogFooter>
+              <Button onClick={onClose} color="secondary">
+                {t("close")}
+              </Button>
+              <Button onClick={onSubmit} disabled={!isValid}>
+                {t("submit")}
+              </Button>
+            </DialogFooter>
+          )}
+        />
       </DialogContent>
     </Dialog>
   );

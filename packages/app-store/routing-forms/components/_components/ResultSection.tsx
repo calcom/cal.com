@@ -161,11 +161,6 @@ export const ResultsView = ({
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.2 }}
       className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-emphasis text-lg font-semibold">{t("results")}</h3>
-        <Button color="minimal" size="sm" variant="icon" StartIcon="x" onClick={onBack} />
-      </div>
-
       {chosenRoute.action.type === "eventTypeRedirectUrl" && (
         <ResultsSection title={chosenRoute.name ?? ""} icon="zap">
           <div className="flex items-center gap-2">
