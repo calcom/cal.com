@@ -932,7 +932,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   open={isEmbedCustomizationOpen}
                   onOpenChange={() => setIsEmbedCustomizationOpen((val) => !val)}>
                   <CollapsibleContent className="text-sm">
-                    <div className={classNames(embedType === "inline" ? "block" : "hidden")}>
+                    <div
+                      className={classNames(
+                        embedType === "inline" && !eventTypeHideOptionDisabled ? "block" : "hidden"
+                      )}>
                       {/*TODO: Add Auto/Fixed toggle from Figma */}
                       <div className="text-default mb-[9px] text-sm">Window sizing</div>
                       <div className="justify-left mb-6 flex items-center !font-normal ">
@@ -1105,47 +1108,49 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   onOpenChange={() => setIsBookingCustomizationOpen((val) => !val)}>
                   <CollapsibleContent>
                     <div className="text-sm">
-                      <Label className="mb-6">
-                        <div className="mb-2">EmbedTheme</div>
-                        <Select
-                          className="w-full"
-                          defaultValue={ThemeOptions[0]}
-                          components={{
-                            Control: ThemeSelectControl,
-                            IndicatorSeparator: () => null,
-                          }}
-                          onChange={(option) => {
-                            if (!option) {
-                              return;
-                            }
-                            setPreviewState((previewState) => {
-                              // Ensure layout is updated in config for all embed types
-                              const newConfig = (currentConfig?: EmbedConfig) => ({
-                                ...(currentConfig ?? {}),
-                                layout: option.value,
+                      {!eventTypeHideOptionDisabled && (
+                        <Label className="mb-6">
+                          <div className="mb-2">EmbedTheme</div>
+                          <Select
+                            className="w-full"
+                            defaultValue={ThemeOptions[0]}
+                            components={{
+                              Control: ThemeSelectControl,
+                              IndicatorSeparator: () => null,
+                            }}
+                            onChange={(option) => {
+                              if (!option) {
+                                return;
+                              }
+                              setPreviewState((previewState) => {
+                                // Ensure theme is updated in config for all embed types
+                                const newConfig = (currentConfig?: EmbedConfig) => ({
+                                  ...(currentConfig ?? {}),
+                                  theme: option.value,
+                                });
+                                return {
+                                  ...previewState,
+                                  inline: {
+                                    ...previewState.inline,
+                                    config: newConfig(previewState.inline.config),
+                                  },
+                                  floatingPopup: {
+                                    ...previewState.floatingPopup,
+                                    config: newConfig(previewState.floatingPopup.config),
+                                  },
+                                  elementClick: {
+                                    ...previewState.elementClick,
+                                    config: newConfig(previewState.elementClick.config),
+                                  },
+                                  // Keep updating top-level theme for preview iframe
+                                  theme: option.value,
+                                };
                               });
-                              return {
-                                ...previewState,
-                                inline: {
-                                  ...previewState.inline,
-                                  config: newConfig(previewState.inline.config),
-                                },
-                                floatingPopup: {
-                                  ...previewState.floatingPopup,
-                                  config: newConfig(previewState.floatingPopup.config),
-                                },
-                                elementClick: {
-                                  ...previewState.elementClick,
-                                  config: newConfig(previewState.elementClick.config),
-                                },
-                                // Keep updating top-level layout for preview iframe
-                                layout: option.value,
-                              };
-                            });
-                          }}
-                          options={ThemeOptions}
-                        />
-                      </Label>
+                            }}
+                            options={ThemeOptions}
+                          />
+                        </Label>
+                      )}
                       {!eventTypeHideOptionDisabled ? (
                         <div className="mb-6 flex items-center justify-start space-x-2 rtl:space-x-reverse">
                           <Switch
@@ -1162,31 +1167,32 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           <div className="text-default text-sm">{t("hide_eventtype_details")}</div>
                         </div>
                       ) : null}
-                      {[
-                        { name: "brandColor", title: "light_brand_color" },
-                        { name: "darkBrandColor", title: "dark_brand_color" },
-                        // { name: "lightColor", title: "Light Color" },
-                        // { name: "lighterColor", title: "Lighter Color" },
-                        // { name: "lightestColor", title: "Lightest Color" },
-                        // { name: "highlightColor", title: "Highlight Color" },
-                        // { name: "medianColor", title: "Median Color" },
-                      ].map((palette) => (
-                        <Label key={palette.name} className="mb-6">
-                          <div className="mb-2">{t(palette.title)}</div>
-                          <div className="w-full">
-                            <ColorPicker
-                              popoverAlign="start"
-                              container={dialogContentRef?.current ?? undefined}
-                              defaultValue={paletteDefaultValue(palette.name)}
-                              onChange={(color) => {
-                                addToPalette({
-                                  [palette.name as keyof (typeof previewState)["palette"]]: color,
-                                });
-                              }}
-                            />
-                          </div>
-                        </Label>
-                      ))}
+                      {!eventTypeHideOptionDisabled &&
+                        [
+                          { name: "brandColor", title: "light_brand_color" },
+                          { name: "darkBrandColor", title: "dark_brand_color" },
+                          // { name: "lightColor", title: "Light Color" },
+                          // { name: "lighterColor", title: "Lighter Color" },
+                          // { name: "lightestColor", title: "Lightest Color" },
+                          // { name: "highlightColor", title: "Highlight Color" },
+                          // { name: "medianColor", title: "Median Color" },
+                        ].map((palette) => (
+                          <Label key={palette.name} className="mb-6">
+                            <div className="mb-2">{t(palette.title)}</div>
+                            <div className="w-full">
+                              <ColorPicker
+                                popoverAlign="start"
+                                container={dialogContentRef?.current ?? undefined}
+                                defaultValue={paletteDefaultValue(palette.name)}
+                                onChange={(color) => {
+                                  addToPalette({
+                                    [palette.name as keyof (typeof previewState)["palette"]]: color,
+                                  });
+                                }}
+                              />
+                            </div>
+                          </Label>
+                        ))}
                       <Label className="mb-6">
                         <div className="mb-2">{t("layout")}</div>
                         <Select
