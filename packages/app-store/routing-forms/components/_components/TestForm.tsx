@@ -3,11 +3,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import type { Dispatch, SetStateAction } from "react";
 import { useState, useMemo } from "react";
-import FormInputFields from "routing-forms/components/FormInputFields";
-import { getAbsoluteEventTypeRedirectUrl } from "routing-forms/getEventTypeRedirectUrl";
-import { RoutingPages } from "routing-forms/lib/RoutingPages";
-import { findMatchingRoute } from "routing-forms/lib/processRoute";
-import type { RoutingForm, FormResponse, NonRouterRoute } from "routing-forms/types/types";
 
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,7 +15,12 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import { TRPCClientError } from "@trpc/react-query";
 
+import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
+import { RoutingPages } from "../../lib/RoutingPages";
+import { findMatchingRoute } from "../../lib/processRoute";
 import type { SingleFormComponentProps } from "../../types/shared";
+import type { RoutingForm, FormResponse, NonRouterRoute } from "../../types/types";
+import FormInputFields from "../FormInputFields";
 import { ResultsView as Results } from "./ResultSection";
 import type { MembersMatchResultType } from "./TeamMembersMatchResult";
 
