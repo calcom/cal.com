@@ -25,7 +25,14 @@ const AvailabilitySettingsSkeleton = () => {
   const { t } = useLocale();
 
   return (
-    <SkeletonContainer>
+    <SkeletonContainer className="mx-auto max-w-[1024px] px-4 py-8 md:px-8">
+      {/* Back button in header */}
+      <div className="mb-6">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200">
+          <SkeletonText className="h-4 w-4" /> {/* Back arrow icon */}
+        </div>
+      </div>
+
       <div className="mb-8 flex items-center justify-between">
         <div className="flex items-center">
           <div className="flex items-center">
