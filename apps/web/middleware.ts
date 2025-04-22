@@ -193,6 +193,7 @@ export const config = {
     // Routes allowed for POST method (matching `POST_METHODS_ALLOWED_APP_ROUTES` array)
     "/settings/my-account/general",
     "/settings/developer/webhooks",
+    "/settings/developer/api-keys",
   ],
 };
 
