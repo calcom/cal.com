@@ -6,8 +6,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 
 import { CardComponent } from "@lib/plain/card-components";
