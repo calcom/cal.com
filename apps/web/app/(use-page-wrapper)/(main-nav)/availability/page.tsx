@@ -33,25 +33,36 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
       createRouterCaller(availabilityRouter),
     ]);
 
-    const [currentOrgs, me] = await Promise.all([orgCaller.listCurrent(), meCaller.get()]);
+    const me = await meCaller.get();
+    const organizationId = me.organization?.id ?? me.profiles[0]?.organizationId;
 
-    const isOrg = Boolean(currentOrgs);
-    const isOrgAdminOrOwner = currentOrgs && checkAdminOrOwner(currentOrgs.user.role);
-    const isOrgAndPrivate = currentOrgs?.isOrganization && currentOrgs.isPrivate;
-    const canViewTeamAvailability = isOrgAdminOrOwner || !isOrgAndPrivate;
+    let currentOrgs = null;
+    let isOrg = false;
+    let canViewTeamAvailability = false;
+
+    if (organizationId) {
+      currentOrgs = await orgCaller.listCurrent();
+      isOrg = Boolean(currentOrgs);
+      const isOrgAdminOrOwner = currentOrgs && checkAdminOrOwner(currentOrgs.user.role);
+      const isOrgAndPrivate = currentOrgs?.isOrganization && currentOrgs.isPrivate;
+      canViewTeamAvailability = isOrgAdminOrOwner || !isOrgAndPrivate;
+    }
+
     const isTeamView = searchParams?.type === "team" && canViewTeamAvailability;
     const availabilities = !isTeamView ? await availabilityCaller.list() : null;
-
-    const toggleGroupOptions = [
-      { value: "mine", label: t("my_availability") },
-      ...(canViewTeamAvailability ? [{ value: "team", label: t("team_availability") }] : []),
-    ];
 
     return (
       <ShellMainAppDir
         heading={t("availability")}
         subtitle={t("configure_availability")}
-        CTA={<AvailabilityCTA toggleGroupOptions={toggleGroupOptions} />}>
+        CTA={
+          <AvailabilityCTA
+            toggleGroupOptions={[
+              { value: "mine", label: t("my_availability") },
+              ...(canViewTeamAvailability ? [{ value: "team", label: t("team_availability") }] : []),
+            ]}
+          />
+        }>
         {isTeamView ? (
           <AvailabilitySliderTable userTimeFormat={me?.timeFormat ?? null} isOrg={isOrg} />
         ) : (
