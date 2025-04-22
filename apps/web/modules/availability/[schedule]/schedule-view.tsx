@@ -111,10 +111,10 @@ export const AvailabilitySettingsWebWrapper = ({
     }),
     onSettled: () => {
       utils.viewer.availability.list.invalidate();
-      revalidateAvailabilityList();
     },
     onSuccess: () => {
       showToast(t("schedule_deleted_successfully"), "success");
+      revalidateAvailabilityList();
       router.push("/availability");
     },
   });

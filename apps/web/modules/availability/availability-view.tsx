@@ -51,9 +51,9 @@ export function AvailabilityList({ availabilities, me }: AvailabilityListProps) 
     },
     onSettled: () => {
       utils.viewer.availability.list.invalidate();
-      revalidateAvailabilityList();
     },
     onSuccess: () => {
+      revalidateAvailabilityList();
       showToast(t("schedule_deleted_successfully"), "success");
     },
   });
