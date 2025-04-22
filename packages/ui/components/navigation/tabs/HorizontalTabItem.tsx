@@ -22,7 +22,6 @@ export type HorizontalTabItemProps = {
   isActive?: boolean;
   "data-testid"?: string;
   matchFullPath?: boolean;
-  isCurrent?: boolean;
 };
 
 const HorizontalTabItem = function ({
