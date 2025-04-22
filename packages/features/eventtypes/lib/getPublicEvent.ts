@@ -238,7 +238,6 @@ export const getPublicEvent = async (
       usernameList,
       orgSlug: org,
     });
-
     const users = usersInOrgContext;
 
     const defaultEvent = getDefaultEvent(eventSlug);
