@@ -510,7 +510,7 @@ export const EventAdvancedTab = ({
 
   const [isEventTypeColorChecked, setIsEventTypeColorChecked] = useState(!!eventType.eventTypeColor);
 
-  const isCustomReplyToEmailChecked = formMethods.getValues("customReplyToEmail");
+  const customReplyToEmail = formMethods.watch("customReplyToEmail");
 
   const [eventTypeColorState, setEventTypeColorState] = useState(
     eventType.eventTypeColor || {
@@ -1026,15 +1026,19 @@ export const EventAdvancedTab = ({
                   {...customReplyToEmailLocked}
                   data-testid="custom-reply-to-email"
                   description={t("custom_reply_to_email_description")}
-                  checked={!!isCustomReplyToEmailChecked}
+                  checked={!!customReplyToEmail}
                   onCheckedChange={(e) => {
-                    onChange(e ? eventType.customReplyToEmail || verifiedEmails?.[0] || null : null);
+                    onChange(
+                      e
+                        ? customReplyToEmail || eventType.customReplyToEmail || verifiedEmails?.[0] || null
+                        : null
+                    );
                   }}>
                   <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                     <SelectField
                       className="w-full"
                       label={t("custom_reply_to_email_title")}
-                      required={!!isCustomReplyToEmailChecked}
+                      required={!!customReplyToEmail}
                       placeholder={t("select_verified_email")}
                       data-testid="custom-reply-to-email-input"
                       value={value ? { label: value, value } : undefined}
