@@ -6,7 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import { formatLocalizedDateTime } from "@calcom/lib/date-fns";
+import { formatLocalizedDateTime } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localeOptions } from "@calcom/lib/i18n";
 import { nameOfDay } from "@calcom/lib/weekday";

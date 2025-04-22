@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -10,20 +11,8 @@ import type { WebhooksByViewer } from "@calcom/trpc/server/routers/viewer/webhoo
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
 
 import { WebhookListItem, CreateNewWebhookButton } from "../components";
-
-export const SkeletonLoader = () => {
-  return (
-    <SkeletonContainer>
-      <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
-        <SkeletonText className="h-8 w-full" />
-        <SkeletonText className="h-8 w-full" />
-      </div>
-    </SkeletonContainer>
-  );
-};
 
 type Props = {
   data: RouterOutputs["viewer"]["webhook"]["getByViewer"];
@@ -53,9 +42,13 @@ const WebhooksList = ({
   const hasTeams = profiles && profiles.length > 1;
 
   return (
-    <>
+    <SettingsHeader
+      title={t("webhooks")}
+      description={t("add_webhook_description", { appName: APP_NAME })}
+      CTA={webhooksByViewer.webhookGroups.length > 0 ? <CreateNewWebhookButton isAdmin={isAdmin} /> : null}
+      borderInShellHeader={false}>
       {!!webhookGroups.length ? (
-        <div className={classNames("mt-0", hasTeams && "mt-6")}>
+        <div className={classNames("mt-6")}>
           {webhookGroups.map((group) => (
             <div key={group.teamId}>
               {hasTeams && (
@@ -72,11 +65,7 @@ const WebhooksList = ({
                 </div>
               )}
               <div className="flex flex-col" key={group.profile.slug}>
-                <div
-                  className={classNames(
-                    "border-subtle rounded-lg rounded-t-none border border-t-0",
-                    hasTeams && "mb-8 mt-3 rounded-t-lg border-t"
-                  )}>
+                <div className={classNames("border-subtle mb-8 mt-3 rounded-lg border border-t")}>
                   {group.webhooks.map((webhook, index) => (
                     <WebhookListItem
                       key={webhook.id}
@@ -98,12 +87,12 @@ const WebhooksList = ({
           Icon="link"
           headline={t("create_your_first_webhook")}
           description={t("create_your_first_webhook_description", { appName: APP_NAME })}
-          className="rounded-b-lg rounded-t-none border-t-0"
+          className="mt-6 rounded-b-lg"
           buttonRaw={<CreateNewWebhookButton isAdmin={isAdmin} />}
           border={true}
         />
       )}
-    </>
+    </SettingsHeader>
   );
 };
 

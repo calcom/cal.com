@@ -81,6 +81,10 @@ export class EventTypesAtomService {
       this.eventTypeService.checkUserOwnsEventType(user.id, eventType.eventType);
     }
 
+    // note (Lauris): don't show platform owner as one of the people that can be assigned to managed team event type
+    const onlyManagedTeamMembers = eventType.teamMembers.filter((user) => user.isPlatformManaged);
+    eventType.teamMembers = onlyManagedTeamMembers;
+
     return eventType;
   }
 
