@@ -34,14 +34,8 @@ const HorizontalTabItem = function ({
   matchFullPath,
   ...props
 }: HorizontalTabItemProps) {
-  const urlMatches = useUrlMatchesCurrentUrl(href, matchFullPath);
+  const isCurrent = useUrlMatchesCurrentUrl(href, matchFullPath) || props?.isActive;
   const { t } = useLocale();
-
-  let isCurrent = props.isCurrent;
-
-  if (isCurrent === undefined) {
-    isCurrent = urlMatches;
-  }
 
   return (
     <Link

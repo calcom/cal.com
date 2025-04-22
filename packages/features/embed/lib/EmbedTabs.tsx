@@ -15,6 +15,12 @@ import { getApiNameForReactSnippet, getApiNameForVanillaJsSnippet } from "./getA
 import { getDimension } from "./getDimension";
 import { useEmbedCalOrigin } from "./hooks";
 
+export const enum EmbedTabName {
+  HTML = "embed-code",
+  IFRAME_REACT = "embed-react",
+  ATOM_REACT = "embed-atom-react",
+}
+
 export const tabs = [
   {
     name: "HTML (iframe)",
@@ -125,7 +131,7 @@ export const tabs = [
   },
   {
     name: "React (Atom)",
-    href: "embedTabName=embed-react-atom",
+    href: `embedTabName=${EmbedTabName.ATOM_REACT}`,
     "data-testid": "react-atom",
     icon: "code" as const,
     type: "code",
@@ -150,9 +156,9 @@ export const tabs = [
             approach.
           </div>
           <TextArea
-            data-testid="embed-react-atom"
+            data-testid={`${EmbedTabName.ATOM_REACT}`}
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
-            name="embed-react-atom"
+            name={`${EmbedTabName.ATOM_REACT}`}
             className="text-default bg-default h-[calc(100%-50px)] font-mono"
             readOnly
             style={{ resize: "none", overflow: "auto" }}

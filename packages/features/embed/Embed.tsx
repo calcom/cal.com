@@ -37,6 +37,7 @@ import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { useBookerTime } from "../bookings/Booker/components/hooks/useBookerTime";
+import { EmbedTabName } from "./lib/EmbedTabs";
 import { buildCssVarsPerTheme } from "./lib/buildCssVarsPerTheme";
 import { EmbedTheme } from "./lib/constants";
 import { getDimension } from "./lib/getDimension";
@@ -933,7 +934,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   onOpenChange={() => setIsEmbedCustomizationOpen((val) => !val)}>
                   <CollapsibleContent className="text-sm">
                     {/* Conditionally render Window Sizing only if inline embed AND NOT React Atom */}
-                    {embedType === "inline" && embedParams.embedTabName !== "embed-react-atom" && (
+                    {embedType === "inline" && embedParams.embedTabName !== EmbedTabName.ATOM_REACT && (
                       <div>
                         {/*TODO: Add Auto/Fixed toggle from Figma */}
                         <div className="text-default mb-[9px] text-sm">Window sizing</div>
@@ -1109,7 +1110,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   <CollapsibleContent>
                     <div className="text-sm">
                       {/* Conditionally render EmbedTheme only if NOT React Atom */}
-                      {embedParams.embedTabName !== "embed-react-atom" && (
+                      {embedParams.embedTabName !== EmbedTabName.ATOM_REACT && (
                         <Label className="mb-6">
                           <div className="mb-2">EmbedTheme</div>
                           <Select
@@ -1153,7 +1154,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         </Label>
                       )}
                       {/* Conditionally render Hide Details Switch only if NOT Atom embed AND not disabled by prop */}
-                      {!eventTypeHideOptionDisabled && embedParams.embedTabName !== "embed-react-atom" ? (
+                      {!eventTypeHideOptionDisabled &&
+                      embedParams.embedTabName !== EmbedTabName.ATOM_REACT ? (
                         <div className="mb-6 flex items-center justify-start space-x-2 rtl:space-x-reverse">
                           <Switch
                             checked={previewState.hideEventTypeDetails}
@@ -1170,7 +1172,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         </div>
                       ) : null}
                       {/* Conditionally render Brand Colors only if NOT React Atom */}
-                      {embedParams.embedTabName !== "embed-react-atom" &&
+                      {embedParams.embedTabName !== EmbedTabName.ATOM_REACT &&
                         [
                           { name: "brandColor", title: "light_brand_color" },
                           { name: "darkBrandColor", title: "dark_brand_color" },
