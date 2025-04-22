@@ -107,6 +107,12 @@ $ yarn test:e2e:watch --testPathPattern=filePath
 $ yarn run test:cov
 ```
 
+## Conventions
+
+### Guards
+1. In case a guard would return "false" for "canActivate" instead throw ForbiddenException with an error message containing guard name and the error.
+2. In case a guard would return "false" for "canActivate" DO NOT cache the result in redis, because we don't want that someone is forbidden, updates whatever was the problem, and then has to wait for cache to expire. We only cache in redis guard results where "canAccess" is "true".
+
 ## Support
 
 Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
