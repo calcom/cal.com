@@ -771,6 +771,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       brandColor: defaultBrandColor?.brandColor ?? null,
       darkBrandColor: defaultBrandColor?.darkBrandColor ?? null,
     },
+    hideBranding: false,
+    confirmButtonDisabled: false,
   });
 
   const close = () => {
@@ -832,6 +834,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       theme: previewState.theme,
       layout: previewState.layout,
       hideEventTypeDetails: previewState.hideEventTypeDetails,
+      hideBranding: previewState.hideBranding,
+      confirmButtonDisabled: previewState.confirmButtonDisabled,
       cssVarsPerTheme: buildCssVarsPerTheme({
         brandColor: previewState.palette.brandColor,
         darkBrandColor: previewState.palette.darkBrandColor,
@@ -1100,6 +1104,49 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         </div>
                       </div>
                     </div>
+
+                    {/* Atom-specific options */}
+                    {embedParams.embedTabName === EmbedTabName.ATOM_REACT && (
+                      <>
+                        <div className="mt-4 flex items-center justify-between">
+                          <Label className="font-normal">Hide Branding</Label>
+                          <Switch
+                            checked={previewState.hideBranding}
+                            onCheckedChange={(checked) => {
+                              setPreviewState((previewState) => ({
+                                ...previewState,
+                                hideBranding: checked,
+                              }));
+                            }}
+                          />
+                        </div>
+                        <div className="mt-4 flex items-center justify-between">
+                          <Label className="font-normal">Disable Confirm Button</Label>
+                          <Switch
+                            checked={previewState.confirmButtonDisabled}
+                            onCheckedChange={(checked) => {
+                              setPreviewState((previewState) => ({
+                                ...previewState,
+                                confirmButtonDisabled: checked,
+                              }));
+                            }}
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    <div className="mb-4 mt-4 flex items-center justify-between">
+                      <Label className="font-normal">Hide Details</Label>
+                      <Switch
+                        checked={previewState.hideEventTypeDetails}
+                        onCheckedChange={(checked) => {
+                          setPreviewState((previewState) => ({
+                            ...previewState,
+                            hideEventTypeDetails: checked,
+                          }));
+                        }}
+                      />
+                    </div>
                   </CollapsibleContent>
                 </Collapsible>
               </div>
@@ -1153,24 +1200,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           />
                         </Label>
                       )}
-                      {/* Conditionally render Hide Details Switch only if NOT Atom embed AND not disabled by prop */}
-                      {!eventTypeHideOptionDisabled &&
-                      embedParams.embedTabName !== EmbedTabName.ATOM_REACT ? (
-                        <div className="mb-6 flex items-center justify-start space-x-2 rtl:space-x-reverse">
-                          <Switch
-                            checked={previewState.hideEventTypeDetails}
-                            onCheckedChange={(checked) => {
-                              setPreviewState((previewState) => {
-                                return {
-                                  ...previewState,
-                                  hideEventTypeDetails: checked,
-                                };
-                              });
-                            }}
-                          />
-                          <div className="text-default text-sm">{t("hide_eventtype_details")}</div>
-                        </div>
-                      ) : null}
                       {/* Conditionally render Brand Colors only if NOT React Atom */}
                       {embedParams.embedTabName !== EmbedTabName.ATOM_REACT &&
                         [

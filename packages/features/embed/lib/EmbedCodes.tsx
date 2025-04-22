@@ -137,12 +137,12 @@ export default function Booker( props : BookerProps ) {
   return (
     <>
       <BookerEmbed
-        // Use the parsed username and event slug from calLink
+        // Use the parsed username and event slug from calLink (will be added back in EmbedTabs.tsx)
         eventSlug={eventSlug}
-        // layout can be of three types: COLUMN_VIEW, MONTH_VIEW or WEEK_VIEW, 
-        // you can choose whichever you prefer
+        // Use layout from config (will be adjusted in EmbedTabs.tsx)
         view="${previewState.config?.layout || "MONTH_VIEW"}"
         username={calUsername}
+        // Remove added props here
         customClassNames={{
           bookerContainer: "border-subtle border",
         }}
@@ -170,24 +170,13 @@ export default function Booker( props : BookerProps ) {
       return code`
 import { BookerEmbed } from "@calcom/atoms";
 
-// You might need to define or import BookerProps depending on your setup
+// Placeholder - Snippet likely needs adjustment for floating-popup Atom use case
 export default function Booker( props : BookerProps ) {
   return (
     <>
-      <BookerEmbed
-        // Use the parsed username and event slug from calLink
-        eventSlug={eventSlug}
-        // layout can be of three types: COLUMN_VIEW, MONTH_VIEW or WEEK_VIEW, 
-        // you can choose whichever you prefer
-        view="${previewState.config?.layout || "MONTH_VIEW"}"
-        username={calUsername}
-        customClassNames={{
-          bookerContainer: "border-subtle border",
-        }}
-        onCreateBookingSuccess={() => {
-          console.log("booking created successfully");
-        }}
-      />
+      {/* Placeholder: Add trigger and modal logic here */}
+      <p>Floating Popup Atom Placeholder</p>
+      {/* <BookerEmbed ... /> */}
     </>
   );
 };`;
@@ -208,24 +197,13 @@ export default function Booker( props : BookerProps ) {
       return code`
 import { BookerEmbed } from "@calcom/atoms";
 
-// You might need to define or import BookerProps depending on your setup
+// Placeholder - Snippet likely needs adjustment for element-click Atom use case
 export default function Booker( props : BookerProps ) {
   return (
     <>
-      <BookerEmbed
-        // Use the parsed username and event slug from calLink
-        eventSlug={eventSlug}
-        // layout can be of three types: COLUMN_VIEW, MONTH_VIEW or WEEK_VIEW, 
-        // you can choose whichever you prefer
-        view="${previewState.config?.layout || "MONTH_VIEW"}"
-        username={calUsername}
-        customClassNames={{
-          bookerContainer: "border-subtle border",
-        }}
-        onCreateBookingSuccess={() => {
-          console.log("booking created successfully");
-        }}
-      />
+      {/* Placeholder: Add trigger and modal logic here */}
+      <p>Element Click Atom Placeholder</p>
+      {/* <BookerEmbed ... /> */}
     </>
   );
 };`;

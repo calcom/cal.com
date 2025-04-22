@@ -142,6 +142,24 @@ export const tabs = [
       const { t } = useLocale();
       const embedCalOrigin = useEmbedCalOrigin();
 
+      // --- Start: Added logic for direct Atom snippet generation ---
+      // Basic parsing, assumes format like 'user/event' or 'team/user/event'
+      const parts = calLink.split("/");
+      const eventSlug = parts.pop() || ""; // Handle potential undefined
+      const calUsername = parts.join("/");
+
+      // Build props string conditionally
+      let bookerProps = ``;
+      if (previewState.hideBranding) {
+        bookerProps += `\n        hideBranding={true}`;
+      }
+      if (previewState.confirmButtonDisabled) {
+        bookerProps += `\n        confirmButtonDisabled={true}`;
+      }
+      // Always include hideEventTypeDetails prop
+      bookerProps += `\n        hideEventTypeDetails={${previewState.hideEventTypeDetails}}`;
+      // --- End: Added logic ---
+
       if (ref instanceof Function || !ref) {
         return null;
       }
@@ -165,14 +183,25 @@ export const tabs = [
 
 /* If you are using npm */
 // npm install @calcom/atoms
-${getEmbedTypeSpecificString({
-  embedFramework: "react-atom" as EmbedFramework,
-  embedType,
-  calLink,
-  previewState,
-  embedCalOrigin,
-  namespace,
-})}`}
+
+import { BookerEmbed } from "@calcom/atoms";
+
+// You might need to define or import BookerProps depending on your setup
+// For example: type BookerProps = { /* ... */ };
+
+export default function MyBookerComponent( props : BookerProps ) {
+  return (
+    <BookerEmbed
+        eventSlug={"${eventSlug}"}
+        username={"${calUsername}"}
+        view={"${previewState.layout || "MONTH_VIEW"}"}${bookerProps} // Inject conditional props
+        // Add other props like callbacks as needed
+        onCreateBookingSuccess={() => {
+          console.log("booking created successfully");
+        }}
+      />
+  );
+}`}
           />
         </>
       );
