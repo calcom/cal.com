@@ -62,7 +62,7 @@ describe("createNextApiHandler", () => {
       const result = errorFormatter({
         shape: {
           message: "Internal Server Error",
-          code: "INTERNAL_SERVER_ERROR",
+          code: 500,
           data: {
             code: "INTERNAL_SERVER_ERROR",
             httpStatus: 500,
@@ -78,7 +78,7 @@ describe("createNextApiHandler", () => {
 
       expect(result).toEqual({
         message: "Invalid input",
-        code: "BAD_REQUEST",
+        code: 400,
         data: {
           code: "BAD_REQUEST",
           httpStatus: 400,
@@ -103,7 +103,7 @@ describe("createNextApiHandler", () => {
 
       const shape = {
         message: "Internal Server Error",
-        code: "INTERNAL_SERVER_ERROR",
+        code: 500,
         data: {
           code: "INTERNAL_SERVER_ERROR",
           httpStatus: 500,
