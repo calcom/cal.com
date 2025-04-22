@@ -62,14 +62,12 @@ const Actions = ({
   appUrl,
   setIsTestPreviewOpen,
   isTestPreviewOpen,
-  handleSubmit,
 }: {
   form: RoutingFormWithResponseCount;
   setIsTestPreviewOpen: (value: boolean) => void;
   isSaving: boolean;
   appUrl: string;
   isTestPreviewOpen: boolean;
-  handleSubmit: () => void;
 }) => {
   const { t } = useLocale();
   const formContext = useFormContext<RoutingFormWithResponseCount>();
