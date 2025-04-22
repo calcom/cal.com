@@ -141,7 +141,7 @@ export default function Booker( props : BookerProps ) {
         eventSlug={eventSlug}
         // layout can be of three types: COLUMN_VIEW, MONTH_VIEW or WEEK_VIEW, 
         // you can choose whichever you prefer
-        view="MONTH_VIEW"
+        view="${previewState.config?.layout || "MONTH_VIEW"}"
         username={calUsername}
         customClassNames={{
           bookerContainer: "border-subtle border",
@@ -179,7 +179,7 @@ export default function Booker( props : BookerProps ) {
         eventSlug={eventSlug}
         // layout can be of three types: COLUMN_VIEW, MONTH_VIEW or WEEK_VIEW, 
         // you can choose whichever you prefer
-        view="MONTH_VIEW"
+        view="${previewState.config?.layout || "MONTH_VIEW"}"
         username={calUsername}
         customClassNames={{
           bookerContainer: "border-subtle border",
@@ -217,7 +217,7 @@ export default function Booker( props : BookerProps ) {
         eventSlug={eventSlug}
         // layout can be of three types: COLUMN_VIEW, MONTH_VIEW or WEEK_VIEW, 
         // you can choose whichever you prefer
-        view="MONTH_VIEW"
+        view="${previewState.config?.layout || "MONTH_VIEW"}"
         username={calUsername}
         customClassNames={{
           bookerContainer: "border-subtle border",
