@@ -1,55 +1,38 @@
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+"use client";
+
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo } from "react";
 
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { CreationSource } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/components/icon";
-import { Label } from "@calcom/ui/components/form";
-import { Alert } from "@calcom/ui/components/alert";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Label } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { UpgradeTip } from "../../../tips";
-import SkeletonLoaderTeamList from "./SkeletonloaderTeamList";
 import TeamList from "./TeamList";
 
-export function TeamsListing() {
-  const searchParams = useCompatSearchParams();
-  const token = searchParams?.get("token");
+type TeamsListingProps = {
+  user: RouterOutputs["viewer"]["me"]["get"];
+  teams: RouterOutputs["viewer"]["teams"]["list"];
+  teamNameFromInvite: string | null;
+  errorMsgFromInvite: string | null;
+};
+
+export function TeamsListing({
+  user,
+  teams: data,
+  teamNameFromInvite,
+  errorMsgFromInvite,
+}: TeamsListingProps) {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
   const { t } = useLocale();
-  const trpcContext = trpc.useUtils();
   const router = useRouter();
-
-  const [inviteTokenChecked, setInviteTokenChecked] = useState(false);
-
-  const { data, isPending, error } = trpc.viewer.teams.list.useQuery(
-    {
-      includeOrgs: true,
-    },
-    {
-      enabled: inviteTokenChecked,
-    }
-  );
-
-  const { data: user } = trpc.viewer.me.get.useQuery();
-
-  const { mutate: inviteMemberByToken } = trpc.viewer.teams.inviteMemberByToken.useMutation({
-    onSuccess: (teamName) => {
-      trpcContext.viewer.teams.list.invalidate();
-      showToast(t("team_invite_received", { teamName }), "success");
-    },
-    onError: (e) => {
-      showToast(e.message, "error");
-    },
-    onSettled: () => {
-      setInviteTokenChecked(true);
-    },
-  });
 
   const teams = useMemo(() => data?.filter((m) => m.accepted && !m.isOrganization) || [], [data]);
 
@@ -99,21 +82,24 @@ export function TeamsListing() {
       description: t("disable_cal_branding_description", { appName: APP_NAME }),
     },
   ];
-
   useEffect(() => {
-    if (!router) return;
-    if (token) inviteMemberByToken({ token, creationSource: CreationSource.WEBAPP });
-    else setInviteTokenChecked(true);
-  }, [router, inviteMemberByToken, setInviteTokenChecked, token]);
+    if (!token) {
+      return;
+    }
 
-  if (isPending || !inviteTokenChecked) {
-    return <SkeletonLoaderTeamList />;
-  }
+    if (teamNameFromInvite) {
+      showToast(t("team_invite_received", { teamName: teamNameFromInvite }), "success");
+      return;
+    }
+
+    if (errorMsgFromInvite) {
+      showToast(errorMsgFromInvite, "error");
+      return;
+    }
+  }, []);
 
   return (
     <>
-      {!!error && <Alert severity="error" title={error.message} />}
-
       {organizationInvites.length > 0 && (
         <div className="bg-subtle mb-6 rounded-md p-5">
           <Label className="text-emphasis pb-2  font-semibold">{t("pending_organization_invites")}</Label>
