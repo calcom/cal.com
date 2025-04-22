@@ -12,6 +12,7 @@ import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateI
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
+import { validateCustomEmail } from "@calcom/lib/validateCustomEmail";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType, EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
@@ -83,6 +84,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     description: newDescription,
     title: newTitle,
     seatsPerTimeSlot,
+    customReplyToEmail,
     ...rest
   } = input;
 
@@ -488,6 +490,22 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       data.secondaryEmail = {
         disconnect: true,
       };
+    }
+  }
+
+  // Validate the custom reply-to email
+  if (customReplyToEmail) {
+    const isValidEmail = await validateCustomEmail({
+      email: customReplyToEmail,
+      userId: ctx.user.id,
+      teamId: eventType.team?.id,
+    });
+
+    if (!isValidEmail) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "The custom reply-to email must be a verified email.",
+      });
     }
   }
 

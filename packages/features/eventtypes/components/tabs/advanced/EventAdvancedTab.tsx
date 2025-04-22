@@ -121,6 +121,7 @@ export type EventAdvancedTabProps = EventAdvancedBaseProps & {
     error: unknown;
   };
   showBookerLayoutSelector: boolean;
+  verifiedEmails?: string[];
 };
 
 type CalendarSettingsProps = {
@@ -400,6 +401,7 @@ export const EventAdvancedTab = ({
   showToast,
   showBookerLayoutSelector,
   customClassNames,
+  verifiedEmails,
 }: EventAdvancedTabProps) => {
   const isPlatform = useIsPlatform();
   const platformContext = useAtomsContext();
@@ -1006,46 +1008,49 @@ export const EventAdvancedTab = ({
           />
         )}
       />
-      <Controller
-        name="customReplyToEmail"
-        render={({ field: { value, onChange } }) => (
-          <>
-            <SettingsToggle
-              labelClassName={classNames("text-sm", customClassNames?.customReplyToEmail?.label)}
-              toggleSwitchAtTheEnd={true}
-              switchContainerClassName={classNames(
-                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                !!value && "rounded-b-none",
-                customClassNames?.customReplyToEmail?.container
-              )}
-              descriptionClassName={customClassNames?.customReplyToEmail?.description}
-              childrenClassName={classNames("lg:ml-0", customClassNames?.customReplyToEmail?.children)}
-              title={t("custom_reply_to_email_title")}
-              {...customReplyToEmailLocked}
-              data-testid="custom-reply-to-email"
-              description={t("custom_reply_to_email_description")}
-              checked={isCustomReplyToEmailChecked}
-              onCheckedChange={(e) => {
-                onChange(e ? eventType.customReplyToEmail || value || "" : null);
-                setIsCustomReplyToEmailChecked(e);
-              }}>
-              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                <TextField
-                  className="w-full"
-                  label={t("custom_reply_to_email_title")}
-                  labelSrOnly
-                  placeholder="admin@example.com"
-                  data-testid="custom-reply-to-email-input"
-                  required={isCustomReplyToEmailChecked}
-                  type="email"
-                  value={value || ""}
-                  onChange={onChange}
-                />
-              </div>
-            </SettingsToggle>
-          </>
-        )}
-      />
+      {!isPlatform && (
+        <>
+          <Controller
+            name="customReplyToEmail"
+            render={({ field: { value, onChange } }) => (
+              <>
+                <SettingsToggle
+                  labelClassName={classNames("text-sm", customClassNames?.customReplyToEmail?.label)}
+                  toggleSwitchAtTheEnd={true}
+                  switchContainerClassName={classNames(
+                    "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                    !!value && "rounded-b-none",
+                    customClassNames?.customReplyToEmail?.container
+                  )}
+                  descriptionClassName={customClassNames?.customReplyToEmail?.description}
+                  childrenClassName={classNames("lg:ml-0", customClassNames?.customReplyToEmail?.children)}
+                  title={t("custom_reply_to_email_title")}
+                  {...customReplyToEmailLocked}
+                  data-testid="custom-reply-to-email"
+                  description={t("custom_reply_to_email_description")}
+                  checked={isCustomReplyToEmailChecked}
+                  onCheckedChange={(e) => {
+                    onChange(e ? eventType.customReplyToEmail || value || "" : null);
+                    setIsCustomReplyToEmailChecked(e);
+                  }}>
+                  <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                    <SelectField
+                      className="w-full"
+                      label={t("custom_reply_to_email_title")}
+                      required={isCustomReplyToEmailChecked}
+                      placeholder={t("select_verified_email")}
+                      data-testid="custom-reply-to-email-input"
+                      value={value ? { label: value, value } : undefined}
+                      onChange={(option) => onChange(option?.value || null)}
+                      options={verifiedEmails?.map((email) => ({ label: email, value: email })) || []}
+                    />
+                  </div>
+                </SettingsToggle>
+              </>
+            )}
+          />
+        </>
+      )}
       <Controller
         name="eventTypeColor"
         render={() => (
