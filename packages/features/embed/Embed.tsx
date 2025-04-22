@@ -709,7 +709,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     const tabName = href.split("=")[1];
     return {
       ...rest,
-      isCurrent: tabName === embedParams.embedTabName,
+      isActive: tabName === embedParams.embedTabName,
       ...(noQueryParamMode
         ? {
             onClick: () => {
