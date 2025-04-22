@@ -88,7 +88,7 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
       showToast(t("error_downloading_data"), "error");
     } finally {
       setIsDownloading(false);
-      hideProgressToast(0); // Reset progress
+      hideProgressToast(); // Reset progress
     }
   };
 
