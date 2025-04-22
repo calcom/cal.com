@@ -411,8 +411,8 @@ export async function handler(req: NextRequest) {
               batchId: batchId,
               sendAt: dayjs(reminder.scheduledDate).unix(),
               replyTo:
-                reminder.booking?.eventType?.customReplyToEmail ??
-                reminder.booking?.userPrimaryEmail ??
+                reminder.booking?.eventType?.customReplyToEmail ||
+                reminder.booking?.userPrimaryEmail ||
                 reminder.booking.user?.email,
               sender: reminder.workflowStep?.sender,
             })
