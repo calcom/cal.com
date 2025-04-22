@@ -1030,7 +1030,7 @@ export const EventAdvancedTab = ({
                   description={t("custom_reply_to_email_description")}
                   checked={isCustomReplyToEmailChecked}
                   onCheckedChange={(e) => {
-                    onChange(e ? eventType.customReplyToEmail || value || "" : null);
+                    onChange(e ? eventType.customReplyToEmail || value : null);
                     setIsCustomReplyToEmailChecked(e);
                   }}>
                   <div className="border-subtle rounded-b-lg border border-t-0 p-6">
