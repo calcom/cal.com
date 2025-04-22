@@ -12,8 +12,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { showToast } from "@calcom/ui/components/toast";
-import { showProgressToast } from "@calcom/ui/components/toast/ProgressToast";
+import { showToast, showProgressToast, hideProgressToast } from "@calcom/ui/components/toast";
 
 import { useInsightsParameters } from "../../hooks/useInsightsParameters";
 
@@ -25,7 +24,6 @@ const Download = () => {
   const { t } = useLocale();
   const { startDate, endDate, teamId, userId, eventTypeId, memberUserId, isAll } = useInsightsParameters();
   const [isDownloading, setIsDownloading] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(0);
   const utils = trpc.useUtils();
 
   type PaginatedResponse = {
@@ -59,7 +57,7 @@ const Download = () => {
   const handleDownloadClick = async () => {
     try {
       setIsDownloading(true);
-      setDownloadProgress(0); // Reset progress
+      showProgressToast(0);
       let allData: RawData[] = [];
       let offset = 0;
 
@@ -78,12 +76,11 @@ const Download = () => {
         allData = [...allData, ...result.data];
 
         const currentProgress = Math.min(Math.round((allData.length / totalRecords) * 100), 99);
-        setDownloadProgress(currentProgress);
-        showProgressToast(t("downloading_data"), currentProgress);
+        showProgressToast(currentProgress);
       }
 
       if (allData.length >= totalRecords) {
-        setDownloadProgress(100); // Set to 100% before actual download
+        showProgressToast(100); // Set to 100% before actual download
         const filename = `Insights-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(endDate).format(
           "YYYY-MM-DD"
         )}.csv`;
@@ -93,7 +90,7 @@ const Download = () => {
       showToast(t("unexpected_error_try_again"), "error");
     } finally {
       setIsDownloading(false);
-      setDownloadProgress(0); // Reset progress
+      hideProgressToast(); // Reset progress
     }
   };
 

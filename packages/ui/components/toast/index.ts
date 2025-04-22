@@ -1,2 +1,2 @@
 export { ErrorToast, SuccessToast, WarningToast, showToast } from "./showToast";
-export { ProgressToast, showProgressToast } from "./ProgressToast";
+export { ProgressToast, showProgressToast, hideProgressToast } from "./ProgressToast";

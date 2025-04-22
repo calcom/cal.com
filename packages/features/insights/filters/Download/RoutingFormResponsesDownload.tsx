@@ -13,8 +13,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { showToast } from "@calcom/ui/components/toast";
-import { showProgressToast } from "@calcom/ui/components/toast/ProgressToast";
+import { showToast, showProgressToast, hideProgressToast } from "@calcom/ui/components/toast";
 
 import { useInsightsParameters } from "../../hooks/useInsightsParameters";
 
@@ -31,7 +30,6 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
   const { teamId, userId, memberUserIds, routingFormId, isAll, startDate, endDate, columnFilters } =
     useInsightsParameters();
   const [isDownloading, setIsDownloading] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(0);
 
   const utils = trpc.useUtils();
 
@@ -60,7 +58,7 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
   const handleDownloadClick = async () => {
     try {
       setIsDownloading(true);
-      setDownloadProgress(0); // Reset progress
+      showProgressToast(0); // Reset progress
       let allData: RoutingData[] = [];
       let offset = 0;
 
@@ -76,12 +74,11 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
         allData = [...allData, ...result.data];
 
         const currentProgress = Math.min(Math.round((allData.length / totalRecords) * 100), 99);
-        setDownloadProgress(currentProgress);
-        showProgressToast(t("downloading_data"), currentProgress);
+        showProgressToast(currentProgress);
       }
 
       if (allData.length >= totalRecords) {
-        setDownloadProgress(100); // Set to 100% before actual download
+        showProgressToast(100); // Set to 100% before actual download
         const filename = `RoutingFormResponses-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(
           endDate
         ).format("YYYY-MM-DD")}.csv`;
@@ -91,7 +88,7 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
       showToast(t("error_downloading_data"), "error");
     } finally {
       setIsDownloading(false);
-      setDownloadProgress(0); // Reset progress
+      hideProgressToast(0); // Reset progress
     }
   };
 
