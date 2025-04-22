@@ -39,15 +39,13 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
     const isOrgAdminOrOwner = currentOrgs && checkAdminOrOwner(currentOrgs.user.role);
     const isOrgAndPrivate = currentOrgs?.isOrganization && currentOrgs.isPrivate;
     const canViewTeamAvailability = isOrgAdminOrOwner || !isOrgAndPrivate;
-
-    // Create toggle options based on permissions
-    const toggleGroupOptions = [{ value: "mine", label: t("my_availability") }];
-    if (canViewTeamAvailability) {
-      toggleGroupOptions.push({ value: "team", label: t("team_availability") });
-    }
-
     const isTeamView = searchParams?.type === "team" && canViewTeamAvailability;
     const availabilities = !isTeamView ? await availabilityCaller.list() : null;
+
+    const toggleGroupOptions = [
+      { value: "mine", label: t("my_availability") },
+      ...(canViewTeamAvailability ? [{ value: "team", label: t("team_availability") }] : []),
+    ];
 
     return (
       <ShellMainAppDir
