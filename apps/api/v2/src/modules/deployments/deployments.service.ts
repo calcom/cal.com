@@ -5,7 +5,7 @@ import { ConfigService } from "@nestjs/config";
 
 const CACHING_TIME = 86400000; // 24 hours in milliseconds
 
-const getLicenseCacheKey = (key: string) => `api-v2-license-key-url-${key}`;
+const getLicenseCacheKey = (key: string) => `api-v2-license-key-goblin-url-${key}`;
 
 type LicenseCheckResponse = {
   status: boolean;
