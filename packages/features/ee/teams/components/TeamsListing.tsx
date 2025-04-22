@@ -103,14 +103,14 @@ export function TeamsListing({
       {organizationInvites.length > 0 && (
         <div className="bg-subtle mb-6 rounded-md p-5">
           <Label className="text-emphasis pb-2  font-semibold">{t("pending_organization_invites")}</Label>
-          <TeamList teams={organizationInvites} pending />
+          <TeamList user={user} teams={organizationInvites} pending />
         </div>
       )}
 
       {teamInvites.length > 0 && (
         <div className="bg-subtle mb-6 rounded-md p-5">
           <Label className="text-emphasis pb-2  font-semibold">{t("pending_invites")}</Label>
-          <TeamList teams={teamInvites} pending />
+          <TeamList user={user} teams={teamInvites} pending />
         </div>
       )}
 
@@ -137,7 +137,7 @@ export function TeamsListing({
           )
         }>
         {teams.length > 0 ? (
-          <TeamList teams={teams} />
+          <TeamList user={user} teams={teams} />
         ) : (
           <EmptyScreen
             Icon="users"
