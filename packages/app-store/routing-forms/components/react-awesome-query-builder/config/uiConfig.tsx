@@ -71,7 +71,6 @@ const EmailFactory = (props: WidgetProps | undefined) => {
         props.setValue(val);
       }}
       containerClassName="w-full"
-      className="dark:placeholder:text-default focus:border-brand border-subtle dark:text-default disabled:dark:text-muted block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500"
       {...props}
     />
   );
