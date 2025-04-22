@@ -1404,12 +1404,15 @@ export default function RouteBuilder({
   enrichedWithUserProfileForm,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
-    <SingleForm
-      form={form}
-      appUrl={appUrl}
-      enrichedWithUserProfileForm={enrichedWithUserProfileForm}
-      Page={Page}
-    />
+    <>
+      <SingleForm
+        form={form}
+        appUrl={appUrl}
+        enrichedWithUserProfileForm={enrichedWithUserProfileForm}
+        Page={Page}
+      />
+      <RoutingSkeleton />
+    </>
   );
 }
 
