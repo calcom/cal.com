@@ -22,6 +22,7 @@ export type HorizontalTabItemProps = {
   isActive?: boolean;
   "data-testid"?: string;
   matchFullPath?: boolean;
+  isCurrent?: boolean;
 };
 
 const HorizontalTabItem = function ({
@@ -36,20 +37,10 @@ const HorizontalTabItem = function ({
   const urlMatches = useUrlMatchesCurrentUrl(href, matchFullPath);
   const { t } = useLocale();
 
-  let isCurrent = props?.isActive;
+  let isCurrent = props.isCurrent;
+
   if (isCurrent === undefined) {
-    const isEmbedTab = href.includes("embedTabName=");
-    if (isEmbedTab) {
-      const urlSearchParams = new URLSearchParams(window.location.search);
-      const currentEmbedTabName = urlSearchParams.get("embedTabName");
-
-      const embedTabNameMatch = href.match(/embedTabName=([^&]*)/);
-      const tabEmbedTabName = embedTabNameMatch ? embedTabNameMatch[1] : null;
-
-      isCurrent = currentEmbedTabName === tabEmbedTabName;
-    } else {
-      isCurrent = urlMatches;
-    }
+    isCurrent = urlMatches;
   }
 
   return (
