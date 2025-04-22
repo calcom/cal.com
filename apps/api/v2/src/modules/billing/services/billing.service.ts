@@ -7,6 +7,7 @@ import { OrganizationsRepository } from "@/modules/organizations/index/organizat
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { InjectQueue } from "@nestjs/bull";
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -330,7 +331,8 @@ export class BillingService implements OnModuleDestroy {
         .getStripe()
         .subscriptions.cancel(teamWithBilling?.platformBilling?.subscriptionId);
     } catch (error) {
-      this.logger.log(error, "error");
+      this.logger.log(error, "error while cancelling team subscription in stripe");
+      throw new BadRequestException("Failed to cancel team subscription");
     }
   }
 

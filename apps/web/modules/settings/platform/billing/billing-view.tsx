@@ -8,6 +8,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { showToast } from "@calcom/ui/components/toast";
 import { PlatformPricing } from "@calcom/web/components/settings/platform/pricing/platform-pricing/index";
 
 import { useUnsubscribeTeamToStripe } from "@lib/hooks/settings/platform/billing/useUnsubscribeTeamToStripe";
@@ -45,9 +46,10 @@ export default function PlatformBillingUpgrade() {
     useUnsubscribeTeamToStripe({
       onSuccess: () => {
         window.location.href = "/settings/platform/";
+        showToast(t("team_subscription_cancelled_successfully"), "success");
       },
       onError: () => {
-        console.log("error");
+        showToast(t("team_subscription_cancellation_error"), "error");
       },
       teamId: userOrgId,
     });
@@ -148,22 +150,22 @@ const CancelSubscriptionButton = ({
     <Dialog>
       <DialogTrigger asChild>
         <Button color="destructive" className={buttonClassName}>
-          Cancel
+          {t("cancel")}
         </Button>
       </DialogTrigger>
 
       <ConfirmationDialogContent
         isPending={isPending}
         variety="danger"
-        title="Cancel subscription"
-        confirmBtnText={t("delete")}
-        loadingText={t("delete")}
+        title={t("cancel_subscription")}
+        confirmBtnText={t("confirm_subscription_cancellation")}
+        loadingText={t("confirm_subscription_cancellation")}
+        cancelBtnText={t("back")}
         onConfirm={() => {
           handleDelete();
           onDeleteConfirmed?.();
         }}>
-        Cancelling subscription will cancel your current subscription to the platform plan permanently. This
-        action cannot be undone.
+        {t("cancel_subscription_description")}
       </ConfirmationDialogContent>
     </Dialog>
   );
