@@ -227,8 +227,8 @@ export const ResultsView = ({
               title={`${membersMatchResult.teamMembersMatchingAttributeLogic.length} next in queue`}
               icon="user-check"
               hint={
-                <div className="flex items-center gap-2">
-                  <Icon name="info" className="h-4 w-4" />
+                <div className="flex items-center gap-2 px-2 py-1">
+                  <Icon name="info" className="h-3 w-3" />
                   <span className="text-subtle text-sm">{t("routing_preview_more_info_found_insights")}</span>
                 </div>
               }>
