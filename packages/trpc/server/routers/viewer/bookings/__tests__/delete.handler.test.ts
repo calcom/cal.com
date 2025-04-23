@@ -71,7 +71,10 @@ describe("deleteHandler", () => {
       id: 1,
       userId: 124,
       eventType: {
+        id: 1,
+        teamId: 1,
         team: {
+          id: 1,
           members: [{ userId: 123, role: MembershipRole.ADMIN }],
         },
       },

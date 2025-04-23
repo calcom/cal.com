@@ -564,7 +564,10 @@ function BookingListItem(booking: BookingItemProps) {
           variety="danger"
           title={t("delete_booking_dialog_title")}
           confirmBtnText={t("confirm_delete_booking")}
-          onConfirm={() => {
+          loadingText={t("confirm_delete_booking")}
+          isPending={deleteMutation.isPending}
+          onConfirm={(e) => {
+            e.preventDefault();
             deleteBookingHandler(booking.id);
           }}>
           <p className="mt-5">{t("delete_booking_dialog_description")}</p>

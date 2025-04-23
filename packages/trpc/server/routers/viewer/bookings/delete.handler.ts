@@ -17,10 +17,14 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
 
   const booking = await prisma.booking.findUnique({
     where: { id },
-    include: {
+    select: {
+      id: true,
+      endTime: true,
+      userId: true,
       eventType: {
-        include: {
-          team: true,
+        select: {
+          id: true,
+          teamId: true,
         },
       },
     },
@@ -38,8 +42,13 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
 
   const isOrganizer = booking.userId === user.id;
 
-  if (!isOrganizer && !(await isTeamAdmin(user.id, booking.eventType?.teamId ?? 0))) {
-    throw new Error("Unauthorized: You don't have permission to delete this booking");
+  if (!isOrganizer) {
+    const teamId = booking.eventType?.teamId ?? null;
+    const isAdmin = teamId && (await isTeamAdmin(user.id, teamId));
+
+    if (!isAdmin) {
+      throw new Error("Unauthorized: You don't have permission to delete this booking");
+    }
   }
 
   await prisma.booking.delete({
