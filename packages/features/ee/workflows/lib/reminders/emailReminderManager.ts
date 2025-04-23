@@ -141,7 +141,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       translatedSubject = translatedEmailSubject || emailSubject;
       translatedBody = translatedEmailBody || emailBody;
     } catch (error) {
-      log.error(`Error translating workflow step ${workflowStepId} with error ${error}`);
+      log.error(`Error translating workflow with error ${error}`);
     }
   }
 
