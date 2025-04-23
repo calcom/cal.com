@@ -15,6 +15,7 @@ import { IcsFeedService } from "@/ee/calendars/services/ics-feed.service";
 import { OutlookService } from "@/ee/calendars/services/outlook.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
+import { ApiAuthGuardOnlyAllow } from "@/modules/auth/decorators/api-auth-guard-only-allow.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -135,6 +136,7 @@ export class CalendarsController {
     name: "calendar",
   })
   @UseGuards(ApiAuthGuard)
+  @ApiAuthGuardOnlyAllow(["API_KEY", "ACCESS_TOKEN"])
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Get("/:calendar/connect")
   @HttpCode(HttpStatus.OK)
