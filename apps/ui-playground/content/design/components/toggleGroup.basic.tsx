@@ -1,171 +1,192 @@
 "use client";
 
 import { RenderComponentWithSnippet } from "@/app/components/render";
+import { useState } from "react";
 
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-export const BasicExample = () => (
-  <RenderComponentWithSnippet>
-    <ToggleGroup
-      defaultValue="month"
-      onValueChange={(value) => {
-        if (!value) return;
-        console.log("Selected:", value);
-      }}
-      options={[
-        { value: "day", label: "Day" },
-        { value: "week", label: "Week" },
-        { value: "month", label: "Month" },
-      ]}
-    />
-  </RenderComponentWithSnippet>
-);
-
-export const WithIconsExample = () => (
-  <RenderComponentWithSnippet>
-    <ToggleGroup
-      defaultValue="grid"
-      onValueChange={(value) => {
-        if (!value) return;
-        console.log("Selected view:", value);
-      }}
-      options={[
-        {
-          value: "list",
-          label: "List",
-          iconLeft: <Icon name="menu" className="h-4 w-4" />,
-        },
-        {
-          value: "grid",
-          label: "Grid",
-          iconLeft: <Icon name="grid-3x3" className="h-4 w-4" />,
-        },
-      ]}
-    />
-  </RenderComponentWithSnippet>
-);
-
-export const DisabledExample = () => (
-  <RenderComponentWithSnippet>
-    <ToggleGroup
-      defaultValue="active"
-      onValueChange={(value) => {
-        if (!value) return;
-        console.log("Selected status:", value);
-      }}
-      options={[
-        { value: "active", label: "Active" },
-        { value: "archived", label: "Archived" },
-        { value: "deleted", label: "Deleted", disabled: true },
-      ]}
-    />
-  </RenderComponentWithSnippet>
-);
-
-export const FullWidthExample = () => (
-  <RenderComponentWithSnippet>
-    <ToggleGroup
-      isFullWidth
-      defaultValue="all"
-      onValueChange={(value) => {
-        if (!value) return;
-        console.log("Selected filter:", value);
-      }}
-      options={[
-        { value: "all", label: "All" },
-        { value: "active", label: "Active" },
-        { value: "inactive", label: "Inactive" },
-      ]}
-    />
-  </RenderComponentWithSnippet>
-);
-
-export const VerticalExample = () => (
-  <RenderComponentWithSnippet>
-    <ToggleGroup
-      orientation="vertical"
-      defaultValue="inbox"
-      onValueChange={(value) => {
-        if (!value) return;
-        console.log("Selected mailbox:", value);
-      }}
-      options={[
-        {
-          value: "inbox",
-          label: "Inbox",
-          iconLeft: <Icon name="mail" className="h-4 w-4" />,
-        },
-        {
-          value: "sent",
-          label: "Sent",
-          iconLeft: <Icon name="send" className="h-4 w-4" />,
-        },
-        {
-          value: "archive",
-          label: "Archive",
-          iconLeft: <Icon name="trash" className="h-4 w-4" />,
-        },
-      ]}
-    />
-  </RenderComponentWithSnippet>
-);
-
-export const IconOnlyExample = () => (
-  <RenderComponentWithSnippet>
-    <div className="space-y-8">
-      {/* Horizontal icon-only toggle group */}
+export const BasicExample = () => {
+  const [period, setPeriod] = useState("month");
+  return (
+    <RenderComponentWithSnippet>
       <ToggleGroup
-        defaultValue="list"
+        value={period}
         onValueChange={(value) => {
-          if (!value) return;
+          setPeriod(value);
+          console.log("Selected:", value);
+        }}
+        options={[
+          { value: "day", label: "Day" },
+          { value: "week", label: "Week" },
+          { value: "month", label: "Month" },
+        ]}
+      />
+    </RenderComponentWithSnippet>
+  );
+};
+
+export const WithIconsExample = () => {
+  const [layout, setLayout] = useState("grid");
+  return (
+    <RenderComponentWithSnippet>
+      <ToggleGroup
+        value={layout}
+        onValueChange={(value) => {
+          setLayout(value);
           console.log("Selected view:", value);
         }}
         options={[
           {
             value: "list",
-            label: "",
+            label: "List",
             iconLeft: <Icon name="menu" className="h-4 w-4" />,
           },
           {
             value: "grid",
-            label: "",
+            label: "Grid",
             iconLeft: <Icon name="grid-3x3" className="h-4 w-4" />,
-          },
-          {
-            value: "columns",
-            label: "",
-            iconLeft: <Icon name="blocks" className="h-4 w-4" />,
           },
         ]}
       />
+    </RenderComponentWithSnippet>
+  );
+};
 
-      {/* Vertical icon-only toggle group */}
+export const DisabledExample = () => {
+  const [selected, setSelected] = useState("active");
+
+  return (
+    <RenderComponentWithSnippet>
+      <ToggleGroup
+        value={selected}
+        onValueChange={(value) => {
+          setSelected(value);
+          console.log("Selected status:", value);
+        }}
+        options={[
+          { value: "active", label: "Active" },
+          { value: "archived", label: "Archived" },
+          { value: "deleted", label: "Deleted", disabled: true },
+        ]}
+      />
+    </RenderComponentWithSnippet>
+  );
+};
+
+export const FullWidthExample = () => {
+  const [selected, setSelected] = useState("all");
+  return (
+    <RenderComponentWithSnippet>
+      <ToggleGroup
+        isFullWidth
+        value={selected}
+        onValueChange={(value) => {
+          setSelected(value);
+          console.log("Selected filter:", value);
+        }}
+        options={[
+          { value: "all", label: "All" },
+          { value: "active", label: "Active" },
+          { value: "inactive", label: "Inactive" },
+        ]}
+      />
+    </RenderComponentWithSnippet>
+  );
+};
+
+export const VerticalExample = () => {
+  const [selected, setSelected] = useState("inbox");
+  return (
+    <RenderComponentWithSnippet>
       <ToggleGroup
         orientation="vertical"
-        defaultValue="edit"
+        value={selected}
         onValueChange={(value) => {
-          if (!value) return;
-          console.log("Selected tool:", value);
+          setSelected(value);
+          console.log("Selected mailbox:", value);
         }}
         options={[
           {
-            value: "list",
-            label: "",
-            iconLeft: <Icon name="menu" className="h-4 w-4" />,
+            value: "inbox",
+            label: "Inbox",
+            iconLeft: <Icon name="mail" className="h-4 w-4" />,
           },
           {
-            value: "grid",
-            label: "",
-            iconLeft: <Icon name="grid-3x3" className="h-4 w-4" />,
+            value: "sent",
+            label: "Sent",
+            iconLeft: <Icon name="send" className="h-4 w-4" />,
           },
           {
-            value: "columns",
-            label: "",
-            iconLeft: <Icon name="blocks" className="h-4 w-4" />,
+            value: "archive",
+            label: "Archive",
+            iconLeft: <Icon name="trash" className="h-4 w-4" />,
           },
         ]}
       />
-    </div>
-  </RenderComponentWithSnippet>
-);
+    </RenderComponentWithSnippet>
+  );
+};
+
+export const IconOnlyExample = () => {
+  const [hLayout, setHLayout] = useState("list");
+  const [VLayout, setVLayout] = useState("list");
+  return (
+    <RenderComponentWithSnippet>
+      <div className="space-y-8">
+        {/* Horizontal icon-only toggle group */}
+        <ToggleGroup
+          value={hLayout}
+          onValueChange={(value) => {
+            setHLayout(value);
+            console.log("Selected view:", value);
+          }}
+          options={[
+            {
+              value: "list",
+              label: "",
+              iconLeft: <Icon name="menu" className="h-4 w-4" />,
+            },
+            {
+              value: "grid",
+              label: "",
+              iconLeft: <Icon name="grid-3x3" className="h-4 w-4" />,
+            },
+            {
+              value: "columns",
+              label: "",
+              iconLeft: <Icon name="blocks" className="h-4 w-4" />,
+            },
+          ]}
+        />
+
+        {/* Vertical icon-only toggle group */}
+        <ToggleGroup
+          orientation="vertical"
+          value={VLayout}
+          onValueChange={(value) => {
+            setVLayout(value);
+            console.log("Selected tool:", value);
+          }}
+          options={[
+            {
+              value: "list",
+              label: "",
+              iconLeft: <Icon name="menu" className="h-4 w-4" />,
+            },
+            {
+              value: "grid",
+              label: "",
+              iconLeft: <Icon name="grid-3x3" className="h-4 w-4" />,
+            },
+            {
+              value: "columns",
+              label: "",
+              iconLeft: <Icon name="blocks" className="h-4 w-4" />,
+            },
+          ]}
+        />
+      </div>
+    </RenderComponentWithSnippet>
+  );
+};

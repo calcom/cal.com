@@ -13,9 +13,8 @@ export const TimeFormatToggle = ({ customClassName }: { customClassName?: string
     <ToggleGroup
       customClassNames={customClassName}
       onValueChange={(newFormat) => {
-        if (newFormat && newFormat !== timeFormat) setTimeFormat(newFormat as TimeFormat);
+        setTimeFormat(newFormat as TimeFormat);
       }}
-      defaultValue={timeFormat}
       value={timeFormat}
       options={[
         { value: TimeFormat.TWELVE_HOUR, label: t("12_hour_short") },

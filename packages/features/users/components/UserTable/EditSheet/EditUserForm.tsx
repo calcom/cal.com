@@ -202,8 +202,8 @@ export function EditForm({
               defaultValue={selectedUser?.role ?? "MEMBER"}
               value={form.watch("role")}
               options={membershipOptions}
-              onValueChange={(value: EditSchema["role"]) => {
-                form.setValue("role", value);
+              onValueChange={(value: string) => {
+                form.setValue("role", value as EditSchema["role"]);
               }}
             />
           </div>

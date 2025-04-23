@@ -38,9 +38,8 @@ export const OutOfOfficeToggleGroup = () => {
   return (
     <ToggleGroup
       className="hidden md:block"
-      defaultValue={selectedTab}
+      value={selectedTab}
       onValueChange={(value) => {
-        if (!value) return;
         const newQuery = createQueryString("type", value);
         router.push(`${pathname}?${newQuery}`);
       }}

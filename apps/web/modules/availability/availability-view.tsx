@@ -219,9 +219,8 @@ export const AvailabilityCTA = () => {
     <div className="flex items-center gap-2">
       <ToggleGroup
         className="hidden h-fit md:block"
-        defaultValue={searchParams?.get("type") ?? "mine"}
+        value={searchParams?.get("type") ?? "mine"}
         onValueChange={(value) => {
-          if (!value) return;
           router.push(`${pathname}?${createQueryString("type", value)}`);
         }}
         options={toggleGroupOptions}

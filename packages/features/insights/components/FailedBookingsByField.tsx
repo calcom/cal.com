@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 import { trpc } from "@calcom/trpc";
-import { ToggleGroup } from "@calcom/ui/components/form";
 import classNames from "@calcom/ui/classNames";
+import { ToggleGroup } from "@calcom/ui/components/form";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";
 import { BarList } from "./tremor/BarList";
@@ -37,7 +37,7 @@ function FormCard({ formName, fields }: FormCardProps) {
             options={toggleOptions}
             value={selectedField}
             className="w-fit"
-            onValueChange={(value) => value && setSelectedField(value)}
+            onValueChange={(value) => setSelectedField(value)}
           />
           {selectedFieldData && (
             <div className="scrollbar-thin mt-4 h-[400px] overflow-y-auto">

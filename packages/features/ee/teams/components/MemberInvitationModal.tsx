@@ -228,7 +228,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               setModalInputMode(val as ModalMode);
               newMemberFormMethods.clearErrors();
             }}
-            defaultValue={modalImportMode}
+            value={modalImportMode}
             options={toggleGroupOptions}
           />
         </div>
