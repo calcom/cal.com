@@ -453,7 +453,7 @@ const SettingsSidebarContainer = ({
     enabled: !!session.data?.user?.org,
   });
   const tabsWithPermissions = useTabs({
-    isDelegationCredentialEnabled: data.hasDelegationCredential ?? false,
+    isDelegationCredentialEnabled: data?.hasDelegationCredential ?? false,
   });
 
   const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
