@@ -4,6 +4,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import type { Dispatch, SetStateAction } from "react";
 import { useState, useMemo } from "react";
 
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -90,6 +92,11 @@ export const TestForm = ({
   const [membersMatchResult, setMembersMatchResult] = useState<MembersMatchResultType | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [formKey, setFormKey] = useState<number>(0);
+
+  const orgBranding = useOrgBranding();
+
+  const embedLink = `forms/${form.id}`;
+  const formLink = `${orgBranding?.fullDomain ?? WEBSITE_URL}/${embedLink}`;
 
   const areRequiredFieldsFilled = useMemo(() => {
     if (!form.fields) return true;
@@ -196,6 +203,15 @@ export const TestForm = ({
                 <div className="flex items-center gap-1">
                   <Button
                     color="secondary"
+                    href={formLink}
+                    target="_blank"
+                    variant="icon"
+                    StartIcon="external-link"
+                    size="sm">
+                    <span className="sr-only">{t("open_in_new_tab")}</span>
+                  </Button>
+                  <Button
+                    color="secondary"
                     onClick={resetForm}
                     variant="icon"
                     StartIcon="refresh-cw"
@@ -230,6 +246,15 @@ export const TestForm = ({
               <div className="mb-6 flex items-center justify-between">
                 <h3 className="text-emphasis text-xl font-semibold">{t("results")}</h3>
                 <div className="flex items-center gap-1">
+                  <Button
+                    color="secondary"
+                    href={formLink}
+                    target="_blank"
+                    variant="icon"
+                    StartIcon="external-link"
+                    size="sm">
+                    <span className="sr-only">{t("open_in_new_tab")}</span>
+                  </Button>
                   <Button
                     color="secondary"
                     onClick={resetForm}
