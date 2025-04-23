@@ -50,6 +50,7 @@ const getUserBooking = async (uid: string) => {
           slug: true,
           timeZone: true,
           schedulingType: true,
+          hideOrganizerEmail: true,
         },
       },
       seatsReferences: {

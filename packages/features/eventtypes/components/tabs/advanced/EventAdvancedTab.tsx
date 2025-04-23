@@ -95,6 +95,7 @@ export type EventAdvancedTabCustomClassNames = {
     seatsInput: InputClassNames;
   };
   timezoneLock?: SettingsToggleClassNames;
+  hideOrganizerEmail?: SettingsToggleClassNames;
   eventTypeColors?: SettingsToggleClassNames & {
     warningText?: string;
   };
@@ -491,6 +492,7 @@ export const EventAdvancedTab = ({
   const lockTimeZoneToggleOnBookingPageLocked = shouldLockDisableProps("lockTimeZoneToggleOnBookingPage");
   const multiplePrivateLinksLocked = shouldLockDisableProps("multiplePrivateLinks");
   const reschedulingPastBookingsLocked = shouldLockDisableProps("allowReschedulingPastBookings");
+  const hideOrganizerEmailLocked = shouldLockDisableProps("hideOrganizerEmail");
   const customReplyToEmailLocked = shouldLockDisableProps("customReplyToEmail");
 
   const disableCancellingLocked = shouldLockDisableProps("disableCancelling");
@@ -969,6 +971,26 @@ export const EventAdvancedTab = ({
             </SettingsToggle>
             {noShowFeeEnabled && <Alert severity="warning" title={t("seats_and_no_show_fee_error")} />}
           </>
+        )}
+      />
+      <Controller
+        name="hideOrganizerEmail"
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            labelClassName={classNames("text-sm", customClassNames?.hideOrganizerEmail?.label)}
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName={classNames(
+              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+              customClassNames?.hideOrganizerEmail?.container
+            )}
+            title={t("hide_organizer_email")}
+            {...hideOrganizerEmailLocked}
+            description={t("hide_organizer_email_description")}
+            descriptionClassName={customClassNames?.hideOrganizerEmail?.description}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+            data-testid="hide-organizer-email"
+          />
         )}
       />
       <Controller
