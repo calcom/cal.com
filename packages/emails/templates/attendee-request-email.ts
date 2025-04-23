@@ -1,4 +1,5 @@
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
+import { getReplyToEmail } from "@calcom/lib/getReplyToEmail";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
@@ -15,7 +16,7 @@ export default class AttendeeRequestEmail extends AttendeeScheduledEmail {
         ...this.calEvent.attendees
           .filter(({ email }) => email !== this.attendee.email)
           .map(({ email }) => email),
-        this.calEvent.organizer.email,
+        getReplyToEmail(this.calEvent),
       ],
       subject: `${this.calEvent.attendees[0].language.translate("booking_submitted_subject", {
         title: this.calEvent.title,
