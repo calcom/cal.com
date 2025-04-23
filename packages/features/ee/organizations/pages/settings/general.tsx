@@ -1,11 +1,8 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
@@ -45,43 +42,22 @@ interface GeneralViewProps {
   localeProp: string;
 }
 
-const OrgGeneralView = () => {
+interface OrgGeneralViewProps {
+  currentOrg: NonNullable<RouterOutputs["viewer"]["organizations"]["listCurrent"]>;
+  isAdminOrOwner: boolean;
+  localeProp: string;
+}
+
+const OrgGeneralView = ({ currentOrg, isAdminOrOwner, localeProp }: OrgGeneralViewProps) => {
   const { t } = useLocale();
   const router = useRouter();
-  const session = useSession();
-  const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
-
-  const {
-    data: currentOrg,
-    isPending,
-    error,
-  } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {});
-  const { data: user } = trpc.viewer.me.get.useQuery();
-
-  useEffect(
-    function refactorMeWithoutEffect() {
-      if (error) {
-        router.replace("/enterprise");
-      }
-    },
-    [error]
-  );
-
-  if (isPending) return <SkeletonLoader />;
-  if (!currentOrg) {
-    return null;
-  }
 
   return (
     <LicenseRequired>
-      <GeneralView
-        currentOrg={currentOrg}
-        isAdminOrOwner={isAdminOrOwner}
-        localeProp={user?.locale ?? "en"}
-      />
+      <GeneralView currentOrg={currentOrg} isAdminOrOwner={isAdminOrOwner} localeProp={localeProp} />
 
-      <LockEventTypeSwitch currentOrg={currentOrg} isAdminOrOwner={!!isAdminOrOwner} />
-      <NoSlotsNotificationSwitch currentOrg={currentOrg} isAdminOrOwner={!!isAdminOrOwner} />
+      <LockEventTypeSwitch currentOrg={currentOrg} isAdminOrOwner={isAdminOrOwner} />
+      <NoSlotsNotificationSwitch currentOrg={currentOrg} isAdminOrOwner={isAdminOrOwner} />
     </LicenseRequired>
   );
 };
