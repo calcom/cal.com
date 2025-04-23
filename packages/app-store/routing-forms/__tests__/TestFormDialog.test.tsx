@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import type { Mock } from "vitest";
 import { vi } from "vitest";
 
-import { TestFormDialog } from "../components/SingleForm";
+import { TestFormRenderer } from "../components/_components/TestForm";
 import { findMatchingRoute } from "../lib/processRoute";
 
 vi.mock("../lib/processRoute", () => ({
@@ -180,8 +180,9 @@ describe("TestFormDialog", () => {
 
   it("renders the dialog when open", () => {
     render(
-      <TestFormDialog
-        form={mockSubTeamForm}
+      <TestFormRenderer
+        isMobile={true}
+        testForm={mockSubTeamForm}
         isTestPreviewOpen={true}
         setIsTestPreviewOpen={() => {
           return;
@@ -195,8 +196,9 @@ describe("TestFormDialog", () => {
 
   it("doesn't render the dialog when closed", () => {
     render(
-      <TestFormDialog
-        form={mockSubTeamForm}
+      <TestFormRenderer
+        isMobile={true}
+        testForm={mockSubTeamForm}
         isTestPreviewOpen={false}
         setIsTestPreviewOpen={() => {
           return;
@@ -209,8 +211,9 @@ describe("TestFormDialog", () => {
 
   it("renders form fields", () => {
     render(
-      <TestFormDialog
-        form={mockSubTeamForm}
+      <TestFormRenderer
+        isMobile={true}
+        testForm={mockSubTeamForm}
         isTestPreviewOpen={true}
         setIsTestPreviewOpen={() => {
           return;
@@ -226,8 +229,9 @@ describe("TestFormDialog", () => {
     it("submits the form and shows test results for Custom Page", async () => {
       mockCustomPageMessageMatchingRoute();
       render(
-        <TestFormDialog
-          form={form}
+        <TestFormRenderer
+          isMobile={true}
+          testForm={form}
           isTestPreviewOpen={true}
           setIsTestPreviewOpen={() => {
             return;
@@ -245,8 +249,9 @@ describe("TestFormDialog", () => {
     it("submits the form and shows test results for Event Type", async () => {
       mockEventTypeRedirectUrlMatchingRoute();
       render(
-        <TestFormDialog
-          form={form}
+        <TestFormRenderer
+          isMobile={true}
+          testForm={form}
           isTestPreviewOpen={true}
           setIsTestPreviewOpen={() => {
             return;
@@ -275,8 +280,9 @@ describe("TestFormDialog", () => {
         checkedFallback: false,
       });
       render(
-        <TestFormDialog
-          form={form}
+        <TestFormRenderer
+          isMobile={true}
+          testForm={form}
           isTestPreviewOpen={true}
           setIsTestPreviewOpen={() => {
             return;
@@ -305,8 +311,9 @@ describe("TestFormDialog", () => {
         fallbackWarnings: ["Fallback-Error-1", "Fallback-Error-2"],
       });
       render(
-        <TestFormDialog
-          form={form}
+        <TestFormRenderer
+          isMobile={true}
+          testForm={form}
           isTestPreviewOpen={true}
           setIsTestPreviewOpen={() => {
             return;
@@ -331,8 +338,9 @@ describe("TestFormDialog", () => {
         fallbackWarnings: null,
       });
       render(
-        <TestFormDialog
-          form={form}
+        <TestFormRenderer
+          isMobile={true}
+          testForm={form}
           isTestPreviewOpen={true}
           setIsTestPreviewOpen={() => {
             return;
@@ -357,8 +365,9 @@ describe("TestFormDialog", () => {
         fallbackWarnings: null,
       });
       render(
-        <TestFormDialog
-          form={form}
+        <TestFormRenderer
+          isMobile={true}
+          testForm={form}
           isTestPreviewOpen={true}
           setIsTestPreviewOpen={() => {
             return;
@@ -380,7 +389,7 @@ describe("TestFormDialog", () => {
     it("submits the form and shows test results for Custom Page", async () => {
       mockCustomPageMessageMatchingRoute();
       render(
-        <TestFormDialog
+        <TestFormRenderer
           form={mockRegularTeamForm}
           isTestPreviewOpen={true}
           setIsTestPreviewOpen={() => {
@@ -399,8 +408,9 @@ describe("TestFormDialog", () => {
     it("submits the form and shows test results for Event Type", async () => {
       mockEventTypeRedirectUrlMatchingRoute();
       render(
-        <TestFormDialog
-          form={form}
+        <TestFormRenderer
+          isMobile={true}
+          testForm={form}
           isTestPreviewOpen={true}
           setIsTestPreviewOpen={() => {
             return;
@@ -420,8 +430,9 @@ describe("TestFormDialog", () => {
   it("closes the dialog when close button is clicked", () => {
     const setIsTestPreviewOpen = vi.fn();
     render(
-      <TestFormDialog
-        form={mockSubTeamForm}
+      <TestFormRenderer
+        isMobile={true}
+        testForm={mockSubTeamForm}
         isTestPreviewOpen={true}
         setIsTestPreviewOpen={setIsTestPreviewOpen}
       />
