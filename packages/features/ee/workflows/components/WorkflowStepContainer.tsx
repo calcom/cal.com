@@ -914,7 +914,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     title={t("translate_workflow_button")}
                     checked={!!autoTranslateWorkflowEnabled}
                     onCheckedChange={(value) => {
-                      console.log("value", value);
                       form.setValue("autoTranslateWorkflowEnabled", value, { shouldDirty: true });
                     }}
                     disabled={!props.user.organizationId}

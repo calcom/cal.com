@@ -17,6 +17,10 @@ export async function getTranslatedWorkflowContent(args: { workflowStepId?: numb
         in: [WorkflowStepTranslatedField.WORKFLOW_SUBJECT, WorkflowStepTranslatedField.WORKFLOW_BODY],
       },
     },
+    select: {
+      field: true,
+      translatedText: true,
+    },
   });
 
   if (!translations.length) return { translatedSubject: "", translatedBody: "" };
