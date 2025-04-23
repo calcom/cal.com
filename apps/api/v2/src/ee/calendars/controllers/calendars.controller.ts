@@ -52,7 +52,7 @@ import {
   APPLE_CALENDAR,
   CREDENTIAL_CALENDARS,
 } from "@calcom/platform-constants";
-import { ApiResponse, CalendarBusyTimesInput } from "@calcom/platform-types";
+import { ApiResponse, CalendarBusyTimesInput, CreateCalendarCredentialsInput } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/calendars",
@@ -227,7 +227,7 @@ export class CalendarsController {
   async syncCredentials(
     @GetUser() user: User,
     @Param("calendar") calendar: string,
-    @Body() body: { username: string; password: string }
+    @Body() body: CreateCalendarCredentialsInput
   ): Promise<{ status: string }> {
     const { username, password } = body;
 
