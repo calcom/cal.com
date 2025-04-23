@@ -73,12 +73,14 @@ export const TestForm = ({
   showAllData = true,
   renderFooter,
   isDialog = false,
+  onClose: onCloseProp,
 }: {
   form: UptoDateForm | RoutingForm;
   supportsTeamMembersMatchingLogic: boolean;
   showAllData?: boolean;
   renderFooter?: (onClose: () => void, onSubmit: () => void, isValid: boolean) => React.ReactNode;
   isDialog?: boolean;
+  onClose?: () => void;
 }) => {
   const { t } = useLocale();
   const [response, setResponse] = useState<FormResponse>({});
@@ -87,6 +89,7 @@ export const TestForm = ({
   const searchParams = useCompatSearchParams();
   const [membersMatchResult, setMembersMatchResult] = useState<MembersMatchResultType | null>(null);
   const [showResults, setShowResults] = useState(false);
+  const [formKey, setFormKey] = useState<number>(0);
 
   const areRequiredFieldsFilled = useMemo(() => {
     if (!form.fields) return true;
@@ -146,7 +149,16 @@ export const TestForm = ({
     setChosenRoute(null);
     setResponse({});
     setShowResults(false);
+    onCloseProp?.();
   };
+
+  function resetForm() {
+    setChosenRoute(null);
+    setResponse({});
+    setShowResults(false);
+    // This is a hack to force the form to reset RAQB doesnt seem to be resetting the form when the form is re-rendered
+    setFormKey((prevKey) => prevKey + 1);
+  }
 
   const findTeamMembersMatchingAttributeLogicMutation =
     trpc.viewer.routingForms.findTeamMembersMatchingAttributeLogicOfRoute.useMutation({
@@ -181,7 +193,15 @@ export const TestForm = ({
             ) : (
               <div className="mb-6 flex items-center justify-between">
                 <h3 className="text-emphasis text-xl font-semibold">{t("preview")}</h3>
-                <div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    color="secondary"
+                    onClick={resetForm}
+                    variant="icon"
+                    StartIcon="refresh-cw"
+                    size="sm">
+                    <span className="sr-only">{t("reset")}</span>
+                  </Button>
                   <Button color="secondary" onClick={onClose} variant="icon" StartIcon="x" size="sm">
                     <span className="sr-only">{t("close")}</span>
                   </Button>
@@ -189,6 +209,7 @@ export const TestForm = ({
               </div>
             )}
             <FormView
+              key={formKey}
               form={form}
               response={response}
               setResponse={setResponse}
@@ -208,7 +229,15 @@ export const TestForm = ({
             ) : (
               <div className="mb-6 flex items-center justify-between">
                 <h3 className="text-emphasis text-xl font-semibold">{t("results")}</h3>
-                <div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    color="secondary"
+                    onClick={resetForm}
+                    variant="icon"
+                    StartIcon="refresh-cw"
+                    size="sm">
+                    <span className="sr-only">{t("reset")}</span>
+                  </Button>
                   <Button color="secondary" onClick={onClose} variant="icon" StartIcon="x" size="sm">
                     <span className="sr-only">{t("close")}</span>
                   </Button>
@@ -248,7 +277,11 @@ export const TestFormRenderer = ({
     if (isTestPreviewOpen) {
       return (
         <div className="border-muted bg-muted h-full border-l p-6">
-          <TestForm form={testForm} supportsTeamMembersMatchingLogic={isSubTeamForm} />
+          <TestForm
+            form={testForm}
+            supportsTeamMembersMatchingLogic={isSubTeamForm}
+            onClose={() => setIsTestPreviewOpen(false)}
+          />
         </div>
       );
     }

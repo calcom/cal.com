@@ -3147,5 +3147,6 @@
   "email_survey_triggered_by_workflow": "This survey was triggered by a Workflow in Cal.",
   "sms_workflow_consent": "By entering your phone number you consent to receive SMS messages for this event. SMS rates may apply.",
   "routing_preview_more_info_found_insights": "More info can be found in Routing Insights",
+  "results": "Results",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
