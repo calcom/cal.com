@@ -132,14 +132,17 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   let translatedBody = emailBody;
 
   if (attendeeToBeUsedInMail?.language?.locale && workflowStepId) {
-    const { translatedSubject: translatedEmailSubject, translatedBody: translatedEmailBody } =
-      await getTranslatedWorkflowContent({
-        workflowStepId,
-        targetLocale: attendeeToBeUsedInMail.language.locale,
-      });
-
-    translatedSubject = translatedEmailSubject || emailSubject;
-    translatedBody = translatedEmailBody || emailBody;
+    try {
+      const { translatedSubject: translatedEmailSubject, translatedBody: translatedEmailBody } =
+        await getTranslatedWorkflowContent({
+          workflowStepId,
+          targetLocale: attendeeToBeUsedInMail.language.locale,
+        });
+      translatedSubject = translatedEmailSubject || emailSubject;
+      translatedBody = translatedEmailBody || emailBody;
+    } catch (error) {
+      log.error(`Error translating workflow step ${workflowStepId} with error ${error}`);
+    }
   }
 
   let emailContent = {

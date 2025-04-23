@@ -508,7 +508,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               workflowStepId: step.id,
               userId: ctx.user.id,
               reminderBody: step.reminderBody,
-              emailSubject: step.emailSubject,
+              emailSubject: !isSMSOrWhatsappAction(step.action) ? step.emailSubject : null,
               userLocale: ctx.user.locale || "en",
             });
           }
