@@ -15023,7 +15023,7 @@
           },
           "slug": {
             "type": "string",
-            "description": "Team slug",
+            "description": "Team slug in kebab-case - if not provided will be generated automatically based on name.",
             "example": "caltel"
           },
           "logoUrl": {
@@ -17750,7 +17750,7 @@
           },
           "slug": {
             "type": "string",
-            "description": "Team slug",
+            "description": "Team slug in kebab-case - if not provided will be generated automatically based on name.",
             "example": "caltel"
           },
           "logoUrl": {
@@ -18545,6 +18545,11 @@
             "description": "Name of the organization",
             "example": "CalTeam"
           },
+          "slug": {
+            "type": "string",
+            "description": "Organization slug in kebab-case - if not provided will be generated automatically based on name.",
+            "example": "cal-tel"
+          },
           "metadata": {
             "type": "object",
             "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
@@ -18564,6 +18569,9 @@
           "name": {
             "type": "string",
             "minLength": 1
+          },
+          "slug": {
+            "type": "string"
           },
           "metadata": {
             "type": "object",
@@ -18600,6 +18608,9 @@
           "name": {
             "type": "string",
             "minLength": 1
+          },
+          "slug": {
+            "type": "string"
           },
           "metadata": {
             "type": "object",
