@@ -30,6 +30,7 @@ import {
 } from "../../lib/dateRange";
 import type { FilterableColumn, DateRangeFilterOptions } from "../../lib/types";
 import { ZDateRangeFilterValue, ColumnFilterType } from "../../lib/types";
+import { useFilterPopoverOpen } from "./useFilterPopoverOpen";
 
 type DateRangeFilterProps = {
   column: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }>;
@@ -38,6 +39,7 @@ type DateRangeFilterProps = {
 };
 
 export const DateRangeFilter = ({ column, options, showClearButton = false }: DateRangeFilterProps) => {
+  const { open, onOpenChange } = useFilterPopoverOpen(column.id);
   const filterValue = useFilterValue(column.id, ZDateRangeFilterValue);
   const { updateFilter, removeFilter } = useDataTable();
   const range = options?.range ?? "past";
@@ -136,7 +138,7 @@ export const DateRangeFilter = ({ column, options, showClearButton = false }: Da
   }
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
         <Button
           color="secondary"
