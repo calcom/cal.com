@@ -8,7 +8,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import TeamsView, { TeamsCTA } from "~/teams/teams-view";
+import { ServerTeamsListing } from "./server-page";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -30,13 +30,11 @@ const ServerPage = async ({ searchParams: _searchParams }: ServerPageProps) => {
   }
 
   const t = await getTranslate();
+  const { Main, CTA } = await ServerTeamsListing({ searchParams });
 
   return (
-    <ShellMainAppDir
-      CTA={<TeamsCTA />}
-      heading={t("teams")}
-      subtitle={t("create_manage_teams_collaborative")}>
-      <TeamsView />
+    <ShellMainAppDir CTA={CTA} heading={t("teams")} subtitle={t("create_manage_teams_collaborative")}>
+      {Main}
     </ShellMainAppDir>
   );
 };
