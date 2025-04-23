@@ -689,7 +689,7 @@ export default function Success(props: PageProps) {
                             <div className="col-span-2 mb-2 ml-3 mt-9 sm:ml-0">
                               <button
                                 data-testid="utm-dropdown"
-                                onClick={(e) => {
+                                onClick={() => {
                                   setShowUtmParams((prev) => !prev);
                                 }}
                                 className="font-medium transition hover:text-blue-500 focus:outline-none">
