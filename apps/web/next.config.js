@@ -498,7 +498,7 @@ const nextConfig = {
           headers: [CORP_CROSS_ORIGIN_HEADER],
         },
         {
-          source: "/icons/sprite.svg(\\?v=[0-9a-zA-Z\\-]+)?",
+          source: "/icons/sprite.svg(\\?v=[0-9a-zA-Z\\-\\.]+)?",
           headers: [
             CORP_CROSS_ORIGIN_HEADER,
             ACCESS_CONTROL_ALLOW_ORIGIN_HEADER,
