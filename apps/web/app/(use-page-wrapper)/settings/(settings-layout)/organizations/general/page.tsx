@@ -31,8 +31,10 @@ const Page = async () => {
   const ctx = await createContextInner({ session, locale: session.user.locale ?? "en" });
   const caller = appRouter.createCaller(ctx);
 
-  const user = await caller.viewer.me.get();
-  const currentOrg = await caller.viewer.organizations.listCurrent();
+  const [user, currentOrg] = await Promise.all([
+    caller.viewer.me.get(),
+    caller.viewer.organizations.listCurrent(),
+  ]);
 
   if (!currentOrg) {
     redirect("/getting-started");
