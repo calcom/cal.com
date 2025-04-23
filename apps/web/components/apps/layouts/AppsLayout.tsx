@@ -1,4 +1,3 @@
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import React from "react";
@@ -11,13 +10,12 @@ type AppsLayoutProps = {
   children: React.ReactNode;
   actions?: (className?: string) => JSX.Element;
   emptyStore?: boolean;
+  isAdmin?: boolean;
 } & Omit<ComponentProps<typeof Shell>, "actions">;
 
-export default function AppsLayout({ children, actions, emptyStore, ...rest }: AppsLayoutProps) {
+export default function AppsLayout({ children, actions, emptyStore, isAdmin, ...rest }: AppsLayoutProps) {
   const { t } = useLocale();
-  const session = useSession();
   const router = useRouter();
-  const isAdmin = session.data?.user.role === "ADMIN";
 
   if (session.status === "loading") return <></>;
   return (
