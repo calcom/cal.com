@@ -4,6 +4,7 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import { notFound } from "next/navigation";
 
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 
@@ -30,10 +31,14 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
       createRouterCaller(availabilityRouter),
     ]);
 
-    const me = await meCaller.get();
+    const [me, availabilities] = await Promise.all([meCaller.get(), availabilityCaller.list()]);
     const organizationId = me.organization?.id ?? me.profiles[0]?.organizationId;
-    const isTeamView = searchParams?.type === "team";
-    const availabilities = !isTeamView ? await availabilityCaller.list() : null;
+    const isOrgPrivate = organizationId
+      ? await OrganizationRepository.checkIfPrivate({
+          orgId: organizationId,
+        })
+      : false;
+    const canViewTeamAvailability = me.organization?.isOrgAdmin || !isOrgPrivate;
 
     return (
       <ShellMainAppDir
@@ -43,11 +48,11 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
           <AvailabilityCTA
             toggleGroupOptions={[
               { value: "mine", label: t("my_availability") },
-              { value: "team", label: t("team_availability") },
+              ...(canViewTeamAvailability ? [{ value: "team", label: t("team_availability") }] : []),
             ]}
           />
         }>
-        {isTeamView ? (
+        {searchParams?.type === "team" && canViewTeamAvailability ? (
           <AvailabilitySliderTable userTimeFormat={me?.timeFormat ?? null} isOrg={!!organizationId} />
         ) : (
           <AvailabilityList availabilities={availabilities ?? { schedules: [] }} me={me} />
