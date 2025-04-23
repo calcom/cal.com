@@ -80,6 +80,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       assignAllTeamMembers: true,
       isRRWeightsEnabled: true,
       beforeEventBuffer: true,
+      customReplyToEmail: true,
       afterEventBuffer: true,
       parentId: true,
       parent: {
