@@ -39,6 +39,7 @@ export type FormValues = {
   time?: number;
   timeUnit?: TimeUnit;
   selectAll: boolean;
+  autoTranslateWorkflowEnabled: boolean;
 };
 
 type PageProps = {
@@ -195,7 +196,6 @@ function WorkflowPage({
         }
         return updatedStep;
       });
-
       form.setValue("name", workflowData.name);
       form.setValue("steps", steps);
       form.setValue("trigger", workflowData.trigger);
@@ -203,6 +203,7 @@ function WorkflowPage({
       form.setValue("timeUnit", workflowData.timeUnit || undefined);
       form.setValue("activeOn", activeOn || []);
       form.setValue("selectAll", workflowData.isActiveOnAll ?? false);
+      form.setValue("autoTranslateWorkflowEnabled", workflowData.autoTranslateWorkflowEnabled ?? false);
       setIsAllDataLoaded(true);
     }
   }
@@ -308,6 +309,7 @@ function WorkflowPage({
                 time: values.time || null,
                 timeUnit: values.timeUnit || null,
                 isActiveOnAll: values.selectAll || false,
+                autoTranslateWorkflowEnabled: values.autoTranslateWorkflowEnabled || false,
               });
               utils.viewer.workflows.getVerifiedNumbers.invalidate();
             }

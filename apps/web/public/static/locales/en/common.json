@@ -2910,6 +2910,7 @@
   "filter_operator_is_empty": "Is empty",
   "filter_operator_not_empty": "Not empty",
   "translate_description_button": "Translate title/description to the visitor's browser language using AI",
+  "translate_workflow_button": "Translate workflow to the visitor's browser language using AI",
   "rr_distribution_method": "Distribution",
   "rr_distribution_method_description": "Allows for optimising distribution for maximum availability or to aim for a more balanced assignment.",
   "rr_distribution_method_availability_title": "Maximize availability",

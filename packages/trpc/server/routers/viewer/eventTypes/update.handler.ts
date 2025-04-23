@@ -93,6 +93,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       description: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
+      autoTranslateDescriptionEnabled: true,
       fieldTranslations: {
         select: {
           field: true,
@@ -529,7 +530,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       .length === 0;
   const title = newTitle ?? (hasNoTitleTranslations ? eventType.title : undefined);
 
-  if (ctx.user.organizationId && autoTranslateDescriptionEnabled && (title || description)) {
+  if (
+    ctx.user.organizationId &&
+    (autoTranslateDescriptionEnabled || eventType.autoTranslateDescriptionEnabled) &&
+    (title || description)
+  ) {
     await tasker.create("translateEventTypeData", {
       eventTypeId: id,
       description,

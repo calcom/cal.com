@@ -18,6 +18,7 @@ import {
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { getTranslatedWorkflowContent } from "../getTranslatedWorkflowContent";
 import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
 import { getBatchId, sendSendgridMail } from "./providers/sendgridProvider";
 import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
@@ -127,13 +128,27 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       break;
   }
 
+  let translatedSubject = emailSubject;
+  let translatedBody = emailBody;
+
+  if (attendeeToBeUsedInMail?.language?.locale && workflowStepId) {
+    const { translatedSubject: translatedEmailSubject, translatedBody: translatedEmailBody } =
+      await getTranslatedWorkflowContent({
+        workflowStepId,
+        targetLocale: attendeeToBeUsedInMail.language.locale,
+      });
+
+    translatedSubject = translatedEmailSubject || emailSubject;
+    translatedBody = translatedEmailBody || emailBody;
+  }
+
   let emailContent = {
-    emailSubject,
-    emailBody: `<body style="white-space: pre-wrap;">${emailBody}</body>`,
+    emailSubject: translatedSubject,
+    emailBody: `<body style="white-space: pre-wrap;">${translatedBody}</body>`,
   };
   const bookerUrl = evt.bookerUrl ?? WEBSITE_URL;
 
-  if (emailBody) {
+  if (translatedBody) {
     const variables: VariablesType = {
       eventName: evt.title || "",
       organizerName: evt.organizer.name,
@@ -164,10 +179,15 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
         ? attendeeToBeUsedInMail.language?.locale
         : evt.organizer.language.locale;
 
-    const emailSubjectTemplate = customTemplate(emailSubject, variables, locale, evt.organizer.timeFormat);
+    const emailSubjectTemplate = customTemplate(
+      translatedSubject,
+      variables,
+      locale,
+      evt.organizer.timeFormat
+    );
     emailContent.emailSubject = emailSubjectTemplate.text;
     emailContent.emailBody = customTemplate(
-      emailBody,
+      translatedBody,
       variables,
       locale,
       evt.organizer.timeFormat,

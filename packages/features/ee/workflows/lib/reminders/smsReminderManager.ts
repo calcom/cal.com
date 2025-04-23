@@ -6,12 +6,17 @@ import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
-import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import {
+  WorkflowActions,
+  WorkflowMethods,
+  WorkflowTemplates,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
 import { getSenderId } from "../alphanumericSenderIdSupport";
+import { getTranslatedWorkflowContent } from "../getTranslatedWorkflowContent";
 import type { ScheduleReminderArgs } from "./emailReminderManager";
 import * as twilio from "./providers/twilioProvider";
 import type { VariablesType } from "./templates/customTemplate";
@@ -151,7 +156,12 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       ? attendeeToBeUsedInSMS.language?.locale
       : evt.organizer.language.locale;
 
-  let smsMessage = message;
+  const { translatedBody: translatedSmsMessage } = await getTranslatedWorkflowContent({
+    workflowStepId,
+    targetLocale: locale,
+  });
+
+  let smsMessage = translatedSmsMessage || message;
 
   if (smsMessage) {
     const urls = {

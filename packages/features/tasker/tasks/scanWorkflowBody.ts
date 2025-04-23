@@ -4,6 +4,7 @@ import z from "zod";
 
 import { getTemplateBodyForAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import compareReminderBodyToTemplate from "@calcom/features/ee/workflows/lib/compareReminderBodyToTemplate";
+import tasker from "@calcom/features/tasker";
 import { lockUser, LockReason } from "@calcom/lib/autoLock";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -122,6 +123,15 @@ export async function scanWorkflowBody(payload: string) {
         data: {
           verifiedAt: new Date(),
         },
+      });
+
+      // Trigger translation task if not spam
+      await tasker.create("translateWorkflowStepData", {
+        workflowStepId: workflowStep.id,
+        userId: userId,
+        reminderBody: workflowStep.reminderBody,
+        emailSubject: workflowStep.emailSubject,
+        userLocale: workflowStep.workflow.user?.locale || "en",
       });
     }
   }

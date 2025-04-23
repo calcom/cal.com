@@ -78,6 +78,7 @@ export class WorkflowRepository {
         userId: true,
         teamId: true,
         isActiveOnAll: true,
+        autoTranslateWorkflowEnabled: true,
         team: {
           select: {
             id: true,
