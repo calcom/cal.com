@@ -226,9 +226,9 @@ export function Header({
   const watchedName = form.watch("name");
 
   return (
-    <div className="bg-default border-muted flex flex-col border-b px-4 py-3 lg:grid lg:grid-cols-3 lg:items-center">
+    <div className="bg-default flex flex-col lg:grid lg:grid-cols-3 lg:items-center">
       {/* Left - Back button and title */}
-      <div className="flex items-center gap-2">
+      <div className="border-muted flex items-center gap-2 border-b px-4 py-3">
         <Button color="minimal" variant="icon" StartIcon="arrow-left" />
         <div className="flex min-w-0 items-center">
           <span className="text-subtle min-w-content text-sm font-semibold leading-none">
@@ -258,7 +258,7 @@ export function Header({
       </div>
 
       {/* Mobile/Tablet layout - Second row with toggle group and actions on the same row */}
-      <div className="mt-3 flex items-center justify-between lg:hidden">
+      <div className="border-muted flex items-center justify-between border-b px-4 py-3 lg:hidden">
         {/* Navigation Tabs - Left aligned */}
         <div className="flex">
           <ToggleGroup
@@ -302,7 +302,7 @@ export function Header({
       </div>
 
       {/* Desktop layout - Toggle group in center column */}
-      <div className="hidden justify-center lg:flex">
+      <div className="border-muted hidden justify-center border-b px-4 py-3 lg:flex">
         <ToggleGroup
           defaultValue={getCurrentPage()}
           value={getCurrentPage()}
@@ -332,7 +332,7 @@ export function Header({
       </div>
 
       {/* Desktop layout - Actions in right column */}
-      <div className="hidden justify-end lg:flex">
+      <div className="border-muted hidden justify-end border-b px-4 py-3 lg:flex">
         <Actions
           form={routingForm}
           setIsTestPreviewOpen={setIsTestPreviewOpen}
