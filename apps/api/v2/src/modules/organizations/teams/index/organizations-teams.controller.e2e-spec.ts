@@ -245,6 +245,32 @@ describe("Organizations Team Endpoints", () => {
         });
     });
 
+    it("should create the team of the org with automatically set slug", async () => {
+      const teamName = `Organizations Teams Automatic Slug`;
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/teams`)
+        .send({
+          name: teamName,
+          bio: "This is our test team created via API",
+        } satisfies CreateOrgTeamDto)
+        .expect(201)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<Team> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          teamCreatedViaApi = responseBody.data;
+          expect(teamCreatedViaApi.name).toEqual(teamName);
+          expect(teamCreatedViaApi.slug).toEqual("organizations-teams-automatic-slug");
+          expect(teamCreatedViaApi.bio).toEqual("This is our test team created via API");
+          expect(teamCreatedViaApi.parentId).toEqual(org.id);
+          const membership = await membershipsRepositoryFixture.getUserMembershipByTeamId(
+            user.id,
+            teamCreatedViaApi.id
+          );
+          expect(membership?.role ?? "").toEqual("OWNER");
+          expect(membership?.accepted).toEqual(true);
+        });
+    });
+
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
       await teamsRepositoryFixture.delete(team.id);
