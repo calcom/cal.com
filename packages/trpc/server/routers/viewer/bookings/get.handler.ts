@@ -101,7 +101,9 @@ export async function getBookings({
         seatsShowAttendees: true,
         seatsShowAvailabilityCount: true,
         eventTypeColor: true,
+        customReplyToEmail: true,
         allowReschedulingPastBookings: true,
+        hideOrganizerEmail: true,
         disableCancelling: true,
         disableRescheduling: true,
         schedulingType: true,
@@ -331,6 +333,26 @@ export async function getBookings({
   }
   if (filters?.beforeCreatedDate) {
     andConditions.push({ createdAt: { lte: dayjs.utc(filters.beforeCreatedDate).toDate() } });
+  }
+
+  // All the possible date filter keys
+  const dateFilterKeys = [
+    "afterStartDate",
+    "beforeEndDate",
+    "afterUpdatedDate",
+    "beforeUpdatedDate",
+    "afterCreatedDate",
+    "beforeCreatedDate",
+  ] as const;
+
+  const hasAnyDateFilter = dateFilterKeys.some((key) => filters?.[key]);
+
+  if (!hasAnyDateFilter) {
+    // is ORG/TEAM admin/owner
+    if (userIdsWhereUserIsAdminOrOwner?.length || userEmailsWhereUserIsAdminOrOwner?.length) {
+      const oneMonthAgo = dayjs.utc().subtract(1, "month").startOf("day").toDate();
+      andConditions.push({ startTime: { gte: oneMonthAgo } });
+    }
   }
 
   const whereClause = {
