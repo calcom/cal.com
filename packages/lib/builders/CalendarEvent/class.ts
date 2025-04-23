@@ -35,6 +35,7 @@ class CalendarEventClass implements CalendarEvent {
   additionalNotes?: string | null | undefined;
   recurrence?: string;
   iCalUID?: string | null;
+  customReplyToEmail?: string | null;
 
   constructor(initProps?: CalendarEvent) {
     // If more parameters are given we update this

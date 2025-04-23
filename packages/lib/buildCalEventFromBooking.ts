@@ -37,6 +37,7 @@ type EventType = {
   seatsPerTimeSlot: number | null;
   seatsShowAttendees: boolean | null;
   hideOrganizerEmail: boolean;
+  customReplyToEmail: string | null;
 };
 
 type Booking = {
@@ -106,5 +107,6 @@ export const buildCalEventFromBooking = async ({
       : [],
     seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
+    customReplyToEmail: booking.eventType?.customReplyToEmail,
   };
 };

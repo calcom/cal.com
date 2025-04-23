@@ -129,6 +129,7 @@ export const Handler = async ({ ctx, input }: Options) => {
           hideOrganizerEmail: true,
           customInputs: true,
           parentId: true,
+          customReplyToEmail: true,
           team: {
             select: {
               id: true,
@@ -210,6 +211,7 @@ export const Handler = async ({ ctx, input }: Options) => {
     requiresConfirmation: false,
     eventTypeId: eventType?.id,
     videoCallData,
+    customReplyToEmail: eventType?.customReplyToEmail,
     team: !!updatedBooking.eventType?.team
       ? {
           name: updatedBooking.eventType.team.name,

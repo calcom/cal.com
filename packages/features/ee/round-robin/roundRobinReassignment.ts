@@ -319,6 +319,7 @@ export const roundRobinReassignment = async ({
       booking,
     }),
     hideOrganizerEmail: eventType.hideOrganizerEmail,
+    customReplyToEmail: eventType?.customReplyToEmail,
     location: bookingLocation,
     ...(platformClientParams ? platformClientParams : {}),
   };

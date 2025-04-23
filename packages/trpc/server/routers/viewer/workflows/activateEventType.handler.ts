@@ -205,6 +205,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
             select: {
               schedulingType: true,
               slug: true,
+              customReplyToEmail: true,
               hosts: {
                 select: {
                   user: {
@@ -261,6 +262,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
             hosts: booking.eventType?.hosts,
           },
           metadata: booking.metadata,
+          customReplyToEmail: booking.eventType?.customReplyToEmail,
         };
         for (const step of eventTypeWorkflow.steps) {
           if (

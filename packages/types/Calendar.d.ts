@@ -219,6 +219,7 @@ export interface CalendarEvent {
   oneTimePassword?: string | null;
   delegationCredentialId?: string | null;
   domainWideDelegationCredentialId?: string | null;
+  customReplyToEmail?: string | null;
 }
 
 export interface EntryPoint {

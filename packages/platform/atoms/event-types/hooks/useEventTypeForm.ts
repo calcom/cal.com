@@ -128,6 +128,7 @@ export const useEventTypeForm = ({
       isRRWeightsEnabled: eventType.isRRWeightsEnabled,
       maxLeadThreshold: eventType.maxLeadThreshold,
       useEventLevelSelectedCalendars: eventType.useEventLevelSelectedCalendars,
+      customReplyToEmail: eventType.customReplyToEmail || null,
     };
   }, [eventType, periodDates]);
 
@@ -281,6 +282,7 @@ export const useEventTypeForm = ({
       durationLimits,
       recurringEvent,
       eventTypeColor,
+      customReplyToEmail,
       locations,
       metadata,
       customInputs,
@@ -358,6 +360,7 @@ export const useEventTypeForm = ({
       onlyShowFirstAvailableSlot,
       durationLimits,
       eventTypeColor,
+      customReplyToEmail,
       seatsPerTimeSlot,
       seatsShowAttendees,
       seatsShowAvailabilityCount,

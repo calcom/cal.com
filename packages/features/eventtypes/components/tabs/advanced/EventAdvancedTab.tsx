@@ -100,6 +100,7 @@ export type EventAdvancedTabCustomClassNames = {
     warningText?: string;
   };
   roundRobinReschedule?: SettingsToggleClassNames;
+  customReplyToEmail?: SettingsToggleClassNames;
   emailNotifications?: EmailNotificationToggleCustomClassNames;
 };
 
@@ -121,6 +122,7 @@ export type EventAdvancedTabProps = EventAdvancedBaseProps & {
     error: unknown;
   };
   showBookerLayoutSelector: boolean;
+  verifiedEmails?: string[];
 };
 
 type CalendarSettingsProps = {
@@ -400,6 +402,7 @@ export const EventAdvancedTab = ({
   showToast,
   showBookerLayoutSelector,
   customClassNames,
+  verifiedEmails,
 }: EventAdvancedTabProps) => {
   const isPlatform = useIsPlatform();
   const platformContext = useAtomsContext();
@@ -490,6 +493,7 @@ export const EventAdvancedTab = ({
   const multiplePrivateLinksLocked = shouldLockDisableProps("multiplePrivateLinks");
   const reschedulingPastBookingsLocked = shouldLockDisableProps("allowReschedulingPastBookings");
   const hideOrganizerEmailLocked = shouldLockDisableProps("hideOrganizerEmail");
+  const customReplyToEmailLocked = shouldLockDisableProps("customReplyToEmail");
 
   const disableCancellingLocked = shouldLockDisableProps("disableCancelling");
   const disableReschedulingLocked = shouldLockDisableProps("disableRescheduling");
@@ -507,6 +511,8 @@ export const EventAdvancedTab = ({
   const closeEventNameTip = () => setShowEventNameTip(false);
 
   const [isEventTypeColorChecked, setIsEventTypeColorChecked] = useState(!!eventType.eventTypeColor);
+
+  const customReplyToEmail = formMethods.watch("customReplyToEmail");
 
   const [eventTypeColorState, setEventTypeColorState] = useState(
     eventType.eventTypeColor || {
@@ -1022,6 +1028,52 @@ export const EventAdvancedTab = ({
           />
         )}
       />
+      {!isPlatform && (
+        <>
+          <Controller
+            name="customReplyToEmail"
+            render={({ field: { value, onChange } }) => (
+              <>
+                <SettingsToggle
+                  labelClassName={classNames("text-sm", customClassNames?.customReplyToEmail?.label)}
+                  toggleSwitchAtTheEnd={true}
+                  switchContainerClassName={classNames(
+                    "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                    !!value && "rounded-b-none",
+                    customClassNames?.customReplyToEmail?.container
+                  )}
+                  descriptionClassName={customClassNames?.customReplyToEmail?.description}
+                  childrenClassName={classNames("lg:ml-0", customClassNames?.customReplyToEmail?.children)}
+                  title={t("custom_reply_to_email_title")}
+                  {...customReplyToEmailLocked}
+                  data-testid="custom-reply-to-email"
+                  description={t("custom_reply_to_email_description")}
+                  checked={!!customReplyToEmail}
+                  onCheckedChange={(e) => {
+                    onChange(
+                      e
+                        ? customReplyToEmail || eventType.customReplyToEmail || verifiedEmails?.[0] || null
+                        : null
+                    );
+                  }}>
+                  <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                    <SelectField
+                      className="w-full"
+                      label={t("custom_reply_to_email_title")}
+                      required={!!customReplyToEmail}
+                      placeholder={t("select_verified_email")}
+                      data-testid="custom-reply-to-email-input"
+                      value={value ? { label: value, value } : undefined}
+                      onChange={(option) => onChange(option?.value || null)}
+                      options={verifiedEmails?.map((email) => ({ label: email, value: email })) || []}
+                    />
+                  </div>
+                </SettingsToggle>
+              </>
+            )}
+          />
+        </>
+      )}
       <Controller
         name="eventTypeColor"
         render={() => (
