@@ -1,8 +1,8 @@
 import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 import React from "react";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -13,26 +13,14 @@ type SettingsLayoutAppDirProps = Omit<SettingsLayoutProps, "currentOrg" | "other
 
 export default async function SettingsLayoutAppDir(props: SettingsLayoutAppDirProps) {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
-
-  const userId = session?.user?.id ?? -1;
-  const orgId = session?.user?.org?.id ?? -1;
-  let currentOrg = null;
-  let otherTeams = null;
-
-  try {
-    currentOrg = await OrganizationRepository.findCurrentOrg({ userId, orgId });
-  } catch (err) {}
-
-  try {
-    otherTeams = await OrganizationRepository.findTeamsInOrgIamNotPartOf({
-      userId,
-      parentId: orgId,
-    });
-  } catch (err) {}
+  const userId = session?.user?.id;
+  if (!userId) {
+    redirect("/auth/login");
+  }
 
   return (
     <>
-      <SettingsLayoutAppDirClient {...props} currentOrg={currentOrg} otherTeams={otherTeams} />
+      <SettingsLayoutAppDirClient {...props} />
     </>
   );
 }
