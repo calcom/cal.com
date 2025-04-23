@@ -54,8 +54,9 @@ const buildBaseWhereCondition = async ({
   isEmptyResponse?: boolean;
 }> => {
   let whereCondition: Prisma.BookingTimeStatusWhereInput = {};
+  const ANDConditions: Prisma.BookingTimeStatusWhereInput[] = [];
   // EventType Filter
-  if (eventTypeId) whereCondition.OR = [{ eventTypeId }, { eventParentId: eventTypeId }];
+  if (eventTypeId) ANDConditions.push({ OR: [{ eventTypeId }, { eventParentId: eventTypeId }] });
   // User/Member filter
   if (memberUserId) whereCondition.userId = memberUserId;
   if (userId) {
@@ -77,13 +78,9 @@ const buildBaseWhereCondition = async ({
       return {
         whereCondition: {
           ...whereCondition,
-          OR: [
-            ...(whereCondition.OR ?? []),
-            {
-              teamId: ctx.userOrganizationId,
-              isTeamBooking: true,
-            },
-          ],
+          teamId: ctx.userOrganizationId,
+          isTeamBooking: true,
+          ...(ANDConditions.length > 0 ? { AND: [...ANDConditions] } : {}),
         },
         isEmptyResponse: true,
       };
@@ -106,18 +103,23 @@ const buildBaseWhereCondition = async ({
     const userIdsFromOrg = usersFromOrg.map((u) => u.userId);
     whereCondition = {
       ...whereCondition,
-      OR: [
+      AND: [
+        ...ANDConditions,
         {
-          teamId: {
-            in: [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)],
-          },
-          isTeamBooking: true,
-        },
-        {
-          userId: {
-            in: userIdsFromOrg,
-          },
-          isTeamBooking: false,
+          OR: [
+            {
+              teamId: {
+                in: [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)],
+              },
+              isTeamBooking: true,
+            },
+            {
+              userId: {
+                in: userIdsFromOrg,
+              },
+              isTeamBooking: false,
+            },
+          ],
         },
       ],
     };
@@ -136,16 +138,21 @@ const buildBaseWhereCondition = async ({
     const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
     whereCondition = {
       ...whereCondition,
-      OR: [
+      AND: [
+        ...ANDConditions,
         {
-          teamId,
-          isTeamBooking: true,
-        },
-        {
-          userId: {
-            in: userIdsFromTeam,
-          },
-          isTeamBooking: false,
+          OR: [
+            {
+              teamId,
+              isTeamBooking: true,
+            },
+            {
+              userId: {
+                in: userIdsFromTeam,
+              },
+              isTeamBooking: false,
+            },
+          ],
         },
       ],
     };
