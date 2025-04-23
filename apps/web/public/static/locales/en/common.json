@@ -3147,5 +3147,9 @@
   "email_survey_triggered_by_workflow": "This survey was triggered by a Workflow in Cal.",
   "sms_workflow_consent": "By entering your phone number you consent to receive SMS messages for this event. SMS rates may apply.",
   "sms_opt_out_message": "Text STOP to opt-out of SMS messages",
+  "delete_booking_dialog_title": "Delete Booking",
+  "delete_booking_dialog_description": "Are you sure you want to delete this booking?",
+  "confirm_delete_booking": "Yes, delete booking",
+  "delete_booking_success": "Booking deleted successfully",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
