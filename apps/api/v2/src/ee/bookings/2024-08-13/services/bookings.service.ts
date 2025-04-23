@@ -156,6 +156,10 @@ export class BookingsService_2024_08_13 {
           );
         } else if (error.message === "Attempting to book a meeting in the past.") {
           throw new BadRequestException("Attempting to book a meeting in the past.");
+        } else if (error.message === "hosts_unavailable_for_booking") {
+          throw new BadRequestException(
+            "One of the hosts either already has booking at this time or is not available"
+          );
         }
       }
       throw error;
