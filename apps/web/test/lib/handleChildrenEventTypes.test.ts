@@ -483,6 +483,7 @@ describe("handleChildrenEventTypes", () => {
             deleteMany: {},
           },
           instantMeetingScheduleId: undefined,
+          customReplyToEmail: undefined,
         },
         where: {
           userId_parentId: {
