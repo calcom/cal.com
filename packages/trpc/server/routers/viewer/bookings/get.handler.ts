@@ -103,6 +103,7 @@ export async function getBookings({
         eventTypeColor: true,
         customReplyToEmail: true,
         allowReschedulingPastBookings: true,
+        hideOrganizerEmail: true,
         disableCancelling: true,
         disableRescheduling: true,
         schedulingType: true,
