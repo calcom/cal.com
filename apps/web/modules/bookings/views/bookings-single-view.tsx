@@ -690,7 +690,6 @@ export default function Success(props: PageProps) {
                               <button
                                 data-testid="utm-dropdown"
                                 onClick={(e) => {
-                                  e.stopPropagation();
                                   setShowUtmParams((prev) => !prev);
                                 }}
                                 className="font-medium transition hover:text-blue-500 focus:outline-none">
