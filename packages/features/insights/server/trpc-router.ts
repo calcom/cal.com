@@ -321,8 +321,6 @@ export const insightsRouter = router({
       },
     });
 
-    console.log("💡 TEST", JSON.stringify(r, null, 2));
-
     const { whereCondition: whereConditional } = r;
 
     const baseWhereCondition = {
