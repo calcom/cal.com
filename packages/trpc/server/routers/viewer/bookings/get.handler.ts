@@ -334,7 +334,7 @@ export async function getBookings({
     andConditions.push({ createdAt: { lte: dayjs.utc(filters.beforeCreatedDate).toDate() } });
   }
 
-  // Define the keys for all possible date filters you want to check
+  // All the possible date filter keys
   const dateFilterKeys = [
     "afterStartDate",
     "beforeEndDate",
