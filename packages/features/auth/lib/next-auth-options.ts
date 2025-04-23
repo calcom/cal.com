@@ -38,9 +38,11 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
-import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
+import type { MembershipRole } from "@calcom/prisma/enums";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
+import { moveUserToMatchingOrg } from "../../../../apps/web/pages/api/auth/verify-email";
 import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail";
 import { ErrorCode } from "./ErrorCode";
 import { dub } from "./dub";
@@ -79,23 +81,6 @@ export const checkIfUserBelongsToActiveTeam = <T extends UserTeams>(user: T) =>
 
     return metadata.success && metadata.data?.subscriptionId;
   });
-
-const checkIfUserShouldBelongToOrg = async (idP: IdentityProvider, email: string) => {
-  const [orgUsername, apexDomain] = email.split("@");
-  if (!ORGANIZATIONS_AUTOLINK || idP !== "GOOGLE") return { orgUsername, orgId: undefined };
-  const existingOrg = await prisma.team.findFirst({
-    where: {
-      organizationSettings: {
-        isOrganizationVerified: true,
-        orgAutoAcceptEmail: apexDomain,
-      },
-    },
-    select: {
-      id: true,
-    },
-  });
-  return { orgUsername, orgId: existingOrg?.id };
-};
 
 const providers: Provider[] = [
   CredentialsProvider({
@@ -974,31 +959,26 @@ export const getOptions = ({
           return `auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
         }
 
-        // Associate with organization if enabled by flag and idP is Google (for now)
-        const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
-
         try {
           const newUser = await prisma.user.create({
             data: {
               // Slugify the incoming name and append a few random characters to
               // prevent conflicts for users with the same name.
-              username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
+              username: usernameSlug(user.name),
               emailVerified: new Date(Date.now()),
               name: user.name,
               ...(user.image && { avatarUrl: user.image }),
               email: user.email,
               identityProvider: idP,
               identityProviderId: account.providerAccountId,
-              ...(orgId && {
-                verified: true,
-                organization: { connect: { id: orgId } },
-                teams: {
-                  create: { role: MembershipRole.MEMBER, accepted: true, team: { connect: { id: orgId } } },
-                },
-              }),
               creationSource: CreationSource.WEBAPP,
             },
           });
+
+          if (idP === IdentityProvider.GOOGLE) {
+            await moveUserToMatchingOrg(user.email);
+          }
+
           const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
           await calcomAdapter.linkAccount(linkAccountNewUserData);
 
