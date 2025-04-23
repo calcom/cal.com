@@ -165,6 +165,8 @@ model EventType {
   maxLeadThreshold                        Int?
   selectedCalendars                       SelectedCalendar[]
   allowReschedulingPastBookings           Boolean                   @default(false)
+  /// @zod.custom(imports.emailSchema)
+  customReplyToEmail                      String?
 
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                   Json?
@@ -2063,4 +2065,20 @@ model BookingInternalNote {
 
   @@unique([bookingId, notePresetId])
   @@index([bookingId])
+}
+
+enum WorkflowContactType {
+  PHONE
+  EMAIL
+}
+
+model WorkflowOptOutContact {
+  id        Int                 @id @default(autoincrement())
+  type      WorkflowContactType
+  value     String
+  optedOut  Boolean
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  @@unique([type, value])
 }

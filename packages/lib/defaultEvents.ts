@@ -128,6 +128,7 @@ const commons = {
   maxLeadThreshold: null,
   useEventLevelSelectedCalendars: false,
   rrResetInterval: null,
+  customReplyToEmail: null,
 };
 
 export const dynamicEvent = {

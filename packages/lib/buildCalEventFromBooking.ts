@@ -36,6 +36,7 @@ type EventType = {
   recurringEvent: Prisma.JsonValue | null;
   seatsPerTimeSlot: number | null;
   seatsShowAttendees: boolean | null;
+  customReplyToEmail: string | null;
 };
 
 type Booking = {
@@ -104,5 +105,6 @@ export const buildCalEventFromBooking = async ({
       : [],
     seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
+    customReplyToEmail: booking.eventType?.customReplyToEmail,
   };
 };
