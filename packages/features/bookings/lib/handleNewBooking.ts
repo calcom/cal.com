@@ -405,6 +405,14 @@ async function handler(
 
   const dynamicUserList = Array.isArray(reqBody.user) ? reqBody.user : getUsernameList(reqBody.user);
   if (!eventType) throw new HttpError({ statusCode: 404, message: "event_type_not_found" });
+
+  if (eventType.seatsPerTimeSlot && eventType.recurringEvent) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "recurring_event_seats_error",
+    });
+  }
+
   const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
 
   const isTeamEventType =
@@ -1016,6 +1024,7 @@ async function handler(
       // if seats are not enabled we should default true
       seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
       seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
+      customReplyToEmail: eventType.customReplyToEmail,
     })
     .withOrganizer({
       id: organizerUser.id,
@@ -1210,6 +1219,9 @@ async function handler(
     eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
     originalRescheduledBooking.userId !== evt.organizer.id;
 
+  const isLocationChanged =
+    !!originalRescheduledBooking && originalRescheduledBooking.location !== evt.location;
+
   let results: EventResult<AdditionalInformation & { url?: string; iCalUID?: string }>[] = [];
   let referencesToCreate: PartialReference[] = [];
 
@@ -1249,7 +1261,6 @@ async function handler(
         input: {
           bookerEmail,
           rescheduleReason,
-          changedOrganizer,
           smsReminderNumber,
           responses,
         },

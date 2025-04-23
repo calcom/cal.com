@@ -101,6 +101,7 @@ export async function getBookings({
         seatsShowAttendees: true,
         seatsShowAvailabilityCount: true,
         eventTypeColor: true,
+        customReplyToEmail: true,
         allowReschedulingPastBookings: true,
         disableCancelling: true,
         disableRescheduling: true,
@@ -132,6 +133,7 @@ export async function getBookings({
         email: true,
       },
     },
+    fromReschedule: true,
     rescheduled: true,
     references: true,
     isRecorded: true,
@@ -437,8 +439,24 @@ export async function getBookings({
         booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
       }
 
+      let rescheduler = null;
+      if (booking.fromReschedule) {
+        const rescheduledBooking = await prisma.booking.findUnique({
+          where: {
+            uid: booking.fromReschedule,
+          },
+          select: {
+            rescheduledBy: true,
+          },
+        });
+        if (rescheduledBooking) {
+          rescheduler = rescheduledBooking.rescheduledBy;
+        }
+      }
+
       return {
         ...booking,
+        rescheduler,
         eventType: {
           ...booking.eventType,
           recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),

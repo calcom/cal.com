@@ -26,10 +26,12 @@ import {
   PRESET_OPTIONS,
   getDefaultStartDate,
   getDefaultEndDate,
+  getDateRangeFromPreset,
   type PresetOption,
 } from "../../lib/dateRange";
 import type { FilterableColumn, DateRangeFilterOptions } from "../../lib/types";
 import { ZDateRangeFilterValue, ColumnFilterType } from "../../lib/types";
+import { useFilterPopoverOpen } from "./useFilterPopoverOpen";
 
 type DateRangeFilterProps = {
   column: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }>;
@@ -38,50 +40,13 @@ type DateRangeFilterProps = {
   showClearButton?: boolean;
 };
 
-const getDateRangeFromPreset = (val: string | null) => {
-  let startDate;
-  let endDate;
-  const preset = PRESET_OPTIONS.find((o) => o.value === val);
-  if (!preset) {
-    return { startDate: getDefaultStartDate(), endDate: getDefaultEndDate(), preset: CUSTOM_PRESET };
-  }
-
-  switch (val) {
-    case "tdy": // Today
-      startDate = dayjs().startOf("day");
-      endDate = dayjs().endOf("day");
-      break;
-    case "w": // Last 7 days
-      startDate = dayjs().subtract(1, "week").startOf("day");
-      endDate = dayjs().endOf("day");
-      break;
-    case "t": // Last 30 days
-      startDate = dayjs().subtract(30, "day").startOf("day");
-      endDate = dayjs().endOf("day");
-      break;
-    case "m": // Month to Date
-      startDate = dayjs().startOf("month");
-      endDate = dayjs().endOf("day");
-      break;
-    case "y": // Year to Date
-      startDate = dayjs().startOf("year");
-      endDate = dayjs().endOf("day");
-      break;
-    default:
-      startDate = getDefaultStartDate();
-      endDate = getDefaultEndDate();
-      break;
-  }
-
-  return { startDate, endDate, preset };
-};
-
 export const DateRangeFilter = ({
   column,
   options,
   showColumnName = false,
   showClearButton = false,
 }: DateRangeFilterProps) => {
+  const { open, onOpenChange } = useFilterPopoverOpen(column.id);
   const filterValue = useFilterValue(column.id, ZDateRangeFilterValue);
   const { updateFilter, removeFilter } = useDataTable();
   const range = options?.range ?? "past";
@@ -145,11 +110,11 @@ export const DateRangeFilter = ({
         endDate,
       });
     } else {
-      const r = getDateRangeFromPreset(val);
+      const { preset, startDate, endDate } = getDateRangeFromPreset(val);
       updateValues({
-        preset: r.preset,
-        startDate: r.startDate,
-        endDate: r.endDate,
+        preset,
+        startDate,
+        endDate,
       });
     }
   };
@@ -185,7 +150,7 @@ export const DateRangeFilter = ({
     : t(selectedPreset.labelKey, selectedPreset.i18nOptions);
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
         <Button
           color="secondary"

@@ -81,6 +81,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           price: true,
           bookingFields: true,
           disableGuests: true,
+          customReplyToEmail: true,
           metadata: true,
           locations: true,
           team: {
@@ -134,7 +135,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   await checkIfUserIsAuthorizedToConfirmBooking({
     eventTypeId: booking.eventTypeId,
     loggedInUserId: user.id,
-    teamId: booking.eventType?.teamId,
+    teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
     bookingUserId: booking.userId,
     userRole: user.role,
   });
@@ -226,6 +227,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       : [],
     requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
     eventTypeId: booking.eventType?.id,
+    customReplyToEmail: booking.eventType?.customReplyToEmail,
     team: !!booking.eventType?.team
       ? {
           name: booking.eventType.team.name,

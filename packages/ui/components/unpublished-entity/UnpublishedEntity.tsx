@@ -32,6 +32,11 @@ export function UnpublishedEntity(props: UnpublishedEntityProps) {
         avatar={<Avatar alt={slug ?? ""} imageSrc={getPlaceholderAvatar(props.logoUrl, slug)} size="lg" />}
         headline={t("team_is_unpublished", {
           team: props.name,
+          interpolation: {
+            // This is needed because React automatically escapes special characters like apostrophes
+            // for security (XSS prevention), but we want to display the actual apostrophe in the UI
+            escapeValue: false,
+          },
         })}
         description={t(`${props.orgSlug ? "org" : "team"}_is_unpublished_description`)}
       />

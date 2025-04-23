@@ -285,6 +285,7 @@ class BaseUpdateEventTypeInput {
       "Should booker have week, month or column view. Specify default layout and enabled layouts user can pick.",
   })
   @Type(() => BookerLayouts_2024_06_14)
+  @ValidateNested()
   bookerLayouts?: BookerLayouts_2024_06_14;
 
   @IsOptional()

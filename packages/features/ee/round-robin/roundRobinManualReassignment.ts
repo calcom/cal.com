@@ -271,6 +271,7 @@ export const roundRobinManualReassignment = async ({
       bookingFields: eventType.bookingFields ?? null,
       booking,
     }),
+    customReplyToEmail: eventType?.customReplyToEmail,
     location: bookingLocation,
     ...(platformClientParams ? platformClientParams : {}),
   };
@@ -457,7 +458,7 @@ async function handleWorkflowsUpdate({
           time: workflow.time,
           timeUnit: workflow.timeUnit,
         },
-        sendTo: newUser.email,
+        sendTo: [newUser.email],
         template: workflowStep.template,
         emailSubject: workflowStep.emailSubject || undefined,
         emailBody: workflowStep.reminderBody || undefined,
@@ -469,7 +470,7 @@ async function handleWorkflowsUpdate({
       });
     }
 
-    await deleteScheduledEmailReminder(workflowReminder.id, workflowReminder.referenceId);
+    await deleteScheduledEmailReminder(workflowReminder.id);
   }
 
   // Send new event workflows to new organizer
