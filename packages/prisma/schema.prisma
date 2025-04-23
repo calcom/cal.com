@@ -168,6 +168,7 @@ model EventType {
   hideOrganizerEmail                      Boolean                   @default(false)
   /// @zod.custom(imports.emailSchema)
   customReplyToEmail                      String?
+
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                   Json?
   rescheduleWithSameRoundRobinHost Boolean @default(false)
