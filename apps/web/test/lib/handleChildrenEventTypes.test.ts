@@ -475,7 +475,7 @@ describe("handleChildrenEventTypes", () => {
           locations: [],
           assignRRMembersUsingSegment: undefined,
           useEventLevelSelectedCalendars: undefined,
-          customReplyToEmail: undefined,
+          customReplyToEmail: null,
           rrSegmentQueryValue: undefined,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
@@ -483,7 +483,6 @@ describe("handleChildrenEventTypes", () => {
             deleteMany: {},
           },
           instantMeetingScheduleId: undefined,
-          customReplyToEmail: undefined,
         },
         where: {
           userId_parentId: {
