@@ -150,6 +150,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     autoTranslateDescriptionEnabled: false,
     useEventLevelSelectedCalendars: false,
     allowReschedulingPastBookings: false,
+    customReplyToEmail: null,
     ...eventType,
   };
 };
