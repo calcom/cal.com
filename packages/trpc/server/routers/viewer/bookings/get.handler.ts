@@ -342,7 +342,7 @@ export async function getBookings({
     "beforeUpdatedDate",
     "afterCreatedDate",
     "beforeCreatedDate",
-  ];
+  ] as const;
 
   const hasAnyDateFilter = dateFilterKeys.some((key) => filters?.[key]);
 
