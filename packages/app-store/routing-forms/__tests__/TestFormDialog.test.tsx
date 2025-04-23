@@ -390,7 +390,8 @@ describe("TestFormDialog", () => {
       mockCustomPageMessageMatchingRoute();
       render(
         <TestFormRenderer
-          form={mockRegularTeamForm}
+          isMobile={true}
+          testForm={mockRegularTeamForm}
           isTestPreviewOpen={true}
           setIsTestPreviewOpen={() => {
             return;
