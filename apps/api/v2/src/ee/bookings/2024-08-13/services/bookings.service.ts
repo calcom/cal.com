@@ -89,8 +89,12 @@ export class BookingsService_2024_08_13 {
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput) {
+    let bookingTeamEventType = false;
     try {
       const eventType = await this.getBookedEventType(body);
+      if (eventType?.team) {
+        bookingTeamEventType = true;
+      }
       if (!eventType) {
         if (body.username && body.eventTypeSlug && !body.organizationSlug) {
           throw new NotFoundException(
@@ -140,6 +144,11 @@ export class BookingsService_2024_08_13 {
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === "no_available_users_found_error") {
+          if (bookingTeamEventType) {
+            throw new BadRequestException(
+              "One of the hosts either already has booking at this time or is not available"
+            );
+          }
           throw new BadRequestException("User either already has booking at this time or is not available");
         } else if (error.message === "booking_time_out_of_bounds_error") {
           throw new BadRequestException(
