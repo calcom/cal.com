@@ -1,8 +1,9 @@
 import type { UseFormReturn } from "react-hook-form";
-import type { getServerSidePropsForSingleFormView } from "routing-forms/components/getServerSidePropsSingleForm";
-import type { RoutingFormWithResponseCount } from "routing-forms/types/types";
 
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
+
+import type { getServerSidePropsForSingleFormView } from "../components/getServerSidePropsSingleForm";
+import type { RoutingFormWithResponseCount } from "../types/types";
 
 export type SingleFormComponentProps = {
   form: RoutingFormWithResponseCount;
