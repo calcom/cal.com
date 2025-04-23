@@ -55,9 +55,9 @@ export function AppsViewSkeleton() {
                 <SkeletonButton className="mx-1 h-8 w-8 rounded-md" /> {/* Right arrow */}
               </div>
             </div>
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {/* App cards - 4 items */}
-              {Array(4)
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
+              {/* App cards - 3 items */}
+              {Array(3)
                 .fill(0)
                 .map((_, i) => (
                   <div key={`app-${i}`} className="border-subtle flex flex-col rounded-md border p-4">
@@ -81,9 +81,9 @@ export function AppsViewSkeleton() {
           {/* All apps section */}
           <div className="mt-4">
             <SkeletonText className="h-6 w-32 font-semibold" />
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {/* App cards - 8 items */}
-              {Array(8)
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
+              {/* App cards - 6 items */}
+              {Array(6)
                 .fill(0)
                 .map((_, i) => (
                   <div key={`all-app-${i}`} className="border-subtle flex flex-col rounded-md border p-4">
