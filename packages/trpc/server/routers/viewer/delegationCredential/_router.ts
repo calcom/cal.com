@@ -45,19 +45,12 @@ const checkDelegationCredentialFeature = async ({
 
 export const delegationCredentialRouter = router({
   check: authedOrgAdminProcedure.query(async (opts) => {
-    try {
-      await checkDelegationCredentialFeature({
-        ctx: opts.ctx,
-        next: async () => null,
-      });
-      return {
+    return await checkDelegationCredentialFeature({
+      ctx: opts.ctx,
+      next: async () => ({
         hasDelegationCredential: true,
-      };
-    } catch {
-      return {
-        hasDelegationCredential: false,
-      };
-    }
+      }),
+    });
   }),
   list: authedOrgAdminProcedure.use(checkDelegationCredentialFeature).query(async (opts) => {
     const handler = await import("./list.handler").then((mod) => mod.default);
