@@ -12,9 +12,21 @@ import { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps
 import type { PageProps as LegacyPageProps } from "~/users/views/users-type-public-view";
 import LegacyPage from "~/users/views/users-type-public-view";
 
+const cache = new Map();
+const CACHE_KEY = "user_type";
+const getDataCached = async (legacyCtx: ReturnType<typeof buildLegacyCtx>) => {
+  if (cache.has(CACHE_KEY)) {
+    return cache.get(CACHE_KEY);
+  }
+
+  const data = await withAppDirSsr<LegacyPageProps>(getServerSideProps)(legacyCtx);
+  cache.set(CACHE_KEY, data);
+  return data;
+};
+
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-  const props = await getData(legacyCtx);
+  const props = await getDataCached(legacyCtx);
 
   const { booking, isSEOIndexable = true, eventData, isBrandingHidden } = props;
   const rescheduleUid = booking?.uid;
@@ -25,7 +37,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     title,
     profile: { name: profileName, image: profileImage },
     users: [
-      ...(eventData?.subsetOfUsers || []).map((user) => ({
+      ...(eventData?.subsetOfUsers || []).map((user: any) => ({
         name: `${user.name}`,
         username: `${user.username}`,
       })),
@@ -49,11 +61,10 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     },
   };
 };
-const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-  const props = await getData(legacyCtx);
+  const props = await getDataCached(legacyCtx);
 
   return <LegacyPage {...props} />;
 };
