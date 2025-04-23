@@ -239,7 +239,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
                 event: emailEvent,
                 status,
               }) || ""
-            ).toString("base64"),
+            ),
             filename: "event.ics",
             type: "text/calendar; method=REQUEST",
             disposition: "attachment",
