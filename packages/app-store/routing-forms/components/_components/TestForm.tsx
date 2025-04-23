@@ -252,6 +252,13 @@ export const TestForm = ({
               isPending={findTeamMembersMatchingAttributeLogicMutation.isPending}
               eventTypeUrlWithoutParams={eventTypeUrlWithoutParams}
             />
+            {isDialog && (
+              <DialogFooter>
+                <Button onClick={onClose} color="secondary">
+                  {t("close")}
+                </Button>
+              </DialogFooter>
+            )}
           </>
         )}
       </AnimatePresence>
@@ -289,7 +296,7 @@ export const TestFormRenderer = ({
 
   return (
     <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
-      <DialogContent size="md">
+      <DialogContent size="md" enableOverflow>
         <TestForm
           isDialog
           form={testForm}
