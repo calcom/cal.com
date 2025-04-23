@@ -16,6 +16,8 @@ import { BookingStatus, RedirectType } from "@calcom/prisma/client";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
+import { getUsersInOrgContext } from "@server/lib/[user]/getServerSideProps";
+
 type Props = {
   eventData: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
   booking?: GetBookingType;
@@ -228,10 +230,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     }
   }
 
-  const [user] = await UserRepository.findUsersByUsername({
-    usernameList: [username],
-    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
-  });
+  const [user] = await getUsersInOrgContext([username], isValidOrgDomain ? currentOrgDomain : null);
 
   if (!user) {
     return {
@@ -240,6 +239,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   }
 
   const org = isValidOrgDomain ? currentOrgDomain : null;
+
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we can show a 404 otherwise.
   const eventData = await EventRepository.getPublicEvent(

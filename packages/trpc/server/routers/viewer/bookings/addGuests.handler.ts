@@ -144,6 +144,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
       : [],
     seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
+    customReplyToEmail: booking.eventType?.customReplyToEmail,
   };
 
   if (videoCallReference) {
