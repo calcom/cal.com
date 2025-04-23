@@ -19,12 +19,6 @@ generator zod {
   relationModel = "default"
 }
 
-generator kysely {
-  provider = "prisma-kysely"
-  output   = "../kysely"
-  fileName = "types.ts"
-}
-
 generator enums {
   provider = "ts-node --transpile-only ./enum-generator"
 }
@@ -2071,4 +2065,20 @@ model BookingInternalNote {
 
   @@unique([bookingId, notePresetId])
   @@index([bookingId])
+}
+
+enum WorkflowContactType {
+  PHONE
+  EMAIL
+}
+
+model WorkflowOptOutContact {
+  id        Int                 @id @default(autoincrement())
+  type      WorkflowContactType
+  value     String
+  optedOut  Boolean
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  @@unique([type, value])
 }
