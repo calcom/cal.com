@@ -36,6 +36,7 @@ describe("Organizations Team Endpoints", () => {
     let team2: Team;
     let teamCreatedViaApi: Team;
     let teamCreatedViaApi2: Team;
+    let teamCreatedViaApi3: Team;
 
     const userEmail = `organizations-teams-admin-${randomString()}@api.com`;
     let user: User;
@@ -257,14 +258,14 @@ describe("Organizations Team Endpoints", () => {
         .then(async (response) => {
           const responseBody: ApiSuccessResponse<Team> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          teamCreatedViaApi = responseBody.data;
-          expect(teamCreatedViaApi.name).toEqual(teamName);
-          expect(teamCreatedViaApi.slug).toEqual("organizations-teams-automatic-slug");
-          expect(teamCreatedViaApi.bio).toEqual("This is our test team created via API");
-          expect(teamCreatedViaApi.parentId).toEqual(org.id);
+          teamCreatedViaApi3 = responseBody.data;
+          expect(teamCreatedViaApi3.name).toEqual(teamName);
+          expect(teamCreatedViaApi3.slug).toEqual("organizations-teams-automatic-slug");
+          expect(teamCreatedViaApi3.bio).toEqual("This is our test team created via API");
+          expect(teamCreatedViaApi3.parentId).toEqual(org.id);
           const membership = await membershipsRepositoryFixture.getUserMembershipByTeamId(
             user.id,
-            teamCreatedViaApi.id
+            teamCreatedViaApi3.id
           );
           expect(membership?.role ?? "").toEqual("OWNER");
           expect(membership?.accepted).toEqual(true);
@@ -276,6 +277,7 @@ describe("Organizations Team Endpoints", () => {
       await teamsRepositoryFixture.delete(team.id);
       await teamsRepositoryFixture.delete(team2.id);
       await teamsRepositoryFixture.delete(teamCreatedViaApi2.id);
+      await teamsRepositoryFixture.delete(teamCreatedViaApi3.id);
       await teamsRepositoryFixture.delete(org.id);
       await app.close();
     });
