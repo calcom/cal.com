@@ -9,9 +9,7 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import type { SettingsLayoutProps } from "./SettingsLayoutAppDirClient";
 import SettingsLayoutAppDirClient from "./SettingsLayoutAppDirClient";
 
-type SettingsLayoutAppDirProps = Omit<SettingsLayoutProps, "currentOrg" | "otherTeams">;
-
-export default async function SettingsLayoutAppDir(props: SettingsLayoutAppDirProps) {
+export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const userId = session?.user?.id;
   if (!userId) {
