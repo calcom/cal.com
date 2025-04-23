@@ -226,8 +226,8 @@ export function Header({
   const watchedName = form.watch("name");
 
   return (
-    <div className="bg-default border-muted grid grid-cols-3 items-center border-b px-4 py-3">
-      {/* Left */}
+    <div className="bg-default border-muted flex flex-col border-b px-4 py-3 lg:grid lg:grid-cols-3 lg:items-center">
+      {/* Left - Back button and title */}
       <div className="flex items-center gap-2">
         <Button color="minimal" variant="icon" StartIcon="arrow-left" />
         <div className="flex min-w-0 items-center">
@@ -257,8 +257,52 @@ export function Header({
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex justify-center">
+      {/* Mobile/Tablet layout - Second row with toggle group and actions on the same row */}
+      <div className="mt-3 flex items-center justify-between lg:hidden">
+        {/* Navigation Tabs - Left aligned */}
+        <div className="flex">
+          <ToggleGroup
+            defaultValue={getCurrentPage()}
+            value={getCurrentPage()}
+            onValueChange={handleNavigation}
+            options={[
+              {
+                value: "form-edit",
+                label: t("form"),
+                iconLeft: <Icon name="menu" className="h-3 w-3" />,
+              },
+              {
+                value: "route-builder",
+                label: t("routing"),
+                iconLeft: <Icon name="waypoints" className="h-3 w-3" />,
+              },
+              ...(showIncompleteBookingTab
+                ? [
+                    {
+                      value: "incomplete-booking",
+                      label: t("incomplete_booking"),
+                      iconLeft: <Icon name="calendar" className="h-3 w-3" />,
+                    },
+                  ]
+                : []),
+            ]}
+          />
+        </div>
+
+        {/* Actions - Right aligned */}
+        <div className="flex">
+          <Actions
+            form={routingForm}
+            setIsTestPreviewOpen={setIsTestPreviewOpen}
+            isTestPreviewOpen={isTestPreviewOpen}
+            isSaving={isSaving}
+            appUrl={appUrl}
+          />
+        </div>
+      </div>
+
+      {/* Desktop layout - Toggle group in center column */}
+      <div className="hidden justify-center lg:flex">
         <ToggleGroup
           defaultValue={getCurrentPage()}
           value={getCurrentPage()}
@@ -287,8 +331,8 @@ export function Header({
         />
       </div>
 
-      {/* Actions */}
-      <div className="flex justify-end">
+      {/* Desktop layout - Actions in right column */}
+      <div className="hidden justify-end lg:flex">
         <Actions
           form={routingForm}
           setIsTestPreviewOpen={setIsTestPreviewOpen}
