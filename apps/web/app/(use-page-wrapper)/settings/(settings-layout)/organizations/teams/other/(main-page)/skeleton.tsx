@@ -1,6 +1,6 @@
 "use client";
 
-import SkeletonLoaderTeamList from "@calcom/ee/teams/components/SkeletonloaderTeamList";
+import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
