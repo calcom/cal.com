@@ -976,7 +976,7 @@ export const getOptions = ({
           });
 
           if (idP === IdentityProvider.GOOGLE) {
-            await moveUserToMatchingOrg(user.email);
+            await moveUserToMatchingOrg({ email: user.email });
           }
 
           const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
