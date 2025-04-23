@@ -97,11 +97,13 @@ export class BillingController {
     };
   }
 
-  @Delete("/:teamId/unsubscribe")
+  @Delete("/:organizationId/unsubscribe")
   @UseGuards(NextAuthGuard, OrganizationRolesGuard)
   @MembershipRoles(["OWNER", "ADMIN"])
-  async cancelTeamSubscriptionInStripe(@Param("teamId") teamId: number): Promise<ApiResponse> {
-    await this.billingService.cancelTeamSubscription(teamId);
+  async cancelTeamSubscriptionInStripe(
+    @Param("organizationId") organizationId: number
+  ): Promise<ApiResponse> {
+    await this.billingService.cancelTeamSubscription(organizationId);
 
     return {
       status: "success",
