@@ -6,7 +6,6 @@ import type { NonRouterRoute } from "routing-forms/types/types";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
 import type { IconName } from "@calcom/ui/components/icon";
 import { Icon } from "@calcom/ui/components/icon";
 
@@ -84,11 +83,6 @@ export const ResultsView = ({
         exit={{ opacity: 0, x: -20 }}
         transition={{ duration: 0.2 }}
         className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-emphasis text-lg font-semibold">{t("results")}</h3>{" "}
-          <Button color="minimal" size="sm" variant="icon" StartIcon="x" onClick={onBack} />
-        </div>
-
         <div className="bg-default border-muted mb-0.5 flex flex-col gap-0.5 rounded-2xl border p-1">
           <div className="flex items-center gap-2 px-2 py-1">
             <div className="border-subtle rounded-lg border p-1">

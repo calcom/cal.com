@@ -27,11 +27,11 @@ const useRoutingFormNavigation = (
   const router = useRouter();
   const formContext = useFormContext<RoutingFormWithResponseCount>();
 
+  // Get the current page based on the pathname since we use a custom routing system
   const getCurrentPage = () => {
     const path = pathname || "";
     if (path.includes("/form-edit/")) return "form-edit";
     if (path.includes("/route-builder/")) return "route-builder";
-    if (path.includes("/reporting/")) return "reporting";
     if (path.includes("/incomplete-booking/")) return "incomplete-booking";
     return "form-edit"; // default to form-edit if no match
   };
@@ -43,8 +43,6 @@ const useRoutingFormNavigation = (
 
     if (value === "route-builder" && formContext.formState.isDirty) {
       setShowInfoLostDialog(true);
-    } else if (value === "reporting") {
-      router.push("/insights/routing");
     } else {
       router.push(baseUrl);
     }
@@ -180,7 +178,6 @@ export function Header({
   setShowInfoLostDialog,
   setIsTestPreviewOpen,
   isTestPreviewOpen,
-  handleSubmit,
 }: {
   routingForm: RoutingFormWithResponseCount;
   isSaving: boolean;
@@ -188,7 +185,6 @@ export function Header({
   setShowInfoLostDialog: (value: boolean) => void;
   setIsTestPreviewOpen: (value: boolean) => void;
   isTestPreviewOpen: boolean;
-  handleSubmit: () => void;
 }) {
   const { t } = useLocale();
   const [isEditing, setIsEditing] = useState(false);
@@ -277,11 +273,6 @@ export function Header({
               value: "route-builder",
               label: t("routing"),
               iconLeft: <Icon name="waypoints" className="h-3 w-3" />,
-            },
-            {
-              value: "reporting",
-              label: t("reporting"),
-              iconLeft: <Icon name="chart-bar" className="h-3 w-3" />,
             },
             ...(showIncompleteBookingTab
               ? [
