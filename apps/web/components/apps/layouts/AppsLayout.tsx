@@ -17,7 +17,6 @@ export default function AppsLayout({ children, actions, emptyStore, isAdmin, ...
   const { t } = useLocale();
   const router = useRouter();
 
-  if (session.status === "loading") return <></>;
   return (
     <Shell {...rest} actions={actions?.("block")}>
       <div className="flex flex-col xl:flex-row">
