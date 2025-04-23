@@ -6,7 +6,10 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("org_admin_other_teams"),
-    (t) => t("org_admin_other_teams_description")
+    (t) => t("org_admin_other_teams_description"),
+    undefined,
+    undefined,
+    "/settings/organizations/teams/other"
   );
 
 const Page = async () => {

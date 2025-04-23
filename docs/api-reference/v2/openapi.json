@@ -9472,7 +9472,7 @@
       "get": {
         "operationId": "SlotsController_2024_09_04_getAvailableSlots",
         "summary": "Find out when is an event type ready to be booked.",
-        "description": "\n      There are 4 ways to get available slots for event type of an individual user:\n      \n      1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      3. By event type slug + username + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.\n\n      And 3 ways to get available slots for team event type:\n\n      1. By team event type id. Example '/v2/slots?teamEventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      3. By team event type slug + team slug + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked.\n      Optional parameters are:\n      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.\n      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.\n      - slotFormat: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use \"range\" as value.\n      ",
+        "description": "\n      There are 4 ways to get available slots for event type of an individual user:\n      \n      1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      3. By event type slug + username + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.\n\n      And 3 ways to get available slots for team event type:\n\n      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      3. By team event type slug + team slug + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked.\n      Optional parameters are:\n      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.\n      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.\n      - slotFormat: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use \"range\" as value.\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -12518,6 +12518,7 @@
           },
           "enabledLayouts": {
             "type": "array",
+            "description": "Array of valid layouts - month, week or column",
             "items": {
               "type": "string",
               "enum": ["month", "week", "column"]
@@ -19268,10 +19269,20 @@
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
           },
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 30,
-            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          "attendee": {
+            "description": "The attendee's details.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Attendee"
+              }
+            ]
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values for custom booking fields added by you.",
+            "example": {
+              "customField": "customValue"
+            }
           },
           "eventTypeId": {
             "type": "number",
@@ -19297,14 +19308,6 @@
             "type": "string",
             "description": "The organization slug. Optional, only used when booking with eventTypeSlug + username or eventTypeSlug + teamSlug.",
             "example": "acme-corp"
-          },
-          "attendee": {
-            "description": "The attendee's details.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Attendee"
-              }
-            ]
           },
           "guests": {
             "description": "An optional list of guest emails attending the event.",
@@ -19356,12 +19359,10 @@
               "key": "value"
             }
           },
-          "bookingFieldsResponses": {
-            "type": "object",
-            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
-            "example": {
-              "customField": "customValue"
-            }
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
           }
         },
         "required": ["start", "attendee"]
@@ -19374,10 +19375,20 @@
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
           },
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 30,
-            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          "attendee": {
+            "description": "The attendee's details.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Attendee"
+              }
+            ]
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values for custom booking fields added by you.",
+            "example": {
+              "customField": "customValue"
+            }
           },
           "eventTypeId": {
             "type": "number",
@@ -19403,14 +19414,6 @@
             "type": "string",
             "description": "The organization slug. Optional, only used when booking with eventTypeSlug + username or eventTypeSlug + teamSlug.",
             "example": "acme-corp"
-          },
-          "attendee": {
-            "description": "The attendee's details.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Attendee"
-              }
-            ]
           },
           "guests": {
             "description": "An optional list of guest emails attending the event.",
@@ -19462,12 +19465,10 @@
               "key": "value"
             }
           },
-          "bookingFieldsResponses": {
-            "type": "object",
-            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
-            "example": {
-              "customField": "customValue"
-            }
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
           },
           "instant": {
             "type": "boolean",
@@ -19485,10 +19486,20 @@
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
           },
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 30,
-            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          "attendee": {
+            "description": "The attendee's details.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Attendee"
+              }
+            ]
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values for custom booking fields added by you.",
+            "example": {
+              "customField": "customValue"
+            }
           },
           "eventTypeId": {
             "type": "number",
@@ -19514,14 +19525,6 @@
             "type": "string",
             "description": "The organization slug. Optional, only used when booking with eventTypeSlug + username or eventTypeSlug + teamSlug.",
             "example": "acme-corp"
-          },
-          "attendee": {
-            "description": "The attendee's details.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Attendee"
-              }
-            ]
           },
           "guests": {
             "description": "An optional list of guest emails attending the event.",
@@ -19573,12 +19576,10 @@
               "key": "value"
             }
           },
-          "bookingFieldsResponses": {
-            "type": "object",
-            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
-            "example": {
-              "customField": "customValue"
-            }
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
           },
           "recurrenceCount": {
             "type": "number",
