@@ -325,7 +325,7 @@ export default class EventManager {
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,
         externalCalendarId: result.externalId,
-        credentialId: result.credentialId ?? undefined,
+        ...(result.credentialId && result.credentialId > 0 ? { credentialId: result.credentialId } : {}),
       };
     });
 
@@ -458,6 +458,7 @@ export default class EventManager {
         id: true,
         userId: true,
         attendees: true,
+        location: true,
         references: {
           where: {
             deleted: null,
@@ -491,7 +492,8 @@ export default class EventManager {
     }
 
     const results: Array<EventResult<Event>> = [];
-    const bookingReferenceChangedOrganizer: Array<PartialReference> = [];
+    const updatedBookingReferences: Array<PartialReference> = [];
+    const isLocationChanged = evt.location && booking.location && evt.location !== booking.location;
 
     if (evt.requiresConfirmation) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
@@ -512,23 +514,28 @@ export default class EventManager {
 
         const createdEvent = await this.create(originalEvt);
         results.push(...createdEvent.results);
-        bookingReferenceChangedOrganizer.push(...createdEvent.referencesToCreate);
+        updatedBookingReferences.push(...createdEvent.referencesToCreate);
       } else {
         // If the reschedule doesn't require confirmation, we can "update" the events and meetings to new time.
-        const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
-        // If and only if event type is a dedicated meeting, update the dedicated video meeting.
-        if (isDedicated && !isBookingFromHostRequestedReschedule) {
-          const result = await this.updateVideoEvent(evt, booking);
-          const [updatedEvent] = Array.isArray(result.updatedEvent)
-            ? result.updatedEvent
-            : [result.updatedEvent];
+        if (isLocationChanged) {
+          const updatedLocation = await this.updateLocation(evt, booking);
+          results.push(...updatedLocation.results);
+          updatedBookingReferences.push(...updatedLocation.referencesToCreate);
+        } else {
+          const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
+          // If and only if event type is a dedicated meeting, update the dedicated video meeting.
+          if (isDedicated && !isBookingFromHostRequestedReschedule) {
+            const result = await this.updateVideoEvent(evt, booking);
+            const [updatedEvent] = Array.isArray(result.updatedEvent)
+              ? result.updatedEvent
+              : [result.updatedEvent];
 
-          if (updatedEvent) {
-            evt.videoCallData = updatedEvent;
-            evt.location = updatedEvent.url;
+            if (updatedEvent) {
+              evt.videoCallData = updatedEvent;
+              evt.location = updatedEvent.url;
+            }
+            results.push(result);
           }
-          results.push(result);
-        }
 
         // In case of host requested reschedule, old meeting URL was deleted, hence create a new one
         if (isBookingFromHostRequestedReschedule) {
@@ -568,13 +575,14 @@ export default class EventManager {
           results.push(result);
         }
 
-        const bookingCalendarReference = booking.references.find((reference) =>
-          reference.type.includes("_calendar")
-        );
-        // There was a case that booking didn't had any reference and we don't want to throw error on function
-        if (bookingCalendarReference) {
-          // Update all calendar events.
-          results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
+          const bookingCalendarReference = booking.references.find((reference) =>
+            reference.type.includes("_calendar")
+          );
+          // There was a case that booking didn't had any reference and we don't want to throw error on function
+          if (bookingCalendarReference) {
+            // Update all calendar events.
+            results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
+          }
         }
 
         results.push(...(await this.updateAllCRMEvents(evt, booking)));
@@ -599,7 +607,8 @@ export default class EventManager {
 
     return {
       results,
-      referencesToCreate: changedOrganizer ? bookingReferenceChangedOrganizer : [...booking.references],
+      referencesToCreate:
+        changedOrganizer || isLocationChanged ? updatedBookingReferences : [...booking.references],
     };
   }
 

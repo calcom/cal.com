@@ -51,6 +51,7 @@ export class CalendarEventBuilder {
     seatsPerTimeSlot?: number | null;
     seatsShowAttendees?: boolean | null;
     seatsShowAvailabilityCount?: boolean | null;
+    customReplyToEmail?: string | null;
   }) {
     this.event = {
       ...this.event,
@@ -64,6 +65,7 @@ export class CalendarEventBuilder {
       // if seats are not enabled we should default true
       seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
       seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
+      customReplyToEmail: eventType.customReplyToEmail,
     };
     return this;
   }
