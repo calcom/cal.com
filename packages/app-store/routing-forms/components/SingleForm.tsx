@@ -133,17 +133,15 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
     teamOrigin: enrichedWithUserProfileForm.teamOrigin,
   } as UptoDateForm;
 
+  const handleSubmit = (data: RoutingFormWithResponseCount) => {
+    mutation.mutate({
+      ...data,
+    });
+  };
+
   return (
     <>
-      <Form
-        form={hookForm}
-        handleSubmit={(data) => {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
-          mutation.mutate({
-            ...data,
-          });
-        }}>
+      <Form form={hookForm} handleSubmit={handleSubmit}>
         <FormActionsProvider
           appUrl={appUrl}
           newFormDialogState={newFormDialogState}
@@ -205,14 +203,19 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
             </div>
           </div>
         </FormActionsProvider>
+        {showInfoLostDialog && (
+          <InfoLostWarningDialog
+            handleSubmit={() => {
+              mutation.mutate({
+                ...hookForm.getValues(),
+              });
+            }}
+            goToRoute={`${appUrl}/route-builder/${form?.id}`}
+            isOpenInfoLostDialog={showInfoLostDialog}
+            setIsOpenInfoLostDialog={setShowInfoLostDialog}
+          />
+        )}
       </Form>
-      {showInfoLostDialog && (
-        <InfoLostWarningDialog
-          goToRoute={`${appUrl}/route-builder/${form?.id}`}
-          isOpenInfoLostDialog={showInfoLostDialog}
-          setIsOpenInfoLostDialog={setShowInfoLostDialog}
-        />
-      )}
     </>
   );
 }
