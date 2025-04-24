@@ -17,7 +17,10 @@ export default class OrganizerAddGuestsEmail extends OrganizerScheduledEmail {
       }),
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
-      ...getReplyToHeader(this.calEvent, [...this.calEvent.attendees.map(({ email }) => email)]),
+      ...getReplyToHeader(
+        this.calEvent,
+        this.calEvent.attendees.map(({ email }) => email)
+      ),
       subject: `${this.t("guests_added_event_type_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,

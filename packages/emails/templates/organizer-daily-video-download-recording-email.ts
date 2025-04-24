@@ -24,7 +24,10 @@ export default class OrganizerDailyVideoDownloadRecordingEmail extends BaseEmail
     return {
       to: `${this.calEvent.organizer.email}>`,
       from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
-      ...getReplyToHeader(this.calEvent, [...this.calEvent.attendees.map(({ email }) => email)]),
+      ...getReplyToHeader(
+        this.calEvent,
+        this.calEvent.attendees.map(({ email }) => email)
+      ),
       subject: `${this.t("download_recording_subject", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),

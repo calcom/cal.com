@@ -1,4 +1,3 @@
-import { getReplyToEmail } from "@calcom/lib/getReplyToEmail";
 import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -8,8 +7,6 @@ import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
 export default class AttendeeUpdatedEmail extends AttendeeScheduledEmail {
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
-    const customReplyToEmail = getReplyToEmail(this.calEvent);
-
     return {
       icalEvent: generateIcsFile({
         calEvent: this.calEvent,
@@ -18,12 +15,10 @@ export default class AttendeeUpdatedEmail extends AttendeeScheduledEmail {
       }),
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
-      ...getReplyToHeader(this.calEvent, [
-        ...this.calEvent.attendees
-          .filter(({ email }) => email !== this.attendee.email)
-          .map(({ email }) => email),
-        customReplyToEmail,
-      ]),
+      ...getReplyToHeader(
+        this.calEvent,
+        this.calEvent.attendees.filter(({ email }) => email !== this.attendee.email).map(({ email }) => email)
+      ),
       subject: `${this.attendee.language.translate("event_type_has_been_updated", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),

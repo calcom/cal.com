@@ -1,6 +1,5 @@
 import type { TFunction } from "i18next";
 
-import { getReplyToEmail } from "@calcom/lib/getReplyToEmail";
 import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -23,7 +22,6 @@ export default class AttendeeDailyVideoDownloadTranscriptEmail extends BaseEmail
     this.t = attendee.language.translate;
   }
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
-    const customReplyToEmail = getReplyToEmail(this.calEvent);
     const attachments = await Promise.all(
       this.transcriptDownloadLinks.map(async (url, index) => {
         const response = await fetch(url);
@@ -39,12 +37,10 @@ export default class AttendeeDailyVideoDownloadTranscriptEmail extends BaseEmail
     return {
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
-      ...getReplyToHeader(this.calEvent, [
-        ...this.calEvent.attendees
-          .filter(({ email }) => email !== this.attendee.email)
-          .map(({ email }) => email),
-        customReplyToEmail,
-      ]),
+      ...getReplyToHeader(
+        this.calEvent,
+        this.calEvent.attendees.filter(({ email }) => email !== this.attendee.email).map(({ email }) => email)
+      ),
       subject: `${this.t("download_transcript_email_subject", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
