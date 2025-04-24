@@ -427,8 +427,10 @@ test.describe("Routing Forms", () => {
       const [download] = await Promise.all([
         // Start waiting for the download
         page.waitForEvent("download"),
+        // Open the dropdown
+        page.locator('[data-testid="form-dropdown"]').nth(1).click(),
         // Perform the action that initiates download
-        page.click('[data-testid="download-responses"]'),
+        page.locator('[data-testid="download-responses"]').click(),
       ]);
       const downloadStream = await download.createReadStream();
       expect(download.suggestedFilename()).toEqual(`${routingForm.name}-${routingForm.id}.csv`);
@@ -658,8 +660,9 @@ test.describe("Routing Forms", () => {
         formId,
       });
 
-      await page.click('[href*="/route-builder/"]');
-      await addNewRoute(page);
+      // Click toggle group item
+      await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
+      await page.click('[data-testid="add-route-button"]');
       // This would select Round Robin event that we created above
       await selectFirstEventRedirectOption(page);
       await addAttributeRoutingRule(page);

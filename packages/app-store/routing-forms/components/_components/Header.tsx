@@ -126,6 +126,7 @@ const Actions = ({
               className="w-full"
               color="minimal"
               type="button"
+              data-testid="download-responses"
               StartIcon="download">
               {t("download_responses")}
             </FormAction>
