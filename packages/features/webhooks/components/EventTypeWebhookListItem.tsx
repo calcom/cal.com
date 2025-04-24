@@ -46,7 +46,7 @@ export default function EventTypeWebhookListItem(props: {
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
-      revalidateEventTypeEditPage(webhook.eventTypeId);
+      if (webhook.eventTypeId) revalidateEventTypeEditPage(webhook.eventTypeId);
     },
   });
   const toggleWebhook = trpc.viewer.webhook.edit.useMutation({
@@ -56,7 +56,7 @@ export default function EventTypeWebhookListItem(props: {
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
-      revalidateEventTypeEditPage(webhook.eventTypeId);
+      if (webhook.eventTypeId) revalidateEventTypeEditPage(webhook.eventTypeId);
     },
   });
 

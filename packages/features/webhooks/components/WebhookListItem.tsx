@@ -50,7 +50,7 @@ export default function WebhookListItem(props: {
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
       revalidateWebhooksList();
-      revalidateEventTypeEditPage(webhook.eventTypeId);
+      if (webhook.eventTypeId) revalidateEventTypeEditPage(webhook.eventTypeId);
     },
   });
   const toggleWebhook = trpc.viewer.webhook.edit.useMutation({
@@ -61,7 +61,7 @@ export default function WebhookListItem(props: {
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
       revalidateWebhooksList();
-      revalidateEventTypeEditPage(webhook.eventTypeId);
+      if (webhook.eventTypeId) revalidateEventTypeEditPage(webhook.eventTypeId);
     },
   });
 
