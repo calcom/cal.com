@@ -46,7 +46,6 @@ const ServerPage = async ({ params }: PageProps) => {
   if (!data?.eventType) {
     throw new Error("This event type does not exist");
   }
-  await new Promise((resolve) => setTimeout(resolve, 10000)); // Simulate delay
 
   return <EventTypeWebWrapper data={data} id={eventTypeId} />;
 };

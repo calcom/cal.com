@@ -17,6 +17,7 @@ import {
 import { Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
 type WebhookProps = {
   id: string;
@@ -45,6 +46,7 @@ export default function EventTypeWebhookListItem(props: {
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
+      revalidateEventTypeEditPage(webhook.eventTypeId);
     },
   });
   const toggleWebhook = trpc.viewer.webhook.edit.useMutation({
@@ -54,6 +56,7 @@ export default function EventTypeWebhookListItem(props: {
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
+      revalidateEventTypeEditPage(webhook.eventTypeId);
     },
   });
 
