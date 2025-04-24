@@ -23,6 +23,7 @@ import {
   getAllUnscheduledReminders,
   select,
 } from "../lib/getWorkflowReminders";
+import { sendOrScheduleWorkflowEmails } from "../lib/reminders/providers/emailProvider";
 import {
   cancelScheduledEmail,
   deleteScheduledSend,
