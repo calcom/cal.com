@@ -12,8 +12,8 @@ export const LayoutToggle = ({
   layout,
   enabledLayouts,
 }: {
-  onLayoutToggle: (layout: string) => void;
-  layout: string;
+  onLayoutToggle: (layout: BookerLayouts) => void;
+  layout: BookerLayouts;
   enabledLayouts?: BookerLayouts[];
 }) => {
   const isEmbed = useIsEmbed();

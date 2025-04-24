@@ -129,16 +129,16 @@ export const VerticalExample = () => {
 };
 
 export const IconOnlyExample = () => {
-  const [hLayout, setHLayout] = useState("list");
-  const [VLayout, setVLayout] = useState("list");
+  const [horizontalLayout, setHorizontalLayout] = useState("list");
+  const [verticalLayout, setVerticalLayout] = useState("list");
   return (
     <RenderComponentWithSnippet>
       <div className="space-y-8">
         {/* Horizontal icon-only toggle group */}
         <ToggleGroup
-          value={hLayout}
+          value={horizontalLayout}
           onValueChange={(value) => {
-            setHLayout(value);
+            setHorizontalLayout(value);
             console.log("Selected view:", value);
           }}
           options={[
@@ -163,9 +163,9 @@ export const IconOnlyExample = () => {
         {/* Vertical icon-only toggle group */}
         <ToggleGroup
           orientation="vertical"
-          value={VLayout}
+          value={verticalLayout}
           onValueChange={(value) => {
-            setVLayout(value);
+            setVerticalLayout(value);
             console.log("Selected tool:", value);
           }}
           options={[
