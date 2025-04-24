@@ -74,4 +74,10 @@ describe("getTimeMax", () => {
     const result = getTimeMax(testDate);
     expect(result).toMatchInlineSnapshot(`"2024-11-01T00:00:00.000Z"`);
   });
+
+  it("should handle year changes", () => {
+    const testDate = "2024-12-24T23:59:59Z";
+    const result = getTimeMax(testDate);
+    expect(result).toMatchInlineSnapshot(`"2025-02-01T00:00:00.000Z"`);
+  });
 });
