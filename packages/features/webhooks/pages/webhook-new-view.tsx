@@ -62,7 +62,7 @@ export const NewWebhookView = ({ webhooks, installedApps }: Props) => {
       values.payloadTemplate = null;
     }
 
-    createWebhookMutation.mutate({
+    const { secret, ...webhookData } = {
       subscriberUrl: values.subscriberUrl,
       eventTriggers: values.eventTriggers,
       active: values.active,
@@ -72,7 +72,9 @@ export const NewWebhookView = ({ webhooks, installedApps }: Props) => {
       timeUnit: values.timeUnit,
       teamId,
       platform,
-    });
+    };
+
+    createWebhookMutation.mutate(webhookData);
   };
 
   return (
