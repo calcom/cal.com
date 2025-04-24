@@ -44,7 +44,7 @@ export default function InsightsVirtualQueuesPage() {
             form={selectedForm}
             supportsTeamMembersMatchingLogic={true}
             showAllData={false}
-            isMobile
+            isDialog
           />
         ) : (
           <></>

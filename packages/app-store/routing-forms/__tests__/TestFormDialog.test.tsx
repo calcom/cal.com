@@ -5,6 +5,15 @@ import { vi } from "vitest";
 import { TestFormRenderer } from "../components/_components/TestForm";
 import { findMatchingRoute } from "../lib/processRoute";
 
+vi.mock("framer-motion", async () => {
+  return {
+    motion: {
+      div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+    },
+    AnimatePresence: ({ children }: any) => <>{children}</>,
+  };
+});
+
 vi.mock("../lib/processRoute", () => ({
   findMatchingRoute: vi.fn(),
 }));
