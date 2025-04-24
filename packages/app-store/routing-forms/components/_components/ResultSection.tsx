@@ -16,13 +16,15 @@ export const ResultsSection = ({
   children,
   icon,
   hint,
+  ...props
 }: {
   title?: string;
   children: ReactNode;
   icon?: IconName;
   hint?: ReactNode;
+  [key: string]: any;
 }) => (
-  <div className="bg-default border-muted mb-0.5 flex flex-col gap-0.5 rounded-2xl border p-1">
+  <div className="bg-default border-muted mb-0.5 flex flex-col gap-0.5 rounded-2xl border p-1" {...props}>
     {(title || icon) && (
       <div className="flex items-center gap-2 px-2 py-1">
         {icon && (
@@ -156,15 +158,45 @@ export const ResultsView = ({
       transition={{ duration: 0.2 }}
       className="space-y-4">
       {chosenRoute.action.type === "eventTypeRedirectUrl" && (
-        <ResultsSection title={chosenRoute.name ?? ""} icon="zap">
+        <ResultsSection title={chosenRoute.name ?? ""} icon="zap" data-testid="chosen-route-title">
           <div className="flex items-center gap-2">
             <div className="border-subtle rounded-lg border p-1">
               <Icon name="calendar" className="h-4 w-4" />
             </div>
-            <span className="text-emphasis text-sm font-medium leading-none">{chosenRoute.action.value}</span>
+            <span
+              data-testid="test-routing-result"
+              className="text-emphasis text-sm font-medium leading-none">
+              {chosenRoute.action.value}
+            </span>
           </div>
         </ResultsSection>
       )}
+
+      {chosenRoute.action.type === "customPageMessage" && (
+        <ResultsSection title={chosenRoute.name ?? ""} icon="file-text" data-testid="chosen-route-title">
+          <div className="flex items-center gap-2">
+            <div className="border-subtle rounded-lg border p-1">
+              <Icon name="file-text" className="h-4 w-4" />
+            </div>
+            <span
+              data-testid="test-routing-result"
+              className="text-emphasis text-sm font-medium leading-none">
+              {chosenRoute.action.value}
+            </span>
+          </div>
+        </ResultsSection>
+      )}
+
+      <div className="flex items-center justify-between">
+        <span data-testid="route-to-text" className="text-emphasis text-sm font-medium">
+          {t("route_to:")}
+        </span>
+        <span data-testid="test-routing-result-type" className="text-default text-sm">
+          {chosenRoute.action.type === "customPageMessage" && "Custom Page"}
+          {chosenRoute.action.type === "externalRedirectUrl" && "External Redirect"}
+          {chosenRoute.action.type === "eventTypeRedirectUrl" && "Event Redirect"}
+        </span>
+      </div>
 
       {supportsTeamMembersMatchingLogic && membersMatchResult && (
         <>
@@ -182,7 +214,9 @@ export const ResultsView = ({
                     Attribute logic matched
                   </span>
                 </div>
-                <Badge variant={membersMatchResult.checkedFallback ? "error" : "success"}>
+                <Badge
+                  data-testid="attribute-logic-matched"
+                  variant={membersMatchResult.checkedFallback ? "error" : "success"}>
                   {membersMatchResult.checkedFallback ? "No" : "Yes"}
                 </Badge>
               </div>
@@ -193,7 +227,9 @@ export const ResultsView = ({
                   </div>
                   <span className="text-emphasis text-sm font-medium leading-none">Attribute fallback</span>
                 </div>
-                <Badge variant={membersMatchResult.checkedFallback ? "success" : "gray"}>
+                <Badge
+                  data-testid="attribute-logic-fallback-matched"
+                  variant={membersMatchResult.checkedFallback ? "success" : "gray"}>
                   {membersMatchResult.checkedFallback ? "Yes" : "Not needed"}
                 </Badge>
               </div>
@@ -218,7 +254,9 @@ export const ResultsView = ({
               hint={
                 <div className="flex items-center gap-2 px-2 py-1">
                   <Icon name="info" className="h-3 w-3" />
-                  <span className="text-subtle text-sm">{t("routing_preview_more_info_found_insights")}</span>
+                  <span data-testid="matching-members" className="text-subtle text-sm">
+                    {t("routing_preview_more_info_found_insights")}
+                  </span>
                 </div>
               }>
               <div className="divide-subtle divide-y">
@@ -238,7 +276,19 @@ export const ResultsView = ({
             <ResultsSection title="Warnings" icon="triangle-alert">
               <div className="space-y-2">
                 {membersMatchResult.mainWarnings.map((warning, index) => (
-                  <div key={index} className="text-warning">
+                  <div data-testid="alert" key={index} className="text-warning">
+                    {warning}
+                  </div>
+                ))}
+              </div>
+            </ResultsSection>
+          )}
+
+          {membersMatchResult.fallbackWarnings && membersMatchResult.fallbackWarnings.length > 0 && (
+            <ResultsSection title="Fallback Warnings" icon="triangle-alert">
+              <div className="space-y-2">
+                {membersMatchResult.fallbackWarnings.map((warning, index) => (
+                  <div data-testid="alert" key={index} className="text-warning">
                     {warning}
                   </div>
                 ))}
