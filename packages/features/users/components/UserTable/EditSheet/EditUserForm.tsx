@@ -200,7 +200,6 @@ export function EditForm({
             <Label>{t("role")}</Label>
             <ToggleGroup
               isFullWidth
-              defaultValue={selectedUser?.role ?? "MEMBER"}
               value={form.watch("role")}
               options={membershipOptions}
               onValueChange={(value: string) => {
