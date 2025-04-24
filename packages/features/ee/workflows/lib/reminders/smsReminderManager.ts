@@ -53,6 +53,7 @@ export type BookingInfo = {
   eventType?: {
     slug: string;
     recurringEvent?: RecurringEvent | null;
+    customReplyToEmail?: string | null;
   };
   startTime: string;
   endTime: string;
@@ -63,6 +64,7 @@ export type BookingInfo = {
   metadata?: Prisma.JsonValue;
   cancellationReason?: string | null;
   rescheduleReason?: string | null;
+  hideOrganizerEmail?: boolean;
 };
 
 export type ScheduleTextReminderAction = Extract<
