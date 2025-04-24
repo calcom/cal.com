@@ -14,8 +14,8 @@ import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
+import type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 import { localStorage } from "@calcom/lib/webstorage";
-import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import { useCreateBooking } from "../hooks/bookings/useCreateBooking";
