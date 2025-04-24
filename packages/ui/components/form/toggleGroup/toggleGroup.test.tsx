@@ -1,12 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { describe, expect, test, vi } from "vitest";
 
 import { ToggleGroup } from "./ToggleGroup";
 
-// Mock tooltip to avoid context issues in tests
 vi.mock("../../tooltip/Tooltip", () => ({
-  Tooltip: ({ children }) => <>{children}</>,
+  Tooltip: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
 describe("ToggleGroup Component", () => {

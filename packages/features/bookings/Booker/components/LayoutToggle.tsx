@@ -34,13 +34,19 @@ export const LayoutToggle = ({
   // the layout can be toggled via props in the booker atom
   if (isPlatform) return null;
 
-  return <ToggleGroup onValueChange={onLayoutToggle} value={layout} options={options} />;
+  return (
+    <ToggleGroup
+      onValueChange={(value) => onLayoutToggle(value as BookerLayouts)}
+      value={layout}
+      options={options}
+    />
+  );
 };
 
 export function layoutOptions(t: (key: string) => string, enabledLayouts?: BookerLayouts[]) {
   if (!enabledLayouts) return null;
 
-  const optionParams = [
+  const optionParams: { value: BookerLayouts; icon: "calendar" | "grid-3x3" | "columns-3"; txt: string }[] = [
     {
       value: BookerLayouts.MONTH_VIEW,
       icon: "calendar",
