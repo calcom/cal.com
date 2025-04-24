@@ -1,7 +1,7 @@
 "use client";
 
 import type { ChangeEventHandler } from "react";
-import { useState } from "react";
+import { useState, memo } from "react";
 
 import { AllApps } from "@calcom/features/apps/components/AllApps";
 import { AppStoreCategories } from "@calcom/features/apps/components/Categories";
@@ -18,6 +18,8 @@ import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { type getServerSideProps } from "@lib/apps/getServerSideProps";
 
 import AppsLayout from "@components/apps/layouts/AppsLayout";
+
+const MemoizedAllApps = memo(AllApps);
 
 const tabs: HorizontalTabItemProps[] = [
   {
@@ -82,7 +84,8 @@ export default function Apps({ categories, appStore, userAdminTeams }: PageProps
             <RecentAppsSlider items={appStore} />
           </>
         )}
-        <AllApps
+        {/* Use a memoized AllApps component to prevent unnecessary re-renders */}
+        <MemoizedAllApps
           apps={appStore}
           searchText={searchText}
           categories={categories.map((category) => category.name)}
