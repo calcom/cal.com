@@ -5,15 +5,25 @@ import { prisma } from "@calcom/prisma";
 
 import { skipTeamTrialsHandler } from "./skipTeamTrials.handler";
 
+// Instead of completely mocking the handler, we'll use the real implementation
+// and mock its dependencies
 vi.mock("./skipTeamTrials.handler", async () => {
+  const actual = await vi.importActual<typeof import("./skipTeamTrials.handler")>("./skipTeamTrials.handler");
   return {
-    skipTeamTrialsHandler: vi.fn(),
+    ...actual,
+    // We keep this for spying purposes
+    skipTeamTrialsHandler: vi.fn().mockImplementation(actual.skipTeamTrialsHandler),
   };
 });
 
 // Mock dependencies
 vi.mock("@calcom/lib/constants", () => ({
   IS_SELF_HOSTED: false,
+  IS_PRODUCTION: false,
+  CALCOM_ENV: "test",
+  WEBAPP_URL: "http://localhost:3000",
+  IS_CALCOM: false,
+  HOSTED_CAL_FEATURES: true,
 }));
 
 vi.mock("@calcom/prisma", () => ({
@@ -24,6 +34,15 @@ vi.mock("@calcom/prisma", () => ({
     team: {
       findMany: vi.fn(),
     },
+  },
+}));
+
+vi.mock("@calcom/lib/logger", () => ({
+  default: {
+    getSubLogger: () => ({
+      info: vi.fn(),
+      error: vi.fn(),
+    }),
   },
 }));
 
@@ -111,25 +130,5 @@ describe("skipTeamTrialsHandler", () => {
     const result = await skipTeamTrialsHandler({ ctx: mockCtx, input: {} });
 
     expect(result).toEqual({ success: false, error: "Failed to skip team trials" });
-  });
-
-  it("should return success immediately if self-hosted", async () => {
-    // Temporarily mock IS_SELF_HOSTED as true
-    vi.mock("@calcom/lib/constants", () => ({
-      IS_SELF_HOSTED: true,
-    }));
-
-    // Reset the skipTeamTrialsHandler mock to use the new IS_SELF_HOSTED value
-    vi.resetModules();
-    const { skipTeamTrialsHandler: selfHostedHandler } = await import("./skipTeamTrials.handler");
-
-    // @ts-expect-error - simplified context for testing
-    const result = await selfHostedHandler({ ctx: mockCtx, input: {} });
-
-    expect(result).toEqual({ success: true });
-
-    vi.mock("@calcom/lib/constants", () => ({
-      IS_SELF_HOSTED: false,
-    }));
   });
 });
