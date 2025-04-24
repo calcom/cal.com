@@ -164,6 +164,7 @@
   "invitee_timezone": "Invitee Time Zone",
   "time_left": "Time left",
   "event_type": "Event Type",
+  "event_type_skeleton": "Event Type Loading",
   "duplicate_event_type": "Duplicate Event Type",
   "enter_meeting": "Enter Meeting",
   "video_call_provider": "Video call provider",
