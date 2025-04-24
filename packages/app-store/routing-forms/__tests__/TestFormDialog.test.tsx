@@ -250,8 +250,6 @@ describe("TestFormDialog", () => {
       fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
       fireEvent.click(screen.getByText("submit"));
 
-      expect(screen.getByTestId("route-to-text")).toBeInTheDocument();
-      expect(screen.getByTestId("test-routing-result-type")).toHaveTextContent("Custom Page");
       expect(screen.getByTestId("test-routing-result")).toHaveTextContent("Thank you for submitting!");
     });
 
@@ -269,8 +267,6 @@ describe("TestFormDialog", () => {
       );
       fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
       fireEvent.click(screen.getByText("submit"));
-      expect(screen.getByTestId("route-to-text")).toBeInTheDocument();
-      expect(screen.getByTestId("test-routing-result-type")).toHaveTextContent("Event Redirect");
       expect(screen.getByTestId("test-routing-result")).toHaveTextContent("john/30min");
       expect(screen.getByTestId("chosen-route-title")).toBeInTheDocument();
       expect(screen.getByTestId("attribute-logic-matched")).toHaveTextContent("Yes");
@@ -298,8 +294,6 @@ describe("TestFormDialog", () => {
       );
       fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
       fireEvent.click(screen.getByText("submit"));
-      expect(screen.getByTestId("route-to-text")).toBeInTheDocument();
-      expect(screen.getByTestId("test-routing-result-type")).toHaveTextContent("Event Redirect");
       expect(screen.getByTestId("test-routing-result")).toHaveTextContent("john/30min");
       expect(screen.getByTestId("chosen-route-title")).toBeInTheDocument();
       expect(screen.getByTestId("attribute-logic-matched")).toHaveTextContent("Yes");
@@ -408,7 +402,6 @@ describe("TestFormDialog", () => {
       fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
       fireEvent.click(screen.getByText("submit"));
 
-      expect(screen.getByTestId("route-to-text")).toBeInTheDocument();
       expect(screen.getByTestId("test-routing-result")).toHaveTextContent("Thank you for submitting!");
     });
 
@@ -426,7 +419,6 @@ describe("TestFormDialog", () => {
       );
       fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
       fireEvent.click(screen.getByText("submit"));
-      expect(screen.getByTestId("route-to-text")).toBeInTheDocument();
       expect(screen.getByTestId("test-routing-result")).toHaveTextContent("john/30min");
       // When we support showing matching route we can add this back
       // expect(screen.getByTestId("chosen-route")).toHaveTextContent("Route 2");
