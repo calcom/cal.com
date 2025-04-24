@@ -1,11 +1,11 @@
 "use client";
 
-import { EventTypeWebWrapper } from "@calcom/atoms/event-types/wrappers/EventTypeWebWrapper";
-
 import type { PageProps } from "@lib/event-types/[type]/getServerSideProps";
 
+import EventTypePage from "./event-type-page";
+
 const EventTypePageWrapper = ({ type, data }: PageProps) => {
-  return <EventTypeWebWrapper data={data} id={type} />;
+  return <EventTypePage id={type} data={data} />;
 };
 
 export default EventTypePageWrapper;
