@@ -128,10 +128,13 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 },
               }}
               {...(isTeamEvent
-                ? { isTeamEvent: true, teamId: teams?.[0]?.id || 0 }
+                ? {
+                    isTeamEvent: true,
+                    teamId: teams?.[0]?.id || 0,
+                    username: teams?.[0]?.slug || "platform-team-doe",
+                  }
                 : { username: props.calUsername })}
               hostsLimit={3}
-              selectedDate={new Date("2025-03-25")}
               allowUpdatingUrlParams={true}
             />
           </>

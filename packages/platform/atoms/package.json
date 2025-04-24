@@ -12,7 +12,7 @@
     "test": "jest"
   },
   "devDependencies": {
-    "@calcom/platform-libraries": "0.0.2",
+    "@calcom/platform-libraries": "9.9.9",
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.3.1",

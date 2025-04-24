@@ -231,6 +231,10 @@ export const getPublicEvent = async (
   fetchAllUsers = false
 ) => {
   const usernameList = getUsernameList(username);
+  console.log("usernameListttt: ", usernameList);
+  console.log("eventSluggggggg: ", eventSlug);
+  console.log("isTeamEventtt: ", isTeamEvent);
+  console.log("orggggggg: ", org);
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
   // In case of dynamic group event, we fetch user's data and use the default event.
   if (usernameList.length > 1) {
@@ -241,6 +245,7 @@ export const getPublicEvent = async (
     const users = usersInOrgContext;
 
     const defaultEvent = getDefaultEvent(eventSlug);
+    console.log("defaultEvendefaultEventt: ", defaultEvent);
     let locations = defaultEvent.locations ? (defaultEvent.locations as LocationObject[]) : [];
 
     // Get the preferred location type from the first user
@@ -355,6 +360,7 @@ export const getPublicEvent = async (
         team: null,
       };
 
+  console.log("usersOrTeamQuery: ", usersOrTeamQuery);
   // In case it's not a group event, it's either a single user or a team, and we query that data.
   let event = await prisma.eventType.findFirst({
     where: {
@@ -363,6 +369,9 @@ export const getPublicEvent = async (
     },
     select: getPublicEventSelect(fetchAllUsers),
   });
+
+  console.log("event1111111: ", event);
+  console.log("orgQuery: ", orgQuery);
 
   // If no event was found, check for platform org user event
   if (!event && !orgQuery) {
@@ -385,6 +394,8 @@ export const getPublicEvent = async (
       },
       select: getPublicEventSelect(fetchAllUsers),
     });
+
+    console.log("event22222222: ", event);
   }
 
   if (!event) return null;
