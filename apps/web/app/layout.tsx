@@ -157,7 +157,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {children}
           </AppRouterI18nProvider>
         </Providers>
-        {!isEmbed && <NotificationSoundHandler />}
         <NotificationSoundHandler />
       </body>
     </html>
