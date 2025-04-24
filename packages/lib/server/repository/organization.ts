@@ -5,6 +5,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { BillingPeriod, OrganizationSettings } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -18,6 +19,43 @@ const orgSelect = {
   name: true,
   slug: true,
   logoUrl: true,
+};
+
+const adminFindByIdSelect = Prisma.validator<Prisma.TeamSelect>()({
+  id: true,
+  name: true,
+  slug: true,
+  metadata: true,
+  isOrganization: true,
+  members: {
+    where: {
+      role: "OWNER",
+    },
+    select: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    },
+  },
+  organizationSettings: {
+    select: {
+      isOrganizationConfigured: true,
+      isOrganizationVerified: true,
+      orgAutoAcceptEmail: true,
+    },
+  },
+});
+
+type AdminFindByIdResult = Prisma.TeamGetPayload<{
+  select: typeof adminFindByIdSelect;
+}>;
+
+type AdminFindByIdResultPatched = Omit<AdminFindByIdResult, "organizationSettings"> & {
+  organizationSettings?: Partial<AdminFindByIdResult["organizationSettings"]>;
 };
 
 export class OrganizationRepository {
@@ -318,49 +356,36 @@ export class OrganizationRepository {
     return teamsInOrgIamNotPartOf;
   }
 
-  static async adminFindById({ id }: { id: number }) {
+  static async adminFindById({ id }: { id: number }): Promise<AdminFindByIdResultPatched> {
     const org = await prisma.team.findUnique({
       where: {
         id,
       },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        metadata: true,
-        isOrganization: true,
-        members: {
-          where: {
-            role: "OWNER",
-          },
-          select: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
-        },
-        organizationSettings: {
-          select: {
-            isOrganizationConfigured: true,
-            isOrganizationVerified: true,
-            orgAutoAcceptEmail: true,
-          },
-        },
-      },
+      select: adminFindByIdSelect,
     });
     if (!org) {
       throw new Error("Organization not found");
     }
-
     const parsedMetadata = teamMetadataSchema.parse(org.metadata);
     if (!org?.isOrganization) {
       throw new Error("Organization not found");
     }
-    return { ...org, metadata: parsedMetadata };
+    return {
+      ...org,
+      ...(org.organizationSettings
+        ? {
+            organizationSettings: {
+              ...org.organizationSettings,
+              ...(typeof org.organizationSettings?.orgAutoAcceptEmail === "string"
+                ? {
+                    orgAutoAcceptEmail: org.organizationSettings.orgAutoAcceptEmail,
+                  }
+                : {}),
+            },
+          }
+        : {}),
+      metadata: parsedMetadata,
+    };
   }
 
   static async findByMemberEmail({ email }: { email: string }) {
