@@ -5,12 +5,12 @@ import { middleware } from "../trpc";
  * This middleware extracts the secret from the request body for webhook creation/editing
  * and adds it to the headers for improved security
  */
-export const webhookSecretHeaderMiddleware = middleware(async ({ ctx, next, meta, input }) => {
+export const webhookSecretHeaderMiddleware = middleware(({ ctx, next, rawInput }) => {
   const path = ctx.req?.url?.split("/").pop();
   const isWebhookMutation = path === "create" || path === "edit";
 
-  if (isWebhookMutation && input && typeof input === "object") {
-    const webhookInput = input as { secret?: string };
+  if (isWebhookMutation && rawInput && typeof rawInput === "object") {
+    const webhookInput = rawInput as { secret?: string };
 
     if (webhookInput.secret && typeof webhookInput.secret === "string") {
       if (ctx.req?.headers) {
