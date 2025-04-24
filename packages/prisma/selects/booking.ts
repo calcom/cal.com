@@ -8,6 +8,10 @@ export const bookingMinimalSelect = Prisma.validator<Prisma.BookingSelect>()({
   customInputs: true,
   startTime: true,
   endTime: true,
-  attendees: true,
+  attendees: {
+    orderBy: {
+      id: "asc",
+    },
+  },
   metadata: true,
 });
