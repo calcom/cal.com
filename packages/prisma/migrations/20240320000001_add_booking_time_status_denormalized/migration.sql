@@ -26,9 +26,9 @@ CREATE TABLE "BookingTimeStatusDenormalized" (
 );
 
 -- Create indexes to match likely query patterns
-CREATE INDEX ON "BookingTimeStatusDenormalized" (id);
-CREATE INDEX ON "BookingTimeStatusDenormalized" ("userId");
-CREATE INDEX ON "BookingTimeStatusDenormalized" ("createdAt");
+CREATE INDEX "idx_booking_id" ON "BookingTimeStatusDenormalized" (id);
+CREATE INDEX "idx_booking_user_id" ON "BookingTimeStatusDenormalized" ("userId");
+CREATE INDEX "idx_booking_created_at" ON "BookingTimeStatusDenormalized" ("createdAt");
 CREATE INDEX "idx_event_type_hierarchy" ON "BookingTimeStatusDenormalized" ("eventTypeId", "eventParentId");
 
 -- Function to calculate timeStatus
