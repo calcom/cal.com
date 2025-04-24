@@ -4,6 +4,7 @@ import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getO
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
+import type { BillingPeriod, OrganizationSettings } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -29,11 +30,11 @@ export class OrganizationRepository {
       slug: string | null;
       isOrganizationConfigured: boolean;
       isOrganizationAdminReviewed: boolean;
-      autoAcceptEmail: string;
+      autoAcceptEmail: OrganizationSettings["orgAutoAcceptEmail"];
       seats: number | null;
       pricePerSeat: number | null;
       isPlatform: boolean;
-      billingPeriod?: "MONTHLY" | "ANNUALLY";
+      billingPeriod?: BillingPeriod;
       logoUrl: string | null;
       bio: string | null;
       requestedSlug?: string | null;
@@ -76,9 +77,9 @@ export class OrganizationRepository {
       slug: string;
       isOrganizationConfigured: boolean;
       isOrganizationAdminReviewed: boolean;
-      autoAcceptEmail: string;
+      autoAcceptEmail: OrganizationSettings["orgAutoAcceptEmail"];
       seats: number | null;
-      billingPeriod?: "MONTHLY" | "ANNUALLY";
+      billingPeriod?: BillingPeriod;
       pricePerSeat: number | null;
       isPlatform: boolean;
       logoUrl: string | null;
@@ -123,9 +124,9 @@ export class OrganizationRepository {
     slug: string | null;
     isOrganizationConfigured: boolean;
     isOrganizationAdminReviewed: boolean;
-    autoAcceptEmail: string;
+    autoAcceptEmail: OrganizationSettings["orgAutoAcceptEmail"];
     seats: number | null;
-    billingPeriod?: "MONTHLY" | "ANNUALLY";
+    billingPeriod?: BillingPeriod;
     pricePerSeat: number | null;
     isPlatform: boolean;
     logoUrl: string | null;
