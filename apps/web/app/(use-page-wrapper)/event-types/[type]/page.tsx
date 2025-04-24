@@ -1,6 +1,7 @@
 import type { PageProps as _PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
+import { Suspense } from "react";
 import { z } from "zod";
 
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
@@ -9,6 +10,8 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/event-types/[type]/getServerSideProps";
 
 import EventTypePageWrapper from "~/event-types/views/event-types-single-view";
+
+import EventTypeSkeleton from "./event-type-skeleton";
 
 const querySchema = z.object({
   type: z
@@ -48,7 +51,11 @@ const ServerPage = async ({ params, searchParams }: _PageProps) => {
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getServerSideProps(legacyCtx);
 
-  return <EventTypePageWrapper {...props} />;
+  return (
+    <Suspense fallback={<EventTypeSkeleton />}>
+      <EventTypePageWrapper {...props} />
+    </Suspense>
+  );
 };
 
 export default ServerPage;
