@@ -70,6 +70,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       destinationCalendar: true,
       hideCalendarNotes: true,
       hideCalendarEventDetails: true,
+      hideOrganizerEmail: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
       seatsShowAttendees: true,
