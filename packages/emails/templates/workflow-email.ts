@@ -14,7 +14,7 @@ export type WorkflowEmailData = {
   to: string;
   subject: string;
   html: string;
-  replyTo: string;
+  replyTo?: string;
   sender?: string | null;
   attachments?: Attachment[];
 };
