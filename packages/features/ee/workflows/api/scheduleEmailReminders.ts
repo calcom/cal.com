@@ -361,10 +361,12 @@ export async function handler(req: NextRequest) {
                 ]
               : undefined,
             sender: reminder.workflowStep.sender,
-            replyTo:
-              reminder.booking?.eventType?.customReplyToEmail ??
-              reminder.booking?.userPrimaryEmail ??
-              reminder.booking.user?.email,
+            ...(!reminder.booking?.eventType?.hideOrganizerEmail && {
+              replyTo:
+                reminder.booking?.eventType?.customReplyToEmail ??
+                reminder.booking?.userPrimaryEmail ??
+                reminder.booking.user?.email,
+            }),
           };
 
           if (isSendgridEnabled) {
@@ -441,10 +443,12 @@ export async function handler(req: NextRequest) {
             to: [sendTo],
             html: emailContent.emailBody,
             sender: reminder.workflowStep?.sender,
-            replyTo:
-              reminder.booking?.eventType?.customReplyToEmail ||
-              reminder.booking?.userPrimaryEmail ||
-              reminder.booking.user?.email,
+            ...(!reminder.booking?.eventType?.hideOrganizerEmail && {
+              replyTo:
+                reminder.booking?.eventType?.customReplyToEmail ||
+                reminder.booking?.userPrimaryEmail ||
+                reminder.booking.user?.email,
+            }),
           };
           if (isSendgridEnabled) {
             sendEmailPromises.push(
