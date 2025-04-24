@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { UseAddAppMutationOptions } from "@calcom/app-store/_utils/useAddAppMutation";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
@@ -13,8 +13,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
-import { Icon } from "@calcom/ui/components/icon";
 import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { InstallAppButtonMap } from "./apps.browser.generated";
 import type { InstallAppButtonProps } from "./types";
@@ -64,6 +64,11 @@ export const InstallAppButton = (
   const proProtectionElementRef = useRef<HTMLDivElement | null>(null);
   const { isPending: isTeamPlanStatusLoading, hasTeamPlan } = useHasTeamPlan();
 
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   useEffect(() => {
     const el = proProtectionElementRef.current;
     if (!el) {
@@ -90,6 +95,16 @@ export const InstallAppButton = (
       true
     );
   }, [isUserLoading, user, router, hasTeamPlan, props.teamsPlanRequired]);
+
+  if (!isClient) {
+    return (
+      <div className={props.wrapperClassName}>
+        <div className="bg-subtle rounded-md px-3 py-2 text-sm">
+          {props.teamsPlanRequired ? "Upgrade" : "Install"}
+        </div>
+      </div>
+    );
+  }
 
   if (isUserLoading || isTeamPlanStatusLoading) {
     return null;
