@@ -7697,7 +7697,7 @@
     "/v2/calendars/{calendar}/save": {
       "get": {
         "operationId": "CalendarsController_save",
-        "summary": "Save an oAuth calendar credentials",
+        "summary": "Save Google or Outlook calendar credentials",
         "parameters": [
           {
             "name": "state",
@@ -7741,7 +7741,7 @@
     "/v2/calendars/{calendar}/credentials": {
       "post": {
         "operationId": "CalendarsController_syncCredentials",
-        "summary": "Sync credentials",
+        "summary": "Save Apple calendar credentials",
         "parameters": [
           {
             "name": "calendar",

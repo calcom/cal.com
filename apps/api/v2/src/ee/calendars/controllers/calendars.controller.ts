@@ -175,7 +175,7 @@ export class CalendarsController {
   @Get("/:calendar/save")
   @HttpCode(HttpStatus.OK)
   @Redirect(undefined, 301)
-  @ApiOperation({ summary: "Save an oAuth calendar credentials" })
+  @ApiOperation({ summary: "Save Google or Outlook calendar credentials" })
   async save(
     @Query("state") state: string,
     @Query("code") code: string,
@@ -223,7 +223,7 @@ export class CalendarsController {
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Post("/:calendar/credentials")
-  @ApiOperation({ summary: "Sync credentials" })
+  @ApiOperation({ summary: "Save Apple calendar credentials" })
   async syncCredentials(
     @GetUser() user: User,
     @Param("calendar") calendar: string,
