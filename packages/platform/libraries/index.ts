@@ -41,11 +41,7 @@ export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/l
 
 export { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 
-export type {
-  BookingCreateBody,
-  BookingResponse,
-  RecurringBookingCreateBody,
-} from "@calcom/features/bookings/types";
+export type { BookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
 export { HttpError } from "@calcom/lib/http-error";
 
 export { MINUTES_TO_BOOK } from "@calcom/lib/constants";
