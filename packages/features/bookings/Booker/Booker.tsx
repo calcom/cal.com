@@ -468,6 +468,7 @@ const BookerComponent = ({
                 schedule={schedule.data}
                 isLoading={schedule.isPending}
                 event={event}
+                key={`large-calendar-${layout}`} // Add key to force re-render only when layout changes
               />
             </BookerSection>
             <BookerSection
@@ -504,6 +505,7 @@ const BookerComponent = ({
                 watchedCfToken={watchedCfToken}
                 confirmButtonDisabled={confirmButtonDisabled}
                 confirmStepClassNames={customClassNames?.confirmStep}
+                key={`available-timeslots-${layout}`} // Add key to force re-render only when layout changes
               />
             </BookerSection>
           </AnimatePresence>

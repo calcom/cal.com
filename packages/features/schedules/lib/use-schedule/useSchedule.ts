@@ -107,9 +107,15 @@ export const useSchedule = ({
 
   let schedule;
   if (isTeamEvent) {
-    schedule = trpc.viewer.highPerf.getTeamSchedule.useQuery(input, options);
+    schedule = trpc.viewer.highPerf.getTeamSchedule.useQuery(input, {
+      ...options,
+      staleTime: 0, // Prevent stale data being used when layout changes
+    });
   } else {
-    schedule = trpc.viewer.slots.getSchedule.useQuery(input, options);
+    schedule = trpc.viewer.slots.getSchedule.useQuery(input, {
+      ...options,
+      staleTime: 0, // Prevent stale data being used when layout changes
+    });
   }
   return {
     ...schedule,

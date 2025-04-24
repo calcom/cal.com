@@ -87,13 +87,19 @@ export const useScheduleForEvent = ({
   isTeamEvent?: boolean;
 } = {}) => {
   const { timezone } = useBookerTime();
-  const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStore(
-    (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
+  const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore, layout] = useBookerStore(
+    (state) => [state.username, state.eventSlug, state.month, state.selectedDuration, state.layout],
     shallow
   );
 
   const searchParams = useCompatSearchParams();
   const rescheduleUid = searchParams?.get("rescheduleUid");
+
+  const cacheKey = `${usernameFromStore ?? username}-${
+    eventSlugFromStore ?? eventSlug
+  }-${eventId}-${timezone}-${selectedDate}-${prefetchNextMonth}-${monthCount}-${dayCount}-${rescheduleUid}-${
+    monthFromStore ?? month
+  }-${durationFromStore ?? duration}-${isTeamEvent}-${orgSlug}-${teamMemberEmail}`;
 
   const schedule = useSchedule({
     username: usernameFromStore ?? username,
