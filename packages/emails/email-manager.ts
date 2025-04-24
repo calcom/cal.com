@@ -746,6 +746,7 @@ export const sendBookingRedirectNotification = async (bookingRedirect: IBookingR
 export const sendCreditBalanceLowWarningEmails = async (input: {
   team: {
     name: string;
+    id: number;
     adminAndOwners: {
       name: string;
       email: string;
@@ -759,9 +760,7 @@ export const sendCreditBalanceLowWarningEmails = async (input: {
   const emailsAndSMSToSend: Promise<unknown>[] = [];
 
   for (const admin of team.adminAndOwners) {
-    emailsAndSMSToSend.push(
-      sendEmail(() => new CreditBalanceLowWarningEmail(admin, input.balance, team?.name))
-    );
+    emailsAndSMSToSend.push(sendEmail(() => new CreditBalanceLowWarningEmail(admin, balance, team)));
   }
 
   await Promise.all(emailsAndSMSToSend);

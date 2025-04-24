@@ -11,27 +11,31 @@ export default class CreditBalanceLowWarningEmail extends BaseEmail {
     email: string;
     t: TFunction;
   };
-  teamName: string;
+  team: {
+    id: number;
+    name: string;
+  };
   balance: number;
 
-  constructor(user: { name: string; email: string; t: TFunction }, balance: number, teamName: string) {
+  constructor(
+    user: { name: string; email: string; t: TFunction },
+    balance: number,
+    team: { id: number; name: string }
+  ) {
     super();
     this.user = user;
-    this.teamName = teamName;
+    this.team = team;
     this.balance = balance;
   }
 
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
-    let subject = "";
-    subject = `[Action Required] your team ${this.teamName} is running low on credits`;
-
     return {
       from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: this.user.email,
-      subject: `[Action Required] your team ${this.teamName} is running low on credits`,
+      subject: this.user.t("action_required_credits_low", { teamName: this.team.name }),
       html: await renderEmail("CreditBalanceLowWarningEmail", {
         balance: this.balance,
-        teamName: this.teamName,
+        team: this.team,
         user: this.user,
       }),
       text: this.getTextBody(),

@@ -278,28 +278,6 @@ export async function handleLowCreditBalance({
       },
     });
 
-    console.log(`team: ${JSON.stringify(team)}`);
-
-    const teamall = await prisma.team.findUnique({
-      where: { id: teamId },
-      select: {
-        name: true,
-        members: {
-          select: {
-            user: {
-              select: {
-                name: true,
-                email: true,
-                locale: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    console.log(`teamall: ${JSON.stringify(teamall)}`);
-
     if (!team) {
       log.error("Team not found to send warning email");
       return;
@@ -310,6 +288,7 @@ export async function handleLowCreditBalance({
     await sendCreditBalanceLowWarningEmails({
       balance: remainingCredits,
       team: {
+        id: teamId,
         name: team.name,
         adminAndOwners: await Promise.all(
           team.members.map(async (member) => ({

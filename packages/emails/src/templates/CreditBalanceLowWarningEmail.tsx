@@ -7,7 +7,10 @@ import type { BaseScheduledEmail } from "./BaseScheduledEmail";
 
 export const CreditBalanceLowWarningEmail = (
   props: {
-    teamName: string;
+    team: {
+      id: number;
+      name: string;
+    };
     balance: number;
     user: {
       name: string;
@@ -16,32 +19,30 @@ export const CreditBalanceLowWarningEmail = (
     };
   } & Partial<React.ComponentProps<typeof BaseScheduledEmail>>
 ) => {
-  const { teamName, balance, user } = props;
+  const { team, balance, user } = props;
 
   return (
-    <V2BaseEmailHtml subject="Credit balance low">
-      <p
-        style={{
-          fontSize: "16px",
-          fontWeight: "400",
-          lineHeight: "18px",
-          color: "#000",
-          textAlign: "center",
-        }}>
-        Your cal.com team {teamName} is running low on credits.
+    <V2BaseEmailHtml subject={user.t("action_required_credits_low", { userName: user.name })}>
+      <p style={{ fontWeight: 400, lineHeight: "24px" }}>
+        <> {user.t("hi_user_name", { name: user.name })},</>
+      </p>
+      <p style={{ fontWeight: 400, lineHeight: "24px", marginBottom: "20px" }}>
+        <>{user.t("low_credits_warning_message", { teamName: team.name })}</>
       </p>
       <p
         style={{
-          fontSize: "18px",
           fontWeight: "500",
-          lineHeight: "26px",
+          lineHeight: "24px",
           color: "#000",
-          textAlign: "center",
         }}>
-        Current balance: {balance} credits
+        {user.t("current_credit_balance", { balance })}
       </p>
       <div style={{ textAlign: "center", marginTop: "24px" }}>
-        <CallToAction label="Buy Credits" href={WEBAPP_URL} endIconName="linkIcon" /> {/* add team id */}
+        <CallToAction
+          label={user.t("buy_credits")}
+          href={`${WEBAPP_URL}/settings/teams/${team.id}/billing`}
+          endIconName="linkIcon"
+        />
       </div>{" "}
     </V2BaseEmailHtml>
   );
