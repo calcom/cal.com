@@ -417,8 +417,8 @@ export async function handler(req: NextRequest) {
                   reminder.booking?.eventType?.customReplyToEmail ||
                   reminder.booking?.userPrimaryEmail ||
                   reminder.booking.user?.email,
-                sender: reminder.workflowStep?.sender,
               }),
+              sender: reminder.workflowStep?.sender,
             })
           );
 
