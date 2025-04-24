@@ -38,14 +38,15 @@ export function getTimeMax(timeMax?: string) {
   let baseYear = currentYear;
   let baseMonth = currentMonth;
 
-  // Check if date is within current month or next month relative to *now*.
-  const isWithinCurrentOrNextMonth =
-    (dateYear === currentYear && dateMonth <= currentMonth + 1) ||
-    (dateYear === currentYear + 1 && currentMonth === 11 && dateMonth === 0);
+  // Check if date is within the current month or the next two months relative to *now*.
+  const isWithinCurrentOrNextTwoMonths =
+    (dateYear === currentYear && dateMonth <= currentMonth + 2) ||
+    (dateYear === currentYear + 1 &&
+      ((currentMonth === 10 && dateMonth === 0) || (currentMonth === 11 && dateMonth <= 1)));
 
-  // If the input date is beyond the next month relative to *now*,
+  // If the input date is beyond the next two months relative to *now*,
   // use the *input date's* month/year as the base.
-  if (!isWithinCurrentOrNextMonth) {
+  if (!isWithinCurrentOrNextTwoMonths) {
     baseYear = dateYear;
     baseMonth = dateMonth;
   }
