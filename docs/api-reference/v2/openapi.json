@@ -7354,7 +7354,7 @@
     "/v2/calendars/{calendar}/save": {
       "get": {
         "operationId": "CalendarsController_save",
-        "summary": "Save an oAuth calendar credentials",
+        "summary": "Save Google or Outlook calendar credentials",
         "parameters": [
           {
             "name": "state",
@@ -7393,7 +7393,7 @@
     "/v2/calendars/{calendar}/credentials": {
       "post": {
         "operationId": "CalendarsController_syncCredentials",
-        "summary": "Sync credentials",
+        "summary": "Save Apple calendar credentials",
         "parameters": [
           {
             "name": "calendar",
@@ -7414,6 +7414,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCalendarCredentialsInput"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": ""
@@ -15024,7 +15034,7 @@
           },
           "slug": {
             "type": "string",
-            "description": "Team slug",
+            "description": "Team slug in kebab-case - if not provided will be generated automatically based on name.",
             "example": "caltel"
           },
           "logoUrl": {
@@ -17751,7 +17761,7 @@
           },
           "slug": {
             "type": "string",
-            "description": "Team slug",
+            "description": "Team slug in kebab-case - if not provided will be generated automatically based on name.",
             "example": "caltel"
           },
           "logoUrl": {
@@ -18472,6 +18482,18 @@
         },
         "required": ["status", "data"]
       },
+      "CreateCalendarCredentialsInput": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": ["username", "password"]
+      },
       "DeleteCalendarCredentialsInputBodyDto": {
         "type": "object",
         "properties": {
@@ -18546,6 +18568,11 @@
             "description": "Name of the organization",
             "example": "CalTeam"
           },
+          "slug": {
+            "type": "string",
+            "description": "Organization slug in kebab-case - if not provided will be generated automatically based on name.",
+            "example": "cal-tel"
+          },
           "metadata": {
             "type": "object",
             "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
@@ -18565,6 +18592,9 @@
           "name": {
             "type": "string",
             "minLength": 1
+          },
+          "slug": {
+            "type": "string"
           },
           "metadata": {
             "type": "object",
@@ -18601,6 +18631,9 @@
           "name": {
             "type": "string",
             "minLength": 1
+          },
+          "slug": {
+            "type": "string"
           },
           "metadata": {
             "type": "object",
