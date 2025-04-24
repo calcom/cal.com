@@ -166,7 +166,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
               {isDesktop ? (
                 <motion.div
                   layout
-                  className="mx-auto w-full max-w-4xl"
+                  className="mx-auto w-full max-w-4xl px-2 lg:px-4 xl:px-0"
                   transition={{ duration: 0.3, ease: "easeInOut" }}>
                   <Page hookForm={hookForm} form={form} appUrl={appUrl} />
                 </motion.div>
