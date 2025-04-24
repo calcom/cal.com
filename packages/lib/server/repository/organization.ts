@@ -305,6 +305,13 @@ export class OrganizationRepository {
           },
         },
       },
+      select: {
+        parentId: true,
+        id: true,
+        name: true,
+        logoUrl: true,
+        slug: true,
+      },
     });
 
     return teamsInOrgIamNotPartOf;

@@ -87,6 +87,7 @@ export const useEventTypeForm = ({
       slotInterval: eventType.slotInterval,
       minimumBookingNotice: eventType.minimumBookingNotice,
       allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
+      hideOrganizerEmail: eventType.hideOrganizerEmail,
       metadata: eventType.metadata,
       hosts: eventType.hosts.sort((a, b) => sortHosts(a, b, eventType.isRRWeightsEnabled)),
       successRedirectUrl: eventType.successRedirectUrl || "",
