@@ -1,3 +1,4 @@
+import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -6,8 +7,8 @@ import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import LegacyPage from "@calcom/features/ee/organizations/pages/settings/general";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { createContextInner } from "@calcom/trpc/server/createContext";
-import { appRouter } from "@calcom/trpc/server/routers/_app";
+import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
+import { viewerOrganizationsRouter } from "@calcom/trpc/server/routers/viewer/organizations/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -28,13 +29,10 @@ const Page = async () => {
     redirect("/auth/login");
   }
 
-  const ctx = await createContextInner({ session, locale: session.user.locale ?? "en" });
-  const caller = appRouter.createCaller(ctx);
+  const meCaller = await createRouterCaller(meRouter);
+  const orgCaller = await createRouterCaller(viewerOrganizationsRouter);
 
-  const [user, currentOrg] = await Promise.all([
-    caller.viewer.me.get(),
-    caller.viewer.organizations.listCurrent(),
-  ]);
+  const [user, currentOrg] = await Promise.all([meCaller.get(), orgCaller.listCurrent()]);
 
   if (!currentOrg) {
     redirect("/getting-started");
