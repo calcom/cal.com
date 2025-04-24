@@ -221,7 +221,8 @@
             "platform/guides/booking-fields",
             "platform/guides/booking-redirects",
             "platform/guides/teams-setup",
-            "platform/guides/global-event-types"
+            "platform/guides/global-event-types",
+            "platform/guides/custom-booking-flow"
           ]
         },
         "platform/faq"
