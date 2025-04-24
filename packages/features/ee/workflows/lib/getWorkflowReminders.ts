@@ -191,6 +191,7 @@ export const select = Prisma.validator<Prisma.WorkflowReminderSelect>()({
               hideBranding: true,
             },
           },
+          customReplyToEmail: true,
         },
       },
     },

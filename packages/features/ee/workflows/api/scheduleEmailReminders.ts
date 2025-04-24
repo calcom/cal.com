@@ -347,7 +347,6 @@ export async function handler(req: NextRequest) {
             subject: emailContent.emailSubject,
             to: Array.isArray(sendTo) ? sendTo : [sendTo],
             html: emailContent.emailBody,
-            replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email ?? "",
             attachments: reminder.workflowStep.includeCalendarEvent
               ? [
                   {
@@ -362,6 +361,10 @@ export async function handler(req: NextRequest) {
                 ]
               : undefined,
             sender: reminder.workflowStep.sender,
+            replyTo:
+              reminder.booking?.eventType?.customReplyToEmail ??
+              reminder.booking?.userPrimaryEmail ??
+              reminder.booking.user?.email,
           };
 
           if (isSendgridEnabled) {
@@ -437,8 +440,11 @@ export async function handler(req: NextRequest) {
             subject: emailContent.emailSubject,
             to: [sendTo],
             html: emailContent.emailBody,
-            replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email ?? "",
             sender: reminder.workflowStep?.sender,
+            replyTo:
+              reminder.booking?.eventType?.customReplyToEmail ||
+              reminder.booking?.userPrimaryEmail ||
+              reminder.booking.user?.email,
           };
           if (isSendgridEnabled) {
             sendEmailPromises.push(
