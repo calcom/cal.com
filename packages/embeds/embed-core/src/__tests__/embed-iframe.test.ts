@@ -161,7 +161,7 @@ describe("embedStore.router.ensureQueryParamsInUrl", () => {
   });
 });
 
-describe.only("getEmbedBookerState", () => {
+describe("getEmbedBookerState", () => {
   it("should return 'initializing' when bookerState is 'loading'", () => {
     const result = getEmbedBookerState({
       bookerState: "loading",
