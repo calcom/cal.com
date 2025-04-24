@@ -11,6 +11,7 @@ import {
   WEBAPP_URL,
 } from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
+import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -78,6 +79,23 @@ const getIPAddress = async (url: string): Promise<string> => {
       resolve(address);
     });
   });
+};
+
+const extractAutoAcceptEmail = async ({
+  isPlatform,
+  orgOwnerEmail,
+}: {
+  isPlatform: boolean;
+  orgOwnerEmail: string;
+}) => {
+  if (isPlatform) {
+    // A platform org does not setup the auto accept email
+    return null;
+  }
+  if (await checkIfFreeEmailDomain(orgOwnerEmail)) {
+    return null;
+  }
+  return orgOwnerEmail.split("@")[1];
 };
 
 /**
@@ -208,14 +226,12 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     }
   }
 
-  const autoAcceptEmail = isPlatform ? "UNUSED_FOR_PLATFORM" : orgOwnerEmail.split("@")[1];
-
   const orgData = {
     name,
     slug,
     isOrganizationConfigured,
     isOrganizationAdminReviewed: IS_USER_ADMIN,
-    autoAcceptEmail,
+    autoAcceptEmail: await extractAutoAcceptEmail({ isPlatform, orgOwnerEmail }),
     seats: seats ?? null,
     pricePerSeat: pricePerSeat ?? null,
     isPlatform,

@@ -518,7 +518,7 @@ model OrganizationSettings {
   isOrganizationVerified              Boolean    @default(false)
   // It is a domain e.g "acme.com". Any email with this domain might be auto-accepted
   // Also, it is the domain to which the organization profile is redirected.
-  orgAutoAcceptEmail                  String
+  orgAutoAcceptEmail                  String?
   lockEventTypeCreationForUsers       Boolean    @default(false)
   adminGetsNoSlotsNotification        Boolean    @default(false)
   // It decides if instance ADMIN has reviewed the organization or not.
