@@ -1,9 +1,10 @@
-import CheckedTeamSelect, { type CheckedSelectOption } from "eventtypes/components/CheckedTeamSelect";
 import type { EventTypeSetup, FormValues } from "eventtypes/lib/types";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
+import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTeamSelect";
+import type { CheckedSelectOption } from "@calcom/features/eventtypes/components/CheckedTeamSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { SettingsToggle } from "@calcom/ui/components/form";
