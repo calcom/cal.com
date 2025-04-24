@@ -1,5 +1,5 @@
 import dayjs from "@calcom/dayjs";
-import { sendCreditBalanceLowWarningEmails } from "@calcom/emails";
+import { sendCreditBalanceLimitReachedEmails, sendCreditBalanceLowWarningEmails } from "@calcom/emails";
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -233,7 +233,6 @@ export async function handleLowCreditBalance({
   teamId: number;
   remainingCredits?: number;
 }) {
-  console.log(`handle low credit balance: ${remainingCredits}`);
   const { totalMonthlyCredits } = await getAllCreditsForTeam(teamId);
   const warningLimit = totalMonthlyCredits * 0.2;
   if (remainingCredits < warningLimit) {
@@ -242,22 +241,6 @@ export async function handleLowCreditBalance({
     });
 
     if (dayjs(creditBalance?.limitReachedAt).isAfter(dayjs().startOf("month"))) return; // team has already reached limit this month
-
-    if (remainingCredits <= 0) {
-      //await sendDisableSmsEmail(teamId);
-      await prisma.creditBalance.update({
-        where: { teamId },
-        data: {
-          limitReachedAt: new Date(),
-          warningSentAt: null,
-        },
-      });
-
-      //cancelScheduledSmsAndScheduleEmails({ teamId }); --> team workflows, and also user workflows if the user has no credits or other team with credits
-      return;
-    }
-
-    if (dayjs(creditBalance?.warningSentAt).isAfter(dayjs().startOf("month"))) return; // team has already sent warning email this month
 
     const team = await prisma.team.findUnique({
       where: { id: teamId },
@@ -283,8 +266,36 @@ export async function handleLowCreditBalance({
       return;
     }
 
+    if (remainingCredits <= 0) {
+      await sendCreditBalanceLimitReachedEmails({
+        team: {
+          id: teamId,
+          name: team.name,
+          adminAndOwners: await Promise.all(
+            team.members.map(async (member) => ({
+              name: member.user.name ?? "",
+              email: member.user.email,
+              t: await getTranslation(member.user.locale ?? "en", "common"),
+            }))
+          ),
+        },
+      });
+
+      await prisma.creditBalance.update({
+        where: { teamId },
+        data: {
+          limitReachedAt: new Date(),
+          warningSentAt: null,
+        },
+      });
+
+      //cancelScheduledSmsAndScheduleEmails({ teamId }); --> team workflows, and also user workflows if the user has no credits or other team with credits
+      return;
+    }
+
+    if (dayjs(creditBalance?.warningSentAt).isAfter(dayjs().startOf("month"))) return; // team has already sent warning email this month
+
     // team balance below 20% of total monthly credits
-    console.log("send email now");
     await sendCreditBalanceLowWarningEmails({
       balance: remainingCredits,
       team: {

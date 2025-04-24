@@ -5,13 +5,12 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { CallToAction, V2BaseEmailHtml } from "../components";
 import type { BaseScheduledEmail } from "./BaseScheduledEmail";
 
-export const CreditBalanceLowWarningEmail = (
+export const CreditBalanceLimitReachedEmail = (
   props: {
     team: {
       id: number;
       name: string;
     };
-    balance: number;
     user: {
       name: string;
       email: string;
@@ -19,23 +18,15 @@ export const CreditBalanceLowWarningEmail = (
     };
   } & Partial<React.ComponentProps<typeof BaseScheduledEmail>>
 ) => {
-  const { team, balance, user } = props;
+  const { team, user } = props;
 
   return (
-    <V2BaseEmailHtml subject={user.t("team_credits_low_warning", { teamName: team.name })}>
+    <V2BaseEmailHtml subject={user.t("action_required_out_of_credits", { teamName: team.name })}>
       <p style={{ fontWeight: 400, lineHeight: "24px" }}>
         <> {user.t("hi_user_name", { name: user.name })},</>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px", marginBottom: "20px" }}>
         <>{user.t("credit_limit_reached_message", { teamName: team.name })}</>
-      </p>
-      <p
-        style={{
-          fontWeight: "500",
-          lineHeight: "24px",
-          color: "#000",
-        }}>
-        {user.t("current_credit_balance", { balance })}
       </p>
       <div style={{ textAlign: "center", marginTop: "24px" }}>
         <CallToAction
