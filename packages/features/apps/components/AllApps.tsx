@@ -1,6 +1,5 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { AppCategories } from "@prisma/client";
 import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -142,7 +141,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
 export function AllApps({ apps, searchText, categories, userAdminTeams }: AllAppsPropsType) {
   const { t } = useLocale();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [appsContainerRef, enableAnimation] = useAutoAnimate<HTMLDivElement>();
+  const appsContainerRef = useRef<HTMLDivElement>(null);
 
   const handleCategoryChange = (category: string | null) => {
     const validCategory =
