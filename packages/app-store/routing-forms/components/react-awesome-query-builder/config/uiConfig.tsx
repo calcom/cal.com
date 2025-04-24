@@ -70,7 +70,7 @@ const EmailFactory = (props: WidgetProps | undefined) => {
         const val = e.target.value;
         props.setValue(val);
       }}
-      containerClassName="w-full"
+      containerClassName="w-full mb-2"
       {...props}
     />
   );

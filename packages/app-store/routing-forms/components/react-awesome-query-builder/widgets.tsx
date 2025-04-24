@@ -140,7 +140,7 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
       type="number"
       labelSrOnly={remainingProps.noLabel}
       containerClassName="w-full"
-      className="bg-default border-default disabled:bg-emphasis focus:ring-brand-default dark:focus:border-emphasis focus:border-subtle mb-2 block w-full rounded-[10px] rounded-md text-sm disabled:hover:cursor-not-allowed"
+      className="mb-2"
       value={value}
       onChange={(e) => {
         setValue(e.target.value);
