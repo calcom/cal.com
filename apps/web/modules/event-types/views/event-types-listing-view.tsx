@@ -833,7 +833,6 @@ const CreateFirstEventTypeView = ({ slug, searchTerm }: { slug: string; searchTe
 
 const CTA = ({
   profileOptions,
-  isOrganization,
 }: {
   profileOptions: {
     teamId: number | null | undefined;
@@ -842,7 +841,6 @@ const CTA = ({
     membershipRole: MembershipRole | null | undefined;
     slug: string | null;
   }[];
-  isOrganization: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -933,7 +931,7 @@ type Props = {
   user: RouterOutputs["viewer"]["me"]["get"];
 };
 
-export const EventTypesCTA = ({ getUserEventGroupsData, user }: Props) => {
+export const EventTypesCTA = ({ getUserEventGroupsData }: Omit<Props, "user">) => {
   const profileOptions =
     getUserEventGroupsData?.profiles
       ?.filter((profile) => !profile.readOnly)
@@ -948,7 +946,7 @@ export const EventTypesCTA = ({ getUserEventGroupsData, user }: Props) => {
         };
       }) ?? [];
 
-  return <CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />;
+  return <CTA profileOptions={profileOptions} />;
 };
 
 const EventTypesPage = ({ getUserEventGroupsData, user }: Props) => {

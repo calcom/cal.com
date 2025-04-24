@@ -91,8 +91,15 @@ export type EventTypeWebWrapperProps = {
   data: RouterOutputs["viewer"]["eventTypes"]["get"];
 };
 
-export const EventTypeWebWrapper = ({ id, data }: EventTypeWebWrapperProps) => {
-  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery({ id }, { initialData: data });
+export const EventTypeWebWrapper = ({ id, data: serverFetchedData }: EventTypeWebWrapperProps) => {
+  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery(
+    { id },
+    { enabled: !serverFetchedData }
+  );
+
+  if (serverFetchedData) {
+    return <EventTypeWeb {...serverFetchedData} id={id} />;
+  }
 
   if (!eventTypeQueryData) return null;
 

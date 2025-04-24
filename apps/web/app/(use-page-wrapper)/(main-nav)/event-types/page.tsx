@@ -49,7 +49,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
     <ShellMainAppDir
       heading={t("event_types_page_title")}
       subtitle={t("event_types_page_subtitle")}
-      CTA={<EventTypesCTA getUserEventGroupsData={getUserEventGroupsData} user={me} />}>
+      CTA={<EventTypesCTA getUserEventGroupsData={getUserEventGroupsData} />}>
       <EventTypes getUserEventGroupsData={getUserEventGroupsData} user={me} />
     </ShellMainAppDir>
   );
