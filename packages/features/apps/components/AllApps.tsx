@@ -143,6 +143,11 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const appsContainerRef = useRef<HTMLDivElement>(null);
 
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const handleCategoryChange = (category: string | null) => {
     const validCategory =
       category && typeof category === "string" && categories.includes(category) ? category : null;
@@ -176,15 +181,17 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
         <div
           className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:500px)]:grid-cols-1 [@media(max-width:730px)]:grid-cols-1"
           ref={appsContainerRef}>
-          {filteredApps.map((app) => (
-            <AppCard
-              key={app.name}
-              app={app}
-              searchText={searchText}
-              credentials={app.credentials}
-              userAdminTeams={userAdminTeams}
-            />
-          ))}{" "}
+          {/* Only render AppCards on the client to prevent hydration mismatches */}
+          {isClient &&
+            filteredApps.map((app) => (
+              <AppCard
+                key={app.name}
+                app={app}
+                searchText={searchText}
+                credentials={app.credentials}
+                userAdminTeams={userAdminTeams}
+              />
+            ))}
         </div>
       ) : (
         <EmptyScreen
