@@ -62,7 +62,9 @@ export default function EventTypeSkeleton() {
       heading={<SkeletonText className="hidden h-8 w-48" />}
       subtitle={<SkeletonText className="hidden h-4 w-24" />}
       afterHeading={desktopHeaderSkeleton}
-      smallHeading={mobileHeaderSkeleton}>
+      smallHeading={true}>
+      {/* Mobile header - only shown on small screens */}
+      <div className="mb-4 block md:hidden">{mobileHeaderSkeleton}</div>
       <div className="flex flex-col xl:flex-row xl:space-x-6">
         {/* Vertical tabs for desktop */}
         <div className="hidden xl:block">
