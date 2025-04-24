@@ -1,4 +1,5 @@
 import { getReplyToEmail } from "@calcom/lib/getReplyToEmail";
+import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
@@ -6,10 +7,12 @@ import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
 export default class AttendeeDeclinedEmail extends AttendeeScheduledEmail {
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
+    const customReplyToEmail = getReplyToEmail(this.calEvent);
+
     return {
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
-      replyTo: getReplyToEmail(this.calEvent),
+      ...getReplyToHeader(this.calEvent, customReplyToEmail),
       subject: `${this.t("event_declined_subject", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),

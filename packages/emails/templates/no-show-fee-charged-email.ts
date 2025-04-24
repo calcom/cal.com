@@ -1,4 +1,5 @@
 import { getReplyToEmail } from "@calcom/lib/getReplyToEmail";
+import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 
 import { renderEmail } from "../";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
@@ -6,10 +7,12 @@ import AttendeeScheduledEmail from "./attendee-scheduled-email";
 export default class NoShowFeeChargedEmail extends AttendeeScheduledEmail {
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     if (!this.calEvent.paymentInfo?.amount) throw new Error("No payment into");
+    const customReplyToEmail = getReplyToEmail(this.calEvent);
+
     return {
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
-      replyTo: getReplyToEmail(this.calEvent),
+      ...getReplyToHeader(this.calEvent, customReplyToEmail),
       subject: `${this.attendee.language.translate("no_show_fee_charged_email_subject", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),

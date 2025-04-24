@@ -1,4 +1,5 @@
 import { getReplyToEmail } from "@calcom/lib/getReplyToEmail";
+import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 
 import { renderEmail } from "../";
 import generateIcsFile, { GenerateIcsRole } from "../lib/generateIcsFile";
@@ -6,6 +7,8 @@ import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
 export default class AttendeeAddGuestsEmail extends AttendeeScheduledEmail {
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
+    const customReplyToEmail = getReplyToEmail(this.calEvent);
+
     return {
       icalEvent: generateIcsFile({
         calEvent: this.calEvent,
@@ -14,7 +17,7 @@ export default class AttendeeAddGuestsEmail extends AttendeeScheduledEmail {
       }),
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
-      replyTo: getReplyToEmail(this.calEvent),
+      ...getReplyToHeader(this.calEvent, customReplyToEmail),
       subject: `${this.t("guests_added_event_type_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.team?.name || this.calEvent.organizer.name,

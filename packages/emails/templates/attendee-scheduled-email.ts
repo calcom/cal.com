@@ -3,6 +3,7 @@ import { default as cloneDeep } from "lodash/cloneDeep";
 
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { getReplyToEmail } from "@calcom/lib/getReplyToEmail";
+import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -31,6 +32,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
 
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const clonedCalEvent = cloneDeep(this.calEvent);
+    const customReplyToEmail = getReplyToEmail(this.calEvent);
 
     return {
       icalEvent: generateIcsFile({
@@ -40,12 +42,12 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       }),
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
-      replyTo: [
+      ...getReplyToHeader(this.calEvent, [
         ...this.calEvent.attendees
           .filter(({ email }) => email !== this.attendee.email)
           .map(({ email }) => email),
-        getReplyToEmail(this.calEvent),
-      ],
+        customReplyToEmail,
+      ]),
       subject: `${this.calEvent.title}`,
       html: await this.getHtml(clonedCalEvent, this.attendee),
       text: this.getTextBody(),
