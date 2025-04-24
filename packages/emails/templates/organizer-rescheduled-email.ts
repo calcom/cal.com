@@ -1,4 +1,5 @@
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
+import { getReplyToEmail } from "@calcom/lib/getReplyToEmail";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
@@ -17,7 +18,7 @@ export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
       }),
       from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
-      replyTo: [...this.calEvent.attendees.map(({ email }) => email)],
+      replyTo: [...this.calEvent.attendees.map(({ email }) => email), getReplyToEmail(this.calEvent)],
       subject: `${this.calEvent.organizer.language.translate("event_type_has_been_rescheduled_on_time_date", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),

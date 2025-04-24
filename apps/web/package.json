@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "5.1.16",
+  "version": "5.2.5",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -104,7 +104,7 @@
     "memory-cache": "^0.2.0",
     "micro": "^10.0.1",
     "mime-types": "^2.1.35",
-    "next": "^15.2.3",
+    "next": "^15.3.0",
     "next-auth": "^4.22.1",
     "next-axiom": "^0.17.0",
     "next-collect": "^0.2.1",
@@ -139,6 +139,7 @@
     "rrule": "^2.7.1",
     "sanitize-html": "^2.10.0",
     "schema-dts": "^1.1.0",
+    "sharp": "0.33.5",
     "short-uuid": "^4.2.0",
     "sonner": "^1.7.4",
     "stripe": "^9.16.0",

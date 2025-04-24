@@ -113,4 +113,7 @@ export { SelectedCalendarRepository } from "@calcom/lib/server/repository/select
 export { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 export { createHandler as createApiKeyHandler } from "@calcom/trpc/server/routers/viewer/apiKeys/create.handler";
 export { getCalendarLinks } from "@calcom/lib/bookings/getCalendarLinks";
+
+export { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
+export type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "@calcom/trpc/server/routers/viewer/attributes/findTeamMembersMatchingAttributeLogic.schema";
 export { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";

@@ -26,6 +26,7 @@ export type OAuthConnectProps = {
   tooltipSide?: "top" | "bottom" | "left" | "right";
   isClickable?: boolean;
   onSuccess?: () => void;
+  isDryRun?: boolean;
 };
 
 export const OAuthConnect: FC<
@@ -46,8 +47,9 @@ export const OAuthConnect: FC<
   tooltipSide = "bottom",
   isClickable,
   onSuccess,
+  isDryRun,
 }) => {
-  const { connect } = useConnect(calendar, redir);
+  const { connect } = useConnect(calendar, redir, isDryRun);
   const { allowConnect, checked } = useCheck({
     onCheckError,
     calendar: calendar,

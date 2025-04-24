@@ -382,8 +382,14 @@ class EventsInsights {
   ) => {
     // Obtain the where conditional
     const whereConditional = await this.obtainWhereConditionalForDownload(props);
+    const limit = props.limit ?? 100; // Default batch size
+    const offset = props.offset ?? 0;
 
-    const csvData = await prisma.bookingTimeStatus.findMany({
+    const totalCountPromise = prisma.bookingTimeStatus.count({
+      where: whereConditional,
+    });
+
+    const csvDataPromise = prisma.bookingTimeStatus.findMany({
       select: {
         id: true,
         uid: true,
@@ -402,12 +408,16 @@ class EventsInsights {
         noShowHost: true,
       },
       where: whereConditional,
+      skip: offset,
+      take: limit,
     });
+
+    const [totalCount, csvData] = await Promise.all([totalCountPromise, csvDataPromise]);
 
     const uids = csvData.filter((b) => b.uid !== null).map((b) => b.uid as string);
 
     if (uids.length === 0) {
-      return csvData;
+      return { data: csvData, total: totalCount };
     }
 
     const bookings = await prisma.booking.findMany({
@@ -430,7 +440,7 @@ class EventsInsights {
 
     const bookingMap = new Map(bookings.map((booking) => [booking.uid, booking.attendees[0] || null]));
 
-    return csvData.map((bookingTimeStatus) => {
+    const data = csvData.map((bookingTimeStatus) => {
       if (!bookingTimeStatus.uid) {
         // should not be reached because we filtered above
         return bookingTimeStatus;
@@ -449,6 +459,8 @@ class EventsInsights {
         bookerName: booker.name,
       };
     });
+
+    return { data, total: totalCount };
   };
 
   /*
@@ -633,16 +645,6 @@ class EventsInsights {
 
     return !!isOwnerAdminOfParentTeam;
   };
-
-  static objectToCsv(data: Record<string, unknown>[]) {
-    // if empty data return empty string
-    if (!data.length) {
-      return "";
-    }
-    const header = `${Object.keys(data[0]).join(",")}\n`;
-    const rows = data.map((obj: any) => `${Object.values(obj).join(",")}\n`);
-    return header + rows.join("");
-  }
 }
 
 export { EventsInsights };
