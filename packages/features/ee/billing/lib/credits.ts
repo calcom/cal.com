@@ -375,7 +375,7 @@ export async function getMonthlyCredits(teamId: number) {
 
   const teamMonthlyPrice = await billingService.getPrice(process.env.STRIPE_TEAM_MONTHLY_PRICE_ID || "");
   const pricePerSeat = teamMonthlyPrice.unit_amount ?? 0;
-  totalMonthlyCredits = activeMembers * ((pricePerSeat / 2) * 100);
+  totalMonthlyCredits = (activeMembers * pricePerSeat) / 2;
 
   return totalMonthlyCredits;
 }
