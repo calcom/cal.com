@@ -8,6 +8,7 @@ import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-builder";
 import type { JsonTree } from "react-awesome-query-builder";
 import type { UseFormReturn } from "react-hook-form";
+import { Toaster } from "sonner";
 import type { z } from "zod";
 
 import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils";
@@ -1308,9 +1309,15 @@ const Routes = ({
             buttonOnClick={createRoute}
             buttonStartIcon="plus"
             buttonClassName="mt-6"
+            buttonDataTestId="add-route-button"
           />
         ) : (
-          <Button color="minimal" StartIcon="plus" className="mb-6" onClick={createRoute}>
+          <Button
+            color="minimal"
+            StartIcon="plus"
+            className="mb-6"
+            onClick={createRoute}
+            data-testid="add-route-button">
             {t("add_a_new_route")}
           </Button>
         )}
@@ -1404,12 +1411,15 @@ export default function RouteBuilder({
   enrichedWithUserProfileForm,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
-    <SingleForm
-      form={form}
-      appUrl={appUrl}
-      enrichedWithUserProfileForm={enrichedWithUserProfileForm}
-      Page={Page}
-    />
+    <>
+      <SingleForm
+        form={form}
+        appUrl={appUrl}
+        enrichedWithUserProfileForm={enrichedWithUserProfileForm}
+        Page={Page}
+      />
+      <Toaster position="bottom-right" />
+    </>
   );
 }
 

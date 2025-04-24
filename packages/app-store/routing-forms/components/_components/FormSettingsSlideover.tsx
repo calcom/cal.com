@@ -195,7 +195,9 @@ export const FormSettingsSlideover = ({
           <Button color="minimal" onClick={handleCancel}>
             {t("cancel")}
           </Button>
-          <Button onClick={() => onOpenChange(false)}>{t("done")}</Button>
+          <Button onClick={() => onOpenChange(false)} data-testid="settings-slider-over-done">
+            {t("done")}
+          </Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>

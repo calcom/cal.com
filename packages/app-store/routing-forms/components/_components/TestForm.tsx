@@ -207,6 +207,7 @@ export const TestForm = ({
                     target="_blank"
                     variant="icon"
                     StartIcon="external-link"
+                    data-testid="open-form-in-new-tab"
                     size="sm">
                     <span className="sr-only">{t("open_in_new_tab")}</span>
                   </Button>

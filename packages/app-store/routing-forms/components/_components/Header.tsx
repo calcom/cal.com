@@ -60,12 +60,14 @@ const Actions = ({
   appUrl,
   setIsTestPreviewOpen,
   isTestPreviewOpen,
+  isMobile = false,
 }: {
   form: RoutingFormWithResponseCount;
   setIsTestPreviewOpen: (value: boolean) => void;
   isSaving: boolean;
   appUrl: string;
   isTestPreviewOpen: boolean;
+  isMobile?: boolean;
 }) => {
   const { t } = useLocale();
   const formContext = useFormContext<RoutingFormWithResponseCount>();
@@ -78,6 +80,7 @@ const Actions = ({
           <Tooltip sideOffset={4} content={t("preview")} side="bottom">
             <Button
               color="secondary"
+              data-testid={isMobile ? "preview-button-mobile" : "preview-button"}
               type="button"
               variant="icon"
               onClick={() => {
@@ -91,6 +94,7 @@ const Actions = ({
               color="secondary"
               type="button"
               StartIcon="settings"
+              data-testid={isMobile ? "settings-button-mobile" : "settings-button"}
               onClick={() => {
                 setIsSettingsDialogOpen(true);
               }}
@@ -155,7 +159,11 @@ const Actions = ({
               />
             </div>
           </FormActionsDropdown>
-          <Button data-testid="update-form" loading={isSaving} type="submit" color="primary">
+          <Button
+            data-testid={isMobile ? "update-form-mobile" : "update-form"}
+            loading={isSaving}
+            type="submit"
+            color="primary">
             {t("save")}
           </Button>
         </div>
@@ -229,7 +237,13 @@ export function Header({
     <div className="bg-default flex flex-col lg:grid lg:grid-cols-3 lg:items-center">
       {/* Left - Back button and title */}
       <div className="border-muted flex items-center gap-2 border-b px-4 py-3">
-        <Button color="minimal" variant="icon" StartIcon="arrow-left" />
+        <Button
+          color="minimal"
+          variant="icon"
+          StartIcon="arrow-left"
+          href={`${appUrl}`}
+          data-testid="back-button"
+        />
         <div className="flex min-w-0 items-center">
           <span className="text-subtle min-w-content text-sm font-semibold leading-none">
             {t("routing_form")}
@@ -270,6 +284,7 @@ export function Header({
                 value: "form-edit",
                 label: t("form"),
                 iconLeft: <Icon name="menu" className="h-3 w-3" />,
+                dataTestId: "toggle-group-item-form-edit",
               },
               {
                 value: "route-builder",
@@ -297,6 +312,7 @@ export function Header({
             isTestPreviewOpen={isTestPreviewOpen}
             isSaving={isSaving}
             appUrl={appUrl}
+            isMobile={true}
           />
         </div>
       </div>

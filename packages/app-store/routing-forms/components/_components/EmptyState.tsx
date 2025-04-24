@@ -1,5 +1,5 @@
-import { Icon, type IconName } from "@calcom/ui/components/icon";
 import { Button } from "@calcom/ui/components/button";
+import { Icon, type IconName } from "@calcom/ui/components/icon";
 
 type EmptyStateProps = {
   icon: IconName;
@@ -9,6 +9,7 @@ type EmptyStateProps = {
   buttonOnClick: () => void;
   buttonStartIcon?: IconName;
   buttonClassName?: string;
+  buttonDataTestId?: string;
 };
 
 export const EmptyState = ({
@@ -19,6 +20,7 @@ export const EmptyState = ({
   buttonOnClick,
   buttonStartIcon = "plus",
   buttonClassName,
+  buttonDataTestId,
 }: EmptyStateProps) => {
   return (
     <div className="border-sublte bg-muted flex flex-col items-center gap-6 rounded-xl border p-11">
@@ -45,12 +47,13 @@ export const EmptyState = ({
         />
       </div>
       <div className="w-full">
-        <h1 className="text-emphasis text-center text-lg font-semibold line-clamp-1">{header}</h1>
-        <p className="mt-2 text-center text-sm leading-normal line-clamp-1 hover:line-clamp-none transition-all duration-200 ease-in-out">
+        <h1 className="text-emphasis line-clamp-1 text-center text-lg font-semibold">{header}</h1>
+        <p className="mt-2 line-clamp-1 text-center text-sm leading-normal transition-all duration-200 ease-in-out hover:line-clamp-none">
           {text}
         </p>
       </div>
       <Button
+        data-testid={buttonDataTestId}
         StartIcon={buttonStartIcon}
         onClick={buttonOnClick}
         className={buttonClassName}>
@@ -58,4 +61,4 @@ export const EmptyState = ({
       </Button>
     </div>
   );
-}; 
+};

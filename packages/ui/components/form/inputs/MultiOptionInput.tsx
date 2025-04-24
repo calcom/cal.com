@@ -257,6 +257,7 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
                   required
                   addOnClassname="bg-transparent border-0"
                   {...control.register(`${fieldArrayName}.${index}.label` as Path<TFieldValues>)}
+                  data-testid={`${fieldArrayName}.${index}-input`}
                   addOnSuffix={
                     showRemoveButton ? (
                       <button

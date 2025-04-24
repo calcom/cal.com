@@ -394,6 +394,7 @@ type FormActionType =
   | "edit"
   | "copyLink"
   | "toggle"
+  | "toggleDropdown"
   | "_delete"
   | "embed"
   | "duplicate"
@@ -499,6 +500,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
               extraClassNames
             )}>
             <Switch
+              data-testid="toggle-form-switch"
               disabled={!!disabled}
               checked={!routingForm.disabled}
               label={label}

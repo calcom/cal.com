@@ -3,6 +3,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useWatch } from "react-hook-form";
+import { Toaster } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -322,10 +323,13 @@ export default function FormEditPage({
   ...props
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
-    <SingleForm
-      {...props}
-      appUrl={appUrl}
-      Page={({ hookForm, form }) => <FormEdit appUrl={appUrl} hookForm={hookForm} form={form} />}
-    />
+    <>
+      <Toaster position="bottom-right" />
+      <SingleForm
+        {...props}
+        appUrl={appUrl}
+        Page={({ hookForm, form }) => <FormEdit appUrl={appUrl} hookForm={hookForm} form={form} />}
+      />
+    </>
   );
 }
