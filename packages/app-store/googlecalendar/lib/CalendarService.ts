@@ -797,9 +797,8 @@ export default class GoogleCalendarService implements Calendar {
 
         return freeBusyData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end }));
       } else {
-        const busyData = [];
-
         const loopsNumber = Math.ceil(diff / 90);
+        const calendarQueryPromises = [];
 
         let startDate = originalStartDate;
         let endDate = originalStartDate.add(90, "days");
@@ -807,20 +806,23 @@ export default class GoogleCalendarService implements Calendar {
         for (let i = 0; i < loopsNumber; i++) {
           if (endDate.isAfter(originalEndDate)) endDate = originalEndDate;
 
-          busyData.push(
-            ...((await this.getCacheOrFetchAvailability(
+          calendarQueryPromises.push(
+            this.getCacheOrFetchAvailability(
               {
                 timeMin: startDate.format(),
                 timeMax: endDate.format(),
                 items: calsIds.map((id) => ({ id })),
               },
               shouldServeCache
-            )) || [])
+            )
           );
 
           startDate = endDate.add(1, "minutes");
           endDate = startDate.add(90, "days");
         }
+
+        const results = await Promise.all(calendarQueryPromises);
+        const busyData = results.flatMap((result) => result || []);
         return busyData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end }));
       }
     } catch (error) {
@@ -1053,19 +1055,23 @@ export default class GoogleCalendarService implements Calendar {
       return acc;
     }, selectedCalendarsPerEventType);
 
-    for (const [_eventTypeId, selectedCalendars] of Array.from(selectedCalendarsPerEventType.entries())) {
-      const parsedArgs = {
-        /** Expand the start date to the start of the month */
-        timeMin: getTimeMin(),
-        /** Expand the end date to the end of the month */
-        timeMax: getTimeMax(),
-        // Dont use eventTypeId in key because it can be used by any eventType
-        // The only reason we are building it per eventType is because there can be different groups of calendars to lookup the availability for
-        items: selectedCalendars.map((sc) => ({ id: sc.externalId })),
-      };
-      const data = await this.fetchAvailability(parsedArgs);
-      await this.setAvailabilityInCache(parsedArgs, data);
-    }
+    const fetchPromises = Array.from(selectedCalendarsPerEventType.entries()).map(
+      async ([_eventTypeId, selectedCalendars]) => {
+        const parsedArgs = {
+          /** Expand the start date to the start of the month */
+          timeMin: getTimeMin(),
+          /** Expand the end date to the end of the month */
+          timeMax: getTimeMax(),
+          // Dont use eventTypeId in key because it can be used by any eventType
+          // The only reason we are building it per eventType is because there can be different groups of calendars to lookup the availability for
+          items: selectedCalendars.map((sc) => ({ id: sc.externalId })),
+        };
+        const data = await this.fetchAvailability(parsedArgs);
+        await this.setAvailabilityInCache(parsedArgs, data);
+      }
+    );
+
+    await Promise.all(fetchPromises);
   }
 
   async createSelectedCalendar(
