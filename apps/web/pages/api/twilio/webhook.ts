@@ -11,16 +11,15 @@ import prisma from "@calcom/prisma";
   Twilio status callback: creates expense log when sms is delivered or undelivered
 */
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const authToken = process.env.TWILIO_TOKEN;
-  const twilioSignature = req.headers["x-twilio-signature"];
+  const signature = req.headers["x-twilio-signature"];
   const baseUrl = `${WEBAPP_URL}/api/twilio/webhook`;
 
   const queryParams = new URLSearchParams(req.query as Record<string, string>).toString();
-  const url = queryParams ? `${baseUrl}?${queryParams}` : baseUrl;
+  const requestUrl = queryParams ? `${baseUrl}?${queryParams}` : baseUrl;
 
   if (typeof twilioSignature === "string") {
-    const valid = await twilio.validateRequest(authToken ?? "", twilioSignature, url, req.body);
-    if (valid) {
+    const isSignatureValid = await twilio.validateRequest({ requestUrl, signature, url, params: req.body });
+    if (isSignatureValid) {
       const messageStatus = req.body.MessageStatus;
       const { userId, teamId, bookingUid } = req.query;
 

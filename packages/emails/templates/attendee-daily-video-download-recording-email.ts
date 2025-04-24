@@ -1,6 +1,7 @@
 // TODO: We should find a way to keep App specific email templates within the App itself
 import type { TFunction } from "i18next";
 
+import { getReplyToEmail } from "@calcom/lib/getReplyToEmail";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -29,7 +30,7 @@ export default class AttendeeDailyVideoDownloadRecordingEmail extends BaseEmail 
         ...this.calEvent.attendees
           .filter(({ email }) => email !== this.attendee.email)
           .map(({ email }) => email),
-        this.calEvent.organizer.email,
+        getReplyToEmail(this.calEvent),
       ],
       subject: `${this.t("download_recording_subject", {
         title: this.calEvent.title,

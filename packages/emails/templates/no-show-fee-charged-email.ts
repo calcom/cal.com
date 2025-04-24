@@ -1,3 +1,5 @@
+import { getReplyToEmail } from "@calcom/lib/getReplyToEmail";
+
 import { renderEmail } from "../";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
@@ -7,7 +9,7 @@ export default class NoShowFeeChargedEmail extends AttendeeScheduledEmail {
     return {
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
-      replyTo: this.calEvent.organizer.email,
+      replyTo: getReplyToEmail(this.calEvent),
       subject: `${this.attendee.language.translate("no_show_fee_charged_email_subject", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),

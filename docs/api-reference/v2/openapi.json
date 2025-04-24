@@ -3409,6 +3409,60 @@
         "tags": ["Orgs / Teams / Conferencing"]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/oauth/callback": {
+      "get": {
+        "operationId": "OrganizationsConferencingController_saveTeamOauthCredentials",
+        "summary": "Save conferencing app OAuth credentials",
+        "parameters": [
+          {
+            "name": "state",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Orgs / Teams / Conferencing"]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/event-types": {
       "post": {
         "operationId": "OrganizationsEventTypesController_createTeamEventType",
@@ -8808,6 +8862,141 @@
         "tags": ["OAuth Clients"]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/stripe/connect": {
+      "get": {
+        "operationId": "OrganizationsStripeController_getTeamStripeConnectUrl",
+        "summary": "Get stripe connect URL for a team",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "returnTo",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "onErrorReturnTo",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripConnectOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Organizations/Teams Stripe"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/stripe/check": {
+      "get": {
+        "operationId": "OrganizationsStripeController_checkTeamStripeConnection",
+        "summary": "Check team stripe connection",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsCheckOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Organizations/Teams Stripe"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/stripe/save": {
+      "get": {
+        "operationId": "OrganizationsStripeController_save",
+        "summary": "Save stripe credentials",
+        "parameters": [
+          {
+            "name": "state",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsSaveOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Organizations/Teams Stripe"]
+      }
+    },
     "/v2/routing-forms/{routingFormId}/calculate-slots": {
       "post": {
         "operationId": "RoutingFormsController_calculateSlotsBasedOnRoutingFormResponse",
@@ -9283,7 +9472,7 @@
       "get": {
         "operationId": "SlotsController_2024_09_04_getAvailableSlots",
         "summary": "Find out when is an event type ready to be booked.",
-        "description": "\n      There are 4 ways to get available slots for event type of an individual user:\n      \n      1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      3. By event type slug + username + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.\n\n      And 3 ways to get available slots for team event type:\n\n      1. By team event type id. Example '/v2/slots?teamEventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      3. By team event type slug + team slug + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked.\n      Optional parameters are:\n      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.\n      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.\n      - slotFormat: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use \"range\" as value.\n      ",
+        "description": "\n      There are 4 ways to get available slots for event type of an individual user:\n\n      1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      3. By event type slug + username + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.\n\n      And 3 ways to get available slots for team event type:\n\n      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      3. By team event type slug + team slug + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked.\n      Optional parameters are:\n      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.\n      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.\n      - slotFormat: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use \"range\" as value.\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -9299,7 +9488,7 @@
             "name": "start",
             "required": true,
             "in": "query",
-            "description": "\n      Time starting from which available slots should be checked.\n    \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to start of day or specify hours:\n      2024-08-13 (will have hours 00:00:00 aka at very beginning of the date) or you can specify hours manually like 2024-08-13T09:00:00Z.",
+            "description": "\n      Time starting from which available slots should be checked.\n\n      Must be in UTC timezone as ISO 8601 datestring.\n\n      You can pass date without hours which defaults to start of day or specify hours:\n      2024-08-13 (will have hours 00:00:00 aka at very beginning of the date) or you can specify hours manually like 2024-08-13T09:00:00Z.",
             "example": "2050-09-05",
             "schema": {}
           },
@@ -9307,7 +9496,7 @@
             "name": "end",
             "required": true,
             "in": "query",
-            "description": "\n    Time until which available slots should be checked.\n    \n    Must be in UTC timezone as ISO 8601 datestring.\n    \n    You can pass date without hours which defaults to end of day or specify hours:\n    2024-08-20 (will have hours 23:59:59 aka at the very end of the date) or you can specify hours manually like 2024-08-20T18:00:00Z.",
+            "description": "\n    Time until which available slots should be checked.\n\n    Must be in UTC timezone as ISO 8601 datestring.\n\n    You can pass date without hours which defaults to end of day or specify hours:\n    2024-08-20 (will have hours 23:59:59 aka at the very end of the date) or you can specify hours manually like 2024-08-20T18:00:00Z.",
             "example": "2050-09-06",
             "schema": {}
           },
@@ -9355,7 +9544,7 @@
             "name": "usernames",
             "required": false,
             "in": "query",
-            "description": "The usernames for which available slots should be checked separated by a comma.\n    \n    Checking slots by usernames is used mainly for dynamic events where there is no specific event but we just want to know when 2 or more people are available.\n    \n    Must contain at least 2 usernames.",
+            "description": "The usernames for which available slots should be checked separated by a comma.\n\n    Checking slots by usernames is used mainly for dynamic events where there is no specific event but we just want to know when 2 or more people are available.\n\n    Must contain at least 2 usernames.",
             "example": "alice,bob",
             "schema": {}
           },
@@ -9621,6 +9810,7 @@
       },
       "delete": {
         "operationId": "SlotsController_2024_09_04_deleteReservedSlot",
+        "summary": "Delete a reserved slot",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -9731,44 +9921,6 @@
         "operationId": "StripeController_check",
         "summary": "Check stripe connection",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StripCredentialsCheckOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Stripe"]
-      }
-    },
-    "/v2/stripe/check/{teamId}": {
-      "get": {
-        "operationId": "StripeController_checkTeamStripeConnection",
-        "summary": "Check team stripe connection",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "Authorization",
             "in": "header",
@@ -12367,6 +12519,7 @@
           },
           "enabledLayouts": {
             "type": "array",
+            "description": "Array of valid layouts - month, week or column",
             "items": {
               "type": "string",
               "enum": ["month", "week", "column"]
@@ -14871,7 +15024,7 @@
           },
           "slug": {
             "type": "string",
-            "description": "Team slug",
+            "description": "Team slug in kebab-case - if not provided will be generated automatically based on name.",
             "example": "caltel"
           },
           "logoUrl": {
@@ -17567,7 +17720,7 @@
         "type": "object",
         "properties": {
           "status": {
-            "type": "string",
+            "type": "object",
             "example": "success"
           }
         },
@@ -17598,7 +17751,7 @@
           },
           "slug": {
             "type": "string",
-            "description": "Team slug",
+            "description": "Team slug in kebab-case - if not provided will be generated automatically based on name.",
             "example": "caltel"
           },
           "logoUrl": {
@@ -18393,6 +18546,11 @@
             "description": "Name of the organization",
             "example": "CalTeam"
           },
+          "slug": {
+            "type": "string",
+            "description": "Organization slug in kebab-case - if not provided will be generated automatically based on name.",
+            "example": "cal-tel"
+          },
           "metadata": {
             "type": "object",
             "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
@@ -18412,6 +18570,9 @@
           "name": {
             "type": "string",
             "minLength": 1
+          },
+          "slug": {
+            "type": "string"
           },
           "metadata": {
             "type": "object",
@@ -18448,6 +18609,9 @@
           "name": {
             "type": "string",
             "minLength": 1
+          },
+          "slug": {
+            "type": "string"
           },
           "metadata": {
             "type": "object",
@@ -19117,10 +19281,20 @@
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
           },
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 30,
-            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          "attendee": {
+            "description": "The attendee's details.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Attendee"
+              }
+            ]
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values for custom booking fields added by you.",
+            "example": {
+              "customField": "customValue"
+            }
           },
           "eventTypeId": {
             "type": "number",
@@ -19146,14 +19320,6 @@
             "type": "string",
             "description": "The organization slug. Optional, only used when booking with eventTypeSlug + username or eventTypeSlug + teamSlug.",
             "example": "acme-corp"
-          },
-          "attendee": {
-            "description": "The attendee's details.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Attendee"
-              }
-            ]
           },
           "guests": {
             "description": "An optional list of guest emails attending the event.",
@@ -19205,12 +19371,10 @@
               "key": "value"
             }
           },
-          "bookingFieldsResponses": {
-            "type": "object",
-            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
-            "example": {
-              "customField": "customValue"
-            }
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
           }
         },
         "required": ["start", "attendee"]
@@ -19223,10 +19387,20 @@
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
           },
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 30,
-            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          "attendee": {
+            "description": "The attendee's details.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Attendee"
+              }
+            ]
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values for custom booking fields added by you.",
+            "example": {
+              "customField": "customValue"
+            }
           },
           "eventTypeId": {
             "type": "number",
@@ -19252,14 +19426,6 @@
             "type": "string",
             "description": "The organization slug. Optional, only used when booking with eventTypeSlug + username or eventTypeSlug + teamSlug.",
             "example": "acme-corp"
-          },
-          "attendee": {
-            "description": "The attendee's details.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Attendee"
-              }
-            ]
           },
           "guests": {
             "description": "An optional list of guest emails attending the event.",
@@ -19311,12 +19477,10 @@
               "key": "value"
             }
           },
-          "bookingFieldsResponses": {
-            "type": "object",
-            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
-            "example": {
-              "customField": "customValue"
-            }
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
           },
           "instant": {
             "type": "boolean",
@@ -19334,10 +19498,20 @@
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
           },
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 30,
-            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          "attendee": {
+            "description": "The attendee's details.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Attendee"
+              }
+            ]
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values for custom booking fields added by you.",
+            "example": {
+              "customField": "customValue"
+            }
           },
           "eventTypeId": {
             "type": "number",
@@ -19363,14 +19537,6 @@
             "type": "string",
             "description": "The organization slug. Optional, only used when booking with eventTypeSlug + username or eventTypeSlug + teamSlug.",
             "example": "acme-corp"
-          },
-          "attendee": {
-            "description": "The attendee's details.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Attendee"
-              }
-            ]
           },
           "guests": {
             "description": "An optional list of guest emails attending the event.",
@@ -19422,12 +19588,10 @@
               "key": "value"
             }
           },
-          "bookingFieldsResponses": {
-            "type": "object",
-            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
-            "example": {
-              "customField": "customValue"
-            }
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
           },
           "recurrenceCount": {
             "type": "number",

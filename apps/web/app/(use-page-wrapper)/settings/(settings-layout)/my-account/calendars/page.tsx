@@ -9,7 +9,10 @@ import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("calendars"),
-    (t) => t("calendars_description")
+    (t) => t("calendars_description"),
+    undefined,
+    undefined,
+    "/settings/my-account/calendars"
   );
 
 const Page = async () => {

@@ -1,8 +1,10 @@
+import type { NextRequest } from "next/server";
 import TwilioClient from "twilio";
 import { v4 as uuidv4 } from "uuid";
 
 import { hasAvailableCredits } from "@calcom/features/ee/billing/lib/credits";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { setTestSMS } from "@calcom/lib/testSMS";
 import prisma from "@calcom/prisma";
@@ -269,11 +271,86 @@ export async function getCreditsForSMS(smsSid: string) {
   return credits || null;
 }
 
-export async function validateRequest(
-  authToken: string,
-  twilioHeader: string,
-  url: string,
-  params: Record<string, any>
-) {
-  return TwilioClient.validateRequest(authToken, twilioHeader, url, params);
+export async function validateWebhookRequest({
+  requestUrl,
+  params,
+  signature,
+}: {
+  requestUrl: string;
+  params: object;
+  signature: string;
+}) {
+  if (!process.env.TWILIO_TOKEN) {
+    throw new Error("TWILIO_TOKEN is not set");
+  }
+
+  const isSignatureValid = TwilioClient.validateWebhookRequest(signature, requestUrl, params);
+  return isSignatureValid;
+}
+
+export async function determineOptOutType(
+  req: NextRequest
+): Promise<{ phoneNumber: string; optOutStatus: boolean } | { error: string }> {
+  const signature = req.headers.get("X-Twilio-Signature");
+  const formData = await req.formData();
+  const params = Object.fromEntries(formData.entries());
+
+  if (!signature) {
+    return { error: "Missing Twilio signature" };
+  }
+
+  const fullUrl = `${WEBAPP_URL}${req.nextUrl.pathname}`;
+
+  const isSignatureValid = await validateWebhookRequest({
+    requestUrl: fullUrl,
+    params: params,
+    signature: signature,
+  });
+
+  if (!isSignatureValid) {
+    return { error: "Invalid signature" };
+  }
+
+  const accountSid = params["AccountSid"]?.valueOf();
+
+  if (accountSid !== process.env.TWILIO_SID) {
+    return { error: "Invalid account SID" };
+  }
+
+  // Twilio returns phone numbers with a + prefix
+  const phoneNumberRaw = params["From"]?.valueOf();
+
+  if (!phoneNumberRaw) {
+    return { error: "No phone number to handle" };
+  }
+
+  const phoneNumber = phoneNumberRaw.toString();
+
+  if (!formData.get("OptOutType")) {
+    return { error: "No opt out message to handle" };
+  }
+
+  const optOutMessage = formData.get("OptOutType")?.valueOf();
+
+  if (optOutMessage !== "STOP" && optOutMessage !== "START") {
+    return { error: "Invalid opt out type" };
+  }
+
+  const optOutStatus = optOutMessage === "STOP" ? true : false;
+
+  return { phoneNumber, optOutStatus };
+}
+export async function deleteMultipleScheduledSMS(referenceIds: string[]) {
+  const twilio = createTwilioClient();
+
+  const pLimit = (await import("p-limit")).default;
+  const limit = pLimit(10);
+
+  await Promise.allSettled(
+    referenceIds.map((referenceId) => {
+      return limit(() => twilio.messages(referenceId).update({ status: "canceled" })).catch((error) => {
+        log.error(`Error canceling scheduled SMS with id ${referenceId}`, error);
+      });
+    })
+  );
 }
