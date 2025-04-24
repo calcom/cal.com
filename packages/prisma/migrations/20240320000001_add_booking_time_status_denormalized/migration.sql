@@ -30,6 +30,10 @@ CREATE INDEX "idx_booking_id" ON "BookingTimeStatusDenormalized" (id);
 CREATE INDEX "idx_booking_user_id" ON "BookingTimeStatusDenormalized" ("userId");
 CREATE INDEX "idx_booking_created_at" ON "BookingTimeStatusDenormalized" ("createdAt");
 CREATE INDEX "idx_event_type_hierarchy" ON "BookingTimeStatusDenormalized" ("eventTypeId", "eventParentId");
+CREATE INDEX "idx_time_status" ON "BookingTimeStatusDenormalized" ("timeStatus");
+CREATE INDEX "idx_team_id" ON "BookingTimeStatusDenormalized" ("teamId");
+CREATE INDEX "idx_start_time" ON "BookingTimeStatusDenormalized" ("startTime");
+CREATE INDEX "idx_end_time" ON "BookingTimeStatusDenormalized" ("endTime");
 
 -- Function to calculate timeStatus
 CREATE OR REPLACE FUNCTION calculate_time_status(
