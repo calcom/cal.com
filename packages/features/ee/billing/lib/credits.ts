@@ -1,7 +1,6 @@
-import { StripeBillingService } from "ee/billing/stripe-billling-service";
-
 import dayjs from "@calcom/dayjs";
 import { sendCreditBalanceLowWarningEmails } from "@calcom/emails";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
@@ -366,9 +365,9 @@ export async function getMonthlyCredits(teamId: number) {
   const teamBillingService = new InternalTeamBilling(team);
   const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
 
-  if (subscriptionStatus !== "active" && subscriptionStatus !== "past_due") {
-    return 0;
-  }
+  // if (subscriptionStatus !== "active" && subscriptionStatus !== "past_due") {
+  //   return 0;
+  // }
 
   const activeMembers = team.members.filter((member) => member.accepted).length;
 
