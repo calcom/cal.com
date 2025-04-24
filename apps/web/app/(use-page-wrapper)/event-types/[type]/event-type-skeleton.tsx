@@ -12,60 +12,28 @@ import {
 export default function EventTypeSkeleton() {
   const { t } = useLocale();
 
-  const mobileHeaderSkeleton = (
-    <div className="flex w-full items-center justify-between space-x-2 rtl:space-x-reverse">
-      <div className="flex items-center space-x-2 rtl:space-x-reverse">
-        <SkeletonButton className="h-8 w-8 rounded-md" />
-      </div>
-      <div className="flex items-center space-x-2 rtl:space-x-reverse">
-        <SkeletonButton className="h-8 w-8 rounded-md" />
-        <SkeletonButton className="h-8 w-20 rounded-md" />
-      </div>
-    </div>
-  );
-
-  const desktopHeaderSkeleton = (
-    <div className="bg-default sticky top-0 z-10 mb-0 flex items-center py-2 md:mb-6 md:mt-0">
-      <div className="rounded-md ltr:mr-2 rtl:ml-2">
-        <SkeletonButton className="h-8 w-8 rounded-md" />
-      </div>
-      <div className="w-full truncate ltr:mr-4 rtl:ml-4 md:block">
-        <SkeletonText className="h-8 w-48" />
-        <SkeletonText className="mt-1 h-4 w-24" />
-      </div>
-      <div className="flex items-center gap-2">
-        <SkeletonButton className="h-9 w-9 rounded-md" />
-        <SkeletonButton className="h-9 w-9 rounded-md" />
-        <div className="hidden space-x-2 rtl:space-x-reverse md:flex">
-          <SkeletonButton className="h-9 w-24 rounded-md" />
-          <SkeletonButton className="h-9 w-24 rounded-md" />
-        </div>
-      </div>
-    </div>
-  );
-
-  const horizontalTabsSkeleton = (
-    <div className="mb-4 hidden md:block xl:hidden">
-      <div className="no-scrollbar flex flex-nowrap space-x-2 overflow-x-auto rtl:space-x-reverse">
-        {Array.from({ length: 8 }).map((_, index) => (
-          <div key={index} className="min-w-fit rounded-md px-4 py-2.5">
-            <SkeletonText className="h-4 w-24" />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
   return (
-    <Shell
-      title={t("event_type_skeleton")}
-      heading={<SkeletonText className="hidden h-8 w-48" />}
-      subtitle={<SkeletonText className="hidden h-4 w-24" />}
-      afterHeading={desktopHeaderSkeleton}
-      smallHeading={true}>
-      {/* Mobile header - only shown on small screens */}
-      <div className="mb-4 block md:hidden">{mobileHeaderSkeleton}</div>
+    <Shell title={t("event_type_skeleton")} smallHeading={true}>
       <div className="flex flex-col xl:flex-row xl:space-x-6">
+        {/* Desktop header - shown on all screens */}
+        <div className="bg-default sticky top-0 z-10 mb-0 flex w-full items-center py-2 md:mb-6 md:mt-0">
+          <div className="rounded-md ltr:mr-2 rtl:ml-2">
+            <SkeletonButton className="h-8 w-8 rounded-md" />
+          </div>
+          <div className="w-full truncate ltr:mr-4 rtl:ml-4 md:block">
+            <SkeletonText className="h-8 w-48" />
+            <SkeletonText className="mt-1 h-4 w-24" />
+          </div>
+          <div className="flex items-center gap-2">
+            <SkeletonButton className="h-9 w-9 rounded-md" />
+            <SkeletonButton className="h-9 w-9 rounded-md" />
+            <div className="hidden space-x-2 rtl:space-x-reverse md:flex">
+              <SkeletonButton className="h-9 w-24 rounded-md" />
+              <SkeletonButton className="h-9 w-24 rounded-md" />
+            </div>
+          </div>
+        </div>
+
         {/* Vertical tabs for desktop */}
         <div className="hidden xl:block">
           <div className="primary-navigation w-64 flex-shrink-0">
@@ -89,7 +57,28 @@ export default function EventTypeSkeleton() {
         </div>
 
         {/* Horizontal tabs for medium screens */}
-        {horizontalTabsSkeleton}
+        <div className="mb-4 hidden md:block xl:hidden">
+          <div className="no-scrollbar flex flex-nowrap space-x-2 overflow-x-auto rtl:space-x-reverse">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <div key={index} className="min-w-fit rounded-md px-4 py-2.5">
+                <SkeletonText className="h-4 w-24" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Mobile header - only shown on small screens */}
+        <div className="mb-4 block md:hidden">
+          <div className="flex w-full items-center justify-between space-x-2 rtl:space-x-reverse">
+            <div className="flex items-center space-x-2 rtl:space-x-reverse">
+              <SkeletonButton className="h-8 w-8 rounded-md" />
+            </div>
+            <div className="flex items-center space-x-2 rtl:space-x-reverse">
+              <SkeletonButton className="h-8 w-8 rounded-md" />
+              <SkeletonButton className="h-8 w-20 rounded-md" />
+            </div>
+          </div>
+        </div>
 
         <div className="w-full ltr:mr-2 rtl:ml-2">
           <div className="bg-default border-subtle mt-4 rounded-md sm:mx-0 md:border md:p-6 xl:mt-0">
