@@ -80,6 +80,12 @@ export default class ExchangeCalendarService implements Calendar {
         });
       }
 
+      if (event.optionalGuestMembers) {
+        event.optionalGuestMembers.forEach((member) => {
+          appointment.OptionalAttendees.Add(new Attendee(member.email));
+        });
+      }
+
       await appointment.Save(SendInvitationsMode.SendToAllAndSaveCopy);
 
       return {

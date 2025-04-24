@@ -813,6 +813,8 @@ async function handler(
     bookerEmail,
   });
 
+  const optionalGuestTeamMembers = await eventType.optionalGuestTeamMembers;
+
   // If the Organizer himself is rescheduling, the booker should be sent the communication in his timezone and locale.
   const attendeeInfoOnReschedule =
     userReschedulingIsOwner && originalRescheduledBooking
@@ -1059,6 +1061,7 @@ async function handler(
       platformCancelUrl,
       platformBookingUrl,
     })
+    .withOptionalGuestMembers(optionalGuestTeamMembers)
     .build();
 
   if (input.bookingData.thirdPartyRecurringEventId) {
@@ -1269,6 +1272,7 @@ async function handler(
         originalRescheduledBooking,
         creationSource: input.bookingData.creationSource,
         tracking: reqBody.tracking,
+        optionalGuestTeamMembers,
       });
 
       if (booking?.userId) {
