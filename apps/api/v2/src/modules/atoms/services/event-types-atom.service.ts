@@ -299,7 +299,7 @@ export class EventTypesAtomService {
               userCredentialIds,
               invalidCredentialIds,
               teams,
-              isInstalled: (!!userCredentialIds.length || !!teams.length || app.isGlobal) ?? app.installed,
+              isInstalled: !!userCredentialIds.length || !!teams.length || app.isGlobal || app.installed,
               isSetupAlready,
               ...(app.dependencies && { dependencyData }),
             };
