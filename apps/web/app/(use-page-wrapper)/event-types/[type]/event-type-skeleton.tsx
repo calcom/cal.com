@@ -12,7 +12,19 @@ import {
 export default function EventTypeSkeleton() {
   const { t } = useLocale();
 
-  const backButtonSkeleton = (
+  const mobileHeaderSkeleton = (
+    <div className="flex w-full items-center justify-between space-x-2 rtl:space-x-reverse">
+      <div className="flex items-center space-x-2 rtl:space-x-reverse">
+        <SkeletonButton className="h-8 w-8 rounded-md" />
+      </div>
+      <div className="flex items-center space-x-2 rtl:space-x-reverse">
+        <SkeletonButton className="h-8 w-8 rounded-md" />
+        <SkeletonButton className="h-8 w-20 rounded-md" />
+      </div>
+    </div>
+  );
+
+  const desktopHeaderSkeleton = (
     <div className="bg-default sticky top-0 z-10 mb-0 flex items-center py-2 md:mb-6 md:mt-0">
       <div className="rounded-md ltr:mr-2 rtl:ml-2">
         <SkeletonButton className="h-8 w-8 rounded-md" />
@@ -24,10 +36,22 @@ export default function EventTypeSkeleton() {
       <div className="flex items-center gap-2">
         <SkeletonButton className="h-9 w-9 rounded-md" />
         <SkeletonButton className="h-9 w-9 rounded-md" />
-        <div className="flex space-x-2 rtl:space-x-reverse">
+        <div className="hidden space-x-2 rtl:space-x-reverse md:flex">
           <SkeletonButton className="h-9 w-24 rounded-md" />
           <SkeletonButton className="h-9 w-24 rounded-md" />
         </div>
+      </div>
+    </div>
+  );
+
+  const horizontalTabsSkeleton = (
+    <div className="mb-4 hidden md:block xl:hidden">
+      <div className="no-scrollbar flex flex-nowrap space-x-2 overflow-x-auto rtl:space-x-reverse">
+        {Array.from({ length: 8 }).map((_, index) => (
+          <div key={index} className="min-w-fit rounded-md px-4 py-2.5">
+            <SkeletonText className="h-4 w-24" />
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -37,15 +61,17 @@ export default function EventTypeSkeleton() {
       title={t("event_type_skeleton")}
       heading={<SkeletonText className="hidden h-8 w-48" />}
       subtitle={<SkeletonText className="hidden h-4 w-24" />}
-      afterHeading={backButtonSkeleton}>
+      afterHeading={desktopHeaderSkeleton}
+      smallHeading={mobileHeaderSkeleton}>
       <div className="flex flex-col xl:flex-row xl:space-x-6">
+        {/* Vertical tabs for desktop */}
         <div className="hidden xl:block">
           <div className="primary-navigation w-64 flex-shrink-0">
             <div className="flex flex-col space-y-1">
               {/* Tab navigation items */}
               {Array.from({ length: 8 }).map((_, index) => (
                 <div
-                  key={index}
+                  key={`vertical-${index}`}
                   className="group flex w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none">
                   <div className="mr-3 h-4 w-4">
                     <SkeletonAvatar className="h-4 w-4" />
@@ -59,6 +85,10 @@ export default function EventTypeSkeleton() {
             </div>
           </div>
         </div>
+
+        {/* Horizontal tabs for medium screens */}
+        {horizontalTabsSkeleton}
+
         <div className="w-full ltr:mr-2 rtl:ml-2">
           <div className="bg-default border-subtle mt-4 rounded-md sm:mx-0 md:border md:p-6 xl:mt-0">
             <SkeletonContainer>
