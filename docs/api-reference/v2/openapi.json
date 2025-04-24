@@ -7414,6 +7414,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCalendarCredentialsInput"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": ""
@@ -18470,6 +18480,18 @@
           }
         },
         "required": ["status", "data"]
+      },
+      "CreateCalendarCredentialsInput": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": ["username", "password"]
       },
       "DeleteCalendarCredentialsInputBodyDto": {
         "type": "object",

@@ -1,5 +1,6 @@
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { CalendarLink } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
+import { ErrorsBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/errors.service";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
 import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
@@ -85,7 +86,8 @@ export class BookingsService_2024_08_13 {
     private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
     private readonly organizationsRepository: OrganizationsRepository,
     private readonly teamsRepository: TeamsRepository,
-    private readonly teamsEventTypesRepository: TeamsEventTypesRepository
+    private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
+    private readonly errorsBookingsService: ErrorsBookingsService_2024_08_13
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput) {
@@ -96,27 +98,7 @@ export class BookingsService_2024_08_13 {
         bookingTeamEventType = true;
       }
       if (!eventType) {
-        if (body.username && body.eventTypeSlug && !body.organizationSlug) {
-          throw new NotFoundException(
-            `Event type with slug ${body.eventTypeSlug} belonging to user ${body.username} not found.`
-          );
-        }
-        if (body.username && body.eventTypeSlug && body.organizationSlug) {
-          throw new NotFoundException(
-            `Event type with slug ${body.eventTypeSlug} belonging to user ${body.username} within organization ${body.organizationSlug} not found.`
-          );
-        }
-        if (body.teamSlug && body.eventTypeSlug && !body.organizationSlug) {
-          throw new NotFoundException(
-            `Event type with slug ${body.eventTypeSlug} belonging to team ${body.teamSlug} not found.`
-          );
-        }
-        if (body.teamSlug && body.eventTypeSlug && body.organizationSlug) {
-          throw new NotFoundException(
-            `Event type with slug ${body.eventTypeSlug} belonging to team ${body.teamSlug} within organization ${body.organizationSlug} not found.`
-          );
-        }
-        throw new NotFoundException(`Event type with id ${body.eventTypeId} not found.`);
+        this.errorsBookingsService.handleEventTypeToBeBookedNotFound(body);
       }
 
       body.eventTypeId = eventType.id;
@@ -142,27 +124,7 @@ export class BookingsService_2024_08_13 {
 
       return await this.createRegularBooking(request, body, eventType);
     } catch (error) {
-      if (error instanceof Error) {
-        if (error.message === "no_available_users_found_error") {
-          if (bookingTeamEventType) {
-            throw new BadRequestException(
-              "One of the hosts either already has booking at this time or is not available"
-            );
-          }
-          throw new BadRequestException("User either already has booking at this time or is not available");
-        } else if (error.message === "booking_time_out_of_bounds_error") {
-          throw new BadRequestException(
-            `The event type can't be booked at selected time ${body.start}. This could be because it's too soon (violating the minimum booking notice) or too far in the future (outside the event's scheduling window). Try fetching available slots first using the GET /v2/slots endpoint and then make a booking with "start" time equal to one of the available slots: https://cal.com/docs/api-reference/v2/slots`
-          );
-        } else if (error.message === "Attempting to book a meeting in the past.") {
-          throw new BadRequestException("Attempting to book a meeting in the past.");
-        } else if (error.message === "hosts_unavailable_for_booking") {
-          throw new BadRequestException(
-            "One of the hosts either already has booking at this time or is not available"
-          );
-        }
-      }
-      throw error;
+      this.errorsBookingsService.handleBookingError(error, bookingTeamEventType);
     }
   }
 

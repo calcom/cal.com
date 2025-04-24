@@ -7764,6 +7764,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCalendarCredentialsInput"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": ""
@@ -13337,6 +13347,7 @@
           },
           "enabledLayouts": {
             "type": "array",
+            "description": "Array of valid layouts - month, week or column",
             "items": {
               "type": "string",
               "enum": [
@@ -20176,6 +20187,21 @@
           "data"
         ]
       },
+      "CreateCalendarCredentialsInput": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ]
+      },
       "DeleteCalendarCredentialsInputBodyDto": {
         "type": "object",
         "properties": {
@@ -21103,10 +21129,20 @@
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
           },
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 30,
-            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          "attendee": {
+            "description": "The attendee's details.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Attendee"
+              }
+            ]
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values for custom booking fields added by you.",
+            "example": {
+              "customField": "customValue"
+            }
           },
           "eventTypeId": {
             "type": "number",
@@ -21132,14 +21168,6 @@
             "type": "string",
             "description": "The organization slug. Optional, only used when booking with eventTypeSlug + username or eventTypeSlug + teamSlug.",
             "example": "acme-corp"
-          },
-          "attendee": {
-            "description": "The attendee's details.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Attendee"
-              }
-            ]
           },
           "guests": {
             "description": "An optional list of guest emails attending the event.",
@@ -21194,12 +21222,10 @@
               "key": "value"
             }
           },
-          "bookingFieldsResponses": {
-            "type": "object",
-            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
-            "example": {
-              "customField": "customValue"
-            }
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
           }
         },
         "required": [
@@ -21215,10 +21241,20 @@
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
           },
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 30,
-            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          "attendee": {
+            "description": "The attendee's details.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Attendee"
+              }
+            ]
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values for custom booking fields added by you.",
+            "example": {
+              "customField": "customValue"
+            }
           },
           "eventTypeId": {
             "type": "number",
@@ -21244,14 +21280,6 @@
             "type": "string",
             "description": "The organization slug. Optional, only used when booking with eventTypeSlug + username or eventTypeSlug + teamSlug.",
             "example": "acme-corp"
-          },
-          "attendee": {
-            "description": "The attendee's details.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Attendee"
-              }
-            ]
           },
           "guests": {
             "description": "An optional list of guest emails attending the event.",
@@ -21306,12 +21334,10 @@
               "key": "value"
             }
           },
-          "bookingFieldsResponses": {
-            "type": "object",
-            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
-            "example": {
-              "customField": "customValue"
-            }
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
           },
           "instant": {
             "type": "boolean",
@@ -21333,10 +21359,20 @@
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
           },
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 30,
-            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          "attendee": {
+            "description": "The attendee's details.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Attendee"
+              }
+            ]
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values for custom booking fields added by you.",
+            "example": {
+              "customField": "customValue"
+            }
           },
           "eventTypeId": {
             "type": "number",
@@ -21362,14 +21398,6 @@
             "type": "string",
             "description": "The organization slug. Optional, only used when booking with eventTypeSlug + username or eventTypeSlug + teamSlug.",
             "example": "acme-corp"
-          },
-          "attendee": {
-            "description": "The attendee's details.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Attendee"
-              }
-            ]
           },
           "guests": {
             "description": "An optional list of guest emails attending the event.",
@@ -21424,12 +21452,10 @@
               "key": "value"
             }
           },
-          "bookingFieldsResponses": {
-            "type": "object",
-            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
-            "example": {
-              "customField": "customValue"
-            }
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
           },
           "recurrenceCount": {
             "type": "number",
