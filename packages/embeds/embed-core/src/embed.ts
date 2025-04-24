@@ -533,22 +533,6 @@ export class Cal {
     });
 
     return isResetNeeded;
-
-    function isSameObject(
-      previousObject: Record<string, unknown> | null,
-      currentObject: Record<string, unknown>
-    ) {
-      if (!previousObject) {
-        return true;
-      }
-      const hasSameNumberOfKeys = Object.keys(previousObject).length === Object.keys(currentObject).length;
-      if (!hasSameNumberOfKeys) {
-        return false;
-      }
-      return Object.keys(previousObject).every((key) => {
-        return previousObject[key] === currentObject[key];
-      });
-    }
   }
 
   /**

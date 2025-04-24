@@ -35,7 +35,6 @@ function createSearchParams(params: Record<string, string>) {
 
 describe("embedStore.router.ensureQueryParamsInUrl", () => {
   // Mock window.history and URL
-  const timeouts: number[] = [];
 
   const originalHistory = window.history;
   const originalURL = window.URL;
@@ -52,7 +51,6 @@ describe("embedStore.router.ensureQueryParamsInUrl", () => {
       const timeoutId = setTimeout(() => {
         callback(performance.now());
       }, 100) as unknown as number;
-      timeouts.push(timeoutId);
       return timeoutId;
     });
 
@@ -109,55 +107,42 @@ describe("embedStore.router.ensureQueryParamsInUrl", () => {
     stopEnsuringQueryParamsInUrl();
   });
 
-  it("should not call pushState if no changes needed", async () => {
-    // Setup
-    fakeCurrentDocumentUrl({ params: { theme: "dark" } });
-
-    // Execute
-    const { stopEnsuringQueryParamsInUrl } = embedStore.router.ensureQueryParamsInUrl({
-      toBeThereSearchParams: createSearchParams({ theme: "dark" }),
-      toRemoveParams: [],
-    });
-
-    // Cleanup
-    stopEnsuringQueryParamsInUrl();
-  });
-
   it("should handle empty parameters", async () => {
     fakeCurrentDocumentUrl();
     const { stopEnsuringQueryParamsInUrl } = embedStore.router.ensureQueryParamsInUrl({
       toBeThereSearchParams: new URLSearchParams(),
       toRemoveParams: [],
     });
-    await nextTick();
+    nextTick();
     stopEnsuringQueryParamsInUrl();
   });
 
-  it("should restore parameters if they are changed before cleanup", async () => {
-    // Setup
+  it("should restore parameters if they are changed before cleanup, otherwise not", async () => {
     fakeCurrentDocumentUrl();
+    const initialTheme = "dark";
 
-    // Execute
     const { stopEnsuringQueryParamsInUrl } = embedStore.router.ensureQueryParamsInUrl({
-      toBeThereSearchParams: createSearchParams({ theme: "dark" }),
+      toBeThereSearchParams: createSearchParams({ theme: initialTheme }),
       toRemoveParams: [],
     });
 
     // First interval - should add the parameter
-    expect(document.URL).toContain("theme=dark");
+    expect(document.URL).toContain(`theme=${initialTheme}`);
 
+    const changedThemeByReact = "light";
     // Simulate React code changing the URL
-    fakeCurrentDocumentUrl({ params: { theme: "light" } });
+    fakeCurrentDocumentUrl({ params: { theme: changedThemeByReact } });
 
     // Next interval - should restore our parameter
-    await nextTick();
-    expect(document.URL).toContain("theme=dark");
+    nextTick();
+    expect(document.URL).toContain(`theme=${initialTheme}`);
 
     // After cleanup, changes should not be restored
     stopEnsuringQueryParamsInUrl();
     fakeCurrentDocumentUrl({ params: { theme: "light" } });
-    await nextTick();
+    nextTick();
     expect(document.URL).toContain("theme=light");
+    expect(document.URL).not.toContain(`theme=${initialTheme}`);
   });
 });
 

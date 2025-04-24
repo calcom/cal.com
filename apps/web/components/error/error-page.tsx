@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { sdkActionManager } from "@calcom/lib/sdk-event";
@@ -59,13 +59,16 @@ export const ErrorPage: React.FC<Props> = (props) => {
     window.location.reload();
     props.reset?.();
   };
-  sdkActionManager?.fire("linkFailed", {
-    code: statusCode?.toString() ?? "500",
-    msg: "Problem loading the link",
-    data: {
-      url: document.URL,
-    },
-  });
+  useEffect(() => {
+    sdkActionManager?.fire("linkFailed", {
+      code: statusCode?.toString() ?? "500",
+      msg: "Problem loading the link",
+      data: {
+        // Remove query params from the URL
+        url: document.URL.replace(/\?.*$/, ""),
+      },
+    });
+  }, [statusCode]);
   return (
     <>
       <div className="bg-subtle flex h-screen">

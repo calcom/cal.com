@@ -59,7 +59,7 @@ Status:
     - Question: Why do we need to set body.visibility to hidden? It was done earlier because iframe.visiblity was not set to hidden, but now it is done.
 
   - __iframeReady(an event as well)
-    - Event fired when: Embed is ready to receive messages from parent(i.e. their is some code that would response to postmessages in iframe)
+    - Event fired when: Embed is ready to receive messages from parent(i.e. their is some code that would respond to postmessages in iframe)
     - Event fired by: Iframe
     - Notes:
       - It is fired immediately after embed-iframe.ts is loaded.

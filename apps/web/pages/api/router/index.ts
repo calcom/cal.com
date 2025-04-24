@@ -1,3 +1,4 @@
+import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
@@ -13,10 +14,10 @@ export default defaultHandler({
   }),
   POST: Promise.resolve({
     default: defaultResponder(async (req, res) => {
-      const payload = JSON.parse(req.body);
-      // await new Promise((resolve) => setTimeout(resolve, 10000));
+      // getRoutedUrl has more detailed schema validation, we do a basic one here.
+      const params = fromEntriesWithDuplicateKeys(new URLSearchParams(req.body).entries());
       res.setHeader("Access-Control-Allow-Origin", "*");
-      const routedUrlData = await getRoutedUrl({ req, query: { ...payload } });
+      const routedUrlData = await getRoutedUrl({ req, query: { ...params } });
       if (routedUrlData?.notFound) {
         return res.status(404).json({ status: "error", data: { message: "Form not found" } });
       }
@@ -27,7 +28,6 @@ export default defaultHandler({
           .json({ status: "success", data: { redirect: routedUrlData.redirect.destination } });
       }
 
-      console.log("routedUrlData", routedUrlData);
       if (routedUrlData?.props?.errorMessage) {
         return res.status(400).json({ status: "error", data: { message: routedUrlData.props.errorMessage } });
       }

@@ -2,9 +2,6 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 
-// eslint-disable-next-line no-restricted-imports
-import type { BookerState } from "@calcom/features/bookings/Booker/types";
-
 import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
 import type {
@@ -18,6 +15,8 @@ import type {
   SlotsQuery,
 } from "./types";
 import { useCompatSearchParams } from "./useCompatSearchParams";
+
+type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
 
 const eventsAllowedInPrerendering = [
   // so that Postmessage communication starts

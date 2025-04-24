@@ -134,8 +134,14 @@ export async function submitResponseAndGetRoutingResult({
   });
   const result = await response.json();
   if (result.status === "success") {
+    if (!result.data.redirect && !result.data.message) {
+      throw new Error("No `redirect` or `message` in response");
+    }
     return result.data as { redirect: string } | { message: string };
   } else {
+    if (!result.data.message) {
+      throw new Error("No `message` in response");
+    }
     console.warn("Error submitting response and getting routing result", result);
     return { error: result.data.message } as { error: string };
   }

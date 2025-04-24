@@ -76,7 +76,7 @@ export type EmbedBookerState =
   | "slotsLoaded"
   | "slotsLoadingError";
 
-export type SlotsStatus = "loading" | "success" | "error" | "unchanged";
+export type SlotsStatus = "loading" | "success" | "error";
 export type SlotsQuery = {
   isPending?: boolean;
   isError?: boolean;
