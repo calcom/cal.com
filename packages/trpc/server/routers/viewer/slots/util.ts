@@ -273,6 +273,8 @@ const getStartTime = (startTimeInput: string, timeZone?: string, minimumBookingN
   return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
 };
 
+export type GetAvailableSlotsResponse = Awaited<ReturnType<typeof getAvailableSlots>>;
+
 export const getAvailableSlots = async (
   ...args: Parameters<typeof _getAvailableSlots>
 ): Promise<ReturnType<typeof _getAvailableSlots>> => {
