@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { EventTypeWebWrapper } from "@calcom/atoms/event-types/wrappers/EventTypeWebWrapper";
-import { Shell } from "@calcom/features/shell/Shell";
+import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { VerticalTabs } from "@calcom/ui/components/navigation";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
@@ -33,7 +33,7 @@ export default function EventTypePage({ id, data }: EventTypePageProps) {
     {
       name: t("limits"),
       href: `/event-types/${id}?tabName=limits`,
-      icon: "sliders",
+      icon: "sliders-horizontal",
       info: t("how_often_you_can_be_booked"),
     },
     {
@@ -51,7 +51,7 @@ export default function EventTypePage({ id, data }: EventTypePageProps) {
     {
       name: t("apps"),
       href: `/event-types/${id}?tabName=apps`,
-      icon: "grid",
+      icon: "grid-3x3",
       info: t("0_apps_0_active", { count: 0, active: 0 }),
     },
     {
