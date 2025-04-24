@@ -172,6 +172,10 @@ const LayoutToggleWithData = ({
   layout: string;
 }) => {
   return enabledLayouts.length <= 1 ? null : (
-    <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} enabledLayouts={enabledLayouts} />
+    <LayoutToggle
+      onLayoutToggle={onLayoutToggle}
+      layout={layout as BookerLayouts}
+      enabledLayouts={enabledLayouts}
+    />
   );
 };
