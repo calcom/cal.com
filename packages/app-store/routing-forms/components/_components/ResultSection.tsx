@@ -187,17 +187,6 @@ export const ResultsView = ({
         </ResultsSection>
       )}
 
-      <div className="flex items-center justify-between">
-        <span data-testid="route-to-text" className="text-emphasis text-sm font-medium">
-          {t("route_to:")}
-        </span>
-        <span data-testid="test-routing-result-type" className="text-default text-sm">
-          {chosenRoute.action.type === "customPageMessage" && "Custom Page"}
-          {chosenRoute.action.type === "externalRedirectUrl" && "External Redirect"}
-          {chosenRoute.action.type === "eventTypeRedirectUrl" && "Event Redirect"}
-        </span>
-      </div>
-
       {supportsTeamMembersMatchingLogic && membersMatchResult && (
         <>
           <ResultsSection title="Matching" icon="atom">
