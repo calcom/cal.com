@@ -1,3 +1,5 @@
+import { StripeBillingService } from "ee/billing/stripe-billling-service";
+
 import dayjs from "@calcom/dayjs";
 import { sendCreditBalanceLowWarningEmails } from "@calcom/emails";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
@@ -364,14 +366,16 @@ export async function getMonthlyCredits(teamId: number) {
   const teamBillingService = new InternalTeamBilling(team);
   const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
 
-  // if (subscriptionStatus !== "active" && subscriptionStatus !== "past_due") {
-  //   return 0;
-  // }
+  if (subscriptionStatus !== "active" && subscriptionStatus !== "past_due") {
+    return 0;
+  }
 
   const activeMembers = team.members.filter((member) => member.accepted).length;
 
-  // todo: where do I get price per seat from? --> different for team and org
-  const pricePerSeat = 15;
+  const billingService = new StripeBillingService();
+
+  const teamMonthlyPrice = await billingService.getPrice(process.env.STRIPE_TEAM_MONTHLY_PRICE_ID || "");
+  const pricePerSeat = teamMonthlyPrice.unit_amount ?? 0;
   totalMonthlyCredits = activeMembers * ((pricePerSeat / 2) * 100);
 
   return totalMonthlyCredits;
