@@ -5,11 +5,13 @@ import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
+import { webhookSecretHeaderMiddleware } from "../../../middleware/webhookSecretHeader";
 import authedProcedure from "../../../procedures/authedProcedure";
 import { webhookIdAndEventTypeIdSchema } from "./types";
 
 export const webhookProcedure = authedProcedure
   .input(webhookIdAndEventTypeIdSchema.optional())
+  .use(webhookSecretHeaderMiddleware)
   .use(async ({ ctx, input, next }) => {
     // Endpoints that just read the logged in user's data - like 'list' don't necessary have any input
     if (!input) return next();

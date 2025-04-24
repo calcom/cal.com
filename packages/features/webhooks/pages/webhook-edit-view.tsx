@@ -84,7 +84,7 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
             values.payloadTemplate = null;
           }
 
-          const { secret, ...webhookData } = {
+          editWebhookMutation.mutate({
             id: webhook.id,
             subscriberUrl: values.subscriberUrl,
             eventTriggers: values.eventTriggers,
@@ -93,9 +93,7 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
             secret: values.secret,
             time: values.time,
             timeUnit: values.timeUnit,
-          };
-
-          editWebhookMutation.mutate(webhookData);
+          });
         }}
         apps={installedApps?.items.map((app) => app.slug)}
       />

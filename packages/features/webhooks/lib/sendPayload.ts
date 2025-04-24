@@ -277,7 +277,6 @@ const _sendPayload = async (
     headers: {
       "Content-Type": contentType,
       "X-Cal-Signature-256": createWebhookSignature({ secret: secretKey, body }),
-      ...(secretKey ? { "x-cal-webhook-secret": secretKey } : {}),
     },
     redirect: "manual",
     body,
