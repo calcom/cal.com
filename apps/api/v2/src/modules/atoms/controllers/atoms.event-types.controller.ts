@@ -77,7 +77,6 @@ export class AtomsEventTypesController {
     @GetUser() user: UserWithProfile,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number
   ): Promise<ApiResponse<unknown>> {
-    console.log("eventTypeIddddddd: ", eventTypeId);
     const eventType = await this.eventTypesService.getUserEventType(user, eventTypeId);
     return {
       status: SUCCESS_STATUS,
