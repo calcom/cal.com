@@ -343,7 +343,7 @@ export default function isOutOfBounds(
   });
 
   const isOutOfBoundsByPeriod = isTimeViolatingFutureLimit({
-    time: time instanceof dayjs.Dayjs ? time.toDate() : time,
+    time: dayjs.isDayjs(time) ? time.toDate() : time,
     periodLimits,
   });
 
