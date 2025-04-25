@@ -10,13 +10,12 @@ import {
 
 export const EventTypeEditPageSkeleton = () => {
   const backButtonSkeleton = (
-    <div className="bg-default sticky top-0 z-10 mb-0 flex items-center py-2 md:mb-6 md:mt-0">
+    <div className="bg-default sticky top-0 z-10 mb-0 flex items-center py-2 md:mb-9 md:mt-0">
       <div className="rounded-md ltr:mr-2 rtl:ml-2">
         <SkeletonButton className="h-8 w-8 rounded-md" />
       </div>
       <div className="w-full truncate ltr:mr-4 rtl:ml-4 md:block">
         <SkeletonText className="h-8 w-48" />
-        <SkeletonText className="mt-1 h-4 w-24" />
       </div>
       <div className="flex items-center gap-2">
         <SkeletonButton className="h-9 w-9 rounded-md" />
@@ -30,10 +29,7 @@ export const EventTypeEditPageSkeleton = () => {
   );
 
   return (
-    <Shell
-      heading={<SkeletonText className="hidden h-8 w-48" />}
-      subtitle={<SkeletonText className="hidden h-4 w-24" />}
-      afterHeading={backButtonSkeleton}>
+    <Shell subtitle={<SkeletonText className="hidden h-4 w-24" />} afterHeading={backButtonSkeleton}>
       <div className="flex flex-col xl:flex-row xl:space-x-6">
         <div className="hidden xl:block">
           <div className="primary-navigation w-64 flex-shrink-0">
