@@ -31,7 +31,7 @@
   margin-left: 8px;
 }
 
-.group.group-or-rule:has(.group--header, :not(.group--header)):has(.group--children):has(.group--footer) {
+.cal-query-builder .group.group-or-rule:has(.group--header, :not(.group--header)):has(.group--children):has(.group--footer) {
   background-color: var(--cal-bg-muted);
   padding: 2px;
   border-radius: 12px;
