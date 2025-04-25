@@ -13,7 +13,8 @@ export function AppHomePageSkeleton() {
       isPublic
       heading={t("app_store")}
       subtitle={t("app_store_description")}
-      headerClassName="sm:hidden lg:block hidden">
+      headerClassName="sm:hidden lg:block hidden"
+      isAdmin={false}>
       <SkeletonContainer>
         <div className="flex flex-col gap-y-8">
           {/* Featured Categories section */}
