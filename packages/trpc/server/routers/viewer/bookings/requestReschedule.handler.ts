@@ -251,7 +251,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
           })
         );
         return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent, bookingRef.externalCalendarId);
-      } else if (bookingRef.type.endsWith("_video")) {
+      } else if (bookingRef.type.endsWith("_video") && !bookingRef.type.endsWith("daily_video")) {
         return deleteMeeting(
           getDelegationCredentialOrRegularCredential({
             credentials,
