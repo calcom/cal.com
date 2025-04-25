@@ -84,7 +84,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     args,
   }: {
     credentialId: number;
-    userId: number;
+    userId: number | null;
     args: FreeBusyArgs;
   }) {
     declareCanWorkWithInMemoryCredential();
@@ -92,6 +92,10 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     const key = parseKeyForCache(args);
     let cached;
     if (isInMemoryDelegationCredential({ credentialId })) {
+      if (!userId) {
+        log.warn("userId is not available when querying cache for in-memory delegation credential");
+        return null;
+      }
       // We don't have credentialId available when querying the cache, as we use in-memory delegation credentials for this which don't have valid credentialId
       // Also, we would prefer to reuse the existing calendar-cache(connected to regular credentials) when enabling delegation credentials, for which we can't use credentialId in querying as that is not in DB
       // Security/Privacy wise, it is fine to query solely based on userId as userId and key(which has external email Ids in there) together can be used to uniquely identify the cache
@@ -127,7 +131,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     value,
   }: {
     credentialId: number;
-    userId: number;
+    userId: number | null;
     args: FreeBusyArgs;
     value: Prisma.JsonNullValueInput | Prisma.InputJsonValue;
   }) {
