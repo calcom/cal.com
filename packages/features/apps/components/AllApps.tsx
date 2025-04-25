@@ -143,9 +143,13 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const appsContainerRef = useRef<HTMLDivElement>(null);
 
+  const isFirstRender = useRef(true);
   const [isClient, setIsClient] = useState(false);
+
   useEffect(() => {
     setIsClient(true);
+
+    isFirstRender.current = false;
   }, []);
 
   const handleCategoryChange = (category: string | null) => {
@@ -208,6 +212,7 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
 
   return (
     <div>
+      {/* Only render CategoryTab on client-side to prevent hydration mismatches */}
       <CategoryTab
         selectedCategory={selectedCategory}
         searchText={searchText}
