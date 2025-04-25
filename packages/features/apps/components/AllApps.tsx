@@ -169,6 +169,43 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
       return 0;
     });
 
+  if (!isClient) {
+    return (
+      <div>
+        <div className="relative mb-4 flex flex-col justify-between lg:flex-row lg:items-center">
+          <h2 className="text-emphasis hidden text-base font-semibold leading-none sm:block">
+            {searchText ? t("search") : t("category_apps", { category: t("all") })}
+          </h2>
+          <ul className="no-scrollbar mt-3 flex max-w-full space-x-1 overflow-x-auto lg:mt-0 lg:max-w-[50%]">
+            <li className="bg-emphasis text-default min-w-max rounded-md px-4 py-2.5 text-sm font-medium">
+              {t("all")}
+            </li>
+          </ul>
+        </div>
+        <div className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:500px)]:grid-cols-1 [@media(max-width:730px)]:grid-cols-1">
+          {/* Skeleton placeholders */}
+          {[...Array(8)].map((_, index) => (
+            <div key={index} className="border-subtle relative flex h-64 flex-col rounded-md border p-5">
+              <div className="flex">
+                <div className="bg-subtle mb-4 h-12 w-12 rounded-sm" />
+              </div>
+              <div className="flex items-center">
+                <div className="bg-subtle h-5 w-32 rounded-md" />
+              </div>
+              <div className="mt-2 flex-grow">
+                <div className="bg-subtle mb-2 h-4 w-full rounded-md" />
+                <div className="bg-subtle mb-2 h-4 w-3/4 rounded-md" />
+              </div>
+              <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
+                <div className="bg-subtle flex w-32 flex-grow justify-center rounded-md py-2" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <CategoryTab
@@ -181,17 +218,15 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
         <div
           className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:500px)]:grid-cols-1 [@media(max-width:730px)]:grid-cols-1"
           ref={appsContainerRef}>
-          {/* Only render AppCards on the client to prevent hydration mismatches */}
-          {isClient &&
-            filteredApps.map((app) => (
-              <AppCard
-                key={app.name}
-                app={app}
-                searchText={searchText}
-                credentials={app.credentials}
-                userAdminTeams={userAdminTeams}
-              />
-            ))}
+          {filteredApps.map((app) => (
+            <AppCard
+              key={app.name}
+              app={app}
+              searchText={searchText}
+              credentials={app.credentials}
+              userAdminTeams={userAdminTeams}
+            />
+          ))}
         </div>
       ) : (
         <EmptyScreen
