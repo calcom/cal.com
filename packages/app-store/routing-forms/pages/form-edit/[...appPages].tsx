@@ -285,7 +285,7 @@ const FormEdit = ({
         <div className="mb-3 grid">
           {/* Icon card - Top */}
           <div className="bg-default border-subtle z-30 col-start-1 col-end-1 row-start-1 row-end-1 h-10 w-10 transform rounded-md border shadow-sm">
-            <div className="flex h-full items-center justify-center">
+            <div className="text-emphasis flex h-full items-center justify-center">
               <Icon name="menu" className="text-emphasis h-4 w-4" />
             </div>
           </div>
@@ -305,8 +305,10 @@ const FormEdit = ({
           />
         </div>
         <div>
-          <h1 className="text-emphasis text-center text-lg font-semibold">Create your first question</h1>
-          <p className="mt-2 text-center text-sm leading-normal">
+          <h1 className="text-emphasis text-emphasis text-center text-lg font-semibold">
+            Create your first question
+          </h1>
+          <p className="text-default mt-2 text-center text-sm leading-normal">
             Fields are the form fields that the booker would see.
           </p>
         </div>
