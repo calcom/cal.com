@@ -268,7 +268,7 @@ export function isTimeViolatingFutureLimit({
   time,
   periodLimits,
 }: {
-  time: string | Date;
+  time: string | Date | number;
   periodLimits: PeriodLimits;
 }) {
   const log = logger.getSubLogger({ prefix: ["isTimeViolatingFutureLimit"] });
@@ -291,24 +291,17 @@ export function isTimeViolatingFutureLimit({
   }
 
   if (periodLimits.startOfRangeStartDayInEventTz && periodLimits.endOfRangeEndDayInEventTz) {
-    const isBeforeRangeStart = dateInSystemTz.isBefore(periodLimits.startOfRangeStartDayInEventTz);
-    const isAfterRangeEnd = dateInSystemTz.isAfter(periodLimits.endOfRangeEndDayInEventTz);
-    log.silly("rangeCheck", {
-      formattedDate: dateInSystemTz.format(),
-      isAfterRangeEnd,
-      isBeforeRangeStart,
-      startOfRangeStartDayInEventTz: periodLimits.startOfRangeStartDayInEventTz.format(),
-      endOfRangeEndDayInEventTz: periodLimits.endOfRangeEndDayInEventTz.format(),
-    });
+    const isBeforeRangeStart = dateObj.valueOf() < periodLimits.startOfRangeStartDayInEventTz.valueOf();
+    const isAfterRangeEnd = dateObj.valueOf() > periodLimits.endOfRangeEndDayInEventTz.valueOf();
     if (isBeforeRangeStart || isAfterRangeEnd)
       log.warn(
         "Booking is out of bounds due to range start and end.",
         safeStringify({
-          formattedDate: dateInSystemTz.format(),
+          formattedDate: dateObj.toISOString(),
           isBeforeRangeStart,
           isAfterRangeEnd,
-          startOfRangeStartDayInEventTz: periodLimits.startOfRangeStartDayInEventTz.format(),
-          endOfRangeEndDayInEventTz: periodLimits.endOfRangeEndDayInEventTz.format(),
+          startOfRangeStartDayInEventTz: periodLimits.startOfRangeStartDayInEventTz.toDate().toISOString(),
+          endOfRangeEndDayInEventTz: periodLimits.endOfRangeEndDayInEventTz.toDate().toISOString(),
         })
       );
     return isBeforeRangeStart || isAfterRangeEnd;
@@ -317,7 +310,7 @@ export function isTimeViolatingFutureLimit({
 }
 
 export default function isOutOfBounds(
-  time: dayjs.ConfigType,
+  time: NonNullable<dayjs.ConfigType>,
   {
     periodType,
     periodDays,
@@ -350,7 +343,7 @@ export default function isOutOfBounds(
   });
 
   const isOutOfBoundsByPeriod = isTimeViolatingFutureLimit({
-    time,
+    time: time instanceof dayjs.Dayjs ? time.toDate() : time,
     periodLimits,
   });
 
