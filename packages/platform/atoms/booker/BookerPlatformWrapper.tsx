@@ -269,7 +269,7 @@ export const BookerPlatformWrapper = (
       Boolean(teamId || username) &&
       Boolean(month) &&
       Boolean(timezone) &&
-      !event.isPending &&
+      !event?.isPending &&
       Boolean(event?.data?.id),
     orgSlug: props.entity?.orgSlug ?? undefined,
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
