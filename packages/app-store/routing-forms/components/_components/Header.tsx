@@ -266,7 +266,15 @@ export function Header({
                 onClick={() => setIsEditing(true)}>
                 {watchedName || "Loading..."}
               </span>
-              <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
+              <Button
+                variant="icon"
+                color="minimal"
+                onClick={() => setIsEditing(true)}
+                CustomStartIcon={
+                  <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
+                }>
+                <span className="sr-only">Edit</span>
+              </Button>
             </div>
           )}
         </div>
