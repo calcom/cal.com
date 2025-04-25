@@ -3,12 +3,12 @@ import { FloatingButton } from "./FloatingButton/FloatingButton";
 import { Inline } from "./Inline/inline";
 import { ModalBox } from "./ModalBox/ModalBox";
 import { addAppCssVars } from "./addAppCssVars";
-import type { InterfaceWithParent, interfaceWithParent, PrefillAndIframeAttrsConfig } from "./embed-iframe";
+import type { InterfaceWithParent, interfaceWithParent } from "./embed-iframe";
 import css from "./embed.css";
 import { SdkActionManager } from "./sdk-action-manager";
 import type { EventData, EventDataMap } from "./sdk-action-manager";
 import tailwindCss from "./tailwindCss";
-import type { UiConfig, EmbedPageType } from "./types";
+import type { UiConfig, EmbedPageType, PrefillAndIframeAttrsConfig } from "./types";
 import { getMaxHeightForModal } from "./ui-utils";
 import {
   fromEntriesWithDuplicateKeys,
@@ -18,8 +18,6 @@ import {
   getConfigProp,
   isSameBookingLink,
 } from "./utils";
-
-export type { PrefillAndIframeAttrsConfig } from "./embed-iframe";
 
 // Exporting for consumption by @calcom/embed-core user
 export type { EmbedEvent } from "./sdk-action-manager";
@@ -221,7 +219,7 @@ export class Cal {
   static actionsManagers: Record<Namespace, SdkActionManager>;
   // Store calLink separately, because we could load different URL in iframe(derived from calLink e.g. calLink=Router -> redirects to eventBookingUrl and then we load that URL in iframe)
   calLink: string | null = null;
-
+  embedConfig: PrefillAndIframeAttrsConfig | null = null;
   static ensureGuestKey(config: PrefillAndIframeAttrsConfig) {
     config = config || {};
     return {
@@ -305,7 +303,7 @@ export class Cal {
     config?: PrefillAndIframeAttrsConfig;
     calOrigin: string | null;
   }) {
-    const embedConfig = this.getCalConfig();
+    const calConfig = this.getCalConfig();
     const { iframeAttrs, ...queryParamsFromConfig } = config;
 
     if (iframeAttrs && iframeAttrs.id) {
@@ -315,7 +313,7 @@ export class Cal {
     const searchParams = this.buildFilteredQueryParams(queryParamsFromConfig);
 
     // cal.com has rewrite issues on Safari that sometimes cause 404 for assets.
-    const originToUse = (calOrigin || embedConfig.calOrigin || "").replace(
+    const originToUse = (calOrigin || calConfig.calOrigin || "").replace(
       "https://cal.com",
       "https://app.cal.com"
     );
@@ -328,14 +326,14 @@ export class Cal {
 
     urlInstance.searchParams.set("embed", this.namespace);
 
-    if (embedConfig.debug) {
-      urlInstance.searchParams.set("debug", `${embedConfig.debug}`);
+    if (calConfig.debug) {
+      urlInstance.searchParams.set("debug", `${calConfig.debug}`);
     }
 
     // Keep iframe invisible, till the embedded calLink sets its color-scheme. This is so that there is no flash of non-transparent(white/black) background
     iframe.style.visibility = "hidden";
 
-    if (embedConfig.uiDebug) {
+    if (calConfig.uiDebug) {
       iframe.style.border = "1px solid green";
     }
 
@@ -504,14 +502,20 @@ export class Cal {
     return searchParams;
   }
 
-  isFullPageLoadNeeded({
+  determineActionToTake({
     calLink,
     modalBoxUid,
     previousCalLink,
+    previousEmbedConfig,
+    embedConfig,
+    isConnectionInitiated,
   }: {
-    calLink: string;
     modalBoxUid: string;
+    calLink: string;
     previousCalLink: string | null;
+    embedConfig: PrefillAndIframeAttrsConfig;
+    previousEmbedConfig: PrefillAndIframeAttrsConfig | null;
+    isConnectionInitiated: boolean;
   }) {
     const calConfig = this.getCalConfig();
     const newCalLink = calLink;
@@ -521,18 +525,68 @@ export class Cal {
     const newCalLinkUrlObject = new URL(newCalLink, calConfig.calOrigin as string);
 
     const existingModalEl = document.querySelector(`cal-modal-box[uid="${modalBoxUid}"]`);
-    const isSameCalLink = previousCalLinkUrlObject?.toString() === newCalLinkUrlObject.toString();
+    const previousCalLinkPath = previousCalLinkUrlObject?.pathname ?? null;
+    // We only check for path because query params are handled by connect flow
+    // Also origin we assume never changes without page reload of the embedding page
+    const isSameCalLink =
+      previousCalLinkPath &&
+      isSameBookingLink({
+        bookingLinkPath1: previousCalLinkPath,
+        bookingLinkPath2: newCalLinkUrlObject.pathname,
+      });
+
+    const areSameQueryParams =
+      previousCalLinkUrlObject?.searchParams.toString() === newCalLinkUrlObject.searchParams.toString();
+
+    const isSameConfig =
+      previousEmbedConfig &&
+      isSameEmbedConfig({
+        embedConfig1: previousEmbedConfig,
+        embedConfig2: embedConfig,
+      });
     const isInFailedState = existingModalEl && existingModalEl.getAttribute("state") === "failed";
 
     // Note that we don't worry about change in embed config because that is passed on as query params to the iframe and that is already supported by "connect" flow
     const isResetNeeded = !isSameCalLink || isInFailedState;
+
+    const actionToTake = isResetNeeded
+      ? "fullReload"
+      : !isSameConfig || !areSameQueryParams || !isConnectionInitiated
+      ? "connect"
+      : "noChange";
     log("isResetNeeded", {
       isSameCalLink,
       isInFailedState,
+      isSameConfig,
+      areSameQueryParams,
+      isConnectionInitiated,
       isResetNeeded,
+      actionToTake,
     });
 
-    return isResetNeeded;
+    return actionToTake;
+
+    function isSameEmbedConfig({
+      embedConfig1,
+      embedConfig2,
+    }: {
+      embedConfig1: PrefillAndIframeAttrsConfig;
+      embedConfig2: PrefillAndIframeAttrsConfig;
+    }) {
+      if (Object.keys(embedConfig1).length !== Object.keys(embedConfig2).length) {
+        return false;
+      }
+      // Verify the two config have all props as same
+      return Object.keys(embedConfig1).every((key) => {
+        // Consider complex values as same
+        if (typeof embedConfig1[key] !== "string" || typeof embedConfig2[key] !== "string") {
+          console.log("Skipping non-string key", key);
+          return true;
+        }
+        console.log("embedConfig1[key]", embedConfig1[key], "embedConfig2[key]", embedConfig2[key]);
+        return embedConfig1[key] === embedConfig2[key];
+      });
+    }
   }
 
   /**
@@ -572,7 +626,13 @@ export class Cal {
         ...configWithGuestKeyAndColorScheme,
         ...paramsFromRedirect,
       };
-      if (lastLoadedPathInIframe && !isSameBookingLink(lastLoadedPathInIframe, routerRedirectUrl.pathname)) {
+      if (
+        lastLoadedPathInIframe &&
+        !isSameBookingLink({
+          bookingLinkPath1: lastLoadedPathInIframe,
+          bookingLinkPath2: routerRedirectUrl.pathname,
+        })
+      ) {
         if (lastLoadedPathInIframe) {
           console.error("Preloaded iframe couldn't be used", {
             preloadedPath: lastLoadedPathInIframe,
@@ -846,17 +906,21 @@ class CalApi {
     const newCalLinkUrlObject = new URL(newCalLink, calConfig.calOrigin as string);
 
     const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`);
-    const isFullPageLoadNeeded = this.cal.isFullPageLoadNeeded({
+    const actionToTake = this.cal.determineActionToTake({
       calLink,
       modalBoxUid: uid,
       previousCalLink: this.cal.calLink,
+      embedConfig: configWithGuestKeyAndColorScheme,
+      previousEmbedConfig: this.cal.embedConfig,
+      isConnectionInitiated: !!isConnectionInitiated,
     });
 
     this.cal.calLink = calLink;
+    this.cal.embedConfig = configWithGuestKeyAndColorScheme;
 
     // isConnectionPossible
     if (!!existingModalEl && !!this.cal.iframe) {
-      if (!isConnectionInitiated || isFullPageLoadNeeded) {
+      if (actionToTake === "fullReload" || actionToTake === "connect") {
         // Immediately take it to loading state - Either through connect or through loadInIframe, it would later be updated
         existingModalEl.setAttribute("state", "loading");
         const shouldSubmitResponse = newCalLinkUrlObject
@@ -873,7 +937,7 @@ class CalApi {
           this.modalUid = uid;
         } else {
           log("attempting to open regular booking link");
-          if (isFullPageLoadNeeded) {
+          if (actionToTake === "fullReload") {
             log("Initiating full page load");
             this.cal.loadInIframe({
               calLink: newCalLink,
@@ -1075,7 +1139,7 @@ class CalApi {
     calLink: string;
     type: "modal" | "floatingButton";
     pageType?: EmbedPageType;
-    toBeUsedByRouter: boolean;
+    toBeUsedByRouter?: boolean;
   }) {
     this.preload({
       calLink,

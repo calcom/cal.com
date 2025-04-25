@@ -62,16 +62,38 @@ describe("generateDataAttributes", () => {
 
 describe("isSameBookingLink", () => {
   it("should return true for same booking link", () => {
-    expect(isSameBookingLink("/team/event-booking-url", "/team/event-booking-url")).toBe(true);
-    expect(isSameBookingLink("/team/team1/event-booking-url", "/team/team1/event-booking-url")).toBe(true);
+    expect(
+      isSameBookingLink({
+        bookingLinkPath1: "/team/event-booking-url",
+        bookingLinkPath2: "/team/event-booking-url",
+      })
+    ).toBe(true);
+    expect(
+      isSameBookingLink({
+        bookingLinkPath1: "/team/team1/event-booking-url",
+        bookingLinkPath2: "/team/team1/event-booking-url",
+      })
+    ).toBe(true);
   });
 
   it("should return false for different booking links", () => {
-    expect(isSameBookingLink("/team/event-booking-url", "/team/event-booking-url-2")).toBe(false);
+    expect(
+      isSameBookingLink({
+        bookingLinkPath1: "/team/event-booking-url",
+        bookingLinkPath2: "/team/event-booking-url-2",
+      })
+    ).toBe(false);
   });
 
   it("should return true for same booking links with /team prefix in them", () => {
-    expect(isSameBookingLink("/team/sales/demo", "/sales/demo")).toBe(true);
-    expect(isSameBookingLink("/team1/event-booking-url", "/team/team1/event-booking-url")).toBe(true);
+    expect(isSameBookingLink({ bookingLinkPath1: "/team/sales/demo", bookingLinkPath2: "/sales/demo" })).toBe(
+      true
+    );
+    expect(
+      isSameBookingLink({
+        bookingLinkPath1: "/team1/event-booking-url",
+        bookingLinkPath2: "/team/team1/event-booking-url",
+      })
+    ).toBe(true);
   });
 });

@@ -1,4 +1,4 @@
-import type { KnownConfig } from "./types";
+import type { KnownConfig, PrefillAndIframeAttrsConfig } from "./types";
 
 export const getErrorString = ({
   errorCode,
@@ -48,6 +48,28 @@ export function fromEntriesWithDuplicateKeys(entries: IterableIterator<[string, 
     }
   }
   return result;
+}
+
+export function isParamValuePresentInUrlSearchParams({
+  param,
+  value,
+  container,
+}: {
+  param: string;
+  value: string | string[];
+  container: URLSearchParams;
+}) {
+  // Because UrlSearchParams could have multiple entries with same key like guest=1&guest=2
+  const containerEntries = fromEntriesWithDuplicateKeys(container.entries());
+  if (!container.has(param)) {
+    return false;
+  }
+  const containerValue = containerEntries[param];
+  const valueArray = Array.isArray(value) ? value : [value];
+  if (valueArray.length !== containerValue.length) {
+    return false;
+  }
+  return valueArray.every((valueItem) => containerValue.includes(valueItem));
 }
 
 function listKnownConfigProps() {
@@ -131,6 +153,9 @@ export async function submitResponseAndGetRoutingResult({
   const response = await fetch(headlessRouterApiUrl, {
     method: "POST",
     body: JSON.stringify(fromEntriesWithDuplicateKeys(searchParams.entries())),
+    headers: {
+      "Content-Type": "application/json",
+    },
   });
   const result = await response.json();
   if (result.status === "success") {
@@ -147,8 +172,27 @@ export async function submitResponseAndGetRoutingResult({
   }
 }
 
-export function isSameBookingLink(bookingLinkPath1: string, bookingLinkPath2: string) {
+export function isSameBookingLink({
+  bookingLinkPath1,
+  bookingLinkPath2,
+}: {
+  bookingLinkPath1: string;
+  bookingLinkPath2: string;
+}) {
   // Headless router redirects to /team/event-booking-url at the moment. In future it might fix it to /event-booking-url
   // So, stripe /team from both the URLs if present so that they can be compared easily
   return bookingLinkPath1.replace(/^\/team\//, "/") === bookingLinkPath2.replace(/^\/team\//, "/");
+}
+
+export function buildSearchParamsFromConfig(config: PrefillAndIframeAttrsConfig) {
+  const { iframeAttrs: _1, ...params } = config;
+  const searchParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value instanceof Array) {
+      value.forEach((val) => searchParams.append(key, val));
+    } else if (typeof value === "string") {
+      searchParams.set(key, value);
+    }
+  }
+  return searchParams;
 }

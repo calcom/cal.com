@@ -805,11 +805,14 @@ describe("Cal", () => {
     });
   });
 
-  describe("isFullPageLoadNeeded", () => {
+  describe("determineActionToTake", () => {
     const baseArgs = {
       calLink: "john-doe/meeting",
       modalBoxUid: "test-uid",
       previousCalLink: "john-doe/meeting",
+      embedConfig: { theme: "light" },
+      previousEmbedConfig: { theme: "light" },
+      isConnectionInitiated: true,
     };
 
     beforeEach(() => {
@@ -818,29 +821,51 @@ describe("Cal", () => {
       calInstance.getConfig = vi.fn().mockReturnValue({ calOrigin: "https://app.cal.com" });
     });
 
-    it("should return true when cal link is different", () => {
-      const result = calInstance.isFullPageLoadNeeded({
+    it("should return fullReload when cal link is different", () => {
+      const result = calInstance.determineActionToTake({
         ...baseArgs,
         calLink: "jane-doe/meeting",
       });
 
-      expect(result).toBe(true);
+      expect(result).toBe("fullReload");
     });
 
-    it("should return true when modal is in failed state", () => {
+    it("should return fullReload when modal is in failed state", () => {
       document.body.innerHTML = `<cal-modal-box uid="test-uid" state="failed"></cal-modal-box>`;
 
-      const result = calInstance.isFullPageLoadNeeded(baseArgs);
+      const result = calInstance.determineActionToTake(baseArgs);
 
-      expect(result).toBe(true);
+      expect(result).toBe("fullReload");
     });
 
-    it("should return false when everything is the same", () => {
+    it("should return noChange when everything is the same", () => {
       document.body.innerHTML = `<cal-modal-box uid="test-uid" state="loaded"></cal-modal-box>`;
 
-      const result = calInstance.isFullPageLoadNeeded(baseArgs);
+      const result = calInstance.determineActionToTake(baseArgs);
 
-      expect(result).toBe(false);
+      expect(result).toBe("noChange");
+    });
+
+    it("should return connect when config changes", () => {
+      document.body.innerHTML = `<cal-modal-box uid="test-uid" state="loaded"></cal-modal-box>`;
+
+      const result = calInstance.determineActionToTake({
+        ...baseArgs,
+        embedConfig: { theme: "dark" },
+      });
+
+      expect(result).toBe("connect");
+    });
+
+    it("should return connect when connection is not initiated", () => {
+      document.body.innerHTML = `<cal-modal-box uid="test-uid" state="loaded"></cal-modal-box>`;
+
+      const result = calInstance.determineActionToTake({
+        ...baseArgs,
+        isConnectionInitiated: false,
+      });
+
+      expect(result).toBe("connect");
     });
   });
 });

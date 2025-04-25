@@ -10,11 +10,16 @@ import type {
   EmbedNonStylesConfig,
   BookerLayouts,
   EmbedStyles,
-  KnownConfig,
   EmbedBookerState,
   SlotsQuery,
+  PrefillAndIframeAttrsConfig,
 } from "./types";
 import { useCompatSearchParams } from "./useCompatSearchParams";
+import {
+  buildSearchParamsFromConfig,
+  fromEntriesWithDuplicateKeys,
+  isParamValuePresentInUrlSearchParams,
+} from "./utils";
 
 type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
 
@@ -33,16 +38,6 @@ const enum EMBED_IFRAME_STATE {
   NOT_INITIALIZED,
   INITIALIZED,
 }
-
-/**
- * All types of config that are critical to be processed as soon as possible are provided as query params to the iframe
- */
-export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Record<string, string>> & {
-  // TODO: iframeAttrs shouldn't be part of it as that configures the iframe element and not the iframed app.
-  iframeAttrs?: Record<string, string> & {
-    id?: string;
-  };
-} & KnownConfig;
 
 declare global {
   interface Window {
@@ -73,10 +68,10 @@ export const embedStore = {
      * - So, we use a declarative approach to ensure that our requirement is continuously met
      */
     ensureQueryParamsInUrl({
-      toBeThereSearchParams,
+      toBeThereParams,
       toRemoveParams,
     }: {
-      toBeThereSearchParams: URLSearchParams;
+      toBeThereParams: Record<string, string | string[]>;
       toRemoveParams: string[];
     }) {
       let stopUpdating = false;
@@ -84,29 +79,28 @@ export const embedStore = {
         if (stopUpdating) {
           return { hasChanged: false };
         }
-        const url = new URL(document.URL);
+        const currentUrl = new URL(document.URL);
         let hasChanged = false;
-        const entries = Array.from(toBeThereSearchParams.entries());
 
         // Ensuring toBeThereSearchParams
-        for (const [key, value] of entries) {
-          if (url.searchParams.get(key) !== value) {
-            url.searchParams.set(key, value);
-            hasChanged = true;
+        for (const [key, newValue] of Object.entries(toBeThereParams)) {
+          // It checks that the value must be present and if an array no other item should be there except those in newValue
+          hasChanged = !isParamValuePresentInUrlSearchParams({
+            param: key,
+            value: newValue,
+            container: currentUrl.searchParams,
+          });
+          if (hasChanged) {
+            setParamInUrl({ key, value: newValue, url: currentUrl });
           }
         }
 
-        // Ensuring toRemoveParams
-        for (const key of toRemoveParams) {
-          if (url.searchParams.has(key)) {
-            url.searchParams.delete(key);
-            hasChanged = true;
-          }
-        }
+        removeParamsFromUrl({ keys: toRemoveParams, url: currentUrl });
 
+        hasChanged = hasChanged || toRemoveParams.length > 0;
         if (hasChanged) {
           // Avoid unnecessary history push
-          window.history.replaceState({}, "", url.toString());
+          window.history.replaceState({}, "", currentUrl.toString());
         }
         requestAnimationFrame(updateIfNeeded);
         return {
@@ -120,6 +114,20 @@ export const embedStore = {
         },
         hasChanged,
       };
+
+      function removeParamsFromUrl({ keys, url }: { keys: string[]; url: URL }) {
+        for (const key of keys) {
+          url.searchParams.delete(key);
+        }
+      }
+
+      function setParamInUrl({ key, value, url }: { key: string; value: string | string[]; url: URL }) {
+        url.searchParams.delete(key);
+        const newValueArray = Array.isArray(value) ? value : [value];
+        newValueArray.forEach((val) => {
+          url.searchParams.append(key, val);
+        });
+      }
     },
   },
 
@@ -507,13 +515,9 @@ const methods = {
   /**
    * Connects new config to prerendered page
    */
-  connect: function connect(queryObject: PrefillAndIframeAttrsConfig) {
-    log("Method: connect, requested with params", queryObject);
-    const toBeThereSearchParams = new URLSearchParams();
-    // TODO: Do we need to handle duplicate params here?
-    for (const [key, value] of Object.entries(queryObject)) {
-      toBeThereSearchParams.set(key, value as string);
-    }
+  connect: function connect(config: PrefillAndIframeAttrsConfig) {
+    log("Method: connect, requested with params", config);
+    const searchParams = buildSearchParamsFromConfig(config);
 
     if (!embedStore.prerenderState) {
       log("Method: connect, prerenderState is not inProgress. Skipping");
@@ -521,7 +525,7 @@ const methods = {
       return;
     }
 
-    runAsap(function tryToConnect() {
+    (function tryToConnect() {
       if (embedStore.prerenderState !== "completed") {
         runAsap(tryToConnect);
         return;
@@ -529,10 +533,10 @@ const methods = {
 
       log("Method: connect, prerenderState is completed. Connecting");
       connectPreloadedEmbed({
-        toBeThereSearchParams,
+        toBeThereParams: fromEntriesWithDuplicateKeys(searchParams.entries()),
         toRemoveParams: ["preload", "prerender", "cal.skipGetSchedule"],
       });
-    });
+    })();
   },
 };
 
@@ -747,14 +751,14 @@ function actOnColorScheme(colorScheme: string | null | undefined) {
  * url has the config as params
  */
 function connectPreloadedEmbed({
-  toBeThereSearchParams,
+  toBeThereParams,
   toRemoveParams,
 }: {
-  toBeThereSearchParams: URLSearchParams;
+  toBeThereParams: Record<string, string | string[]>;
   toRemoveParams: string[];
 }) {
   const { hasChanged, stopEnsuringQueryParamsInUrl } = embedStore.router.ensureQueryParamsInUrl({
-    toBeThereSearchParams,
+    toBeThereParams,
     toRemoveParams,
   });
 

@@ -56,7 +56,11 @@ describe("embedStore.router.ensureQueryParamsInUrl", () => {
 
     // Mock history.replaceState
     window.history.replaceState = (...args) => {
-      vi.spyOn(document, "URL", "get").mockReturnValue(args[2]);
+      const url = args[2];
+      if (!url) {
+        throw new Error("url is not provided");
+      }
+      vi.spyOn(document, "URL", "get").mockReturnValue(url);
     };
   });
 
@@ -74,10 +78,10 @@ describe("embedStore.router.ensureQueryParamsInUrl", () => {
 
     // Execute
     const { stopEnsuringQueryParamsInUrl } = embedStore.router.ensureQueryParamsInUrl({
-      toBeThereSearchParams: createSearchParams({
+      toBeThereParams: {
         theme: "dark",
         layout: "month",
-      }),
+      },
       toRemoveParams: [],
     });
 
@@ -89,13 +93,26 @@ describe("embedStore.router.ensureQueryParamsInUrl", () => {
     stopEnsuringQueryParamsInUrl();
   });
 
+  it("should ensure that no existing value of param exists as is", () => {
+    fakeCurrentDocumentUrl({ params: { guest: "initial" } });
+    const { stopEnsuringQueryParamsInUrl } = embedStore.router.ensureQueryParamsInUrl({
+      toBeThereParams: { guest: ["ax.com", "bx.com"] },
+      toRemoveParams: [],
+    });
+    expect(document.URL).toContain("guest=ax.com");
+    expect(document.URL).toContain("guest=bx.com");
+    expect(document.URL).not.toContain("guest=initial");
+
+    stopEnsuringQueryParamsInUrl();
+  });
+
   it("should remove specified parameters from URL", async () => {
     // Setup
     fakeCurrentDocumentUrl({ params: { remove: "true", keep: "yes" } });
 
     // Execute
     const { stopEnsuringQueryParamsInUrl } = embedStore.router.ensureQueryParamsInUrl({
-      toBeThereSearchParams: new URLSearchParams(),
+      toBeThereParams: {},
       toRemoveParams: ["remove"],
     });
 
@@ -110,7 +127,7 @@ describe("embedStore.router.ensureQueryParamsInUrl", () => {
   it("should handle empty parameters", async () => {
     fakeCurrentDocumentUrl();
     const { stopEnsuringQueryParamsInUrl } = embedStore.router.ensureQueryParamsInUrl({
-      toBeThereSearchParams: new URLSearchParams(),
+      toBeThereParams: {},
       toRemoveParams: [],
     });
     nextTick();
@@ -122,7 +139,7 @@ describe("embedStore.router.ensureQueryParamsInUrl", () => {
     const initialTheme = "dark";
 
     const { stopEnsuringQueryParamsInUrl } = embedStore.router.ensureQueryParamsInUrl({
-      toBeThereSearchParams: createSearchParams({ theme: initialTheme }),
+      toBeThereParams: { theme: initialTheme },
       toRemoveParams: [],
     });
 

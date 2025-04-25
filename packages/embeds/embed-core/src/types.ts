@@ -83,4 +83,13 @@ export type SlotsQuery = {
   isSuccess?: boolean;
   isLoading?: boolean;
 };
-export {};
+
+/**
+ * All types of config that are critical to be processed as soon as possible are provided as query params to the iframe
+ */
+export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Record<string, string>> & {
+  // TODO: iframeAttrs shouldn't be part of it as that configures the iframe element and not the iframed app.
+  iframeAttrs?: Record<string, string> & {
+    id?: string;
+  };
+} & KnownConfig;

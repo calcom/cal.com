@@ -1,4 +1,3 @@
-import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
@@ -8,14 +7,14 @@ export default defaultHandler({
     default: defaultResponder(async (req, res) => {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-      res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type, cache-control, pragma");
       res.status(204).end();
     }),
   }),
   POST: Promise.resolve({
     default: defaultResponder(async (req, res) => {
       // getRoutedUrl has more detailed schema validation, we do a basic one here.
-      const params = fromEntriesWithDuplicateKeys(new URLSearchParams(req.body).entries());
+      const params = req.body;
       res.setHeader("Access-Control-Allow-Origin", "*");
       const routedUrlData = await getRoutedUrl({ req, query: { ...params } });
       if (routedUrlData?.notFound) {
