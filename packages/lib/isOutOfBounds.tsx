@@ -268,27 +268,23 @@ export function isTimeViolatingFutureLimit({
   time,
   periodLimits,
 }: {
-  time: dayjs.ConfigType;
+  time: string | Date;
   periodLimits: PeriodLimits;
 }) {
   const log = logger.getSubLogger({ prefix: ["isTimeViolatingFutureLimit"] });
-  // Because we are just going to compare times, we need not convert the time to a particular timezone
-  // date.isAfter/isBefore are timezone neutral
-  const dateInSystemTz = dayjs(time);
+
+  const dateObj = new Date(time);
   if (periodLimits.endOfRollingPeriodEndDayInBookerTz) {
-    const isAfterRollingEndDay = dateInSystemTz.isAfter(periodLimits.endOfRollingPeriodEndDayInBookerTz);
-    log.silly("rollingEndDayCheck", {
-      formattedDate: dateInSystemTz.format(),
-      isAfterRollingEndDay,
-      endOfRollingPeriodEndDayInBookerTz: periodLimits.endOfRollingPeriodEndDayInBookerTz.format(),
-    });
+    const isAfterRollingEndDay =
+      dateObj.valueOf() > periodLimits.endOfRollingPeriodEndDayInBookerTz.valueOf();
+
     if (isAfterRollingEndDay)
       log.warn(
         "Booking is out of bounds due to rolling period end day.",
         safeStringify({
-          formattedDate: dateInSystemTz.format(),
+          formattedDate: dateObj.toISOString(),
           isAfterRollingEndDay,
-          endOfRollingPeriodEndDayInBookerTz: periodLimits.endOfRollingPeriodEndDayInBookerTz.format(),
+          endOfRollingPeriodEndDayTs: periodLimits.endOfRollingPeriodEndDayInBookerTz.valueOf(),
         })
       );
     return isAfterRollingEndDay;
