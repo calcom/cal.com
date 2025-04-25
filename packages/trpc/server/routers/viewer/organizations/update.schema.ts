@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export const ZUpdateInputSchema = z.object({
@@ -24,7 +25,7 @@ export const ZUpdateInputSchema = z.object({
   brandColor: z.string().optional(),
   darkBrandColor: z.string().optional(),
   theme: z.string().optional().nullable(),
-  timeZone: z.string().optional(),
+  timeZone: timeZoneSchema.optional(),
   weekStart: z.string().optional(),
   timeFormat: z.number().optional(),
   metadata: teamMetadataSchema.unwrap().optional(),

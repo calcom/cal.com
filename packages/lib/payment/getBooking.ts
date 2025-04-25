@@ -41,7 +41,9 @@ export async function getBooking(bookingId: number) {
           length: true,
           price: true,
           requiresConfirmation: true,
+          hideOrganizerEmail: true,
           metadata: true,
+          customReplyToEmail: true,
           title: true,
           teamId: true,
           parentId: true,
@@ -158,6 +160,7 @@ export async function getBooking(bookingId: number) {
       language: { translate: t, locale: user.locale ?? "en" },
       id: user.id,
     },
+    hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     team: !!booking.eventType?.team
       ? {
           name: booking.eventType.team.name,
@@ -170,6 +173,7 @@ export async function getBooking(bookingId: number) {
     uid: booking.uid,
     destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
     recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
+    customReplyToEmail: booking.eventType?.customReplyToEmail,
   };
 
   return {

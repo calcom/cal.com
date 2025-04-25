@@ -537,8 +537,8 @@ describe("Calendar Cache", () => {
       credentialId: credentialInDb1.id,
       userId: credentialInDb1.userId,
       args: {
-        timeMin: dateFrom1,
-        timeMax: dateTo1,
+        timeMin: getTimeMin(dateFrom1),
+        timeMax: getTimeMax(dateTo1),
         items: [{ id: testSelectedCalendar.externalId }],
       },
       value: JSON.parse(

@@ -245,7 +245,7 @@ export const getBusyCalendarTimes = async (
     // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
     const startDate = dayjs(dateFrom).subtract(11, "hours").format();
     // Add 14 hours from the start date to avoid problems in UTC+ time zones.
-    const endDate = dayjs(dateTo).endOf("month").add(14, "hours").format();
+    const endDate = dayjs(dateTo).add(14, "hours").format();
 
     log.debug(
       "getBusyCalendarTimes manipulated dates",

@@ -671,7 +671,13 @@ export default class GoogleCalendarService implements Calendar {
     const cached = await calendarCache.getCachedAvailability({
       credentialId: this.credential.id,
       userId: this.credential.userId,
-      args,
+      args: {
+        // Expand the start date to the start of the month to increase cache hits
+        timeMin: getTimeMin(args.timeMin),
+        // Expand the end date to the end of the month to increase cache hits
+        timeMax: getTimeMax(args.timeMax),
+        items: args.items,
+      },
     });
     if (cached) {
       log.debug("[Cache Hit] Returning cached freebusy result", safeStringify({ cached, args }));
@@ -1121,9 +1127,9 @@ export default class GoogleCalendarService implements Calendar {
 
     for (const [_eventTypeId, selectedCalendars] of Array.from(selectedCalendarsPerEventType.entries())) {
       const parsedArgs = {
-        /** Expand the start date to the start of the month */
+        /** Expand the start date to the start of the month to increase cache hits */
         timeMin: getTimeMin(),
-        /** Expand the end date to the end of the month */
+        /** Expand the end date to the end of the month to increase cache hits */
         timeMax: getTimeMax(),
         // Dont use eventTypeId in key because it can be used by any eventType
         // The only reason we are building it per eventType is because there can be different groups of calendars to lookup the availability for
