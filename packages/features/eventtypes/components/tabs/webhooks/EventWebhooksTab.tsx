@@ -41,10 +41,10 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
   const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
     async onSuccess() {
       setEditModalOpen(false);
+      revalidateEventTypeEditPage(eventType.id);
       showToast(t("webhook_updated_successfully"), "success");
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
-      revalidateEventTypeEditPage(eventType.id);
     },
     onError(error) {
       showToast(`${error.message}`, "error");
@@ -54,10 +54,10 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
   const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
     async onSuccess() {
       setCreateModalOpen(false);
+      revalidateEventTypeEditPage(eventType.id);
       showToast(t("webhook_created_successfully"), "success");
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
-      revalidateEventTypeEditPage(eventType.id);
     },
     onError(error) {
       showToast(`${error.message}`, "error");

@@ -55,10 +55,10 @@ const WorkflowListItem = (props: ItemProps) => {
   const activateEventTypeMutation = trpc.viewer.workflows.activateEventType.useMutation({
     onSuccess: async () => {
       const offOn = isActive ? "off" : "on";
+      revalidateEventTypeEditPage(eventType.id);
       await utils.viewer.workflows.getAllActiveWorkflows.invalidate();
 
       await utils.viewer.eventTypes.get.invalidate({ id: eventType.id });
-      revalidateEventTypeEditPage(eventType.id);
       showToast(
         t("workflow_turned_on_successfully", {
           workflowName: workflow.name,

@@ -124,10 +124,10 @@ const ProfileView = () => {
 
   const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
-      await utils.viewer.teams.list.invalidate();
       revalidateTeamsList();
-      await utils.viewer.eventTypes.getUserEventGroups.invalidate();
       revalidateEventTypesList();
+      await utils.viewer.teams.list.invalidate();
+      await utils.viewer.eventTypes.getUserEventGroups.invalidate();
       await utils.viewer.eventTypes.getByViewer.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");
       router.push(`${WEBAPP_URL}/teams`);
@@ -277,9 +277,9 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
         bio: (res?.bio || "") as string,
         slug: res?.slug as string,
       });
+      revalidateEventTypesList();
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.eventTypes.getUserEventGroups.invalidate();
-      revalidateEventTypesList();
       // TODO: Not all changes require list invalidation
       await utils.viewer.teams.list.invalidate();
       revalidateTeamsList();

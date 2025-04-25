@@ -74,8 +74,8 @@ const DuplicateDialog = () => {
     onSuccess: async ({ eventType }) => {
       await router.replace(`/event-types/${eventType.id}`);
 
-      await utils.viewer.eventTypes.getUserEventGroups.invalidate();
       revalidateEventTypesList();
+      await utils.viewer.eventTypes.getUserEventGroups.invalidate();
       await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate({
         limit: 10,
         searchQuery: debouncedSearchTerm,
