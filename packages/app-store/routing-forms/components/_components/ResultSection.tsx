@@ -150,6 +150,8 @@ export const ResultsView = ({
     );
   }
 
+  console.log("chosenRoute", chosenRoute);
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -158,7 +160,7 @@ export const ResultsView = ({
       transition={{ duration: 0.2 }}
       className="space-y-4">
       {chosenRoute.action.type === "eventTypeRedirectUrl" && (
-        <ResultsSection title={chosenRoute.name ?? ""} icon="zap" data-testid="chosen-route-title">
+        <ResultsSection title={chosenRoute.name ?? "Fallback"} icon="zap" data-testid="chosen-route-title">
           <div className="flex items-center gap-2">
             <div className="border-subtle rounded-lg border p-1">
               <Icon name="calendar" className="h-4 w-4" />
@@ -173,7 +175,10 @@ export const ResultsView = ({
       )}
 
       {chosenRoute.action.type === "customPageMessage" && (
-        <ResultsSection title={chosenRoute.name ?? ""} icon="file-text" data-testid="chosen-route-title">
+        <ResultsSection
+          title={chosenRoute.name ?? "Fallback"}
+          icon="file-text"
+          data-testid="chosen-route-title">
           <div className="flex items-center gap-2">
             <div className="border-subtle rounded-lg border p-1">
               <Icon name="file-text" className="h-4 w-4" />
