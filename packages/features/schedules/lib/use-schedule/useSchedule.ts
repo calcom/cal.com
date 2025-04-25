@@ -60,7 +60,7 @@ export const useSchedule = ({
   const utils = trpc.useUtils();
   const routingFormResponseIdParam = searchParams?.get("cal.routingFormResponseId");
   const email = searchParams?.get("email");
-  const skipGetSchedule = searchParams?.get("cal.skipGetSchedule") === "true";
+  const skipGetSchedule = searchParams?.get("cal.skipSlotsFetch") === "true";
   const routingFormResponseId = routingFormResponseIdParam
     ? parseInt(routingFormResponseIdParam, 10)
     : undefined;

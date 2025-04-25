@@ -456,4 +456,18 @@ export class OrganizationRepository {
       },
     });
   }
+
+  static async checkIfPrivate({ orgId }: { orgId: number }) {
+    const team = await prisma.team.findUnique({
+      where: {
+        id: orgId,
+        isOrganization: true,
+      },
+      select: {
+        isPrivate: true,
+      },
+    });
+
+    return team?.isPrivate ?? false;
+  }
 }

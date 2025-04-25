@@ -60,7 +60,7 @@ describe("embedStore.router.ensureQueryParamsInUrl", () => {
       if (!url) {
         throw new Error("url is not provided");
       }
-      vi.spyOn(document, "URL", "get").mockReturnValue(url);
+      vi.spyOn(document, "URL", "get").mockReturnValue(url.toString());
     };
   });
 

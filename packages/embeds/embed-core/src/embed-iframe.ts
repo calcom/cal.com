@@ -525,6 +525,9 @@ const methods = {
       return;
     }
 
+    // We reset it to allow informing parent through __dimensionChanged event about possibly updated dimensions
+    embedStore.parentInformedAboutContentHeight = false;
+
     (function tryToConnect() {
       if (embedStore.prerenderState !== "completed") {
         runAsap(tryToConnect);
@@ -534,7 +537,7 @@ const methods = {
       log("Method: connect, prerenderState is completed. Connecting");
       connectPreloadedEmbed({
         toBeThereParams: fromEntriesWithDuplicateKeys(searchParams.entries()),
-        toRemoveParams: ["preload", "prerender", "cal.skipGetSchedule"],
+        toRemoveParams: ["preload", "prerender", "cal.skipSlotsFetch"],
       });
     })();
   },
@@ -556,6 +559,10 @@ const messageParent = (data: CustomEvent["detail"]) => {
   );
 };
 
+/**
+ * This function is called once the iframe loads.
+ * It isn't called on "connect"
+ */
 function keepParentInformedAboutDimensionChanges() {
   let knownIframeHeight: number | null = null;
   let knownIframeWidth: number | null = null;
@@ -614,13 +621,14 @@ function keepParentInformedAboutDimensionChanges() {
     const iframeHeight = isFirstTime ? documentScrollHeight : contentHeight;
     const iframeWidth = isFirstTime ? documentScrollWidth : contentWidth;
 
-    embedStore.parentInformedAboutContentHeight = true;
-
     if (!iframeHeight || !iframeWidth) {
       runAsap(informAboutScroll);
       return;
     }
-    if (knownIframeHeight !== iframeHeight || knownIframeWidth !== iframeWidth) {
+    const isThereAChangeInDimensions = knownIframeHeight !== iframeHeight || knownIframeWidth !== iframeWidth;
+    if (isThereAChangeInDimensions || !embedStore.parentInformedAboutContentHeight) {
+      embedStore.parentInformedAboutContentHeight = true;
+
       knownIframeHeight = iframeHeight;
       knownIframeWidth = iframeWidth;
       // FIXME: This event shouldn't be subscribable by the user. Only by the SDK.

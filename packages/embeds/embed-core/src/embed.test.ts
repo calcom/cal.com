@@ -383,6 +383,7 @@ describe("Cal", () => {
                 searchParams: new URLSearchParams({
                   ...expectedConfig,
                   prerender: "true",
+                  "cal.skipSlotsFetch": "true",
                 }),
                 origin: null,
               },
@@ -422,6 +423,7 @@ describe("Cal", () => {
                   ...expectedConfig,
                   // It remains because internally we remove prerender=true in iframe, as it is connect mode
                   prerender: "true",
+                  "cal.skipSlotsFetch": "true",
                 }),
                 origin: null,
               },
@@ -463,6 +465,7 @@ describe("Cal", () => {
                   ...expectedConfig,
                   // It remains because we are just reopening the same modal
                   prerender: "true",
+                  "cal.skipSlotsFetch": "true",
                 }),
                 origin: null,
               },
@@ -498,6 +501,7 @@ describe("Cal", () => {
                 searchParams: new URLSearchParams({
                   ...expectedConfig,
                   prerender: "true",
+                  "cal.skipSlotsFetch": "true",
                 }),
                 origin: null,
               },
@@ -538,6 +542,7 @@ describe("Cal", () => {
                   ...expectedConfig,
                   // It remains because internally we remove prerender=true in iframe
                   prerender: "true",
+                  "cal.skipSlotsFetch": "true",
                 }),
                 origin: null,
               },
@@ -613,6 +618,7 @@ describe("Cal", () => {
                 searchParams: new URLSearchParams({
                   ...expectedConfig,
                   prerender: "true",
+                  "cal.skipSlotsFetch": "true",
                 }),
                 origin: null,
               },
@@ -660,6 +666,7 @@ describe("Cal", () => {
                   ...config,
                   // It remains because internally we remove prerender=true in iframe as it is connect mode
                   prerender: "true",
+                  "cal.skipSlotsFetch": "true",
                 }),
                 origin: null,
               },
@@ -703,6 +710,7 @@ describe("Cal", () => {
                 searchParams: new URLSearchParams({
                   ...expectedConfig,
                   prerender: "true",
+                  "cal.skipSlotsFetch": "true",
                 }),
                 origin: null,
               },
@@ -813,59 +821,116 @@ describe("Cal", () => {
       embedConfig: { theme: "light" },
       previousEmbedConfig: { theme: "light" },
       isConnectionInitiated: true,
+      previousEmbedRenderStartTime: Date.now() - 1000, // 1 second ago
+      embedRenderStartTime: Date.now(),
     };
 
     beforeEach(() => {
       calInstance = new CalClass("test-namespace", []);
-      // Mock the getConfig method
-      calInstance.getConfig = vi.fn().mockReturnValue({ calOrigin: "https://app.cal.com" });
+      // Initialize config
+      calInstance.__config = {
+        calOrigin: "https://app.cal.com",
+      };
+      // Reset document.querySelector mock before each test
+      vi.restoreAllMocks();
     });
 
     it("should return fullReload when cal link is different", () => {
       const result = calInstance.determineActionToTake({
         ...baseArgs,
-        calLink: "jane-doe/meeting",
+        previousCalLink: "jane-doe/meeting",
+      });
+      expect(result).toBe("fullReload");
+    });
+
+    it("should return fullReload when in failed state", () => {
+      // Mock document.querySelector to simulate a failed modal
+      document.querySelector = vi.fn().mockReturnValue({
+        getAttribute: () => "failed",
       });
 
+      const result = calInstance.determineActionToTake(baseArgs);
       expect(result).toBe("fullReload");
     });
 
-    it("should return fullReload when modal is in failed state", () => {
-      document.body.innerHTML = `<cal-modal-box uid="test-uid" state="failed"></cal-modal-box>`;
-
-      const result = calInstance.determineActionToTake(baseArgs);
-
+    it("should return fullReload when threshold time has passed", () => {
+      const result = calInstance.determineActionToTake({
+        ...baseArgs,
+        previousEmbedRenderStartTime: Date.now() - 1000000, // Much older timestamp
+        embedRenderStartTime: Date.now(),
+      });
       expect(result).toBe("fullReload");
     });
 
-    it("should return noChange when everything is the same", () => {
-      document.body.innerHTML = `<cal-modal-box uid="test-uid" state="loaded"></cal-modal-box>`;
-
-      const result = calInstance.determineActionToTake(baseArgs);
-
-      expect(result).toBe("noChange");
-    });
-
-    it("should return connect when config changes", () => {
-      document.body.innerHTML = `<cal-modal-box uid="test-uid" state="loaded"></cal-modal-box>`;
-
+    it("should return connect when config is different", () => {
       const result = calInstance.determineActionToTake({
         ...baseArgs,
         embedConfig: { theme: "dark" },
       });
+      expect(result).toBe("connect");
+    });
 
+    it("should return connect when config prop type is different", () => {
+      const result = calInstance.determineActionToTake({
+        ...baseArgs,
+        embedConfig: { param: 1 },
+        previousEmbedConfig: { param: { a: 1 } },
+      });
+      expect(result).toBe("connect");
+    });
+
+    test("for same config, if number of props are different, it should return connect", () => {
+      const result = calInstance.determineActionToTake({
+        ...baseArgs,
+        embedConfig: { param1: "value1", param2: "value2" },
+        previousEmbedConfig: { param1: "value1" },
+      });
+      expect(result).toBe("connect");
+    });
+
+    it("should return connect when config.guests change", () => {
+      const result = calInstance.determineActionToTake({
+        ...baseArgs,
+        embedConfig: { guests: ["john@example.com", "jane@example.com"] },
+        previousEmbedConfig: { guests: ["john@example.com"] },
+      });
+      expect(result).toBe("connect");
+    });
+
+    it("should return noChange when config.guests are same", () => {
+      const result = calInstance.determineActionToTake({
+        ...baseArgs,
+        embedConfig: { guests: ["john@example.com", "jane@example.com"] },
+        previousEmbedConfig: { guests: ["jane@example.com", "john@example.com"] },
+      });
+      expect(result).toBe("noChange");
+    });
+
+    it("should return connect when query params are different", () => {
+      const result = calInstance.determineActionToTake({
+        ...baseArgs,
+        previousCalLink: "john-doe/meeting?param1=value1",
+        calLink: "john-doe/meeting?param2=value2",
+      });
       expect(result).toBe("connect");
     });
 
     it("should return connect when connection is not initiated", () => {
-      document.body.innerHTML = `<cal-modal-box uid="test-uid" state="loaded"></cal-modal-box>`;
-
       const result = calInstance.determineActionToTake({
         ...baseArgs,
         isConnectionInitiated: false,
       });
-
       expect(result).toBe("connect");
+    });
+
+    it("should return noChange when everything is the same", () => {
+      // Mock document.querySelector to simulate a non-failed modal
+      document.querySelector = vi.fn().mockReturnValue({
+        getAttribute: () => "loaded",
+      });
+
+      const result = calInstance.determineActionToTake(baseArgs);
+      expect(result).toBe("noChange");
     });
   });
 });

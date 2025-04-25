@@ -3,6 +3,7 @@ import { FloatingButton } from "./FloatingButton/FloatingButton";
 import { Inline } from "./Inline/inline";
 import { ModalBox } from "./ModalBox/ModalBox";
 import { addAppCssVars } from "./addAppCssVars";
+import { EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS } from "./constants";
 import type { InterfaceWithParent, interfaceWithParent } from "./embed-iframe";
 import css from "./embed.css";
 import { SdkActionManager } from "./sdk-action-manager";
@@ -21,7 +22,7 @@ import {
 
 // Exporting for consumption by @calcom/embed-core user
 export type { EmbedEvent } from "./sdk-action-manager";
-
+export type { PrefillAndIframeAttrsConfig } from "./types";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Rest<T extends any[] | undefined> = T extends [any, ...infer U] ? U : never;
 export type Message = {
@@ -220,6 +221,7 @@ export class Cal {
   // Store calLink separately, because we could load different URL in iframe(derived from calLink e.g. calLink=Router -> redirects to eventBookingUrl and then we load that URL in iframe)
   calLink: string | null = null;
   embedConfig: PrefillAndIframeAttrsConfig | null = null;
+  embedRenderStartTime: number | null = null;
   static ensureGuestKey(config: PrefillAndIframeAttrsConfig) {
     config = config || {};
     return {
@@ -509,6 +511,8 @@ export class Cal {
     previousEmbedConfig,
     embedConfig,
     isConnectionInitiated,
+    previousEmbedRenderStartTime,
+    embedRenderStartTime,
   }: {
     modalBoxUid: string;
     calLink: string;
@@ -516,6 +520,8 @@ export class Cal {
     embedConfig: PrefillAndIframeAttrsConfig;
     previousEmbedConfig: PrefillAndIframeAttrsConfig | null;
     isConnectionInitiated: boolean;
+    previousEmbedRenderStartTime: number | null;
+    embedRenderStartTime: number;
   }) {
     const calConfig = this.getCalConfig();
     const newCalLink = calLink;
@@ -546,21 +552,27 @@ export class Cal {
       });
     const isInFailedState = existingModalEl && existingModalEl.getAttribute("state") === "failed";
 
+    const hasBeenMoreThanThresholdSinceLastRender = previousEmbedRenderStartTime
+      ? embedRenderStartTime - previousEmbedRenderStartTime > EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS
+      : false;
+
     // Note that we don't worry about change in embed config because that is passed on as query params to the iframe and that is already supported by "connect" flow
-    const isResetNeeded = !isSameCalLink || isInFailedState;
+    const isResetNeeded = !isSameCalLink || isInFailedState || hasBeenMoreThanThresholdSinceLastRender;
 
     const actionToTake = isResetNeeded
       ? "fullReload"
       : !isSameConfig || !areSameQueryParams || !isConnectionInitiated
       ? "connect"
       : "noChange";
-    log("isResetNeeded", {
+
+    log("determineActionToTake", {
       isSameCalLink,
       isInFailedState,
       isSameConfig,
       areSameQueryParams,
       isConnectionInitiated,
       isResetNeeded,
+      hasBeenMoreThanThresholdSinceLastRender,
       actionToTake,
     });
 
@@ -578,13 +590,22 @@ export class Cal {
       }
       // Verify the two config have all props as same
       return Object.keys(embedConfig1).every((key) => {
-        // Consider complex values as same
-        if (typeof embedConfig1[key] !== "string" || typeof embedConfig2[key] !== "string") {
-          console.log("Skipping non-string key", key);
-          return true;
+        if (typeof embedConfig1[key] !== typeof embedConfig2[key]) {
+          return false;
         }
-        console.log("embedConfig1[key]", embedConfig1[key], "embedConfig2[key]", embedConfig2[key]);
-        return embedConfig1[key] === embedConfig2[key];
+        // Now we know both have same type.
+        const embedConfig1Value = embedConfig1[key];
+        const embedConfig2Value = embedConfig2[key];
+        if (embedConfig1Value instanceof Array && embedConfig2Value instanceof Array) {
+          return (
+            embedConfig1Value.length === embedConfig2Value.length &&
+            embedConfig1Value.every((value: string) => embedConfig2Value.includes(value))
+          );
+        }
+        if (typeof embedConfig1Value === "string") {
+          return embedConfig1Value === embedConfig2Value;
+        }
+        return true;
       });
     }
   }
@@ -868,14 +889,14 @@ class CalApi {
     config = {},
     calOrigin,
     __prerender = false,
-    __skipGetScheduleWhenPrerendering = false,
   }: {
     calLink: string;
     config?: PrefillAndIframeAttrsConfig;
     calOrigin?: string;
     __prerender?: boolean;
-    __skipGetScheduleWhenPrerendering?: boolean;
   }) {
+    // this.modalUid is set in non-preload case
+    // this.prerenderedModalUid is set once a modal is prerendered
     const uid = this.modalUid || this.prerenderedModalUid || String(Date.now()) || "0";
     // Means whether there is already an attempt to use the prerendered modal
     const isConnectionInitiated = this.modalUid && this.prerenderedModalUid;
@@ -887,9 +908,9 @@ class CalApi {
     if (__prerender) {
       // Add prerender query param
       config.prerender = "true";
-      if (__skipGetScheduleWhenPrerendering) {
-        config["cal.skipGetSchedule"] = "true";
-      }
+      // When prerendering, we don't want to preload slots as they might be outdated anyway by the time they are used
+      // Also, when used with Headless Router attributes setup, we might endup fetching slots for a lot of people, which would be a waste and unnecessary load on Cal.com resources
+      config["cal.skipSlotsFetch"] = "true";
     }
 
     const configWithGuestKeyAndColorScheme = withColorScheme(
@@ -906,6 +927,7 @@ class CalApi {
     const newCalLinkUrlObject = new URL(newCalLink, calConfig.calOrigin as string);
 
     const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`);
+    const embedRenderStartTime = Date.now();
     const actionToTake = this.cal.determineActionToTake({
       calLink,
       modalBoxUid: uid,
@@ -913,13 +935,17 @@ class CalApi {
       embedConfig: configWithGuestKeyAndColorScheme,
       previousEmbedConfig: this.cal.embedConfig,
       isConnectionInitiated: !!isConnectionInitiated,
+      previousEmbedRenderStartTime: this.cal.embedRenderStartTime,
+      embedRenderStartTime,
     });
 
     this.cal.calLink = calLink;
     this.cal.embedConfig = configWithGuestKeyAndColorScheme;
+    this.cal.embedRenderStartTime = embedRenderStartTime;
 
     // isConnectionPossible
     if (!!existingModalEl && !!this.cal.iframe) {
+      log(`Trying to reuse modal ${uid}`);
       if (actionToTake === "fullReload" || actionToTake === "connect") {
         // Immediately take it to loading state - Either through connect or through loadInIframe, it would later be updated
         existingModalEl.setAttribute("state", "loading");
@@ -957,18 +983,19 @@ class CalApi {
 
         return;
       } else {
+        log(`Reopening modal without any other action needed ${uid}`);
         // Reopen the modal, nothing else to do
         existingModalEl.setAttribute("state", "reopened");
         return;
       }
     }
 
+    log(`Creating new modal ${uid}`);
+
     if (__prerender) {
       this.prerenderedModalUid = uid;
     } else {
-      // Intentionally not setting it to have the behaviour of reusing the same modal. Because it causes outdated content that might not be valid based on
-      // 1. The time difference b/w reopening(availability getting changed in b/w)
-      // 2. User using different query params but they not being used because of the same modal being reused. Happens in case of headless router being opened in embed
+      // Intentionally not setting it to avoid the behaviour of reusing the same modal. It was disabled earlier but now can be enabled but we will enable it later.
       // this.modalUid = uid;
     }
 
@@ -1063,7 +1090,6 @@ class CalApi {
     type,
     options = {},
     pageType,
-    __skipGetScheduleWhenPrerendering = false,
   }: {
     calLink: string;
     type?: "modal" | "floatingButton";
@@ -1071,7 +1097,6 @@ class CalApi {
       prerenderIframe?: boolean;
     };
     pageType?: EmbedPageType;
-    __skipGetScheduleWhenPrerendering?: boolean;
   }) {
     // eslint-disable-next-line prefer-rest-params
     validate(arguments[0], {
@@ -1119,7 +1144,6 @@ class CalApi {
           calOrigin: config.calOrigin,
           __prerender: true,
           ...(pageType ? { config: { "cal.embed.pageType": pageType } } : {}),
-          __skipGetScheduleWhenPrerendering,
         });
       } else {
         console.warn("Ignoring - full preload for inline embed and instead preloading assets only");
@@ -1134,18 +1158,15 @@ class CalApi {
     calLink,
     type,
     pageType,
-    toBeUsedByRouter = false,
   }: {
     calLink: string;
     type: "modal" | "floatingButton";
     pageType?: EmbedPageType;
-    toBeUsedByRouter?: boolean;
   }) {
     this.preload({
       calLink,
       type,
       pageType,
-      __skipGetScheduleWhenPrerendering: toBeUsedByRouter,
     });
   }
 

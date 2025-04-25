@@ -1,0 +1,2 @@
+// 2 minutes
+export const EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS = 2 * 60 * 1000;
