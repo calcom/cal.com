@@ -251,7 +251,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     return {
       subject: emailContent.emailSubject,
       html: emailContent.emailBody,
-      replyTo: evt.organizer.email,
+      ...(!evt.hideOrganizerEmail && { replyTo: evt?.eventType?.customReplyToEmail || evt.organizer.email }),
       attachments,
       sender,
     };

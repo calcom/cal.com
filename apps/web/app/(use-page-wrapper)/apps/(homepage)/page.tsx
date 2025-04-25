@@ -22,8 +22,8 @@ const getData = withAppDirSsr(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
   const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-
   const props = await getData(context);
+
   return <AppsPage {...props} />;
 };
 
