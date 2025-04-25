@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Fragment } from "react";
 
@@ -5,6 +7,8 @@ import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
   DropdownItem,
@@ -12,8 +16,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
