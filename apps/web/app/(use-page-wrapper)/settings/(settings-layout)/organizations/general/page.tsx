@@ -2,18 +2,14 @@ import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import LegacyPage from "@calcom/features/ee/organizations/pages/settings/general";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 import { viewerOrganizationsRouter } from "@calcom/trpc/server/routers/viewer/organizations/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
-import { SkeletonLoader } from "./skeleton";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -44,13 +40,7 @@ const Page = async () => {
   const isAdminOrOwner = checkAdminOrOwner(session.user.org?.role);
   const localeProp = user?.locale ?? "en";
 
-  return (
-    <SettingsHeader title={t("general")} description={t("general_description")} borderInShellHeader={true}>
-      <Suspense fallback={<SkeletonLoader />}>
-        <LegacyPage currentOrg={currentOrg} isAdminOrOwner={isAdminOrOwner} localeProp={localeProp} />
-      </Suspense>
-    </SettingsHeader>
-  );
+  return <LegacyPage currentOrg={currentOrg} isAdminOrOwner={isAdminOrOwner} localeProp={localeProp} />;
 };
 
 export default Page;
