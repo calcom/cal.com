@@ -40,7 +40,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
     createRouterCaller(eventTypesRouter),
   ]);
 
-  const [me, getUserEventGroupsData] = await Promise.all([
+  const [me, userEventGroupsData] = await Promise.all([
     meCaller.get(),
     eventTypesCaller.getUserEventGroups({ filters }),
   ]);
@@ -49,8 +49,8 @@ const Page = async ({ params, searchParams }: PageProps) => {
     <ShellMainAppDir
       heading={t("event_types_page_title")}
       subtitle={t("event_types_page_subtitle")}
-      CTA={<EventTypesCTA getUserEventGroupsData={getUserEventGroupsData} />}>
-      <EventTypes getUserEventGroupsData={getUserEventGroupsData} user={me} />
+      CTA={<EventTypesCTA userEventGroupsData={userEventGroupsData} />}>
+      <EventTypes userEventGroupsData={userEventGroupsData} user={me} />
     </ShellMainAppDir>
   );
 };

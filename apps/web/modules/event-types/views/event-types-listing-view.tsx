@@ -927,13 +927,13 @@ const InfiniteScrollMain = ({
 };
 
 type Props = {
-  getUserEventGroupsData: GetUserEventGroupsResponse;
+  userEventGroupsData: GetUserEventGroupsResponse;
   user: RouterOutputs["viewer"]["me"]["get"];
 };
 
-export const EventTypesCTA = ({ getUserEventGroupsData }: Omit<Props, "user">) => {
+export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
   const profileOptions =
-    getUserEventGroupsData?.profiles
+    userEventGroupsData?.profiles
       ?.filter((profile) => !profile.readOnly)
       ?.filter((profile) => !profile.eventTypesLockedByOrg)
       ?.map((profile) => {
@@ -949,7 +949,7 @@ export const EventTypesCTA = ({ getUserEventGroupsData }: Omit<Props, "user">) =
   return <CTA profileOptions={profileOptions} />;
 };
 
-const EventTypesPage = ({ getUserEventGroupsData, user }: Props) => {
+const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
   const [_showProfileBanner, setShowProfileBanner] = useState(false);
   const orgBranding = useOrgBranding();
   const router = useRouter();
@@ -973,8 +973,8 @@ const EventTypesPage = ({ getUserEventGroupsData, user }: Props) => {
 
   return (
     <InfiniteScrollMain
-      profiles={getUserEventGroupsData.profiles}
-      eventTypeGroups={getUserEventGroupsData.eventTypeGroups}
+      profiles={userEventGroupsData.profiles}
+      eventTypeGroups={userEventGroupsData.eventTypeGroups}
     />
   );
 };
