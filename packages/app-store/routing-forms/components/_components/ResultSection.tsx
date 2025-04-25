@@ -150,12 +150,6 @@ export const ResultsView = ({
     );
   }
 
-  console.log("chosenRoute", chosenRoute);
-
-  const showMatchingSection = supportsTeamMembersMatchingLogic && membersMatchResult;
-  console.log("showMatchingSection", showMatchingSection);
-  console.log("membersMatchResult", membersMatchResult);
-
   const notSupportingMembersMatching = ["customPageMessage", "externalRedirectUrl"];
 
   return (
