@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { chargeCredits } from "@calcom/features/ee/billing/lib/credits";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import { IS_SMS_CREDITS_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -17,8 +17,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const queryParams = new URLSearchParams(req.query as Record<string, string>).toString();
   const requestUrl = queryParams ? `${baseUrl}?${queryParams}` : baseUrl;
 
-  if (typeof twilioSignature === "string") {
-    const isSignatureValid = await twilio.validateRequest({ requestUrl, signature, url, params: req.body });
+  if (typeof signature === "string") {
+    const isSignatureValid = await twilio.validateWebhookRequest({
+      requestUrl,
+      signature,
+      params: req.body,
+    });
     if (isSignatureValid) {
       const messageStatus = req.body.MessageStatus;
       const { userId, teamId, bookingUid } = req.query;
@@ -40,6 +44,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           return res.status(401).send("Team or user id is required");
         }
 
+        const creditService = new CreditService();
+
         if (countryCode === "US" || countryCode === "CA") {
           // SMS to US and CA are free on a team plan
           let teamIdToCharge = parsedTeamId;
@@ -55,7 +61,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           }
 
           if (teamIdToCharge) {
-            await chargeCredits({
+            await creditService.chargeCredits({
               teamId: teamIdToCharge,
               bookingUid: parsedBookingUid,
               smsSid,
@@ -84,14 +90,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         }
 
         if (orgId) {
-          await chargeCredits({ teamId: orgId, bookingUid: parsedBookingUid, smsSid, credits: 0 });
+          await creditService.chargeCredits({
+            teamId: orgId,
+            bookingUid: parsedBookingUid,
+            smsSid,
+            credits: 0,
+          });
 
           return res.status(200).send(`SMS are free for organziations. Credits set to 0`);
         }
 
         const credits = await twilio.getCreditsForSMS(smsSid);
 
-        const chargedTeamId = await chargeCredits({
+        const chargedTeamId = await creditService.chargeCredits({
           credits,
           teamId: parsedTeamId,
           userId: parsedUserId,

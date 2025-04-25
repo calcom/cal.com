@@ -39,7 +39,7 @@ export type AttendeeInBookingInfo = {
 };
 
 export type BookingInfo = {
-  uid?: string | null;
+  uid: string;
   bookerUrl: string;
   attendees: AttendeeInBookingInfo[];
   organizer: {
@@ -234,7 +234,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
           phoneNumber: reminderPhone,
           body: smsMessage,
           sender: senderID,
-          bookingUid: "todo: bookingUid",
+          bookingUid: evt.uid,
           userId,
           teamId,
         });
@@ -257,7 +257,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
             body: smsMessage,
             scheduledDate: scheduledDate.toDate(),
             sender: senderID,
-            bookingUid: "todo: bookingUid",
+            bookingUid: evt.uid,
             userId,
             teamId,
           });

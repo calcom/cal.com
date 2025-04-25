@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import TwilioClient from "twilio";
 import { v4 as uuidv4 } from "uuid";
 
-import { hasAvailableCredits } from "@calcom/features/ee/billing/lib/credits";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -59,7 +59,9 @@ export const sendSMS = async ({
     return;
   }
 
-  const hasCredits = await hasAvailableCredits({ userId, teamId });
+  const creditService = new CreditService();
+
+  const hasCredits = await creditService.hasAvailableCredits({ userId, teamId });
 
   if (!hasCredits) {
     // todo: send email instead
@@ -125,13 +127,12 @@ export const scheduleSMS = async ({
 }) => {
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
 
-  const hasCredits = await hasAvailableCredits({ userId, teamId });
+  const creditService = new CreditService();
+
+  const hasCredits = await creditService.hasAvailableCredits({ userId, teamId });
 
   if (!hasCredits) {
-    /*
-     we schedule 2 hours in advance
-     so even when credits are bought now all SMS within the next two hours are sent as email
-    */
+    // we schedule 2 hours in advance so even when credits are bought all SMS for next two hours are sent as email
 
     // todo: schedule email instead
 
@@ -264,7 +265,7 @@ export async function getCreditsForSMS(smsSid: string) {
 
   const message = await twilio.messages(smsSid).fetch();
 
-  const twilioPrice = message.price ? Math.abs(parseFloat(message.price)) : 0; // todo: might not work because price is a string
+  const twilioPrice = message.price ? Math.abs(parseFloat(message.price)) : 0;
   const price = twilioPrice * 1.8;
   const credits = Math.ceil(price * 100);
 
@@ -284,7 +285,12 @@ export async function validateWebhookRequest({
     throw new Error("TWILIO_TOKEN is not set");
   }
 
-  const isSignatureValid = TwilioClient.validateWebhookRequest(signature, requestUrl, params);
+  const isSignatureValid = TwilioClient.validateRequest(
+    process.env.TWILIO_TOKEN,
+    signature,
+    requestUrl,
+    params
+  );
   return isSignatureValid;
 }
 

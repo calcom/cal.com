@@ -1,4 +1,4 @@
-import { getAllCreditsForTeam } from "@calcom/features/ee/billing/lib/credits";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TGetAllCreditsSchema } from "./getAllCredits.schema";
@@ -13,6 +13,8 @@ type GetAllCreditsOptions = {
 export const getAllCreditsHandler = async ({ ctx, input }: GetAllCreditsOptions) => {
   const { teamId } = input;
 
-  const teamCredits = await getAllCreditsForTeam(teamId);
+  const creditService = new CreditService();
+
+  const teamCredits = await creditService.getAllCreditsForTeam(teamId);
   return { teamCredits };
 };
