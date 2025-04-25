@@ -14,7 +14,7 @@ export const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     return (
       <div className="flex h-full min-h-screen items-center justify-center">
         <div className="max-w-lg">
-          <Alert severity="warning" title={t("platform_customer_cant_create_new_organization")} />
+          <Alert severity="warning" title={t("platform_customer_cant_create_organization")} />
         </div>
       </div>
     );
