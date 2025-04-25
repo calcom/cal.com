@@ -2,7 +2,6 @@ import type { NextRequest } from "next/server";
 import TwilioClient from "twilio";
 import { v4 as uuidv4 } from "uuid";
 
-import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -56,18 +55,6 @@ export const sendSMS = async ({
 
   if (isSMSSendingLocked) {
     log.debug(`${teamId ? `Team id ${teamId} ` : `User id ${userId} `} is locked for SMS sending `);
-    return;
-  }
-
-  const creditService = new CreditService();
-
-  const hasCredits = await creditService.hasAvailableCredits({ userId, teamId });
-
-  if (!hasCredits) {
-    // todo: send email instead
-    log.debug(
-      `SMS not sent because ${teamId ? `Team id ${teamId} ` : `User id ${userId} `} has no available credits`
-    );
     return;
   }
 
@@ -125,26 +112,7 @@ export const scheduleSMS = async ({
   teamId?: number | null;
   isWhatsapp?: boolean;
 }) => {
-  console.log("schedule sms here");
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
-
-  const creditService = new CreditService();
-
-  const hasCredits = await creditService.hasAvailableCredits({ userId, teamId });
-
-  if (!hasCredits) {
-    console.log("no credits");
-    // we schedule 2 hours in advance so even when credits are bought all SMS for next two hours are sent as email
-
-    // todo: schedule email instead
-
-    log.debug(
-      `SMS not scheduled because ${
-        teamId ? `Team id ${teamId} ` : `User id ${userId} `
-      } has no available credits`
-    );
-    return;
-  }
 
   if (isSMSSendingLocked) {
     log.debug(`${teamId ? `Team id ${teamId} ` : `User id ${userId} `} is locked for SMS sending `);
@@ -171,7 +139,6 @@ export const scheduleSMS = async ({
       rateLimitingType: "smsMonth",
     });
   }
-  console.log("schedule now");
   const response = await twilio.messages.create({
     body: body,
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
@@ -276,7 +243,6 @@ export async function getCreditsForSMS(smsSid: string) {
   const twilioPrice = message.price ? Math.abs(parseFloat(message.price)) : 0;
   const price = twilioPrice * 1.8;
   const credits = Math.ceil(price * 100);
-  console.log(`credits here ${credits}`);
   return credits || null;
 }
 

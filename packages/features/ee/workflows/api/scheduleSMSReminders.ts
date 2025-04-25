@@ -1,11 +1,14 @@
 /* Schedule any workflow reminder that falls within the next 2 hours for SMS */
+import { scheduleSmsOrFallbackEmail } from "ee/workflows/lib/reminders/messageDispatcher";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
 import { bulkShortenLinks } from "@calcom/ee/workflows/lib/reminders/utils";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { isAttendeeAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
@@ -14,7 +17,6 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getSenderId } from "../lib/alphanumericSenderIdSupport";
 import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
 import { select } from "../lib/getWorkflowReminders";
-import * as twilio from "../lib/reminders/providers/twilioProvider";
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
@@ -177,14 +179,25 @@ export async function handler(req: NextRequest) {
         if (process.env.TWILIO_OPT_OUT_ENABLED === "true") {
           message = await WorkflowOptOutService.addOptOutMessage(message, locale || "en");
         }
-        const scheduledSMS = await twilio.scheduleSMS({
-          phoneNumber: sendTo,
-          body: message,
-          scheduledDate: reminder.scheduledDate,
-          sender: senderID,
-          bookingUid: reminder.booking.uid,
-          userId,
-          teamId,
+
+        const scheduledSMS = await scheduleSmsOrFallbackEmail({
+          twilioData: {
+            phoneNumber: sendTo,
+            body: message,
+            scheduledDate: reminder.scheduledDate,
+            sender: senderID,
+            bookingUid: reminder.booking.uid,
+            userId,
+            teamId,
+          },
+          fallbackData:
+            reminder.workflowStep.action && isAttendeeAction(reminder.workflowStep.action)
+              ? {
+                  email: reminder.booking.attendees[0].email,
+                  t: await getTranslation(locale || "en", "common"),
+                  replyTo: reminder.booking?.user?.email ?? "",
+                }
+              : undefined,
         });
 
         if (scheduledSMS) {

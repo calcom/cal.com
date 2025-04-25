@@ -3,6 +3,7 @@ import { bulkShortenLinks } from "@calcom/ee/workflows/lib/reminders/utils";
 import { SENDER_ID, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
@@ -12,10 +13,12 @@ import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
+import { isAttendeeAction } from "../actionHelperFunctions";
 import { getSenderId } from "../alphanumericSenderIdSupport";
 import { WorkflowOptOutContactRepository } from "../repository/workflowOptOutContact";
 import { WorkflowOptOutService } from "../service/workflowOptOutService";
 import type { ScheduleReminderArgs } from "./emailReminderManager";
+import { scheduleSmsOrFallbackEmail, sendSmsOrFallbackEmail } from "./messageDispatcher";
 import * as twilio from "./providers/twilioProvider";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
@@ -230,13 +233,22 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
     ) {
       try {
-        await twilio.sendSMS({
-          phoneNumber: reminderPhone,
-          body: smsMessage,
-          sender: senderID,
-          bookingUid: evt.uid,
-          userId,
-          teamId,
+        await sendSmsOrFallbackEmail({
+          twilioData: {
+            phoneNumber: reminderPhone,
+            body: smsMessage,
+            sender: senderID,
+            bookingUid: evt.uid,
+            userId,
+            teamId,
+          },
+          fallbackData: isAttendeeAction(action)
+            ? {
+                email: evt.attendees[0].email,
+                t: await getTranslation(evt.attendees[0].language.locale, "common"),
+                replyTo: evt.organizer.email,
+              }
+            : undefined,
         });
       } catch (error) {
         log.error(`Error sending SMS with error ${error}`);
@@ -252,14 +264,23 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
         !scheduledDate.isAfter(currentDate.add(2, "hour"))
       ) {
         try {
-          const scheduledSMS = await twilio.scheduleSMS({
-            phoneNumber: reminderPhone,
-            body: smsMessage,
-            scheduledDate: scheduledDate.toDate(),
-            sender: senderID,
-            bookingUid: evt.uid,
-            userId,
-            teamId,
+          const scheduledSMS = await scheduleSmsOrFallbackEmail({
+            twilioData: {
+              phoneNumber: reminderPhone,
+              body: smsMessage,
+              scheduledDate: scheduledDate.toDate(),
+              sender: senderID,
+              bookingUid: evt.uid,
+              userId,
+              teamId,
+            },
+            fallbackData: isAttendeeAction(action)
+              ? {
+                  email: evt.attendees[0].email,
+                  t: await getTranslation(evt.attendees[0].language.locale, "common"),
+                  replyTo: evt.organizer.email,
+                }
+              : undefined,
           });
 
           if (scheduledSMS) {

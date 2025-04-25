@@ -3,14 +3,15 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 
-import { getWhatsappTemplateFunction } from "../lib/actionHelperFunctions";
+import { getWhatsappTemplateFunction, isAttendeeAction } from "../lib/actionHelperFunctions";
 import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
 import { select } from "../lib/getWorkflowReminders";
-import * as twilio from "../lib/reminders/providers/twilioProvider";
+import { scheduleSmsOrFallbackEmail } from "../lib/reminders/messageDispatcher";
 
 export async function handler(req: NextRequest) {
   const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
@@ -87,15 +88,25 @@ export async function handler(req: NextRequest) {
       );
 
       if (message?.length && message?.length > 0 && sendTo) {
-        const scheduledSMS = await twilio.scheduleSMS({
-          phoneNumber: sendTo,
-          body: message,
-          scheduledDate: reminder.scheduledDate,
-          sender: "",
-          bookingUid: reminder.booking.uid,
-          userId,
-          teamId,
-          isWhatsapp: true,
+        const scheduledSMS = await scheduleSmsOrFallbackEmail({
+          twilioData: {
+            phoneNumber: sendTo,
+            body: message,
+            scheduledDate: reminder.scheduledDate,
+            sender: "",
+            bookingUid: reminder.booking.uid,
+            userId,
+            teamId,
+            isWhatsapp: true,
+          },
+          fallbackData:
+            reminder.workflowStep.action && isAttendeeAction(reminder.workflowStep.action)
+              ? {
+                  email: reminder.booking.attendees[0].email,
+                  t: await getTranslation(reminder.booking.attendees[0].locale || "en", "common"),
+                  replyTo: reminder.booking?.user?.email ?? "",
+                }
+              : undefined,
         });
 
         if (scheduledSMS) {

@@ -1,5 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
+import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import {
   WorkflowTriggerEvents,
@@ -8,7 +9,8 @@ import {
   WorkflowMethods,
 } from "@calcom/prisma/enums";
 
-import * as twilio from "./providers/twilioProvider";
+import { isAttendeeAction } from "../actionHelperFunctions";
+import { scheduleSmsOrFallbackEmail, sendSmsOrFallbackEmail } from "./messageDispatcher";
 import type { ScheduleTextReminderArgs, timeUnitLowerCase } from "./smsReminderManager";
 import { deleteScheduledSMSReminder } from "./smsReminderManager";
 import {
@@ -159,14 +161,23 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
     ) {
       try {
-        await twilio.sendSMS({
-          phoneNumber: reminderPhone,
-          body: textMessage,
-          sender: "",
-          bookingUid: "todo: bookingUid",
-          userId,
-          teamId,
-          isWhatsapp: true,
+        await sendSmsOrFallbackEmail({
+          twilioData: {
+            phoneNumber: reminderPhone,
+            body: textMessage,
+            sender: "",
+            bookingUid: evt.uid,
+            userId,
+            teamId,
+            isWhatsapp: true,
+          },
+          fallbackData: isAttendeeAction(action)
+            ? {
+                email: evt.attendees[0].email,
+                t: await getTranslation(evt.attendees[0].language.locale ?? "en", "common"),
+                replyTo: evt.organizer.email,
+              }
+            : undefined,
         });
       } catch (error) {
         console.log(`Error sending WHATSAPP with error ${error}`);
@@ -182,15 +193,24 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
         !scheduledDate.isAfter(currentDate.add(2, "hour"))
       ) {
         try {
-          const scheduledWHATSAPP = await twilio.scheduleSMS({
-            phoneNumber: reminderPhone,
-            body: textMessage,
-            scheduledDate: scheduledDate.toDate(),
-            sender: "",
-            bookingUid: evt.uid ?? "", // is uid given here?
-            userId,
-            teamId,
-            isWhatsapp: true,
+          const scheduledWHATSAPP = await scheduleSmsOrFallbackEmail({
+            twilioData: {
+              phoneNumber: reminderPhone,
+              body: textMessage,
+              scheduledDate: scheduledDate.toDate(),
+              sender: "",
+              bookingUid: evt.uid ?? "",
+              userId,
+              teamId,
+              isWhatsapp: true,
+            },
+            fallbackData: isAttendeeAction(action)
+              ? {
+                  email: evt.attendees[0].email,
+                  t: await getTranslation(evt.attendees[0].language.locale, "common"),
+                  replyTo: evt.organizer.email,
+                }
+              : undefined,
           });
 
           if (scheduledWHATSAPP) {

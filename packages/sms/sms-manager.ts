@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { getSenderId } from "@calcom/features/ee/workflows/lib/alphanumericSenderIdSupport";
-import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
+import { sendSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_ID } from "@calcom/lib/constants";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
@@ -37,17 +37,18 @@ const handleSendingSMS = ({
       if (!team?.parent?.isOrganization) return;
 
       await checkSMSRateLimit({ identifier: `handleSendingSMS:team:${teamId}`, rateLimitingType: "sms" });
-      const sms = await twilio.sendSMS({
-        phoneNumber: reminderPhone,
-        body: smsMessage,
-        sender: senderID,
-        bookingUid: "todo: bookingUid",
-        teamId,
-      });
 
-      resolve(sms);
+      await sendSmsOrFallbackEmail({
+        twilioData: {
+          phoneNumber: reminderPhone,
+          body: smsMessage,
+          sender: senderID,
+          teamId,
+          bookingUid: "todo: add booking UID, to save to expense log",
+        },
+      });
     } catch (e) {
-      reject(console.error(`twilio.sendSMS failed`, e));
+      reject(console.error(`sendSmsOrFallbackEmail failed`, e));
     }
   });
 };
