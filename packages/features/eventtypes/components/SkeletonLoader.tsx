@@ -34,7 +34,7 @@ export function InfiniteSkeletonLoader() {
   );
 }
 
-export function TabsSkeletonLoader() {
+function TabsSkeletonLoader() {
   return (
     <div className="mb-2.5 max-w-full">
       <nav className="no-scrollbar flex space-x-0.5 overflow-x-scroll rounded-md">
