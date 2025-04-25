@@ -313,7 +313,7 @@ test.describe("Routing Forms", () => {
 
       await addShortTextFieldAndSaveForm({ page, formId });
 
-      await page.click('[href*="/route-builder/"]');
+      await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
       await addNewRoute(page);
       await selectFirstEventRedirectOption(page);
 
@@ -721,7 +721,7 @@ test.describe("Routing Forms", () => {
         page,
         formId,
       });
-      await page.click('[href*="/route-builder/"]');
+      await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
       await addNewRoute(page);
       await selectOption({
         selector: {
