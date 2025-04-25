@@ -163,6 +163,21 @@ export const ResultsView = ({
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.2 }}
       className="space-y-4">
+      {chosenRoute.action.type === "externalRedirectUrl" && (
+        <ResultsSection title={chosenRoute.name ?? "Fallback"} icon="zap" data-testid="chosen-route-title">
+          <div className="flex items-center gap-2">
+            <div className="border-subtle rounded-lg border p-1">
+              <Icon name="external-link" className="h-4 w-4" />
+            </div>
+            <span
+              data-testid="test-routing-result"
+              className="text-emphasis text-sm font-medium leading-none">
+              {chosenRoute.action.value}
+            </span>
+          </div>
+        </ResultsSection>
+      )}
+
       {chosenRoute.action.type === "eventTypeRedirectUrl" && (
         <ResultsSection title={chosenRoute.name ?? "Fallback"} icon="zap" data-testid="chosen-route-title">
           <div className="flex items-center gap-2">
