@@ -60,3 +60,4 @@ const ServerPage = async () => {
 };
 
 export default ServerPage;
+export const revalidate = 3600; // 1 hour
