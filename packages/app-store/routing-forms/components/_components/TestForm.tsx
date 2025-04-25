@@ -329,7 +329,12 @@ export const TestFormRenderer = ({
           supportsTeamMembersMatchingLogic={isSubTeamForm}
           renderFooter={(onClose, onSubmit, isValid) => (
             <DialogFooter>
-              <Button onClick={onClose} color="secondary">
+              <Button
+                onClick={() => {
+                  onClose();
+                  setIsTestPreviewOpen(false);
+                }}
+                color="secondary">
                 {t("close")}
               </Button>
               <Button onClick={onSubmit} disabled={!isValid}>
