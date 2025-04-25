@@ -1,4 +1,4 @@
-import { SkeletonLoader } from "./(main-page)/skeleton";
+import { SkeletonLoader } from "./skeleton";
 
 export default function Loading() {
   return <SkeletonLoader />;
