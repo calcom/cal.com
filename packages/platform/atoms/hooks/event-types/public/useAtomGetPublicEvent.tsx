@@ -3,7 +3,7 @@ import { useMemo } from "react";
 
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { SUCCESS_STATUS, V2_ENDPOINTS } from "@calcom/platform-constants";
-import type { PublicEventType } from "@calcom/platform-libraries/event-types";
+import type { PublicEventType } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import type { ApiResponse } from "@calcom/platform-types";
 
 import http from "../../../lib/http";

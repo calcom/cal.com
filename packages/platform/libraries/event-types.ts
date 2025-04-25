@@ -1,4 +1,4 @@
-import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
+export { getPublicEvent, type PublicEventType } from "@calcom/features/eventtypes/lib/getPublicEvent";
 
 export { getBulkUserEventTypes, getBulkTeamEventTypes } from "@calcom/lib/event-types/getBulkEventTypes";
 
@@ -70,7 +70,5 @@ export type { EventTypesByViewer } from "@calcom/lib/event-types/getEventTypesBy
 export type { UpdateEventTypeReturn } from "@calcom/trpc/server/routers/viewer/eventTypes/update.handler";
 export { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 
-export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
 export { bulkUpdateEventsToDefaultLocation } from "@calcom/lib/bulkUpdateEventsToDefaultLocation";
 export { bulkUpdateTeamEventsToDefaultLocation } from "@calcom/lib/bulkUpdateTeamEventsToDefaultLocation";
-export { getPublicEvent };
