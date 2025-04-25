@@ -4,6 +4,7 @@ import { localStorage } from "@calcom/lib/webstorage";
 const responsesToStore = ["email", "name"];
 
 export const setLastBookingResponse = (responses: Record<string, unknown> | null) => {
+  return;
   if (!responses) return;
   const prevResponse = Object.fromEntries(
     Object.entries(responses).filter(([key]) => responsesToStore.includes(key))
