@@ -141,8 +141,10 @@ test.describe("Routing Forms", () => {
         label,
       });
 
+      await page.click('[data-testid="settings-button"]');
       await expect(page.locator('[data-testid="description"]')).toHaveValue(description);
       await expect(page.locator('[data-testid="field"]')).toHaveCount(types.length);
+      await page.click('[data-testid="settings-slider-over-cancel"]');
 
       fields.forEach((item, index) => {
         createdFields[index] = { label: item.label, typeIndex: index };
@@ -150,10 +152,10 @@ test.describe("Routing Forms", () => {
 
       await expectCurrentFormToHaveFields(page, createdFields, types);
 
-      await page.click('[href*="/route-builder/"]');
+      await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
       await addNewRoute(page);
 
-      await page.click('[data-testid="add-rule"]');
+      await page.click('[data-testid="add-route-button"]');
 
       const options = Object.values(createdFields).map((item) => item.label);
       await verifyFieldOptionsInRule(options, page);

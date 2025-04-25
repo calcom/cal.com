@@ -78,6 +78,7 @@ export const FormSettingsSlideover = ({
             containerClassName="mb-6"
             placeholder={t("title")}
             {...hookForm.register("name")}
+            data-testid="name"
           />
           <TextAreaField
             rows={3}
@@ -192,7 +193,7 @@ export const FormSettingsSlideover = ({
           </div>
         </div>
         <SheetFooter className="flex-shrink-0 ">
-          <Button color="minimal" onClick={handleCancel}>
+          <Button color="minimal" onClick={handleCancel} data-testid="settings-slider-over-cancel">
             {t("cancel")}
           </Button>
           <Button onClick={() => onOpenChange(false)} data-testid="settings-slider-over-done">
