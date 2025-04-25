@@ -53,9 +53,14 @@ const FormView = ({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
       transition={{ duration: 0.2 }}>
-      <div className="px-1">
+      <form
+        className="px-1"
+        noValidate
+        onSubmit={(e) => {
+          e.preventDefault();
+        }}>
         {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
-      </div>
+      </form>
       {!renderFooter ? (
         <div className="mt-4">
           <Button onClick={onSubmit} disabled={!areRequiredFieldsFilled}>
