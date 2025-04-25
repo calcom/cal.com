@@ -156,6 +156,8 @@ export const ResultsView = ({
   console.log("showMatchingSection", showMatchingSection);
   console.log("membersMatchResult", membersMatchResult);
 
+  const notSupportingMembersMatching = ["customPageMessage", "externalRedirectUrl"];
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -211,105 +213,107 @@ export const ResultsView = ({
         </ResultsSection>
       )}
 
-      {supportsTeamMembersMatchingLogic && membersMatchResult && (
-        <>
-          <ResultsSection title="Matching" icon="atom">
-            <div className="relative flex flex-col gap-3">
-              {/* Seperator */}
-              <div className="absolute bottom-3 left-[0.75rem] top-3 w-[1px] bg-gray-200" />
+      {supportsTeamMembersMatchingLogic &&
+        membersMatchResult &&
+        !notSupportingMembersMatching.includes(chosenRoute.action.type) && (
+          <>
+            <ResultsSection title="Matching" icon="atom">
+              <div className="relative flex flex-col gap-3">
+                {/* Seperator */}
+                <div className="absolute bottom-3 left-[0.75rem] top-3 w-[1px] bg-gray-200" />
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1">
-                  <div className="border-subtle bg-default z-10 rounded-lg border p-1 ">
-                    <Icon name="activity" className="h-4 w-4" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    <div className="border-subtle bg-default z-10 rounded-lg border p-1 ">
+                      <Icon name="activity" className="h-4 w-4" />
+                    </div>
+                    <span className="text-emphasis text-sm font-medium leading-none">
+                      Attribute logic matched
+                    </span>
                   </div>
-                  <span className="text-emphasis text-sm font-medium leading-none">
-                    Attribute logic matched
-                  </span>
+                  <Badge
+                    data-testid="attribute-logic-matched"
+                    variant={membersMatchResult.checkedFallback ? "error" : "success"}>
+                    {membersMatchResult.checkedFallback ? "No" : "Yes"}
+                  </Badge>
                 </div>
-                <Badge
-                  data-testid="attribute-logic-matched"
-                  variant={membersMatchResult.checkedFallback ? "error" : "success"}>
-                  {membersMatchResult.checkedFallback ? "No" : "Yes"}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1">
-                  <div className="border-subtle bg-default z-10 rotate-180 rounded-lg border p-1">
-                    <Icon name="split" className="h-4 w-4" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    <div className="border-subtle bg-default z-10 rotate-180 rounded-lg border p-1">
+                      <Icon name="split" className="h-4 w-4" />
+                    </div>
+                    <span className="text-emphasis text-sm font-medium leading-none">Attribute fallback</span>
                   </div>
-                  <span className="text-emphasis text-sm font-medium leading-none">Attribute fallback</span>
+                  <Badge
+                    data-testid="attribute-logic-fallback-matched"
+                    variant={membersMatchResult.checkedFallback ? "success" : "gray"}>
+                    {membersMatchResult.checkedFallback ? "Yes" : "Not needed"}
+                  </Badge>
                 </div>
-                <Badge
-                  data-testid="attribute-logic-fallback-matched"
-                  variant={membersMatchResult.checkedFallback ? "success" : "gray"}>
-                  {membersMatchResult.checkedFallback ? "Yes" : "Not needed"}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1">
-                  <div className="border-subtle bg-default z-10 rounded-lg border p-1">
-                    <Icon name="user" className="h-4 w-4" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    <div className="border-subtle bg-default z-10 rounded-lg border p-1">
+                      <Icon name="user" className="h-4 w-4" />
+                    </div>
+                    <span className="text-emphasis text-sm font-medium leading-none">Contact owner</span>
                   </div>
-                  <span className="text-emphasis text-sm font-medium leading-none">Contact owner</span>
+                  <Badge variant={membersMatchResult.contactOwnerEmail ? "success" : "gray"}>
+                    {membersMatchResult.contactOwnerEmail || "Not found"}
+                  </Badge>
                 </div>
-                <Badge variant={membersMatchResult.contactOwnerEmail ? "success" : "gray"}>
-                  {membersMatchResult.contactOwnerEmail || "Not found"}
-                </Badge>
-              </div>
-            </div>
-          </ResultsSection>
-
-          {membersMatchResult.teamMembersMatchingAttributeLogic && (
-            <ResultsSection
-              title={`${membersMatchResult.teamMembersMatchingAttributeLogic.length} next in queue`}
-              icon="user-check"
-              hint={
-                <div className="flex items-center gap-2 px-2 py-1">
-                  <Icon name="info" className="h-3 w-3" />
-                  <span data-testid="matching-members" className="text-subtle text-sm">
-                    {t("routing_preview_more_info_found_insights")}
-                  </span>
-                </div>
-              }>
-              <div className="divide-subtle divide-y">
-                {membersMatchResult.teamMembersMatchingAttributeLogic.map((member, index) => (
-                  <TeamMember
-                    key={member.id}
-                    email={member.email}
-                    name={member.name}
-                    score={membersMatchResult.perUserData?.weights?.[member.id] || 0}
-                  />
-                ))}
               </div>
             </ResultsSection>
-          )}
 
-          {membersMatchResult.mainWarnings && membersMatchResult.mainWarnings.length > 0 && (
-            <ResultsSection title="Warnings" icon="triangle-alert">
-              <div className="space-y-2">
-                {membersMatchResult.mainWarnings.map((warning, index) => (
-                  <div data-testid="alert" key={index} className="text-warning">
-                    {warning}
+            {membersMatchResult.teamMembersMatchingAttributeLogic && (
+              <ResultsSection
+                title={`${membersMatchResult.teamMembersMatchingAttributeLogic.length} next in queue`}
+                icon="user-check"
+                hint={
+                  <div className="flex items-center gap-2 px-2 py-1">
+                    <Icon name="info" className="h-3 w-3" />
+                    <span data-testid="matching-members" className="text-subtle text-sm">
+                      {t("routing_preview_more_info_found_insights")}
+                    </span>
                   </div>
-                ))}
-              </div>
-            </ResultsSection>
-          )}
+                }>
+                <div className="divide-subtle divide-y">
+                  {membersMatchResult.teamMembersMatchingAttributeLogic.map((member, index) => (
+                    <TeamMember
+                      key={member.id}
+                      email={member.email}
+                      name={member.name}
+                      score={membersMatchResult.perUserData?.weights?.[member.id] || 0}
+                    />
+                  ))}
+                </div>
+              </ResultsSection>
+            )}
 
-          {membersMatchResult.fallbackWarnings && membersMatchResult.fallbackWarnings.length > 0 && (
-            <ResultsSection title="Fallback Warnings" icon="triangle-alert">
-              <div className="space-y-2">
-                {membersMatchResult.fallbackWarnings.map((warning, index) => (
-                  <div data-testid="alert" key={index} className="text-warning">
-                    {warning}
-                  </div>
-                ))}
-              </div>
-            </ResultsSection>
-          )}
-        </>
-      )}
+            {membersMatchResult.mainWarnings && membersMatchResult.mainWarnings.length > 0 && (
+              <ResultsSection title="Warnings" icon="triangle-alert">
+                <div className="space-y-2">
+                  {membersMatchResult.mainWarnings.map((warning, index) => (
+                    <div data-testid="alert" key={index} className="text-warning">
+                      {warning}
+                    </div>
+                  ))}
+                </div>
+              </ResultsSection>
+            )}
+
+            {membersMatchResult.fallbackWarnings && membersMatchResult.fallbackWarnings.length > 0 && (
+              <ResultsSection title="Fallback Warnings" icon="triangle-alert">
+                <div className="space-y-2">
+                  {membersMatchResult.fallbackWarnings.map((warning, index) => (
+                    <div data-testid="alert" key={index} className="text-warning">
+                      {warning}
+                    </div>
+                  ))}
+                </div>
+              </ResultsSection>
+            )}
+          </>
+        )}
     </motion.div>
   );
 };
