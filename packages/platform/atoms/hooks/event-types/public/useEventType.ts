@@ -29,7 +29,7 @@ export const useEventType = (username: string, eventSlug: string, isTeamEvent: b
       }
 
       if (isDynamic) {
-          return http
+        return http
           .get<ApiResponse<EventTypeOutput_2024_06_14[]>>(
             `/${V2_ENDPOINTS.eventTypes}?usernames=${encodeURIComponent(getUsernameList(username).join(","))}`
           )

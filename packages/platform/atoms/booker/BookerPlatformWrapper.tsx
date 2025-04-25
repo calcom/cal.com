@@ -137,7 +137,6 @@ export const BookerPlatformWrapper = (
   useEffect(() => {
     setOrg(props.entity?.orgSlug ?? null);
   }, [props.entity?.orgSlug]);
-  console.log("props.entity?.orgSlug: ", props.entity?.orgSlug);
 
   const isDynamic = useMemo(() => {
     return getUsernameList(username ?? "").length > 1;
@@ -151,8 +150,6 @@ export const BookerPlatformWrapper = (
     // orgSlug: props.entity?.orgSlug ?? null,
     selectedDuration,
   });
-
-  console.log("publicEventttttttttt: ", event);
 
   const bookerLayout = useBookerLayout(event?.data);
   useInitializeBookerStore({
