@@ -1,10 +1,7 @@
 import { ConnectedCalendarsData } from "@/ee/calendars/outputs/connected-calendars.output";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
-import { Injectable, BadRequestException } from "@nestjs/common";
-
+import { InputEventTransformed_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/transformed";
 import {
   transformBookingFieldsApiToInternal,
   transformLocationsApiToInternal,
@@ -18,21 +15,23 @@ import {
   systemAfterFieldNotes,
   systemAfterFieldGuests,
   systemAfterFieldRescheduleReason,
-  EventTypeMetaDataSchema,
   transformBookerLayoutsApiToInternal,
   transformConfirmationPolicyApiToInternal,
   transformEventColorsApiToInternal,
-  validateCustomEventName,
   transformSeatsApiToInternal,
   SystemField,
   CustomField,
   InternalLocation,
   InternalLocationSchema,
-} from "@calcom/platform-libraries/event-types";
+} from "@/ee/event-types/event-types_2024_06_14/transformers";
+import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
+import { UserWithProfile } from "@/modules/users/users.repository";
+import { Injectable, BadRequestException } from "@nestjs/common";
+
+import { validateCustomEventName, EventTypeMetaDataSchema } from "@calcom/platform-libraries/event-types";
 import {
   CreateEventTypeInput_2024_06_14,
   DestinationCalendar_2024_06_14,
-  InputEventTransformed_2024_06_14,
   OutputUnknownLocation_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";

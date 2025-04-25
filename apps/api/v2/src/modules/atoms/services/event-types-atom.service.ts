@@ -1,4 +1,5 @@
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
+import { systemBeforeFieldEmail } from "@/ee/event-types/event-types_2024_06_14/transformers";
 import { AtomsRepository } from "@/modules/atoms/atoms.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
@@ -32,7 +33,6 @@ import {
 import {
   updateEventType,
   TUpdateEventTypeInputSchema,
-  systemBeforeFieldEmail,
   EventTypeMetaDataSchema,
 } from "@calcom/platform-libraries/event-types";
 import { PrismaClient } from "@calcom/prisma";

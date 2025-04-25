@@ -5,7 +5,7 @@ import {
   BookerLayoutsOutputEnum_2024_06_14,
   ConfirmationPolicyEnum,
   NoticeThresholdUnitEnum,
-} from "@calcom/platform-enums/monorepo";
+} from "@calcom/platform-enums";
 import type {
   TransformBookingLimitsSchema_2024_06_14,
   TransformFutureBookingsLimitSchema_2024_06_14,

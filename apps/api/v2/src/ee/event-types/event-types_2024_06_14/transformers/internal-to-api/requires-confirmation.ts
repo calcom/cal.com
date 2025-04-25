@@ -1,4 +1,4 @@
-import { ConfirmationPolicyEnum } from "@calcom/platform-enums/monorepo";
+import { ConfirmationPolicyEnum } from "@calcom/platform-enums";
 import type { NoticeThresholdTransformedSchema, ConfirmationPolicy_2024_06_14 } from "@calcom/platform-types";
 
 export function transformRequiresConfirmationInternalToApi(

@@ -1,7 +1,7 @@
 import {
   BookingWindowPeriodInputTypeEnum_2024_06_14,
   BookingWindowPeriodOutputTypeEnum_2024_06_14,
-} from "@calcom/platform-enums/monorepo";
+} from "@calcom/platform-enums";
 import type {
   TransformFutureBookingsLimitSchema_2024_06_14,
   BookingWindow_2024_06_14,

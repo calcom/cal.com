@@ -6,7 +6,7 @@ import {
   ConfirmationPolicyEnum,
   NoticeThresholdUnitEnum,
   FrequencyInput,
-} from "@calcom/platform-enums/monorepo";
+} from "@calcom/platform-enums";
 import type {
   InputBookingField_2024_06_14,
   InputLocation_2024_06_14,
