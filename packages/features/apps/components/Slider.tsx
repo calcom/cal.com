@@ -5,7 +5,7 @@ import Glide from "@glidejs/glide";
 import "@glidejs/glide/dist/css/glide.core.min.css";
 import "@glidejs/glide/dist/css/glide.theme.min.css";
 import type { ComponentProps, FC } from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/components/icon";
@@ -38,7 +38,11 @@ export const Slider = <T extends string | unknown>({
   const glide = useRef(null);
   const slider = useRef<Glide.Properties | null>(null);
   const { isLocaleReady } = useLocale();
+  const [isClient, setIsClient] = useState(false);
+
   useEffect(() => {
+    setIsClient(true);
+
     if (glide.current) {
       slider.current = new Glide(glide.current, {
         type: "carousel",
@@ -48,6 +52,46 @@ export const Slider = <T extends string | unknown>({
 
     return () => slider.current?.destroy();
   }, [options]);
+
+  if (!isClient) {
+    return (
+      <div className={`mb-2 ${className}`}>
+        <div>
+          <div className="flex cursor-default items-center pb-3">
+            {isLocaleReady ? (
+              title && (
+                <div>
+                  <h2 className="text-emphasis mt-0 text-base font-semibold leading-none">{title}</h2>
+                </div>
+              )
+            ) : (
+              <SkeletonText className="h-4 w-24" />
+            )}
+            <div className="ml-auto flex items-center gap-x-1">
+              <SliderButton>
+                <Icon name="arrow-left" className="h-5 w-5" />
+              </SliderButton>
+              <SliderButton>
+                <Icon name="arrow-right" className="h-5 w-5" />
+              </SliderButton>
+            </div>
+          </div>
+          <div>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {items.slice(0, 3).map((item) => {
+                if (typeof renderItem !== "function") return null;
+                return (
+                  <div key={itemKey(item)} className="h-auto">
+                    {renderItem(item)}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`mb-2 ${className}`}>
