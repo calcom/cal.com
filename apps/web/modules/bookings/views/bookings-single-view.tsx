@@ -43,7 +43,7 @@ import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
-import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType, AssignmentReasonEnum } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
@@ -540,6 +540,33 @@ export default function Success(props: PageProps) {
                         )}
 
                       <div className="border-subtle text-default mt-8 grid grid-cols-3 border-t pt-8 text-left rtl:text-right">
+                        {props.isLoggedInUserHost &&
+                          bookingInfo.metadata &&
+                          typeof bookingInfo.metadata === "object" &&
+                          "assignmentReason" in bookingInfo.metadata && (
+                            <>
+                              <div className="font-medium">{t("routing_reason")}</div>
+                              <div className="col-span-2 mb-6 last:mb-0">
+                                <Alert
+                                  severity="info"
+                                  message={
+                                    (bookingInfo.metadata.assignmentReason as any)?.reasonEnum ===
+                                    AssignmentReasonEnum.SALESFORCE_ASSIGNMENT
+                                      ? t("routed_by_salesforce_ownership", {
+                                          reason:
+                                            (bookingInfo.metadata.assignmentReason as any)?.reasonString ||
+                                            "",
+                                        })
+                                      : t("routed_by_attributes", {
+                                          reason:
+                                            (bookingInfo.metadata.assignmentReason as any)?.reasonString ||
+                                            "",
+                                        })
+                                  }
+                                />
+                              </div>
+                            </>
+                          )}
                         {(isCancelled || reschedule) && cancellationReason && (
                           <>
                             <div className="font-medium">
