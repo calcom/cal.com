@@ -39,11 +39,6 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
 
   const appInstalled = enabledOnTeams && userAdminTeams ? userAdminTeams.length < appAdded : appAdded > 0;
 
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
       if (data?.setupPending) return;
@@ -85,23 +80,6 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
       router.push(getAppOnboardingUrl({ slug: app.slug, step: AppOnboardingSteps.ACCOUNTS_STEP }));
     }
   };
-
-  if (!isClient) {
-    return (
-      <div className="border-subtle relative flex h-64 flex-col rounded-md border p-5">
-        <div className="flex">
-          <div className="bg-subtle mb-4 h-12 w-12 rounded-sm" />
-        </div>
-        <div className="flex items-center">
-          <h3 className="text-emphasis font-medium">{app.name}</h3>
-        </div>
-        <p className="text-default mt-2 flex-grow text-sm">{app.description}</p>
-        <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
-          <div className="bg-subtle flex w-32 flex-grow justify-center rounded-md py-2">{t("details")}</div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="border-subtle relative flex h-64 flex-col rounded-md border p-5">
