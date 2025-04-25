@@ -286,7 +286,7 @@ export const TestForm = ({
             {isDialog && (
               <DialogFooter>
                 <Button onClick={onClose} color="secondary">
-                  {t("close")}
+                  {t("back")}
                 </Button>
               </DialogFooter>
             )}
