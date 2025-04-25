@@ -97,8 +97,8 @@ export const sendSMS = async ({
     body: body,
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
     to: getSMSNumber(phoneNumber, isWhatsapp),
-    from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender ? sender : getDefaultSender(),
-    statusCallback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/webhook?userId=${userId}${
+    from: "+19039127469",
+    statusCallback: `https://6008-93-83-143-142.ngrok-free.app/api/twilio/webhook?userId=${userId}${
       teamId ? `&teamId=${teamId}` : ""
     }&bookingUid=${bookingUid}`,
   });
@@ -125,6 +125,7 @@ export const scheduleSMS = async ({
   teamId?: number | null;
   isWhatsapp?: boolean;
 }) => {
+  console.log("schedule sms here");
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
 
   const creditService = new CreditService();
@@ -132,6 +133,7 @@ export const scheduleSMS = async ({
   const hasCredits = await creditService.hasAvailableCredits({ userId, teamId });
 
   if (!hasCredits) {
+    console.log("no credits");
     // we schedule 2 hours in advance so even when credits are bought all SMS for next two hours are sent as email
 
     // todo: schedule email instead
@@ -169,16 +171,16 @@ export const scheduleSMS = async ({
       rateLimitingType: "smsMonth",
     });
   }
-
+  console.log("schedule now");
   const response = await twilio.messages.create({
     body: body,
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
     to: getSMSNumber(phoneNumber, isWhatsapp),
     scheduleType: "fixed",
     sendAt: scheduledDate,
-    from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender ? sender : getDefaultSender(),
-    statusCallback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/webhook?userId=${userId}${
-      teamId ? "&teamId=${teamId}" : ""
+    from: "+19039127469",
+    statusCallback: `https://6008-93-83-143-142.ngrok-free.app/api/twilio/webhook?userId=${userId}${
+      teamId ? `&teamId=${teamId}` : ""
     }&bookingUid=${bookingUid}`,
   });
 
@@ -211,6 +213,12 @@ export const verifyNumber = async (phoneNumber: string, code: string) => {
       return "failed";
     }
   }
+};
+
+export const getMessageBody = async (referenceId: string) => {
+  const twilio = createTwilioClient();
+  const message = await twilio.messages(referenceId).fetch();
+  return message.body;
 };
 
 async function isLockedForSMSSending(userId?: number | null, teamId?: number | null) {
@@ -268,7 +276,7 @@ export async function getCreditsForSMS(smsSid: string) {
   const twilioPrice = message.price ? Math.abs(parseFloat(message.price)) : 0;
   const price = twilioPrice * 1.8;
   const credits = Math.ceil(price * 100);
-
+  console.log(`credits here ${credits}`);
   return credits || null;
 }
 

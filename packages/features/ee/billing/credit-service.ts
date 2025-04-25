@@ -5,6 +5,7 @@ import {
 } from "@calcom/emails/email-manager";
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
+import { cancelScheduledMessagesAndScheduleEmails } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
@@ -282,8 +283,7 @@ export class CreditService {
             warningSentAt: null,
           },
         });
-        //todo
-        //cancelScheduledSmsAndScheduleEmails({ teamId }); --> team workflows, and also user workflows if the user has no credits or other team with credits
+        cancelScheduledMessagesAndScheduleEmails(teamId);
         return;
       }
 
@@ -387,7 +387,7 @@ export class CreditService {
       },
     });
 
-    const totalMonthlyCredits = await getMonthlyCredits(teamId);
+    const totalMonthlyCredits = await this.getMonthlyCredits(teamId);
     const totalMonthlyCreditsUsed =
       creditBalance?.expenseLogs.reduce((sum, log) => sum + (log?.credits ?? 0), 0) || 0;
 

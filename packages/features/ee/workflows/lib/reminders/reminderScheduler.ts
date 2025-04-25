@@ -1,18 +1,23 @@
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import {
   isSMSAction,
   isSMSOrWhatsappAction,
   isWhatsappAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { sendOrScheduleWorkflowEmails } from "@calcom/features/ee/workflows/lib/reminders/providers/emailProvider";
+import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
+import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
-import { SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { scheduleEmailReminder } from "./emailReminderManager";
-import type { ScheduleTextReminderAction } from "./smsReminderManager";
 import { scheduleSMSReminder } from "./smsReminderManager";
+import type { ScheduleTextReminderAction } from "./smsReminderManager";
 import { scheduleWhatsappReminder } from "./whatsappReminderManager";
 
 export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {
@@ -247,3 +252,113 @@ export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) =
     }
   }
 };
+
+export async function cancelScheduledMessagesAndScheduleEmails(teamId: number) {
+  const teamMembers = await prisma.membership.findMany({
+    where: {
+      teamId,
+      accepted: true,
+    },
+  });
+
+  const creditService = new CreditService();
+
+  const membersWithNoCredits = (
+    await Promise.all(
+      teamMembers.map(async (member) => {
+        const hasCredits = await creditService.hasAvailableCredits({ userId: member.userId });
+        return { member, hasCredits };
+      })
+    )
+  )
+    .filter(({ hasCredits }) => !hasCredits)
+    .map(({ member }) => member);
+
+  const scheduledMessages = await prisma.workflowReminder.findMany({
+    where: {
+      workflowStep: {
+        workflow: {
+          OR: [
+            {
+              userId: {
+                in: membersWithNoCredits.map((member) => member.userId),
+              },
+            },
+            {
+              teamId,
+            },
+          ],
+        },
+      },
+      scheduled: true,
+      OR: [{ cancelled: false }, { cancelled: null }],
+      referenceId: {
+        not: null,
+      },
+      method: {
+        in: [WorkflowMethods.SMS, WorkflowMethods.WHATSAPP],
+      },
+    },
+    select: {
+      referenceId: true,
+      workflowStep: {
+        select: {
+          action: true,
+        },
+      },
+      scheduledDate: true,
+      uuid: true,
+      id: true,
+      booking: {
+        select: {
+          attendees: {
+            select: {
+              email: true,
+              locale: true,
+            },
+          },
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  await Promise.allSettled(scheduledMessages.map((msg) => twilio.cancelSMS(msg.referenceId ?? "")));
+
+  await Promise.allSettled(
+    scheduledMessages.map(async (msg) => {
+      if (msg.workflowStep?.action === WorkflowActions.SMS_ATTENDEE) {
+        const messageBody = await twilio.getMessageBody(msg.referenceId ?? "");
+        const sendTo = msg.booking?.attendees?.[0];
+
+        if (sendTo) {
+          const t = await getTranslation(sendTo.locale ?? "en", "common");
+          await sendOrScheduleWorkflowEmails({
+            to: [sendTo.email],
+            subject: t("notification_about_your_booking"),
+            html: messageBody,
+            replyTo: msg.booking?.user?.email ?? "",
+            sendAt: msg.scheduledDate,
+            referenceUid: msg.uuid || undefined,
+          });
+        }
+      }
+    })
+  );
+
+  await prisma.workflowReminder.updateMany({
+    where: {
+      id: {
+        in: scheduledMessages.map((msg) => msg.id),
+      },
+    },
+    data: {
+      method: WorkflowMethods.EMAIL,
+      referenceId: null,
+    },
+  });
+}
