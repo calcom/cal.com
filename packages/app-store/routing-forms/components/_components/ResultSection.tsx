@@ -152,6 +152,10 @@ export const ResultsView = ({
 
   console.log("chosenRoute", chosenRoute);
 
+  const showMatchingSection = supportsTeamMembersMatchingLogic && membersMatchResult;
+  console.log("showMatchingSection", showMatchingSection);
+  console.log("membersMatchResult", membersMatchResult);
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -201,7 +205,7 @@ export const ResultsView = ({
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
-                  <div className="border-subtle z-10 rounded-lg border bg-white p-1">
+                  <div className="border-subtle bg-default z-10 rounded-lg border p-1 ">
                     <Icon name="activity" className="h-4 w-4" />
                   </div>
                   <span className="text-emphasis text-sm font-medium leading-none">
@@ -216,7 +220,7 @@ export const ResultsView = ({
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
-                  <div className="border-subtle z-10 rotate-180 rounded-lg border bg-white p-1">
+                  <div className="border-subtle bg-default z-10 rotate-180 rounded-lg border p-1">
                     <Icon name="split" className="h-4 w-4" />
                   </div>
                   <span className="text-emphasis text-sm font-medium leading-none">Attribute fallback</span>
@@ -229,7 +233,7 @@ export const ResultsView = ({
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
-                  <div className="border-subtle z-10 rounded-lg border bg-white p-1">
+                  <div className="border-subtle bg-default z-10 rounded-lg border p-1">
                     <Icon name="user" className="h-4 w-4" />
                   </div>
                   <span className="text-emphasis text-sm font-medium leading-none">Contact owner</span>
