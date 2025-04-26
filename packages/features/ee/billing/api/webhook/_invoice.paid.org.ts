@@ -78,6 +78,15 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
         stripeSubscriptionId: organizationOnboarding.stripeSubscriptionId,
       })
     );
+
+    if (organizationOnboarding.isComplete) {
+      // If the organization is already complete and user is making a repeat payment, we can skip the rest of the flow
+      return {
+        success: true,
+        message: "Onboarding already completed, skipping",
+      };
+    }
+
     const { organization } = await createOrganizationFromOnboarding({
       organizationOnboarding,
       paymentSubscriptionId,
