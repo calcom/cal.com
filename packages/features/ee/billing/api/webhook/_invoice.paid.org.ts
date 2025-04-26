@@ -11,6 +11,7 @@ const invoicePaidSchema = z.object({
   object: z.object({
     customer: z.string(),
     subscription: z.string(),
+    billing_reason: z.string(),
     lines: z.object({
       data: z.array(
         z.object({
@@ -40,9 +41,17 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
   const { object: invoice } = invoicePaidSchema.parse(data);
   const subscriptionItemId = invoice.lines.data[0]?.subscription_item;
   const subscriptionId = invoice.subscription;
+  const isFirstPayment = invoice.billing_reason === "subscription_create";
   logger.debug(
-    `Processing invoice paid webhook for customer ${invoice.customer} and subscription ${invoice.subscription}`
+    `Processing invoice paid webhook for customer ${invoice.customer} and subscription ${invoice.subscription}. First payment: ${isFirstPayment}`
   );
+
+  if (!isFirstPayment) {
+    return {
+      message: "Not first payment, skipping",
+      success: true,
+    };
+  }
 
   const organizationOnboarding = await OrganizationOnboardingRepository.findByStripeCustomerId(
     invoice.customer
