@@ -12,7 +12,7 @@ export async function sendSmsOrFallbackEmail(props: {
     phoneNumber: string;
     body: string;
     sender: string;
-    bookingUid: string | null;
+    bookingUid?: string | null;
     userId?: number | null;
     teamId?: number | null;
     isWhatsapp?: boolean;
