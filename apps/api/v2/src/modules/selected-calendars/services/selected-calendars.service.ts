@@ -5,9 +5,13 @@ import {
   SelectedCalendarsInputDto,
   SelectedCalendarsQueryParamsInputDto,
 } from "@/modules/selected-calendars/inputs/selected-calendars.input";
-import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
+import {
+  MULTIPLE_SELECTED_CALENDARS_FOUND,
+  NO_SELECTED_CALENDAR_FOUND,
+  SelectedCalendarsRepository,
+} from "@/modules/selected-calendars/selected-calendars.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { SelectedCalendarRepository } from "@calcom/platform-libraries";
 
@@ -111,13 +115,23 @@ export class SelectedCalendarsService {
       }
     }
 
-    const removedCalendarEntry = await this.selectedCalendarsRepository.removeUserSelectedCalendar(
-      user.id,
-      integration,
-      externalId,
-      delegationCredentialId
-    );
+    try {
+      const removedCalendarEntry = await this.selectedCalendarsRepository.removeUserSelectedCalendar(
+        user.id,
+        integration,
+        externalId,
+        delegationCredentialId
+      );
 
-    return removedCalendarEntry;
+      return removedCalendarEntry;
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === NO_SELECTED_CALENDAR_FOUND) {
+          throw new NotFoundException(NO_SELECTED_CALENDAR_FOUND);
+        } else if (error.message === MULTIPLE_SELECTED_CALENDARS_FOUND) {
+          throw new BadRequestException(MULTIPLE_SELECTED_CALENDARS_FOUND);
+        }
+      }
+    }
   }
 }

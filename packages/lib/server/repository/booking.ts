@@ -212,6 +212,7 @@ export class BookingRepository {
           requiresConfirmationWillBlockSlot: true,
           requiresConfirmation: true,
           allowReschedulingPastBookings: true,
+          hideOrganizerEmail: true,
         },
       },
       ...(seatedEvent && {
