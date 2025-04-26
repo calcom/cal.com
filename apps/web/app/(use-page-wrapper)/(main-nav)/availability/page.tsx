@@ -1,11 +1,13 @@
+import { createRouterCaller } from "app/_trpc/context";
+import type { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
-// import { cookies, headers } from "next/headers";
-import { notFound } from "next/navigation";
 
-// import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-// import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-// import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
-import AvailabilityPage, { AvailabilityCTA } from "~/availability/availability-view";
+import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
+import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
+
+import { AvailabilityList, AvailabilityCTA } from "~/availability/availability-view";
 
 import { ShellMainAppDir } from "../ShellMainAppDir";
 
@@ -19,31 +21,43 @@ export const generateMetadata = async () => {
   );
 };
 
-const Page = async () => {
-  // const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
-  // const userId = session?.user?.id;
-  // const orgId = session?.user?.org?.id;
-  // if (!userId || !orgId) {
-  //   notFound();
-  // }
+const Page = async ({ searchParams: _searchParams }: PageProps) => {
+  const searchParams = await _searchParams;
+  const t = await getTranslate();
 
-  try {
-    // const currentOrg = await OrganizationRepository.findCurrentOrg({
-    //   orgId,
-    //   userId,
-    // });
-    const t = await getTranslate();
-    return (
-      <ShellMainAppDir
-        heading={t("availability")}
-        subtitle={t("configure_availability")}
-        CTA={<AvailabilityCTA />}>
-        <AvailabilityPage />
-      </ShellMainAppDir>
-    );
-  } catch {
-    notFound();
-  }
+  const [meCaller, availabilityCaller] = await Promise.all([
+    createRouterCaller(meRouter),
+    createRouterCaller(availabilityRouter),
+  ]);
+
+  const [me, availabilities] = await Promise.all([meCaller.get(), availabilityCaller.list()]);
+  const organizationId = me.organization?.id ?? me.profiles[0]?.organizationId;
+  const isOrgPrivate = organizationId
+    ? await OrganizationRepository.checkIfPrivate({
+        orgId: organizationId,
+      })
+    : false;
+  const canViewTeamAvailability = me.organization?.isOrgAdmin || !isOrgPrivate;
+
+  return (
+    <ShellMainAppDir
+      heading={t("availability")}
+      subtitle={t("configure_availability")}
+      CTA={
+        <AvailabilityCTA
+          toggleGroupOptions={[
+            { value: "mine", label: t("my_availability") },
+            ...(canViewTeamAvailability ? [{ value: "team", label: t("team_availability") }] : []),
+          ]}
+        />
+      }>
+      {searchParams?.type === "team" && canViewTeamAvailability ? (
+        <AvailabilitySliderTable userTimeFormat={me?.timeFormat ?? null} isOrg={!!organizationId} />
+      ) : (
+        <AvailabilityList availabilities={availabilities ?? { schedules: [] }} me={me} />
+      )}
+    </ShellMainAppDir>
+  );
 };
 
 export default Page;

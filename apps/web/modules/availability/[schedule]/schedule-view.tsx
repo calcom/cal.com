@@ -1,5 +1,6 @@
 "use client";
 
+import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/availability/actions";
 import { revalidateSchedulePage } from "app/(use-page-wrapper)/availability/[schedule]/actions";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -47,6 +48,7 @@ export const AvailabilitySettingsWebWrapper = ({
       {
         onSuccess: () => {
           utils.viewer.availability.list.invalidate();
+          revalidateAvailabilityList();
           callback();
           showToast(t("success"), "success");
         },
@@ -73,6 +75,7 @@ export const AvailabilitySettingsWebWrapper = ({
       utils.viewer.availability.schedule.get.invalidate({ scheduleId: data.schedule.id });
       revalidateSchedulePage(scheduleId);
       utils.viewer.availability.list.invalidate();
+      revalidateAvailabilityList();
       showToast(
         t("availability_updated_successfully", {
           scheduleName: data.schedule.name,
@@ -97,6 +100,7 @@ export const AvailabilitySettingsWebWrapper = ({
     },
     onSuccess: () => {
       showToast(t("schedule_deleted_successfully"), "success");
+      revalidateAvailabilityList();
       router.push("/availability");
     },
   });
