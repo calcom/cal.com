@@ -50,7 +50,7 @@ export async function scheduleSmsOrFallbackEmail(props: {
     body: string;
     scheduledDate: Date;
     sender: string;
-    bookingUid: string;
+    bookingUid?: string | null;
     userId?: number | null;
     teamId?: number | null;
     isWhatsapp?: boolean;
