@@ -188,8 +188,6 @@ async function main() {
         userId: member.user.id,
         role: member.role,
         accepted: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
       })),
     });
   }
@@ -426,8 +424,6 @@ async function createPerformanceData() {
         userId: memberId.id,
         role: "MEMBER",
         accepted: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
       })),
     });
 

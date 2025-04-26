@@ -660,7 +660,9 @@ test.describe("Out of office", () => {
       await page.locator('[data-testid="add-filter-button"]').click();
       await page.locator('[data-testid="add-filter-item-dateRange"]').click();
       await expect(
-        page.locator('[data-testid="filter-popover-trigger-dateRange"]', { hasText: "Last 7 Days" }).first()
+        page
+          .locator('[data-testid="filter-popover-trigger-dateRange"] span', { hasText: "Last 7 Days" })
+          .nth(0)
       ).toBeVisible();
     });
 
