@@ -80,7 +80,8 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
     );
 
     if (organizationOnboarding.isComplete) {
-      // If the organization is already complete and user is making a repeat payment, we can skip the rest of the flow
+      // If the organization is already complete, there is nothing to do
+      // Repeat requests can come for recurring payments
       return {
         success: true,
         message: "Onboarding already completed, skipping",
