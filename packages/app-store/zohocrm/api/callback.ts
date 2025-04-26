@@ -11,8 +11,6 @@ import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredentia
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import appConfig from "../config.json";
 
-let client_id = "";
-let client_secret = "";
 function isAuthorizedAccountsServerUrl(accountsServer: string) {
   // As per https://www.zoho.com/crm/developer/docs/api/v6/multi-dc.html#:~:text=US:%20https://accounts.zoho,https://accounts.zohocloud.ca&text=The%20%22location=us%22%20parameter,domain%20in%20all%20API%20endpoints.&text=You%20must%20make%20the%20authorization,.zoho.com.cn.
   const authorizedAccountServers = [
@@ -49,17 +47,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
 
+  let clientId = "";
+  let clientSecret = "";
   const appKeys = await getAppKeysFromSlug("zohocrm");
-  if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
-  if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
-  if (!client_id) return res.status(400).json({ message: "Zoho Crm consumer key missing." });
-  if (!client_secret) return res.status(400).json({ message: "Zoho Crm consumer secret missing." });
+  if (typeof appKeys.client_id === "string") clientId = appKeys.client_id;
+  if (typeof appKeys.client_secret === "string") clientSecret = appKeys.client_secret;
+  if (!clientId) return res.status(400).json({ message: "Zoho Crm consumer key missing." });
+  if (!clientSecret) return res.status(400).json({ message: "Zoho Crm consumer secret missing." });
   const url = `${accountsServer}/oauth/v2/token`;
   const redirectUri = `${WEBAPP_URL}/api/integrations/zohocrm/callback`;
   const formData = {
     grant_type: "authorization_code",
-    client_id: client_id,
-    client_secret: client_secret,
+    client_id: clientId,
+    client_secret: clientSecret,
     redirect_uri: redirectUri,
     code: code,
   };

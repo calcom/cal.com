@@ -33,7 +33,10 @@ export const generateMetadata = async ({ params }: PageProps): Promise<Metadata 
   }
   return await _generateMetadata(
     (t) => (workflow && workflow.name ? workflow.name : t("untitled")),
-    () => ""
+    () => "",
+    undefined,
+    undefined,
+    `/workflows/${parsed.data.workflow}`
   );
 };
 
@@ -41,9 +44,7 @@ const Page = async ({ params }: PageProps) => {
   // const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   // const user = session?.user;
   const parsed = querySchema.safeParse(await params);
-  if (!parsed.success) {
-    notFound();
-  }
+  if (!parsed.success) throw new Error("Invalid workflow id");
 
   // const workflow = await WorkflowRepository.getById({ id: +parsed.data.workflow });
   // let verifiedEmails, verifiedNumbers;
