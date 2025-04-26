@@ -1,42 +1,48 @@
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
-import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
-import { Icon } from "@calcom/ui/components/icon";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
+import checkForMultiplePaymentApps from "../../_utils/payments/checkForMultiplePaymentApps";
 import type { appDataSchema } from "../zod";
+import EventTypeAppSettingsInterface from "./EventTypeAppSettingsInterface";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ eventType, app }) {
-  const { getAppData, setAppData } = useAppContextWithSchema<typeof appDataSchema>();
-  const isSunrise = getAppData("isSunrise");
-  const { enabled, updateEnabled } = useIsAppEnabled(app);
+type Option = { value: string; label: string };
+
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
+  eventType,
+  app,
+  eventTypeFormMetadata,
+}) {
+  const { t } = useLocale();
+  const pathname = usePathname();
+  const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
+  const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
+  const otherPaymentAppEnabled = checkForMultiplePaymentApps(eventTypeFormMetadata);
+  const shouldDisableSwitch = !requirePayment && otherPaymentAppEnabled;
 
   return (
     <AppCard
+      returnTo={`${WEBAPP_URL}${pathname}?tabName=apps`}
       app={app}
+      switchChecked={requirePayment}
       switchOnClick={(e) => {
-        if (!e) {
-          updateEnabled(false);
-          setAppData("isSunrise", false);
-        } else {
-          updateEnabled(true);
-          setAppData("isSunrise", true);
-        }
+        setRequirePayment(e);
       }}
-      switchChecked={enabled}
-      teamId={eventType.team?.id || undefined}>
-      <div className="mt-2 text-sm">
-        <div className="flex">
-          <span className="ltr:mr-2 rtl:ml-2">
-            <Icon name={isSunrise ? "sunrise" : "sunset"} />
-          </span>
-          I am an AppCard for Event with Title: {eventType.title}
-        </div>{" "}
-        <div className="mt-2">
-          Edit <span className="italic">packages/app-store/{app.slug}/EventTypeAppCardInterface.tsx</span> to
-          play with me
-        </div>
-      </div>
+      description={<>Add lightning payments to your events and booking</>}
+      disableSwitch={shouldDisableSwitch}
+      switchTooltip={shouldDisableSwitch ? t("other_payment_app_enabled") : undefined}>
+      <EventTypeAppSettingsInterface
+        eventType={eventType}
+        slug={app.slug}
+        disabled={disabled}
+        getAppData={getAppData}
+        setAppData={setAppData}
+      />
     </AppCard>
   );
 };

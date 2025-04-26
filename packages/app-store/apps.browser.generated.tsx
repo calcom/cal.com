@@ -55,6 +55,7 @@ export const EventTypeAddonMap = {
 export const EventTypeSettingsMap = {
   alby: dynamic(() => import("./alby/components/EventTypeAppSettingsInterface")),
   basecamp3: dynamic(() => import("./basecamp3/components/EventTypeAppSettingsInterface")),
+  btcpayserver: dynamic(() => import("./btcpayserver/components/EventTypeAppSettingsInterface")),
   fathom: dynamic(() => import("./fathom/components/EventTypeAppSettingsInterface")),
   ga4: dynamic(() => import("./ga4/components/EventTypeAppSettingsInterface")),
   giphy: dynamic(() => import("./giphy/components/EventTypeAppSettingsInterface")),
