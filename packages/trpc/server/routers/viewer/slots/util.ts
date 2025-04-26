@@ -32,6 +32,7 @@ import { BookingRepository as BookingRepo } from "@calcom/lib/server/repository/
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
+import { transformDateTimeRange, getStartTime } from "@calcom/lib/transformDateTimeRange";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { PeriodType, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -266,13 +267,6 @@ export function getUsersWithCredentials({
   return hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
 }
 
-const getStartTime = (startTimeInput: string, timeZone?: string, minimumBookingNotice?: number) => {
-  const startTimeMin = dayjs.utc().add(minimumBookingNotice || 1, "minutes");
-  const startTime = timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone);
-
-  return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
-};
-
 export const getAvailableSlots = async (
   ...args: Parameters<typeof _getAvailableSlots>
 ): Promise<ReturnType<typeof _getAvailableSlots>> => {
@@ -298,7 +292,6 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   }
 
   const eventType = await monitorCallbackAsync(getRegularOrDynamicEventType, input, orgDetails);
-
   if (!eventType) {
     throw new TRPCError({ code: "NOT_FOUND" });
   }
@@ -308,34 +301,22 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     logger.settings.minLevel = 2;
   }
 
-  const isRollingWindowPeriodType = eventType.periodType === PeriodType.ROLLING_WINDOW;
-  const startTimeAsIsoString = input.startTime;
-  const isStartTimeInPast = dayjs(startTimeAsIsoString).isBefore(dayjs().subtract(1, "day").startOf("day"));
-
-  // If startTime is already sent in the past, we don't need to adjust it.
-  // We assume that the client is already sending startTime as per their requirement.
-  // Note: We could optimize it further to go back 1 month in past only for the 2nd month because that is what we are putting a hard limit at.
-  const startTimeAdjustedForRollingWindowComputation =
-    isStartTimeInPast || !isRollingWindowPeriodType
-      ? startTimeAsIsoString
-      : dayjs(startTimeAsIsoString).subtract(1, "month").toISOString();
-
   const loggerWithEventDetails = logger.getSubLogger({
     type: "json",
     prefix: ["getAvailableSlots", `${eventType.id}:${input.usernameList}/${input.eventTypeSlug}`],
   });
 
-  const startTime = getStartTime(
-    startTimeAdjustedForRollingWindowComputation,
-    input.timeZone,
-    eventType.minimumBookingNotice
-  );
-  const endTime =
-    input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
+  const result = transformDateTimeRange(input.startTime, input.endTime, {
+    timeZone: input.timeZone,
+    eventType,
+  });
 
-  if (!startTime.isValid() || !endTime.isValid()) {
-    throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
+  if (!result.success) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: result.message });
   }
+
+  const { start: startTime, end: endTime } = result;
+
   // when an empty array is given we should prefer to have it handled as if this wasn't given at all
   // we don't want to return no availability in this case.
   const routedTeamMemberIds = input.routedTeamMemberIds ?? [];
