@@ -548,8 +548,6 @@ model Membership {
   user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   disableImpersonation Boolean           @default(false)
   AttributeToUser      AttributeToUser[]
-  createdAt            DateTime?         @default(now())
-  updatedAt            DateTime?         @updatedAt
 
   @@unique([userId, teamId])
   @@index([teamId])
@@ -794,6 +792,7 @@ model SelectedCalendar {
   @@index([integration])
   @@index([externalId])
   @@index([eventTypeId])
+  @@index([credentialId])
 }
 
 enum EventTypeCustomInputType {

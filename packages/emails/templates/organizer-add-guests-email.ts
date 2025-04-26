@@ -1,4 +1,5 @@
 import { APP_NAME } from "@calcom/lib/constants";
+import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 
 import { renderEmail } from "../";
 import generateIcsFile, { GenerateIcsRole } from "../lib/generateIcsFile";
@@ -16,7 +17,10 @@ export default class OrganizerAddGuestsEmail extends OrganizerScheduledEmail {
       }),
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
-      replyTo: [...this.calEvent.attendees.map(({ email }) => email)],
+      ...getReplyToHeader(
+        this.calEvent,
+        this.calEvent.attendees.map(({ email }) => email)
+      ),
       subject: `${this.t("guests_added_event_type_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
