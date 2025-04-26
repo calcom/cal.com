@@ -42,7 +42,7 @@ export type AttendeeInBookingInfo = {
 };
 
 export type BookingInfo = {
-  uid: string;
+  uid?: string | null;
   bookerUrl: string;
   attendees: AttendeeInBookingInfo[];
   organizer: {
