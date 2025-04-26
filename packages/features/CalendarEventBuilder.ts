@@ -47,6 +47,7 @@ export class CalendarEventBuilder {
     id: number;
     hideCalendarNotes?: boolean;
     hideCalendarEventDetails?: boolean;
+    hideOrganizerEmail?: boolean;
     schedulingType?: SchedulingType | null;
     seatsPerTimeSlot?: number | null;
     seatsShowAttendees?: boolean | null;
@@ -60,6 +61,7 @@ export class CalendarEventBuilder {
       eventTypeId: eventType.id,
       hideCalendarNotes: eventType.hideCalendarNotes,
       hideCalendarEventDetails: eventType.hideCalendarEventDetails,
+      hideOrganizerEmail: eventType.hideOrganizerEmail,
       schedulingType: eventType.schedulingType,
       seatsPerTimeSlot: eventType.seatsPerTimeSlot,
       // if seats are not enabled we should default true
