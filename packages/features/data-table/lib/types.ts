@@ -113,8 +113,7 @@ export const ZFilterValue = z.union([
 ]);
 
 export type DateRangeFilterOptions = {
-  range?: "past" | "custom";
-  endOfDay?: boolean;
+  range: "past" | "custom";
 };
 
 export type TextFilterOptions = {
