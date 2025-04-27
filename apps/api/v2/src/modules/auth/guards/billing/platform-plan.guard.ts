@@ -45,20 +45,8 @@ export class PlatformPlanGuard implements CanActivate {
     const isPlatform = organization?.isPlatform;
     const hasSubscription = organization?.platformBilling?.subscriptionId;
 
-
-      if (!team) {
-        canAccess = false;
-      } else if (!isPlatform) {
-        canAccess = true;
-      } else if (!hasSubscription) {
-        canAccess = false;
-      } else {
-        canAccess = hasMinimumPlan({
-          currentPlan: team.platformBilling?.plan as PlatformPlanType,
-          minimumPlan: minimumPlan,
-          plans: ["FREE", "STARTER", "ESSENTIALS", "SCALE", "ENTERPRISE", "PER_ACTIVE_USER"],
-        });
-      }
+    if (!organization) {
+      throw new ForbiddenException(`PlatformPlanGuard - No organization found with id=${orgId}.`);
     }
     if (!isPlatform) {
       await this.redisService.redis.set(REDIS_CACHE_KEY, "true", "EX", 300);
