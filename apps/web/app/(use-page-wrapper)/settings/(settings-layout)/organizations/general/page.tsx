@@ -34,7 +34,7 @@ const Page = async () => {
   const [user, currentOrg] = await Promise.all([meCaller.get(), orgCaller.listCurrent()]);
 
   if (!currentOrg) {
-    redirect("/getting-started");
+    redirect("/enterprise");
   }
 
   const isAdminOrOwner = checkAdminOrOwner(session.user.org?.role);
