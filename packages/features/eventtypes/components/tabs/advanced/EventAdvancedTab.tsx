@@ -509,10 +509,6 @@ export const EventAdvancedTab = ({
 
   const [disableRescheduling, setDisableRescheduling] = useState(eventType.disableRescheduling || false);
 
-  const [optionalGuestTeamMembers, setOptionalGuestTeamMembers] = useState(
-    eventType.optionalGuestTeamMembers || []
-  );
-
   const closeEventNameTip = () => setShowEventNameTip(false);
 
   const [isEventTypeColorChecked, setIsEventTypeColorChecked] = useState(!!eventType.eventTypeColor);
@@ -1163,14 +1159,7 @@ export const EventAdvancedTab = ({
           </SettingsToggle>
         )}
       />
-      {team && team?.members.length > 0 && (
-        <GuestTeamMemberController
-          optionalGuestTeamMembers={optionalGuestTeamMembers}
-          setOptionalGuestTeamMembers={setOptionalGuestTeamMembers}
-          team={team}
-          eventType={eventType}
-        />
-      )}
+      {team && team?.members.length > 0 && <GuestTeamMemberController team={team} eventType={eventType} />}
       {isRoundRobinEventType && (
         <Controller
           name="rescheduleWithSameRoundRobinHost"

@@ -321,8 +321,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           set: [],
           connect: optionalGuestTeamMembers.map(({ id }) => ({ id })),
         };
-
-        console.log({ data });
       } else {
         throw new TRPCError({
           code: "BAD_REQUEST",

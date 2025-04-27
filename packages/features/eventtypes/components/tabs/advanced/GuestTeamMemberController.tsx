@@ -1,5 +1,4 @@
 import type { EventTypeSetup, FormValues } from "eventtypes/lib/types";
-import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
@@ -12,8 +11,6 @@ import { SettingsToggle } from "@calcom/ui/components/form";
 type GuestTeamMemberControllerProps = {
   team: EventTypeSetup["team"];
   eventType: EventTypeSetup;
-  optionalGuestTeamMembers: EventTypeSetup["optionalGuestTeamMembers"];
-  setOptionalGuestTeamMembers: Dispatch<SetStateAction<EventTypeSetup["optionalGuestTeamMembers"]>>;
 };
 
 function GuestTeamMemberController({ team, eventType }: GuestTeamMemberControllerProps) {

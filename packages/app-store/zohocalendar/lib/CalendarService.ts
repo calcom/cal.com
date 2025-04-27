@@ -458,7 +458,6 @@ export default class ZohoCalendarService implements Calendar {
   }
 
   private translateEvent = (event: CalendarEvent) => {
-    const attendees = this.getAttendees(event);
     const zohoEvent = {
       title: event.title,
       description: getRichDescription(event),

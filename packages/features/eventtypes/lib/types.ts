@@ -150,7 +150,7 @@ export type FormValues = {
   secondaryEmailId?: number;
   isRRWeightsEnabled: boolean;
   maxLeadThreshold?: number;
-  optionalGuestTeamMembers: { id: number }[];
+  optionalGuestTeamMembers?: { id: number }[];
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
