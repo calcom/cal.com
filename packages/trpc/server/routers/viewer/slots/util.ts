@@ -307,8 +307,13 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   });
 
   const result = transformDateTimeRange(input.startTime, input.endTime, {
-    timeZone: input.timeZone,
-    eventType,
+    timeZone: input.timeZone || "Etc/GMT",
+    eventType: {
+      ...eventType,
+      schedule: {
+        timeZone: eventType.timeZone || eventType?.schedule?.timeZone || "Etc/GMT",
+      },
+    },
   });
 
   if (!result.success) {
