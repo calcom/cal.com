@@ -29,9 +29,9 @@ function getDelegationAccessToken(delegationCredential: DelegationCredential, us
         .slug as (typeof WORKSPACE_PLATFORM_SLUGS_PER_USER_ACCESS_TOKENS)[number]
     )
   ) {
-    return delegationCredential.accessTokens?.find((token) => token.userId === user.id)?.key ?? undefined;
+    return delegationCredential.accessTokens?.find((token) => token.userId === user.id)?.key ?? null;
   }
-  return delegationCredential.accessTokens?.[0]?.key ?? undefined;
+  return delegationCredential.accessTokens?.[0]?.key ?? null;
 }
 
 type WORKSPACE_PLATFORM_SLUGS_TYPE = (typeof WORKSPACE_PLATFORM_SLUGS)[number];
