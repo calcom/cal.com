@@ -70,7 +70,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       const url = getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
       const scope = isDelegated
         ? "https://graph.microsoft.com/.default"
-        : "User.Read Calendars.Read Calendars.ReadWrite";
+        : "OnlineMeetings.ReadWrite offline_access";
 
       const params: Record<string, string> = {
         scope,
