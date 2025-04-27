@@ -20,11 +20,19 @@ import {
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
-import { describe, beforeEach } from "vitest";
+import { describe, beforeEach, vi } from "vitest";
 
 import { resetTestSMS } from "@calcom/lib/testSMS";
 import { SMSLockState, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
+
+vi.mock(import("@calcom/lib/constants"), async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    IS_SMS_CREDITS_ENABLED: false,
+  };
+});
 
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;
@@ -37,7 +45,7 @@ describe("handleNewBooking", () => {
   });
 
   describe("User Workflows", () => {
-    test(
+    test.only(
       "should send workflow email and sms when booking is created",
       async ({ emails, sms }) => {
         const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;

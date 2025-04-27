@@ -6,6 +6,7 @@ import {
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
 import { cancelScheduledMessagesAndScheduleEmails } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
@@ -65,6 +66,7 @@ export class CreditService {
   }
 
   async hasAvailableCredits({ userId, teamId }: { userId?: number | null; teamId?: number | null }) {
+    if (!IS_SMS_CREDITS_ENABLED) return true;
     if (teamId) {
       const team = await prisma.team.findUnique({
         where: {
