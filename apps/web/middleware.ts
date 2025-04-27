@@ -21,6 +21,7 @@ export const POST_METHODS_ALLOWED_APP_ROUTES = [
   "/settings/my-account/general",
   "/settings/developer/webhooks",
   "/settings/developer/api-keys",
+  "/teams",
 ];
 export function checkPostMethod(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
@@ -194,6 +195,7 @@ export const config = {
     "/settings/my-account/general",
     "/settings/developer/webhooks",
     "/settings/developer/api-keys",
+    "/teams",
   ],
 };
 

@@ -1,7 +1,11 @@
+import { createRouterCaller } from "app/_trpc/context";
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+
+import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
+import { travelSchedulesRouter } from "@calcom/trpc/server/routers/viewer/travelSchedules/_router";
 
 import { AvailabilitySettingsWebWrapper } from "~/availability/[schedule]/schedule-view";
 
@@ -29,8 +33,25 @@ const Page = async ({ params }: PageProps) => {
   if (!parsed.success) {
     notFound();
   }
+  const scheduleId = parsed.data.schedule;
 
-  return <AvailabilitySettingsWebWrapper />;
+  const [availabilityCaller, travelSchedulesCaller] = await Promise.all([
+    createRouterCaller(availabilityRouter),
+    createRouterCaller(travelSchedulesRouter),
+  ]);
+
+  const [scheduleData, travelSchedulesData] = await Promise.all([
+    availabilityCaller.schedule.get({ scheduleId }),
+    travelSchedulesCaller.get(),
+  ]);
+
+  if (!scheduleData) {
+    notFound();
+  }
+
+  return (
+    <AvailabilitySettingsWebWrapper scheduleData={scheduleData} travelSchedulesData={travelSchedulesData} />
+  );
 };
 
 export default Page;

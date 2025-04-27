@@ -7,6 +7,7 @@ import { expect, test, beforeEach, vi, describe } from "vitest";
 import "vitest-fetch-mock";
 
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
+import { getTimeMin, getTimeMax } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
@@ -187,8 +188,8 @@ test("Calendar Cache is being read on cache HIT", async () => {
   await calendarCache.upsertCachedAvailability(
     credentialInDb1.id,
     {
-      timeMin: dateFrom1,
-      timeMax: dateTo1,
+      timeMin: getTimeMin(dateFrom1),
+      timeMax: getTimeMax(dateTo1),
       items: [{ id: testSelectedCalendar.externalId }],
     },
     JSON.parse(
