@@ -131,7 +131,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
         enableHiding: false,
         size: 200,
         header: () => {
-          return t("managed_users");
+          return `Managed Users`;
         },
         cell: ({ row }) => {
           if (isPending) {
@@ -166,7 +166,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
       {
         id: "role",
         accessorFn: (data) => data.role,
-        header: t("role"),
+        header: "Role",
         size: 100,
         cell: ({ row, table }) => {
           if (isPending) {
@@ -188,7 +188,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
       {
         id: "teams",
         accessorFn: (data) => data.teams.map((team) => team.name),
-        header: t("teams"),
+        header: "Teams",
         size: 140,
         cell: ({ row, table }) => {
           if (isPending) {
