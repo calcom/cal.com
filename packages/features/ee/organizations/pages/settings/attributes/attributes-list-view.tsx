@@ -121,11 +121,18 @@ function AttributeItem({
   );
 }
 
-function OrganizationAttributesPage() {
+function OrganizationAttributesPage({
+  initialAttributes,
+}: {
+  initialAttributes: RouterOutputs["viewer"]["attributes"]["list"];
+}) {
   const { t } = useLocale();
-  const { data, isLoading } = trpc.viewer.attributes.list.useQuery();
+  const { data: attributes, isLoading } = trpc.viewer.attributes.list.useQuery(undefined, {
+    initialData: initialAttributes,
+    staleTime: Infinity,
+  });
   const [attributeToDelete, setAttributeToDelete] = useState<AttributeItemProps>();
-  if (isLoading) {
+  if (isLoading && !attributes) {
     return (
       <>
         <div className="border-subtle bg-default flex flex-col gap-4 rounded-lg border p-6">
@@ -138,11 +145,11 @@ function OrganizationAttributesPage() {
   return (
     <LicenseRequired>
       <div className="border-subtle bg-default flex flex-col gap-4 rounded-lg border p-6">
-        {data && data?.length > 0 ? (
+        {attributes && attributes?.length > 0 ? (
           <>
             <h2 className="text-emphasis text-base font-semibold leading-none">{t("custom")}</h2>
             <li className="border-subtle bg-default divide-subtle flex flex-col divide-y rounded-lg border">
-              {data?.map((attribute) => (
+              {attributes?.map((attribute) => (
                 <AttributeItem
                   setAttributeToDelete={setAttributeToDelete}
                   attribute={attribute}
