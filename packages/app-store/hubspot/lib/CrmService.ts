@@ -46,28 +46,19 @@ export default class HubspotCalendarService implements CRM {
 
   private getHubspotMeetingBody = (event: CalendarEvent): string => {
     const userFields = getLabelValueMapFromResponses(event);
-    const plainText = event?.description?.replace(/<\/?[^>]+(>|$)/g, "").replace(/_/g, " ");
-    const location = getLocation(event);
     const userFieldsHtml = Object.entries(userFields)
       .map(([key, value]) => {
         const formattedValue = typeof value === "boolean" ? (value ? "Yes" : "No") : value || "-";
-        return `<b>${event.organizer.language.translate(key)}:</b> ${formattedValue}`;
+        return `<b>${key}:</b> ${formattedValue}`;
       })
       .join("<br><br>");
 
     return `<b>${event.organizer.language.translate("invitee_timezone")}:</b> ${
       event.attendees[0].timeZone
-    }<br><br>${
-      event.additionalNotes
-        ? `<b>${event.organizer.language.translate("share_additional_notes")}</b><br>${
-            event.additionalNotes
-          }<br><br>`
-        : ""
-    }
-    ${userFieldsHtml}<br><br>
-    <b>${event.organizer.language.translate("where")}:</b> ${location}<br><br>
-    ${plainText ? `<b>${event.organizer.language.translate("description")}</b><br>${plainText}` : ""}
-  `;
+    }<br><br><b>${event.organizer.language.translate("share_additional_notes")}</b><br>${
+      event.additionalNotes || "-"
+    }<br><br>
+    ${userFieldsHtml}`;
   };
 
   private hubspotCreateMeeting = async (event: CalendarEvent) => {
