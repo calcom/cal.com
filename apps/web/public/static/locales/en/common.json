@@ -505,6 +505,7 @@
   "create_webhook": "Create Webhook",
   "instant_meeting": "Instant Meeting Created",
   "booking_cancelled": "Booking Canceled",
+  "schedule_updated": "Schedule Updated",
   "booking_rescheduled": "Booking Rescheduled",
   "recording_ready": "Recording Download Link Ready",
   "recording_transcription_generated": "Transcript Generated",

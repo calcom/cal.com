@@ -1,4 +1,7 @@
+import { handleScheduleUpdatedWebhook } from "@calcom/features/webhooks/lib/handleScheduleUpdatedWebhook";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
@@ -58,6 +61,9 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   const schedule = await prisma.schedule.create({
     data,
+    include: {
+      availability: true,
+    },
   });
 
   if (!user.defaultScheduleId) {
@@ -70,6 +76,30 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       },
     });
   }
+
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: user.id });
+  const { teams } = await UserRepository.findTeamsByUserId({ userId: user.id });
+
+  const scheduleData = {
+    id: schedule.id,
+    userId: user.id,
+    teamId: teams.map((team) => team.id),
+    orgId: orgId,
+    name: schedule.name,
+    timeZone: schedule.timeZone,
+  };
+
+  const newAvailability = schedule.availability.map((avail) => ({
+    days: avail.days,
+    startTime: avail.startTime.toISOString(),
+    endTime: avail.endTime.toISOString(),
+    date: avail.date?.toISOString(),
+  }));
+
+  await handleScheduleUpdatedWebhook({
+    schedule: scheduleData,
+    newAvailability,
+  });
 
   return { schedule };
 };

@@ -44,6 +44,26 @@ export type TranscriptionGeneratedPayload = {
   };
 };
 
+export type ScheduleUpdatedPayload = {
+  event: string;
+  scheduleId: number;
+  scheduleName: string;
+  timeZone: string | null;
+  userId: number;
+  prevAvailability?: {
+    days: number[];
+    startTime: string;
+    endTime: string;
+    date?: string;
+  }[];
+  newAvailability?: {
+    days: number[];
+    startTime: string;
+    endTime: string;
+    date?: string;
+  }[];
+};
+
 export type OOOEntryPayloadType = {
   oooEntry: {
     id: number;
@@ -93,7 +113,11 @@ export type EventPayloadType = CalendarEvent &
     paymentData?: Payment;
   };
 
-export type WebhookPayloadType = EventPayloadType | OOOEntryPayloadType | BookingNoShowUpdatedPayload;
+export type WebhookPayloadType =
+  | EventPayloadType
+  | OOOEntryPayloadType
+  | BookingNoShowUpdatedPayload
+  | ScheduleUpdatedPayload;
 
 type WebhookDataType = WebhookPayloadType & { triggerEvent: string; createdAt: string };
 
@@ -188,8 +212,12 @@ export function isNoShowPayload(data: WebhookPayloadType): data is BookingNoShow
   return "message" in data;
 }
 
+export function isScheduleUpdatedPayload(data: WebhookPayloadType): data is ScheduleUpdatedPayload {
+  return "event" in data && ("prevAvailability" in data || "newAvailability" in data);
+}
+
 export function isEventPayload(data: WebhookPayloadType): data is EventPayloadType {
-  return !isNoShowPayload(data) && !isOOOEntryPayload(data);
+  return !isNoShowPayload(data) && !isOOOEntryPayload(data) && !isScheduleUpdatedPayload(data);
 }
 
 const sendPayload = async (
@@ -216,7 +244,13 @@ const sendPayload = async (
   }
 
   if (body === undefined) {
-    if (template && (isOOOEntryPayload(data) || isEventPayload(data) || isNoShowPayload(data))) {
+    if (
+      template &&
+      (isOOOEntryPayload(data) ||
+        isEventPayload(data) ||
+        isNoShowPayload(data) ||
+        isScheduleUpdatedPayload(data))
+    ) {
       body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType);
     } else {
       body = JSON.stringify({

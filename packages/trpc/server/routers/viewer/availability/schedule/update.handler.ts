@@ -1,6 +1,9 @@
+import { handleScheduleUpdatedWebhook } from "@calcom/features/webhooks/lib/handleScheduleUpdatedWebhook";
 import { transformScheduleToAvailabilityForAtom } from "@calcom/lib";
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { hasEditPermissionForUserID } from "@calcom/lib/hasEditPermissionForUser";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -38,6 +41,7 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
       userId: true,
       name: true,
       id: true,
+      availability: true,
     },
   });
 
@@ -77,6 +81,13 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
         : user.defaultScheduleId === input.scheduleId,
     };
   }
+
+  const prevAvailability = userSchedule.availability.map((avail) => ({
+    days: avail.days,
+    startTime: avail.startTime.toISOString(),
+    endTime: avail.endTime.toISOString(),
+    date: avail.date?.toISOString(),
+  }));
 
   const schedule = await prisma.schedule.update({
     where: {
@@ -119,6 +130,31 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
   });
 
   const userAvailability = transformScheduleToAvailabilityForAtom(schedule);
+
+  const { teams } = await UserRepository.findTeamsByUserId({ userId: userSchedule.userId });
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userSchedule.userId });
+
+  const newAvailability = schedule.availability.map((avail) => ({
+    days: avail.days,
+    startTime: avail.startTime.toISOString(),
+    endTime: avail.endTime.toISOString(),
+    date: avail.date?.toISOString(),
+  }));
+
+  const scheduleData = {
+    id: schedule.id,
+    userId: schedule.userId,
+    teamId: teams.map((team) => team.id),
+    orgId: orgId,
+    name: schedule.name,
+    timeZone: schedule.timeZone,
+  };
+
+  await handleScheduleUpdatedWebhook({
+    schedule: scheduleData,
+    prevAvailability,
+    newAvailability,
+  });
 
   return {
     schedule,
