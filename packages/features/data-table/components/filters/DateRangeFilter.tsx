@@ -5,7 +5,6 @@ import { useState, useEffect, useCallback } from "react";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { Badge } from "@calcom/ui/components/badge";
 import { Button, buttonClasses } from "@calcom/ui/components/button";
 import {
   Command,
@@ -36,21 +35,14 @@ import { useFilterPopoverOpen } from "./useFilterPopoverOpen";
 type DateRangeFilterProps = {
   column: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }>;
   options?: DateRangeFilterOptions;
-  showColumnName?: boolean;
   showClearButton?: boolean;
 };
 
-export const DateRangeFilter = ({
-  column,
-  options,
-  showColumnName = false,
-  showClearButton = false,
-}: DateRangeFilterProps) => {
+export const DateRangeFilter = ({ column, options, showClearButton = false }: DateRangeFilterProps) => {
   const { open, onOpenChange } = useFilterPopoverOpen(column.id);
   const filterValue = useFilterValue(column.id, ZDateRangeFilterValue);
   const { updateFilter, removeFilter } = useDataTable();
   const range = options?.range ?? "past";
-  const endOfDay = options?.endOfDay ?? false;
   const forceCustom = range === "custom";
   const forcePast = range === "past";
 
@@ -81,13 +73,13 @@ export const DateRangeFilter = ({
           type: ColumnFilterType.DATE_RANGE,
           data: {
             startDate: startDate.toDate().toISOString(),
-            endDate: (endOfDay ? endDate.endOf("day") : endDate).toDate().toISOString(),
+            endDate: endDate.toDate().toISOString(),
             preset: preset.value,
           },
         });
       }
     },
-    [column.id, endOfDay]
+    [column.id]
   );
 
   useEffect(() => {
@@ -145,10 +137,6 @@ export const DateRangeFilter = ({
     customButtonLabel = `${format(startDate.toDate(), "LLL dd, y")} - ?`;
   }
 
-  const selectedValue = isCustomPreset
-    ? customButtonLabel
-    : t(selectedPreset.labelKey, selectedPreset.i18nOptions);
-
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
@@ -158,15 +146,8 @@ export const DateRangeFilter = ({
           StartIcon="calendar-range"
           EndIcon="chevron-down"
           data-testid={`filter-popover-trigger-${column.id}`}>
-          {showColumnName && (
-            <>
-              <span>{column.title}</span>
-              <Badge variant="gray" className="ml-2">
-                {selectedValue}
-              </Badge>
-            </>
-          )}
-          {!showColumnName && <span>{selectedValue}</span>}
+          {!isCustomPreset && <span>{t(selectedPreset.labelKey, selectedPreset.i18nOptions)}</span>}
+          {isCustomPreset && <span>{customButtonLabel}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="flex w-fit p-0" align="end">
