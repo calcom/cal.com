@@ -18,6 +18,22 @@ export { buildNonDelegationCredentials, buildNonDelegationCredential } from "./c
 const GOOGLE_WORKSPACE_SLUG = "google";
 const OFFICE365_WORKSPACE_SLUG = "office365";
 const WORKSPACE_PLATFORM_SLUGS = [GOOGLE_WORKSPACE_SLUG, OFFICE365_WORKSPACE_SLUG] as const;
+
+// Slugs that support per-user access tokens
+const WORKSPACE_PLATFORM_SLUGS_PER_USER_ACCESS_TOKENS = [GOOGLE_WORKSPACE_SLUG] as const;
+
+function getDelegationAccessToken(delegationCredential: DelegationCredential, user: User) {
+  if (
+    WORKSPACE_PLATFORM_SLUGS_PER_USER_ACCESS_TOKENS.includes(
+      delegationCredential.workspacePlatform
+        .slug as (typeof WORKSPACE_PLATFORM_SLUGS_PER_USER_ACCESS_TOKENS)[number]
+    )
+  ) {
+    return delegationCredential.accessTokens?.find((token) => token.userId === user.id)?.key ?? undefined;
+  }
+  return delegationCredential.accessTokens?.[0]?.key ?? undefined;
+}
+
 type WORKSPACE_PLATFORM_SLUGS_TYPE = (typeof WORKSPACE_PLATFORM_SLUGS)[number];
 
 const log = logger.getSubLogger({ prefix: ["lib/delegationCredential/server"] });
@@ -95,13 +111,7 @@ const _buildCommonUserCredential = ({
       ? {
           serviceAccountKey: delegationCredential.serviceAccountKey,
           id: delegationCredential.id,
-          ...(delegationCredential.workspacePlatform.slug === "google"
-            ? {
-                key: delegationCredential.accessTokens?.find((token) => token.userId === user.id)?.key,
-              }
-            : {
-                key: delegationCredential.accessTokens?.[0]?.key,
-              }),
+          key: getDelegationAccessToken(delegationCredential, user),
         }
       : null,
   };

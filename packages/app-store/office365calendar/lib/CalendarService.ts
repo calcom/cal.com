@@ -63,9 +63,7 @@ export default class Office365CalendarService implements Calendar {
 
   constructor(credential: CredentialForCalendarServiceWithTenantId) {
     this.integrationName = "office365_calendar";
-    console.log("credentialllllll: ", credential);
     const tokenResponse = getTokenObjectFromCredential(credential);
-    console.log("tokenResponstokenResponsee: ", tokenResponse);
     this.auth = new OAuthManager({
       credentialSyncVariables: oAuthManagerHelper.credentialSyncVariables,
       resourceOwner: {

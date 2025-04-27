@@ -27,12 +27,12 @@ const delegationCredentialSafeSelect = {
       slug: true,
     },
   },
-  accessTokens: true,
 };
 
 const delegationCredentialSelectIncludesServiceAccountKey = {
   ...delegationCredentialSafeSelect,
   serviceAccountKey: true,
+  accessTokens: true,
 };
 
 export class DelegationCredentialRepository {
