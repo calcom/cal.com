@@ -15,26 +15,10 @@ import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
-import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { LockEventTypeSwitch } from "../components/LockEventTypeSwitch";
 import { NoSlotsNotificationSwitch } from "../components/NoSlotsNotificationSwitch";
-
-const SkeletonLoader = () => {
-  return (
-    <SkeletonContainer>
-      <div className="mb-8 mt-6 space-y-6">
-        <SkeletonText className="h-8 w-full" />
-        <SkeletonText className="h-8 w-full" />
-        <SkeletonText className="h-8 w-full" />
-        <SkeletonText className="h-8 w-full" />
-
-        <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
-      </div>
-    </SkeletonContainer>
-  );
-};
 
 interface GeneralViewProps {
   currentOrg: RouterOutputs["viewer"]["organizations"]["listCurrent"];

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 
 import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
@@ -55,7 +55,7 @@ export default function Header({
           <div className={classNames("flex-shrink-0 sm:ms-auto", ctaClassName)}>{CTA}</div>
         </div>
       </header>
-      {children}
+      <Suspense fallback={<Icon name="loader" className="mx-auto my-5 animate-spin" />}>{children}</Suspense>
     </div>
   );
 }
