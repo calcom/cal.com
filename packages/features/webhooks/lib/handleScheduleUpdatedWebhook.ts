@@ -1,4 +1,5 @@
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
+import type { ScheduleUpdatedTimeSlot } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
@@ -13,18 +14,8 @@ type AvailabilityChangeData = {
     teamId?: number | number[];
     orgId?: number;
   };
-  prevAvailability?: {
-    days: number[];
-    startTime: string;
-    endTime: string;
-    date?: string;
-  }[];
-  newAvailability?: {
-    days: number[];
-    startTime: string;
-    endTime: string;
-    date?: string;
-  }[];
+  prevAvailability?: ScheduleUpdatedTimeSlot[];
+  newAvailability?: ScheduleUpdatedTimeSlot[];
 };
 
 export const handleScheduleUpdatedWebhook = async (data: AvailabilityChangeData) => {
