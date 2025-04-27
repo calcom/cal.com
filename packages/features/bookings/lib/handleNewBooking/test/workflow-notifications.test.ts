@@ -135,7 +135,7 @@ describe("handleNewBooking", () => {
         await handleNewBooking({
           bookingData: mockBookingData,
         });
-
+        await new Promise(setImmediate); // Flush domain event handlers
         expectSMSWorkflowToBeTriggered({
           sms,
           toNumber: "000",
@@ -231,6 +231,7 @@ describe("handleNewBooking", () => {
         await handleNewBooking({
           bookingData: mockBookingData,
         });
+        await new Promise(setImmediate); // Flush domain event handlers
 
         expectSMSWorkflowToBeNotTriggered({
           sms,
@@ -375,6 +376,7 @@ describe("handleNewBooking", () => {
         await handleNewBooking({
           bookingData: mockBookingData,
         });
+        await new Promise(setImmediate); // Flush domain event handlers
 
         expectSMSWorkflowToBeTriggered({
           sms,
@@ -517,6 +519,7 @@ describe("handleNewBooking", () => {
         await handleNewBooking({
           bookingData: mockBookingData,
         });
+        await new Promise(setImmediate); // Flush domain event handlers
 
         expectSMSWorkflowToBeNotTriggered({
           sms,
@@ -634,6 +637,7 @@ describe("handleNewBooking", () => {
       await handleNewBooking({
         bookingData: mockBookingData,
       });
+      await new Promise(setImmediate); // Flush domain event handlers
 
       expectWorkflowToBeTriggered({
         emailsToReceive: ["booker@example.com"],
@@ -747,6 +751,7 @@ describe("handleNewBooking", () => {
       await handleNewBooking({
         bookingData: mockBookingData,
       });
+      await new Promise(setImmediate); // Flush domain event handlers
 
       expectSMSWorkflowToBeTriggered({
         sms,

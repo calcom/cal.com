@@ -5,6 +5,7 @@
     "paths": {
       "~/*": ["/*"]
     },
+    "experimentalDecorators": true,
     "resolveJsonModule": true,
     "esModuleInterop": true
   },
