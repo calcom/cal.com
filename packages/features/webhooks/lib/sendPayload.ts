@@ -44,24 +44,21 @@ export type TranscriptionGeneratedPayload = {
   };
 };
 
+export type ScheduleUpdatedTimeSlot = {
+  days: number[];
+  startTime: string;
+  endTime: string;
+  date?: string;
+};
+
 export type ScheduleUpdatedPayload = {
   event: string;
   scheduleId: number;
   scheduleName: string;
   timeZone: string | null;
   userId: number;
-  prevAvailability?: {
-    days: number[];
-    startTime: string;
-    endTime: string;
-    date?: string;
-  }[];
-  newAvailability?: {
-    days: number[];
-    startTime: string;
-    endTime: string;
-    date?: string;
-  }[];
+  prevAvailability?: ScheduleUpdatedTimeSlot[];
+  newAvailability?: ScheduleUpdatedTimeSlot[];
 };
 
 export type OOOEntryPayloadType = {

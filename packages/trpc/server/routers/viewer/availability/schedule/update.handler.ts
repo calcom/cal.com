@@ -131,8 +131,10 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
 
   const userAvailability = transformScheduleToAvailabilityForAtom(schedule);
 
-  const { teams } = await UserRepository.findTeamsByUserId({ userId: userSchedule.userId });
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userSchedule.userId });
+  const [{ teams }, orgId] = await Promise.all([
+    UserRepository.findTeamsByUserId({ userId: userSchedule.userId }),
+    getOrgIdFromMemberOrTeamId({ memberId: userSchedule.userId }),
+  ]);
 
   const newAvailability = schedule.availability.map((avail) => ({
     days: avail.days,

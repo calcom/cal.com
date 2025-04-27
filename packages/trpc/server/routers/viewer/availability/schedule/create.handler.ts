@@ -77,8 +77,10 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     });
   }
 
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: user.id });
-  const { teams } = await UserRepository.findTeamsByUserId({ userId: user.id });
+  const [{ teams }, orgId] = await Promise.all([
+    UserRepository.findTeamsByUserId({ userId: user.id }),
+    getOrgIdFromMemberOrTeamId({ memberId: user.id }),
+  ]);
 
   const scheduleData = {
     id: schedule.id,
