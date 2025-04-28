@@ -176,11 +176,15 @@ export class CreditService {
     creditType: CreditType;
   }) {
     const { credits, creditType, bookingUid, smsSid, teamId } = props;
-    let creditBalance: { id: string } | null = null;
+    let creditBalance: { id: string; additionalCredits: number } | null = null;
 
     creditBalance = await prisma.creditBalance.findUnique({
       where: {
         teamId,
+      },
+      select: {
+        id: true,
+        additionalCredits: true,
       },
     });
 
@@ -188,6 +192,10 @@ export class CreditService {
       creditBalance = await prisma.creditBalance.create({
         data: {
           teamId: teamId,
+        },
+        select: {
+          id: true,
+          additionalCredits: true,
         },
       });
     }
