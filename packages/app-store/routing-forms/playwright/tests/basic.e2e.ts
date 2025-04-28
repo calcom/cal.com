@@ -110,6 +110,7 @@ test.describe("Routing Forms", () => {
       await page.click('[data-testid="back-button"]');
       await disableForm(page);
       await gotoRoutingLink({ page, formId });
+      console.log("DEBUG", await page.content());
       await expect(page.locator('h1:has-text("404")')).toBeVisible();
     });
 
