@@ -790,6 +790,7 @@ model SelectedCalendar {
   @@index([integration])
   @@index([externalId])
   @@index([eventTypeId])
+  @@index([credentialId])
 }
 
 enum EventTypeCustomInputType {
