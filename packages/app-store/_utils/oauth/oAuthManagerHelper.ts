@@ -8,6 +8,7 @@ import {
 import { invalidateCredential } from "../invalidateCredential";
 import { getTokenObjectFromCredential } from "./getTokenObjectFromCredential";
 import { markTokenAsExpired } from "./markTokenAsExpired";
+import { updateDelegationCredentialTokenObject } from "./updateDelegationCredentialTokenObject";
 import { updateTokenObject } from "./updateTokenObject";
 
 export const credentialSyncVariables = {
@@ -22,5 +23,6 @@ export const oAuthManagerHelper = {
   markTokenAsExpired,
   invalidateCredential: invalidateCredential,
   getTokenObjectFromCredential,
+  updateDelegationCredentialTokenObject,
   credentialSyncVariables,
 };
