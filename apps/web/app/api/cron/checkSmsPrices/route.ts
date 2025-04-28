@@ -35,18 +35,16 @@ async function postHandler(req: NextRequest) {
 
   let pricesUpdated = 0;
 
-  await Promise.all(
+  const creditService = new CreditService();
+
+  await Promise.allSettled(
     smsLogsWithoutPrice.map(async (log) => {
       if (!log.smsSid) return;
+
       try {
         const price = await twilio.getPriceForSMS(log.smsSid);
-
         const credits = price ? creditService.calculateCreditsFromPrice(price) : null;
-
-        if (!credits) {
-          // price not yet available
-          return;
-        }
+        if (!credits) return;
 
         const updatedLog = await prisma.creditExpenseLog.update({
           where: { id: log.id },
@@ -62,30 +60,21 @@ async function postHandler(req: NextRequest) {
           },
         });
 
-        pricesUpdated++;
-        console.log("after update");
-        if (!creditBalance.teamId) {
-          logger.error("Team id missing in checkSmsPrices");
-          return;
-        }
+        const teamCredits = await creditService.getAllCreditsForTeam(creditBalance.teamId ?? 0);
 
-        const creditService = new CreditService();
-
-        const teamCredits = await creditService.getAllCreditsForTeam(creditBalance.teamId);
-        const remaningMonthlyCredits =
-          teamCredits.totalRemainingMonthlyCredits > 0
-            ? teamCredits.totalRemainingMonthlyCredits - credits
-            : 0;
+        const remainingMonthlyCredits = Math.max(0, teamCredits.totalRemainingMonthlyCredits);
 
         await creditService.handleLowCreditBalance({
-          teamId: creditBalance.teamId,
-          remainingCredits: remaningMonthlyCredits + teamCredits.additionalCredits,
+          teamId: creditBalance.teamId ?? 0,
+          remainingCredits: remainingMonthlyCredits + teamCredits.additionalCredits,
         });
+
+        pricesUpdated++;
       } catch (err) {
-        logger.error(`Failed to fetch/update SMS log ${log.smsSid}. SMS credits set to 0`, err);
+        logger.error(`Failed to process SMS log ${log.smsSid}`, err);
         await prisma.creditExpenseLog.update({
           where: { id: log.id },
-          data: { credits: 0 }, // to avoid getting this error again, set to 0
+          data: { credits: 0 },
         });
       }
     })
