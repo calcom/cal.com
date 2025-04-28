@@ -7697,7 +7697,7 @@
     "/v2/calendars/{calendar}/save": {
       "get": {
         "operationId": "CalendarsController_save",
-        "summary": "Save an oAuth calendar credentials",
+        "summary": "Save Google or Outlook calendar credentials",
         "parameters": [
           {
             "name": "state",
@@ -7741,7 +7741,7 @@
     "/v2/calendars/{calendar}/credentials": {
       "post": {
         "operationId": "CalendarsController_syncCredentials",
-        "summary": "Sync credentials",
+        "summary": "Save Apple calendar credentials",
         "parameters": [
           {
             "name": "calendar",
@@ -7764,6 +7764,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCalendarCredentialsInput"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": ""
@@ -13626,6 +13636,10 @@
             "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
             "example": "https://masterchief.com/argentina/flan/video/9129412"
           },
+          "hideOrganizerEmail": {
+            "type": "boolean",
+            "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
           "locations": {
             "type": "array",
             "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
@@ -15272,6 +15286,10 @@
           "hideCalendarEventDetails": {
             "type": "boolean"
           },
+          "hideOrganizerEmail": {
+            "type": "boolean",
+            "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
           "ownerId": {
             "type": "number",
             "example": 10
@@ -15605,6 +15623,10 @@
             "type": "string",
             "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
             "example": "https://masterchief.com/argentina/flan/video/9129412"
+          },
+          "hideOrganizerEmail": {
+            "type": "boolean",
+            "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
           },
           "locations": {
             "type": "array",
@@ -17410,6 +17432,10 @@
             "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
             "example": "https://masterchief.com/argentina/flan/video/9129412"
           },
+          "hideOrganizerEmail": {
+            "type": "boolean",
+            "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
           "schedulingType": {
             "type": "string",
             "enum": [
@@ -17825,6 +17851,10 @@
           },
           "hideCalendarEventDetails": {
             "type": "boolean"
+          },
+          "hideOrganizerEmail": {
+            "type": "boolean",
+            "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
           },
           "teamId": {
             "type": "number"
@@ -18256,6 +18286,10 @@
             "type": "string",
             "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
             "example": "https://masterchief.com/argentina/flan/video/9129412"
+          },
+          "hideOrganizerEmail": {
+            "type": "boolean",
+            "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
           },
           "hosts": {
             "type": "array",
@@ -20176,6 +20210,21 @@
         "required": [
           "status",
           "data"
+        ]
+      },
+      "CreateCalendarCredentialsInput": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
         ]
       },
       "DeleteCalendarCredentialsInputBodyDto": {
