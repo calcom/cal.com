@@ -8872,6 +8872,180 @@
         "tags": ["OAuth Clients"]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/request": {
+      "post": {
+        "operationId": "OrgTeamsVerifiedResourcesController_requestEmailVerificationCode",
+        "summary": "Request Email Verification Code",
+        "description": "Sends a verification code to the Email.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestEmailVerificationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestEmailVerificationOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Organization Team Verified Resources"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verify": {
+      "post": {
+        "operationId": "OrgTeamsVerifiedResourcesController_verifyEmail",
+        "summary": "Verify an email for a team.",
+        "description": "Use code to verify an email",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyEmailInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedEmailOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Organization Team Verified Resources"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails": {
+      "get": {
+        "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedEmails",
+        "summary": "Get list of verified emails of a team.",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedEmailsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Organization Team Verified Resources"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/{id}": {
+      "get": {
+        "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedEmailById",
+        "summary": "Get verified email of a team by id.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedEmailOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Organization Team Verified Resources"]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/stripe/connect": {
       "get": {
         "operationId": "OrganizationsStripeController_getTeamStripeConnectUrl",
@@ -10683,6 +10857,330 @@
           }
         },
         "tags": ["Teams / Memberships"]
+      }
+    },
+    "/v2/teams/{teamId}/verified-resources/emails/request": {
+      "post": {
+        "operationId": "TeamsVerifiedResourcesController_requestEmailVerificationCode",
+        "summary": "Request Email Verification Code",
+        "description": "Sends a verification code to the Email.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestEmailVerificationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestEmailVerificationOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams Verified Resources"]
+      }
+    },
+    "/v2/teams/{teamId}/verified-resources/emails/verify": {
+      "post": {
+        "operationId": "TeamsVerifiedResourcesController_verifyEmail",
+        "summary": "Verify an email for a team.",
+        "description": "Use code to verify an email",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyEmailInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedEmailOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams Verified Resources"]
+      }
+    },
+    "/v2/teams/{teamId}/verified-resources/emails": {
+      "get": {
+        "operationId": "TeamsVerifiedResourcesController_getVerifiedEmails",
+        "summary": "Get list of verified emails of a team.",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedEmailsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams Verified Resources"]
+      }
+    },
+    "/v2/teams/{teamId}/verified-resources/emails/{id}": {
+      "get": {
+        "operationId": "TeamsVerifiedResourcesController_getVerifiedEmailById",
+        "summary": "Get verified email of a team by id.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedEmailOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams Verified Resources"]
+      }
+    },
+    "/v2/verified-resources/emails/request": {
+      "post": {
+        "operationId": "UserVerifiedResourcesController_requestEmailVerificationCode",
+        "summary": "Request Email Verification Code",
+        "description": "Sends a verification code to the Email.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestEmailVerificationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestEmailVerificationOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Verified Resources"]
+      }
+    },
+    "/v2/verified-resources/emails/verify": {
+      "post": {
+        "operationId": "UserVerifiedResourcesController_verifyEmail",
+        "summary": "Verify an email.",
+        "description": "Use code to verify an email",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyEmailInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedEmailOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Verified Resources"]
+      }
+    },
+    "/v2/verified-resources/emails": {
+      "get": {
+        "operationId": "UserVerifiedResourcesController_getVerifiedEmails",
+        "summary": "Get list of verified emails.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedEmailsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Verified Resources"]
+      }
+    },
+    "/v2/verified-resources/emails/{id}": {
+      "get": {
+        "operationId": "UserVerifiedResourcesController_getVerifiedEmailById",
+        "summary": "Get verified email by id.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedEmailOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Verified Resources"]
       }
     },
     "/v2/webhooks": {
@@ -21371,6 +21869,194 @@
           },
           "data": {
             "$ref": "#/components/schemas/DestinationCalendarsOutputDto"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "RequestEmailVerificationInput": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email to verify.",
+            "example": "acme@example.com"
+          }
+        }
+      },
+      "RequestEmailVerificationOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          }
+        },
+        "required": ["status"]
+      },
+      "VerifyEmailInput": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email to verify.",
+            "example": "https://example.com/avatar.jpg"
+          },
+          "code": {
+            "type": "string",
+            "description": "verification code sent to the email to verify",
+            "example": "https://example.com/avatar.jpg"
+          }
+        }
+      },
+      "WorkingHours": {
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "startTime": {
+            "type": "number"
+          },
+          "endTime": {
+            "type": "number"
+          },
+          "userId": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": ["days", "startTime", "endTime"]
+      },
+      "AvailabilityModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "userId": {
+            "type": "number",
+            "nullable": true
+          },
+          "eventTypeId": {
+            "type": "number",
+            "nullable": true
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "startTime": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "endTime": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "date": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "scheduleId": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": ["id", "days", "startTime", "endTime"]
+      },
+      "ScheduleOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isManaged": {
+            "type": "boolean"
+          },
+          "workingHours": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkingHours"
+            }
+          },
+          "schedule": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AvailabilityModel"
+            }
+          },
+          "availability": {
+            "items": {
+              "type": "array"
+            },
+            "type": "array"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "dateOverrides": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isLastSchedule": {
+            "type": "boolean"
+          },
+          "readOnly": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "isManaged",
+          "workingHours",
+          "schedule",
+          "availability",
+          "timeZone",
+          "isDefault",
+          "isLastSchedule",
+          "readOnly"
+        ]
+      },
+      "VerifiedEmailOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "VerifiedEmailsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
           }
         },
         "required": ["status", "data"]
