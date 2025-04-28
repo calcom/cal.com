@@ -526,65 +526,70 @@ test.describe("Routing Forms", () => {
       const user = await createUserAndLogin({ users, page });
       const routingForm = user.routingForms[0];
       await page.goto(`apps/routing-forms/form-edit/${routingForm.id}`);
-      await page.click('[data-testid="test-preview"]');
 
       //event redirect
+      await page.click('[data-testid="preview-button"]');
       await page.fill('[data-testid="form-field-Test field"]', "event-routing");
-      await page.click('[data-testid="test-routing"]');
-      let routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      await page.click('[data-testid="submit-button"]');
+      let routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       let route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("Event Redirect");
       expect(route).toBe("pro/30min");
+      await page.click('[data-testid="close-results-button"]');
 
       //custom page
+      await page.click('[data-testid="preview-button"]');
       await page.fill('[data-testid="form-field-Test field"]', "custom-page");
-      await page.click('[data-testid="test-routing"]');
-      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      await page.click('[data-testid="submit-button"]');
+      routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("Custom Page");
       expect(route).toBe("Custom Page Result");
+      await page.click('[data-testid="close-results-button"]');
 
       //external redirect
+      await page.click('[data-testid="preview-button"]');
       await page.fill('[data-testid="form-field-Test field"]', "external-redirect");
-      await page.click('[data-testid="test-routing"]');
-      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      await page.click('[data-testid="submit-button"]');
+      routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("External Redirect");
       expect(route).toBe("https://cal.com");
-      await page.click('[data-testid="dialog-rejection"]');
+      await page.click('[data-testid="close-results-button"]');
 
       // Multiselect(Legacy)
-      await page.click('[data-testid="test-preview"]');
+      await page.click('[data-testid="preview-button"]');
       await page.fill('[data-testid="form-field-Test field"]', "doesntmatter");
       await page.click(`[data-testid="form-field-${Identifiers.multi}"]`); // Open dropdown
       await page.click("text=Option-2"); // Select option
-      await page.click('[data-testid="test-routing"]');
-      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      await page.click('[data-testid="submit-button"]');
+      routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("Custom Page");
       expect(route).toBe("Multiselect(Legacy) chosen");
-      await page.click('[data-testid="dialog-rejection"]');
+      await page.click('[data-testid="close-results-button"]');
 
       // Multiselect
-      await page.click('[data-testid="test-preview"]');
+      await page.click('[data-testid="preview-button"]');
       await page.fill('[data-testid="form-field-Test field"]', "doesntmatter");
       await page.click(`[data-testid="form-field-${Identifiers.multiNewFormat}"]`); // Open dropdown
       await page.click("text=Option-2"); // Select option
-      await page.click('[data-testid="test-routing"]');
-      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      await page.click('[data-testid="submit-button"]');
+      routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("Custom Page");
       expect(route).toBe("Multiselect chosen");
-      await page.click('[data-testid="dialog-rejection"]');
+      await page.click('[data-testid="close-results-button"]');
 
       //fallback route
-      await page.click('[data-testid="test-preview"]');
+      await page.click('[data-testid="preview-button"]');
       await page.fill('[data-testid="form-field-Test field"]', "fallback");
-      await page.click('[data-testid="test-routing"]');
-      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      await page.click('[data-testid="submit-button"]');
+      routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("Custom Page");
       expect(route).toBe("Fallback Message");
+      await page.click('[data-testid="close-results-button"]');
     });
   });
 
@@ -1013,8 +1018,5 @@ async function verifyFieldOptionsInRule(options: string[], page: Page) {
 }
 
 async function addNewRoute(page: Page) {
-  const addFieldButton = page.locator('[data-testid="add-field"]');
-
-  // Wait for the button to be visible and stable
-  await addFieldButton.waitFor({ state: "visible", timeout: 10000 });
+  await page.locator('[data-testid="add-field"]').click();
 }

@@ -32,7 +32,9 @@ export const ResultsSection = ({
             <Icon name={icon} className="h-4 w-4" />
           </div>
         )}
-        <h4 className="text-sm font-medium leading-none">{title}</h4>
+        <h4 className="text-sm font-medium leading-none" data-testid="chosen-route-title">
+          {title}
+        </h4>
       </div>
     )}
     <div className="border-subtle rounded-xl border px-3 py-2">{children}</div>
@@ -160,7 +162,7 @@ export const ResultsView = ({
       transition={{ duration: 0.2 }}
       className="space-y-4">
       {chosenRoute.action.type === "externalRedirectUrl" && (
-        <ResultsSection title={chosenRoute.name ?? "Fallback"} icon="zap" data-testid="chosen-route-title">
+        <ResultsSection title={chosenRoute.name ?? "External Redirect"} icon="zap">
           <div className="flex items-center gap-2">
             <div className="border-subtle rounded-lg border p-1">
               <Icon name="external-link" className="h-4 w-4" />
@@ -175,7 +177,7 @@ export const ResultsView = ({
       )}
 
       {chosenRoute.action.type === "eventTypeRedirectUrl" && (
-        <ResultsSection title={chosenRoute.name ?? "Fallback"} icon="zap" data-testid="chosen-route-title">
+        <ResultsSection title={chosenRoute.name ?? "Event Redirect"} icon="zap">
           <div className="flex items-center gap-2">
             <div className="border-subtle rounded-lg border p-1">
               <Icon name="calendar" className="h-4 w-4" />
@@ -190,10 +192,7 @@ export const ResultsView = ({
       )}
 
       {chosenRoute.action.type === "customPageMessage" && (
-        <ResultsSection
-          title={chosenRoute.name ?? "Fallback"}
-          icon="file-text"
-          data-testid="chosen-route-title">
+        <ResultsSection title={chosenRoute.name ?? "Custom Page"} icon="file-text">
           <div className="flex items-center gap-2">
             <div className="border-subtle rounded-lg border p-1">
               <Icon name="file-text" className="h-4 w-4" />

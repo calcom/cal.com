@@ -63,7 +63,7 @@ const FormView = ({
       </form>
       {!renderFooter ? (
         <div className="mt-4">
-          <Button onClick={onSubmit} disabled={!areRequiredFieldsFilled}>
+          <Button onClick={onSubmit} disabled={!areRequiredFieldsFilled} data-testid="submit-button">
             {t("submit")}
           </Button>
         </div>
@@ -269,7 +269,13 @@ export const TestForm = ({
                     size="sm">
                     <span className="sr-only">{t("reset")}</span>
                   </Button>
-                  <Button color="secondary" onClick={onClose} variant="icon" StartIcon="x" size="sm">
+                  <Button
+                    color="secondary"
+                    onClick={onClose}
+                    variant="icon"
+                    StartIcon="x"
+                    size="sm"
+                    data-testid="close-results-button">
                     <span className="sr-only">{t("close")}</span>
                   </Button>
                 </div>
