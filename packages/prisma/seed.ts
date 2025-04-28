@@ -122,6 +122,7 @@ const createTeam = async (team: Prisma.TeamCreateInput) => {
 const associateUserAndOrg = async ({ teamId, userId, role, username }: AssociateUserAndOrgProps) => {
   await prisma.membership.create({
     data: {
+      createdAt: new Date(),
       teamId,
       userId,
       role: role as MembershipRole,
@@ -250,6 +251,7 @@ async function createTeamAndAddUsers(
     const { role = MembershipRole.OWNER, id, username } = user;
     await prisma.membership.create({
       data: {
+        createdAt: new Date(),
         teamId: team.id,
         userId: id,
         role: role,
@@ -567,6 +569,7 @@ async function createOrganizationAndAddMembersAndTeams({
       }
       await prisma.membership.create({
         data: {
+          createdAt: new Date(),
           teamId: team.id,
           userId: member.id,
           role: role,
