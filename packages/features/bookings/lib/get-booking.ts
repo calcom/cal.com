@@ -73,6 +73,9 @@ async function getBooking(prisma: PrismaClient, uid: string, isSeatedEvent?: boo
           name: true,
           bookingSeat: true,
         },
+        orderBy: {
+          id: "asc",
+        },
       },
       user: {
         select: {

@@ -374,9 +374,11 @@ export const getPublicEvent = async (
           some: {
             username,
             isPlatformManaged: false,
-            movedToProfile: {
-              organization: {
-                isPlatform: true,
+            profiles: {
+              some: {
+                organization: {
+                  isPlatform: true,
+                },
               },
             },
           },
