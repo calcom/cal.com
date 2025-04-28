@@ -8,21 +8,22 @@ CREATE TABLE "RoutingFormResponseDenormalized" (
     "formTeamId" INTEGER,
     "formUserId" INTEGER,
     "bookingUid" TEXT,
+    "bookingId" INTEGER,
     "bookingStatus" TEXT,
     "bookingStatusOrder" INTEGER,
     "bookingCreatedAt" TIMESTAMP(3),
     "bookingStartTime" TIMESTAMP(3),
     "bookingEndTime" TIMESTAMP(3),
-    "bookingAttendees" JSONB,
-    -- Extracted fields from bookingAttendees for better filtering
-    "attendeeEmails" TEXT[], -- Array of all attendee emails
-    "attendeeNames" TEXT[], -- Array of all attendee names
     "bookingUserId" INTEGER,
     "bookingUserName" TEXT,
     "bookingUserEmail" TEXT,
     "bookingUserAvatarUrl" TEXT,
     "bookingAssignmentReason" TEXT,
     "bookingAssignmentReasonLowercase" TEXT,
+    -- EventType related fields
+    "eventTypeId" INTEGER,
+    "eventTypeParentId" INTEGER,
+    "eventTypeSchedulingType" TEXT,
     "createdAt" TIMESTAMP(3),
     "utm_source" TEXT,
     "utm_medium" TEXT,
@@ -35,12 +36,13 @@ CREATE TABLE "RoutingFormResponseDenormalized" (
 CREATE INDEX "idx_routing_form_response_id" ON "RoutingFormResponseDenormalized" (id);
 CREATE INDEX "idx_routing_form_response_form_id" ON "RoutingFormResponseDenormalized" ("formId");
 CREATE INDEX "idx_routing_form_response_created_at" ON "RoutingFormResponseDenormalized" ("createdAt");
-CREATE INDEX "idx_routing_form_response_booking_uid" ON "RoutingFormResponseDenormalized" ("bookingUid");
+CREATE INDEX "idx_routing_form_response_booking_id" ON "RoutingFormResponseDenormalized" ("bookingId");
+CREATE INDEX "idx_routing_form_response_booking_user_id" ON "RoutingFormResponseDenormalized" ("bookingUserId");
 -- Add GIN index for JSONB column for faster searching
 CREATE INDEX "idx_response_by_field_id" ON "RoutingFormResponseDenormalized" USING gin ("responseByFieldId");
--- Add GIN indexes for array columns
-CREATE INDEX "idx_attendee_emails" ON "RoutingFormResponseDenormalized" USING gin ("attendeeEmails");
-CREATE INDEX "idx_attendee_names" ON "RoutingFormResponseDenormalized" USING gin ("attendeeNames");
+
+-- Add composite index for EventType hierarchy
+CREATE INDEX "idx_event_type_hierarchy" ON "RoutingFormResponseDenormalized" ("eventTypeId", "eventTypeParentId");
 
 -- Function to calculate bookingStatusOrder
 CREATE OR REPLACE FUNCTION calculate_booking_status_order(status TEXT)
@@ -75,53 +77,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Function to get attendee data for a booking
-CREATE OR REPLACE FUNCTION get_booking_attendee_data(booking_id INTEGER)
-RETURNS TABLE(
-    attendees JSONB,
-    attendee_emails TEXT[],
-    attendee_names TEXT[]
-) AS $$
-DECLARE
-    attendees_json JSONB;
-BEGIN
-    -- Get the attendees JSON with lowercased values
-    attendees_json := (
-        SELECT COALESCE(
-            json_agg(
-                json_build_object(
-                    'name', LOWER(a.name),
-                    'email', LOWER(a.email)
-                )
-            )::jsonb,
-            '[]'::jsonb
-        )
-        FROM "Attendee" a
-        WHERE a."bookingId" = booking_id
-    );
-
-    -- Return the results
-    RETURN QUERY
-    SELECT
-        attendees_json,
-        COALESCE(
-            ARRAY_AGG(DISTINCT LOWER(value->>'email')),
-            ARRAY[]::TEXT[]
-        ),
-        COALESCE(
-            ARRAY_AGG(DISTINCT LOWER(value->>'name')),
-            ARRAY[]::TEXT[]
-        )
-    FROM jsonb_array_elements(attendees_json)
-    GROUP BY attendees_json;
-END;
-$$ LANGUAGE plpgsql;
-
 -- Function to refresh a single form response's data
 CREATE OR REPLACE FUNCTION refresh_routing_form_response_denormalized(response_id INTEGER)
 RETURNS VOID AS $$
-DECLARE
-    attendee_data RECORD;
 BEGIN
     -- Delete existing entry if any
     DELETE FROM "RoutingFormResponseDenormalized" WHERE id = response_id;
@@ -136,20 +94,21 @@ BEGIN
         "formTeamId",
         "formUserId",
         "bookingUid",
+        "bookingId",
         "bookingStatus",
         "bookingStatusOrder",
         "bookingCreatedAt",
         "bookingStartTime",
         "bookingEndTime",
-        "bookingAttendees",
-        "attendeeEmails",
-        "attendeeNames",
         "bookingUserId",
         "bookingUserName",
         "bookingUserEmail",
         "bookingUserAvatarUrl",
         "bookingAssignmentReason",
         "bookingAssignmentReasonLowercase",
+        "eventTypeId",
+        "eventTypeParentId",
+        "eventTypeSchedulingType",
         "createdAt",
         "utm_source",
         "utm_medium",
@@ -166,14 +125,12 @@ BEGIN
         f."teamId" as "formTeamId",
         f."userId" as "formUserId",
         b.uid as "bookingUid",
+        b.id as "bookingId",
         b.status as "bookingStatus",
         calculate_booking_status_order(b.status::text) as "bookingStatusOrder",
         b."createdAt" as "bookingCreatedAt",
         b."startTime" as "bookingStartTime",
         b."endTime" as "bookingEndTime",
-        ad.attendees as "bookingAttendees",
-        ad.attendee_emails as "attendeeEmails",
-        ad.attendee_names as "attendeeNames",
         b."userId" as "bookingUserId",
         u.name as "bookingUserName",
         u.email as "bookingUserEmail",
@@ -196,6 +153,9 @@ BEGIN
             ),
             ''
         ) as "bookingAssignmentReasonLowercase",
+        et.id as "eventTypeId",
+        et."parentId" as "eventTypeParentId",
+        et."schedulingType" as "eventTypeSchedulingType",
         r."createdAt",
         t.utm_source,
         t.utm_medium,
@@ -205,9 +165,9 @@ BEGIN
     FROM "App_RoutingForms_FormResponse" r
     LEFT JOIN "App_RoutingForms_Form" f ON r."formId" = f.id
     LEFT JOIN "Booking" b ON b.uid = r."routedToBookingUid"
+    LEFT JOIN "EventType" et ON b."eventTypeId" = et.id
     LEFT JOIN "users" u ON b."userId" = u.id
     LEFT JOIN "Tracking" t ON t."bookingId" = b.id
-    LEFT JOIN LATERAL get_booking_attendee_data(b.id) ad ON true
     WHERE r.id = response_id;
 END;
 $$ LANGUAGE plpgsql;
@@ -216,7 +176,12 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION trigger_refresh_routing_form_response_denormalized()
 RETURNS TRIGGER AS $$
 BEGIN
-    PERFORM refresh_routing_form_response_denormalized(NEW.id);
+    BEGIN
+        PERFORM refresh_routing_form_response_denormalized(NEW.id);
+    EXCEPTION WHEN OTHERS THEN
+        -- Log the error but don't fail the original operation
+        RAISE WARNING 'DENORM_ERROR: RoutingFormResponseDenormalized - FormResponse refresh failed for id %. Error: %', NEW.id, SQLERRM;
+    END;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -265,12 +230,7 @@ CREATE TRIGGER routing_form_update_trigger
 -- Trigger function for booking changes
 CREATE OR REPLACE FUNCTION trigger_refresh_routing_form_response_denormalized_booking()
 RETURNS TRIGGER AS $$
-DECLARE
-    attendee_data RECORD;
 BEGIN
-    -- Get attendee data
-    SELECT * INTO attendee_data FROM get_booking_attendee_data(NEW.id);
-
     -- Update all responses linked to this booking
     UPDATE "RoutingFormResponseDenormalized" rfrd
     SET
@@ -278,11 +238,8 @@ BEGIN
         "bookingStatusOrder" = calculate_booking_status_order(NEW.status::text),
         "bookingCreatedAt" = NEW."createdAt",
         "bookingStartTime" = NEW."startTime",
-        "bookingEndTime" = NEW."endTime",
-        "bookingAttendees" = attendee_data.attendees,
-        "attendeeEmails" = attendee_data.attendee_emails,
-        "attendeeNames" = attendee_data.attendee_names
-    WHERE rfrd."bookingUid" = NEW.uid;
+        "bookingEndTime" = NEW."endTime"
+    WHERE rfrd."bookingId" = NEW.id;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -313,6 +270,28 @@ CREATE TRIGGER user_update_trigger_for_routing_form
     AFTER UPDATE OF name, email, "avatarUrl" ON users
     FOR EACH ROW
     EXECUTE FUNCTION trigger_refresh_routing_form_response_denormalized_user();
+
+-- Trigger function for EventType changes
+CREATE OR REPLACE FUNCTION trigger_refresh_routing_form_response_denormalized_event_type()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Update all responses linked to this event type through bookings
+    UPDATE "RoutingFormResponseDenormalized" rfrd
+    SET
+        "eventTypeParentId" = NEW."parentId",
+        "eventTypeSchedulingType" = NEW."schedulingType"
+    FROM "Booking" b
+    WHERE b."eventTypeId" = NEW.id
+    AND rfrd."bookingId" = b.id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger for EventType table
+CREATE TRIGGER event_type_update_trigger_for_routing_form
+    AFTER UPDATE OF "parentId", "schedulingType" ON "EventType"
+    FOR EACH ROW
+    EXECUTE FUNCTION trigger_refresh_routing_form_response_denormalized_event_type();
 
 -- Populate the table with initial data
 -- DELETE FROM "RoutingFormResponseDenormalized";

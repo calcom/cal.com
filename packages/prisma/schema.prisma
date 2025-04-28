@@ -642,69 +642,70 @@ enum BookingStatus {
 }
 
 model Booking {
-  id                           Int                            @id @default(autoincrement())
-  uid                          String                         @unique
+  id                              Int                               @id @default(autoincrement())
+  uid                             String                            @unique
   // (optional) UID based on slot start/end time & email against duplicates
-  idempotencyKey               String?                        @unique
-  user                         User?                          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                       Int?
+  idempotencyKey                  String?                           @unique
+  user                            User?                             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                          Int?
   // User's email at the time of booking
   /// @zod.custom(imports.emailSchema)
-  userPrimaryEmail             String?
-  references                   BookingReference[]
-  eventType                    EventType?                     @relation(fields: [eventTypeId], references: [id])
-  eventTypeId                  Int?
-  title                        String
-  description                  String?
-  customInputs                 Json?
+  userPrimaryEmail                String?
+  references                      BookingReference[]
+  eventType                       EventType?                        @relation(fields: [eventTypeId], references: [id])
+  eventTypeId                     Int?
+  title                           String
+  description                     String?
+  customInputs                    Json?
   /// @zod.custom(imports.bookingResponses)
-  responses                    Json?
-  startTime                    DateTime
-  endTime                      DateTime
-  attendees                    Attendee[]
-  location                     String?
-  createdAt                    DateTime                       @default(now())
-  updatedAt                    DateTime?                      @updatedAt
-  status                       BookingStatus                  @default(ACCEPTED)
-  paid                         Boolean                        @default(false)
-  payment                      Payment[]
-  destinationCalendar          DestinationCalendar?           @relation(fields: [destinationCalendarId], references: [id])
-  destinationCalendarId        Int?
-  cancellationReason           String?
-  rejectionReason              String?
-  reassignReason               String?
-  reassignBy                   User?                          @relation("reassignByUser", fields: [reassignById], references: [id])
-  reassignById                 Int?
-  dynamicEventSlugRef          String?
-  dynamicGroupSlugRef          String?
-  rescheduled                  Boolean?
-  fromReschedule               String?
-  recurringEventId             String?
-  smsReminderNumber            String?
-  workflowReminders            WorkflowReminder[]
-  scheduledJobs                String[] // scheduledJobs is deprecated, please use scheduledTriggers instead
-  seatsReferences              BookingSeat[]
+  responses                       Json?
+  startTime                       DateTime
+  endTime                         DateTime
+  attendees                       Attendee[]
+  location                        String?
+  createdAt                       DateTime                          @default(now())
+  updatedAt                       DateTime?                         @updatedAt
+  status                          BookingStatus                     @default(ACCEPTED)
+  paid                            Boolean                           @default(false)
+  payment                         Payment[]
+  destinationCalendar             DestinationCalendar?              @relation(fields: [destinationCalendarId], references: [id])
+  destinationCalendarId           Int?
+  cancellationReason              String?
+  rejectionReason                 String?
+  reassignReason                  String?
+  reassignBy                      User?                             @relation("reassignByUser", fields: [reassignById], references: [id])
+  reassignById                    Int?
+  dynamicEventSlugRef             String?
+  dynamicGroupSlugRef             String?
+  rescheduled                     Boolean?
+  fromReschedule                  String?
+  recurringEventId                String?
+  smsReminderNumber               String?
+  workflowReminders               WorkflowReminder[]
+  scheduledJobs                   String[] // scheduledJobs is deprecated, please use scheduledTriggers instead
+  seatsReferences                 BookingSeat[]
   /// @zod.custom(imports.bookingMetadataSchema)
-  metadata                     Json?
-  isRecorded                   Boolean                        @default(false)
-  iCalUID                      String?                        @default("")
-  iCalSequence                 Int                            @default(0)
-  instantMeetingToken          InstantMeetingToken?
-  rating                       Int?
-  ratingFeedback               String?
-  noShowHost                   Boolean?                       @default(false)
-  scheduledTriggers            WebhookScheduledTriggers[]
-  oneTimePassword              String?                        @unique @default(uuid())
+  metadata                        Json?
+  isRecorded                      Boolean                           @default(false)
+  iCalUID                         String?                           @default("")
+  iCalSequence                    Int                               @default(0)
+  instantMeetingToken             InstantMeetingToken?
+  rating                          Int?
+  ratingFeedback                  String?
+  noShowHost                      Boolean?                          @default(false)
+  scheduledTriggers               WebhookScheduledTriggers[]
+  oneTimePassword                 String?                           @unique @default(uuid())
   /// @zod.email()
-  cancelledBy                  String?
+  cancelledBy                     String?
   /// @zod.email()
-  rescheduledBy                String?
+  rescheduledBy                   String?
   // Ah, made a typo here. Should have been routedFromRoutingFormRe"s"ponse. Live with it :(
-  routedFromRoutingFormReponse App_RoutingForms_FormResponse?
-  assignmentReason             AssignmentReason[]
-  internalNote                 BookingInternalNote[]
-  creationSource               CreationSource?
-  tracking                     Tracking?
+  routedFromRoutingFormReponse    App_RoutingForms_FormResponse?
+  assignmentReason                AssignmentReason[]
+  internalNote                    BookingInternalNote[]
+  creationSource                  CreationSource?
+  tracking                        Tracking?
+  RoutingFormResponseDenormalized RoutingFormResponseDenormalized[]
 
   @@index([eventTypeId])
   @@index([userId])
@@ -1046,6 +1047,7 @@ model App_RoutingForms_Form {
   updatedBy                User?                                       @relation("updated-routing-form", fields: [updatedById], references: [id], onDelete: SetNull)
   updatedById              Int?
   // This is the user who created the form and also the user who has read-write access to the form
+  // If teamId is set, the members of the team would also have access to form readOnly or read-write depending on their permission level as team member.
   // If teamId is set, the members of the team would also have access to form readOnly or read-write depending on their permission level as team member.
   userId                   Int
   team                     Team?                                       @relation(fields: [teamId], references: [id], onDelete: Cascade)
@@ -2084,4 +2086,45 @@ model WorkflowOptOutContact {
   updatedAt DateTime            @updatedAt
 
   @@unique([type, value])
+}
+
+model RoutingFormResponseDenormalized {
+  id                               Int       @id
+  response                         Json?     @db.JsonB
+  responseByFieldId                Json?     @db.JsonB
+  formId                           String?
+  formName                         String?
+  formTeamId                       Int?
+  formUserId                       Int?
+  bookingUid                       String?
+  bookingId                        Int?
+  booking                          Booking?  @relation(fields: [bookingId], references: [id])
+  bookingStatus                    String?
+  bookingStatusOrder               Int?
+  bookingCreatedAt                 DateTime? @db.Timestamp(3)
+  bookingStartTime                 DateTime? @db.Timestamp(3)
+  bookingEndTime                   DateTime? @db.Timestamp(3)
+  bookingUserId                    Int?
+  bookingUserName                  String?
+  bookingUserEmail                 String?
+  bookingUserAvatarUrl             String?
+  bookingAssignmentReason          String?
+  bookingAssignmentReasonLowercase String?
+  eventTypeId                      Int?
+  eventTypeParentId                Int?
+  eventTypeSchedulingType          String?
+  createdAt                        DateTime  @db.Timestamp(3)
+  utm_source                       String?
+  utm_medium                       String?
+  utm_campaign                     String?
+  utm_term                         String?
+  utm_content                      String?
+
+  @@index([id])
+  @@index([formId])
+  @@index([createdAt])
+  @@index([bookingUid])
+  @@index([bookingId])
+  @@index([bookingUserId])
+  @@index([eventTypeId, eventTypeParentId])
 }
