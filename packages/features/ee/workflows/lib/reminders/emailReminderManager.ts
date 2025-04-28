@@ -177,6 +177,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     emailContent = emailReminderTemplate({
       isEditingMode: false,
       locale: evt.organizer.language.locale,
+      t: await getTranslation(evt.organizer.language.locale || "en", "common"),
       action,
       timeFormat: evt.organizer.timeFormat,
       startTime,
@@ -193,6 +194,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       isEditingMode: true,
       locale: evt.organizer.language.locale,
       action,
+      t: await getTranslation(evt.organizer.language.locale || "en", "common"),
       timeFormat: evt.organizer.timeFormat,
       startTime,
       endTime,
@@ -249,7 +251,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     return {
       subject: emailContent.emailSubject,
       html: emailContent.emailBody,
-      replyTo: evt.organizer.email,
+      ...(!evt.hideOrganizerEmail && { replyTo: evt?.eventType?.customReplyToEmail || evt.organizer.email }),
       attachments,
       sender,
     };
@@ -387,24 +389,17 @@ export const deleteScheduledEmailReminder = async (reminderId: number) => {
   }
 
   const { uuid, referenceId } = workflowReminder;
+  if (uuid) {
+    const taskId = await tasker.cancelWithReference(uuid, "sendWorkflowEmails");
+    if (taskId) {
+      await prisma.workflowReminder.delete({
+        where: {
+          id: reminderId,
+        },
+      });
 
-  const task = await prisma.task.findFirst({
-    where: {
-      type: "sendWorkflowEmails",
-      referenceUid: uuid,
-    },
-  });
-
-  if (task) {
-    await tasker.cancel(task.id);
-
-    await prisma.workflowReminder.delete({
-      where: {
-        id: reminderId,
-      },
-    });
-
-    return;
+      return;
+    }
   }
 
   /**
