@@ -110,7 +110,7 @@ test.describe("Routing Forms", () => {
       await page.click('[data-testid="back-button"]');
       await disableForm(page);
       await gotoRoutingLink({ page, formId });
-      await expect(page.getByTestId(`404-page`)).toBeVisible();
+      await expect(page.locator("text=This page could not be found.")).toBeVisible();
     });
 
     test("recently added form appears first in the list", async ({ page }) => {
