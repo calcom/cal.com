@@ -209,6 +209,7 @@ export interface CalendarEvent {
   schedulingType?: SchedulingType | null;
   iCalUID?: string | null;
   iCalSequence?: number | null;
+  hideOrganizerEmail?: boolean;
 
   // It has responses to all the fields(system + user)
   responses?: CalEventResponses | null;
@@ -222,6 +223,7 @@ export interface CalendarEvent {
   oneTimePassword?: string | null;
   delegationCredentialId?: string | null;
   domainWideDelegationCredentialId?: string | null;
+  customReplyToEmail?: string | null;
 }
 
 export interface EntryPoint {
