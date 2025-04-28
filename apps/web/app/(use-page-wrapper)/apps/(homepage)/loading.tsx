@@ -5,10 +5,10 @@ export default function Loading() {
         <div className="bg-default sticky top-0 z-10 mb-0 flex items-center py-2 md:mb-6 md:mt-0 lg:mb-8">
           <div className="w-full truncate ltr:mr-4 rtl:ml-4 md:block">
             <h3 className="font-cal text-emphasis max-w-28 sm:max-w-72 md:max-w-80 hidden truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full">
-              <div className="h-6 w-40 rounded bg-gray-200" />
+              <span className="block h-6 w-40 rounded bg-gray-200" />
             </h3>
             <p className="text-default hidden text-sm md:block">
-              <div className="mt-1 h-4 w-64 rounded bg-gray-200" />
+              <span className="mt-1 block h-4 w-64 rounded bg-gray-200" />
             </p>
           </div>
           <div className="flex w-full flex-col pt-4 md:flex-row md:justify-between md:pt-0 lg:w-auto">
