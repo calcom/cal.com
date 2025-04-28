@@ -13,8 +13,8 @@ export class OrganizationsTeamsRoutingFormsResponsesRepository {
     take: number,
     options?: {
       sortCreatedAt?: "asc" | "desc";
-      afterCreatedAt?: Date;
-      beforeCreatedAt?: Date;
+      afterCreatedAt?: string;
+      beforeCreatedAt?: string;
       routedToBookingUid?: string;
     }
   ) {

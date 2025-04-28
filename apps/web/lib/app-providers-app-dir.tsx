@@ -6,7 +6,6 @@ import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps } from "next/app";
 import type { ReadonlyURLSearchParams } from "next/navigation";
 import { usePathname, useSearchParams } from "next/navigation";
-import type { ReactNode } from "react";
 
 import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
@@ -38,7 +37,6 @@ export type AppProps = Omit<
   Component: NextAppProps["Component"] & {
     requiresLicense?: boolean;
     isBookingPage?: boolean | ((arg: { router: NextAppProps["router"] }) => boolean);
-    getLayout?: (page: React.ReactElement) => ReactNode;
     PageWrapper?: (props: AppProps) => JSX.Element;
   };
 
@@ -114,19 +112,21 @@ const AppProviders = (props: PageWrapperProps) => {
   const isThemeSupported = useIsThemeSupported();
 
   const RemainingProviders = (
-    <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <TooltipProvider>
-        {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
-        <CalcomThemeProvider
-          nonce={props.nonce}
-          isThemeSupported={isThemeSupported}
-          isBookingPage={props.isBookingPage || isBookingPage}>
-          <FeatureFlagsProvider>
-            <OrgBrandProvider>{props.children}</OrgBrandProvider>
-          </FeatureFlagsProvider>
-        </CalcomThemeProvider>
-      </TooltipProvider>
-    </EventCollectionProvider>
+    <>
+      <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
+        <TooltipProvider>
+          {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
+          <CalcomThemeProvider
+            nonce={props.nonce}
+            isThemeSupported={isThemeSupported}
+            isBookingPage={props.isBookingPage || isBookingPage}>
+            <FeatureFlagsProvider>
+              <OrgBrandProvider>{props.children}</OrgBrandProvider>
+            </FeatureFlagsProvider>
+          </CalcomThemeProvider>
+        </TooltipProvider>
+      </EventCollectionProvider>
+    </>
   );
 
   if (props.isBookingPage || isBookingPage) {

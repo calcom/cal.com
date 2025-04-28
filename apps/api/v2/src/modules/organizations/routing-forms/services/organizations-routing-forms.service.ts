@@ -14,10 +14,10 @@ export class OrganizationsRoutingFormsService {
       name?: string;
       sortCreatedAt?: "asc" | "desc";
       sortUpdatedAt?: "asc" | "desc";
-      afterCreatedAt?: Date;
-      beforeCreatedAt?: Date;
-      afterUpdatedAt?: Date;
-      beforeUpdatedAt?: Date;
+      afterCreatedAt?: string;
+      beforeCreatedAt?: string;
+      afterUpdatedAt?: string;
+      beforeUpdatedAt?: string;
       teamIds?: number[];
     }
   ) {

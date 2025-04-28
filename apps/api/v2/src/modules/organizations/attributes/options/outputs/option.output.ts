@@ -1,8 +1,9 @@
-import { BaseOutputDTO } from "@/modules/organizations/attributes/index/outputs/base.output";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsInt, IsEnum, IsBoolean } from "class-validator";
+import { Expose } from "class-transformer";
+import { IsString } from "class-validator";
 
 export class OptionOutput {
+  @Expose()
   @IsString()
   @ApiProperty({
     type: String,
@@ -12,10 +13,12 @@ export class OptionOutput {
   })
   id!: string;
 
+  @Expose()
   @IsString()
   @ApiProperty({ type: String, required: true, description: "The ID of the attribute", example: "attr_id" })
   attributeId!: string;
 
+  @Expose()
   @IsString()
   @ApiProperty({
     type: String,
@@ -25,6 +28,7 @@ export class OptionOutput {
   })
   value!: string;
 
+  @Expose()
   @IsString()
   @ApiProperty({
     type: String,
