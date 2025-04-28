@@ -44,6 +44,7 @@ import { AxiosLikeResponseToFetchResponse } from "../../_utils/oauth/AxiosLikeRe
 import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
 import { markTokenAsExpired } from "../../_utils/oauth/markTokenAsExpired";
+import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
 import { OAuth2UniversalSchema } from "../../_utils/oauth/universalSchema";
 import { metadata } from "../_metadata";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
@@ -177,25 +178,12 @@ export default class GoogleCalendarService implements Calendar {
       },
       updateTokenObject: async (token: any): Promise<void> => {
         if (credential.delegatedTo?.id && credential.userId) {
-          const { key } = await prisma.delegationCredentialAccesssToken.upsert({
-            where: {
-              delegationCredentialId_userId: {
-                delegationCredentialId: credential.delegatedTo.id,
-                userId: credential.userId,
-              },
-            },
-            create: {
-              key: token,
-              delegationCredentialId: credential.delegatedTo.id,
-              userId: credential.userId,
-            },
-            update: {
-              key: token,
-            },
+          await oAuthManagerHelper.updateUserDelegationCredentialTokenObject({
+            delegationCredentialId: credential.delegatedTo.id,
+            userId: credential.userId,
+            tokenObject: token,
           });
-
-          // Update cached credential
-          this.credential.key = key;
+          this.credential.key = token;
           return;
         }
 
