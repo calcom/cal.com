@@ -19,12 +19,6 @@ generator zod {
   relationModel = "default"
 }
 
-generator kysely {
-  provider = "prisma-kysely"
-  output   = "../kysely"
-  fileName = "types.ts"
-}
-
 generator enums {
   provider = "ts-node --transpile-only ./enum-generator"
 }
@@ -171,6 +165,9 @@ model EventType {
   maxLeadThreshold                        Int?
   selectedCalendars                       SelectedCalendar[]
   allowReschedulingPastBookings           Boolean                   @default(false)
+  hideOrganizerEmail                      Boolean                   @default(false)
+  /// @zod.custom(imports.emailSchema)
+  customReplyToEmail                      String?
 
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                   Json?
@@ -385,6 +382,7 @@ model User {
   createdOrganizationOnboardings OrganizationOnboarding[]     @relation("CreatedOrganizationOnboardings")
   filterSegments                 FilterSegment[]
   ratings                        Rating[]
+  whitelistWorkflows             Boolean                      @default(false)
 
   @@unique([email])
   @@unique([email, username])
@@ -793,6 +791,7 @@ model SelectedCalendar {
   @@index([integration])
   @@index([externalId])
   @@index([eventTypeId])
+  @@index([credentialId])
 }
 
 enum EventTypeCustomInputType {
@@ -2084,4 +2083,20 @@ model Rating {
 
   @@unique([userId, templateId])
   @@index([templateId])
+}
+
+enum WorkflowContactType {
+  PHONE
+  EMAIL
+}
+
+model WorkflowOptOutContact {
+  id        Int                 @id @default(autoincrement())
+  type      WorkflowContactType
+  value     String
+  optedOut  Boolean
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  @@unique([type, value])
 }

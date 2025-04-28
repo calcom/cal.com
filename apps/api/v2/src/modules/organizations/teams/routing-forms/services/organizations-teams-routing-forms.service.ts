@@ -15,10 +15,10 @@ export class OrganizationsTeamsRoutingFormsService {
       name?: string;
       sortCreatedAt?: "asc" | "desc";
       sortUpdatedAt?: "asc" | "desc";
-      afterCreatedAt?: Date;
-      beforeCreatedAt?: Date;
-      afterUpdatedAt?: Date;
-      beforeUpdatedAt?: Date;
+      afterCreatedAt?: string;
+      beforeCreatedAt?: string;
+      afterUpdatedAt?: string;
+      beforeUpdatedAt?: string;
     }
   ) {
     return this.routingFormsRepository.getTeamRoutingForms(teamId, skip, take, options);

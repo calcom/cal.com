@@ -82,7 +82,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     }
 
     if (allLimitsBlocked) {
-      throw new ThrottlerException("Too many requests. Please try again later.");
+      throw new ThrottlerException("CustomThrottlerGuard - Too many requests. Please try again later.");
     }
 
     return true;
@@ -96,7 +96,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
 
     const { isBlocked } = await this.incrementRateLimit(tracker, rateLimit, response);
     if (isBlocked) {
-      throw new ThrottlerException("Too many requests. Please try again later.");
+      throw new ThrottlerException("CustomThrottlerGuard - Too many requests. Please try again later.");
     }
 
     return true;
@@ -150,7 +150,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     });
 
     if (!apiKeyRecord) {
-      throw new UnauthorizedException("Invalid API Key");
+      throw new UnauthorizedException("CustomThrottlerGuard - Invalid API Key");
     }
 
     rateLimits = await this.dbRead.prisma.rateLimit.findMany({
