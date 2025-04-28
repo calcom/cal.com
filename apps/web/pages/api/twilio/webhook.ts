@@ -100,7 +100,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           return res.status(200).send(`SMS are free for organziations. Credits set to 0`);
         }
 
-        const credits = await twilio.getCreditsForSMS(smsSid);
+        const price = await twilio.getPriceForSMS(smsSid);
+
+        const credits = price ? creditService.calculateCreditsFromPrice(price) : null;
 
         const chargedTeamId = await creditService.chargeCredits({
           credits,

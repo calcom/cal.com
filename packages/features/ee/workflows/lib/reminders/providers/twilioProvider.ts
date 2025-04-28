@@ -235,15 +235,10 @@ export async function getCountryCodeForNumber(phoneNumber: string) {
   return countryCode;
 }
 
-export async function getCreditsForSMS(smsSid: string) {
+export async function getPriceForSMS(smsSid: string) {
   const twilio = createTwilioClient();
-
   const message = await twilio.messages(smsSid).fetch();
-
-  const twilioPrice = message.price ? Math.abs(parseFloat(message.price)) : 0;
-  const price = twilioPrice * 1.8;
-  const credits = Math.ceil(price * 100);
-  return credits || null;
+  return Math.abs(parseFloat(message.price));
 }
 
 export async function validateWebhookRequest({

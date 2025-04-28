@@ -39,7 +39,9 @@ async function postHandler(req: NextRequest) {
     smsLogsWithoutPrice.map(async (log) => {
       if (!log.smsSid) return;
       try {
-        const credits = await twilio.getCreditsForSMS(log.smsSid);
+        const price = await twilio.getPriceForSMS(log.smsSid);
+
+        const credits = price ? creditService.calculateCreditsFromPrice(price) : null;
 
         if (!credits) {
           // price not yet available

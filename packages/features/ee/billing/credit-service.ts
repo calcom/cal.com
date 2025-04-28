@@ -366,6 +366,13 @@ export class CreditService {
     return totalMonthlyCredits;
   }
 
+  calculateCreditsFromPrice(price: number) {
+    const twilioPrice = price;
+    const priceWithMarkUp = twilioPrice * 1.8;
+    const credits = Math.ceil(priceWithMarkUp * 100);
+    return credits || null;
+  }
+
   async getAllCreditsForTeam(teamId: number) {
     const creditBalance = await prisma.creditBalance.findUnique({
       where: {
