@@ -110,7 +110,7 @@ test.describe("Routing Forms", () => {
       await page.click('[data-testid="back-button"]');
       await disableForm(page);
       await gotoRoutingLink({ page, formId });
-      await expect(page.getByTestId(`404-page`)).toBeVisible();
+      await expect(page.locator("text=This page could not be found.")).toBeVisible();
     });
 
     test("recently added form appears first in the list", async ({ page }) => {
@@ -373,7 +373,6 @@ test.describe("Routing Forms", () => {
     test("Routing Link - Reporting and CSV Download ", async ({ page, users }) => {
       const user = await createUserAndLogin({ users, page });
       const routingForm = user.routingForms[0];
-      test.setTimeout(120000);
       // Fill form when you are logged out
       await users.logout();
 
@@ -429,14 +428,12 @@ test.describe("Routing Forms", () => {
       ]);
 
       await page.goto(`apps/routing-forms/route-builder/${routingForm.id}`);
-      const [download] = await Promise.all([
-        // Start waiting for the download
-        page.waitForEvent("download"),
-        // Open the dropdown
-        page.locator('[data-testid="form-dropdown"]').nth(1).click(),
-        // Perform the action that initiates download
-        page.locator('[data-testid="download-responses"]').click(),
-      ]);
+      await page.waitForLoadState("networkidle");
+
+      const downloadPromise = page.waitForEvent("download");
+      await page.locator('[data-testid="form-dropdown"]').nth(1).click();
+      await page.locator('[data-testid="download-responses"]').click();
+      const download = await downloadPromise;
       const downloadStream = await download.createReadStream();
       expect(download.suggestedFilename()).toEqual(`${routingForm.name}-${routingForm.id}.csv`);
       const csv: string = await new Promise((resolve) => {
@@ -1015,5 +1012,5 @@ async function verifyFieldOptionsInRule(options: string[], page: Page) {
 }
 
 async function addNewRoute(page: Page) {
-  await page.locator('[data-testid="add-field"]').click();
+  await page.locator('[data-testid="add-route-button"]').click();
 }
