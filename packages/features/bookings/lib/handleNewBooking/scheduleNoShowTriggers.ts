@@ -19,15 +19,15 @@ type ScheduleNoShowTriggersArgs = {
   isDryRun?: boolean;
 };
 
-const getHostsTriggerEvent = (isCalVideoLocation: boolean, isGoogleMeetLocation: boolean) => {
+const getHostsTriggerEvent = (isCalVideoLocation: boolean, isLocationSupportedByNoShowTriggers: boolean) => {
   if (isCalVideoLocation) return WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW;
-  else if (isGoogleMeetLocation) return WebhookTriggerEvents.AFTER_HOSTS_GOOGLE_MEET_NO_SHOW;
+  else if (isLocationSupportedByNoShowTriggers) return WebhookTriggerEvents.AFTER_HOSTS_CALL_NO_SHOW;
   else throw new Error("Invalid location");
 };
 
-const getGuestsTriggerEvent = (isCalVideoLocation: boolean, isGoogleMeetLocation: boolean) => {
+const getGuestsTriggerEvent = (isCalVideoLocation: boolean, isLocationSupportedByNoShowTriggers: boolean) => {
   if (isCalVideoLocation) return WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW;
-  else if (isGoogleMeetLocation) return WebhookTriggerEvents.AFTER_GUESTS_GOOGLE_MEET_NO_SHOW;
+  else if (isLocationSupportedByNoShowTriggers) return WebhookTriggerEvents.AFTER_GUESTS_CALL_NO_SHOW;
   else throw new Error("Invalid location");
 };
 
@@ -44,14 +44,14 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
   } = args;
 
   const isCalVideoLocation = booking.location === DailyLocationType || booking.location?.trim() === "";
-  const isGoogleMeetLocation = booking.location === MeetLocationType;
+  const isLocationSupportedByNoShowTriggers = booking.location === MeetLocationType;
 
-  const isValidLocation = isCalVideoLocation || isGoogleMeetLocation;
+  const isValidLocation = isCalVideoLocation || isLocationSupportedByNoShowTriggers;
 
   if (isDryRun || !isValidLocation) return;
 
-  const hostsTriggerEvent = getHostsTriggerEvent(isCalVideoLocation, isGoogleMeetLocation);
-  const guestsTriggerEvent = getGuestsTriggerEvent(isCalVideoLocation, isGoogleMeetLocation);
+  const hostsTriggerEvent = getHostsTriggerEvent(isCalVideoLocation, isLocationSupportedByNoShowTriggers);
+  const guestsTriggerEvent = getGuestsTriggerEvent(isCalVideoLocation, isLocationSupportedByNoShowTriggers);
 
   // Add task for automatic no show in cal video
   const noShowPromises: Promise<any>[] = [];
