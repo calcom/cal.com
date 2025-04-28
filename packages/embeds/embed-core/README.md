@@ -11,7 +11,7 @@ You can also see various example usages [here](https://github.com/calcom/cal.com
 ## Development
 
 Run the following command and then you can test the embed in the automatically opened page `http://localhost:3100/embed/`
-We have another html page to specifically test prerendering when using headless router in Demo `http://localhost:3100/embed/routing.html`
+We have another html page to specifically test prerendering when using headless router in Demo `http://localhost:3100/embed/routing-playground.html`
 
 ```bash
 yarn dev

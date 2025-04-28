@@ -141,12 +141,6 @@ export class EmbedElement extends HTMLElement {
     this.ensureContainerTakesSkeletonHeightWhenVisible();
   }
 
-  public isSkeletonLoaderVisible() {
-    const skeletonEl = this.getSkeletonElement();
-    // Comparing with "none" which is set by toggleLoader when skeleton is hidden
-    return skeletonEl.style.display !== "none";
-  }
-
   constructor(data: {
     isModal: boolean;
     getSkeletonData: (_args: { layout: AllPossibleLayouts; pageType: EmbedPageType | null }) => {
@@ -177,10 +171,6 @@ export class EmbedElement extends HTMLElement {
       return;
     }
     this.layout = newLayout;
-    // We can't accidentaly show skeleton plus no need to change it if it isn't showing
-    if (!this.isSkeletonLoaderVisible()) {
-      return;
-    }
     const { skeletonContent, skeletonContainerStyle, skeletonStyle } = this.getSkeletonData({
       layout: this.getLayout(),
       pageType: this.getPageType() ?? null,
