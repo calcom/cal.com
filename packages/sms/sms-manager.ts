@@ -13,11 +13,13 @@ const handleSendingSMS = ({
   smsMessage,
   senderID,
   teamId,
+  bookingUid,
 }: {
   reminderPhone: string;
   smsMessage: string;
   senderID: string;
   teamId: number;
+  bookingUid?: string | null;
 }) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -45,7 +47,7 @@ const handleSendingSMS = ({
           body: sanitizedMessage,
           sender: senderID,
           teamId,
-          bookingUid: "todo: add booking UID, to save to expense log",
+          bookingUid,
         },
       });
     } catch (e) {
@@ -84,7 +86,7 @@ export default abstract class SMSManager {
 
   abstract getMessage(attendee: Person): string;
 
-  async sendSMSToAttendee(attendee: Person) {
+  async sendSMSToAttendee(attendee: Person, bookingUid?: string | null) {
     const teamId = this.teamId;
     const attendeePhoneNumber = attendee.phoneNumber;
     const isPhoneOnlyBooking = attendeePhoneNumber && isSmsCalEmail(attendee.email);
@@ -93,7 +95,7 @@ export default abstract class SMSManager {
 
     const smsMessage = this.getMessage(attendee);
     const senderID = getSenderId(attendeePhoneNumber, SENDER_ID);
-    return handleSendingSMS({ reminderPhone: attendeePhoneNumber, smsMessage, senderID, teamId });
+    return handleSendingSMS({ reminderPhone: attendeePhoneNumber, smsMessage, senderID, teamId, bookingUid });
   }
 
   async sendSMSToAttendees() {
@@ -101,7 +103,7 @@ export default abstract class SMSManager {
     const smsToSend: Promise<unknown>[] = [];
 
     for (const attendee of this.calEvent.attendees) {
-      smsToSend.push(this.sendSMSToAttendee(attendee));
+      smsToSend.push(this.sendSMSToAttendee(attendee, this.calEvent.uid));
     }
 
     await Promise.all(smsToSend);
