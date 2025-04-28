@@ -265,7 +265,9 @@ async function handler(input: CancelBookingInput) {
     platformClientId,
     platformRescheduleUrl,
     platformCancelUrl,
+    hideOrganizerEmail: bookingToDelete.eventType?.hideOrganizerEmail,
     platformBookingUrl,
+    customReplyToEmail: bookingToDelete.eventType?.customReplyToEmail,
   };
 
   const dataForWebhooks = { evt, webhooks, eventTypeInfo };
