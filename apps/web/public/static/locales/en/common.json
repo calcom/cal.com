@@ -3163,5 +3163,9 @@
   "credit_limit_reached_message": "Your Cal.com team {{teamName}} has run out of credits. As a result, SMS notifications are now being sent via email instead. To resume sending SMS, please purchase additional credits.",
   "current_credit_balance": "Current balance: {{balance}} credits",
   "notification_about_your_booking": "Notification about your booking",
+  "monthly_credits": "Monthly credits",
+  "total_credits": "Total credits: {{totalCredits}}",
+  "remaining_credits": "Remaining credits: {{remainingCredits}}",
+  "additional_credits": "Additional credits",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
