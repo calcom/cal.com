@@ -389,24 +389,17 @@ export const deleteScheduledEmailReminder = async (reminderId: number) => {
   }
 
   const { uuid, referenceId } = workflowReminder;
+  if (uuid) {
+    const taskId = await tasker.cancelWithReference(uuid, "sendWorkflowEmails");
+    if (taskId) {
+      await prisma.workflowReminder.delete({
+        where: {
+          id: reminderId,
+        },
+      });
 
-  const task = await prisma.task.findFirst({
-    where: {
-      type: "sendWorkflowEmails",
-      referenceUid: uuid,
-    },
-  });
-
-  if (task) {
-    await tasker.cancel(task.id);
-
-    await prisma.workflowReminder.delete({
-      where: {
-        id: reminderId,
-      },
-    });
-
-    return;
+      return;
+    }
   }
 
   /**
