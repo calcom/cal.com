@@ -428,7 +428,6 @@ test.describe("Routing Forms", () => {
       ]);
 
       await page.goto(`apps/routing-forms/route-builder/${routingForm.id}`);
-      await page.waitForLoadState("networkidle");
 
       const downloadPromise = page.waitForEvent("download");
       await page.locator('[data-testid="form-dropdown"]').nth(1).click();
