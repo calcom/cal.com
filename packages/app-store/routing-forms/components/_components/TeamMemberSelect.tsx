@@ -81,7 +81,13 @@ export const TeamMemberSelect = ({
     <div className="space-y-4">
       {selectAllEnabled && (
         <div className="flex items-center space-x-2">
-          <Switch checked={selectAll} onCheckedChange={handleSelectAllChange} disabled={disabled} size="sm" />
+          <Switch
+            checked={selectAll}
+            onCheckedChange={handleSelectAllChange}
+            disabled={disabled}
+            size="sm"
+            data-testid="assign-all-team-members-toggle"
+          />
           <span className="text-default text-sm">{t("select_all_members")}</span>
         </div>
       )}

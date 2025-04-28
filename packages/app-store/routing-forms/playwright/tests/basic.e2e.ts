@@ -110,7 +110,7 @@ test.describe("Routing Forms", () => {
       await page.click('[data-testid="back-button"]');
       await disableForm(page);
       await gotoRoutingLink({ page, formId });
-      await expect(page.locator("text=This page could not be found.")).toBeVisible();
+      await expect(page).toHaveTitle(/404/);
     });
 
     test("recently added form appears first in the list", async ({ page }) => {
@@ -746,7 +746,10 @@ test.describe("Routing Forms", () => {
 
     const selectSendMailToAllMembers = async ({ page, formId }: { page: Page; formId: string }) => {
       await page.goto(`apps/routing-forms/form-edit/${formId}`);
-      await page.click('[data-testid="assign-all-team-members-toggle"]');
+      await page.getByTestId("settings-button").click();
+      await page.getByTestId("assign-all-team-members-toggle").click();
+      await page.getByTestId("settings-slider-over-done").click();
+
       await saveCurrentForm(page);
     };
 
