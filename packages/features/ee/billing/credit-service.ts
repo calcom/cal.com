@@ -81,7 +81,11 @@ export class CreditService {
         },
       });
 
-      if (team && !team.credits?.limitReachedAt) {
+      if (
+        team &&
+        (!team.credits?.limitReachedAt ||
+          dayjs(team.credits?.limitReachedAt).isBefore(dayjs().startOf("month")))
+      ) {
         return true;
       }
     }
@@ -252,7 +256,12 @@ export class CreditService {
         where: { teamId },
       });
 
-      if (dayjs(creditBalance?.limitReachedAt).isAfter(dayjs().startOf("month"))) return; // team has already reached limit this month
+      if (
+        creditBalance?.limitReachedAt &&
+        dayjs(creditBalance?.limitReachedAt).isAfter(dayjs().startOf("month"))
+      ) {
+        return; // team has already reached limit this month
+      }
 
       const team = await prisma.team.findUnique({
         where: { id: teamId },
@@ -303,8 +312,12 @@ export class CreditService {
         cancelScheduledMessagesAndScheduleEmails(teamId);
         return;
       }
-
-      if (dayjs(creditBalance?.warningSentAt).isAfter(dayjs().startOf("month"))) return; // team has already sent warning email this month
+      if (
+        creditBalance?.warningSentAt &&
+        dayjs(creditBalance?.warningSentAt).isAfter(dayjs().startOf("month"))
+      ) {
+        return; // team has already sent warning email this month
+      }
 
       // team balance below 20% of total monthly credits
       await sendCreditBalanceLowWarningEmails({

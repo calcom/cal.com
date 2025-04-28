@@ -39,7 +39,7 @@ const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
   return { success: true };
 };
 
-export async function saveToCreditBalance({ teamId, nrOfCredits }: { teamId: number; nrOfCredits: number }) {
+async function saveToCreditBalance({ teamId, nrOfCredits }: { teamId: number; nrOfCredits: number }) {
   const creditBalance = await prisma.creditBalance.findUnique({
     where: {
       teamId,
