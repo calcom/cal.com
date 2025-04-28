@@ -14,10 +14,7 @@ import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/emb
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
-import {
-  InfiniteSkeletonLoader,
-  EventTypesSkeletonLoader,
-} from "@calcom/features/eventtypes/components/SkeletonLoader";
+import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
 import { parseEventTypeColor } from "@calcom/lib";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
@@ -32,7 +29,6 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { Alert } from "@calcom/ui/components/alert";
 import { ArrowButton } from "@calcom/ui/components/arrow-button";
 import { UserAvatarGroup } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
@@ -57,8 +53,6 @@ import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
-import useMeQuery from "@lib/hooks/useMeQuery";
 
 import { TRPCClientError } from "@trpc/client";
 
@@ -839,7 +833,6 @@ const CreateFirstEventTypeView = ({ slug, searchTerm }: { slug: string; searchTe
 
 const CTA = ({
   profileOptions,
-  isOrganization,
 }: {
   profileOptions: {
     teamId: number | null | undefined;
@@ -848,7 +841,6 @@ const CTA = ({
     membershipRole: MembershipRole | null | undefined;
     slug: string | null;
   }[];
-  isOrganization: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -890,27 +882,15 @@ const EmptyEventTypeList = ({
 };
 
 const InfiniteScrollMain = ({
-  status,
-  errorMessage,
   eventTypeGroups,
   profiles,
 }: {
-  status: string;
-  errorMessage?: string;
-  eventTypeGroups: GetUserEventGroupsResponse["eventTypeGroups"] | undefined;
-  profiles: GetUserEventGroupsResponse["profiles"] | undefined;
+  eventTypeGroups: GetUserEventGroupsResponse["eventTypeGroups"];
+  profiles: GetUserEventGroupsResponse["profiles"];
 }) => {
   const searchParams = useSearchParams();
   const { data } = useTypedQuery(querySchema);
   const orgBranding = useOrgBranding();
-
-  if (status === "error") {
-    return <Alert severity="error" title="Something went wrong" message={errorMessage} />;
-  }
-
-  if (!eventTypeGroups || !profiles || status === "pending") {
-    return <EventTypesSkeletonLoader />;
-  }
 
   const tabs = eventTypeGroups.map((item) => ({
     name: item.profile.name ?? "",
@@ -947,25 +927,13 @@ const InfiniteScrollMain = ({
 };
 
 type Props = {
-  initialData: RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
-  filters?: { teamIds?: number[] | undefined; userIds?: number[] | undefined; upIds?: string[] | undefined };
+  userEventGroupsData: GetUserEventGroupsResponse;
+  user: RouterOutputs["viewer"]["me"]["get"];
 };
 
-export const EventTypesCTA = ({ initialData, filters }: Props) => {
-  const { data: user } = useMeQuery();
-  const { data: userEventGroupsQuery } = trpc.viewer.eventTypes.getUserEventGroups.useQuery(
-    filters && { filters },
-    {
-      refetchOnWindowFocus: false,
-      gcTime: 1 * 60 * 60 * 1000,
-      staleTime: 1 * 60 * 60 * 1000,
-    }
-  );
-
-  const getUserEventGroupsData = userEventGroupsQuery ?? initialData;
-
+export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
   const profileOptions =
-    getUserEventGroupsData?.profiles
+    userEventGroupsData?.profiles
       ?.filter((profile) => !profile.readOnly)
       ?.filter((profile) => !profile.eventTypesLockedByOrg)
       ?.map((profile) => {
@@ -978,27 +946,13 @@ export const EventTypesCTA = ({ initialData, filters }: Props) => {
         };
       }) ?? [];
 
-  return <CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />;
+  return <CTA profileOptions={profileOptions} />;
 };
 
-const EventTypesPage = ({ initialData, filters }: Props) => {
-  const { data: user } = useMeQuery();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
   const [_showProfileBanner, setShowProfileBanner] = useState(false);
   const orgBranding = useOrgBranding();
   const router = useRouter();
-
-  // TODO: Maybe useSuspenseQuery to focus on success case only? Remember that it would crash the page when there is an error in query. Also, it won't support skeleton
-  const {
-    data: getUserEventGroupsData,
-    status: getUserEventGroupsStatus,
-    error: getUserEventGroupsStatusError,
-  } = trpc.viewer.eventTypes.getUserEventGroups.useQuery(filters && { filters }, {
-    refetchOnWindowFocus: false,
-    gcTime: 1 * 60 * 60 * 1000,
-    staleTime: 1 * 60 * 60 * 1000,
-    initialData,
-  });
 
   useEffect(() => {
     /**
@@ -1019,10 +973,8 @@ const EventTypesPage = ({ initialData, filters }: Props) => {
 
   return (
     <InfiniteScrollMain
-      profiles={getUserEventGroupsData?.profiles}
-      eventTypeGroups={getUserEventGroupsData?.eventTypeGroups}
-      status={getUserEventGroupsStatus}
-      errorMessage={getUserEventGroupsStatusError?.message}
+      profiles={userEventGroupsData.profiles}
+      eventTypeGroups={userEventGroupsData.eventTypeGroups}
     />
   );
 };

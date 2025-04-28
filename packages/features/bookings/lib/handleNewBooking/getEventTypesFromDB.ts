@@ -70,6 +70,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       destinationCalendar: true,
       hideCalendarNotes: true,
       hideCalendarEventDetails: true,
+      hideOrganizerEmail: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
       seatsShowAttendees: true,
@@ -81,6 +82,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       isRRWeightsEnabled: true,
       roundRobinHostsCount: true,
       beforeEventBuffer: true,
+      customReplyToEmail: true,
       afterEventBuffer: true,
       parentId: true,
       parent: {

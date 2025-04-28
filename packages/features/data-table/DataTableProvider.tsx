@@ -23,6 +23,7 @@ import { CTA_CONTAINER_CLASS_NAME } from "./lib/utils";
 export type DataTableContextType = {
   tableIdentifier: string;
   ctaContainerRef: React.RefObject<HTMLDivElement>;
+  filterToOpen: React.MutableRefObject<string | undefined>;
 
   activeFilters: ActiveFilters;
   clearAll: (exclude?: string[]) => void;
@@ -81,6 +82,7 @@ export function DataTableProvider({
   defaultPageSize = DEFAULT_PAGE_SIZE,
   ctaContainerClassName = CTA_CONTAINER_CLASS_NAME,
 }: DataTableProviderProps) {
+  const filterToOpen = useRef<string | undefined>(undefined);
   const [activeFilters, setActiveFilters] = useQueryState(
     "activeFilters",
     parseAsArrayOf(parseAsJson(ZActiveFilter.parse)).withDefault(DEFAULT_ACTIVE_FILTERS)
@@ -216,6 +218,7 @@ export function DataTableProvider({
       value={{
         tableIdentifier,
         ctaContainerRef,
+        filterToOpen,
         activeFilters,
         addFilter,
         clearAll,
