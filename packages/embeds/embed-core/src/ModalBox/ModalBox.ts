@@ -42,6 +42,9 @@ export class ModalBox extends EmbedElement {
     return !state || state === "loading";
   }
 
+  /**
+   * Close the modal box - It is like a forced close
+   */
   private explicitClose() {
     this.show(false);
     const event = new Event("close");
@@ -49,16 +52,24 @@ export class ModalBox extends EmbedElement {
   }
 
   isShowingMessage() {
-    return this.getAttribute("state") === "message" || this.getAttribute("state") === "failed";
+    const currentState = this.getAttribute("state");
+    return currentState === "has-message" || currentState === "failed";
   }
 
+  /**
+   * Close the modal box if it makes sense to do so.
+   */
   close() {
+    // We want to avoid accidentally closing the modal through Esc, Click outside, etc.
     if (this.isLoaderRunning() || this.isShowingMessage()) {
       return;
     }
     this.explicitClose();
   }
 
+  /**
+   * Takes the iframe out of layout and hides it
+   */
   collapseIframe() {
     const iframe = this.querySelector("iframe");
     if (iframe) {
@@ -66,13 +77,20 @@ export class ModalBox extends EmbedElement {
     }
   }
 
+  /**
+   * Put the iframe back in layout and make it visible
+   */
   uncollapseIframe() {
     const iframe = this.querySelector("iframe");
     if (iframe) {
+      // Resets the display to its default value
       iframe.style.display = "";
     }
   }
 
+  /**
+   * Make the iframe invisible but stays in layout
+   */
   makeIframeInvisible() {
     const iframe = this.querySelector("iframe");
     if (iframe) {
@@ -80,7 +98,11 @@ export class ModalBox extends EmbedElement {
     }
   }
 
-  // Iframe when added is invisible
+  /**
+   * Make the iframe visible, doesn't affect layout
+   *
+   * Iframe on creation is invisible
+   */
   makeIframeVisible() {
     const iframe = this.querySelector("iframe");
     if (iframe) {
@@ -127,6 +149,9 @@ export class ModalBox extends EmbedElement {
     this.uncollapseIframe();
   }
 
+  /**
+   * Called when the state is "loaded"
+   */
   onStateLoaded() {
     // Hide Loader
     this.toggleLoader(false);
@@ -134,6 +159,27 @@ export class ModalBox extends EmbedElement {
     this.open();
     // Ensure Iframe is fully visible
     this.ensureIframeFullyVisible();
+  }
+
+  /**
+   * Called when the state is "failed" or "has-message"
+   */
+  onStateFailedOrMessage() {
+    this.toggleLoader(false);
+    this.toggleMessageElement(true);
+    this.collapseIframe();
+
+    const message = this.dataset.message;
+    const errorMessage = this.dataset.errorCode
+      ? getErrorString({
+          errorCode: this.dataset.errorCode,
+          errorMessage: message,
+        })
+      : null;
+    const messageToShow = errorMessage || message;
+    if (messageToShow) {
+      this.getMessageElement().innerText = messageToShow;
+    }
   }
 
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
@@ -147,29 +193,16 @@ export class ModalBox extends EmbedElement {
 
       // Ensure iframe takes its available space as it could be possible that we are moving from "failed" state to "loading" state or some other case.
       this.uncollapseIframe();
+      this.toggleMessageElement(false);
 
       // Keep iframe invisible as it will be made visible when the state changes to "loaded"
       this.makeIframeInvisible();
-      this.toggleMessageElement(false);
     } else if (newValue == "loaded") {
       this.onStateLoaded();
     } else if (newValue == "closed") {
       this.explicitClose();
-    } else if (newValue === "failed" || newValue === "message") {
-      this.toggleLoader(false);
-      this.toggleMessageElement(true);
-      const message = this.dataset.message;
-      const errorMessage = this.dataset.errorCode
-        ? getErrorString({
-            errorCode: this.dataset.errorCode,
-            errorMessage: this.dataset.message,
-          })
-        : null;
-      const messageToShow = errorMessage || message;
-      if (messageToShow) {
-        this.getMessageElement().innerText = messageToShow;
-      }
-      this.collapseIframe();
+    } else if (newValue === "failed" || newValue === "has-message") {
+      this.onStateFailedOrMessage();
     } else if (newValue === "prerendering") {
       // We do a close here because we don't want the loaders to show up when the modal is prerendering
       // As per HTML, both skeleton/loader are configured to be shown by default, so we need to hide them and infact we don't want to show up anything unexpected so we completely hide the customElement itself
