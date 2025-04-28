@@ -23,6 +23,7 @@ interface MockJWT {
     key: string;
     scopes: string[];
     subject: string;
+    universeDomain: string;
   };
   authorize: () => Promise<void>;
 }
@@ -726,8 +727,13 @@ describe("GoogleCalendarService credential handling", () => {
       config: {
         email: delegatedCredential.serviceAccountKey.client_email,
         key: delegatedCredential.serviceAccountKey.private_key,
-        scopes: ["https://www.googleapis.com/auth/calendar"],
+        scopes: [
+          "https://www.googleapis.com/auth/calendar",
+          "https://www.googleapis.com/auth/meetings.space.readonly",
+          "https://www.googleapis.com/auth/admin.directory.user.readonly",
+        ],
         subject: "user@example.com",
+        universeDomain: "googleapis.com",
       },
       authorize: expect.any(Function) as () => Promise<void>,
     };

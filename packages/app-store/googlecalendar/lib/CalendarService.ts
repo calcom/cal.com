@@ -84,7 +84,6 @@ export default class GoogleCalendarService implements Calendar {
   private myGoogleAuth!: MyGoogleAuth;
   private oAuthManagerInstance!: OAuthManager;
   constructor(credential: CredentialForCalendarServiceWithEmail) {
-    console.log("GoogleCalendarService.credential", credential);
     this.integrationName = "google_calendar";
     this.credential = credential;
     this.auth = this.initGoogleAuth(credential);
