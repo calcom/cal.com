@@ -4,10 +4,20 @@ import type { AppCategories } from "@prisma/client";
 import { useEffect, useRef, useState, memo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
+import type { AppFrontendPayload as App } from "@calcom/types/App";
+import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import { AppCard } from "./AppCard";
 import { CategoryTab } from "./CategoryTab";
+
+type AllAppsPropsType = {
+  apps: (App & { credentials?: Credential[] })[];
+  searchText?: string;
+  categories: string[];
+  userAdminTeams?: UserAdminTeams;
+};
 
 const AllAppsComponent = ({ apps, searchText, categories, userAdminTeams }: AllAppsPropsType) => {
   const { t } = useLocale();
@@ -31,15 +41,17 @@ const AllAppsComponent = ({ apps, searchText, categories, userAdminTeams }: AllA
   };
 
   const filteredApps = apps
-    .filter((app) =>
+    .filter((app: App & { credentials?: Credential[] }) =>
       selectedCategory !== null
         ? app.categories
           ? app.categories.includes(selectedCategory as AppCategories)
           : app.category === selectedCategory
         : true
     )
-    .filter((app) => (searchText ? app.name.toLowerCase().includes(searchText.toLowerCase()) : true))
-    .sort(function (a, b) {
+    .filter((app: App & { credentials?: Credential[] }) =>
+      searchText ? app.name.toLowerCase().includes(searchText.toLowerCase()) : true
+    )
+    .sort(function (a: App & { credentials?: Credential[] }, b: App & { credentials?: Credential[] }) {
       if (a.name < b.name) return -1;
       else if (a.name > b.name) return 1;
       return 0;
@@ -95,7 +107,7 @@ const AllAppsComponent = ({ apps, searchText, categories, userAdminTeams }: AllA
         <div
           className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:500px)]:grid-cols-1 [@media(max-width:730px)]:grid-cols-1"
           ref={appsContainerRef}>
-          {filteredApps.map((app) => (
+          {filteredApps.map((app: App & { credentials?: Credential[] }) => (
             <AppCard
               key={app.name}
               app={app}
