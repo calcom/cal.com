@@ -758,13 +758,13 @@ export const sendCreditBalanceLowWarningEmails = async (input: {
 }) => {
   const { team, balance } = input;
   if (!team.adminAndOwners.length) return;
-  const emailsAndSMSToSend: Promise<unknown>[] = [];
+  const emailsToSend: Promise<unknown>[] = [];
 
   for (const admin of team.adminAndOwners) {
-    emailsAndSMSToSend.push(sendEmail(() => new CreditBalanceLowWarningEmail(admin, balance, team)));
+    emailsToSend.push(sendEmail(() => new CreditBalanceLowWarningEmail(admin, balance, team)));
   }
 
-  await Promise.all(emailsAndSMSToSend);
+  await Promise.all(emailsToSend);
 };
 
 export const sendCreditBalanceLimitReachedEmails = async ({
@@ -781,11 +781,11 @@ export const sendCreditBalanceLimitReachedEmails = async ({
   };
 }) => {
   if (!team.adminAndOwners.length) return;
-  const emailsAndSMSToSend: Promise<unknown>[] = [];
+  const emailsToSend: Promise<unknown>[] = [];
 
   for (const admin of team.adminAndOwners) {
-    emailsAndSMSToSend.push(sendEmail(() => new CreditBalanceLimitReachedEmail(admin, team)));
+    emailsToSend.push(sendEmail(() => new CreditBalanceLimitReachedEmail(admin, team)));
   }
 
-  await Promise.all(emailsAndSMSToSend);
+  await Promise.all(emailsToSend);
 };

@@ -34,12 +34,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
         const countryCode = await twilio.getCountryCodeForNumber(req.body.To);
 
-        const parsedTeamId = !!teamId ? Number(teamId) : undefined;
-
-        const parsedUserId = !!userId ? Number(userId) : undefined;
-
-        const parsedBookingUid = bookingUid as string;
         const smsSid = req.body.SmsSid;
+
+        const parsedTeamId = !!teamId ? Number(teamId) : undefined;
+        const parsedUserId = !!userId ? Number(userId) : undefined;
+        const parsedBookingUid = bookingUid as string;
+
         if (!parsedUserId && !parsedTeamId) {
           return res.status(401).send("Team or user id is required");
         }
@@ -112,13 +112,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           bookingUid: parsedBookingUid,
         });
 
-        if (teamId) {
+        if (chargedTeamId) {
           return res.status(200).send(
             `Expense log with ${credits ? credits : "no"} credits created for
                 teamId ${chargedTeamId}`
           );
         }
-        // this should never happen - even when out of credits we still charge a team/user
+        // this should never happen - even when out of credits we still charge a team
         return res.status(500).send("No team or users found to be charged");
       }
       return res.status(200).send(`SMS not yet delivered/undelivered`);

@@ -51,7 +51,7 @@ export async function saveToCreditBalance({ teamId, nrOfCredits }: { teamId: num
       where: {
         id: creditBalance.id,
       },
-      data: { additionalCredits: { increment: nrOfCredits }, limitReachedAt: null },
+      data: { additionalCredits: { increment: nrOfCredits }, limitReachedAt: null, warningSentAt: null },
     });
   } else {
     await prisma.creditBalance.create({

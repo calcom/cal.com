@@ -31,6 +31,14 @@ export async function sendSmsOrFallbackEmail(props: {
 
   if (!hasCredits) {
     if (props.fallbackData) {
+      // await sendOrScheduleWorkflowEmails({
+      //   to: [sendTo.email],
+      //   subject: t("notification_about_your_booking"),
+      //   html: messageBody,
+      //   replyTo: msg.booking?.user?.email ?? "",
+      //   sendAt: msg.scheduledDate,
+      //   referenceUid: msg.uuid || undefined,
+      // });
       // todo: send email instead
       // todo create workflow reminder in db
     }
@@ -69,6 +77,14 @@ export async function scheduleSmsOrFallbackEmail(props: {
 
   if (!hasCredits) {
     if (props.fallbackData) {
+      // await sendOrScheduleWorkflowEmails({
+      //   to: [sendTo.email],
+      //   subject: t("notification_about_your_booking"),
+      //   html: messageBody,
+      //   replyTo: msg.booking?.user?.email ?? "",
+      //   sendAt: msg.scheduledDate,
+      //   referenceUid: msg.uuid || undefined,
+      // });
       // todo: schedule email instead
       // todo create workflow reminder in db
     }

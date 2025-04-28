@@ -45,7 +45,7 @@ describe("handleNewBooking", () => {
   });
 
   describe("User Workflows", () => {
-    test.only(
+    test(
       "should send workflow email and sms when booking is created",
       async ({ emails, sms }) => {
         const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;

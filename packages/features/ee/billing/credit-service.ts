@@ -28,7 +28,7 @@ export class CreditService {
     bookingUid: string;
     smsSid: string;
   }) {
-    let teamToCharge: number | null = credits === 0 && teamId ? teamId : null;
+    let teamToCharge = credits === 0 && teamId ? teamId : null;
     let creditType: CreditType = CreditType.ADDITIONAL;
     let remainingCredits;
     if (credits !== 0) {
@@ -39,7 +39,7 @@ export class CreditService {
       });
       teamToCharge = result?.teamId ?? null;
       creditType = result?.creditType ?? creditType;
-      remainingCredits = result?.availableCredits;
+      remainingCredits = result?.remaningCredits;
     }
 
     if (!teamToCharge) {
@@ -88,13 +88,13 @@ export class CreditService {
 
     if (userId) {
       const team = await this.getTeamWithAvailableCredits(userId);
-      return !!teamId;
+      return !!team;
     }
 
     return false;
   }
 
-  async getTeamWithAvailableCredits(userId: number, credits?: number) {
+  async getTeamWithAvailableCredits(userId: number, credits = 0) {
     const teams = await prisma.membership.findMany({
       where: {
         userId,
@@ -120,15 +120,22 @@ export class CreditService {
 
       if (teamWithCredits && !teamWithCredits.credits?.limitReachedAt) {
         const allCredits = await this.getAllCreditsForTeam(teamWithCredits.id);
-        return {
-          teamId: teamWithCredits.id,
-          availableCredits: allCredits.totalRemainingMonthlyCredits + allCredits.additionalCredits,
-          creditType:
-            allCredits.totalRemainingMonthlyCredits > 0 ? CreditType.MONTHLY : CreditType.ADDITIONAL,
-        };
+        if (allCredits.totalRemainingMonthlyCredits + allCredits.additionalCredits >= credits) {
+          return {
+            teamId: teamWithCredits.id,
+            availableCredits: allCredits.totalRemainingMonthlyCredits + allCredits.additionalCredits,
+            creditType:
+              allCredits.totalRemainingMonthlyCredits > 0 ? CreditType.MONTHLY : CreditType.ADDITIONAL,
+          };
+        }
       }
     }
-    return null;
+
+    return {
+      teamId: teams[0].id,
+      availableCredits: 0,
+      creditType: CreditType.ADDITIONAL,
+    };
   }
 
   /*
@@ -149,20 +156,18 @@ export class CreditService {
         teamCredits.totalRemainingMonthlyCredits > 0 ? teamCredits.totalRemainingMonthlyCredits : 0;
       return {
         teamId,
-        availableCredits: remaningMonthlyCredits + teamCredits.additionalCredits - credits,
+        remaningCredits: remaningMonthlyCredits + teamCredits.additionalCredits - credits,
         creditType: remaningMonthlyCredits > 0 ? CreditType.MONTHLY : CreditType.ADDITIONAL,
       };
     }
 
     if (userId) {
       const team = await this.getTeamWithAvailableCredits(userId, credits);
-      return team;
+      return { ...team, remainingCredits: team.availableCredits - credits };
     }
-
     return null;
   }
 
-  // done, write test
   private async createExpenseLog(props: {
     bookingUid: string;
     smsSid: string;
@@ -175,7 +180,7 @@ export class CreditService {
 
     creditBalance = await prisma.creditBalance.findUnique({
       where: {
-        teamId: teamId,
+        teamId,
       },
     });
 
@@ -188,13 +193,16 @@ export class CreditService {
     }
 
     if (credits && creditType === CreditType.ADDITIONAL) {
+      const decrementValue =
+        credits <= creditBalance.additionalCredits ? credits : creditBalance.additionalCredits;
+
       await prisma.creditBalance.update({
         where: {
           id: creditBalance.id,
         },
         data: {
           additionalCredits: {
-            decrement: credits,
+            decrement: decrementValue,
           },
         },
       });
@@ -215,7 +223,6 @@ export class CreditService {
     }
   }
 
-  // some more todos + tests
   /*
   Called when we know the exact amount of credits to be charged:
   - Sets `limitReachedAt` and `warningSentAt`
@@ -325,7 +332,6 @@ export class CreditService {
     });
   }
 
-  // some more todos + test
   async getMonthlyCredits(teamId: number) {
     const team = await prisma.team.findUnique({
       where: {
@@ -351,9 +357,9 @@ export class CreditService {
     const teamBillingService = new InternalTeamBilling(team);
     const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
 
-    // if (subscriptionStatus !== "active" && subscriptionStatus !== "past_due") {
-    //   return 0;
-    // }
+    if (subscriptionStatus !== "active" && subscriptionStatus !== "past_due") {
+      return 0;
+    }
 
     const activeMembers = team.members.filter((member) => member.accepted).length;
 
@@ -402,7 +408,7 @@ export class CreditService {
 
     return {
       totalMonthlyCredits,
-      totalRemainingMonthlyCredits: totalMonthlyCredits - totalMonthlyCreditsUsed,
+      totalRemainingMonthlyCredits: Math.max(totalMonthlyCredits - totalMonthlyCreditsUsed, 0),
       additionalCredits: creditBalance?.additionalCredits ?? 0,
     };
   }

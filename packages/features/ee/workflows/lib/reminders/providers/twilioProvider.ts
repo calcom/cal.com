@@ -13,7 +13,7 @@ const log = logger.getSubLogger({ prefix: ["[twilioProvider]"] });
 
 const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE || process.env.IS_E2E;
 
-export function createTwilioClient() {
+function createTwilioClient() {
   if (process.env.TWILIO_SID && process.env.TWILIO_TOKEN && process.env.TWILIO_MESSAGING_SID) {
     return TwilioClient(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
   }
@@ -84,9 +84,9 @@ export const sendSMS = async ({
     body: body,
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
     to: getSMSNumber(phoneNumber, isWhatsapp),
-    from: "+19039127469",
-    statusCallback: `https://6008-93-83-143-142.ngrok-free.app/api/twilio/webhook?userId=${userId}${
-      teamId ? `&teamId=${teamId}` : ""
+    from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender ? sender : getDefaultSender(),
+    statusCallback: `${WEBAPP_URL}/api/twilio/webhook?userId=${userId}${
+      teamId ? `&teamId=${teamId}` : ``
     }&bookingUid=${bookingUid}`,
   });
 
@@ -145,9 +145,9 @@ export const scheduleSMS = async ({
     to: getSMSNumber(phoneNumber, isWhatsapp),
     scheduleType: "fixed",
     sendAt: scheduledDate,
-    from: "+19039127469",
-    statusCallback: `https://6008-93-83-143-142.ngrok-free.app/api/twilio/webhook?userId=${userId}${
-      teamId ? `&teamId=${teamId}` : ""
+    from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender ? sender : getDefaultSender(),
+    statusCallback: `${WEBAPP_URL}/api/twilio/webhook?userId=${userId}${
+      teamId ? `&teamId=${teamId}` : ``
     }&bookingUid=${bookingUid}`,
   });
 

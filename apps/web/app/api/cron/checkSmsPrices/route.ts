@@ -49,23 +49,40 @@ async function postHandler(req: NextRequest) {
         const updatedLog = await prisma.creditExpenseLog.update({
           where: { id: log.id },
           data: { credits },
-        });
-
-        const creditBalance = await prisma.creditBalance.update({
-          where: { id: updatedLog.creditBalanceId },
-          data: {
-            additionalCredits: {
-              decrement: updatedLog.creditType === CreditType.ADDITIONAL ? credits : 0,
+          select: {
+            creditBalance: {
+              select: {
+                id: true,
+                additionalCredits: true,
+                teamId: true,
+              },
             },
+            creditType: true,
           },
         });
 
-        const teamCredits = await creditService.getAllCreditsForTeam(creditBalance.teamId ?? 0);
+        if (updatedLog.creditType === CreditType.ADDITIONAL) {
+          const decrementValue =
+            credits <= updatedLog.creditBalance.additionalCredits
+              ? credits
+              : updatedLog.creditBalance.additionalCredits;
+
+          await prisma.creditBalance.update({
+            where: { id: updatedLog.creditBalance.id },
+            data: {
+              additionalCredits: {
+                decrement: decrementValue,
+              },
+            },
+          });
+        }
+
+        const teamCredits = await creditService.getAllCreditsForTeam(updatedLog.creditBalance.teamId ?? 0);
 
         const remainingMonthlyCredits = Math.max(0, teamCredits.totalRemainingMonthlyCredits);
 
         await creditService.handleLowCreditBalance({
-          teamId: creditBalance.teamId ?? 0,
+          teamId: updatedLog.creditBalance.teamId ?? 0,
           remainingCredits: remainingMonthlyCredits + teamCredits.additionalCredits,
         });
 

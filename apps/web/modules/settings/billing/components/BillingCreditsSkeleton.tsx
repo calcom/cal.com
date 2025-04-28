@@ -10,7 +10,7 @@ export function BillingCreditsSkeleton() {
             <SkeletonText className="mb-2 h-4 w-20" /> {/* Credits title */}
           </div>
           <div>
-            <SkeletonText className="h-4 w-72" /> {/* Description (now correctly under title) */}
+            <SkeletonText className="h-4 w-72" /> {/* Description */}
           </div>
 
           <div className="-mx-6 mt-6">
@@ -19,7 +19,7 @@ export function BillingCreditsSkeleton() {
           {/* Monthly credits */}
           <div className="mt-[20px]">
             <SkeletonText className="mb-4 h-4 w-32" /> {/* Monthly credits label */}
-            <div className="h-2 w-full rounded-md bg-gray-200" /> {/* Progress bar fake */}
+            <div className="h-2 w-full rounded-md bg-gray-200" /> {/* Progress bar */}
             <div className="text-subtle mt-2">
               <div>
                 <SkeletonText className="h-4 w-40" /> {/* Total credits */}

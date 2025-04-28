@@ -41,8 +41,7 @@ export default function BillingCredits() {
       showToast(t("credit_purchase_failed"), "error");
     },
   });
-  console.log(`retrun early?${!teamId || !creditsData}`);
-  console.log(`enabledd?  ${IS_SMS_CREDITS_ENABLED}`);
+
   if (!teamId || !IS_SMS_CREDITS_ENABLED) {
     return null;
   }

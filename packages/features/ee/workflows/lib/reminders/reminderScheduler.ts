@@ -1,5 +1,6 @@
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import {
+  isAttendeeAction,
   isSMSAction,
   isSMSOrWhatsappAction,
   isWhatsappAction,
@@ -331,7 +332,7 @@ export async function cancelScheduledMessagesAndScheduleEmails(teamId: number) {
 
   await Promise.allSettled(
     scheduledMessages.map(async (msg) => {
-      if (msg.workflowStep?.action === WorkflowActions.SMS_ATTENDEE) {
+      if (msg.workflowStep?.action && isAttendeeAction(msg.workflowStep.action)) {
         const messageBody = await twilio.getMessageBody(msg.referenceId ?? "");
         const sendTo = msg.booking?.attendees?.[0];
 
