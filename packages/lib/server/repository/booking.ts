@@ -371,6 +371,11 @@ export class BookingRepository {
         uid: true,
         description: true,
         isRecorded: true,
+        eventType: {
+          select: {
+            hideOrganizerEmail: true,
+          },
+        },
         user: {
           select: {
             id: true,
