@@ -190,7 +190,7 @@ describe("getEmbedBookerState", () => {
     expect(result).toBe("slotsLoading");
   });
 
-  it("should return 'slotsLoaded' when slotsQuery.isPending is true but not loading", () => {
+  it("should return 'slotsDone' when slotsQuery.isPending is true but not loading", () => {
     const result = getEmbedBookerState({
       bookerState: "selecting_date",
       slotsQuery: {
@@ -200,10 +200,10 @@ describe("getEmbedBookerState", () => {
         isError: false,
       },
     });
-    expect(result).toBe("slotsLoaded");
+    expect(result).toBe("slotsDone");
   });
 
-  it("should return 'slotsLoaded' when slotsQuery.isSuccess is true", () => {
+  it("should return 'slotsDone' when slotsQuery.isSuccess is true", () => {
     const result = getEmbedBookerState({
       bookerState: "selecting_date",
       slotsQuery: {
@@ -213,7 +213,7 @@ describe("getEmbedBookerState", () => {
         isError: false,
       },
     });
-    expect(result).toBe("slotsLoaded");
+    expect(result).toBe("slotsDone");
   });
 
   it("should return 'slotsLoadingError' when slotsQuery.isError is true", () => {

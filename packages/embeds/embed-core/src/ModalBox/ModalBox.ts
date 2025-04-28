@@ -48,12 +48,12 @@ export class ModalBox extends EmbedElement {
     this.dispatchEvent(event);
   }
 
-  isInErrorState() {
-    return this.getAttribute("state") === "failed";
+  isShowingMessage() {
+    return this.getAttribute("state") === "message" || this.getAttribute("state") === "failed";
   }
 
   close() {
-    if (this.isLoaderRunning() || this.isInErrorState()) {
+    if (this.isLoaderRunning() || this.isShowingMessage()) {
       return;
     }
     this.explicitClose();
@@ -89,23 +89,34 @@ export class ModalBox extends EmbedElement {
     }
   }
 
-  getErrorElement(): HTMLElement {
+  getMessageElement(): HTMLElement {
     this.assertHasShadowRoot();
-    const element = this.shadowRoot.querySelector<HTMLElement>("#error");
+    const element = this.shadowRoot.querySelector<HTMLElement>("#message");
 
     if (!element) {
-      throw new Error("No error element");
+      throw new Error("No message element");
     }
 
     return element;
   }
 
-  toggleErrorElement(show: boolean) {
-    const errorElement = this.getErrorElement();
+  getMessageContainerElement(): HTMLElement {
+    this.assertHasShadowRoot();
+    const element = this.shadowRoot.querySelector<HTMLElement>("#message-container");
+
+    if (!element) {
+      throw new Error("No message container element");
+    }
+
+    return element;
+  }
+
+  toggleMessageElement(show: boolean) {
+    const errorContainerElement = this.getMessageContainerElement();
     if (show) {
-      errorElement.style.display = "inline-block";
+      errorContainerElement.style.display = "";
     } else {
-      errorElement.style.display = "none";
+      errorContainerElement.style.display = "none";
     }
   }
 
@@ -139,20 +150,25 @@ export class ModalBox extends EmbedElement {
 
       // Keep iframe invisible as it will be made visible when the state changes to "loaded"
       this.makeIframeInvisible();
-      this.toggleErrorElement(false);
+      this.toggleMessageElement(false);
     } else if (newValue == "loaded") {
       this.onStateLoaded();
     } else if (newValue == "closed") {
       this.explicitClose();
-    } else if (newValue === "failed") {
-      this.getLoaderElement().style.display = "none";
-      this.getSkeletonElement().style.display = "none";
-      this.toggleErrorElement(true);
-      const errorString = getErrorString({
-        errorCode: this.dataset.errorCode,
-        errorMessage: this.dataset.errorMessage,
-      });
-      this.getErrorElement().innerText = errorString;
+    } else if (newValue === "failed" || newValue === "message") {
+      this.toggleLoader(false);
+      this.toggleMessageElement(true);
+      const message = this.dataset.message;
+      const errorMessage = this.dataset.errorCode
+        ? getErrorString({
+            errorCode: this.dataset.errorCode,
+            errorMessage: this.dataset.message,
+          })
+        : null;
+      const messageToShow = errorMessage || message;
+      if (messageToShow) {
+        this.getMessageElement().innerText = messageToShow;
+      }
       this.collapseIframe();
     } else if (newValue === "prerendering") {
       // We do a close here because we don't want the loaders to show up when the modal is prerendering

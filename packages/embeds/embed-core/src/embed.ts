@@ -221,6 +221,7 @@ export class Cal {
   // Store calLink separately, because we could load different URL in iframe(derived from calLink e.g. calLink=Router -> redirects to eventBookingUrl and then we load that URL in iframe)
   calLink: string | null = null;
   embedConfig: PrefillAndIframeAttrsConfig | null = null;
+  // Tracks the time when the embed was last rendered with some changes to iframe i.e. it identifies if the iframe is freshly updated and when
   embedRenderStartTime: number | null = null;
   static ensureGuestKey(config: PrefillAndIframeAttrsConfig) {
     config = config || {};
@@ -627,14 +628,18 @@ export class Cal {
     newCalLinkUrlObject,
     configWithGuestKeyAndColorScheme,
     modalEl,
+    calOrigin,
   }: {
     newCalLinkUrlObject: URL;
     configWithGuestKeyAndColorScheme: PrefillAndIframeAttrsConfigWithGuestAndColorScheme;
     modalEl: Element;
+    calOrigin: string | null;
   }) {
     const lastLoadedUrlInIframeObject = this.getLastLoadedUrlInInframe();
     const lastLoadedPathInIframe = lastLoadedUrlInIframeObject?.pathname ?? null;
     const calConfig = this.getCalConfig();
+    calOrigin = calOrigin ?? calConfig.calOrigin;
+
     const headlessRouterPageObject = newCalLinkUrlObject;
     const result = await submitResponseAndGetRoutingResult({
       headlessRouterPageUrl: headlessRouterPageObject.toString(),
@@ -667,7 +672,7 @@ export class Cal {
         const pathWithoutStartingSlash = routerRedirectUrl.pathname.replace(/^\//, "");
         this.loadInIframe({
           calLink: pathWithoutStartingSlash,
-          calOrigin: calConfig.calOrigin,
+          calOrigin,
           config: newConfig,
           iframe: this.iframe as HTMLIFrameElement,
         });
@@ -683,11 +688,21 @@ export class Cal {
           arg: newConfig,
         });
       }
+    } else if ("message" in result) {
+      log("Setting message in modal", {
+        message: result.message,
+      });
+      // TODO: We might need to sanitize the error message and error code before setting it
+      modalEl.setAttribute("data-message", result.message);
+      modalEl.setAttribute("state", "message");
     } else if ("error" in result) {
+      log("Setting error in modal", {
+        error: result.error,
+      });
       // We need to show this message in the modal
       modalEl.setAttribute("data-error-code", "routerError");
       // TODO: We might need to sanitize the error message and error code before setting it
-      modalEl.setAttribute("data-error-message", result.error);
+      modalEl.setAttribute("data-message", result.error);
       modalEl.setAttribute("state", "failed");
     }
   }
@@ -922,9 +937,10 @@ class CalApi {
     );
 
     const calConfig = this.cal.getCalConfig();
-
+    // calOrigin could have been passed as empty string by the user
+    calOrigin = calOrigin || calConfig.calOrigin;
     const newCalLink = calLink;
-    const newCalLinkUrlObject = new URL(newCalLink, calConfig.calOrigin as string);
+    const newCalLinkUrlObject = new URL(newCalLink, calOrigin);
 
     const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`);
     const embedRenderStartTime = Date.now();
@@ -941,8 +957,8 @@ class CalApi {
 
     this.cal.calLink = calLink;
     this.cal.embedConfig = configWithGuestKeyAndColorScheme;
-    this.cal.embedRenderStartTime = embedRenderStartTime;
 
+    let reshowWithoutIframeUpdates = false;
     // isConnectionPossible
     if (!!existingModalEl && !!this.cal.iframe) {
       log(`Trying to reuse modal ${uid}`);
@@ -959,6 +975,7 @@ class CalApi {
             newCalLinkUrlObject,
             configWithGuestKeyAndColorScheme,
             modalEl: existingModalEl,
+            calOrigin,
           });
           this.modalUid = uid;
         } else {
@@ -967,7 +984,7 @@ class CalApi {
             log("Initiating full page load");
             this.cal.loadInIframe({
               calLink: newCalLink,
-              calOrigin: calConfig.calOrigin,
+              calOrigin,
               iframe: this.cal.iframe,
               config: configWithGuestKeyAndColorScheme,
             });
@@ -977,17 +994,22 @@ class CalApi {
               arg: configWithGuestKeyAndColorScheme,
             });
           }
-
           this.modalUid = uid;
         }
 
         return;
       } else {
         log(`Reopening modal without any other action needed ${uid}`);
+        reshowWithoutIframeUpdates = true;
         // Reopen the modal, nothing else to do
         existingModalEl.setAttribute("state", "reopened");
         return;
       }
+    }
+
+    if (!reshowWithoutIframeUpdates) {
+      // Don't update embedRenderStartTime if we are reopening the modal without any updates in it
+      this.cal.embedRenderStartTime = embedRenderStartTime;
     }
 
     log(`Creating new modal ${uid}`);
@@ -1009,7 +1031,7 @@ class CalApi {
       iframe = this.cal.createIframe({
         calLink,
         config: configWithGuestKeyAndColorScheme,
-        calOrigin: calOrigin || null,
+        calOrigin,
       });
     }
 

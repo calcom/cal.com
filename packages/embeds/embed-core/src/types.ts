@@ -73,7 +73,11 @@ export type EmbedBookerState =
   | "initializing"
   | "slotsPending"
   | "slotsLoading"
-  | "slotsLoaded"
+  /**
+   * When slots have loaded
+   * Even when slots aren't requested, due to cal.skipSlotFetch, then also this state is achieved
+   */
+  | "slotsDone"
   | "slotsLoadingError";
 
 export type SlotsStatus = "loading" | "success" | "error";

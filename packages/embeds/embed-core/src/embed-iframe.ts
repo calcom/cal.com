@@ -386,7 +386,7 @@ function isLinkReady() {
 }
 
 function isBookerReady() {
-  return window._embedBookerState === "slotsLoaded";
+  return window._embedBookerState === "slotsDone";
 }
 
 function isBookerPage() {
@@ -507,6 +507,7 @@ const methods = {
       // Embed background must still remain transparent
       makeBodyVisible();
       if (isPrerendering()) {
+        log("prerenderState is 'completed'");
         embedStore.prerenderState = "completed";
       }
       sdkActionManager?.fire("linkReady", {});
@@ -518,12 +519,6 @@ const methods = {
   connect: function connect(config: PrefillAndIframeAttrsConfig) {
     log("Method: connect, requested with params", config);
     const searchParams = buildSearchParamsFromConfig(config);
-
-    if (!embedStore.prerenderState) {
-      log("Method: connect, prerenderState is not inProgress. Skipping");
-      // Connect is for prerendered page. So, we expect it to be atleast inProgress state
-      return;
-    }
 
     // We reset it to allow informing parent through __dimensionChanged event about possibly updated dimensions
     embedStore.parentInformedAboutContentHeight = false;
@@ -777,8 +772,8 @@ function connectPreloadedEmbed({
     waitForFrames = 5;
   }
 
-  // Booker might alreadyu be in slotsLoaded state. But we don't know if new getTeamSchedule request would intitiate or not. It would initiate when React updates the state but it might not go depending on if there is no actual state change in useSchedule components
-  // But we can know if cal.routedTeamMemberIds is changed. If it is changed, then we reset slotsLoaded -> slotsLoading.
+  // Booker might alreadyu be in slotsDone state. But we don't know if new getTeamSchedule request would intitiate or not. It would initiate when React updates the state but it might not go depending on if there is no actual state change in useSchedule components
+  // But we can know if cal.routedTeamMemberIds is changed. If it is changed, then we reset slotsDone -> slotsLoading.
 
   // Firing this event would stop the loader and show the embed
   // This causes loader to go away later.
@@ -816,11 +811,11 @@ export function getEmbedBookerState({
 
   // Pending but not loading, it means that request is intentionally disabled via enabled:false in useQuery
   if (slotsQuery.isPending) {
-    return "slotsLoaded";
+    return "slotsDone";
   }
 
   if (slotsQuery.isSuccess) {
-    return "slotsLoaded";
+    return "slotsDone";
   }
 
   if (slotsQuery.isError) {
