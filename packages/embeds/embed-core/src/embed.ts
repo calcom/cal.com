@@ -694,7 +694,7 @@ export class Cal {
       });
       // TODO: We might need to sanitize the error message and error code before setting it
       modalEl.setAttribute("data-message", result.message);
-      modalEl.setAttribute("state", "message");
+      modalEl.setAttribute("state", "has-message");
     } else if ("error" in result) {
       log("Setting error in modal", {
         error: result.error,

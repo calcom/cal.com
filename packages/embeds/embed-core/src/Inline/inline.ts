@@ -24,7 +24,7 @@ export class Inline extends EmbedElement {
         errorEl.style.display = "block";
         const errorString = getErrorString({
           errorCode: this.dataset.errorCode,
-          errorMessage: this.dataset.errorMessage,
+          errorMessage: this.dataset.message,
         });
         errorEl.innerText = errorString;
       }
