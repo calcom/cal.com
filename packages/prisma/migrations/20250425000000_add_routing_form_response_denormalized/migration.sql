@@ -1,10 +1,10 @@
 -- Create the denormalized table
 CREATE TABLE "RoutingFormResponseDenormalized" (
-    id INTEGER,
-    response JSONB,
-    "responseByFieldId" JSONB, -- {"57734f65-8bbb-4065-9e71-fb7f0b7485f8": "marta ortiz", ...} - text values are lowercased
-    "formId" TEXT,
-    "formName" TEXT,
+    id INTEGER PRIMARY KEY,
+    response JSONB NOT NULL DEFAULT '{}'::jsonb,
+    "responseByFieldId" JSONB NOT NULL DEFAULT '{}'::jsonb, -- {"57734f65-8bbb-4065-9e71-fb7f0b7485f8": "marta ortiz", ...} - text values are lowercased
+    "formId" TEXT NOT NULL,
+    "formName" TEXT NOT NULL,
     "formTeamId" INTEGER,
     "formUserId" INTEGER,
     "bookingUid" TEXT,
@@ -19,12 +19,11 @@ CREATE TABLE "RoutingFormResponseDenormalized" (
     "bookingUserEmail" TEXT,
     "bookingUserAvatarUrl" TEXT,
     "bookingAssignmentReason" TEXT,
-    "bookingAssignmentReasonLowercase" TEXT,
     -- EventType related fields
     "eventTypeId" INTEGER,
     "eventTypeParentId" INTEGER,
     "eventTypeSchedulingType" TEXT,
-    "createdAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL,
     "utm_source" TEXT,
     "utm_medium" TEXT,
     "utm_campaign" TEXT,
@@ -32,17 +31,13 @@ CREATE TABLE "RoutingFormResponseDenormalized" (
     "utm_content" TEXT
 );
 
--- Create indexes to match likely query patterns
-CREATE INDEX "idx_routing_form_response_id" ON "RoutingFormResponseDenormalized" (id);
-CREATE INDEX "idx_routing_form_response_form_id" ON "RoutingFormResponseDenormalized" ("formId");
-CREATE INDEX "idx_routing_form_response_created_at" ON "RoutingFormResponseDenormalized" ("createdAt");
-CREATE INDEX "idx_routing_form_response_booking_id" ON "RoutingFormResponseDenormalized" ("bookingId");
-CREATE INDEX "idx_routing_form_response_booking_user_id" ON "RoutingFormResponseDenormalized" ("bookingUserId");
--- Add GIN index for JSONB column for faster searching
-CREATE INDEX "idx_response_by_field_id" ON "RoutingFormResponseDenormalized" USING gin ("responseByFieldId");
-
--- Add composite index for EventType hierarchy
-CREATE INDEX "idx_event_type_hierarchy" ON "RoutingFormResponseDenormalized" ("eventTypeId", "eventTypeParentId");
+-- Create optimized indexes
+CREATE INDEX idx_form_id_created_at ON "RoutingFormResponseDenormalized" ("formId", "createdAt");
+CREATE INDEX idx_routing_form_response_booking_id ON "RoutingFormResponseDenormalized" ("bookingId");
+CREATE INDEX idx_routing_form_response_booking_user_id ON "RoutingFormResponseDenormalized" ("bookingUserId");
+CREATE INDEX idx_response_by_field_id ON "RoutingFormResponseDenormalized" USING gin ("responseByFieldId");
+CREATE INDEX idx_event_type_hierarchy ON "RoutingFormResponseDenormalized" ("eventTypeId", "eventTypeParentId");
+CREATE INDEX idx_booking_assignment_reason_lower ON "RoutingFormResponseDenormalized" (LOWER("bookingAssignmentReason"));
 
 -- Function to calculate bookingStatusOrder
 CREATE OR REPLACE FUNCTION calculate_booking_status_order(status TEXT)
@@ -54,7 +49,7 @@ BEGIN
         WHEN 'awaiting_host' THEN 3
         WHEN 'cancelled' THEN 4
         WHEN 'rejected' THEN 5
-        ELSE NULL
+        ELSE 999  -- Default to end of sort order for unknown statuses
     END;
 END;
 $$ LANGUAGE plpgsql;
@@ -105,7 +100,6 @@ BEGIN
         "bookingUserEmail",
         "bookingUserAvatarUrl",
         "bookingAssignmentReason",
-        "bookingAssignmentReasonLowercase",
         "eventTypeId",
         "eventTypeParentId",
         "eventTypeSchedulingType",
@@ -144,15 +138,6 @@ BEGIN
             ),
             ''
         ) as "bookingAssignmentReason",
-        COALESCE(
-            (
-                SELECT LOWER(ar."reasonString")
-                FROM "AssignmentReason" ar
-                WHERE ar."bookingId" = b.id
-                LIMIT 1
-            ),
-            ''
-        ) as "bookingAssignmentReasonLowercase",
         et.id as "eventTypeId",
         et."parentId" as "eventTypeParentId",
         et."schedulingType" as "eventTypeSchedulingType",
@@ -169,6 +154,9 @@ BEGIN
     LEFT JOIN "users" u ON b."userId" = u.id
     LEFT JOIN "Tracking" t ON t."bookingId" = b.id
     WHERE r.id = response_id;
+EXCEPTION WHEN OTHERS THEN
+    -- Just log the error and continue
+    RAISE WARNING 'DENORM_ERROR: RoutingFormResponseDenormalized - FormResponse refresh failed for id %. Error: %', response_id, SQLERRM;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -293,7 +281,3 @@ CREATE TRIGGER event_type_update_trigger_for_routing_form
     FOR EACH ROW
     EXECUTE FUNCTION trigger_refresh_routing_form_response_denormalized_event_type();
 
--- Populate the table with initial data
--- DELETE FROM "RoutingFormResponseDenormalized";
--- INSERT INTO "RoutingFormResponseDenormalized"
--- SELECT * FROM "RoutingFormResponse";
