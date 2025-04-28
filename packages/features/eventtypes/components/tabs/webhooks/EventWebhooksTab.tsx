@@ -19,6 +19,7 @@ import { Button } from "@calcom/ui/components/button";
 import { DialogContent } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
 export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
   const { t } = useLocale();
@@ -40,6 +41,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
   const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
     async onSuccess() {
       setEditModalOpen(false);
+      revalidateEventTypeEditPage(eventType.id);
       showToast(t("webhook_updated_successfully"), "success");
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
@@ -52,6 +54,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
   const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
     async onSuccess() {
       setCreateModalOpen(false);
+      revalidateEventTypeEditPage(eventType.id);
       showToast(t("webhook_created_successfully"), "success");
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
