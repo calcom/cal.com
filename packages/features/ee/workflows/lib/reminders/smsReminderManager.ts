@@ -264,7 +264,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
         !scheduledDate.isAfter(currentDate.add(2, "hour"))
       ) {
         try {
-          const scheduledSMS = await scheduleSmsOrFallbackEmail({
+          const scheduledNotification = await scheduleSmsOrFallbackEmail({
             twilioData: {
               phoneNumber: reminderPhone,
               body: smsMessage,
@@ -279,11 +279,12 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
                   email: evt.attendees[0].email,
                   t: await getTranslation(evt.attendees[0].language.locale, "common"),
                   replyTo: evt.organizer.email,
+                  workflowStepId,
                 }
               : undefined,
           });
 
-          if (scheduledSMS) {
+          if (scheduledNotification?.sid) {
             await prisma.workflowReminder.create({
               data: {
                 bookingUid: uid,
@@ -291,7 +292,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
                 method: WorkflowMethods.SMS,
                 scheduledDate: scheduledDate.toDate(),
                 scheduled: true,
-                referenceId: scheduledSMS.sid,
+                referenceId: scheduledNotification.sid,
                 seatReferenceId: seatReferenceUid,
               },
             });

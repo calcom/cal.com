@@ -88,7 +88,7 @@ export async function handler(req: NextRequest) {
       );
 
       if (message?.length && message?.length > 0 && sendTo) {
-        const scheduledSMS = await scheduleSmsOrFallbackEmail({
+        const scheduledNotification = await scheduleSmsOrFallbackEmail({
           twilioData: {
             phoneNumber: sendTo,
             body: message,
@@ -105,18 +105,33 @@ export async function handler(req: NextRequest) {
                   email: reminder.booking.attendees[0].email,
                   t: await getTranslation(reminder.booking.attendees[0].locale || "en", "common"),
                   replyTo: reminder.booking?.user?.email ?? "",
+                  workflowStepId: reminder.workflowStep.id,
                 }
               : undefined,
         });
 
-        if (scheduledSMS) {
-          await prisma.workflowReminder.update({
+        if (scheduledNotification) {
+          if (scheduledNotification.sid) {
+            await prisma.workflowReminder.update({
+              where: {
+                id: reminder.id,
+              },
+              data: {
+                scheduled: true,
+                referenceId: scheduledNotification.sid,
+              },
+            });
+          } else if (scheduledNotification.emailReminderId) {
+            await prisma.workflowReminder.delete({
+              where: {
+                id: reminder.id,
+              },
+            });
+          }
+        } else {
+          await prisma.workflowReminder.delete({
             where: {
               id: reminder.id,
-            },
-            data: {
-              scheduled: true,
-              referenceId: scheduledSMS.sid,
             },
           });
         }

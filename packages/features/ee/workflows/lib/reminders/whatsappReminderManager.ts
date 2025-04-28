@@ -193,7 +193,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
         !scheduledDate.isAfter(currentDate.add(2, "hour"))
       ) {
         try {
-          const scheduledWHATSAPP = await scheduleSmsOrFallbackEmail({
+          const scheduledNotification = await scheduleSmsOrFallbackEmail({
             twilioData: {
               phoneNumber: reminderPhone,
               body: textMessage,
@@ -209,11 +209,12 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
                   email: evt.attendees[0].email,
                   t: await getTranslation(evt.attendees[0].language.locale, "common"),
                   replyTo: evt.organizer.email,
+                  workflowStepId,
                 }
               : undefined,
           });
 
-          if (scheduledWHATSAPP) {
+          if (scheduledNotification?.sid) {
             await prisma.workflowReminder.create({
               data: {
                 bookingUid: uid,
@@ -221,7 +222,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
                 method: WorkflowMethods.WHATSAPP,
                 scheduledDate: scheduledDate.toDate(),
                 scheduled: true,
-                referenceId: scheduledWHATSAPP.sid,
+                referenceId: scheduledNotification.sid,
                 seatReferenceId: seatReferenceUid,
               },
             });
