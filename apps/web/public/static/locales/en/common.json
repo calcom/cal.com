@@ -633,6 +633,7 @@
   "yes": "Yes",
   "no": "No",
   "additional_notes": "Additional notes",
+  "no_show_trigger_note": "Only Google Meet and Cal Video are supported for no-show triggers. Google Meet is only supported for customers using delegated credentials",
   "booking_fail": "Could not book the meeting.",
   "reschedule_fail": "Could not reschedule the meeting.",
   "share_additional_notes": "Please share anything that will help prepare for our meeting.",

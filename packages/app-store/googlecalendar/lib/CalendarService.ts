@@ -743,7 +743,6 @@ export default class GoogleCalendarService implements Calendar {
     emailToImpersonate: string
   ): Promise<GoogleMeetParticipantWithEmail[][] | null> {
     try {
-      // videoCallUrl = "https://meet.google.com/nvt-uufv-omy";
       if (!this.credential.delegatedTo?.serviceAccountKey) {
         throw new Error("Invalid grant for Google Calendar app");
       }

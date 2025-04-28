@@ -9,6 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeUnit } from "@calcom/prisma/enums";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
 import { TextArea } from "@calcom/ui/components/form";
@@ -145,6 +146,14 @@ const WebhookForm = (props: {
         trigger === WebhookTriggerEvents.AFTER_GUESTS_CALL_NO_SHOW
     );
 
+  const showNote = formMethods
+    .watch("eventTriggers")
+    ?.find(
+      (trigger) =>
+        trigger === WebhookTriggerEvents.AFTER_HOSTS_CALL_NO_SHOW ||
+        trigger === WebhookTriggerEvents.AFTER_GUESTS_CALL_NO_SHOW
+    );
+
   const [useCustomTemplate, setUseCustomTemplate] = useState(
     props?.webhook?.payloadTemplate !== undefined && props?.webhook?.payloadTemplate !== null
   );
@@ -249,6 +258,12 @@ const WebhookForm = (props: {
           <div className="mt-5">
             <Label>{t("how_long_after_user_no_show_minutes")}</Label>
             <TimeTimeUnitInput disabled={false} defaultTime={5} />
+          </div>
+        )}
+
+        {showNote && (
+          <div className="mt-5">
+            <Alert severity="warning" message={t("no_show_trigger_note")} />
           </div>
         )}
 

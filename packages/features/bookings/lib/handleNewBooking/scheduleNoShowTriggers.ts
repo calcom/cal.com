@@ -44,6 +44,7 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
   } = args;
 
   const isCalVideoLocation = booking.location === DailyLocationType || booking.location?.trim() === "";
+  // TODO: Add support for more conferencing platforms
   const isLocationSupportedByNoShowTriggers = booking.location === MeetLocationType;
 
   const isValidLocation = isCalVideoLocation || isLocationSupportedByNoShowTriggers;
