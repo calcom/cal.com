@@ -156,6 +156,7 @@ test.describe("Routing Forms", () => {
       await addNewRoute(page);
 
       await page.click('[data-testid="add-route-button"]');
+      await page.click('[data-testid="add-rule"]');
 
       const options = Object.values(createdFields).map((item) => item.label);
       await verifyFieldOptionsInRule(options, page);
