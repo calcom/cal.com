@@ -97,7 +97,7 @@
         <option value="Sales">Sales</option>
       </select>
     </form>
-    <button id="cal-booking-place-routingFormPrerender-submit" data-cal-namespace="routingFormPrerender" data-cal-config='{"cal.embed.pageType":"team.event.booking.slots"}'>Submit</button>
+    <button id="cal-booking-place-routingFormPrerender-submit" data-cal-namespace="routingFormPrerender" data-cal-config='{"cal.embed.pageType":"team.event.booking.slots", "guests":["guest1@example.com", "guest2@example.com"]}'>Submit</button>
     <script>
       document.getElementById("cal-booking-place-routingFormPrerender-form").addEventListener("input", function prerender(e) {
         if (prerender.initiated) return;

@@ -218,7 +218,7 @@ export class Cal {
   isPrerendering?: boolean;
 
   static actionsManagers: Record<Namespace, SdkActionManager>;
-  // Store calLink separately, because we could load different URL in iframe(derived from calLink e.g. calLink=Router -> redirects to eventBookingUrl and then we load that URL in iframe)
+  // Store calLink separately and not rely on deriving it from iframe.src, because we could load different URL in iframe(derived from calLink e.g. calLink=Router -> redirects to eventBookingUrl and then we load that URL in iframe)
   calLink: string | null = null;
   embedConfig: PrefillAndIframeAttrsConfig | null = null;
   // Tracks the time when the embed was last rendered with some changes to iframe i.e. it identifies if the iframe is freshly updated and when
@@ -347,17 +347,24 @@ export class Cal {
       urlInstance.searchParams.append(key, value);
     }
 
-    // Reset iframe ready flag so that we can detect if iframe is ready after setting the url
+    // Very Important:Reset iframe ready flag, as iframe might load a fresh URL and we need to check when it is ready.
     this.iframeReady = false;
-    // Ensure reload occurs even if the url is same - Though browser normally does it, but would be better to ensure it
+
     if (iframe.src === urlInstance.toString()) {
-      // Only purpose is to change the url so that iframe loads the same url again
-      urlInstance.searchParams.append("__reloadTs", Date.now().toString());
+      // Ensure reload occurs even if the url is same - Though browser normally does it, but would be better to ensure it
+      // This param has no other purpose except to ensure forced reload.
+      urlInstance.searchParams.append("__cal.reloadTs", Date.now().toString());
     }
+
     iframe.src = urlInstance.toString();
     return iframe;
   }
 
+  /**
+   * Returns the config applicable to entire Cal namespace.
+   * Individual embeds can have their own embed config passed via `config` prop normally.
+   * Also, calOrigin could be passed individually as well at the moment
+   */
   getCalConfig() {
     return this.__config;
   }
@@ -417,16 +424,13 @@ export class Cal {
 
     this.actionManager.on("__iframeReady", (e) => {
       this.iframeReady = true;
-      if (this.iframe) {
+      if (this.iframe && !e.detail.data.isPrerendering) {
         // It's a bit late to make the iframe visible here. We just needed to wait for the HTML tag of the embedded calLink to be rendered(which then informs the browser of the color-scheme)
-        // Right now it would wait for embed-iframe.js bundle to be loaded as well. We can speed that up by inlining the JS that informs about color-scheme being set in the HTML.
+        // TODO: Right now it would wait for embed-iframe.js bundle to be loaded as well. We can speed that up by inlining the JS that informs about color-scheme being set in the HTML.
         // But it's okay to do it here for now because the embedded calLink also keeps itself hidden till it receives `parentKnowsIframeReady` message(It has it's own reasons for that)
         // Once the embedded calLink starts not hiding the document, we should optimize this line to make the iframe visible earlier than this.
-
-        // Imp: Don't use visibility:visible as that would make the iframe show even if the host element(A paren tof the iframe) has visibility:hidden set. Just reset the visibility to default
-        if (!e.detail.data.isPrerendering) {
-          this.iframe.style.visibility = "";
-        }
+        // Imp: Don't use visibility:visible as that would make the iframe show even if the host element(A parent of the iframe) has visibility:hidden set. Just reset the visibility to default
+        this.iframe.style.visibility = "";
       }
       this.doInIframe({ method: "parentKnowsIframeReady" } as const);
       this.iframeDoQueue.forEach((doInIframeArg) => {
@@ -447,14 +451,15 @@ export class Cal {
       }
     });
 
-    // Removes the loader
     this.actionManager.on("linkReady", () => {
       if (this.isPrerendering) {
         // Ensure that we don't mark embed as loaded if it's prerendering otherwise prerendered embed could show-up without any user action
         return;
       }
       this.iframe!.style.visibility = "";
+
       // Removes the loader
+      // TODO: We should be using consistent approach of "state" attribute for modalBox and inlineEl.
       this.modalBox?.setAttribute("state", "loaded");
       this.inlineEl?.setAttribute("loading", "done");
     });
@@ -939,28 +944,32 @@ class CalApi {
     const calConfig = this.cal.getCalConfig();
     // calOrigin could have been passed as empty string by the user
     calOrigin = calOrigin || calConfig.calOrigin;
-    const newCalLink = calLink;
-    const newCalLinkUrlObject = new URL(newCalLink, calOrigin);
 
-    const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`);
     const embedRenderStartTime = Date.now();
-    const actionToTake = this.cal.determineActionToTake({
-      calLink,
-      modalBoxUid: uid,
-      previousCalLink: this.cal.calLink,
-      embedConfig: configWithGuestKeyAndColorScheme,
-      previousEmbedConfig: this.cal.embedConfig,
-      isConnectionInitiated: !!isConnectionInitiated,
-      previousEmbedRenderStartTime: this.cal.embedRenderStartTime,
-      embedRenderStartTime,
-    });
-
+    const previousCalLink = this.cal.calLink;
+    const previousEmbedConfig = this.cal.embedConfig;
+    const previousEmbedRenderStartTime = this.cal.embedRenderStartTime;
     this.cal.calLink = calLink;
     this.cal.embedConfig = configWithGuestKeyAndColorScheme;
 
     let reshowWithoutIframeUpdates = false;
+    const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`);
+
     // isConnectionPossible
     if (!!existingModalEl && !!this.cal.iframe) {
+      const newCalLink = calLink;
+      const newCalLinkUrlObject = new URL(newCalLink, calOrigin);
+
+      const actionToTake = this.cal.determineActionToTake({
+        calLink,
+        modalBoxUid: uid,
+        previousCalLink,
+        embedConfig: configWithGuestKeyAndColorScheme,
+        previousEmbedConfig,
+        isConnectionInitiated: !!isConnectionInitiated,
+        previousEmbedRenderStartTime,
+        embedRenderStartTime,
+      });
       log(`Trying to reuse modal ${uid}`);
       if (actionToTake === "fullReload" || actionToTake === "connect") {
         // Immediately take it to loading state - Either through connect or through loadInIframe, it would later be updated

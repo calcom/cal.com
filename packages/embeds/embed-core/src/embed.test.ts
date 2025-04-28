@@ -21,7 +21,7 @@ type ExpectedModalBoxAttrs = {
   theme: string;
   layout: string;
   pageType: string | null;
-  state: "loading" | "loaded" | "failed" | "reopened" | "closed" | "prerendering" | "message" | null;
+  state: "loading" | "loaded" | "failed" | "reopened" | "closed" | "prerendering" | "has-message" | null;
   uid?: string | null;
 };
 
@@ -839,7 +839,7 @@ describe("Cal", () => {
 
             expectCalModalBoxToBeInDocumentWithIframeHavingUrl({
               expectedModalBoxAttrs: {
-                state: "message",
+                state: "has-message",
                 theme: modalArg.config.theme,
                 layout: modalArg.config.layout,
                 pageType: null,
