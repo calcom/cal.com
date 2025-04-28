@@ -495,8 +495,10 @@ export default class EventManager {
 
     const results: Array<EventResult<Event>> = [];
     const updatedBookingReferences: Array<PartialReference> = [];
-    const isLocationChanged = evt.location && booking.location && evt.location !== booking.location;
+    const isLocationChanged = !!evt.location && !!booking.location && evt.location !== booking.location;
     const isBookingRequestedReschedule = !!booking.rescheduled && booking.status === BookingStatus.CANCELLED;
+    const shouldUpdateBookingReferences =
+      !!changedOrganizer || isLocationChanged || isBookingRequestedReschedule;
 
     if (evt.requiresConfirmation) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
@@ -572,8 +574,7 @@ export default class EventManager {
 
     return {
       results,
-      referencesToCreate:
-        changedOrganizer || isLocationChanged ? updatedBookingReferences : [...booking.references],
+      referencesToCreate: shouldUpdateBookingReferences ? updatedBookingReferences : [...booking.references],
     };
   }
 
