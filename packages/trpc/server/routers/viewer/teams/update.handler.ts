@@ -60,6 +60,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     hideBranding: input.hideBranding,
     isPrivate: input.isPrivate,
     hideBookATeamMember: input.hideBookATeamMember,
+    hideTeamProfileLink: input.hideTeamProfileLink,
     brandColor: input.brandColor,
     darkBrandColor: input.darkBrandColor,
     theme: input.theme,

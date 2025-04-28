@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { AppearanceSkeletonLoader } from "@calcom/features/ee/components/CommonSkeletonLoaders";
 import { IntervalLimitsManager } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
@@ -11,13 +12,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
-import { Button } from "@calcom/ui/components/button";
-import classNames from "@calcom/ui/classNames";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -58,8 +58,7 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
     },
   });
 
-  const isAdmin =
-    team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
+  const isAdmin = team && checkAdminOrOwner(team.membership.role);
 
   return (
     <>

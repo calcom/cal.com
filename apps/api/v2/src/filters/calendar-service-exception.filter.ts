@@ -36,7 +36,8 @@ export class CalendarServiceExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    const requestId = request.headers["X-Request-Id"];
+    const requestId = request.headers["X-Request-Id"] ?? "unknown-request-id";
+    response.setHeader("X-Request-Id", requestId.toString());
 
     this.logger.error(`Calendar Service Exception Filter: ${exception?.message}`, {
       exception,

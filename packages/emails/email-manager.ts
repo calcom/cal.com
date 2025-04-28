@@ -1,6 +1,5 @@
-// eslint-disable-next-line no-restricted-imports
-import { cloneDeep } from "lodash";
 import type { TFunction } from "i18next";
+import { default as cloneDeep } from "lodash/cloneDeep";
 import type { z } from "zod";
 
 import type BaseEmail from "@calcom/emails/templates/_base-email";
@@ -75,6 +74,8 @@ import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
 import SlugReplacementEmail from "./templates/slug-replacement-email";
 import type { TeamInvite } from "./templates/team-invite-email";
 import TeamInviteEmail from "./templates/team-invite-email";
+import type { WorkflowEmailData } from "./templates/workflow-email";
+import WorkflowEmail from "./templates/workflow-email";
 
 type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
 
@@ -538,6 +539,10 @@ export const sendPasswordResetEmail = async (passwordResetEvent: PasswordReset) 
 
 export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite) => {
   await sendEmail(() => new TeamInviteEmail(teamInviteEvent));
+};
+
+export const sendCustomWorkflowEmail = async (emailData: WorkflowEmailData) => {
+  await sendEmail(() => new WorkflowEmail(emailData));
 };
 
 export const sendOrganizationCreationEmail = async (organizationCreationEvent: OrganizationCreation) => {

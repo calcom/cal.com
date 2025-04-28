@@ -1,13 +1,14 @@
 import type { TFunction } from "i18next";
 import { useState } from "react";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import type { InputClassNames, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { InputField } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
-import ServerTrans from "@calcom/web/components/ServerTrans";
 
 export type EmailNotificationToggleCustomClassNames = SettingsToggleClassNames & {
   confirmationDialog?: {
@@ -40,6 +41,7 @@ export const DisableAllEmailsSetting = ({
 }: DisableEmailsSettingProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
+  const confirmationString = t("confirm", { defaultValue: "confirm" });
 
   const title =
     recipient === "attendees" ? t("disable_all_emails_to_attendees") : t("disable_all_emails_to_hosts");
@@ -71,7 +73,7 @@ export const DisableAllEmailsSetting = ({
           <DialogFooter className={customClassNames?.confirmationDialog?.dialogFooter?.container}>
             <DialogClose className={customClassNames?.confirmationDialog?.dialogFooter?.cancelButton} />
             <Button
-              disabled={confirmText !== "confirm"}
+              disabled={confirmText.toLowerCase() !== confirmationString.toLowerCase()}
               onClick={() => {
                 onCheckedChange(true);
                 setDialogOpen(false);

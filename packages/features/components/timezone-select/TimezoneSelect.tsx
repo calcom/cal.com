@@ -120,6 +120,10 @@ export function TimezoneSelectComponent({
           minHeight: size === "sm" ? "28px" : "36px",
           height: grow ? "h-auto " : size === "sm" ? "28px" : "36px",
         }),
+        menuList: (base) => ({
+          ...base,
+          height: grow ? "h-auto " : size === "sm" ? "200px" : "180px",
+        }),
       }}
       onInputChange={handleInputChange}
       {...props}
@@ -153,7 +157,7 @@ export function TimezoneSelectComponent({
                 : "px-3 h-fit"
               : size === "sm"
               ? "h-7 px-2"
-              : "h-9 px-3",
+              : "h-9 py-0 px-3",
             props.isDisabled && "bg-subtle",
             "rounded-[10px]",
             timezoneClassNames?.control && timezoneClassNames.control(state)

@@ -55,6 +55,7 @@ const user: User & { credentials: CredentialPayload[] } = {
   allowDynamicBooking: true,
   timeFormat: 12,
   travelSchedules: [],
+  locked: false,
 };
 
 const customInputs: CustomInputSchema[] = [];
@@ -87,8 +88,11 @@ const commons = {
   seatsPerTimeSlot: null,
   seatsShowAttendees: null,
   seatsShowAvailabilityCount: null,
+  disableCancelling: false,
+  disableRescheduling: false,
   onlyShowFirstAvailableSlot: false,
   allowReschedulingPastBookings: false,
+  hideOrganizerEmail: false,
   id: 0,
   hideCalendarNotes: false,
   hideCalendarEventDetails: false,
@@ -125,6 +129,7 @@ const commons = {
   maxLeadThreshold: null,
   useEventLevelSelectedCalendars: false,
   rrResetInterval: null,
+  customReplyToEmail: null,
 };
 
 export const dynamicEvent = {

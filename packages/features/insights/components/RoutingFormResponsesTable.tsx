@@ -3,6 +3,7 @@
 import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import { useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 import {
   DataTableWrapper,
@@ -10,6 +11,7 @@ import {
   DataTableSkeleton,
   useDataTable,
   DateRangeFilter,
+  DataTableSegment,
   ColumnFilterType,
   convertMapToFacetedValues,
   type FilterableColumn,
@@ -49,9 +51,9 @@ export function RoutingFormResponsesTable() {
 
   const getInsightsFacetedUniqueValues = useInsightsFacetedUniqueValues({ headers, userId, teamId, isAll });
 
-  const { sorting, limit, offset, updateFilter } = useDataTable();
+  const { sorting, limit, offset, ctaContainerRef, updateFilter } = useDataTable();
 
-  const { data, isFetching, isPending, isLoading } = trpc.viewer.insights.routingFormResponses.useQuery({
+  const { data, isPending } = trpc.viewer.insights.routingFormResponses.useQuery({
     teamId,
     startDate,
     endDate,
@@ -123,23 +125,30 @@ export function RoutingFormResponsesTable() {
           LoaderView={<DataTableSkeleton columns={4} columnWidths={[200, 200, 250, 250]} />}
           ToolbarLeft={
             <>
+              <DataTableFilters.ColumnVisibilityButton table={table} />
               <OrgTeamsFilter />
-              <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
-              <DataTableFilters.ActiveFilters table={table} />
-              <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
-              <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
+              <DataTableFilters.FilterBar table={table} />
             </>
           }
           ToolbarRight={
             <>
-              <DateRangeFilter column={createdAtColumn} />
-              <RoutingFormResponsesDownload sorting={sorting} />
-              <DataTableFilters.ColumnVisibilityButton table={table} />
+              <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
+              <DataTableSegment.SaveButton />
+              <DataTableSegment.Select />
             </>
           }>
           <RoutingKPICards />
         </DataTableWrapper>
       </div>
+
+      {ctaContainerRef.current &&
+        createPortal(
+          <>
+            <DateRangeFilter column={createdAtColumn} />
+            <RoutingFormResponsesDownload sorting={sorting} />
+          </>,
+          ctaContainerRef.current
+        )}
     </>
   );
 }

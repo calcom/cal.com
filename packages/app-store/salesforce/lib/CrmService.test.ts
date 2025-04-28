@@ -572,4 +572,19 @@ describe("SalesforceCRMService", () => {
       );
     });
   });
+
+  describe("getAccountBasedOnEmailDomainOfContacts", () => {
+    it("should return the account ID based on email domain", async () => {
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce(accountQueryResponse);
+
+      await service.getAccountBasedOnEmailDomainOfContacts("test@example.com");
+      expect(querySpy).toHaveBeenNthCalledWith(
+        1,
+        `SELECT Id, OwnerId, Owner.Email, Website FROM Account WHERE Website IN (${service.getAllPossibleAccountWebsiteFromEmailDomain(
+          "example.com"
+        )}) LIMIT 1`
+      );
+    });
+  });
 });

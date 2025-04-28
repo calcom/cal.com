@@ -11,12 +11,26 @@ import { EditLocationDialog } from "../EditLocationDialog";
 vi.mock("@calcom/trpc/react", () => ({
   trpc: {
     viewer: {
-      locationOptions: {
-        useQuery: vi.fn(),
+      apps: {
+        locationOptions: {
+          useQuery: vi.fn(),
+        },
       },
     },
   },
 }));
+
+vi.mock("next/navigation", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("next/navigation")>();
+  return {
+    ...actual,
+    useRouter: vi.fn(() => ({
+      push: vi.fn(() => {
+        return;
+      }),
+    })),
+  };
+});
 
 vi.mock("@calcom/lib/hooks/useLocale", () => ({
   useLocale: () => ({ t: (key: string) => key }),

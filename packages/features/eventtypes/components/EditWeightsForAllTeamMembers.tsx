@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useState, useEffect, useRef, useMemo } from "react";
 
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
-import { trpc } from "@calcom/trpc";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { buttonClasses } from "@calcom/ui/components/button";
 import { Button } from "@calcom/ui/components/button";
@@ -23,7 +24,11 @@ import {
   SheetTitle,
 } from "@calcom/ui/components/sheet";
 import { showToast } from "@calcom/ui/components/toast";
-import ServerTrans from "@calcom/web/components/ServerTrans";
+
+import {
+  useTeamMembersWithSegment,
+  useTeamMembersWithSegmentPlatform,
+} from "../../../platform/atoms/event-types/hooks/useTeamMembersWithSegment";
 
 type TeamMemberItemProps = {
   member: Omit<TeamMember, "defaultScheduleId"> & { weight?: number };
@@ -93,62 +98,6 @@ const TeamMemberItem = ({ member, onWeightChange }: TeamMemberItemProps) => {
   );
 };
 
-interface UseTeamMembersWithSegmentProps {
-  initialTeamMembers: TeamMember[];
-  assignRRMembersUsingSegment: boolean;
-  teamId?: number;
-  queryValue?: AttributesQueryValue | null;
-  value: Host[];
-}
-
-const useTeamMembersWithSegment = ({
-  initialTeamMembers,
-  assignRRMembersUsingSegment,
-  teamId,
-  queryValue,
-  value,
-}: UseTeamMembersWithSegmentProps) => {
-  const { data: matchingTeamMembersWithResult, isPending } =
-    trpc.viewer.attributes.findTeamMembersMatchingAttributeLogic.useQuery(
-      {
-        teamId: teamId || 0,
-        attributesQueryValue: queryValue as AttributesQueryValue,
-        _enablePerf: true,
-      },
-      {
-        enabled: assignRRMembersUsingSegment && !!queryValue && !!teamId,
-      }
-    );
-
-  const teamMembers = useMemo(() => {
-    if (assignRRMembersUsingSegment && matchingTeamMembersWithResult?.result) {
-      return matchingTeamMembersWithResult.result.map((member) => ({
-        value: member.id.toString(),
-        label: member.name || member.email,
-        email: member.email,
-        avatar: "", // Add avatar with fallback to empty string
-      }));
-    }
-    return initialTeamMembers;
-  }, [assignRRMembersUsingSegment, matchingTeamMembersWithResult, initialTeamMembers]);
-
-  const localWeightsInitialValues = useMemo(
-    () =>
-      teamMembers.reduce<Record<string, number>>((acc, member) => {
-        const memberInValue = value.find((host) => host.userId === parseInt(member.value, 10));
-        acc[member.value] = memberInValue?.weight ?? 100;
-        return acc;
-      }, {}),
-    [teamMembers, value]
-  );
-
-  return {
-    teamMembers,
-    localWeightsInitialValues,
-    isPending,
-  };
-};
-
 interface Props {
   teamMembers: TeamMember[];
   value: Host[];
@@ -172,7 +121,11 @@ export const EditWeightsForAllTeamMembers = ({
   const { t } = useLocale();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { teamMembers, localWeightsInitialValues } = useTeamMembersWithSegment({
+  const isPlatform = useIsPlatform();
+
+  const useTeamMembersHook = isPlatform ? useTeamMembersWithSegmentPlatform : useTeamMembersWithSegment;
+
+  const { teamMembers, localWeightsInitialValues } = useTeamMembersHook({
     initialTeamMembers,
     assignRRMembersUsingSegment,
     teamId,

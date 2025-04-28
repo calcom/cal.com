@@ -340,6 +340,7 @@ export const BookerPlatformWrapper = (
     hasSession,
     extraOptions: extraOptions ?? {},
     prefillFormParams: prefillFormParams,
+    clientId,
   });
   const {
     mutate: createBooking,

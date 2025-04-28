@@ -3,7 +3,6 @@ import { describe, it, vi } from "vitest";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import { HeadSeo } from "@calcom/ui/components/head-seo";
 
 import UserPage from "./users-public-view";
 
@@ -13,10 +12,6 @@ vi.mock("@calcom/lib/constants", async () => {
 
 function mockedUserPageComponentProps(props: Partial<React.ComponentProps<typeof UserPage>>) {
   return {
-    trpcState: {
-      mutations: [],
-      queries: [],
-    },
     themeBasis: "dark",
     safeBio: "My Bio",
     profile: {
@@ -56,7 +51,7 @@ function mockedUserPageComponentProps(props: Partial<React.ComponentProps<typeof
 }
 
 describe("UserPage Component", () => {
-  it("should render HeadSeo with correct props", () => {
+  it("should render with no throw", () => {
     const mockData = {
       props: mockedUserPageComponentProps({
         entity: {
@@ -74,7 +69,6 @@ describe("UserPage Component", () => {
       uid: "uid",
     });
 
-    render(<UserPage {...mockData.props} />);
-    expect(HeadSeo).not.toHaveBeenCalled();
+    expect(() => render(<UserPage {...mockData.props} />)).not.toThrow();
   });
 });

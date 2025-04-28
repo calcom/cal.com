@@ -13,7 +13,7 @@ type SortOptions = {
 };
 type GetOptions = {
   ctx: {
-    user: { id: number; email: string };
+    user: { id: number; email: string; orgId?: number | null };
     prisma: PrismaClient;
   };
   bookingListingByStatus: InputByStatus[];
@@ -76,7 +76,6 @@ const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, 
   const orderBy = getOrderBy(bookingListingByStatus, sort);
 
   const combinedFilters = bookingListingByStatus.map((status) => bookingListingFilters[status]);
-
   const { bookings, recurringInfo, totalCount } = await getBookings({
     user,
     prisma,

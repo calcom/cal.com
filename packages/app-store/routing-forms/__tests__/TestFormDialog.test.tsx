@@ -9,6 +9,18 @@ vi.mock("../lib/processRoute", () => ({
   findMatchingRoute: vi.fn(),
 }));
 
+vi.mock("next/navigation", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("next/navigation")>();
+  return {
+    ...actual,
+    useRouter: vi.fn(() => ({
+      push: vi.fn(() => {
+        return;
+      }),
+    })),
+  };
+});
+
 function mockMatchingRoute(route: any) {
   (findMatchingRoute as Mock<typeof findMatchingRoute>).mockReturnValue({
     ...route,

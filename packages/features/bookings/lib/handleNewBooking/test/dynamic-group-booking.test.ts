@@ -17,7 +17,6 @@ import {
   getScenarioData,
   mockCalendar,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import { expectBookingToBeInDatabase } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForDynamicGroupBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
@@ -118,12 +117,9 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        const createdBooking = await handleNewBooking(req);
 
         await expectBookingToBeInDatabase({
           description: "",
@@ -208,14 +204,12 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
-          });
-
-          await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
-            ErrorCode.HostsUnavailableForBooking
-          );
+          await expect(
+            async () =>
+              await handleNewBooking({
+                bookingData: mockBookingData,
+              })
+          ).rejects.toThrowError(ErrorCode.HostsUnavailableForBooking);
         },
         timeout
       );
@@ -299,14 +293,12 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
-          });
-
-          await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
-            ErrorCode.HostsUnavailableForBooking
-          );
+          await expect(
+            async () =>
+              await handleNewBooking({
+                bookingData: mockBookingData,
+              })
+          ).rejects.toThrowError(ErrorCode.HostsUnavailableForBooking);
         },
         timeout
       );

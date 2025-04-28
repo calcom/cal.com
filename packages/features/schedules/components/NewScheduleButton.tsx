@@ -1,13 +1,14 @@
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog";
 import { Form } from "@calcom/ui/components/form";
 import { InputField } from "@calcom/ui/components/form";
-import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 
 export function NewScheduleButton({
@@ -58,7 +59,7 @@ export function NewScheduleButton({
   return (
     <Dialog name={name} clearQueryParamsOnClose={["copy-schedule-id"]}>
       <DialogTrigger asChild>
-        <Button variant="fab" data-testid={name} StartIcon="plus">
+        <Button variant="fab" data-testid={name} StartIcon="plus" size="sm">
           {t("new")}
         </Button>
       </DialogTrigger>

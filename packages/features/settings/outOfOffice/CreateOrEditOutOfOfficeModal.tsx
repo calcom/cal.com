@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
@@ -12,7 +13,7 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import classNames from "@calcom/ui/classNames";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
+import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { DateRangePicker, TextArea, Input } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
@@ -23,7 +24,8 @@ import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
 
 export type BookingRedirectForm = {
   dateRange: { startDate: Date; endDate: Date };
-  offset: number;
+  startDateOffset: number;
+  endDateOffset: number;
   toTeamUserId: number | null;
   reasonId: number;
   notes?: string;
@@ -122,7 +124,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   }, document.querySelector('[role="dialog"]'));
 
   const { data: outOfOfficeReasonList, isPending: isReasonListPending } =
-    trpc.viewer.outOfOfficeReasonList.useQuery();
+    trpc.viewer.ooo.outOfOfficeReasonList.useQuery();
   const reasonList = (outOfOfficeReasonList || []).map((reason) => ({
     label: `${reason.emoji} ${reason.userId === null ? t(reason.reason) : reason.reason}`,
     value: reason.id,
@@ -148,7 +150,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
             startDate: dayjs().startOf("d").toDate(),
             endDate: dayjs().startOf("d").add(2, "d").toDate(),
           },
-          offset: dayjs().utcOffset(),
+          startDateOffset: dayjs().utcOffset(),
+          endDateOffset: dayjs().utcOffset(),
           toTeamUserId: null,
           reasonId: 1,
           forUserId: null,
@@ -158,7 +161,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const watchedTeamUserId = watch("toTeamUserId");
   const watchForUserId = watch("forUserId");
 
-  const createOrEditOutOfOfficeEntry = trpc.viewer.outOfOfficeCreateOrUpdate.useMutation({
+  const createOrEditOutOfOfficeEntry = trpc.viewer.ooo.outOfOfficeCreateOrUpdate.useMutation({
     onSuccess: () => {
       showToast(
         currentlyEditingOutOfOfficeEntry
@@ -166,7 +169,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           : t("success_entry_created"),
         "success"
       );
-      utils.viewer.outOfOfficeEntriesList.invalidate();
+      utils.viewer.ooo.outOfOfficeEntriesList.invalidate();
       closeModal();
     },
     onError: (error) => {
@@ -193,7 +196,11 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
             if (!data.dateRange.endDate) {
               showToast(t("end_date_not_selected"), "error");
             } else {
-              createOrEditOutOfOfficeEntry.mutate(data);
+              createOrEditOutOfOfficeEntry.mutate({
+                ...data,
+                startDateOffset: -1 * data.dateRange.startDate.getTimezoneOffset(),
+                endDateOffset: -1 * data.dateRange.endDate.getTimezoneOffset(),
+              });
             }
           })}>
           <div className="h-full px-1">
@@ -294,6 +301,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                         onChange(values);
                       }}
                       strictlyBottom={true}
+                      allowPastDates={true}
                     />
                   )}
                 />

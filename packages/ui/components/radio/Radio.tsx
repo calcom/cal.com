@@ -4,6 +4,8 @@ import React from "react";
 
 import classNames from "@calcom/ui/classNames";
 
+export const Root = RadioGroupPrimitive.Root;
+
 export const Group = (props: RadioGroupPrimitive.RadioGroupProps & { children: ReactNode }) => (
   <RadioGroupPrimitive.Root {...props}>{props.children}</RadioGroupPrimitive.Root>
 );

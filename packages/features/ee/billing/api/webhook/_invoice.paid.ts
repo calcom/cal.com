@@ -1,6 +1,5 @@
 import logger from "@calcom/lib/logger";
 
-import { HttpCode } from "./__handler";
 import type { LazyModule, SWHMap } from "./__handler";
 
 type Data = SWHMap["invoice.paid"]["data"];
@@ -17,7 +16,7 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
   // Only handle subscription invoices
   if (!invoice.subscription) {
     log.warn("Not a subscription invoice, skipping");
-    return { success: true };
+    return { success: false, message: "Not a subscription invoice, skipping" };
   }
 
   // Get the product ID from the first subscription item
@@ -25,15 +24,25 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
   const productId = firstItem?.price?.product as string; // prod_xxxxx
 
   if (!productId) {
-    log.error("No product ID found in invoice, skipping");
-    return { success: true };
+    log.warn("No product ID found in invoice, skipping");
+    return { success: false, message: "No product ID found in invoice, skipping" };
   }
 
   const handlerGetter = handlers[productId as keyof typeof handlers];
-  if (!handlerGetter) throw new HttpCode(202, `No product handler found for product: ${productId}`);
+
+  /**
+   * If no handler is found, we skip the product. A handler could be null if we don't need webhooks to handle the business logic for the product.
+   */
+  if (!handlerGetter) {
+    log.warn(`Skipping product: ${productId} because no handler found`);
+    return { success: false, message: `Skipping product: ${productId} because no handler found` };
+  }
   const handler = (await handlerGetter())?.default;
   // auto catch unsupported Stripe products.
-  if (!handler) throw new HttpCode(202, `No product handler found for product: ${productId}`);
+  if (!handler) {
+    log.warn(`Skipping product: ${productId} because no handler found`);
+    return { success: false, message: `Skipping product: ${productId} because no handler found` };
+  }
   return await handler(data);
 };
 

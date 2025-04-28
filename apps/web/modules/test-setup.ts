@@ -72,7 +72,7 @@ vi.mock("@calcom/lib/constants", () => {
   };
 });
 
-vi.mock("@calcom/lib/date-fns", () => {
+vi.mock("@calcom/lib/dayjs", () => {
   return {};
 });
 
@@ -149,10 +149,6 @@ vi.mock("@calcom/trpc/react", () => ({
       },
     },
   },
-}));
-
-vi.mock("@calcom/ui/components/head-seo", () => ({
-  HeadSeo: vi.fn(),
 }));
 
 vi.mock("@calcom/ui/styles", () => ({

@@ -51,8 +51,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     platformClientParams,
   } = input;
 
-  const tOrganizer = await getTranslation(user.locale ?? "en", "common");
-
   const booking = await prisma.booking.findUniqueOrThrow({
     where: {
       id: bookingId,
@@ -82,7 +80,9 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           description: true,
           price: true,
           bookingFields: true,
+          hideOrganizerEmail: true,
           disableGuests: true,
+          customReplyToEmail: true,
           metadata: true,
           locations: true,
           team: {
@@ -110,6 +110,18 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       },
       location: true,
       userId: true,
+      user: {
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          timeZone: true,
+          timeFormat: true,
+          name: true,
+          destinationCalendar: true,
+          locale: true,
+        },
+      },
       id: true,
       uid: true,
       payment: true,
@@ -124,7 +136,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   await checkIfUserIsAuthorizedToConfirmBooking({
     eventTypeId: booking.eventTypeId,
     loggedInUserId: user.id,
-    teamId: booking.eventType?.teamId,
+    teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
     bookingUserId: booking.userId,
     userRole: user.role,
   });
@@ -183,6 +195,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   );
 
   const attendeesList = await Promise.all(attendeesListPromises);
+  const tOrganizer = await getTranslation(booking.user?.locale ?? "en", "common");
 
   const evt: CalendarEvent = {
     type: booking?.eventType?.slug as string,
@@ -198,23 +211,25 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     startTime: booking.startTime.toISOString(),
     endTime: booking.endTime.toISOString(),
     organizer: {
-      email: booking.userPrimaryEmail ?? user.email,
-      name: user.name || "Unnamed",
-      username: user.username || undefined,
-      timeZone: user.timeZone,
-      timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
-      language: { translate: tOrganizer, locale: user.locale ?? "en" },
+      email: booking?.userPrimaryEmail || booking.user?.email || "Email-less",
+      name: booking.user?.name || "Nameless",
+      username: booking.user?.username || undefined,
+      timeZone: booking.user?.timeZone || "Europe/London",
+      timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user?.timeFormat),
+      language: { translate: tOrganizer, locale: booking.user?.locale ?? "en" },
     },
     attendees: attendeesList,
     location: booking.location ?? "",
     uid: booking.uid,
-    destinationCalendar: booking?.destinationCalendar
+    destinationCalendar: booking.destinationCalendar
       ? [booking.destinationCalendar]
-      : user.destinationCalendar
-      ? [user.destinationCalendar]
+      : booking.user?.destinationCalendar
+      ? [booking.user?.destinationCalendar]
       : [],
     requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
+    hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     eventTypeId: booking.eventType?.id,
+    customReplyToEmail: booking.eventType?.customReplyToEmail,
     team: !!booking.eventType?.team
       ? {
           name: booking.eventType.team.name,

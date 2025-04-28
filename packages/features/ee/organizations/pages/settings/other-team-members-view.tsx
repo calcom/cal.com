@@ -7,14 +7,15 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { CreationSource } from "@calcom/prisma/enums";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import MakeTeamPrivateSwitch from "../../../teams/components/MakeTeamPrivateSwitch";
 import MemberListItem from "../components/MemberListItem";
@@ -72,9 +73,7 @@ export const TeamMembersCTA = () => {
     enabled: !!session.data?.user?.org,
   });
 
-  const isOrgAdminOrOwner =
-    currentOrg &&
-    (currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN);
+  const isOrgAdminOrOwner = currentOrg && checkAdminOrOwner(currentOrg.user.role);
 
   if (!isOrgAdminOrOwner) return null;
 
@@ -161,6 +160,7 @@ const MembersView = () => {
       utils.viewer.organizations.getMembers.invalidate();
       utils.viewer.organizations.listOtherTeams.invalidate();
       utils.viewer.teams.list.invalidate();
+      revalidateTeamsList();
       utils.viewer.organizations.listOtherTeamMembers.invalidate();
     },
   });

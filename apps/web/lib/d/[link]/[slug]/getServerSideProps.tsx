@@ -1,4 +1,5 @@
 import type { EmbedProps } from "app/WithEmbedSSR";
+import { createRouterCaller } from "app/_trpc/context";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
@@ -10,6 +11,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
+import { publicViewerRouter } from "@calcom/trpc/server/routers/publicViewer/_router";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -22,9 +24,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const { rescheduleUid, duration: queryDuration } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
   const org = isValidOrgDomain ? currentOrgDomain : null;
-
-  const { ssrInit } = await import("@server/lib/ssr");
-  const ssr = await ssrInit(context);
 
   const hashedLink = await prisma.hashedLink.findUnique({
     where: {
@@ -115,7 +114,9 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({
+  const caller = await createRouterCaller(publicViewerRouter);
+
+  const eventData = await caller.event({
     username: name,
     eventSlug: slug,
     isTeamEvent,
@@ -140,7 +141,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       booking,
       user: name,
       slug,
-      trpcState: ssr.dehydrate(),
       isBrandingHidden: hideBranding,
       // Sending the team event from the server, because this template file
       // is reused for both team and user events.

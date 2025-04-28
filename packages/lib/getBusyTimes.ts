@@ -1,10 +1,10 @@
 import type { Booking, EventType } from "@prisma/client";
-import { Prisma } from "@prisma/client";
-import * as Sentry from "@sentry/nextjs";
+import type { Prisma } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
 import { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 import { subtract } from "@calcom/lib/date-ranges";
+import { stringToDayjs } from "@calcom/lib/dayjs";
 import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import logger from "@calcom/lib/logger";
@@ -13,11 +13,11 @@ import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { stringToDayjs } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { getDefinedBufferTimes } from "../features/eventtypes/lib/getDefinedBufferTimes";
+import { BookingRepository as BookingRepo } from "./server/repository/booking";
 
 export async function getBusyTimes(params: {
   credentials: CredentialForCalendarService[];
@@ -100,15 +100,6 @@ export async function getBusyTimes(params: {
   const startTimeAdjustedWithMaxBuffer = dayjs(startTimeDate).subtract(maxBuffer, "minute").toDate();
   const endTimeAdjustedWithMaxBuffer = dayjs(endTimeDate).add(maxBuffer, "minute").toDate();
 
-  // startTime is less than endTimeDate and endTime grater than startTimeDate
-  const sharedQuery: Prisma.BookingWhereInput = {
-    startTime: { lte: endTimeAdjustedWithMaxBuffer },
-    endTime: { gte: startTimeAdjustedWithMaxBuffer },
-    status: {
-      in: [BookingStatus.ACCEPTED],
-    },
-  };
-
   // INFO: Refactored to allow this method to take in a list of current bookings for the user.
   // Will keep support for retrieving a user's bookings if the caller does not already supply them.
   // This function is called from multiple places but we aren't refactoring all of them at this moment
@@ -116,119 +107,64 @@ export async function getBusyTimes(params: {
   let bookings = params.currentBookings;
 
   if (!bookings) {
-    const getBookingsForBusyTimesSpan = Sentry.startInactiveSpan({ name: "getBookingsForBusyTimes" });
-    const bookingsSelect = Prisma.validator<Prisma.BookingSelect>()({
-      id: true,
-      uid: true,
-      userId: true,
-      startTime: true,
-      endTime: true,
-      title: true,
-      eventType: {
-        select: {
-          id: true,
-          afterEventBuffer: true,
-          beforeEventBuffer: true,
-          seatsPerTimeSlot: true,
-        },
-      },
-      ...(seatedEvent && {
-        _count: {
-          select: {
-            seatsReferences: true,
-          },
-        },
-      }),
+    bookings = await BookingRepo.findAllExistingBookingsForEventTypeBetween({
+      userIdAndEmailMap: new Map([[userId, userEmail]]),
+      eventTypeId,
+      startDate: startTimeAdjustedWithMaxBuffer,
+      endDate: endTimeAdjustedWithMaxBuffer,
+      seatedEvent,
     });
-
-    const currentBookingsAllUsersQueryOne = prisma.booking.findMany({
-      where: {
-        // User is primary host (individual events, or primary organizer)
-        ...sharedQuery,
-        userId,
-      },
-      select: bookingsSelect,
-    });
-
-    const currentBookingsAllUsersQueryTwo = prisma.booking.findMany({
-      where: {
-        ...sharedQuery,
-        attendees: {
-          some: {
-            email: userEmail,
-          },
-        },
-      },
-      select: bookingsSelect,
-    });
-
-    const unconfirmedBookingsBlockingSlots = eventTypeId
-      ? prisma.booking.findMany({
-          where: {
-            startTime: { lte: endTimeDate },
-            endTime: { gte: startTimeDate },
-            eventType: {
-              id: eventTypeId,
-              requiresConfirmation: true,
-              requiresConfirmationWillBlockSlot: true,
-            },
-            status: {
-              in: [BookingStatus.PENDING],
-            },
-          },
-          select: bookingsSelect,
-        })
-      : null;
-
-    const [resultOne, resultTwo, resultThree] = await Promise.all([
-      currentBookingsAllUsersQueryOne,
-      currentBookingsAllUsersQueryTwo,
-      unconfirmedBookingsBlockingSlots,
-    ]);
-
-    bookings = [...resultOne, ...resultTwo, ...(resultThree ?? [])];
-
-    getBookingsForBusyTimesSpan.end();
   }
 
   const bookingSeatCountMap: { [x: string]: number } = {};
-  const busyTimes = bookings.reduce(
-    (aggregate: EventBusyDetails[], { id, startTime, endTime, eventType, title, ...rest }) => {
-      if (rest._count?.seatsReferences) {
-        const bookedAt = `${dayjs(startTime).utc().format()}<>${dayjs(endTime).utc().format()}`;
-        bookingSeatCountMap[bookedAt] = bookingSeatCountMap[bookedAt] || 0;
-        bookingSeatCountMap[bookedAt]++;
-        // Seat references on the current event are non-blocking until the event is fully booked.
-        if (
-          // there are still seats available.
-          bookingSeatCountMap[bookedAt] < (eventType?.seatsPerTimeSlot || 1) &&
-          // and this is the seated event, other event types should be blocked.
-          eventTypeId === eventType?.id
-        ) {
-          // then we do not add the booking to the busyTimes.
-          return aggregate;
+  const busyTimes = bookings.reduce((aggregate: EventBusyDetails[], booking) => {
+    const { id, startTime, endTime, eventType, title, ...rest } = booking;
+
+    const minutesToBlockBeforeEvent = (eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0);
+    const minutesToBlockAfterEvent = (eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0);
+
+    if (rest._count?.seatsReferences) {
+      const bookedAt = `${dayjs(startTime).utc().format()}<>${dayjs(endTime).utc().format()}`;
+      bookingSeatCountMap[bookedAt] = bookingSeatCountMap[bookedAt] || 0;
+      bookingSeatCountMap[bookedAt]++;
+      // Seat references on the current event are non-blocking until the event is fully booked.
+      if (
+        // there are still seats available.
+        bookingSeatCountMap[bookedAt] < (eventType?.seatsPerTimeSlot || 1) &&
+        // and this is the seated event, other event types should be blocked.
+        eventTypeId === eventType?.id
+      ) {
+        // then we ONLY add the before/after buffer times as busy times.
+        if (minutesToBlockBeforeEvent) {
+          aggregate.push({
+            start: dayjs(startTime).subtract(minutesToBlockBeforeEvent, "minute").toDate(),
+            end: dayjs(startTime).toDate(), // The event starts after the buffer
+          });
         }
-        // if it does get blocked at this point; we remove the bookingSeatCountMap entry
-        // doing this allows using the map later to remove the ranges from calendar busy times.
-        delete bookingSeatCountMap[bookedAt];
-      }
-      if (rest.uid === rescheduleUid) {
+        if (minutesToBlockAfterEvent) {
+          aggregate.push({
+            start: dayjs(endTime).toDate(), // The event ends before the buffer
+            end: dayjs(endTime).add(minutesToBlockAfterEvent, "minute").toDate(),
+          });
+        }
         return aggregate;
       }
-      aggregate.push({
-        start: dayjs(startTime)
-          .subtract((eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0), "minute")
-          .toDate(),
-        end: dayjs(endTime)
-          .add((eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0), "minute")
-          .toDate(),
-        title,
-        source: `eventType-${eventType?.id}-booking-${id}`,
-      });
+      // if it does get blocked at this point; we remove the bookingSeatCountMap entry
+      // doing this allows using the map later to remove the ranges from calendar busy times.
+      delete bookingSeatCountMap[bookedAt];
+    }
+    // rescheduling the same booking to the same time should be possible. Why?
+    if (rest.uid === rescheduleUid) {
       return aggregate;
-    },
-    []
-  );
+    }
+    aggregate.push({
+      start: dayjs(startTime).subtract(minutesToBlockBeforeEvent, "minute").toDate(),
+      end: dayjs(endTime).add(minutesToBlockAfterEvent, "minute").toDate(),
+      title,
+      source: `eventType-${eventType?.id}-booking-${id}`,
+    });
+    return aggregate;
+  }, []);
 
   logger.debug(
     `Busy Time from Cal Bookings ${JSON.stringify({

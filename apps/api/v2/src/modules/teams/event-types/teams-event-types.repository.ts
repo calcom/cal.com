@@ -49,6 +49,29 @@ export class TeamsEventTypesRepository {
     });
   }
 
+  async getEventTypeByTeamIdAndSlug(teamId: number, eventTypeSlug: string) {
+    return this.dbRead.prisma.eventType.findUnique({
+      where: {
+        teamId_slug: {
+          teamId,
+          slug: eventTypeSlug,
+        },
+      },
+    });
+  }
+
+  async getEventTypeByTeamIdAndSlugWithOwnerAndTeam(teamId: number, eventTypeSlug: string) {
+    return this.dbRead.prisma.eventType.findUnique({
+      where: {
+        teamId_slug: {
+          teamId,
+          slug: eventTypeSlug,
+        },
+      },
+      include: { owner: true, team: true },
+    });
+  }
+
   async getTeamEventTypes(teamId: number) {
     return this.dbRead.prisma.eventType.findMany({
       where: {

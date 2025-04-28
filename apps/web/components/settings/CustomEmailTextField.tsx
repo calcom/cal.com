@@ -49,7 +49,7 @@ const CustomEmailTextField = ({
         }`}>
         <input
           {...formMethods.register(formMethodFieldName)}
-          className="flex-1 bg-transparent px-3 py-1 text-sm outline-none"
+          className="flex-1 bg-transparent px-3 py-1.5 text-sm outline-none"
           data-testid={dataTestId}
           onFocus={() => setInputFocus(true)}
           onBlur={() => setInputFocus(false)}

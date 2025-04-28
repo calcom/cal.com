@@ -42,7 +42,7 @@ async function getHandler(request: NextRequest) {
       );
     }
 
-    return await handleBookingAction(action, token, bookingUid, userId, undefined, request);
+    return await handleBookingAction(action, token, bookingUid, userId, request, undefined);
   } catch (error) {
     const bookingUid = queryParams.bookingUid || "";
     return NextResponse.redirect(
@@ -60,7 +60,7 @@ async function postHandler(request: NextRequest) {
     const body = await parseRequestData(request).catch(() => ({}));
     const { reason } = z.object({ reason: z.string().optional() }).parse(body || {});
 
-    return await handleBookingAction(action, token, bookingUid, userId, reason, request);
+    return await handleBookingAction(action, token, bookingUid, userId, request, reason);
   } catch (error) {
     const bookingUid = queryParams.bookingUid || "";
     return NextResponse.redirect(
@@ -74,16 +74,17 @@ async function handleBookingAction(
   token: string,
   bookingUid: string,
   userId: string,
-  reason?: string,
-  request?: NextRequest
+  request: NextRequest,
+  reason?: string
 ) {
+  const url = new URL(request.url);
   const booking = await prisma.booking.findUnique({
     where: { oneTimePassword: token },
   });
 
   if (!booking) {
     return NextResponse.redirect(
-      `/booking/${bookingUid}?error=${encodeURIComponent("Error confirming booking")}`
+      `${url.origin}/booking/${bookingUid}?error=${encodeURIComponent("Error confirming booking")}`
     );
   }
 
@@ -139,7 +140,7 @@ async function handleBookingAction(
   } catch (e) {
     let message = "Error confirming booking";
     if (e instanceof TRPCError) message = (e as TRPCError).message;
-    return NextResponse.redirect(`/booking/${booking.uid}?error=${encodeURIComponent(message)}`);
+    return NextResponse.redirect(`${url.origin}/booking/${booking.uid}?error=${encodeURIComponent(message)}`);
   }
 
   await prisma.booking.update({
@@ -147,7 +148,7 @@ async function handleBookingAction(
     data: { oneTimePassword: null },
   });
 
-  return NextResponse.redirect(`/booking/${booking.uid}`);
+  return NextResponse.redirect(`${url.origin}/booking/${booking.uid}`);
 }
 
 export const GET = defaultResponderForAppDir(getHandler);

@@ -6,6 +6,9 @@ const { withAxiom } = require("next-axiom");
 const { withSentryConfig } = require("@sentry/nextjs");
 const { version } = require("./package.json");
 const {
+  i18n: { locales },
+} = require("./next-i18next.config");
+const {
   nextJsOrgRewriteConfig,
   orgUserRoutePath,
   orgUserTypeRoutePath,
@@ -181,6 +184,8 @@ const nextConfig = {
     "http-cookie-agent", // Dependencies of @ewsjs/xhr
     "rest-facade",
     "superagent-proxy", // Dependencies of @tryvital/vital-node
+    "superagent", // Dependencies of akismet
+    "formidable", // Dependencies of akismet
   ],
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
@@ -234,6 +239,8 @@ const nextConfig = {
             /(^@google-cloud\/spanner|^@mongodb-js\/zstd|^@sap\/hana-client\/extension\/Stream$|^@sap\/hana-client|^@sap\/hana-client$|^aws-crt|^aws4$|^better-sqlite3$|^bson-ext$|^cardinal$|^cloudflare:sockets$|^hdb-pool$|^ioredis$|^kerberos$|^mongodb-client-encryption$|^mysql$|^oracledb$|^pg-native$|^pg-query-stream$|^react-native-sqlite-storage$|^snappy\/package\.json$|^snappy$|^sql.js$|^sqlite3$|^typeorm-aurora-data-api-driver$)/,
         })
       );
+
+      config.externals.push("formidable");
     }
 
     config.plugins.push(
@@ -288,6 +295,11 @@ const nextConfig = {
   async rewrites() {
     const { orgSlug } = nextJsOrgRewriteConfig;
     const beforeFiles = [
+      {
+        // This should be the first item in `beforeFiles` to take precedence over other rewrites
+        source: `/(${locales.join("|")})/:path*`,
+        destination: "/:path*",
+      },
       {
         source: "/forms/:formQuery*",
         destination: "/apps/routing-forms/routing-link/:formQuery*",
@@ -378,6 +390,11 @@ const nextConfig = {
       {
         source: "/icons/sprite.svg",
         destination: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/icons/sprite.svg`,
+      },
+      // for @dub/analytics, @see: https://d.to/reverse-proxy
+      {
+        source: "/_proxy/dub/track/:path",
+        destination: "https://api.dub.co/track/:path",
       },
 
       // When updating this also update pagesAndRewritePaths.js
@@ -481,8 +498,15 @@ const nextConfig = {
           headers: [CORP_CROSS_ORIGIN_HEADER],
         },
         {
-          source: "/icons/sprite.svg",
-          headers: [CORP_CROSS_ORIGIN_HEADER, ACCESS_CONTROL_ALLOW_ORIGIN_HEADER],
+          source: "/icons/sprite.svg(\\?v=[0-9a-zA-Z\\-\\.]+)?",
+          headers: [
+            CORP_CROSS_ORIGIN_HEADER,
+            ACCESS_CONTROL_ALLOW_ORIGIN_HEADER,
+            {
+              key: "Cache-Control",
+              value: "public, max-age=31536000, immutable",
+            },
+          ],
         },
       ],
       ...(isOrganizationsEnabled

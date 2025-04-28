@@ -1,10 +1,12 @@
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { DataTableSelectionBar } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Dialog, DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 
-import type { User } from "./MemberList";
+export type User = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 
 interface Props {
   users: User[];

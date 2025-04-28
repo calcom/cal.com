@@ -11,7 +11,7 @@
       "method": "bearer"
     }
   },
-  "favicon": "/favicon-32x32.png",
+  "favicon": "/favicon.png",
   "colors": {
     "primary": "#111827",
     "light": "#d6d6d6",
@@ -191,6 +191,7 @@
           "group": "Atoms",
           "icon": "atom",
           "pages": [
+            "platform/atoms/cal-provider",
             "platform/atoms/google-calendar-connect",
             "platform/atoms/outlook-calendar-connect",
             "platform/atoms/apple-calendar-connect",
@@ -219,7 +220,9 @@
             "platform/guides/replacing-toasts",
             "platform/guides/booking-fields",
             "platform/guides/booking-redirects",
-            "platform/guides/teams-setup"
+            "platform/guides/teams-setup",
+            "platform/guides/global-event-types",
+            "platform/guides/custom-booking-flow"
           ]
         },
         "platform/faq"

@@ -288,6 +288,7 @@ class BaseCreateEventTypeInput {
       "Should booker have week, month or column view. Specify default layout and enabled layouts user can pick.",
   })
   @Type(() => BookerLayouts_2024_06_14)
+  @ValidateNested()
   bookerLayouts?: BookerLayouts_2024_06_14;
 
   @IsOptional()
@@ -445,7 +446,6 @@ export class Host {
   @DocsPropertyOptional({ enum: HostPriority })
   priority?: keyof typeof HostPriority = "medium";
 }
-
 export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @Transform(({ value }) => {
     if (value === "collective") {
@@ -460,14 +460,23 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
     return value;
   })
   @IsEnum(SchedulingType)
-  @DocsProperty()
+  @DocsProperty({
+    enum: ["collective", "roundRobin", "managed"],
+    example: "collective",
+    description: "The scheduling type for the team event - collective, roundRobin or managed.",
+  })
   schedulingType!: keyof typeof SchedulingType;
 
   @ValidateNested({ each: true })
   @Type(() => Host)
   @IsArray()
-  @DocsProperty({ type: [Host] })
-  hosts!: Host[];
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: [Host],
+    description:
+      "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users.",
+  })
+  hosts?: Host[];
 
   @IsBoolean()
   @IsOptional()

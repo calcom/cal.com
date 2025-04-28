@@ -8,23 +8,29 @@ import {
 } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
+import { CAL_VIDEO_MEETING_LINK_FOR_TESTING } from "@calcom/lib/constants";
+import { isENVDev } from "@calcom/lib/env";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req } = context;
 
-  const ssr = await ssrInit(context);
-
   const booking = await BookingRepository.findBookingForMeetingPage({
     bookingUid: context.query.uid as string,
   });
+
+  // Below if block is for local testing purposes only
+  // STARTS------------------------------------------------------------------------------
+  if (booking?.references[0] && isENVDev && CAL_VIDEO_MEETING_LINK_FOR_TESTING) {
+    // meetingUrl is `null` in dev env, so setting a dummy meetingUrl (it's a past but real meeting link in production env)
+    booking.references[0].meetingUrl = CAL_VIDEO_MEETING_LINK_FOR_TESTING;
+  }
+  // ENDS--------------------------------------------------------------------------------
 
   if (!booking || booking.references.length === 0 || !booking.references[0].meetingUrl) {
     return {
@@ -66,7 +72,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   //find out if the meeting is in the past
   const isPast = booking?.endTime <= exitDate;
-  if (isPast) {
+  const testingUid =
+    CAL_VIDEO_MEETING_LINK_FOR_TESTING && CAL_VIDEO_MEETING_LINK_FOR_TESTING?.split("/").pop();
+  const isTestingLink = booking?.uid === testingUid;
+
+  if (isPast && !isTestingLink) {
     return {
       redirect: {
         destination: `/video/meeting-ended/${booking?.uid}`,
@@ -143,7 +153,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
       hasTeamPlan: !!hasTeamPlan,
       calVideoLogo,
-      trpcState: ssr.dehydrate(),
     },
   };
 }

@@ -1,8 +1,7 @@
+import { Dialog } from "@calcom/features/components/controlled-dialog";
+import type { DialogProps as ControlledDialogProps } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
-import type { DialogProps } from "@calcom/ui/components/dialog";
-import { ConfirmationDialogContent, Dialog } from "@calcom/ui/components/dialog";
-import ServerTrans from "@calcom/web/components/ServerTrans";
+import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 
 export function DeleteDialog({
   isManagedEvent,
@@ -16,7 +15,7 @@ export function DeleteDialog({
   eventTypeId: number;
   onDelete: (id: number) => void;
   isDeleting?: boolean;
-} & Pick<DialogProps, "open" | "onOpenChange">) {
+} & Pick<ControlledDialogProps, "open" | "onOpenChange">) {
   const { t } = useLocale();
 
   return (

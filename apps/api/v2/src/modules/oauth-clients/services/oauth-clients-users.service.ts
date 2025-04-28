@@ -1,6 +1,7 @@
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { Locales } from "@/lib/enums/locales";
 import { GetManagedUsersInput } from "@/modules/oauth-clients/controllers/oauth-client-users/inputs/get-managed-users.input";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
@@ -41,7 +42,7 @@ export class OAuthClientUsersService {
       );
     } else {
       const email = OAuthClientUsersService.getOAuthUserEmail(oAuthClientId, body.email);
-      user = (
+      const createdUser = (
         await createNewUsersConnectToOrgIfExists({
           invitations: [
             {
@@ -64,23 +65,21 @@ export class OAuthClientUsersService {
           timeFormat: body.timeFormat,
           weekStart: body.weekStart,
           timeZone: body.timeZone,
+          language: body.locale ?? Locales.EN,
         })
       )[0];
-      await this.userRepository.addToOAuthClient(user.id, oAuthClientId);
-      const updatedUser = await this.userRepository.update(user.id, {
+      await this.userRepository.addToOAuthClient(createdUser.id, oAuthClientId);
+      user = await this.userRepository.update(createdUser.id, {
         name: body.name,
         locale: body.locale,
         avatarUrl: body.avatarUrl,
+        bio: body.bio,
+        metadata: body.metadata,
       });
-      user.locale = updatedUser.locale;
-      user.name = updatedUser.name;
-      user.avatarUrl = updatedUser.avatarUrl;
     }
 
-    const { accessToken, refreshToken, accessTokenExpiresAt } = await this.tokensRepository.createOAuthTokens(
-      oAuthClientId,
-      user.id
-    );
+    const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } =
+      await this.tokensRepository.createOAuthTokens(oAuthClientId, user.id);
 
     if (oAuthClient.areDefaultEventTypesEnabled) {
       await this.eventTypesService.createUserDefaultEventTypes(user.id);
@@ -104,6 +103,7 @@ export class OAuthClientUsersService {
         accessToken,
         accessTokenExpiresAt,
         refreshToken,
+        refreshTokenExpiresAt,
       },
     };
   }

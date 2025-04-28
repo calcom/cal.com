@@ -57,7 +57,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
   const isPlatformPages = pathname?.startsWith("/settings/platform");
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
-  const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${user?.username}`;
+  const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${user?.orgAwareUsername}`;
 
   const bottomNavItems = useBottomNavItems({
     publicPageUrl,
