@@ -763,8 +763,10 @@ test.describe("Routing Forms", () => {
       text: string;
     }) => {
       await page.goto(`apps/routing-forms/form-edit/${formId}`);
+      await page.getByTestId("settings-button").click();
       await page.click('[data-testid="routing-form-select-members"]');
       await page.getByText(text).nth(1).click();
+      await page.getByTestId("settings-slider-over-done").click();
       await saveCurrentForm(page);
     };
 
