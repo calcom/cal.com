@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppFrontendPayload } from "@calcom/types/App";
@@ -15,8 +19,21 @@ export const InstallAppButtonChild = ({
   paid?: AppFrontendPayload["paid"];
 } & ButtonProps) => {
   const { t } = useLocale();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const shouldDisableInstallation = !multiInstall ? !!(credentials && credentials.length) : false;
+
+  if (!isClient) {
+    return (
+      <Button data-testid="install-app-button" {...props} disabled={true} color="primary" size="base">
+        {t("install_app")}
+      </Button>
+    );
+  }
 
   // Paid apps don't support team installs at the moment
   // Also, cal.ai(the only paid app at the moment) doesn't support team install either
