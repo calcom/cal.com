@@ -92,6 +92,7 @@ export const TeamMemberSelect = ({
         </div>
       )}
       <Select
+        data-testid="routing-form-select-members"
         isMulti
         options={options}
         value={selectedOptions}

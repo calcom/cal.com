@@ -110,7 +110,7 @@ test.describe("Routing Forms", () => {
       await page.click('[data-testid="back-button"]');
       await disableForm(page);
       await gotoRoutingLink({ page, formId });
-      await expect(page).toHaveTitle(/404/);
+      await expect(page.locator('h1:has-text("404")')).toBeVisible();
     });
 
     test("recently added form appears first in the list", async ({ page }) => {
