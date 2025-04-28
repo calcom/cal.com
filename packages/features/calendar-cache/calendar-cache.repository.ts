@@ -7,7 +7,6 @@ import prisma from "@calcom/prisma";
 import type { Calendar, SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import type { ICalendarCacheRepository } from "./calendar-cache.repository.interface";
-import { getTimeMax, getTimeMin } from "./lib/datesForCache";
 
 const log = logger.getSubLogger({ prefix: ["CalendarCacheRepository"] });
 
@@ -19,8 +18,8 @@ function parseKeyForCache(args: FreeBusyArgs): string {
   // Ensure that calendarIds are unique
   const uniqueItems = uniqueBy(args.items, ["id"]);
   const key = JSON.stringify({
-    timeMin: getTimeMin(args.timeMin),
-    timeMax: getTimeMax(args.timeMax),
+    timeMin: args.timeMin,
+    timeMax: args.timeMax,
     items: uniqueItems,
   });
   return key;

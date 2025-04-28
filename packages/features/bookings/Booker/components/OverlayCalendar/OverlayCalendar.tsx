@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 
 import type { UseCalendarsReturnType } from "../hooks/useCalendars";
@@ -41,9 +43,16 @@ export const OverlayCalendar = ({
     checkIsCalendarToggled,
   } = useOverlayCalendar({ connectedCalendars, overlayBusyDates, onToggleCalendar });
 
+  // Adding to avoid flickering of continue modal due to stale state
+  useEffect(() => {
+    if (isOverlayCalendarEnabled) {
+      handleCloseContinueModal(false);
+    }
+  }, [isOverlayCalendarEnabled, handleCloseContinueModal]);
+
   // on platform we don't handle connecting to third party calendar via booker yet
   if (isPlatform && connectedCalendars?.length === 0) {
-    return <></>;
+    return null;
   }
 
   return (
@@ -55,7 +64,7 @@ export const OverlayCalendar = ({
       />
       {!isPlatform && (
         <OverlayCalendarContinueModal
-          open={isOpenOverlayContinueModal}
+          open={isOpenOverlayContinueModal && !isOverlayCalendarEnabled}
           onClose={handleCloseContinueModal}
           onContinue={handleClickContinue}
         />

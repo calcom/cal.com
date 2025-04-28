@@ -40,9 +40,9 @@ export class Task {
   static async create(
     type: TaskTypes,
     payload: string,
-    options: { scheduledAt?: Date; maxAttempts?: number } = {}
+    options: { scheduledAt?: Date; maxAttempts?: number; referenceUid?: string } = {}
   ) {
-    const { scheduledAt, maxAttempts } = options;
+    const { scheduledAt, maxAttempts, referenceUid } = options;
     console.info("Creating task", { type, payload, scheduledAt, maxAttempts });
     const newTask = await db.task.create({
       data: {
@@ -50,6 +50,7 @@ export class Task {
         type,
         scheduledAt,
         maxAttempts,
+        referenceUid,
       },
     });
     return newTask.id;

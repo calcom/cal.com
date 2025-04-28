@@ -20,6 +20,7 @@ import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -56,6 +57,8 @@ export const bookingSelect = {
       slug: true,
       id: true,
       schedulingType: true,
+      hideOrganizerEmail: true,
+      customReplyToEmail: true,
       hosts: {
         select: {
           user: {
@@ -641,12 +644,14 @@ export async function scheduleBookingReminders(
         endTime: booking.endTime?.toISOString(),
         title: booking.title,
         language: { locale: booking?.user?.locale || defaultLocale },
+        hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
         eventType: {
           slug: booking.eventType?.slug || "",
           schedulingType: booking.eventType?.schedulingType,
           hosts: booking.eventType?.hosts,
         },
         metadata: booking.metadata,
+        customReplyToEmail: booking.eventType?.customReplyToEmail,
       };
       if (
         step.action === WorkflowActions.EMAIL_HOST ||
@@ -865,7 +870,7 @@ export const getEventTypeWorkflows = async (
   return workflows.map((workflow) => ({ workflow }));
 };
 
-export function getEmailTemplateText(
+export async function getEmailTemplateText(
   template: WorkflowTemplates,
   params: { locale: string; action: WorkflowActions; timeFormat: number | null }
 ) {
@@ -876,6 +881,7 @@ export function getEmailTemplateText(
   let { emailBody, emailSubject } = emailReminderTemplate({
     isEditingMode: true,
     locale,
+    t: await getTranslation(locale ?? "en", "common"),
     action,
     timeFormat,
   });
@@ -885,6 +891,7 @@ export function getEmailTemplateText(
       isEditingMode: true,
       locale,
       action,
+      t: await getTranslation(locale ?? "en", "common"),
       timeFormat,
     });
 

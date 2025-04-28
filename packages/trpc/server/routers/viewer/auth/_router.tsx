@@ -18,110 +18,55 @@ type AuthRouterHandlerCache = {
   createAccountPassword?: typeof import("./createAccountPassword.handler").createAccountPasswordHandler;
 };
 
-const UNSTABLE_HANDLER_CACHE: AuthRouterHandlerCache = {};
-
 export const authRouter = router({
   changePassword: authedProcedure.input(ZChangePasswordInputSchema).mutation(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.changePassword) {
-      UNSTABLE_HANDLER_CACHE.changePassword = await import("./changePassword.handler").then(
-        (mod) => mod.changePasswordHandler
-      );
-    }
+    const { changePasswordHandler } = await import("./changePassword.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.changePassword) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.changePassword({
+    return changePasswordHandler({
       ctx,
       input,
     });
   }),
 
   verifyPassword: authedProcedure.input(ZVerifyPasswordInputSchema).mutation(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.verifyPassword) {
-      UNSTABLE_HANDLER_CACHE.verifyPassword = await import("./verifyPassword.handler").then(
-        (mod) => mod.verifyPasswordHandler
-      );
-    }
+    const { verifyPasswordHandler } = await import("./verifyPassword.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.verifyPassword) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.verifyPassword({
+    return verifyPasswordHandler({
       ctx,
       input,
     });
   }),
 
   verifyCodeUnAuthenticated: publicProcedure.input(ZVerifyCodeInputSchema).mutation(async ({ input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.verifyCodeUnAuthenticated) {
-      UNSTABLE_HANDLER_CACHE.verifyCodeUnAuthenticated = await import(
-        "./verifyCodeUnAuthenticated.handler"
-      ).then((mod) => mod.verifyCodeUnAuthenticatedHandler);
-    }
+    const { verifyCodeUnAuthenticatedHandler } = await import("./verifyCodeUnAuthenticated.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.verifyCodeUnAuthenticated) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.verifyCodeUnAuthenticated({
+    return verifyCodeUnAuthenticatedHandler({
       input,
     });
   }),
 
   sendVerifyEmailCode: publicProcedure.input(ZSendVerifyEmailCodeSchema).mutation(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.sendVerifyEmailCode) {
-      UNSTABLE_HANDLER_CACHE.sendVerifyEmailCode = await import("./sendVerifyEmailCode.handler").then(
-        (mod) => mod.sendVerifyEmailCodeHandler
-      );
-    }
+    const { sendVerifyEmailCodeHandler } = await import("./sendVerifyEmailCode.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.sendVerifyEmailCode) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.sendVerifyEmailCode({
+    return sendVerifyEmailCodeHandler({
       input,
       req: ctx.req,
     });
   }),
 
   resendVerifyEmail: authedProcedure.input(ZResendVerifyEmailSchema).mutation(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.resendVerifyEmail) {
-      UNSTABLE_HANDLER_CACHE.resendVerifyEmail = await import("./resendVerifyEmail.handler").then(
-        (mod) => mod.resendVerifyEmail
-      );
-    }
+    const { resendVerifyEmail } = await import("./resendVerifyEmail.handler");
 
-    if (!UNSTABLE_HANDLER_CACHE.resendVerifyEmail) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.resendVerifyEmail({
+    return resendVerifyEmail({
       input,
       ctx,
     });
   }),
 
   createAccountPassword: authedProcedure.mutation(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.createAccountPassword) {
-      UNSTABLE_HANDLER_CACHE.createAccountPassword = await import("./createAccountPassword.handler").then(
-        (mod) => mod.createAccountPasswordHandler
-      );
-    }
+    const { createAccountPasswordHandler } = await import("./createAccountPassword.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.createAccountPassword) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.createAccountPassword({
+    return createAccountPasswordHandler({
       ctx,
     });
   }),

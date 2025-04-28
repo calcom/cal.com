@@ -138,6 +138,18 @@ export class BookingRepository {
     });
   }
 
+  static async findReschedulerByUid({ uid }: { uid: string }) {
+    return await prisma.booking.findFirst({
+      where: {
+        uid,
+      },
+      select: {
+        rescheduledBy: true,
+        uid: true,
+      },
+    });
+  }
+
   static async groupByActiveBookingCounts({
     users,
     eventTypeId,
@@ -200,6 +212,7 @@ export class BookingRepository {
           requiresConfirmationWillBlockSlot: true,
           requiresConfirmation: true,
           allowReschedulingPastBookings: true,
+          hideOrganizerEmail: true,
         },
       },
       ...(seatedEvent && {
