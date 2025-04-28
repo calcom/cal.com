@@ -22,6 +22,7 @@ import {
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
@@ -476,6 +477,8 @@ export default class EventManager {
         },
         destinationCalendar: true,
         payment: true,
+        rescheduled: true,
+        status: true,
         eventType: {
           select: {
             seatsPerTimeSlot: true,
@@ -493,6 +496,7 @@ export default class EventManager {
     const results: Array<EventResult<Event>> = [];
     const updatedBookingReferences: Array<PartialReference> = [];
     const isLocationChanged = evt.location && booking.location && evt.location !== booking.location;
+    const isBookingRequestedReschedule = !!booking.rescheduled && booking.status === BookingStatus.CANCELLED;
 
     if (evt.requiresConfirmation) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
@@ -516,7 +520,7 @@ export default class EventManager {
         updatedBookingReferences.push(...createdEvent.referencesToCreate);
       } else {
         // If the reschedule doesn't require confirmation, we can "update" the events and meetings to new time.
-        if (isLocationChanged) {
+        if (isLocationChanged || isBookingRequestedReschedule) {
           const updatedLocation = await this.updateLocation(evt, booking);
           results.push(...updatedLocation.results);
           updatedBookingReferences.push(...updatedLocation.referencesToCreate);
