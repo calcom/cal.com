@@ -153,7 +153,6 @@ test.describe("Routing Forms", () => {
       await expectCurrentFormToHaveFields(page, createdFields, types);
 
       await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
-      await addNewRoute(page);
 
       await page.click('[data-testid="add-route-button"]');
       await page.click('[data-testid="add-rule"]');
