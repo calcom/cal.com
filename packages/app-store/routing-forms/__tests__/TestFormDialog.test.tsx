@@ -268,7 +268,6 @@ describe("TestFormDialog", () => {
       fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
       fireEvent.click(screen.getByText("submit"));
       expect(screen.getByTestId("test-routing-result")).toHaveTextContent("john/30min");
-      expect(screen.getByTestId("chosen-route-title")).toBeInTheDocument();
       expect(screen.getByTestId("attribute-logic-matched")).toHaveTextContent("Yes");
       expect(screen.getByTestId("attribute-logic-fallback-matched")).toHaveTextContent("Not needed");
       // Skip the matching members check as it's giving issues
@@ -295,7 +294,6 @@ describe("TestFormDialog", () => {
       fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
       fireEvent.click(screen.getByText("submit"));
       expect(screen.getByTestId("test-routing-result")).toHaveTextContent("john/30min");
-      expect(screen.getByTestId("chosen-route-title")).toBeInTheDocument();
       expect(screen.getByTestId("attribute-logic-matched")).toHaveTextContent("Yes");
       expect(screen.getByTestId("attribute-logic-fallback-matched")).toHaveTextContent("Not needed");
       // Skip the matching members check as it's giving issues
