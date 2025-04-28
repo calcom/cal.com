@@ -27,7 +27,7 @@ export default function BillingCredits() {
 
   const teamId = params.id ? Number(params.id) : undefined;
   const { data: creditsData, isLoading } = trpc.viewer.credits.getAllCredits.useQuery(
-    { teamId },
+    { teamId: teamId ?? 0 },
     { enabled: !!teamId }
   );
 
