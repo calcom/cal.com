@@ -12,7 +12,6 @@ import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFr
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type {
   CalendarEvent,
-  EventBusyDate,
   EventBusyData,
   IntegrationCalendar,
   NewCalendarEventType,

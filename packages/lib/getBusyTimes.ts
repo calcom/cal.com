@@ -185,6 +185,7 @@ export async function getBusyTimes(params: {
       endTime,
       selectedCalendars,
       shouldServeCache,
+      undefined,
       isOverlayUser
     );
     const endConnectedCalendarsGet = performance.now();

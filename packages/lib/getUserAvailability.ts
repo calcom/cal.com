@@ -29,7 +29,7 @@ import { findUsersForAvailabilityCheck } from "@calcom/lib/server/findUsersForAv
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import prisma from "@calcom/prisma";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-import { EventTypeMetaDataSchema, stringToDayjsZod } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
 
