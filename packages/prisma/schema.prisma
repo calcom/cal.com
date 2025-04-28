@@ -2090,10 +2090,10 @@ model WorkflowOptOutContact {
 
 model RoutingFormResponseDenormalized {
   id                      Int       @id
-  response                Json?     @db.JsonB
-  responseByFieldId       Json?     @db.JsonB
-  formId                  String?
-  formName                String?
+  response                Json      @db.JsonB
+  responseByFieldId       Json      @db.JsonB
+  formId                  String
+  formName                String
   formTeamId              Int?
   formUserId              Int?
   bookingUid              String?
