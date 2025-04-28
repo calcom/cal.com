@@ -2089,36 +2089,35 @@ model WorkflowOptOutContact {
 }
 
 model RoutingFormResponseDenormalized {
-  id                               Int       @id
-  response                         Json?     @db.JsonB
-  responseByFieldId                Json?     @db.JsonB
-  formId                           String?
-  formName                         String?
-  formTeamId                       Int?
-  formUserId                       Int?
-  bookingUid                       String?
-  bookingId                        Int?
-  booking                          Booking?  @relation(fields: [bookingId], references: [id])
-  bookingStatus                    String?
-  bookingStatusOrder               Int?
-  bookingCreatedAt                 DateTime? @db.Timestamp(3)
-  bookingStartTime                 DateTime? @db.Timestamp(3)
-  bookingEndTime                   DateTime? @db.Timestamp(3)
-  bookingUserId                    Int?
-  bookingUserName                  String?
-  bookingUserEmail                 String?
-  bookingUserAvatarUrl             String?
-  bookingAssignmentReason          String?
-  bookingAssignmentReasonLowercase String?
-  eventTypeId                      Int?
-  eventTypeParentId                Int?
-  eventTypeSchedulingType          String?
-  createdAt                        DateTime  @db.Timestamp(3)
-  utm_source                       String?
-  utm_medium                       String?
-  utm_campaign                     String?
-  utm_term                         String?
-  utm_content                      String?
+  id                      Int       @id
+  response                Json?     @db.JsonB
+  responseByFieldId       Json?     @db.JsonB
+  formId                  String?
+  formName                String?
+  formTeamId              Int?
+  formUserId              Int?
+  bookingUid              String?
+  bookingId               Int?
+  booking                 Booking?  @relation(fields: [bookingId], references: [id])
+  bookingStatus           String?
+  bookingStatusOrder      Int?
+  bookingCreatedAt        DateTime? @db.Timestamp(3)
+  bookingStartTime        DateTime? @db.Timestamp(3)
+  bookingEndTime          DateTime? @db.Timestamp(3)
+  bookingUserId           Int?
+  bookingUserName         String?
+  bookingUserEmail        String?
+  bookingUserAvatarUrl    String?
+  bookingAssignmentReason String?
+  eventTypeId             Int?
+  eventTypeParentId       Int?
+  eventTypeSchedulingType String?
+  createdAt               DateTime  @db.Timestamp(3)
+  utm_source              String?
+  utm_medium              String?
+  utm_campaign            String?
+  utm_term                String?
+  utm_content             String?
 
   @@index([id])
   @@index([formId])
