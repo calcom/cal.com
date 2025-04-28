@@ -2,12 +2,15 @@ import { ProgressBar } from "@tremor/react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
+import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { TextField, Label, InputError } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/toast";
+
+import { BillingCreditsSkeleton } from "./BillingCreditsSkeleton";
 
 export default function BillingCredits() {
   const { t } = useLocale();
@@ -23,7 +26,11 @@ export default function BillingCredits() {
   const params = useParamsWithFallback();
 
   const teamId = params.id ? Number(params.id) : undefined;
-  const { data: creditsData } = trpc.viewer.credits.getAllCredits.useQuery({ teamId }, { enabled: !!teamId });
+  const { data: creditsData, isLoading } = trpc.viewer.credits.getAllCredits.useQuery(
+    { teamId },
+    { enabled: !!teamId }
+  );
+
   const buyCreditsMutation = trpc.viewer.credits.buyCredits.useMutation({
     onSuccess: (data) => {
       if (data.sessionUrl) {
@@ -34,12 +41,18 @@ export default function BillingCredits() {
       showToast(t("credit_purchase_failed"), "error");
     },
   });
+  console.log(`retrun early?${!teamId || !creditsData}`);
+  console.log(`enabledd?  ${IS_SMS_CREDITS_ENABLED}`);
+  if (!teamId || !IS_SMS_CREDITS_ENABLED) {
+    return null;
+  }
+
+  if (isLoading) return <BillingCreditsSkeleton />;
 
   const onSubmit = (data: { quantity: number }) => {
     buyCreditsMutation.mutate({ quantity: data.quantity, teamId });
   };
 
-  if (!teamId || !creditsData) return null;
   const teamCreditsPercentageUsed =
     creditsData.teamCredits.totalMonthlyCredits > 0
       ? (creditsData.teamCredits.totalRemainingMonthlyCredits / creditsData.teamCredits.totalMonthlyCredits) *

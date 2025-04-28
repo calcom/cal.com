@@ -10,7 +10,9 @@ type GetAllCreditsOptions = {
   input: TGetAllCreditsSchema;
 };
 
-export const getAllCreditsHandler = async ({ ctx, input }: GetAllCreditsOptions) => {
+export const getAllCreditsHandler = async ({ input }: GetAllCreditsOptions) => {
+  //todo: check if user is adminof team
+
   const { teamId } = input;
 
   const creditService = new CreditService();

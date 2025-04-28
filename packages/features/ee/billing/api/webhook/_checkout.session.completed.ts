@@ -24,7 +24,7 @@ const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
   const priceId = lineItems.data[0].price?.id;
   const nrOfCredits = lineItems.data[0].quantity;
 
-  if (!priceId || priceId !== process.env.STRIPE_CREDITS_PRICE_ID || !nrOfCredits) {
+  if (!priceId || priceId !== process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID || !nrOfCredits) {
     throw new HttpCode(400, "Invalid price ID");
   }
 

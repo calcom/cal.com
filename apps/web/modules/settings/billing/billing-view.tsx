@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 
-import { IS_SMS_CREDITS_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -61,7 +61,7 @@ const BillingView = () => {
           </Button>
         </CtaRow>
       </div>
-      {IS_SMS_CREDITS_ENABLED ? <BillingCredits /> : <></>}
+      <BillingCredits />
       <div className="border-subtle mt-6 space-y-6 rounded-lg border px-6 py-8 text-sm sm:space-y-8">
         <CtaRow title={t("need_anything_else")} description={t("further_billing_help")}>
           <Button color="secondary" onClick={onContactSupportClick}>
