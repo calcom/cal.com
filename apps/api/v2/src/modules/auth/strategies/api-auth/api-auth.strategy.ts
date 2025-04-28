@@ -18,11 +18,14 @@ import { getToken } from "next-auth/jwt";
 
 import { INVALID_ACCESS_TOKEN, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
+import type { AllowedAuthMethod } from "../../decorators/api-auth-guard-only-allow.decorator";
+
 export type ApiAuthGuardUser = UserWithProfile & { isSystemAdmin: boolean };
 export type ApiAuthGuardRequest = Request & {
   authMethod: AuthMethods;
   organizationId: number | null;
   user: ApiAuthGuardUser;
+  allowedAuthMethods?: AllowedAuthMethod[];
 };
 export const NO_AUTH_PROVIDED_MESSAGE =
   "No authentication method provided. Either pass an API key as 'Bearer' header or OAuth client credentials as 'x-cal-secret-key' and 'x-cal-client-id' headers";
@@ -49,12 +52,19 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       const oAuthClientId = params.clientId || request.get(X_CAL_CLIENT_ID);
       const bearerToken = request.get("Authorization")?.replace("Bearer ", "");
 
-      if (oAuthClientId && oAuthClientSecret) {
+      const allowedMethods = request.allowedAuthMethods;
+      const noSpecificAuthExpected = !allowedMethods || !allowedMethods.length;
+      const oAuthAllowed = noSpecificAuthExpected || allowedMethods.includes("OAUTH_CLIENT_CREDENTIALS");
+      const apiKeyAllowed = noSpecificAuthExpected || allowedMethods.includes("API_KEY");
+      const accessTokenAllowed = noSpecificAuthExpected || allowedMethods.includes("ACCESS_TOKEN");
+      const nextAuthAllowed = noSpecificAuthExpected || allowedMethods.includes("NEXT_AUTH");
+
+      if (oAuthClientId && oAuthClientSecret && oAuthAllowed) {
         request.authMethod = AuthMethods["OAUTH_CLIENT"];
         return await this.authenticateOAuthClient(oAuthClientId, oAuthClientSecret, request);
       }
 
-      if (bearerToken) {
+      if (bearerToken && (apiKeyAllowed || accessTokenAllowed)) {
         const requestOrigin = request.get("Origin");
         request.authMethod = isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")
           ? AuthMethods["API_KEY"]
@@ -64,13 +74,18 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
 
       const nextAuthSecret = this.config.get("next.authSecret", { infer: true });
       const nextAuthToken = await getToken({ req: request, secret: nextAuthSecret });
-
-      if (nextAuthToken) {
+      if (nextAuthToken && nextAuthAllowed) {
         request.authMethod = AuthMethods["NEXT_AUTH"];
         return await this.authenticateNextAuth(nextAuthToken, request);
       }
 
-      throw new UnauthorizedException(`ApiAuthStrategy - ${NO_AUTH_PROVIDED_MESSAGE}`);
+      const noAuthProvided = !oAuthClientId && !oAuthClientSecret && !bearerToken && !nextAuthToken;
+      if (noAuthProvided) {
+        throw new UnauthorizedException(`ApiAuthStrategy - ${NO_AUTH_PROVIDED_MESSAGE}`);
+      }
+      throw new UnauthorizedException(
+        `ApiAuthStrategy - Invalid authentication method. Please provide one of the allowed methods: ${allowedMethods}`
+      );
     } catch (err) {
       if (err instanceof Error) {
         return this.error(err);
