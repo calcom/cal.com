@@ -670,6 +670,7 @@ describe("GoogleCalendarService credential handling", () => {
       client_id: "service-client-id",
       private_key: "service-private-key",
     },
+    key: null,
   } as const;
 
   const createMockJWTInstance = ({
