@@ -150,6 +150,7 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
     orgId: orgId,
     name: schedule.name,
     timeZone: schedule.timeZone,
+    event: "Schedule Updated",
   };
 
   await handleScheduleUpdatedWebhook({

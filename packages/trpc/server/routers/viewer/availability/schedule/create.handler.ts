@@ -89,6 +89,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     orgId: orgId,
     name: schedule.name,
     timeZone: schedule.timeZone,
+    event: "Schedule Created",
   };
 
   const newAvailability = schedule.availability.map((avail) => ({

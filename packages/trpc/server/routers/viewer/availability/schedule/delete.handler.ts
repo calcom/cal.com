@@ -87,6 +87,7 @@ export const deleteHandler = async ({ input, ctx }: DeleteOptions) => {
     orgId: orgId,
     name: scheduleToDelete.name,
     timeZone: scheduleToDelete.timeZone,
+    event: "Schedule Deleted",
   };
 
   await handleScheduleUpdatedWebhook({
