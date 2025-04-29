@@ -113,16 +113,19 @@ const OnboardingPage = ({
   const STEPS_MAP: StepObj = {
     [AppOnboardingSteps.ACCOUNTS_STEP]: {
       getTitle: () => `${t("select_account_header")}`,
-      getDescription: (appName) => `${t("select_account_description", { appName })}`,
+      getDescription: (appName) =>
+        `${t("select_account_description", { appName, interpolation: { escapeValue: false } })}`,
       stepNumber: 1,
     },
     [AppOnboardingSteps.EVENT_TYPES_STEP]: {
       getTitle: () => `${t("select_event_types_header")}`,
-      getDescription: (appName) => `${t("select_event_types_description", { appName })}`,
+      getDescription: (appName) =>
+        `${t("select_event_types_description", { appName, interpolation: { escapeValue: false } })}`,
       stepNumber: installableOnTeams ? 2 : 1,
     },
     [AppOnboardingSteps.CONFIGURE_STEP]: {
-      getTitle: (appName) => `${t("configure_app_header", { appName })}`,
+      getTitle: (appName) =>
+        `${t("configure_app_header", { appName, interpolation: { escapeValue: false } })}`,
       getDescription: () => `${t("configure_app_description")}`,
       stepNumber: installableOnTeams ? 3 : 2,
     },

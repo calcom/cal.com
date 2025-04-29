@@ -14,6 +14,7 @@ import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapt
 import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
 import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
+import { OFFICE365_VIDEO_SCOPES } from "../api/add";
 import config from "../config.json";
 
 /** @link https://docs.microsoft.com/en-us/graph/api/application-post-onlinemeetings?view=graph-rest-1.0&tabs=http#response */
@@ -68,9 +69,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       }
 
       const url = getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
-      const scope = isDelegated
-        ? "https://graph.microsoft.com/.default"
-        : "User.Read Calendars.Read Calendars.ReadWrite";
+      const scope = isDelegated ? "https://graph.microsoft.com/.default" : OFFICE365_VIDEO_SCOPES.join(" ");
 
       const params: Record<string, string> = {
         scope,
