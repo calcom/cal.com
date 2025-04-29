@@ -381,7 +381,6 @@ model User {
   creationSource                 CreationSource?
   createdOrganizationOnboardings OrganizationOnboarding[]     @relation("CreatedOrganizationOnboardings")
   filterSegments                 FilterSegment[]
-  ratings                        Rating[]
   whitelistWorkflows             Boolean                      @default(false)
 
   @@unique([email])
@@ -2068,21 +2067,6 @@ model BookingInternalNote {
 
   @@unique([bookingId, notePresetId])
   @@index([bookingId])
-}
-
-model Rating {
-  id     Int @id @default(autoincrement())
-  rating Int
-
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int
-
-  templateId String
-
-  createdAt DateTime @default(now())
-
-  @@unique([userId, templateId])
-  @@index([templateId])
 }
 
 enum WorkflowContactType {
