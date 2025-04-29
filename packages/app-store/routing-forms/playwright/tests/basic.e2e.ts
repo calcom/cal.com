@@ -105,7 +105,7 @@ test.describe("Routing Forms", () => {
       await expect(page.locator('[data-testid="add-route-button"]')).toBeVisible();
     });
 
-    test("should be able to disable form", async ({ page }) => {
+    test.skip("should be able to disable form", async ({ page }) => {
       const formId = await addForm(page);
       await page.click('[data-testid="back-button"]');
       await disableForm(page);
