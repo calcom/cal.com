@@ -8876,7 +8876,7 @@
       "post": {
         "operationId": "OrgTeamsVerifiedResourcesController_requestEmailVerificationCode",
         "summary": "Request Email Verification Code",
-        "description": "Sends a verification code to the Email.",
+        "description": "Sends a verification code to the email.",
         "parameters": [
           {
             "name": "Authorization",
@@ -8913,10 +8913,51 @@
         "tags": ["Organization Team Verified Resources"]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phone-numbers/request": {
+      "post": {
+        "operationId": "OrgTeamsVerifiedResourcesController_requestPhoneVerificationCode",
+        "summary": "Request Phone Number Verification Code",
+        "description": "Sends a verification code to the phone number.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestPhoneVerificationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestPhoneVerificationOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Organization Team Verified Resources"]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verify": {
       "post": {
         "operationId": "OrgTeamsVerifiedResourcesController_verifyEmail",
-        "summary": "Verify an email for a team.",
+        "summary": "Verify an email for an org team.",
         "description": "Use code to verify an email",
         "parameters": [
           {
@@ -8962,15 +9003,84 @@
         "tags": ["Organization Team Verified Resources"]
       }
     },
-    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails": {
-      "get": {
-        "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedEmails",
-        "summary": "Get list of verified emails of a team.",
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phone-numbers/verify": {
+      "post": {
+        "operationId": "OrgTeamsVerifiedResourcesController_verifyPhoneNumber",
+        "summary": "Verify a phone number for an org team.",
+        "description": "Use code to verify a phone number",
         "parameters": [
           {
             "name": "teamId",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyPhoneInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedPhoneOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Organization Team Verified Resources"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails": {
+      "get": {
+        "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedEmails",
+        "summary": "Get list of verified emails of an org team.",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
             "schema": {
               "type": "number"
             }
@@ -9000,10 +9110,68 @@
         "tags": ["Organization Team Verified Resources"]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phone-numbers": {
+      "get": {
+        "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedPhoneNumbers",
+        "summary": "Get list of verified phone numbers of an org team.",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedPhonesOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Organization Team Verified Resources"]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/{id}": {
       "get": {
         "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedEmailById",
-        "summary": "Get verified email of a team by id.",
+        "summary": "Get verified email of an org team by id.",
         "parameters": [
           {
             "name": "id",
@@ -9038,6 +9206,52 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/VerifiedEmailOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Organization Team Verified Resources"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phone-numbers/{id}": {
+      "get": {
+        "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedPhoneById",
+        "summary": "Get verified phone number of an org team by id.",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedPhoneOutput"
                 }
               }
             }
@@ -10900,6 +11114,47 @@
         "tags": ["Teams Verified Resources"]
       }
     },
+    "/v2/teams/{teamId}/verified-resources/phone-numbers/request": {
+      "post": {
+        "operationId": "TeamsVerifiedResourcesController_requestPhoneVerificationCode",
+        "summary": "Request Phone Number Verification Code",
+        "description": "Sends a verification code to the phone number.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestPhoneVerificationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestPhoneVerificationOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams Verified Resources"]
+      }
+    },
     "/v2/teams/{teamId}/verified-resources/emails/verify": {
       "post": {
         "operationId": "TeamsVerifiedResourcesController_verifyEmail",
@@ -10949,6 +11204,55 @@
         "tags": ["Teams Verified Resources"]
       }
     },
+    "/v2/teams/{teamId}/verified-resources/phone-numbers/verify": {
+      "post": {
+        "operationId": "TeamsVerifiedResourcesController_verifyPhoneNumber",
+        "summary": "Verify a phone number for an org team.",
+        "description": "Use code to verify a phone number",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyPhoneInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedPhoneOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams Verified Resources"]
+      }
+    },
     "/v2/teams/{teamId}/verified-resources/emails": {
       "get": {
         "operationId": "TeamsVerifiedResourcesController_getVerifiedEmails",
@@ -10958,6 +11262,26 @@
             "name": "teamId",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
             "schema": {
               "type": "number"
             }
@@ -10979,6 +11303,64 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/VerifiedEmailsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams Verified Resources"]
+      }
+    },
+    "/v2/teams/{teamId}/verified-resources/phone-numbers": {
+      "get": {
+        "operationId": "TeamsVerifiedResourcesController_getVerifiedPhoneNumbers",
+        "summary": "Get list of verified phone numbers of a team.",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedPhonesOutput"
                 }
               }
             }
@@ -11033,11 +11415,57 @@
         "tags": ["Teams Verified Resources"]
       }
     },
+    "/v2/teams/{teamId}/verified-resources/phone-numbers/{id}": {
+      "get": {
+        "operationId": "TeamsVerifiedResourcesController_getVerifiedPhoneById",
+        "summary": "Get verified phone number of a team by id.",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedPhoneOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams Verified Resources"]
+      }
+    },
     "/v2/verified-resources/emails/request": {
       "post": {
         "operationId": "UserVerifiedResourcesController_requestEmailVerificationCode",
         "summary": "Request Email Verification Code",
-        "description": "Sends a verification code to the Email.",
+        "description": "Sends a verification code to the email.",
         "parameters": [
           {
             "name": "Authorization",
@@ -11066,6 +11494,47 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RequestEmailVerificationOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Verified Resources"]
+      }
+    },
+    "/v2/verified-resources/phone-numbers/request": {
+      "post": {
+        "operationId": "UserVerifiedResourcesController_requestPhoneVerificationCode",
+        "summary": "Request Phone Number Verification Code",
+        "description": "Sends a verification code to the phone number.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestPhoneVerificationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestPhoneVerificationOutput"
                 }
               }
             }
@@ -11115,11 +11584,72 @@
         "tags": ["Verified Resources"]
       }
     },
+    "/v2/verified-resources/phone-numbers/verify": {
+      "post": {
+        "operationId": "UserVerifiedResourcesController_verifyPhoneNumber",
+        "summary": "Verify a phone number.",
+        "description": "Use code to verify a phone number",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyPhoneInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedPhoneOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Verified Resources"]
+      }
+    },
     "/v2/verified-resources/emails": {
       "get": {
         "operationId": "UserVerifiedResourcesController_getVerifiedEmails",
         "summary": "Get list of verified emails.",
         "parameters": [
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          },
           {
             "name": "Authorization",
             "in": "header",
@@ -11137,6 +11667,56 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/VerifiedEmailsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Verified Resources"]
+      }
+    },
+    "/v2/verified-resources/phone-numbers": {
+      "get": {
+        "operationId": "UserVerifiedResourcesController_getVerifiedPhoneNumbers",
+        "summary": "Get list of verified phone numbers.",
+        "parameters": [
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedPhonesOutput"
                 }
               }
             }
@@ -11175,6 +11755,44 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/VerifiedEmailOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Verified Resources"]
+      }
+    },
+    "/v2/verified-resources/phone-numbers/{id}": {
+      "get": {
+        "operationId": "UserVerifiedResourcesController_getVerifiedPhoneById",
+        "summary": "Get verified phone number by id.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedPhoneOutput"
                 }
               }
             }
@@ -21894,6 +22512,27 @@
         },
         "required": ["status"]
       },
+      "RequestPhoneVerificationInput": {
+        "type": "object",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "description": "Phone number to verify.",
+            "example": "+372 5555 6666"
+          }
+        }
+      },
+      "RequestPhoneVerificationOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          }
+        },
+        "required": ["status"]
+      },
       "VerifyEmailInput": {
         "type": "object",
         "properties": {
@@ -21905,7 +22544,7 @@
           "code": {
             "type": "string",
             "description": "verification code sent to the email to verify",
-            "example": "https://example.com/avatar.jpg"
+            "example": "1ABG2C"
           }
         }
       },
@@ -22047,7 +22686,50 @@
         },
         "required": ["status", "data"]
       },
+      "VerifyPhoneInput": {
+        "type": "object",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "description": "phone number to verify.",
+            "example": "+37255556666"
+          },
+          "code": {
+            "type": "string",
+            "description": "verification code sent to the phone number to verify",
+            "example": "1ABG2C"
+          }
+        }
+      },
+      "VerifiedPhoneOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
       "VerifiedEmailsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "VerifiedPhonesOutput": {
         "type": "object",
         "properties": {
           "status": {

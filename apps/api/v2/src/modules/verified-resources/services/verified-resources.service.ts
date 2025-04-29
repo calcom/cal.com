@@ -41,7 +41,7 @@ export class VerifiedResourcesService {
 
   async verifyPhone(userId: number, phone: string, code: string, teamId?: number) {
     const result = await verifyPhoneNumber(phone, code, userId, teamId);
-
+    console.log("PHONE RESULT", result);
     if (result) {
       return await this.verifiedResourcesRepository.getVerifiedPhoneNumber(userId, phone, teamId);
     }
@@ -66,19 +66,19 @@ export class VerifiedResourcesService {
   }
 
   async getTeamVerifiedEmailById(teamId: number, id: number) {
-    return this.verifiedResourcesRepository.getTeamVerifiedEmailById(teamId, id);
+    return this.verifiedResourcesRepository.getTeamVerifiedEmailById(id, teamId);
   }
 
   async getVerifiedEmail(userId: number, email: string, teamId?: number) {
     return this.verifiedResourcesRepository.getVerifiedEmail(userId, email, teamId);
   }
 
-  async getUserVerifiedEmails(userId: number) {
-    return this.verifiedResourcesRepository.getUserVerifiedEmails(userId);
+  async getUserVerifiedEmails(userId: number, skip = 0, take = 250) {
+    return this.verifiedResourcesRepository.getUserVerifiedEmails(userId, skip, take);
   }
 
-  async getTeamVerifiedEmails(teamId: number) {
-    return this.verifiedResourcesRepository.getTeamVerifiedEmails(teamId);
+  async getTeamVerifiedEmails(teamId: number, skip = 0, take = 250) {
+    return this.verifiedResourcesRepository.getTeamVerifiedEmails(teamId, skip, take);
   }
 
   async getUserVerifiedPhoneNumberById(userId: number, id: number) {
@@ -93,11 +93,11 @@ export class VerifiedResourcesService {
     return this.verifiedResourcesRepository.getVerifiedPhoneNumber(userId, phoneNumber, teamId);
   }
 
-  async getUserVerifiedPhoneNumbers(userId: number) {
-    return this.verifiedResourcesRepository.getUserVerifiedPhoneNumbers(userId);
+  async getUserVerifiedPhoneNumbers(userId: number, skip = 0, take = 250) {
+    return this.verifiedResourcesRepository.getUserVerifiedPhoneNumbers(userId, skip, take);
   }
 
-  async getTeamVerifiedPhoneNumbers(teamId: number) {
-    return this.verifiedResourcesRepository.getTeamVerifiedPhoneNumbers(teamId);
+  async getTeamVerifiedPhoneNumbers(teamId: number, skip = 0, take = 250) {
+    return this.verifiedResourcesRepository.getTeamVerifiedPhoneNumbers(teamId, skip, take);
   }
 }

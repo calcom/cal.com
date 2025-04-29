@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
-import { IsEmail } from "class-validator";
+import { IsEmail, IsString } from "class-validator";
 
 export class VerifyEmailInput {
   @ApiProperty({
@@ -19,7 +19,7 @@ export class VerifyEmailInput {
     description: "verification code sent to the email to verify",
     example: "1ABG2C",
   })
-  @IsEmail()
   @Expose()
+  @IsString()
   code!: string;
 }

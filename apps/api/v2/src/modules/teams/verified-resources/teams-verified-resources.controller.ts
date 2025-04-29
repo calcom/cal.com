@@ -29,12 +29,15 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Query,
   UseGuards,
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
 import { plainToClass } from "class-transformer";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/teams/:teamId/verified-resources",
@@ -50,6 +53,9 @@ export class TeamsVerifiedResourcesController {
   @Roles("TEAM_ADMIN")
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Post("/emails/request")
+  @Throttle({
+    endpoint: { limit: 5, ttl: 60000, generateKey: () => "teams:verified:resources:emails:requests" },
+  })
   @HttpCode(HttpStatus.OK)
   async requestEmailVerificationCode(
     @Body() body: RequestEmailVerificationInput,
@@ -72,7 +78,10 @@ export class TeamsVerifiedResourcesController {
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
-  @Post("/phone-number/request")
+  @Post("/phone-numbers/request")
+  @Throttle({
+    endpoint: { limit: 3, ttl: 60000, generateKey: () => "teams:verified:resources:phones:requests" },
+  })
   @HttpCode(HttpStatus.OK)
   async requestPhoneVerificationCode(
     @Body() body: RequestPhoneVerificationInput
@@ -143,8 +152,15 @@ export class TeamsVerifiedResourcesController {
   @Roles("TEAM_ADMIN")
   @Get("/emails")
   @HttpCode(HttpStatus.OK)
-  async getVerifiedEmails(@Param("teamId", ParseIntPipe) teamId: number): Promise<VerifiedEmailsOutput> {
-    const verifiedEmails = await this.verifiedResourcesService.getTeamVerifiedEmails(teamId);
+  async getVerifiedEmails(
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @Query() pagination: SkipTakePagination
+  ): Promise<VerifiedEmailsOutput> {
+    const verifiedEmails = await this.verifiedResourcesService.getTeamVerifiedEmails(
+      teamId,
+      pagination.skip,
+      pagination.take
+    );
     return {
       status: SUCCESS_STATUS,
       data: verifiedEmails.map((verifiedEmail) => plainToClass(VerifiedEmailOutputData, verifiedEmail)),
@@ -159,9 +175,14 @@ export class TeamsVerifiedResourcesController {
   @Roles("TEAM_ADMIN")
   @HttpCode(HttpStatus.OK)
   async getVerifiedPhoneNumbers(
-    @Param("teamId", ParseIntPipe) teamId: number
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @Query() pagination: SkipTakePagination
   ): Promise<VerifiedPhonesOutput> {
-    const verifiedPhoneNumbers = await this.verifiedResourcesService.getTeamVerifiedPhoneNumbers(teamId);
+    const verifiedPhoneNumbers = await this.verifiedResourcesService.getTeamVerifiedPhoneNumbers(
+      teamId,
+      pagination.skip,
+      pagination.take
+    );
     return {
       status: SUCCESS_STATUS,
       data: verifiedPhoneNumbers.map((verifiedPhoneNumber) =>

@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
-import { IsEmail } from "class-validator";
+import { IsEmail, IsPhoneNumber, IsString } from "class-validator";
 
 export class VerifyPhoneInput {
   @ApiProperty({
@@ -9,7 +9,7 @@ export class VerifyPhoneInput {
     description: "phone number to verify.",
     example: "+37255556666",
   })
-  @IsEmail()
+  @IsPhoneNumber()
   @Expose()
   phone!: string;
 
@@ -19,7 +19,7 @@ export class VerifyPhoneInput {
     description: "verification code sent to the phone number to verify",
     example: "1ABG2C",
   })
-  @IsEmail()
   @Expose()
+  @IsString()
   code!: string;
 }

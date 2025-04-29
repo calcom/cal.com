@@ -18,11 +18,13 @@ import {
   VerifiedPhonesOutput,
 } from "@/modules/verified-resources/outputs/verified-phone.output";
 import { VerifiedResourcesService } from "@/modules/verified-resources/services/verified-resources.service";
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
 import { plainToClass } from "class-transformer";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/verified-resources",
@@ -38,6 +40,9 @@ export class UserVerifiedResourcesController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Post("/emails/request")
   @HttpCode(HttpStatus.OK)
+  @Throttle({
+    endpoint: { limit: 5, ttl: 60000, generateKey: () => "teams:verified:resources:emails:requests" },
+  })
   async requestEmailVerificationCode(
     @Body() body: RequestEmailVerificationInput,
     @GetUser("username") username: string,
@@ -58,8 +63,11 @@ export class UserVerifiedResourcesController {
     description: `Sends a verification code to the phone number.`,
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
-  @Post("/phone-number/request")
+  @Post("/phone-numbers/request")
   @HttpCode(HttpStatus.OK)
+  @Throttle({
+    endpoint: { limit: 3, ttl: 60000, generateKey: () => "users:verified:resources:phones:requests" },
+  })
   async requestPhoneVerificationCode(
     @Body() body: RequestPhoneVerificationInput
   ): Promise<RequestPhoneVerificationOutput> {
@@ -114,8 +122,15 @@ export class UserVerifiedResourcesController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Get("/emails")
   @HttpCode(HttpStatus.OK)
-  async getVerifiedEmails(@GetUser("id") userId: number): Promise<VerifiedEmailsOutput> {
-    const verifiedEmails = await this.verifiedResourcesService.getUserVerifiedEmails(userId);
+  async getVerifiedEmails(
+    @GetUser("id") userId: number,
+    @Query() pagination: SkipTakePagination
+  ): Promise<VerifiedEmailsOutput> {
+    const verifiedEmails = await this.verifiedResourcesService.getUserVerifiedEmails(
+      userId,
+      pagination.skip,
+      pagination.take
+    );
     return {
       status: SUCCESS_STATUS,
       data: verifiedEmails.map((verifiedEmail) => plainToClass(VerifiedEmailOutputData, verifiedEmail)),
@@ -128,8 +143,15 @@ export class UserVerifiedResourcesController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Get("/phone-numbers")
   @HttpCode(HttpStatus.OK)
-  async getVerifiedPhoneNumbers(@GetUser("id") userId: number): Promise<VerifiedPhonesOutput> {
-    const verifiedPhoneNumbers = await this.verifiedResourcesService.getUserVerifiedPhoneNumbers(userId);
+  async getVerifiedPhoneNumbers(
+    @GetUser("id") userId: number,
+    @Query() pagination: SkipTakePagination
+  ): Promise<VerifiedPhonesOutput> {
+    const verifiedPhoneNumbers = await this.verifiedResourcesService.getUserVerifiedPhoneNumbers(
+      userId,
+      pagination.skip,
+      pagination.take
+    );
     return {
       status: SUCCESS_STATUS,
       data: verifiedPhoneNumbers.map((verifiedPhoneNumber) =>
