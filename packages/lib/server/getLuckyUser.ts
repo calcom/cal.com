@@ -71,6 +71,8 @@ interface GetLuckyUserParams<T extends PartialUser> {
       rrResetInterval: RRResetInterval | null;
       rrTimestampBasis: RRTimestampBasis;
     } | null;
+    multipleRRHosts: boolean;
+    RRHostsPerMeeting: number;
     includeNoShowInRRCalculation: boolean;
   };
   // all routedTeamMemberIds or all hosts of event types
@@ -155,26 +157,32 @@ function leastRecentlyBookedUser<T extends PartialUser>({
   availableUsers,
   bookingsOfAvailableUsers,
   organizersWithLastCreated,
+  eventType,
 }: GetLuckyUserParams<T> & {
   bookingsOfAvailableUsers: PartialBooking[];
   organizersWithLastCreated: { id: number; bookings: { createdAt: Date }[] }[];
 }) {
   const organizerIdAndAtCreatedPair = organizersWithLastCreated.reduce(
-    (keyValuePair: { [userId: number]: Date }, user) => {
-      keyValuePair[user.id] = user.bookings[0]?.createdAt || new Date(0);
+    (keyValuePair: { [userId: number]: { mostRecentBooking: Date; count: number } }, user) => {
+      keyValuePair[user.id] = {
+        mostRecentBooking: keyValuePair[user.id] || user.bookings[0]?.createdAt || new Date(0),
+        count: (keyValuePair[user.id]?.count || 0) + 1,
+      };
       return keyValuePair;
     },
     {}
   );
 
   const attendeeUserIdAndAtCreatedPair = bookingsOfAvailableUsers.reduce(
-    (aggregate: { [userId: number]: Date }, booking) => {
+    (aggregate: { [userId: number]: { mostRecentBooking: Date; count: number } }, booking) => {
       availableUsers.forEach((user) => {
-        if (aggregate[user.id]) return; // Bookings are ordered DESC, so if the reducer aggregate
-        // contains the user id, it's already got the most recent booking marked.
         if (!booking.attendees.map((attendee) => attendee.email).includes(user.email)) return;
-        if (organizerIdAndAtCreatedPair[user.id] > booking.createdAt) return; // only consider bookings if they were created after organizer bookings
-        aggregate[user.id] = booking.createdAt;
+        if (organizerIdAndAtCreatedPair[user.id].mostRecentBooking > booking.createdAt) return; // only consider bookings if they were created after organizer bookings
+
+        aggregate[user.id] = {
+          mostRecentBooking: booking.createdAt,
+          count: (aggregate[user.id]?.count || 0) + 1,
+        };
       });
       return aggregate;
     },
@@ -200,9 +208,14 @@ function leastRecentlyBookedUser<T extends PartialUser>({
   }
 
   const leastRecentlyBookedUser = availableUsers.sort((a, b) => {
-    if (userIdAndAtCreatedPair[a.id] > userIdAndAtCreatedPair[b.id]) return 1;
-    else if (userIdAndAtCreatedPair[a.id] < userIdAndAtCreatedPair[b.id]) return -1;
-    // if two (or more) dates are identical, we randomize the order
+    if (eventType.RRHostsPerMeeting > 1) {
+      if (userIdAndAtCreatedPair[a.id].count > userIdAndAtCreatedPair[b.id].count) return 1;
+      else if (userIdAndAtCreatedPair[a.id].count < userIdAndAtCreatedPair[b.id].count) return -1;
+    }
+    if (userIdAndAtCreatedPair[a.id].mostRecentBooking > userIdAndAtCreatedPair[b.id].mostRecentBooking)
+      return 1;
+    else if (userIdAndAtCreatedPair[a.id].mostRecentBooking < userIdAndAtCreatedPair[b.id].mostRecentBooking)
+      return -1;
     else return 0;
   })[0];
 

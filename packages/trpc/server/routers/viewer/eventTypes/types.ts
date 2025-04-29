@@ -5,11 +5,11 @@ import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/lib/constants";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import {
   customInputSchema,
+  eventTypeBookingFields,
   EventTypeMetaDataSchema,
-  stringOrNumber,
   rrSegmentQueryValueSchema,
+  stringOrNumber,
 } from "@calcom/prisma/zod-utils";
-import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
 const aiPhoneCallConfig = z
   .object({
@@ -80,6 +80,8 @@ const BaseEventTypeUpdateInput = _EventTypeModel
     multiplePrivateLinks: z.array(z.string()),
     assignAllTeamMembers: z.boolean(),
     isRRWeightsEnabled: z.boolean(),
+    multipleRRHosts: z.boolean(),
+    RRHostsPerMeeting: z.number().optional(),
     metadata: EventTypeMetaDataSchema,
     bookingFields: eventTypeBookingFields,
     assignRRMembersUsingSegment: z.boolean().optional(),

@@ -84,6 +84,8 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       rescheduleWithSameRoundRobinHost: true,
       assignAllTeamMembers: true,
       isRRWeightsEnabled: true,
+      multipleRRHosts: true,
+      RRHostsPerMeeting: true,
       beforeEventBuffer: true,
       customReplyToEmail: true,
       afterEventBuffer: true,

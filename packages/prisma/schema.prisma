@@ -184,6 +184,8 @@ model EventType {
   useEventTypeDestinationCalendarEmail     Boolean                   @default(false)
   aiPhoneCallConfig                        AIPhoneCallConfiguration?
   isRRWeightsEnabled                       Boolean                   @default(false)
+  multipleRRHosts                         Boolean                   @default(false)
+  RRHostsPerMeeting                       Int                       @default(1)
   fieldTranslations                        EventTypeTranslation[]
   maxLeadThreshold                         Int?
   includeNoShowInRRCalculation             Boolean                   @default(false)

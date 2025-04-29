@@ -1,7 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
 import type { TFunction } from "i18next";
-import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 import type {
   AnyZodObject,
   objectInputType,
@@ -11,12 +10,13 @@ import type {
   ZodRawShape,
   ZodTypeAny,
 } from "zod";
+import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
-import { emailSchema as emailRegexSchema, emailRegex } from "@calcom/lib/emailSchema";
+import { emailRegex, emailSchema as emailRegexSchema } from "@calcom/lib/emailSchema";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { zodAttributesQueryValue } from "@calcom/lib/raqb/zod";
 import { slugify } from "@calcom/lib/slugify";
@@ -668,6 +668,8 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   requiresBookerEmailVerification: true,
   assignAllTeamMembers: true,
   isRRWeightsEnabled: true,
+  multipleRRHosts: true,
+  RRHostsPerMeeting: true,
   eventTypeColor: true,
   allowReschedulingPastBookings: true,
   hideOrganizerEmail: true,

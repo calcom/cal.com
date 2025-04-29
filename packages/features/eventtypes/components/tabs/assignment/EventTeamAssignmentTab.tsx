@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { Options } from "react-select";
 
@@ -14,24 +14,23 @@ import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/features/e
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
 import type {
-  FormValues,
-  TeamMember,
   EventTypeSetupProps,
+  FormValues,
   Host,
   SelectClassNames,
   SettingsToggleClassNames,
+  TeamMember,
 } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RRTimestampBasis, SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { InputField, Label, Select, SettingsToggle } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { EditWeightsForAllTeamMembers } from "../../EditWeightsForAllTeamMembers";
+import MultiRRHostDescription from "../../MultiRoundRobinHostDescription";
 import WeightDescription from "../../WeightDescription";
 
 export type EventTeamAssignmentTabCustomClassNames = {
@@ -280,6 +279,7 @@ type RoundRobinHostsCustomClassNames = {
   description?: string;
   enableWeights?: SettingsToggleClassNames;
   addMembers?: AddMembersWithSwitchCustomClassNames;
+  enableMultiHost?: SettingsToggleClassNames;
 };
 
 const RoundRobinHosts = ({
@@ -334,8 +334,44 @@ const RoundRobinHosts = ({
           {t("round_robin_helper")}
         </p>
       </div>
-      <div className="border-subtle rounded-b-md border border-t-0 px-6 pt-4">
+      <div className="border-subtle flex flex-col gap-6 rounded-b-md border border-t-0 px-6 pt-4">
         <>
+          <Controller<FormValues>
+            name="multipleRRHosts"
+            render={({ field: { value: multipleRRHosts, onChange } }) => (
+              <SettingsToggle
+                title={t("enable_multi_rr_hosts")}
+                description={<MultiRRHostDescription t={t} />}
+                checked={multipleRRHosts}
+                switchContainerClassName={customClassNames?.enableMultiHost?.container}
+                labelClassName={customClassNames?.enableMultiHost?.label}
+                descriptionClassName={customClassNames?.enableMultiHost?.description}
+                onCheckedChange={(e) => {
+                  if (!e) {
+                    setValue("RRHostsPerMeeting", 1, { shouldDirty: true });
+                  }
+                  onChange(e);
+                }}>
+                <div className="flex items-center gap-2">
+                  <InputField
+                    required
+                    max={value.length}
+                    min={1}
+                    defaultValue={getValues("RRHostsPerMeeting") ?? 1}
+                    onChange={(e) =>
+                      setValue("RRHostsPerMeeting", parseInt(e.target.value || "0", 10), {
+                        shouldDirty: true,
+                      })
+                    }
+                    label={t("number_of_rr_hosts")}
+                    type="number"
+                    addOnSuffix={t("hosts")}
+                    className={classNames("mb-0 h-9 w-16")}
+                  />
+                </div>
+              </SettingsToggle>
+            )}
+          />
           <Controller<FormValues>
             name="isRRWeightsEnabled"
             render={({ field: { value: isRRWeightsEnabled, onChange } }) => (
