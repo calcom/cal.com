@@ -23,17 +23,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Check if branch exists before cleanup
-        id: check_branch
-        run: |
-          if git ls-remote --exit-code origin "refs/heads/${{ github.event.pull_request.head.ref }}"; then
-            echo "BRANCH_EXISTS=true" >> $GITHUB_ENV
-          else
-            echo "BRANCH_EXISTS=false" >> $GITHUB_ENV
-          fi
-
       - name: Cleanup HTML reports on PR close/merge
-        if: ${{ env.BRANCH_EXISTS == 'true' }}
         env:
           BRANCH_REPORTS_DIR: reports/${{ github.event.pull_request.head.ref }}
         run: |
