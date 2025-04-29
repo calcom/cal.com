@@ -394,7 +394,6 @@ type FormActionType =
   | "edit"
   | "copyLink"
   | "toggle"
-  | "toggleDropdown"
   | "_delete"
   | "embed"
   | "duplicate"
