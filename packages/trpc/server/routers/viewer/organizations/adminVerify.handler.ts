@@ -117,6 +117,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
         };
       }),
       organizationId: input.orgId,
+      orgAutoAcceptEmail: acceptedEmailDomain,
     }),
   ]);
 

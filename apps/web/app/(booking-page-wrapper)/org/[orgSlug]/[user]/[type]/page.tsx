@@ -30,7 +30,11 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     title,
     profile: { name: profileName, image: profileImage },
     users: [
-      ...(eventData?.users || []).map((user) => ({
+      ...(
+        (eventData as UserTypePageProps["eventData"])?.subsetOfUsers ??
+        (eventData as TeamTypePageProps["eventData"])?.users ??
+        []
+      ).map((user) => ({
         name: `${user.name}`,
         username: `${user.username}`,
       })),

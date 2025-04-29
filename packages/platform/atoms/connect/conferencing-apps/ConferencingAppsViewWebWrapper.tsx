@@ -183,7 +183,7 @@ export const ConferencingAppsViewWebWrapper = ({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const deleteCredentialMutation = trpc.viewer.deleteCredential.useMutation();
+  const deleteCredentialMutation = trpc.viewer.credentials.delete.useMutation();
 
   const handleRemoveApp = ({ credentialId, teamId, callback }: RemoveAppParams) => {
     deleteCredentialMutation.mutate(
@@ -193,7 +193,7 @@ export const ConferencingAppsViewWebWrapper = ({
           showToast(t("app_removed_successfully"), "success");
           callback();
           utils.viewer.apps.integrations.invalidate();
-          utils.viewer.connectedCalendars.invalidate();
+          utils.viewer.calendars.connectedCalendars.invalidate();
         },
         onError: () => {
           showToast(t("error_removing_app"), "error");

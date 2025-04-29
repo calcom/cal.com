@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose, Transform } from "class-transformer";
 import {
   IsBoolean,
@@ -9,7 +9,10 @@ import {
   IsString,
   Validate,
   Min,
+  IsObject,
 } from "class-validator";
+
+import { ValidateMetadata } from "@calcom/platform-types";
 
 import { AvatarValidator } from "../validators/avatarValidator";
 import { LocaleValidator } from "../validators/localeValidator";
@@ -57,6 +60,37 @@ export class CreateUserInput {
   @IsHexColor()
   @Expose()
   brandColor?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description: "Bio",
+    example: "I am a bio",
+  })
+  @IsOptional()
+  @IsString()
+  @Expose()
+  bio?: string;
+
+  @ApiPropertyOptional({
+    type: Object,
+    description:
+      "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and values up to 500 characters.",
+    example: { key: "value" },
+  })
+  @IsObject()
+  @IsOptional()
+  @ValidateMetadata({
+    message:
+      "Metadata must have at most 50 keys, each key up to 40 characters, and values up to 500 characters.",
+  })
+  @Expose()
+  @Transform(
+    // note(Lauris): added this transform because without it metadata is removed for some reason
+    ({ obj }: { obj: { metadata: Record<string, unknown> | null | undefined } }) => {
+      return obj.metadata || undefined;
+    }
+  )
+  metadata?: Record<string, string | boolean | number>;
 
   @ApiProperty({
     type: String,

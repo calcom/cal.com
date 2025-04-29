@@ -457,35 +457,46 @@ export async function sendSignupToOrganizationEmail({
   teamId: number;
   isOrg: boolean;
 }) {
-  const token: string = randomBytes(32).toString("hex");
+  try {
+    const token: string = randomBytes(32).toString("hex");
 
-  await prisma.verificationToken.create({
-    data: {
-      identifier: usernameOrEmail,
-      token,
-      expires: new Date(new Date().setHours(168)), // +1 week
-      team: {
-        connect: {
-          id: teamId,
+    await prisma.verificationToken.create({
+      data: {
+        identifier: usernameOrEmail,
+        token,
+        expires: new Date(new Date().setHours(168)), // +1 week
+        team: {
+          connect: {
+            id: teamId,
+          },
         },
       },
-    },
-  });
-  await sendTeamInviteEmail({
-    language: translation,
-    from: inviterName || `${team.name}'s admin`,
-    to: usernameOrEmail,
-    teamName: team.name,
-    joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`,
-    isCalcomMember: false,
-    isOrg: isOrg,
-    parentTeamName: team?.parent?.name,
-    isAutoJoin: false,
-    isExistingUserMovedToOrg: false,
-    // For a new user there is no prev and new links.
-    prevLink: null,
-    newLink: null,
-  });
+    });
+    await sendTeamInviteEmail({
+      language: translation,
+      from: inviterName || `${team.name}'s admin`,
+      to: usernameOrEmail,
+      teamName: team.name,
+      joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`,
+      isCalcomMember: false,
+      isOrg: isOrg,
+      parentTeamName: team?.parent?.name,
+      isAutoJoin: false,
+      isExistingUserMovedToOrg: false,
+      // For a new user there is no prev and new links.
+      prevLink: null,
+      newLink: null,
+    });
+  } catch (error) {
+    logger.error(
+      "Failed to send signup to organization email",
+      safeStringify({
+        usernameOrEmail,
+        orgId: teamId,
+      }),
+      error
+    );
+  }
 }
 
 type TeamAndOrganizationSettings = Team & {

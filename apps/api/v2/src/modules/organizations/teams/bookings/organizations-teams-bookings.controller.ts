@@ -43,9 +43,13 @@ export class OrganizationsTeamsBookingsController {
   async getAllOrgTeamBookings(
     @Query() queryParams: GetOrganizationsTeamsBookingsInput_2024_08_13,
     @Param("teamId", ParseIntPipe) teamId: number,
+    @Param("orgId", ParseIntPipe) orgId: number,
     @GetUser() user: UserWithProfile
   ): Promise<GetBookingsOutput_2024_08_13> {
-    const bookings = await this.bookingsService.getBookings({ ...queryParams, teamId }, user);
+    const bookings = await this.bookingsService.getBookings(
+      { ...queryParams, teamId },
+      { email: user.email, id: user.id, orgId }
+    );
 
     return {
       status: SUCCESS_STATUS,

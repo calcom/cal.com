@@ -30,6 +30,8 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   lockTimeZoneToggleOnBookingPage: true,
   requiresBookerEmailVerification: true,
   disableGuests: true,
+  disableCancelling: true,
+  disableRescheduling: true,
   hideCalendarNotes: true,
   minimumBookingNotice: true,
   beforeEventBuffer: true,
@@ -37,6 +39,7 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   seatsPerTimeSlot: true,
   onlyShowFirstAvailableSlot: true,
   allowReschedulingPastBookings: true,
+  hideOrganizerEmail: true,
   seatsShowAttendees: true,
   seatsShowAvailabilityCount: true,
   scheduleId: true,
@@ -65,4 +68,5 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   assignRRMembersUsingSegment: true,
   maxLeadThreshold: true,
   useEventLevelSelectedCalendars: true,
+  customReplyToEmail: true,
 });

@@ -1,9 +1,7 @@
-import { CreateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/create-organization-user.input";
-import { UpdateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/update-organization-user.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
-import { CreationSource } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class OrganizationsUsersRepository {
@@ -19,11 +17,64 @@ export class OrganizationsUsersRepository {
     };
   }
 
-  async getOrganizationUsersByEmails(orgId: number, emailArray?: string[], skip?: number, take?: number) {
+  async getOrganizationUsersByEmailsAndAttributeFilters(
+    orgId: number,
+    filters: {
+      teamIds?: number[];
+      assignedOptionIds: string[];
+      attributeQueryOperator?: "AND" | "OR" | "NONE";
+    },
+    emailArray?: string[],
+    skip?: number,
+    take?: number
+  ) {
+    const { teamIds, assignedOptionIds, attributeQueryOperator } = filters ?? {};
+    const attributeToUsersWithProfile = await this.dbRead.prisma.attributeToUser.findMany({
+      include: {
+        member: { include: { user: { include: { profiles: { where: { organizationId: orgId } } } } } },
+      },
+      distinct: ["memberId"],
+      where: {
+        member: {
+          teamId: orgId,
+          ...(teamIds && { user: { teams: { some: { teamId: { in: teamIds } } } } }),
+          // Filter to only get users which have ALL of the assigned attribue options
+          ...(attributeQueryOperator === "AND" && {
+            AND: assignedOptionIds.map((optionId) => ({
+              AttributeToUser: { some: { attributeOptionId: optionId } },
+            })),
+          }),
+        },
+        ...(emailArray && emailArray.length ? { email: { in: emailArray } } : {}),
+        // Filter to get users which have AT LEAST ONE of the assigned attribue options
+        ...(attributeQueryOperator === "OR" && {
+          attributeOption: { id: { in: assignedOptionIds } },
+        }),
+        // Filter to  get users that have NONE the assigned attribue options
+        ...(attributeQueryOperator === "NONE" && {
+          NOT: {
+            attributeOption: { id: { in: assignedOptionIds } },
+          },
+        }),
+      },
+      skip,
+      take,
+    });
+    return attributeToUsersWithProfile.map((attributeToUser) => attributeToUser.member.user);
+  }
+
+  async getOrganizationUsersByEmails(
+    orgId: number,
+    emailArray?: string[],
+    teamIds?: number[],
+    skip?: number,
+    take?: number
+  ) {
     return await this.dbRead.prisma.user.findMany({
       where: {
         ...this.filterOnOrgMembership(orgId),
         ...(emailArray && emailArray.length ? { email: { in: emailArray } } : {}),
+        ...(teamIds && { teams: { some: { teamId: { in: teamIds } } } }),
       },
       include: {
         profiles: {
@@ -34,6 +85,22 @@ export class OrganizationsUsersRepository {
       },
       skip,
       take,
+    });
+  }
+
+  async getOrganizationUsersByIds(orgId: number, userIds: number[]) {
+    return await this.dbRead.prisma.user.findMany({
+      where: {
+        profiles: {
+          some: {
+            organizationId: orgId,
+            userId: { in: userIds },
+          },
+        },
+      },
+      include: {
+        profiles: true,
+      },
     });
   }
 
@@ -53,15 +120,7 @@ export class OrganizationsUsersRepository {
     });
   }
 
-  async createOrganizationUser(orgId: number, createUserBody: CreateOrganizationUserInput) {
-    const createdUser = await this.dbWrite.prisma.user.create({
-      data: { ...createUserBody, creationSource: CreationSource.API_V2 },
-    });
-
-    return createdUser;
-  }
-
-  async updateOrganizationUser(orgId: number, userId: number, updateUserBody: UpdateOrganizationUserInput) {
+  async updateOrganizationUser(orgId: number, userId: number, updateUserBody: Prisma.UserUpdateInput) {
     return await this.dbWrite.prisma.user.update({
       where: {
         id: userId,

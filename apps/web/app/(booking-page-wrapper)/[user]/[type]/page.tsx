@@ -25,7 +25,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     title,
     profile: { name: profileName, image: profileImage },
     users: [
-      ...(eventData?.users || []).map((user) => ({
+      ...(eventData?.subsetOfUsers || []).map((user) => ({
         name: `${user.name}`,
         username: `${user.username}`,
       })),
