@@ -155,6 +155,9 @@ export class ModalBox extends EmbedElement {
   onStateLoaded() {
     // Hide Loader
     this.toggleLoader(false);
+    // Message is shown either in "failed" or "has-message" state, so we hide it here
+    this.toggleMessageElement(false);
+
     // Open Modal
     this.open();
     // Ensure Iframe is fully visible

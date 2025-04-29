@@ -15,14 +15,12 @@ import type {
   PrefillAndIframeAttrsConfig,
 } from "./types";
 import { useCompatSearchParams } from "./useCompatSearchParams";
-import {
-  buildSearchParamsFromConfig,
-  fromEntriesWithDuplicateKeys,
-  isParamValuePresentInUrlSearchParams,
-} from "./utils";
+import { isParamValuePresentInUrlSearchParams } from "./utils";
 
+// We don't import it from Booker/types because the types from this module are published to npm and we can't import packages that aren't published
 type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
 
+// Prerendering is a hidden process and we shouldn't really track any events from it unless absolutely necessary
 const eventsAllowedInPrerendering = [
   // so that Postmessage communication starts
   "__iframeReady",
@@ -55,11 +53,13 @@ declare global {
  * This is in-memory persistence needed so that when user browses through the embed, the configurations from the instructions aren't lost.
  */
 export const embedStore = {
+  connectVersion: 0 as number,
   /**
    * Tracks whether the prerender has been completed or not.
-   * prerenderState would be "completed" even after the iframe was switched from isPrerendering to notPrerendering(which happensafter connect)
+   * NOTE: prerenderState would be "completed" even after the iframe was switched from isPrerendering=true to not Prerendering(which happens after connect)
    */
   prerenderState: null as null | "inProgress" | "completed",
+
   // Handles the commands of routing received from parent even when React hasn't initialized and nextRouter isn't available
   router: {
     /**
@@ -122,6 +122,7 @@ export const embedStore = {
       }
 
       function setParamInUrl({ key, value, url }: { key: string; value: string | string[]; url: URL }) {
+        // Reset and then set the new value, to ensure nothing else remains in value
         url.searchParams.delete(key);
         const newValueArray = Array.isArray(value) ? value : [value];
         newValueArray.forEach((val) => {
@@ -186,7 +187,7 @@ function log(...args: unknown[]) {
     args.unshift("CAL:");
     logQueue.push(args);
     if (searchParams.get("debug")) {
-      console.log(...args);
+      console.log("Child:", ...args);
     }
   }
 }
@@ -440,10 +441,6 @@ function showPageAsNonEmbed() {
     if (document.body.style.background === "transparent") {
       document.body.style.background = "";
     }
-    // Ensure that it stays and not reverted by React
-    runAsap(() => {
-      resetTransparentBackground();
-    });
   }
 }
 
@@ -497,9 +494,9 @@ const methods = {
   parentKnowsIframeReady: (_unused: unknown) => {
     log("Method: `parentKnowsIframeReady` called");
 
-    runAsap(function tryIfLinkIsReady() {
+    runAsap(function tryInformingLinkReady() {
       if (!isLinkReady()) {
-        runAsap(tryIfLinkIsReady);
+        runAsap(tryInformingLinkReady);
         return;
       }
 
@@ -518,9 +515,10 @@ const methods = {
    */
   connect: function connect(config: PrefillAndIframeAttrsConfig) {
     log("Method: connect, requested with params", config);
-    const searchParams = buildSearchParamsFromConfig(config);
+    const { iframeAttrs: _1, ...queryParamsFromConfig } = config;
+    const connectVersion = (embedStore.connectVersion = embedStore.connectVersion + 1);
 
-    // We reset it to allow informing parent through __dimensionChanged event about possibly updated dimensions
+    // We reset it to allow informing parent again through `__dimensionChanged` event about possibly updated dimensions with changes in config
     embedStore.parentInformedAboutContentHeight = false;
 
     (function tryToConnect() {
@@ -531,7 +529,11 @@ const methods = {
 
       log("Method: connect, prerenderState is completed. Connecting");
       connectPreloadedEmbed({
-        toBeThereParams: fromEntriesWithDuplicateKeys(searchParams.entries()),
+        // We know after removing iframeAttrs, that it is of this type
+        toBeThereParams: {
+          ...(queryParamsFromConfig as Record<string, string | string[]>),
+          "cal.embed.connectVersion": connectVersion.toString(),
+        },
         toRemoveParams: ["preload", "prerender", "cal.skipSlotsFetch"],
       });
     })();
@@ -825,6 +827,10 @@ export function getEmbedBookerState({
   return "slotsPending";
 }
 
+/**
+ * It is meant to sync BookerState to EmbedBookerState
+ * This function is meant to be called outside useEffect so that we don't wait for React to re-render before doing our work
+ */
 export function updateEmbedBookerState({
   bookerState,
   slotsQuery,

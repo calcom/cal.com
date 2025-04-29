@@ -21,7 +21,7 @@ type ExpectedModalBoxAttrs = {
   theme: string;
   layout: string;
   pageType: string | null;
-  state: "loading" | "loaded" | "failed" | "reopened" | "closed" | "prerendering" | "message" | null;
+  state: "loading" | "loaded" | "failed" | "reopened" | "closed" | "prerendering" | "has-message" | null;
   uid?: string | null;
 };
 
@@ -839,7 +839,7 @@ describe("Cal", () => {
 
             expectCalModalBoxToBeInDocumentWithIframeHavingUrl({
               expectedModalBoxAttrs: {
-                state: "message",
+                state: "has-message",
                 theme: modalArg.config.theme,
                 layout: modalArg.config.layout,
                 pageType: null,
@@ -997,20 +997,31 @@ describe("Cal", () => {
     });
   });
 
-  describe("determineActionToTake", () => {
+  describe("getNextActionForModal", () => {
     const baseArgs = {
-      calLink: "john-doe/meeting",
-      modalBoxUid: "test-uid",
-      previousCalLink: "john-doe/meeting",
-      embedConfig: { theme: "light" },
-      previousEmbedConfig: { theme: "light" },
-      isConnectionInitiated: true,
-      previousEmbedRenderStartTime: Date.now() - 1000, // 1 second ago
-      embedRenderStartTime: Date.now(),
+      urlToLoad: "john-doe/meeting",
+      modal: {
+        uid: "test-uid",
+        element: document.querySelector("cal-modal-box") as HTMLElement,
+        calOrigin: "https://app.cal.com",
+      },
+      stateData: {
+        embedConfig: { theme: "light" },
+        previousEmbedConfig: { theme: "light" },
+        isConnectionInitiated: true,
+        previousEmbedRenderStartTime: Date.now() - 1000, // 1 second ago
+        embedRenderStartTime: Date.now(),
+      },
     };
 
     beforeEach(() => {
       calInstance = new CalClass("test-namespace", []);
+      calInstance.iframe = {
+        src: "https://app.cal.com/john-doe/meeting",
+        dataset: {
+          calLink: "john-doe/meeting",
+        },
+      };
       // Initialize config
       calInstance.__config = {
         calOrigin: "https://app.cal.com",
@@ -1020,9 +1031,9 @@ describe("Cal", () => {
     });
 
     it("should return fullReload when cal link is different", () => {
-      const result = calInstance.determineActionToTake({
+      calInstance.iframe.dataset.calLink = "jane-doe/meeting";
+      const result = calInstance.getNextActionForModal({
         ...baseArgs,
-        previousCalLink: "jane-doe/meeting",
       });
       expect(result).toBe("fullReload");
     });
@@ -1033,88 +1044,110 @@ describe("Cal", () => {
         getAttribute: () => "failed",
       });
 
-      const result = calInstance.determineActionToTake(baseArgs);
+      const result = calInstance.getNextActionForModal(baseArgs);
       expect(result).toBe("fullReload");
     });
 
     it("should return fullReload when threshold time has passed", () => {
-      const result = calInstance.determineActionToTake({
+      const result = calInstance.getNextActionForModal({
         ...baseArgs,
-        previousEmbedRenderStartTime: Date.now() - 1000000, // Much older timestamp
-        embedRenderStartTime: Date.now(),
+        stateData: {
+          ...baseArgs.stateData,
+          previousEmbedRenderStartTime: Date.now() - 1000000, // Much older timestamp
+          embedRenderStartTime: Date.now(),
+        },
       });
       expect(result).toBe("fullReload");
     });
 
     it("should return connect when config is different", () => {
-      const result = calInstance.determineActionToTake({
+      const result = calInstance.getNextActionForModal({
         ...baseArgs,
-        embedConfig: { theme: "dark" },
+        stateData: {
+          ...baseArgs.stateData,
+          embedConfig: { theme: "dark" },
+          previousEmbedConfig: { theme: "light" },
+        },
       });
       expect(result).toBe("connect");
     });
 
     it("should return connect when config prop type is different", () => {
-      const result = calInstance.determineActionToTake({
+      const result = calInstance.getNextActionForModal({
         ...baseArgs,
-        embedConfig: { param: 1 },
-        previousEmbedConfig: { param: { a: 1 } },
+        stateData: {
+          ...baseArgs.stateData,
+          embedConfig: { param: 1 },
+          previousEmbedConfig: { param: { a: 1 } },
+        },
       });
       expect(result).toBe("connect");
     });
 
     test("for same config, if number of props are different, it should return connect", () => {
-      const result = calInstance.determineActionToTake({
+      const result = calInstance.getNextActionForModal({
         ...baseArgs,
-        embedConfig: { param1: "value1", param2: "value2" },
-        previousEmbedConfig: { param1: "value1" },
+        stateData: {
+          ...baseArgs.stateData,
+          embedConfig: { param1: "value1", param2: "value2" },
+          previousEmbedConfig: { param1: "value1" },
+        },
       });
       expect(result).toBe("connect");
     });
 
     it("should return connect when config.guests change", () => {
-      const result = calInstance.determineActionToTake({
+      const result = calInstance.getNextActionForModal({
         ...baseArgs,
-        embedConfig: { guests: ["john@example.com", "jane@example.com"] },
-        previousEmbedConfig: { guests: ["john@example.com"] },
+        stateData: {
+          ...baseArgs.stateData,
+          embedConfig: { guests: ["john@example.com", "jane@example.com"] },
+          previousEmbedConfig: { guests: ["john@example.com"] },
+        },
       });
       expect(result).toBe("connect");
     });
 
-    it("should return noChange when config.guests are same", () => {
-      const result = calInstance.determineActionToTake({
+    it("should return noAction when config.guests are same", () => {
+      const result = calInstance.getNextActionForModal({
         ...baseArgs,
-        embedConfig: { guests: ["john@example.com", "jane@example.com"] },
-        previousEmbedConfig: { guests: ["jane@example.com", "john@example.com"] },
+        stateData: {
+          ...baseArgs.stateData,
+          embedConfig: { guests: ["john@example.com", "jane@example.com"] },
+          previousEmbedConfig: { guests: ["jane@example.com", "john@example.com"] },
+        },
       });
-      expect(result).toBe("noChange");
+      expect(result).toBe("noAction");
     });
 
     it("should return connect when query params are different", () => {
-      const result = calInstance.determineActionToTake({
+      calInstance.iframe.src = "https://app.cal.com/john-doe/meeting?param2=value2";
+      const result = calInstance.getNextActionForModal({
         ...baseArgs,
-        previousCalLink: "john-doe/meeting?param1=value1",
-        calLink: "john-doe/meeting?param2=value2",
+        urlToLoad: "john-doe/meeting?param1=value1",
       });
       expect(result).toBe("connect");
     });
 
     it("should return connect when connection is not initiated", () => {
-      const result = calInstance.determineActionToTake({
+      const result = calInstance.getNextActionForModal({
         ...baseArgs,
-        isConnectionInitiated: false,
+        stateData: {
+          ...baseArgs.stateData,
+          isConnectionInitiated: false,
+        },
       });
       expect(result).toBe("connect");
     });
 
-    it("should return noChange when everything is the same", () => {
+    it("should return noAction when everything is the same", () => {
       // Mock document.querySelector to simulate a non-failed modal
       document.querySelector = vi.fn().mockReturnValue({
         getAttribute: () => "loaded",
       });
 
-      const result = calInstance.determineActionToTake(baseArgs);
-      expect(result).toBe("noChange");
+      const result = calInstance.getNextActionForModal(baseArgs);
+      expect(result).toBe("noAction");
     });
   });
 });

@@ -312,6 +312,7 @@ describe("Organizations Event Types Endpoints", () => {
         requiresBookerEmailVerification: true,
         hideCalendarNotes: true,
         hideCalendarEventDetails: true,
+        hideOrganizerEmail: true,
         lockTimeZoneToggleOnBookingPage: true,
         color: {
           darkThemeHex: "#292929",
@@ -343,6 +344,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.requiresBookerEmailVerification).toEqual(body.requiresBookerEmailVerification);
           expect(data.hideCalendarNotes).toEqual(body.hideCalendarNotes);
           expect(data.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
+          expect(data.hideOrganizerEmail).toEqual(body.hideOrganizerEmail);
           expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
           expect(data.color).toEqual(body.color);
 
