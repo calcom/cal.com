@@ -2111,13 +2111,13 @@ model BookingTimeStatusDenormalized {
   noShowHost     Boolean?
   isTeamBooking  Boolean?
 
-  @@index([userId])
-  @@index([createdAt])
-  @@index([eventTypeId])
-  @@index([eventTypeId, eventParentId])
-  @@index([timeStatus])
-  @@index([teamId])
-  @@index([startTime])
-  @@index([endTime])
-  @@index([status])
+  @@index([userId], name: "idx_booking_user_id")
+  @@index([createdAt], name: "idx_booking_created_at")
+  @@index([eventTypeId], name: "idx_event_type_id")
+  @@index([eventTypeId, eventParentId], name: "idx_event_type_hierarchy")
+  @@index([timeStatus], name: "idx_booking_time_status")
+  @@index([teamId], name: "idx_booking_team_id")
+  @@index([startTime], name: "idx_booking_start_time")
+  @@index([endTime], name: "idx_booking_end_time")
+  @@index([status], name: "idx_booking_status")
 }
