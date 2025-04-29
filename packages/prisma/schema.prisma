@@ -2114,10 +2114,12 @@ model BookingTimeStatusDenormalized {
   @@index([userId], name: "idx_booking_user_id")
   @@index([createdAt], name: "idx_booking_created_at")
   @@index([eventTypeId], name: "idx_event_type_id")
-  @@index([eventTypeId, eventParentId], name: "idx_event_type_hierarchy")
+  @@index([eventParentId], name: "idx_event_parent_id")
   @@index([timeStatus], name: "idx_booking_time_status")
   @@index([teamId], name: "idx_booking_team_id")
   @@index([startTime], name: "idx_booking_start_time")
   @@index([endTime], name: "idx_booking_end_time")
   @@index([status], name: "idx_booking_status")
+  @@index([teamId, isTeamBooking], name: "idx_booking_team_id_team_booking")
+  @@index([userId, isTeamBooking], name: "idx_booking_user_id_team_booking")
 }

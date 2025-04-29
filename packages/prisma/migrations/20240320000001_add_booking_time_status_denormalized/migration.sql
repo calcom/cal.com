@@ -29,12 +29,14 @@ CREATE TABLE "BookingTimeStatusDenormalized" (
 CREATE INDEX "idx_booking_user_id" ON "BookingTimeStatusDenormalized" ("userId");
 CREATE INDEX "idx_booking_created_at" ON "BookingTimeStatusDenormalized" ("createdAt");
 CREATE INDEX "idx_event_type_id" ON "BookingTimeStatusDenormalized" ("eventTypeId");
-CREATE INDEX "idx_event_type_hierarchy" ON "BookingTimeStatusDenormalized" ("eventTypeId", "eventParentId");
+CREATE INDEX "idx_event_parent_id" ON "BookingTimeStatusDenormalized" ("eventParentId");
 CREATE INDEX "idx_booking_time_status" ON "BookingTimeStatusDenormalized" ("timeStatus");
 CREATE INDEX "idx_booking_team_id" ON "BookingTimeStatusDenormalized" ("teamId");
 CREATE INDEX "idx_booking_start_time" ON "BookingTimeStatusDenormalized" ("startTime");
 CREATE INDEX "idx_booking_end_time" ON "BookingTimeStatusDenormalized" ("endTime");
 CREATE INDEX "idx_booking_status" ON "BookingTimeStatusDenormalized" ("status");
+CREATE INDEX "idx_booking_team_id_team_booking" ON "BookingTimeStatusDenormalized" ("teamId", "isTeamBooking");
+CREATE INDEX "idx_booking_user_id_team_booking" ON "BookingTimeStatusDenormalized" ("userId", "isTeamBooking");
 
 -- Function to calculate timeStatus
 CREATE OR REPLACE FUNCTION calculate_time_status(
@@ -67,7 +69,7 @@ RETURNS VOID AS $$
 BEGIN
     -- Delete existing entry if any
     DELETE FROM "BookingTimeStatusDenormalized" WHERE id = booking_id;
-    
+
     -- Insert non-team booking
     INSERT INTO "BookingTimeStatusDenormalized"
     SELECT
