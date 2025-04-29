@@ -964,7 +964,8 @@ export default class GoogleCalendarService implements Calendar {
         this.getCacheOrFetchAvailability.bind(this),
         shouldServeCache
       );
-      return data;
+      if (!data) throw new Error("No response from google calendar");
+      return data.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end }));
     } catch (error) {
       this.log.error(
         "There was an error getting availability from google calendar: ",
