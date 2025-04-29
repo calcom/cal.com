@@ -2085,3 +2085,39 @@ model WorkflowOptOutContact {
 
   @@unique([type, value])
 }
+
+model BookingTimeStatusDenormalized {
+  id             Int      @id
+  uid            String
+  eventTypeId    Int?
+  title          String?
+  description    String?
+  startTime      DateTime
+  endTime        DateTime
+  createdAt      DateTime
+  location       String?
+  paid           Boolean?
+  status         String
+  rescheduled    Boolean?
+  userId         Int?
+  teamId         Int?
+  eventLength    Int?
+  timeStatus     String?
+  eventParentId  Int?
+  userEmail      String?
+  username       String?
+  ratingFeedback String?
+  rating         Int?
+  noShowHost     Boolean?
+  isTeamBooking  Boolean?
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([eventTypeId])
+  @@index([eventTypeId, eventParentId])
+  @@index([timeStatus])
+  @@index([teamId])
+  @@index([startTime])
+  @@index([endTime])
+  @@index([status])
+}

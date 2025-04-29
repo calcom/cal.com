@@ -1,16 +1,16 @@
 -- Create the denormalized table
 CREATE TABLE "BookingTimeStatusDenormalized" (
-    id INTEGER,
-    uid TEXT,
+    id INTEGER NOT NULL PRIMARY KEY,
+    uid TEXT NOT NULL,
     "eventTypeId" INTEGER,
     title TEXT,
     description TEXT,
-    "startTime" TIMESTAMP(3),
-    "endTime" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3),
+    "startTime" TIMESTAMP(3) NOT NULL,
+    "endTime" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL,
     location TEXT,
     paid BOOLEAN,
-    status TEXT,
+    status TEXT NOT NULL,
     rescheduled BOOLEAN,
     "userId" INTEGER,
     "teamId" INTEGER,
@@ -26,14 +26,15 @@ CREATE TABLE "BookingTimeStatusDenormalized" (
 );
 
 -- Create indexes to match likely query patterns
-CREATE INDEX "idx_booking_id" ON "BookingTimeStatusDenormalized" (id);
 CREATE INDEX "idx_booking_user_id" ON "BookingTimeStatusDenormalized" ("userId");
 CREATE INDEX "idx_booking_created_at" ON "BookingTimeStatusDenormalized" ("createdAt");
+CREATE INDEX "idx_event_type_id" ON "BookingTimeStatusDenormalized" ("eventTypeId");
 CREATE INDEX "idx_event_type_hierarchy" ON "BookingTimeStatusDenormalized" ("eventTypeId", "eventParentId");
-CREATE INDEX "idx_time_status" ON "BookingTimeStatusDenormalized" ("timeStatus");
-CREATE INDEX "idx_team_id" ON "BookingTimeStatusDenormalized" ("teamId");
-CREATE INDEX "idx_start_time" ON "BookingTimeStatusDenormalized" ("startTime");
-CREATE INDEX "idx_end_time" ON "BookingTimeStatusDenormalized" ("endTime");
+CREATE INDEX "idx_booking_time_status" ON "BookingTimeStatusDenormalized" ("timeStatus");
+CREATE INDEX "idx_booking_team_id" ON "BookingTimeStatusDenormalized" ("teamId");
+CREATE INDEX "idx_booking_start_time" ON "BookingTimeStatusDenormalized" ("startTime");
+CREATE INDEX "idx_booking_end_time" ON "BookingTimeStatusDenormalized" ("endTime");
+CREATE INDEX "idx_booking_status" ON "BookingTimeStatusDenormalized" ("status");
 
 -- Function to calculate timeStatus
 CREATE OR REPLACE FUNCTION calculate_time_status(
@@ -104,7 +105,11 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION trigger_refresh_booking_time_status_denormalized()
 RETURNS TRIGGER AS $$
 BEGIN
-    PERFORM refresh_booking_time_status_denormalized(NEW.id);
+    BEGIN
+        PERFORM refresh_booking_time_status_denormalized(NEW.id);
+    EXCEPTION WHEN OTHERS THEN
+        RAISE WARNING 'DENORM_ERROR: BookingTimeStatusDenormalized - Failed to handle booking change for id %, error: %', NEW.id, SQLERRM;
+    END;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -113,7 +118,11 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION trigger_delete_booking_time_status_denormalized()
 RETURNS TRIGGER AS $$
 BEGIN
-    DELETE FROM "BookingTimeStatusDenormalized" WHERE id = OLD.id;
+    BEGIN
+        DELETE FROM "BookingTimeStatusDenormalized" WHERE id = OLD.id;
+    EXCEPTION WHEN OTHERS THEN
+        RAISE WARNING 'DENORM_ERROR: BookingTimeStatusDenormalized - Failed to delete denormalized booking id %, error: %', OLD.id, SQLERRM;
+    END;
     RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
@@ -133,14 +142,17 @@ CREATE TRIGGER booking_delete_trigger
 CREATE OR REPLACE FUNCTION trigger_refresh_booking_time_status_denormalized_event_type()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Refresh all bookings associated with this event type
-    UPDATE "BookingTimeStatusDenormalized" btsd
-    SET
-        "teamId" = NEW."teamId",
-        "eventLength" = NEW.length,
-        "eventParentId" = NEW."parentId",
-        "isTeamBooking" = calculate_is_team_booking(NEW."teamId")
-    WHERE btsd."eventTypeId" = NEW.id;
+    BEGIN
+        UPDATE "BookingTimeStatusDenormalized" btsd
+        SET
+            "teamId" = NEW."teamId",
+            "eventLength" = NEW.length,
+            "eventParentId" = NEW."parentId",
+            "isTeamBooking" = calculate_is_team_booking(NEW."teamId")
+        WHERE btsd."eventTypeId" = NEW.id;
+    EXCEPTION WHEN OTHERS THEN
+        RAISE WARNING 'DENORM_ERROR: BookingTimeStatusDenormalized - Failed to update EventType changes for id %, error: %', NEW.id, SQLERRM;
+    END;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -149,12 +161,15 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION trigger_refresh_booking_time_status_denormalized_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Refresh all bookings associated with this user
-    UPDATE "BookingTimeStatusDenormalized" btsd
-    SET
-        "userEmail" = NEW.email,
-        "username" = NEW.username
-    WHERE btsd."userId" = NEW.id;
+    BEGIN
+        UPDATE "BookingTimeStatusDenormalized" btsd
+        SET
+            "userEmail" = NEW.email,
+            "username" = NEW.username
+        WHERE btsd."userId" = NEW.id;
+    EXCEPTION WHEN OTHERS THEN
+        RAISE WARNING 'DENORM_ERROR: BookingTimeStatusDenormalized - Failed to update user changes for id %, error: %', NEW.id, SQLERRM;
+    END;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
