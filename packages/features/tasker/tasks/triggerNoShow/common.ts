@@ -86,6 +86,7 @@ export const getGoogleDwdCredentialsWithServiceAccountKeyKey = async ({
     invalid: false,
     teamId: null,
     team: null,
+    delegationCredentialId: delegationCredentialId,
     delegatedTo: {
       serviceAccountKey: serviceAccountKey,
     },
