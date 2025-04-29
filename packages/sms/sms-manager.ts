@@ -49,6 +49,7 @@ const handleSendingSMS = ({
           bookingUid,
         },
       });
+      resolve();
     } catch (e) {
       reject(console.error(`sendSmsOrFallbackEmail failed`, e));
     }
