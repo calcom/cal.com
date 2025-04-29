@@ -142,13 +142,10 @@ export const tabs = [
       const { t } = useLocale();
       const embedCalOrigin = useEmbedCalOrigin();
 
-      // --- Start: Added logic for direct Atom snippet generation ---
-      // Basic parsing, assumes format like 'user/event' or 'team/user/event'
       const parts = calLink.split("/");
-      const eventSlug = parts.pop() || ""; // Handle potential undefined
+      const eventSlug = parts.pop() || "";
       const calUsername = parts.join("/");
 
-      // Build props string conditionally
       let bookerProps = ``;
       if (previewState.hideBranding) {
         bookerProps += `\n        hideBranding={true}`;
@@ -156,9 +153,7 @@ export const tabs = [
       if (previewState.confirmButtonDisabled) {
         bookerProps += `\n        confirmButtonDisabled={true}`;
       }
-      // Always include hideEventTypeDetails prop
       bookerProps += `\n        hideEventTypeDetails={${previewState.hideEventTypeDetails}}`;
-      // --- End: Added logic ---
 
       if (ref instanceof Function || !ref) {
         return null;

@@ -197,13 +197,24 @@ export default function Booker( props : BookerProps ) {
       return code`
 import { BookerEmbed } from "@calcom/atoms";
 
-// Placeholder - Snippet likely needs adjustment for element-click Atom use case
+// You might need to define or import BookerProps depending on your setup
 export default function Booker( props : BookerProps ) {
   return (
     <>
-      {/* Placeholder: Add trigger and modal logic here */}
-      <p>Element Click Atom Placeholder</p>
-      {/* <BookerEmbed ... /> */}
+      <BookerEmbed
+        // Use the parsed username and event slug from calLink
+        eventSlug={eventSlug}
+        // layout can be of three types: COLUMN_VIEW, MONTH_VIEW or WEEK_VIEW, 
+        // you can choose whichever you prefer
+        view="${previewState.config?.layout || "MONTH_VIEW"}"
+        username={calUsername}
+        customClassNames={{
+          bookerContainer: "border-subtle border",
+        }}
+        onCreateBookingSuccess={() => {
+          console.log("booking created successfully");
+        }}
+      />
     </>
   );
 };`;
