@@ -13,7 +13,22 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import SalesforceCRMService from "../CrmService";
 import { SalesforceRecordEnum } from "../enums";
+import {
+  mockValueOfAccountOwnershipQueryMatchingContact,
+  mockValueOfAccountOwnershipQueryMatchingAccountWebsite,
+  mockValueOfAccountOwnershipQueryMatchingRelatedContacts,
+} from "../graphql/__tests__/urqlMock";
 import { createSalesforceMock } from "./salesforceMock";
+
+const mockUrqlQuery = vi.fn();
+
+vi.mock("@urql/core", () => ({
+  Client: class {
+    query = mockUrqlQuery;
+  },
+  cacheExchange: vi.fn(),
+  fetchExchange: vi.fn(),
+}));
 
 vi.mock("@calcom/lib/constants", () => {
   return {
@@ -59,6 +74,7 @@ const createMockCredential = () => {
     teamId: 1,
     appId: "test_app_id",
     invalid: false,
+    delegationCredentialId: null,
   };
 };
 
@@ -116,28 +132,10 @@ describe("SalesforceCRMService", () => {
     describe("getContacts: forRoundRobinSkip=true", () => {
       const forRoundRobinSkip = true;
       it("(Lookup-1) should return contact's account owner's email as ownerEmail if the contact is found directly by email", async () => {
+        mockUrqlQuery.mockResolvedValue(mockValueOfAccountOwnershipQueryMatchingContact());
         const crmService = new SalesforceCRMService(credential, appOptions);
-        const contactAccountOwnerEmail = "contact-account-owner@acme.com";
-        const contactOwnerEmail = "contact-owner@acme.com";
-        const lookingForEmail = "test@example.com";
-
-        const account = salesforceMock.addAccount({
-          Id: "test-account-id",
-          Owner: {
-            Email: contactAccountOwnerEmail,
-          },
-          Website: "https://anything",
-        });
-
-        salesforceMock.addContact({
-          Email: lookingForEmail,
-          FirstName: "Test",
-          LastName: "User",
-          AccountId: account.Id,
-          Owner: {
-            Email: contactOwnerEmail,
-          },
-        });
+        const contactAccountOwnerEmail = "owner@test.com";
+        const lookingForEmail = "contact@email.com";
 
         const contacts = await crmService.getContacts({
           emails: lookingForEmail,
@@ -148,21 +146,15 @@ describe("SalesforceCRMService", () => {
         expect(contacts[0].ownerEmail).toBe(contactAccountOwnerEmail);
         expect(contacts[0].email).toBe(lookingForEmail);
         expect(contacts[0].recordType).toBe(SalesforceRecordEnum.ACCOUNT);
-        expect(contacts[0].id).toBe(account.Id);
+        expect(contacts[0].id).toBe("accountId");
       });
 
       it("(Lookup-2) should fallback to account(and use the account owner email as ownerEmail) matched by emailDomain if the contact is not found(i.e Lookup-1 fails)", async () => {
+        mockUrqlQuery.mockResolvedValue(mockValueOfAccountOwnershipQueryMatchingAccountWebsite());
         const crmService = new SalesforceCRMService(credential, appOptions);
-        const contactAccountOwnerEmail = "contact-account-owner@example.com";
+        const contactAccountOwnerEmail = "owner@test.com";
         const emailDomain = "example.com";
         const lookingForEmail = `test@${emailDomain}`;
-        const account = salesforceMock.addAccount({
-          Id: "test-account-id",
-          Owner: {
-            Email: contactAccountOwnerEmail,
-          },
-          Website: `https://${emailDomain}`,
-        });
 
         const contacts = await crmService.getContacts({
           emails: lookingForEmail,
@@ -179,47 +171,11 @@ describe("SalesforceCRMService", () => {
       });
 
       it("(Lookup-3) should fallback to account having most number of contacts matched by emailDomain when Lookup-1 and Lookup-2 fails", async () => {
+        mockUrqlQuery.mockResolvedValue(mockValueOfAccountOwnershipQueryMatchingRelatedContacts());
         const crmService = new SalesforceCRMService(credential, appOptions);
-        const account1OwnerEmail = "account1-owner@example.com";
-        const account2OwnerEmail = "account2-owner@example.com";
+        const accountOwnerEmail = "owner1@test.com";
         const emailDomain = "example.com";
         const lookingForEmail = `test@${emailDomain}`;
-        const account1 = salesforceMock.addAccount({
-          Id: "test-account-id1",
-          Owner: {
-            Email: account1OwnerEmail,
-          },
-          Website: `https://anything`,
-        });
-
-        const dominatingAccount = salesforceMock.addAccount({
-          Id: "test-account-id2",
-          Owner: {
-            Email: account2OwnerEmail,
-          },
-          Website: `https://anything`,
-        });
-
-        salesforceMock.addContact({
-          Email: `some-other-contact_acc2_1@${emailDomain}`,
-          FirstName: "Test",
-          LastName: "User",
-          AccountId: dominatingAccount.Id,
-        });
-
-        salesforceMock.addContact({
-          Email: `some-other-contact_acc2_2@${emailDomain}`,
-          FirstName: "Test",
-          LastName: "User",
-          AccountId: dominatingAccount.Id,
-        });
-
-        salesforceMock.addContact({
-          Email: `some-other-contact_acc1_1@${emailDomain}`,
-          FirstName: "Test",
-          LastName: "User",
-          AccountId: account1.Id,
-        });
 
         const contacts = await crmService.getContacts({
           emails: lookingForEmail,
@@ -227,7 +183,7 @@ describe("SalesforceCRMService", () => {
         });
 
         expect(contacts).toHaveLength(1);
-        expect(contacts[0].ownerEmail).toBe(account2OwnerEmail);
+        expect(contacts[0].ownerEmail).toBe(accountOwnerEmail);
         // Account doesn't have email
         expect(contacts[0].email).toBe("");
         expect(contacts[0].recordType).toBe(SalesforceRecordEnum.ACCOUNT);
