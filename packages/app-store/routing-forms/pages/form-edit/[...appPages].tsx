@@ -205,6 +205,9 @@ function Field({
               {...hookForm.register(`${hookFieldNamespace}.label`)}
               onChange={(e) => {
                 hookForm.setValue(`${hookFieldNamespace}.label`, e.target.value, { shouldDirty: true });
+                if (!identifier) {
+                  hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value, { shouldDirty: true });
+                }
               }}
             />
           </div>
