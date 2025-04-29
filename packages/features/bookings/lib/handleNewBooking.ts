@@ -1413,8 +1413,8 @@ async function handler(
       originalRescheduledBooking.uid,
       undefined,
       changedOrganizer,
-      isBookingRequestedReschedule,
-      previousHostDestinationCalendar
+      previousHostDestinationCalendar,
+      isBookingRequestedReschedule
     );
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
