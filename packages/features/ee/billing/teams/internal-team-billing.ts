@@ -181,4 +181,28 @@ export class InternalTeamBilling implements TeamBilling {
     if (!subscriptionId) return null;
     return await billing.getSubscriptionStatus(subscriptionId);
   }
+
+  /**
+   * Ends the trial period for a team subscription by converting it to a regular subscription
+   * @returns {Promise<boolean>} True if successful, false otherwise
+   */
+  async endTrial() {
+    try {
+      const { subscriptionId } = this.team.metadata;
+      log.info(`Ending trial for subscription ${subscriptionId} of team ${this.team.id}`);
+
+      if (!subscriptionId) {
+        log.warn(`No subscription ID found for team ${this.team.id}`);
+        return false;
+      }
+
+      // End the trial by converting to regular subscription
+      await billing.handleEndTrial(subscriptionId);
+      log.info(`Successfully ended trial for team ${this.team.id}`);
+      return true;
+    } catch (error) {
+      this.logErrorFromUnknown(error);
+      return false;
+    }
+  }
 }
