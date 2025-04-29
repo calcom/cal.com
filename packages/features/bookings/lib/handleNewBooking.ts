@@ -1019,11 +1019,13 @@ async function handler(
       id: eventType.id,
       hideCalendarNotes: eventType.hideCalendarNotes,
       hideCalendarEventDetails: eventType.hideCalendarEventDetails,
+      hideOrganizerEmail: eventType.hideOrganizerEmail,
       schedulingType: eventType.schedulingType,
       seatsPerTimeSlot: eventType.seatsPerTimeSlot,
       // if seats are not enabled we should default true
       seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
       seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
+      customReplyToEmail: eventType.customReplyToEmail,
     })
     .withOrganizer({
       id: organizerUser.id,
@@ -1218,6 +1220,9 @@ async function handler(
     eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
     originalRescheduledBooking.userId !== evt.organizer.id;
 
+  const isLocationChanged =
+    !!originalRescheduledBooking && originalRescheduledBooking.location !== evt.location;
+
   let results: EventResult<AdditionalInformation & { url?: string; iCalUID?: string }>[] = [];
   let referencesToCreate: PartialReference[] = [];
 
@@ -1257,7 +1262,6 @@ async function handler(
         input: {
           bookerEmail,
           rescheduleReason,
-          changedOrganizer,
           smsReminderNumber,
           responses,
         },

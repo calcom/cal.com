@@ -14,6 +14,7 @@ export default class EventRequestToRescheduleSMS extends SMSManager {
 
     const requestRescheduleSubtitle = t("request_reschedule_subtitle", {
       organizer: this.calEvent.organizer.name,
+      interpolation: { escapeValue: false },
     });
 
     const needToRescheduleOrCancelText = t("need_to_reschedule_or_cancel");

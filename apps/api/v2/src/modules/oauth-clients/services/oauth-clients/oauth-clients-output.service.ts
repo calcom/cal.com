@@ -6,17 +6,8 @@ import { PlatformOAuthClientDto } from "@calcom/platform-types";
 
 @Injectable()
 export class OAuthClientsOutputService {
-  transformPermissions(permissionsNumber: number): Array<keyof typeof PERMISSION_MAP> {
-    const permissionNumbers = PERMISSIONS.filter(
-      (permission) => (permissionsNumber & permission) === permission
-    );
-
-    return permissionNumbers.map(
-      (permission) =>
-        Object.entries(PERMISSION_MAP).find(
-          ([_, value]) => value === permission
-        )?.[0] as keyof typeof PERMISSION_MAP
-    );
+  transformOAuthClients(clients: PlatformOAuthClient[]): PlatformOAuthClientDto[] {
+    return clients.map((client) => this.transformOAuthClient(client));
   }
 
   transformOAuthClient(client: PlatformOAuthClient): PlatformOAuthClientDto {
@@ -24,7 +15,7 @@ export class OAuthClientsOutputService {
       id: client.id,
       name: client.name,
       secret: client.secret,
-      permissions: this.transformPermissions(client.permissions),
+      permissions: this.transformOAuthClientPermissions(client.permissions),
       logo: client.logo,
       redirectUris: client.redirectUris,
       organizationId: client.organizationId,
@@ -37,7 +28,15 @@ export class OAuthClientsOutputService {
     };
   }
 
-  transformOAuthClients(clients: PlatformOAuthClient[]): PlatformOAuthClientDto[] {
-    return clients.map((client) => this.transformOAuthClient(client));
+  transformOAuthClientPermissions(permissions: number): Array<keyof typeof PERMISSION_MAP> {
+    const permissionsNumbers = PERMISSIONS.filter((permission) => (permissions & permission) === permission);
+
+    return permissionsNumbers.map((permission) => this.transformOAuthClientPermission(permission));
+  }
+
+  transformOAuthClientPermission(permission: (typeof PERMISSIONS)[number]): keyof typeof PERMISSION_MAP {
+    return Object.entries(PERMISSION_MAP).find(
+      ([_, value]) => value === permission
+    )?.[0] as keyof typeof PERMISSION_MAP;
   }
 }

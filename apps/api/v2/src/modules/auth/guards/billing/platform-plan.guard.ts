@@ -16,65 +16,63 @@ export class PlatformPlanGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request>();
-    const teamId = request.params.teamId as string;
-    const orgId = request.params.orgId as string;
-    const user = request.user as ApiAuthGuardUser;
     const minimumPlan = this.reflector.get(PlatformPlan, context.getHandler()) as PlatformPlanType;
-    const { canAccess } = await this.checkPlatformPlanAccess({ teamId, orgId, user, minimumPlan });
-    return canAccess;
+    if (!minimumPlan) {
+      return true;
+    }
+
+    const request = context.switchToHttp().getRequest<Request>();
+    const orgId = request.params.orgId;
+    const user = request.user as ApiAuthGuardUser;
+    if (!user) {
+      throw new ForbiddenException("PlatformPlanGuard - No user associated with the request.");
+    }
+    if (!orgId) {
+      throw new ForbiddenException("PlatformPlanGuard - No organization associated with the request.");
+    }
+
+    return await this.checkPlatformPlanAccess(orgId, minimumPlan);
   }
 
-  async checkPlatformPlanAccess({
-    teamId,
-    orgId,
-    user,
-    minimumPlan,
-  }: {
-    teamId?: string;
-    orgId?: string;
-    user: ApiAuthGuardUser;
-    minimumPlan: PlatformPlanType;
-  }): Promise<{ canAccess: boolean }> {
-    const REDIS_CACHE_KEY = `apiv2:user:${user?.id ?? "none"}:org:${orgId ?? "none"}:team:${
-      teamId ?? "none"
-    }:guard:platformbilling:${minimumPlan}`;
-
-    const cachedAccess = JSON.parse((await this.redisService.redis.get(REDIS_CACHE_KEY)) ?? "false");
-
-    if (cachedAccess) {
-      return { canAccess: cachedAccess };
+  async checkPlatformPlanAccess(orgId: string, minimumPlan: PlatformPlanType) {
+    const REDIS_CACHE_KEY = `apiv2:org:${orgId}:guard:platformbilling:${minimumPlan}`;
+    const cachedValue = await this.redisService.redis.get(REDIS_CACHE_KEY);
+    if (cachedValue !== null) {
+      return cachedValue === "true";
     }
 
-    let canAccess = false;
+    const organization = await this.organizationsRepository.findByIdIncludeBilling(Number(orgId));
+    const isPlatform = organization?.isPlatform;
+    const hasSubscription = organization?.platformBilling?.subscriptionId;
 
-    if (user && orgId) {
-      const team = await this.organizationsRepository.findByIdIncludeBilling(Number(orgId));
-      const isPlatform = team?.isPlatform;
-      const hasSubscription = team?.platformBilling?.subscriptionId;
-
-      if (!team) {
-        canAccess = false;
-      } else if (!isPlatform) {
-        canAccess = true;
-      } else if (!hasSubscription) {
-        canAccess = false;
-      } else {
-        canAccess = hasMinimumPlan({
-          currentPlan: team.platformBilling?.plan as PlatformPlanType,
-          minimumPlan: minimumPlan,
-          plans: ["FREE", "STARTER", "ESSENTIALS", "SCALE", "ENTERPRISE"],
-        });
-      }
+    if (!organization) {
+      throw new ForbiddenException(`PlatformPlanGuard - No organization found with id=${orgId}.`);
+    }
+    if (!isPlatform) {
+      await this.redisService.redis.set(REDIS_CACHE_KEY, "true", "EX", 300);
+      return true;
+    }
+    if (!hasSubscription) {
+      throw new ForbiddenException(
+        `PlatformPlanGuard - No platform subscription found for organization with id=${orgId}.`
+      );
+    }
+    if (
+      !hasMinimumPlan({
+        currentPlan: organization.platformBilling?.plan as PlatformPlanType,
+        minimumPlan: minimumPlan,
+        plans: ["FREE", "STARTER", "ESSENTIALS", "SCALE", "ENTERPRISE"],
+      })
+    ) {
+      throw new ForbiddenException(
+        `PlatformPlanGuard - organization with id=${orgId} does not have required plan for this operation. Minimum plan is ${minimumPlan} while the organization has ${
+          organization.platformBilling?.plan || "undefined"
+        }.`
+      );
     }
 
-    await this.redisService.redis.set(REDIS_CACHE_KEY, String(canAccess), "EX", 300);
-    if (canAccess) {
-      return { canAccess };
-    }
-    throw new ForbiddenException(
-      `Platform plan - you do not have required plan for this operation. Minimum plan is ${minimumPlan}.`
-    );
+    await this.redisService.redis.set(REDIS_CACHE_KEY, "true", "EX", 300);
+    return true;
   }
 }
 
@@ -90,7 +88,7 @@ export function hasMinimumPlan(props: HasMinimumPlanProp): boolean {
 
   if (currentPlanIndex === -1 || minimumPlanIndex === -1) {
     throw new Error(
-      `Invalid platform billing plan provided. Current plan: ${props.currentPlan}, Minimum plan: ${props.minimumPlan}`
+      `PlatformPlanGuard - Invalid platform billing plan provided. Current plan: ${props.currentPlan}, Minimum plan: ${props.minimumPlan}`
     );
   }
 

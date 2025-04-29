@@ -54,13 +54,14 @@ export const getConnectedCalendars = async (
     calendarCredentials.map(async (item) => {
       try {
         const { integration, credential } = item;
+        const safeToSendIntegration = cleanIntegrationKeys(integration);
         const calendar = await item.calendar;
         // Don't leak credentials to the client
         const credentialId = credential.id;
         const delegationCredentialId = credential.delegatedToId ?? null;
         if (!calendar) {
           return {
-            integration,
+            integration: safeToSendIntegration,
             credentialId,
             delegationCredentialId,
           };
@@ -83,7 +84,7 @@ export const getConnectedCalendars = async (
         const primary = calendars.find((item) => item.primary) ?? calendars.find((cal) => cal !== undefined);
         if (!primary) {
           return {
-            integration,
+            integration: safeToSendIntegration,
             credentialId,
             error: {
               message: "No primary calendar found",
@@ -98,7 +99,7 @@ export const getConnectedCalendars = async (
         }
 
         return {
-          integration: cleanIntegrationKeys(integration),
+          integration: safeToSendIntegration,
           credentialId,
           delegationCredentialId,
           primary,
@@ -151,10 +152,70 @@ const cleanIntegrationKeys = (
   return rest;
 };
 
+/**
+ * This function deduplicates credentials based on selected calendars
+ * It removes regular credentials for which corresponding delegation credentials exist which can be identified only associating them with selected calendars
+ *
+ * This is important to prevent unnecessary/duplicate calls to calendar APIs
+ */
+export const deduplicateCredentialsBasedOnSelectedCalendars = ({
+  credentials,
+  selectedCalendars,
+}: {
+  credentials: CredentialForCalendarService[];
+  selectedCalendars: SelectedCalendar[];
+}) => {
+  // Only proceed if we have credentials
+  if (credentials.length === 0) {
+    return credentials;
+  }
+
+  // Get the user email from the first credential
+  const userEmail = credentials[0].user?.email;
+
+  // If no email, we can't identify which credential is duplicate
+  if (!userEmail) {
+    return credentials;
+  }
+
+  // Check if there are delegation credentials for the same integration types
+  const delegationCredentials = credentials.filter((credential) => credential.delegatedToId);
+
+  // Find all selected calendars with externalId matching the user's email and having a regular credential
+  const selectedCalendarsWithUserEmailConnectedWithRegularCredential = selectedCalendars.filter(
+    (calendar) => calendar.externalId === userEmail && calendar.credentialId && calendar.credentialId > 0
+  );
+
+  // If no delegation credentials or no regular credentials connected selected calendars, return original credentials
+  if (
+    delegationCredentials.length === 0 ||
+    selectedCalendarsWithUserEmailConnectedWithRegularCredential.length === 0
+  ) {
+    return credentials;
+  }
+
+  const deduplicatedCredentials = [...credentials];
+
+  // For each selected calendar with user email, check if a delegation credential exists for the same integration.
+  // If yes, we remove such a regular credential as that is a duplicate
+  const credentialIdsToRemove = selectedCalendarsWithUserEmailConnectedWithRegularCredential
+    .filter((calendar) =>
+      delegationCredentials.some((credential) => credential.type === calendar.integration)
+    )
+    .map((calendar) => calendar.credentialId);
+
+  // Remove the regular credentials that are now handled by delegation credentials
+  return deduplicatedCredentials.filter((credential) => !credentialIdsToRemove.includes(credential.id));
+};
+
 export const getBusyCalendarTimes = async (
   /**
-   * withCredentials can possibly have a duplicate credential in case DelegationCredential is enabled.
-   * There is no way to deduplicate that at the moment because a `credential` doesn't directly know for which email it is,
+   * withCredentials can possibly have duplicate credential in case DelegationCredential is enabled.
+   * There is no way to deduplicate that at the moment because a `credential` doesn't directly know to which external_id(or email it is connected to).
+   * So, there could be multiple credentials for the same user.
+   * 1. Delegated Credential - that fetches events for john@acme.com
+   * 2. Regular Credential - that fetches events for john@personal.com
+   *
    */
   withCredentials: CredentialForCalendarService[],
   dateFrom: string,
@@ -164,18 +225,47 @@ export const getBusyCalendarTimes = async (
   includeTimeZone?: boolean
 ) => {
   let results: (EventBusyDate & { timeZone?: string })[][] = [];
+
+  const deduplicatedCredentials = deduplicateCredentialsBasedOnSelectedCalendars({
+    credentials: withCredentials,
+    selectedCalendars,
+  });
+
+  if (deduplicatedCredentials.length !== withCredentials.length) {
+    log.info(
+      "Deduplicated credentials and removed",
+      withCredentials.length - deduplicatedCredentials.length,
+      "duplicates. Total number of credentials now is",
+      deduplicatedCredentials.length
+    );
+  }
+
   // const months = getMonths(dateFrom, dateTo);
   try {
     // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
     const startDate = dayjs(dateFrom).subtract(11, "hours").format();
     // Add 14 hours from the start date to avoid problems in UTC+ time zones.
-    const endDate = dayjs(dateTo).endOf("month").add(14, "hours").format();
+    const endDate = dayjs(dateTo).add(14, "hours").format();
 
+    log.debug(
+      "getBusyCalendarTimes manipulated dates",
+      safeStringify({
+        newStartDate: startDate,
+        newEndDate: endDate,
+        oldStartDate: dateFrom,
+        oldEndDate: dateTo,
+      })
+    );
     if (includeTimeZone) {
-      results = await getCalendarsEventsWithTimezones(withCredentials, startDate, endDate, selectedCalendars);
+      results = await getCalendarsEventsWithTimezones(
+        deduplicatedCredentials,
+        startDate,
+        endDate,
+        selectedCalendars
+      );
     } else {
       results = await getCalendarsEvents(
-        withCredentials,
+        deduplicatedCredentials,
         startDate,
         endDate,
         selectedCalendars,

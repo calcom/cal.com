@@ -1,8 +1,10 @@
 import { z } from "zod";
 
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
+
 export const ZUpdateInputSchema = z.object({
   scheduleId: z.number(),
-  timeZone: z.string().optional(),
+  timeZone: timeZoneSchema.optional(),
   name: z.string().optional(),
   isDefault: z.boolean().optional(),
   schedule: z

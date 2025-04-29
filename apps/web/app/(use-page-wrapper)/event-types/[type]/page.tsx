@@ -1,14 +1,15 @@
-import type { PageProps as _PageProps } from "app/_types";
+import { createRouterCaller } from "app/_trpc/context";
+import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { EventTypeWebWrapper } from "@calcom/atoms/event-types/wrappers/EventTypeWebWrapper";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
 
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-import { getServerSideProps } from "@lib/event-types/[type]/getServerSideProps";
-
-import EventTypePageWrapper from "~/event-types/views/event-types-single-view";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 const querySchema = z.object({
   type: z
@@ -19,36 +20,34 @@ const querySchema = z.object({
     .transform((val) => Number(val)),
 });
 
-export const generateMetadata = async ({ params }: _PageProps) => {
-  const parsed = querySchema.safeParse(await params);
-  if (!parsed.success) {
-    return await _generateMetadata(
-      (t) => `${t("event_type")}`,
-      () => "",
-      undefined,
-      undefined,
-      "/event-types"
-    );
-  }
-
-  const data = await EventTypeRepository.findTitleById({
-    id: parsed.data.type,
-  });
-
+export const generateMetadata = async () => {
   return await _generateMetadata(
-    (t) => (data?.title ? `${data.title} | ${t("event_type")}` : `${t("event_type")}`),
+    (t) => `${t("event_type")}`,
     () => "",
     undefined,
     undefined,
-    `/event-types/${parsed.data.type}`
+    "/event-types"
   );
 };
 
-const ServerPage = async ({ params, searchParams }: _PageProps) => {
-  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-  const props = await getServerSideProps(legacyCtx);
+const ServerPage = async ({ params }: PageProps) => {
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  if (!session?.user?.id) {
+    return redirect("/auth/login");
+  }
 
-  return <EventTypePageWrapper {...props} />;
+  const parsed = querySchema.safeParse(await params);
+  if (!parsed.success) {
+    throw new Error("Invalid Event Type id");
+  }
+  const eventTypeId = parsed.data.type;
+  const caller = await createRouterCaller(eventTypesRouter);
+  const data = await caller.get({ id: eventTypeId });
+  if (!data?.eventType) {
+    throw new Error("This event type does not exist");
+  }
+
+  return <EventTypeWebWrapper data={data} id={eventTypeId} />;
 };
 
 export default ServerPage;

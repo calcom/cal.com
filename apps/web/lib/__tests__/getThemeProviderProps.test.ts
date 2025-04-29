@@ -195,6 +195,11 @@ describe("getUniqueIdentifierForBookingPage", () => {
       const result = getUniqueIdentifierForBookingPage({ pathname: path });
       expect(result).toBe(expected);
     });
+
+    it("should return / for root path", () => {
+      const result = getUniqueIdentifierForBookingPage({ pathname: "/" });
+      expect(result).toBe("/");
+    });
   });
 
   describe("Team Pages", () => {

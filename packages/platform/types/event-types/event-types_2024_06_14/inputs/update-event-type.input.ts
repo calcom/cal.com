@@ -285,6 +285,7 @@ class BaseUpdateEventTypeInput {
       "Should booker have week, month or column view. Specify default layout and enabled layouts user can pick.",
   })
   @Type(() => BookerLayouts_2024_06_14)
+  @ValidateNested()
   bookerLayouts?: BookerLayouts_2024_06_14;
 
   @IsOptional()
@@ -392,6 +393,14 @@ class BaseUpdateEventTypeInput {
     example: "https://masterchief.com/argentina/flan/video/9129412",
   })
   successRedirectUrl?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description:
+      "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events",
+  })
+  hideOrganizerEmail?: boolean;
 }
 export class UpdateEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInput {
   @IsOptional()

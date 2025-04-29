@@ -47,7 +47,7 @@ function UpgradeTeamTip() {
     <UpgradeTip
       plan="team"
       title={t("calcom_is_better_with_team", { appName: APP_NAME }) as string}
-      description="add_your_team_members"
+      description={t("add_your_team_members")}
       background="/tips/teams"
       features={[]}
       buttons={

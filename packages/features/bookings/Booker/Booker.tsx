@@ -324,6 +324,7 @@ const BookerComponent = ({
           // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
           "main",
           "text-default flex min-h-full w-full flex-col items-center",
+          layout === BookerLayouts.MONTH_VIEW && !isEmbed && "my-20 ",
           layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip",
           `${customClassNames?.bookerWrapper}`
         )}>

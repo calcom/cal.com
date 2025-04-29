@@ -16,6 +16,11 @@ const enum ThemeSupport {
  * The theme stays same for same identifier.
  */
 export function getUniqueIdentifierForBookingPage({ pathname }: { pathname: string }) {
+  if (pathname === "/") {
+    // For Org domains, we could have a booking page at root path too, so we use '/' as identifier
+    // As localStorage isn't shared for different org domains, it's safe to use '/' as identifier
+    return "/";
+  }
   const pathTokens = pathname.split("/").slice(1);
 
   // If it is a booking page then it could be one of the following:

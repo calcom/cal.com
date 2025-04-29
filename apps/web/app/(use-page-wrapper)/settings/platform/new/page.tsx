@@ -1,18 +1,14 @@
-import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-import { getServerSideProps } from "@lib/settings/organizations/new/getServerSideProps";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import LegacyPage, { LayoutWrapper } from "~/settings/platform/new/create-new-view";
-
-type Props = {
-  isOrg: boolean;
-};
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -23,10 +19,14 @@ export const generateMetadata = async () =>
     "/settings/platform/new"
   );
 
-const getData = withAppDirSsr<Props>(getServerSideProps);
+const ServerPage = async () => {
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const callbackUrl = `${WEBAPP_URL}/settings/platform/new`;
 
-const ServerPage = async ({ params, searchParams }: PageProps) => {
-  await getData(buildLegacyCtx(await headers(), await cookies(), await params, await searchParams));
+  if (!session?.user) {
+    redirect(`/login?callbackUrl=${callbackUrl}`);
+  }
+
   return (
     <LayoutWrapper>
       <LicenseRequired>

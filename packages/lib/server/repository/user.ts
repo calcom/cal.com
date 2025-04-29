@@ -161,6 +161,32 @@ export class UserRepository {
     });
   }
 
+  static async findPlatformMembersByUsernames({ usernameList }: { usernameList: string[] }) {
+    return (
+      await prisma.user.findMany({
+        select: userSelect,
+        where: {
+          username: {
+            in: usernameList,
+          },
+          isPlatformManaged: false,
+          profiles: {
+            some: {
+              organization: {
+                isPlatform: true,
+              },
+            },
+          },
+        },
+      })
+    ).map((user) => {
+      return {
+        ...user,
+        profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
+      };
+    });
+  }
+
   static async _getWhereClauseForFindingUsersByUsername({
     orgSlug,
     usernameList,

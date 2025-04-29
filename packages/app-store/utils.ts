@@ -67,6 +67,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
         invalid: false,
         delegatedTo: null,
         delegatedToId: null,
+        delegationCredentialId: null,
         team: {
           name: "Global",
         },

@@ -2,7 +2,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 
 import type { CALENDARS } from "@calcom/platform-constants";
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
-import type { ApiResponse, ApiErrorResponse } from "@calcom/platform-types";
+import type { ApiResponse, ApiErrorResponse, CreateCalendarCredentialsInput } from "@calcom/platform-types";
 
 import http from "../../lib/http";
 
@@ -67,11 +67,11 @@ export const useSaveCalendarCredentials = (
   const mutation = useMutation<
     ApiResponse<{ status: string }>,
     unknown,
-    { username: string; password: string; calendar: (typeof CALENDARS)[number] }
+    CreateCalendarCredentialsInput & { calendar: (typeof CALENDARS)[number] }
   >({
     mutationFn: (data) => {
       const { calendar, username, password } = data;
-      const body = {
+      const body: CreateCalendarCredentialsInput = {
         username,
         password,
       };

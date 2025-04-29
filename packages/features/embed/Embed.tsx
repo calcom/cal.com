@@ -37,12 +37,13 @@ import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { useBookerTime } from "../bookings/Booker/components/hooks/useBookerTime";
+import { EmbedTabName } from "./lib/EmbedTabs";
 import { buildCssVarsPerTheme } from "./lib/buildCssVarsPerTheme";
 import { EmbedTheme } from "./lib/constants";
 import { getDimension } from "./lib/getDimension";
 import { useEmbedDialogCtx } from "./lib/hooks/useEmbedDialogCtx";
 import { useEmbedParams } from "./lib/hooks/useEmbedParams";
-import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState } from "./types";
+import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState, EmbedConfig } from "./types";
 
 type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"] | undefined;
 type EmbedDialogProps = {
@@ -876,8 +877,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const ThemeOptions = [
     { value: EmbedTheme.auto, label: "Auto" },
-    { value: EmbedTheme.dark, label: "Dark EmbedTheme" },
-    { value: EmbedTheme.light, label: "Light EmbedTheme" },
+    { value: EmbedTheme.dark, label: "Dark Theme" },
+    { value: EmbedTheme.light, label: "Light Theme" },
   ];
 
   const layoutOptions = [
@@ -932,55 +933,58 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   open={isEmbedCustomizationOpen}
                   onOpenChange={() => setIsEmbedCustomizationOpen((val) => !val)}>
                   <CollapsibleContent className="text-sm">
-                    <div className={classNames(embedType === "inline" ? "block" : "hidden")}>
-                      {/*TODO: Add Auto/Fixed toggle from Figma */}
-                      <div className="text-default mb-[9px] text-sm">Window sizing</div>
-                      <div className="justify-left mb-6 flex items-center !font-normal ">
-                        <div className="mr-[9px]">
+                    {/* Conditionally render Window Sizing only if inline embed AND NOT React Atom */}
+                    {embedType === "inline" && embedParams.embedTabName !== EmbedTabName.ATOM_REACT && (
+                      <div>
+                        {/*TODO: Add Auto/Fixed toggle from Figma */}
+                        <div className="text-default mb-[9px] text-sm">Window sizing</div>
+                        <div className="justify-left mb-6 flex items-center !font-normal ">
+                          <div className="mr-[9px]">
+                            <TextField
+                              labelProps={{ className: "hidden" }}
+                              className="focus:ring-offset-0"
+                              required
+                              value={previewState.inline.width}
+                              onChange={(e) => {
+                                setPreviewState((previewState) => {
+                                  const width = e.target.value || "100%";
+
+                                  return {
+                                    ...previewState,
+                                    inline: {
+                                      ...previewState.inline,
+                                      width,
+                                    },
+                                  };
+                                });
+                              }}
+                              addOnLeading={<>W</>}
+                            />
+                          </div>
+
                           <TextField
                             labelProps={{ className: "hidden" }}
                             className="focus:ring-offset-0"
+                            value={previewState.inline.height}
                             required
-                            value={previewState.inline.width}
                             onChange={(e) => {
-                              setPreviewState((previewState) => {
-                                const width = e.target.value || "100%";
+                              const height = e.target.value || "100%";
 
+                              setPreviewState((previewState) => {
                                 return {
                                   ...previewState,
                                   inline: {
                                     ...previewState.inline,
-                                    width,
+                                    height,
                                   },
                                 };
                               });
                             }}
-                            addOnLeading={<>W</>}
+                            addOnLeading={<>H</>}
                           />
                         </div>
-
-                        <TextField
-                          labelProps={{ className: "hidden" }}
-                          className="focus:ring-offset-0"
-                          value={previewState.inline.height}
-                          required
-                          onChange={(e) => {
-                            const height = e.target.value || "100%";
-
-                            setPreviewState((previewState) => {
-                              return {
-                                ...previewState,
-                                inline: {
-                                  ...previewState.inline,
-                                  height,
-                                },
-                              };
-                            });
-                          }}
-                          addOnLeading={<>H</>}
-                        />
                       </div>
-                    </div>
+                    )}
                     <div
                       className={classNames(
                         "items-center justify-between",
@@ -1105,51 +1109,53 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   onOpenChange={() => setIsBookingCustomizationOpen((val) => !val)}>
                   <CollapsibleContent>
                     <div className="text-sm">
-                      <Label className="mb-6">
-                        <div className="mb-2">EmbedTheme</div>
-                        <Select
-                          className="w-full"
-                          defaultValue={ThemeOptions[0]}
-                          components={{
-                            Control: ThemeSelectControl,
-                            IndicatorSeparator: () => null,
-                          }}
-                          onChange={(option) => {
-                            if (!option) {
-                              return;
-                            }
-                            setPreviewState((previewState) => {
-                              return {
-                                ...previewState,
-                                inline: {
-                                  ...previewState.inline,
-                                  config: {
-                                    ...(previewState.inline.config ?? {}),
-                                    theme: option.value,
+                      {/* Conditionally render EmbedTheme only if NOT React Atom */}
+                      {embedParams.embedTabName !== EmbedTabName.ATOM_REACT && (
+                        <Label className="mb-6">
+                          <div className="mb-2">EmbedTheme</div>
+                          <Select
+                            className="w-full"
+                            defaultValue={ThemeOptions[0]}
+                            components={{
+                              Control: ThemeSelectControl,
+                              IndicatorSeparator: () => null,
+                            }}
+                            onChange={(option) => {
+                              if (!option) {
+                                return;
+                              }
+                              setPreviewState((previewState) => {
+                                // Ensure theme is updated in config for all embed types
+                                const newConfig = (currentConfig?: EmbedConfig) => ({
+                                  ...(currentConfig ?? {}),
+                                  theme: option.value,
+                                });
+                                return {
+                                  ...previewState,
+                                  inline: {
+                                    ...previewState.inline,
+                                    config: newConfig(previewState.inline.config),
                                   },
-                                },
-                                floatingPopup: {
-                                  ...previewState.floatingPopup,
-                                  config: {
-                                    ...(previewState.floatingPopup.config ?? {}),
-                                    theme: option.value,
+                                  floatingPopup: {
+                                    ...previewState.floatingPopup,
+                                    config: newConfig(previewState.floatingPopup.config),
                                   },
-                                },
-                                elementClick: {
-                                  ...previewState.elementClick,
-                                  config: {
-                                    ...(previewState.elementClick.config ?? {}),
-                                    theme: option.value,
+                                  elementClick: {
+                                    ...previewState.elementClick,
+                                    config: newConfig(previewState.elementClick.config),
                                   },
-                                },
-                                theme: option.value,
-                              };
-                            });
-                          }}
-                          options={ThemeOptions}
-                        />
-                      </Label>
-                      {!eventTypeHideOptionDisabled ? (
+                                  // Keep updating top-level theme for preview iframe
+                                  theme: option.value,
+                                };
+                              });
+                            }}
+                            options={ThemeOptions}
+                          />
+                        </Label>
+                      )}
+                      {/* Conditionally render Hide Details Switch only if NOT Atom embed AND not disabled by prop */}
+                      {!eventTypeHideOptionDisabled &&
+                      embedParams.embedTabName !== EmbedTabName.ATOM_REACT ? (
                         <div className="mb-6 flex items-center justify-start space-x-2 rtl:space-x-reverse">
                           <Switch
                             checked={previewState.hideEventTypeDetails}
@@ -1165,31 +1171,33 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           <div className="text-default text-sm">{t("hide_eventtype_details")}</div>
                         </div>
                       ) : null}
-                      {[
-                        { name: "brandColor", title: "light_brand_color" },
-                        { name: "darkBrandColor", title: "dark_brand_color" },
-                        // { name: "lightColor", title: "Light Color" },
-                        // { name: "lighterColor", title: "Lighter Color" },
-                        // { name: "lightestColor", title: "Lightest Color" },
-                        // { name: "highlightColor", title: "Highlight Color" },
-                        // { name: "medianColor", title: "Median Color" },
-                      ].map((palette) => (
-                        <Label key={palette.name} className="mb-6">
-                          <div className="mb-2">{t(palette.title)}</div>
-                          <div className="w-full">
-                            <ColorPicker
-                              popoverAlign="start"
-                              container={dialogContentRef?.current ?? undefined}
-                              defaultValue={paletteDefaultValue(palette.name)}
-                              onChange={(color) => {
-                                addToPalette({
-                                  [palette.name as keyof (typeof previewState)["palette"]]: color,
-                                });
-                              }}
-                            />
-                          </div>
-                        </Label>
-                      ))}
+                      {/* Conditionally render Brand Colors only if NOT React Atom */}
+                      {embedParams.embedTabName !== EmbedTabName.ATOM_REACT &&
+                        [
+                          { name: "brandColor", title: "light_brand_color" },
+                          { name: "darkBrandColor", title: "dark_brand_color" },
+                          // { name: "lightColor", title: "Light Color" },
+                          // { name: "lighterColor", title: "Lighter Color" },
+                          // { name: "lightestColor", title: "Lightest Color" },
+                          // { name: "highlightColor", title: "Highlight Color" },
+                          // { name: "medianColor", title: "Median Color" },
+                        ].map((palette) => (
+                          <Label key={palette.name} className="mb-6">
+                            <div className="mb-2">{t(palette.title)}</div>
+                            <div className="w-full">
+                              <ColorPicker
+                                popoverAlign="start"
+                                container={dialogContentRef?.current ?? undefined}
+                                defaultValue={paletteDefaultValue(palette.name)}
+                                onChange={(color) => {
+                                  addToPalette({
+                                    [palette.name as keyof (typeof previewState)["palette"]]: color,
+                                  });
+                                }}
+                              />
+                            </div>
+                          </Label>
+                        ))}
                       <Label className="mb-6">
                         <div className="mb-2">{t("layout")}</div>
                         <Select
@@ -1200,16 +1208,26 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                               return;
                             }
                             setPreviewState((previewState) => {
-                              const config = {
-                                ...(previewState.floatingPopup.config ?? {}),
+                              // Ensure layout is updated in config for all embed types
+                              const newConfig = (currentConfig?: EmbedConfig) => ({
+                                ...(currentConfig ?? {}),
                                 layout: option.value,
-                              };
+                              });
                               return {
                                 ...previewState,
+                                inline: {
+                                  ...previewState.inline,
+                                  config: newConfig(previewState.inline.config),
+                                },
                                 floatingPopup: {
                                   ...previewState.floatingPopup,
-                                  config,
+                                  config: newConfig(previewState.floatingPopup.config),
                                 },
+                                elementClick: {
+                                  ...previewState.elementClick,
+                                  config: newConfig(previewState.elementClick.config),
+                                },
+                                // Keep updating top-level layout for preview iframe
                                 layout: option.value,
                               };
                             });

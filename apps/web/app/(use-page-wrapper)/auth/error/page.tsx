@@ -3,6 +3,7 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import Link from "next/link";
 import { z } from "zod";
 
+import { IdentityProvider } from "@calcom/prisma/client";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 
@@ -20,12 +21,38 @@ export const generateMetadata = async () => {
 
 const querySchema = z.object({
   error: z.string().optional(),
+  provider: z.string().optional(),
 });
 
 const ServerPage = async ({ searchParams }: PageProps) => {
   const t = await getTranslate();
-  const { error } = querySchema.parse({ error: (await searchParams)?.error || undefined });
-  const errorMsg = t("error_during_login") + (error ? ` Error code: ${error}` : "");
+
+  const { error, provider } = querySchema.parse({
+    error: (await searchParams)?.error || undefined,
+    provider: (await searchParams)?.provider || undefined,
+  });
+
+  // generate error message based on different errors
+  const getErrorMessage = (error: string | undefined, provider: string | undefined) => {
+    if (error === "user-creation-error") {
+      return t("user_creation_error");
+    } else if (error === "wrong-provider") {
+      // showing user their original identity provider by which account is managed.
+      const providerName =
+        provider === IdentityProvider.GOOGLE
+          ? "Google"
+          : provider === IdentityProvider.CAL
+          ? "Email and Password"
+          : provider === IdentityProvider.SAML
+          ? "SAML (like Okta)"
+          : "your original login method";
+      return t("account_managed_by_identity_provider_error", { provider: providerName });
+    }
+    return t("error_during_login") + (error ? ` Error code: ${error}` : "");
+  };
+
+  const errorMsg = getErrorMessage(error, provider);
+
   return (
     <AuthContainer>
       <div>

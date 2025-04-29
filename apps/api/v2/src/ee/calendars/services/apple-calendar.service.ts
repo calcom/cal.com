@@ -60,8 +60,9 @@ export class AppleCalendarService implements CredentialSyncCalendarApp {
   }
 
   async saveCalendarCredentials(userId: number, userEmail: string, username: string, password: string) {
-    if (username.length <= 1 || password.length <= 1)
+    if (!username || !password || username.length <= 1 || password.length <= 1) {
       throw new BadRequestException(`Username or password cannot be empty`);
+    }
 
     const existingAppleCalendarCredentials = await this.credentialRepository.getAllUserCredentialsByTypeAndId(
       APPLE_CALENDAR_TYPE,
@@ -118,6 +119,7 @@ export class AppleCalendarService implements CredentialSyncCalendarApp {
         teamId: null,
         appId: APPLE_CALENDAR_ID,
         invalid: false,
+        delegationCredentialId: null,
       };
 
       const dav = new CalendarService({

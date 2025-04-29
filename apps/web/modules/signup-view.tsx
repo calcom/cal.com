@@ -146,6 +146,7 @@ function UsernameField({
                 <p>
                   {t("premium_username", {
                     price: getPremiumPlanPriceValue(),
+                    interpolation: { escapeValue: false },
                   })}
                 </p>
               </div>

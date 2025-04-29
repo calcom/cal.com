@@ -106,7 +106,7 @@ async function createTestTeam(data: { name: string; slug: string }) {
 async function createTestOrganizationOnboarding(
   data?: Partial<typeof mockOrganizationOnboarding> & { organizationId?: number | null }
 ) {
-  console.log("Creating organization onboarding", data);
+  console.log("TEST: Creating organization onboarding", data);
   return prismock.organizationOnboarding.create({
     data: {
       ...mockOrganizationOnboarding,

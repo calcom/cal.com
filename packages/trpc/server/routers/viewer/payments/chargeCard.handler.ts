@@ -74,6 +74,7 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
       language: { translate: tOrganizer, locale: booking.user?.locale ?? "en" },
     },
     attendees: attendeesList,
+    hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     paymentInfo: {
       amount: booking.payment[0].amount,
       currency: booking.payment[0].currency,

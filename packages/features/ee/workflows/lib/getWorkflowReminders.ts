@@ -44,7 +44,7 @@ type PartialBooking =
 
 export type PartialWorkflowReminder = Pick<
   WorkflowReminder,
-  "id" | "isMandatoryReminder" | "scheduledDate"
+  "id" | "isMandatoryReminder" | "scheduledDate" | "uuid"
 > & {
   booking: PartialBooking | null;
 } & { workflowStep: PartialWorkflowStep };
@@ -123,6 +123,7 @@ export const select = Prisma.validator<Prisma.WorkflowReminderSelect>()({
   id: true,
   scheduledDate: true,
   isMandatoryReminder: true,
+  uuid: true,
   workflowStep: {
     select: {
       action: true,
@@ -190,6 +191,7 @@ export const select = Prisma.validator<Prisma.WorkflowReminderSelect>()({
               hideBranding: true,
             },
           },
+          customReplyToEmail: true,
         },
       },
     },

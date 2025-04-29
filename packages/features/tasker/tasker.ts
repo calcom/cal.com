@@ -34,4 +34,5 @@ export interface Tasker {
   processQueue(): Promise<void>;
   cleanup(): Promise<void>;
   cancel(id: string): Promise<string>;
+  cancelWithReference(referenceUid: string, type: TaskTypes): Promise<string | null>;
 }
