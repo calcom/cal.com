@@ -552,7 +552,7 @@ describe("handleNewRecurringBooking", () => {
       });
       describe("with multiple Round robin hosts:", () => {
         test("should create bookings with equally booked hosts", async () => {
-          const RRHostsPerMeeting = 3;
+          const rrHostCount = 3;
           const numberRRHosts = 4;
           const numBookings = 4; // After 4 rounds, all hosts should be equally booked 3 times.
           const numOfSlotsToBeBooked = 1;
@@ -632,7 +632,7 @@ describe("handleNewRecurringBooking", () => {
                   length: 30,
                   recurringEvent: recurrence,
                   multipleRRHosts: true,
-                  RRHostsPerMeeting,
+                  rrHostCount,
                   hosts: [
                     {
                       userId: 101,
@@ -733,198 +733,10 @@ describe("handleNewRecurringBooking", () => {
               teamMemberFreq[userId] = (teamMemberFreq[userId] ?? 0) + 1;
             }
           }
-          const frequencyExpected = (numBookings * RRHostsPerMeeting) / numberRRHosts;
+          const frequencyExpected = (numBookings * rrHostCount) / numberRRHosts;
           expect(Object.values(teamMemberFreq).every((freq) => freq === frequencyExpected)).toBe(true); // user 101 is busy on the second recurring slot
         });
       });
-      // describe("with multiple Round robin hosts:", () => {
-      //   test("should fail recurring booking if a fixed host is not available on the second slot", async () => {
-      //     const booker = getBooker({
-      //       email: "booker@example.com",
-      //       name: "Booker",
-      //     });
-
-      //     const organizer = getOrganizer({
-      //       name: "Organizer",
-      //       email: "organizer@example.com",
-      //       id: 101,
-      //       defaultScheduleId: null,
-      //       teams: [
-      //         {
-      //           membership: {
-      //             accepted: true,
-      //           },
-      //           team: {
-      //             id: 1,
-      //             name: "Team 1",
-      //             slug: "team-1",
-      //           },
-      //         },
-      //       ],
-      //       schedules: [TestData.schedules.IstMorningShift],
-      //       credentials: [getGoogleCalendarCredential()],
-      //       selectedCalendars: [TestData.selectedCalendars.google],
-      //       destinationCalendar: {
-      //         integration: TestData.apps["google-calendar"].type,
-      //         externalId: "organizer@google-calendar.com",
-      //       },
-      //     });
-
-      //     const otherTeamMembers = [
-      //       {
-      //         name: "Other Team Member 1",
-      //         username: "other-team-member-1",
-      //         timeZone: Timezones["+5:30"],
-      //         defaultScheduleId: null,
-      //         email: "other-team-member-1@example.com",
-      //         id: 102,
-      //         schedules: [TestData.schedules.IstMorningShift],
-      //         credentials: [getGoogleCalendarCredential()],
-      //         selectedCalendars: [TestData.selectedCalendars.google],
-      //         destinationCalendar: {
-      //           integration: TestData.apps["google-calendar"].type,
-      //           externalId: "other-team-member-1@google-calendar.com",
-      //         },
-      //       },
-      //       {
-      //         name: "Other Team Member 2",
-      //         username: "other-team-member-2",
-      //         timeZone: Timezones["+5:30"],
-      //         defaultScheduleId: null,
-      //         email: "other-team-member-2@example.com",
-      //         id: 103,
-      //         schedules: [TestData.schedules.IstMorningShift],
-      //         credentials: [getGoogleCalendarCredential()],
-      //         selectedCalendars: [TestData.selectedCalendars.google],
-      //         destinationCalendar: {
-      //           integration: TestData.apps["google-calendar"].type,
-      //           externalId: "other-team-member-2@google-calendar.com",
-      //         },
-      //       },
-      //     ];
-
-      //     const recurrence = getRecurrence({
-      //       type: "weekly",
-      //       numberOfOccurrences: 3,
-      //     });
-
-      //     const plus1DateString = getDate({ dateIncrement: 1 }).dateString;
-      //     const plus2DateString = getDate({ dateIncrement: 2 }).dateString;
-
-      //     await createBookingScenario(
-      //       getScenarioData({
-      //         webhooks: [
-      //           {
-      //             userId: organizer.id,
-      //             eventTriggers: ["BOOKING_CREATED"],
-      //             subscriberUrl: "http://my-webhook.example.com",
-      //             active: true,
-      //             eventTypeId: 1,
-      //             appId: null,
-      //           },
-      //         ],
-      //         eventTypes: [
-      //           {
-      //             id: 1,
-      //             slotInterval: 30,
-      //             schedulingType: SchedulingType.ROUND_ROBIN,
-      //             length: 30,
-      //             recurringEvent: recurrence,
-      //             RRHostsPerMeeting: 2,
-      //             hosts: [
-      //               {
-      //                 userId: 101,
-      //                 isFixed: false,
-      //               },
-      //               {
-      //                 userId: 102,
-      //                 isFixed: false,
-      //               },
-      //               {
-      //                 userId: 103,
-      //                 isFixed: false,
-      //               },
-      //             ],
-      //             destinationCalendar: {
-      //               integration: "google_calendar",
-      //               externalId: "event-type-1@google-calendar.com",
-      //             },
-      //           },
-      //         ],
-      //         bookings: [
-      //           // {
-      //           //   userId: 102,
-      //           //   attendees: [
-      //           //     {
-      //           //       email: "IntegrationTestUser102@example.com",
-      //           //     },
-      //           //   ],
-      //           //   eventTypeId: 1,
-      //           //   status: "ACCEPTED",
-      //           //   startTime: `${plus2DateString}T04:00:00.000Z`,
-      //           //   endTime: `${plus2DateString}T04:30:00.000Z`,
-      //           // },
-      //         ],
-      //         organizer,
-      //         usersApartFromOrganizer: otherTeamMembers,
-      //         apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
-      //       })
-      //     );
-
-      //     mockSuccessfulVideoMeetingCreation({
-      //       metadataLookupKey: "dailyvideo",
-      //       videoMeetingData: {
-      //         id: "MOCK_ID",
-      //         password: "MOCK_PASS",
-      //         url: `http://mock-dailyvideo.example.com/meeting-1`,
-      //       },
-      //     });
-
-      //     mockCalendarToHaveNoBusySlots("googlecalendar", {
-      //       create: {
-      //         id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
-      //         iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
-      //       },
-      //     });
-
-      //     const recurringCountInRequest = 4;
-      //     const mockBookingData = getMockRequestDataForBooking({
-      //       data: {
-      //         eventTypeId: 1,
-      //         start: `${plus1DateString}T04:00:00.000Z`,
-      //         end: `${plus1DateString}T04:30:00.000Z`,
-      //         recurringEventId: uuidv4(),
-      //         recurringCount: recurringCountInRequest,
-      //         responses: {
-      //           email: booker.email,
-      //           name: booker.name,
-      //           location: { optionValue: "", value: "integrations:daily" },
-      //         },
-      //       },
-      //     });
-
-      //     const numOfSlotsToBeBooked = 4;
-
-      //     // Create an array of booking data for multiple slots
-      //     const bookingDataArray = Array(numOfSlotsToBeBooked)
-      //       .fill(mockBookingData)
-      //       .map((mockBookingData, index) => {
-      //         return {
-      //           ...mockBookingData,
-      //           schedulingType: SchedulingType.ROUND_ROBIN,
-      //           start: getPlusDayDate(mockBookingData.start, index).toISOString(),
-      //           end: getPlusDayDate(mockBookingData.end, index).toISOString(),
-      //         };
-      //       });
-
-      //     await expect(() =>
-      //       handleNewRecurringBooking({
-      //         bookingData: bookingDataArray,
-      //         userId: -1,
-      //       })
-      //     ).rejects.toThrow(ErrorCode.NoAvailableUsersFound);
-      //   });
-      // });
     });
   });
 

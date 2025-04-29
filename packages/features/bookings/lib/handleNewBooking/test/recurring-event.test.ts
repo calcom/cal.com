@@ -1409,7 +1409,7 @@ describe("handleNewBooking", () => {
 
       describe("with multiple Round robin hosts:", () => {
         test("should create bookings with equally booked hosts", async () => {
-          const RRHostsPerMeeting = 3;
+          const rrHostCount = 3;
           const numberRRHosts = 4;
           const numBookings = 4; // After 4 rounds, all hosts should be equally booked 3 times.
           const numOfSlotsToBeBooked = 1;
@@ -1491,7 +1491,7 @@ describe("handleNewBooking", () => {
                   length: 30,
                   recurringEvent: recurrence,
                   multipleRRHosts: true,
-                  RRHostsPerMeeting,
+                  rrHostCount,
                   hosts: [
                     {
                       userId: 101,
@@ -1594,8 +1594,8 @@ describe("handleNewBooking", () => {
               teamMemberFreq[userId] = (teamMemberFreq[userId] ?? 0) + 1;
             }
           }
-          const frequencyExpected = (numBookings * RRHostsPerMeeting) / numberRRHosts;
-          expect(Object.values(teamMemberFreq).every((freq) => freq === frequencyExpected)).toBe(true); // user 101 is busy on the second recurring slot
+          const frequencyExpected = (numBookings * rrHostCount) / numberRRHosts;
+          expect(Object.values(teamMemberFreq).every((freq) => freq === frequencyExpected)).toBe(true);
         });
       });
     });

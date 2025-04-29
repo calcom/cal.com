@@ -154,16 +154,13 @@ export type FormValues = {
   secondaryEmailId?: number;
   isRRWeightsEnabled: boolean;
   maxLeadThreshold?: number;
-<<<<<<< HEAD
   calVideoSettings?: {
     disableRecordingForOrganizer?: boolean;
     disableRecordingForGuests?: boolean;
     redirectUrlOnExit?: string;
   };
-=======
   multipleRRHosts: boolean;
   RRHostsPerMeeting?: number;
->>>>>>> b2227e53b6 (- Added multiple RR candidates as an options for event types)
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
