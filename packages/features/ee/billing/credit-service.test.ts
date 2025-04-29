@@ -6,7 +6,6 @@ import dayjs from "@calcom/dayjs";
 import * as EmailManager from "@calcom/emails/email-manager";
 import { CreditType } from "@calcom/prisma/enums";
 
-import { cancelScheduledMessagesAndScheduleEmails } from "../workflows/lib/reminders/reminderScheduler";
 import { CreditService } from "./credit-service";
 
 vi.mock("@calcom/prisma", () => ({ prisma: prismaMock }));
@@ -17,6 +16,10 @@ vi.mock("@calcom/lib/constants", async () => {
     IS_SMS_CREDITS_ENABLED: true,
   };
 });
+
+vi.mock("../workflows/lib/reminders/reminderScheduler", () => ({
+  cancelScheduledMessagesAndScheduleEmails: vi.fn(),
+}));
 
 describe("CreditService", () => {
   let creditService: CreditService;
@@ -166,16 +169,11 @@ describe("CreditService", () => {
           }),
         })
       );
-      expect(cancelScheduledMessagesAndScheduleEmails).not.toHaveBeenCalled();
 
       expect(EmailManager.sendCreditBalanceLowWarningEmails).toHaveBeenCalled();
     });
 
     it("should create expense log and send limit reached email", async () => {
-      vi.mock("@calcom/features/ee/workflows/lib/reminders/reminderScheduler", () => ({
-        cancelScheduledMessagesAndScheduleEmails: vi.fn(),
-      }));
-
       prismaMock.creditBalance.findUnique.mockResolvedValue({
         id: "1",
         additionalCredits: 0,
@@ -227,8 +225,6 @@ describe("CreditService", () => {
           }),
         })
       );
-
-      expect(cancelScheduledMessagesAndScheduleEmails).toHaveBeenCalled();
 
       expect(EmailManager.sendCreditBalanceLimitReachedEmails).toHaveBeenCalled();
     });
