@@ -151,7 +151,7 @@ export const pageObject = {
 
       fireEvent.change(dialog.getByTestId("name"), { target: { value: identifier } });
 
-      await expect(input).toHaveValue(identifier);
+      await expect(dialog.getByTestId("name")).toHaveValue(identifier);
     },
     fillInFieldLabel: ({
       dialog,
