@@ -99,10 +99,6 @@ export const TeamMemberSelect = ({
         onChange={(newValue) => {
           const selectedIds = (newValue as TeamMemberOption[]).map((option) => parseInt(option.value, 10));
           onChange(selectedIds);
-          setSelectAll(selectedIds.length === teamMembers.length);
-          if (onSelectAll) {
-            onSelectAll(selectedIds.length === teamMembers.length);
-          }
         }}
         className={className}
         placeholder={placeholder || t("select_members")}
