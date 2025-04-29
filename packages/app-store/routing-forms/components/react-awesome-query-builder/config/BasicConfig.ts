@@ -118,7 +118,6 @@ const operators: Operators = {
     valueLabels: ["Value from", "Value to"],
     reversedOp: "not_between",
     jsonLogic: (field: any, op: any, vals: [any, any]) => {
-      // Explicitly parse values to integers to ensure numeric comparison
       const min = parseInt(vals[0], 10);
       const max = parseInt(vals[1], 10);
       return {
@@ -134,7 +133,6 @@ const operators: Operators = {
     valueLabels: ["Value from", "Value to"],
     reversedOp: "between",
     jsonLogic: (field: any, op: any, vals: [any, any]) => {
-      // Explicitly parse values to integers
       const min = parseInt(vals[0], 10);
       const max = parseInt(vals[1], 10);
       return {
