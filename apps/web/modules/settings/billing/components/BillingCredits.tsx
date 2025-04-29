@@ -61,7 +61,7 @@ export default function BillingCredits() {
       : 0;
 
   return (
-    <div className="pb-6mt-6 border-subtle mt-8 space-y-6 rounded-lg border px-6 py-6 text-sm sm:space-y-8">
+    <div className="border-subtle mt-6 mt-8 space-y-6 rounded-lg border px-6 py-6 pb-6 text-sm sm:space-y-8">
       <div>
         <h2 className="text-base font-semibold">{t("credits")}</h2>
         <p>{t("view_and_manage_credits_description")}</p>
