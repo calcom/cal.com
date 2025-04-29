@@ -17,6 +17,7 @@ import {
   Min,
   registerDecorator,
   Validate,
+  IsDefined,
 } from "class-validator";
 import { isValidPhoneNumber } from "libphonenumber-js";
 
@@ -169,6 +170,7 @@ export class CreateBookingInput_2024_08_13 {
     type: Attendee,
     description: "The attendee's details.",
   })
+  @IsDefined()
   @ValidateNested()
   @Type(() => Attendee)
   attendee!: Attendee;

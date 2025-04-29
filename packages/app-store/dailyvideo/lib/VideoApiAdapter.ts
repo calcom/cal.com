@@ -59,6 +59,7 @@ export const FAKE_DAILY_CREDENTIAL: CredentialForCalendarService & { invalid: bo
   teamId: null,
   delegatedToId: null,
   delegatedTo: null,
+  delegationCredentialId: null,
 };
 
 function postToDailyAPI(endpoint: string, body: Record<string, unknown>) {
