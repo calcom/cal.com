@@ -828,6 +828,8 @@ export class EventTypeRepository {
         assignRRMembersUsingSegment: true,
         rrSegmentQueryValue: true,
         isRRWeightsEnabled: true,
+        multipleRRHosts: true,
+        RRHostsPerMeeting: true,
         maxLeadThreshold: true,
         includeNoShowInRRCalculation: true,
         useEventLevelSelectedCalendars: true,
