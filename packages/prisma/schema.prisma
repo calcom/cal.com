@@ -382,6 +382,7 @@ model User {
   createdOrganizationOnboardings OrganizationOnboarding[]     @relation("CreatedOrganizationOnboardings")
   filterSegments                 FilterSegment[]
   whitelistWorkflows             Boolean                      @default(false)
+  templateRatings                TemplateRating[]
 
   @@unique([email])
   @@unique([email, username])
@@ -2083,4 +2084,19 @@ model WorkflowOptOutContact {
   updatedAt DateTime            @updatedAt
 
   @@unique([type, value])
+}
+
+model TemplateRating {
+  id     Int @id @default(autoincrement())
+  rating Int
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  templateId String
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, templateId])
+  @@index([templateId])
 }
