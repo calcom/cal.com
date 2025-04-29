@@ -833,7 +833,7 @@ async function handler(
 
       // loop through all non-fixed hosts and get the lucky users
       // This logic doesn't run when contactOwner is used because in that case, luckUsers.length === 1
-      while (luckyUserPool.length > 0 && luckyUsers.length < (eventType.RRHostsPerMeeting ?? 1)) {
+      while (luckyUserPool.length > 0 && luckyUsers.length < (eventType.rrHostsPerMeeting || 1)) {
         const freeUsers = luckyUserPool.filter(
           (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
           // && luckyUsers.find((existing) => existing.id === user.id) === undefined

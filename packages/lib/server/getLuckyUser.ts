@@ -165,7 +165,8 @@ function leastRecentlyBookedUser<T extends PartialUser>({
   const organizerIdAndAtCreatedPair = organizersWithLastCreated.reduce(
     (keyValuePair: { [userId: number]: { mostRecentBooking: Date; count: number } }, user) => {
       keyValuePair[user.id] = {
-        mostRecentBooking: keyValuePair[user.id] || user.bookings[0]?.createdAt || new Date(0),
+        mostRecentBooking:
+          keyValuePair[user.id].mostRecentBooking || user.bookings[0]?.createdAt || new Date(0),
         count: (keyValuePair[user.id]?.count || 0) + 1,
       };
       return keyValuePair;
@@ -208,7 +209,7 @@ function leastRecentlyBookedUser<T extends PartialUser>({
   }
 
   const leastRecentlyBookedUser = availableUsers.sort((a, b) => {
-    if (eventType.RRHostsPerMeeting > 1) {
+    if (eventType.rrHostCount > 1) {
       if (userIdAndAtCreatedPair[a.id].count > userIdAndAtCreatedPair[b.id].count) return 1;
       else if (userIdAndAtCreatedPair[a.id].count < userIdAndAtCreatedPair[b.id].count) return -1;
     }

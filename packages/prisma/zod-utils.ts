@@ -669,7 +669,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   assignAllTeamMembers: true,
   isRRWeightsEnabled: true,
   multipleRRHosts: true,
-  RRHostsPerMeeting: true,
+  rrHostsPerMeeting: true,
   eventTypeColor: true,
   allowReschedulingPastBookings: true,
   hideOrganizerEmail: true,

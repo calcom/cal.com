@@ -348,7 +348,7 @@ const RoundRobinHosts = ({
                 descriptionClassName={customClassNames?.enableMultiHost?.description}
                 onCheckedChange={(e) => {
                   if (!e) {
-                    setValue("RRHostsPerMeeting", 1, { shouldDirty: true });
+                    setValue("rrHostsPerMeeting", 1, { shouldDirty: true });
                   }
                   onChange(e);
                 }}>
@@ -357,9 +357,9 @@ const RoundRobinHosts = ({
                     required
                     max={value.length}
                     min={1}
-                    defaultValue={getValues("RRHostsPerMeeting") ?? 1}
+                    defaultValue={getValues("rrHostsPerMeeting") ?? 1}
                     onChange={(e) =>
-                      setValue("RRHostsPerMeeting", parseInt(e.target.value || "0", 10), {
+                      setValue("rrHostsPerMeeting", parseInt(e.target.value || "0", 10), {
                         shouldDirty: true,
                       })
                     }
