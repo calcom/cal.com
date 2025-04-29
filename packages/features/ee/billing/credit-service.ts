@@ -67,6 +67,7 @@ export class CreditService {
 
   async hasAvailableCredits({ userId, teamId }: { userId?: number | null; teamId?: number | null }) {
     if (!IS_SMS_CREDITS_ENABLED) return true;
+
     if (teamId) {
       const team = await prisma.team.findUnique({
         where: {
@@ -81,11 +82,27 @@ export class CreditService {
         },
       });
 
-      if (
-        team &&
-        (!team.credits?.limitReachedAt ||
-          dayjs(team.credits?.limitReachedAt).isBefore(dayjs().startOf("month")))
-      ) {
+      if (!team) return false;
+
+      const limitReached =
+        team.credits?.limitReachedAt && dayjs(team.credits.limitReachedAt).isAfter(dayjs().startOf("month"));
+
+      if (!limitReached) return true;
+
+      // check if team is still out of credits
+      const teamCredits = await this.getAllCreditsForTeam(teamId);
+      const availableCredits = teamCredits.totalRemainingMonthlyCredits + teamCredits.additionalCredits;
+
+      if (availableCredits > 0) {
+        await prisma.creditBalance.update({
+          where: {
+            teamId,
+          },
+          data: {
+            limitReachedAt: null,
+            warningSentAt: null,
+          },
+        });
         return true;
       }
     }
@@ -98,7 +115,7 @@ export class CreditService {
     return false;
   }
 
-  async getTeamWithAvailableCredits(userId: number, credits = 0) {
+  async getTeamWithAvailableCredits(userId: number) {
     const teams = await prisma.membership.findMany({
       where: {
         userId,
@@ -116,22 +133,40 @@ export class CreditService {
           id: true,
           credits: {
             select: {
+              id: true,
               limitReachedAt: true,
             },
           },
         },
       });
 
-      if (teamWithCredits && !teamWithCredits.credits?.limitReachedAt) {
-        const allCredits = await this.getAllCreditsForTeam(teamWithCredits.id);
-        if (allCredits.totalRemainingMonthlyCredits + allCredits.additionalCredits >= credits) {
-          return {
-            teamId: teamWithCredits.id,
-            availableCredits: allCredits.totalRemainingMonthlyCredits + allCredits.additionalCredits,
-            creditType:
-              allCredits.totalRemainingMonthlyCredits > 0 ? CreditType.MONTHLY : CreditType.ADDITIONAL,
-          };
+      if (!teamWithCredits) continue;
+
+      const allCredits = await this.getAllCreditsForTeam(teamWithCredits.id);
+      const limitReached =
+        teamWithCredits.credits?.limitReachedAt &&
+        dayjs(teamWithCredits.credits.limitReachedAt).isAfter(dayjs().startOf("month"));
+
+      const availableCredits = allCredits.totalRemainingMonthlyCredits + allCredits.additionalCredits;
+
+      if (!limitReached || availableCredits > 0) {
+        if (limitReached) {
+          await prisma.creditBalance.update({
+            where: {
+              teamId: teamWithCredits.id,
+            },
+            data: {
+              limitReachedAt: null,
+              warningSentAt: null,
+            },
+          });
         }
+        return {
+          teamId: teamWithCredits.id,
+          availableCredits,
+          creditType:
+            allCredits.totalRemainingMonthlyCredits > 0 ? CreditType.MONTHLY : CreditType.ADDITIONAL,
+        };
       }
     }
 
@@ -143,7 +178,7 @@ export class CreditService {
   }
 
   /*
-    credits can be 0, then we just check for available credits
+    always returns a team, even if all teams are out of credits
   */
   async getTeamToCharge({
     credits,
@@ -166,7 +201,7 @@ export class CreditService {
     }
 
     if (userId) {
-      const team = await this.getTeamWithAvailableCredits(userId, credits);
+      const team = await this.getTeamWithAvailableCredits(userId);
       return { ...team, remainingCredits: team.availableCredits - credits };
     }
     return null;
