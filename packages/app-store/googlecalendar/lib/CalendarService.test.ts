@@ -329,6 +329,7 @@ const createMockJWTInstance = ({
       key: defaultDelegatedCredential.serviceAccountKey.private_key,
       scopes: ["https://www.googleapis.com/auth/calendar"],
       subject: email,
+      universeDomain: "googleapis.com",
     },
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
@@ -1254,13 +1255,9 @@ describe("GoogleCalendarService credential handling", () => {
     const expectedJWTConfig: MockJWT = {
       type: "jwt",
       config: {
-        email: delegatedCredential.serviceAccountKey.client_email,
-        key: delegatedCredential.serviceAccountKey.private_key,
-        scopes: [
-          "https://www.googleapis.com/auth/calendar",
-          "https://www.googleapis.com/auth/meetings.space.readonly",
-          "https://www.googleapis.com/auth/admin.directory.user.readonly",
-        ],
+        email: defaultDelegatedCredential.serviceAccountKey.client_email,
+        key: defaultDelegatedCredential.serviceAccountKey.private_key,
+        scopes: ["https://www.googleapis.com/auth/calendar"],
         subject: "user@example.com",
         universeDomain: "googleapis.com",
       },
