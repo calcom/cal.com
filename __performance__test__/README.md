@@ -2,25 +2,14 @@
 
 This directory contains performance tests designed to measure page load times for various pages within the Cal.com application when dealing with large organizations (Deel-sized).
 
-## Prerequisites
-
-- Cal.com development environment set up and running
-- Node.js and yarn installed
-- Access to the Prisma database
-
 ## How to Run Tests
 
-1. Make sure your Cal.com development server is running:
-   ```bash
-   yarn dev
-   ```
-
-2. In a separate terminal, run the performance tests:
+1. Run the performance tests:
    ```bash
    yarn performance-test
    ```
 
-3. View the results in the `performance-reports` directory.
+2. View the results in the `performance-reports` directory.
 
 ## Understanding the Results
 
