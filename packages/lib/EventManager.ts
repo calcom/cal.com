@@ -22,7 +22,6 @@ import {
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/enums";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
@@ -441,6 +440,7 @@ export default class EventManager {
     rescheduleUid: string,
     newBookingId?: number,
     changedOrganizer?: boolean,
+    isBookingRequestedReschedule: boolean,
     previousHostDestinationCalendar?: DestinationCalendar[] | null
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
@@ -477,8 +477,6 @@ export default class EventManager {
         },
         destinationCalendar: true,
         payment: true,
-        rescheduled: true,
-        status: true,
         eventType: {
           select: {
             seatsPerTimeSlot: true,
@@ -496,7 +494,6 @@ export default class EventManager {
     const results: Array<EventResult<Event>> = [];
     const updatedBookingReferences: Array<PartialReference> = [];
     const isLocationChanged = !!evt.location && !!booking.location && evt.location !== booking.location;
-    const isBookingRequestedReschedule = !!booking.rescheduled && booking.status === BookingStatus.CANCELLED;
     const shouldUpdateBookingReferences =
       !!changedOrganizer || isLocationChanged || isBookingRequestedReschedule;
 
