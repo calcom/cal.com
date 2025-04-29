@@ -28,11 +28,7 @@ import {
 } from "@calcom/features/bookings/lib/SystemField";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/lib/bookings/getCalendarLinks";
 import { APP_NAME } from "@calcom/lib/constants";
-import {
-  formatToLocalizedDate,
-  formatToLocalizedTime,
-  formatToLocalizedTimezone,
-} from "@calcom/lib/date-fns";
+import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
 import type { nameObjectSchema } from "@calcom/lib/event";
 import { getEventName } from "@calcom/lib/event";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
@@ -606,9 +602,11 @@ export default function Success(props: PageProps) {
                                     </span>
                                     <Badge variant="blue">{t("Host")}</Badge>
                                   </div>
-                                  <p className="text-default">
-                                    {bookingInfo?.userPrimaryEmail ?? bookingInfo.user.email}
-                                  </p>
+                                  {!bookingInfo.eventType?.hideOrganizerEmail && (
+                                    <p className="text-default">
+                                      {bookingInfo?.userPrimaryEmail ?? bookingInfo.user.email}
+                                    </p>
+                                  )}
                                 </div>
                               )}
                               {bookingInfo?.attendees.map((attendee) => (
