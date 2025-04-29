@@ -488,19 +488,21 @@ describe("getCalendarsEventsWithTimezones", () => {
       },
     ];
 
-    const selectedGoogleCalendar: SelectedCalendar = {
+    const selectedGoogleCalendar: SelectedCalendar = buildSelectedCalendar({
       credentialId: 100,
       externalId: "externalId",
       integration: "google_calendar",
       userId: 200,
-    };
+      id: "id",
+    });
 
-    const selectedOfficeCalendar: SelectedCalendar = {
+    const selectedOfficeCalendar: SelectedCalendar = buildSelectedCalendar({
       credentialId: 100,
       externalId: "externalId",
       integration: "office365_calendar",
       userId: 200,
-    };
+      id: "id",
+    });
 
     const getGoogleEventDataSpy = vi
       .spyOn(GoogleCalendarService.prototype, "getEventList")
@@ -512,11 +514,11 @@ describe("getCalendarsEventsWithTimezones", () => {
 
     const result = await getCalendarsEvents(
       [
-        {
+        buildRegularCredential({
           ...credential,
           type: "google_calendar",
-        },
-        {
+        }),
+        buildRegularCredential({
           ...credential,
           type: "office365_calendar",
           key: {
@@ -524,7 +526,7 @@ describe("getCalendarsEventsWithTimezones", () => {
             refresh_token: "refresh",
             expires_in: Date.now() + 86400,
           },
-        },
+        }),
       ],
       "2010-12-01",
       "2010-12-04",
