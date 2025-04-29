@@ -1,4 +1,5 @@
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
+import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -33,7 +34,6 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { Throttle } from "@nestjs/throttler";
 import { plainToClass } from "class-transformer";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -53,9 +53,7 @@ export class TeamsVerifiedResourcesController {
   @Roles("TEAM_ADMIN")
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Post("/emails/request")
-  @Throttle({
-    endpoint: { limit: 5, ttl: 60000, generateKey: () => "teams:verified:resources:emails:requests" },
-  })
+  @Throttle({ limit: 5, ttl: 60000, blockDuration: 60000, name: "teams_verified_resources_emails_requests" })
   @HttpCode(HttpStatus.OK)
   async requestEmailVerificationCode(
     @Body() body: RequestEmailVerificationInput,
@@ -79,9 +77,7 @@ export class TeamsVerifiedResourcesController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
   @Post("/phone-numbers/request")
-  @Throttle({
-    endpoint: { limit: 3, ttl: 60000, generateKey: () => "teams:verified:resources:phones:requests" },
-  })
+  @Throttle({ limit: 3, ttl: 60000, blockDuration: 60000, name: "teams_verified_resources_phones_requests" })
   @HttpCode(HttpStatus.OK)
   async requestPhoneVerificationCode(
     @Body() body: RequestPhoneVerificationInput

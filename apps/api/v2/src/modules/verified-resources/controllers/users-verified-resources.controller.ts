@@ -1,4 +1,5 @@
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
+import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RequestEmailVerificationInput } from "@/modules/verified-resources/inputs/request-email-verification.input";
@@ -20,7 +21,6 @@ import {
 import { VerifiedResourcesService } from "@/modules/verified-resources/services/verified-resources.service";
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { Throttle } from "@nestjs/throttler";
 import { plainToClass } from "class-transformer";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -40,9 +40,7 @@ export class UserVerifiedResourcesController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Post("/emails/request")
   @HttpCode(HttpStatus.OK)
-  @Throttle({
-    endpoint: { limit: 5, ttl: 60000, generateKey: () => "teams:verified:resources:emails:requests" },
-  })
+  @Throttle({ limit: 5, ttl: 60000, blockDuration: 60000, name: "users_verified_resources_emails_requests" })
   async requestEmailVerificationCode(
     @Body() body: RequestEmailVerificationInput,
     @GetUser("username") username: string,
@@ -65,9 +63,7 @@ export class UserVerifiedResourcesController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Post("/phone-numbers/request")
   @HttpCode(HttpStatus.OK)
-  @Throttle({
-    endpoint: { limit: 3, ttl: 60000, generateKey: () => "users:verified:resources:phones:requests" },
-  })
+  @Throttle({ limit: 3, ttl: 60000, blockDuration: 60000, name: "users_verified_resources_phones_requests" })
   async requestPhoneVerificationCode(
     @Body() body: RequestPhoneVerificationInput
   ): Promise<RequestPhoneVerificationOutput> {

@@ -1,4 +1,5 @@
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
+import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
@@ -38,7 +39,6 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { Throttle } from "@nestjs/throttler";
 import { plainToClass } from "class-transformer";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -49,9 +49,6 @@ import { SkipTakePagination } from "@calcom/platform-types";
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @ApiTags("Organization Team Verified Resources")
-@Throttle({
-  default: { limit: 5, ttl: 60000, generateKey: () => "org:teams:verified:resources:emails:requests" },
-})
 export class OrgTeamsVerifiedResourcesController {
   constructor(private readonly verifiedResourcesService: VerifiedResourcesService) {}
   @ApiOperation({
@@ -59,6 +56,12 @@ export class OrgTeamsVerifiedResourcesController {
     description: `Sends a verification code to the email.`,
   })
   @Roles("TEAM_ADMIN")
+  @Throttle({
+    limit: 3,
+    ttl: 60000,
+    blockDuration: 60000,
+    name: "org_teams_verified_resources_emails_requests",
+  })
   @PlatformPlan("ESSENTIALS")
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Post("/emails/request")
@@ -84,10 +87,8 @@ export class OrgTeamsVerifiedResourcesController {
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
+  @Throttle({ limit: 3, ttl: 60000, blockDuration: 60, name: "org_teams_verified_resources_phones_requests" })
   @Post("/phone-numbers/request")
-  @Throttle({
-    endpoint: { limit: 3, ttl: 60000, generateKey: () => "orgs:teams:verified:resources:phones:requests" },
-  })
   @HttpCode(HttpStatus.OK)
   async requestPhoneVerificationCode(
     @Body() body: RequestPhoneVerificationInput
@@ -212,7 +213,6 @@ export class OrgTeamsVerifiedResourcesController {
     @Param("teamId", ParseIntPipe) teamId: number
   ): Promise<VerifiedEmailOutput> {
     const verifiedEmail = await this.verifiedResourcesService.getTeamVerifiedEmailById(teamId, id);
-    console.log("VERIFIEDEMAIL", verifiedEmail, id, teamId);
     return {
       status: SUCCESS_STATUS,
       data: plainToClass(VerifiedEmailOutputData, verifiedEmail),
