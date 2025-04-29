@@ -440,7 +440,7 @@ export default class EventManager {
     rescheduleUid: string,
     newBookingId?: number,
     changedOrganizer?: boolean,
-    isBookingRequestedReschedule: boolean,
+    isBookingRequestedReschedule?: boolean,
     previousHostDestinationCalendar?: DestinationCalendar[] | null
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
@@ -495,7 +495,7 @@ export default class EventManager {
     const updatedBookingReferences: Array<PartialReference> = [];
     const isLocationChanged = !!evt.location && !!booking.location && evt.location !== booking.location;
     const shouldUpdateBookingReferences =
-      !!changedOrganizer || isLocationChanged || isBookingRequestedReschedule;
+      !!changedOrganizer || isLocationChanged || !!isBookingRequestedReschedule;
 
     if (evt.requiresConfirmation) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
