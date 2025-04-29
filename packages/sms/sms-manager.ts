@@ -40,7 +40,7 @@ const handleSendingSMS = ({
 
       await checkSMSRateLimit({ identifier: `handleSendingSMS:team:${teamId}`, rateLimitingType: "sms" });
 
-      await sendSmsOrFallbackEmail({
+      const smsOrFallbackEmail = await sendSmsOrFallbackEmail({
         twilioData: {
           phoneNumber: reminderPhone,
           body: smsMessage,
@@ -49,7 +49,7 @@ const handleSendingSMS = ({
           bookingUid,
         },
       });
-      resolve();
+      resolve(smsOrFallbackEmail);
     } catch (e) {
       reject(console.error(`sendSmsOrFallbackEmail failed`, e));
     }
