@@ -64,7 +64,7 @@ export const useSchedule = ({
   const routingFormResponseId = routingFormResponseIdParam
     ? parseInt(routingFormResponseIdParam, 10)
     : undefined;
-
+  const embedConnectVersion = searchParams?.get("cal.embed.connectVersion") || "";
   const input = {
     isTeamEvent,
     usernameList: getUsernameList(username ?? ""),
@@ -88,6 +88,8 @@ export const useSchedule = ({
     shouldServeCache,
     routingFormResponseId,
     email,
+    // Ensures that connectVersion causes a refresh of the data
+    ...(embedConnectVersion ? { embedConnectVersion } : {}),
   };
 
   const options = {

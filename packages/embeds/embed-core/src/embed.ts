@@ -3,7 +3,10 @@ import { FloatingButton } from "./FloatingButton/FloatingButton";
 import { Inline } from "./Inline/inline";
 import { ModalBox } from "./ModalBox/ModalBox";
 import { addAppCssVars } from "./addAppCssVars";
-import { EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS } from "./constants";
+import {
+  EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS,
+  EMBED_MODAL_IFRAME_SLOT_STALE_TIME,
+} from "./constants";
 import type { InterfaceWithParent, interfaceWithParent } from "./embed-iframe";
 import css from "./embed.css";
 import { SdkActionManager } from "./sdk-action-manager";
@@ -306,6 +309,8 @@ export class Cal {
     config?: PrefillAndIframeAttrsConfig;
     calOrigin: string | null;
   }) {
+    log("Loading in iframe", calLink);
+    iframe.dataset.calLink = calLink;
     const calConfig = this.getCalConfig();
     const { iframeAttrs, ...queryParamsFromConfig } = config;
 
@@ -510,45 +515,48 @@ export class Cal {
     return searchParams;
   }
 
-  determineActionToTake({
-    calLink,
-    modalBoxUid,
-    previousCalLink,
-    previousEmbedConfig,
-    embedConfig,
-    isConnectionInitiated,
-    previousEmbedRenderStartTime,
-    embedRenderStartTime,
+  getNextActionForModal({
+    modal,
+    urlToLoad,
+    stateData,
   }: {
-    modalBoxUid: string;
-    calLink: string;
-    previousCalLink: string | null;
-    embedConfig: PrefillAndIframeAttrsConfig;
-    previousEmbedConfig: PrefillAndIframeAttrsConfig | null;
-    isConnectionInitiated: boolean;
-    previousEmbedRenderStartTime: number | null;
-    embedRenderStartTime: number;
+    modal: { uid: string };
+    urlToLoad: string;
+    stateData: {
+      embedConfig: PrefillAndIframeAttrsConfig;
+      previousEmbedConfig: PrefillAndIframeAttrsConfig | null;
+      isConnectionInitiated: boolean;
+      previousEmbedRenderStartTime: number | null;
+      embedRenderStartTime: number;
+    };
   }) {
+    const {
+      embedConfig,
+      previousEmbedConfig,
+      isConnectionInitiated,
+      previousEmbedRenderStartTime,
+      embedRenderStartTime,
+    } = stateData;
     const calConfig = this.getCalConfig();
-    const newCalLink = calLink;
-    const previousCalLinkUrlObject = previousCalLink
-      ? new URL(previousCalLink, calConfig.calOrigin as string)
-      : null;
-    const newCalLinkUrlObject = new URL(newCalLink, calConfig.calOrigin as string);
+    const lastLoadedUrlInIframeObject = this.getLastLoadedLinkInframe();
+    const lastLoadedPathInIframe = lastLoadedUrlInIframeObject?.pathname ?? null;
+    const urlToLoadObject = new URL(urlToLoad, calConfig.calOrigin as string);
 
-    const existingModalEl = document.querySelector(`cal-modal-box[uid="${modalBoxUid}"]`);
-    const previousCalLinkPath = previousCalLinkUrlObject?.pathname ?? null;
+    const existingModalEl = document.querySelector(`cal-modal-box[uid="${modal.uid}"]`);
+    const urlToLoadPath = urlToLoadObject.pathname;
     // We only check for path because query params are handled by connect flow
     // Also origin we assume never changes without page reload of the embedding page
     const isSameCalLink =
-      previousCalLinkPath &&
+      lastLoadedPathInIframe &&
       isSameBookingLink({
-        bookingLinkPath1: previousCalLinkPath,
-        bookingLinkPath2: newCalLinkUrlObject.pathname,
+        bookingLinkPath1: lastLoadedPathInIframe,
+        bookingLinkPath2: urlToLoadPath,
       });
 
-    const areSameQueryParams =
-      previousCalLinkUrlObject?.searchParams.toString() === newCalLinkUrlObject.searchParams.toString();
+    const lastLoadedUrlInIframeObjectSearchParams = lastLoadedUrlInIframeObject?.searchParams.toString();
+    const urlToLoadObjectSearchParams = urlToLoadObject.searchParams.toString();
+
+    const areSameQueryParams = lastLoadedUrlInIframeObjectSearchParams === urlToLoadObjectSearchParams;
 
     const isSameConfig =
       previousEmbedConfig &&
@@ -558,28 +566,46 @@ export class Cal {
       });
     const isInFailedState = existingModalEl && existingModalEl.getAttribute("state") === "failed";
 
-    const hasBeenMoreThanThresholdSinceLastRender = previousEmbedRenderStartTime
-      ? embedRenderStartTime - previousEmbedRenderStartTime > EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS
+    const timeSinceLastRender = previousEmbedRenderStartTime
+      ? embedRenderStartTime - previousEmbedRenderStartTime
+      : 0;
+    const crossedReloadThreshold = previousEmbedRenderStartTime
+      ? timeSinceLastRender > EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS
+      : false;
+
+    const areSlotsStale = previousEmbedRenderStartTime
+      ? timeSinceLastRender > EMBED_MODAL_IFRAME_SLOT_STALE_TIME
       : false;
 
     // Note that we don't worry about change in embed config because that is passed on as query params to the iframe and that is already supported by "connect" flow
-    const isResetNeeded = !isSameCalLink || isInFailedState || hasBeenMoreThanThresholdSinceLastRender;
+    const isResetNeeded = !isSameCalLink || isInFailedState || crossedReloadThreshold;
 
     const actionToTake = isResetNeeded
       ? "fullReload"
-      : !isSameConfig || !areSameQueryParams || !isConnectionInitiated
+      : !isSameConfig || !areSameQueryParams || !isConnectionInitiated || areSlotsStale
       ? "connect"
-      : "noChange";
+      : "noAction";
 
-    log("determineActionToTake", {
-      isSameCalLink,
+    log("Next Modal Action:", actionToTake, {
+      path: {
+        isSame: isSameCalLink,
+        urlToLoadPath,
+        lastLoadedPathInIframe,
+      },
+      config: {
+        isSame: isSameConfig,
+        previousEmbedConfig,
+        embedConfig,
+      },
+      queryParams: {
+        isSame: areSameQueryParams,
+        lastLoadedUrlInIframeObjectSearchParams,
+        urlToLoadObjectSearchParams,
+      },
+      areSlotsStale,
+      crossedReloadThreshold,
       isInFailedState,
-      isSameConfig,
-      areSameQueryParams,
       isConnectionInitiated,
-      isResetNeeded,
-      hasBeenMoreThanThresholdSinceLastRender,
-      actionToTake,
     });
 
     return actionToTake;
@@ -620,32 +646,41 @@ export class Cal {
    * Returns the last loaded URL in iframe.
    * Removes /embed from the pathname and returns the origin.
    */
-  getLastLoadedUrlInInframe() {
-    if (!this.iframe) {
+  getLastLoadedLinkInframe() {
+    if (!this.iframe || !this.iframe.dataset.calLink) {
       return null;
     }
-    const withEmbedUrlObject = new URL(this.iframe.src);
-    const pathWithoutEmbed = withEmbedUrlObject.pathname.replace(/\/embed$/, "");
-    return new URL(`${pathWithoutEmbed}${withEmbedUrlObject.search}`, withEmbedUrlObject.origin);
+    const calLink = this.iframe.dataset.calLink;
+    if (!calLink) {
+      return null;
+    }
+    const urlObject = new URL(calLink, new URL(this.iframe.src).origin);
+    return new URL(`${urlObject.pathname}${urlObject.search}`, urlObject.origin);
   }
 
   async submitThroughHeadlessRouterInModal({
-    newCalLinkUrlObject,
-    configWithGuestKeyAndColorScheme,
-    modalEl,
-    calOrigin,
+    modal,
+    calLinkUrlObject,
+    stateData,
   }: {
-    newCalLinkUrlObject: URL;
-    configWithGuestKeyAndColorScheme: PrefillAndIframeAttrsConfigWithGuestAndColorScheme;
-    modalEl: Element;
-    calOrigin: string | null;
+    modal: { uid: string; element: Element; calOrigin: string | null };
+    calLinkUrlObject: URL;
+    stateData: {
+      embedConfig: PrefillAndIframeAttrsConfigWithGuestAndColorScheme;
+      previousEmbedConfig: PrefillAndIframeAttrsConfigWithGuestAndColorScheme | null;
+      embedRenderStartTime: number;
+      previousEmbedRenderStartTime: number | null;
+      isConnectionInitiated: boolean;
+    };
   }) {
-    const lastLoadedUrlInIframeObject = this.getLastLoadedUrlInInframe();
+    const { uid: modalBoxUid, element: modalEl, calOrigin: _calOrigin } = modal;
+    const { embedConfig } = stateData;
+    const lastLoadedUrlInIframeObject = this.getLastLoadedLinkInframe();
     const lastLoadedPathInIframe = lastLoadedUrlInIframeObject?.pathname ?? null;
     const calConfig = this.getCalConfig();
-    calOrigin = calOrigin ?? calConfig.calOrigin;
+    const calOrigin = _calOrigin ?? calConfig.calOrigin;
 
-    const headlessRouterPageObject = newCalLinkUrlObject;
+    const headlessRouterPageObject = calLinkUrlObject;
     const result = await submitResponseAndGetRoutingResult({
       headlessRouterPageUrl: headlessRouterPageObject.toString(),
     });
@@ -653,32 +688,31 @@ export class Cal {
     if ("redirect" in result) {
       const routerRedirectUrl = new URL(result.redirect);
       const paramsFromRedirect = fromEntriesWithDuplicateKeys(routerRedirectUrl.searchParams.entries());
-      const newConfig = {
-        ...configWithGuestKeyAndColorScheme,
+
+      const newEmbedConfig = (this.embedConfig = {
+        ...embedConfig,
         ...paramsFromRedirect,
-      };
-      if (
-        lastLoadedPathInIframe &&
-        !isSameBookingLink({
-          bookingLinkPath1: lastLoadedPathInIframe,
-          bookingLinkPath2: routerRedirectUrl.pathname,
-        })
-      ) {
+      });
+      const actionToTake = this.getNextActionForModal({
+        modal: { uid: modalBoxUid },
+        urlToLoad: `${routerRedirectUrl.pathname}${routerRedirectUrl.search}`,
+        stateData: {
+          ...stateData,
+          embedConfig: newEmbedConfig,
+        },
+      });
+      if (actionToTake === "fullReload") {
         if (lastLoadedPathInIframe) {
           console.error("Preloaded iframe couldn't be used", {
             preloadedPath: lastLoadedPathInIframe,
             newPath: routerRedirectUrl.pathname,
           });
         }
-        log("Loading in iframe", {
-          newCalLinkUrlObject: newCalLinkUrlObject.toString(),
-          newConfig,
-        });
         const pathWithoutStartingSlash = routerRedirectUrl.pathname.replace(/^\//, "");
         this.loadInIframe({
           calLink: pathWithoutStartingSlash,
           calOrigin,
-          config: newConfig,
+          config: newEmbedConfig,
           iframe: this.iframe as HTMLIFrameElement,
         });
       } else {
@@ -690,7 +724,7 @@ export class Cal {
         // Connection Initiated
         this.doInIframe({
           method: "connect",
-          arg: newConfig,
+          arg: newEmbedConfig,
         });
       }
     } else if ("message" in result) {
@@ -915,11 +949,11 @@ class CalApi {
     calOrigin?: string;
     __prerender?: boolean;
   }) {
-    // this.modalUid is set in non-preload case
-    // this.prerenderedModalUid is set once a modal is prerendered
+    // `this.modalUid` is set in non-preload case(Temporarily not being-set)
+    // `this.prerenderedModalUid` is set for a modal created through "prerender"
     const uid = this.modalUid || this.prerenderedModalUid || String(Date.now()) || "0";
     // Means whether there is already an attempt to use the prerendered modal
-    const isConnectionInitiated = this.modalUid && this.prerenderedModalUid;
+    const isConnectionInitiated = !!(this.modalUid && this.prerenderedModalUid);
 
     const containerEl = document.body;
 
@@ -946,79 +980,74 @@ class CalApi {
     calOrigin = calOrigin || calConfig.calOrigin;
 
     const embedRenderStartTime = Date.now();
-    const previousCalLink = this.cal.calLink;
     const previousEmbedConfig = this.cal.embedConfig;
     const previousEmbedRenderStartTime = this.cal.embedRenderStartTime;
-    this.cal.calLink = calLink;
     this.cal.embedConfig = configWithGuestKeyAndColorScheme;
 
-    let reshowWithoutIframeUpdates = false;
     const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`);
 
     // isConnectionPossible
     if (!!existingModalEl && !!this.cal.iframe) {
-      const newCalLink = calLink;
-      const newCalLinkUrlObject = new URL(newCalLink, calOrigin);
+      const calLinkUrlObject = new URL(calLink, calOrigin);
+      const isHeadlessRouterPath = calLinkUrlObject ? isRouterPath(calLinkUrlObject.toString()) : false;
 
-      const actionToTake = this.cal.determineActionToTake({
-        calLink,
-        modalBoxUid: uid,
-        previousCalLink,
+      log(`Trying to reuse modal ${uid}`);
+      const stateData = {
         embedConfig: configWithGuestKeyAndColorScheme,
         previousEmbedConfig,
-        isConnectionInitiated: !!isConnectionInitiated,
-        previousEmbedRenderStartTime,
         embedRenderStartTime,
-      });
-      log(`Trying to reuse modal ${uid}`);
-      if (actionToTake === "fullReload" || actionToTake === "connect") {
-        // Immediately take it to loading state - Either through connect or through loadInIframe, it would later be updated
+        previousEmbedRenderStartTime,
+        isConnectionInitiated,
+      };
+      if (isHeadlessRouterPath) {
+        // Immediately take it to loading state. Either through connect or through loadInIframe, it would later be updated
         existingModalEl.setAttribute("state", "loading");
-        const shouldSubmitResponse = newCalLinkUrlObject
-          ? isRouterPath(newCalLinkUrlObject.toString())
-          : false;
-        if (shouldSubmitResponse) {
-          // submitThroughHeadlessRouterInModal would further decide whether full page reload is needed or a connect would suffice
-          // isFullPageLoadNeeded might be true and still connect could work in case of headless router because there might be just query params change(which can be handled by connect) of calLink(i.e. ?form=formid&newParam=newValue)
-          await this.cal.submitThroughHeadlessRouterInModal({
-            newCalLinkUrlObject,
-            configWithGuestKeyAndColorScheme,
-            modalEl: existingModalEl,
-            calOrigin,
-          });
-          this.modalUid = uid;
-        } else {
-          log("attempting to open regular booking link");
-          if (actionToTake === "fullReload") {
-            log("Initiating full page load");
-            this.cal.loadInIframe({
-              calLink: newCalLink,
-              calOrigin,
-              iframe: this.cal.iframe,
-              config: configWithGuestKeyAndColorScheme,
-            });
-          } else {
-            this.cal.doInIframe({
-              method: "connect",
-              arg: configWithGuestKeyAndColorScheme,
-            });
-          }
-          this.modalUid = uid;
+
+        // submitThroughHeadlessRouterInModal would further decide whether full page reload is needed or a connect would suffice
+        // actionToTake might be "fullReload" and still connect could work in case of headless router because there might be just query params change(which can be handled by connect) of calLink(i.e. ?form=formid&newParam=newValue)
+        await this.cal.submitThroughHeadlessRouterInModal({
+          modal: { uid, element: existingModalEl, calOrigin },
+          calLinkUrlObject,
+          stateData,
+        });
+      } else {
+        const actionToTake = this.cal.getNextActionForModal({
+          modal: { uid },
+          urlToLoad: calLinkUrlObject.pathname,
+          stateData,
+        });
+
+        if (actionToTake === "noAction") {
+          log(`Reopening modal without any other action needed ${uid}`);
+          // Reopen the modal, nothing else to do
+          existingModalEl.setAttribute("state", "reopened");
+          return;
         }
 
-        return;
-      } else {
-        log(`Reopening modal without any other action needed ${uid}`);
-        reshowWithoutIframeUpdates = true;
-        // Reopen the modal, nothing else to do
-        existingModalEl.setAttribute("state", "reopened");
-        return;
-      }
-    }
+        log("Attempting to load/connect regular booking link");
+        // Immediately take it to loading state. Either through connect or through loadInIframe, it would later be updated
+        existingModalEl.setAttribute("state", "loading");
 
-    if (!reshowWithoutIframeUpdates) {
-      // Don't update embedRenderStartTime if we are reopening the modal without any updates in it
+        if (actionToTake === "fullReload") {
+          log("Initiating full page load");
+          this.cal.loadInIframe({
+            calLink,
+            calOrigin,
+            iframe: this.cal.iframe,
+            config: configWithGuestKeyAndColorScheme,
+          });
+        } else if (actionToTake === "connect") {
+          this.cal.doInIframe({
+            method: "connect",
+            arg: configWithGuestKeyAndColorScheme,
+          });
+        }
+      }
+
+      // We reach here in case of connect or fullReload
+      this.modalUid = uid;
       this.cal.embedRenderStartTime = embedRenderStartTime;
+      return;
     }
 
     log(`Creating new modal ${uid}`);
@@ -1416,8 +1445,8 @@ function log(...args: unknown[]) {
   const searchString = location.search;
   globalCal.__logQueue = globalCal.__logQueue || [];
   globalCal.__logQueue.push(args);
-  if (searchString.includes("cal.embed.logging=1")) {
-    console.log(...args);
+  if (searchString.includes("cal.embed.logging=1") || process.env.INTEGRATION_TEST_MODE === "true") {
+    console.log("Parent:", ...args);
   }
 }
 

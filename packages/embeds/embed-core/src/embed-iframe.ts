@@ -53,6 +53,7 @@ declare global {
  * This is in-memory persistence needed so that when user browses through the embed, the configurations from the instructions aren't lost.
  */
 export const embedStore = {
+  connectVersion: 0 as number,
   /**
    * Tracks whether the prerender has been completed or not.
    * NOTE: prerenderState would be "completed" even after the iframe was switched from isPrerendering=true to not Prerendering(which happens after connect)
@@ -186,7 +187,7 @@ function log(...args: unknown[]) {
     args.unshift("CAL:");
     logQueue.push(args);
     if (searchParams.get("debug")) {
-      console.log(...args);
+      console.log("Child:", ...args);
     }
   }
 }
@@ -515,6 +516,8 @@ const methods = {
   connect: function connect(config: PrefillAndIframeAttrsConfig) {
     log("Method: connect, requested with params", config);
     const { iframeAttrs: _1, ...queryParamsFromConfig } = config;
+    const connectVersion = (embedStore.connectVersion = embedStore.connectVersion + 1);
+
     // We reset it to allow informing parent again through `__dimensionChanged` event about possibly updated dimensions with changes in config
     embedStore.parentInformedAboutContentHeight = false;
 
@@ -527,7 +530,10 @@ const methods = {
       log("Method: connect, prerenderState is completed. Connecting");
       connectPreloadedEmbed({
         // We know after removing iframeAttrs, that it is of this type
-        toBeThereParams: queryParamsFromConfig as Record<string, string | string[]>,
+        toBeThereParams: {
+          ...(queryParamsFromConfig as Record<string, string | string[]>),
+          "cal.embed.connectVersion": connectVersion.toString(),
+        },
         toRemoveParams: ["preload", "prerender", "cal.skipSlotsFetch"],
       });
     })();
