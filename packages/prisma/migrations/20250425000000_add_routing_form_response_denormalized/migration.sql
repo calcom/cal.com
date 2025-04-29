@@ -32,6 +32,7 @@ CREATE TABLE "RoutingFormResponseDenormalized" (
 );
 
 -- Create optimized indexes
+CREATE INDEX idx_form_id ON "RoutingFormResponseDenormalized" ("formId");
 CREATE INDEX idx_form_id_created_at ON "RoutingFormResponseDenormalized" ("formId", "createdAt");
 CREATE INDEX idx_routing_form_response_booking_id ON "RoutingFormResponseDenormalized" ("bookingId");
 CREATE INDEX idx_routing_form_response_booking_user_id ON "RoutingFormResponseDenormalized" ("bookingUserId");
@@ -154,9 +155,6 @@ BEGIN
     LEFT JOIN "users" u ON b."userId" = u.id
     LEFT JOIN "Tracking" t ON t."bookingId" = b.id
     WHERE r.id = response_id;
-EXCEPTION WHEN OTHERS THEN
-    -- Just log the error and continue
-    RAISE WARNING 'DENORM_ERROR: RoutingFormResponseDenormalized - FormResponse refresh failed for id %. Error: %', response_id, SQLERRM;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -168,7 +166,7 @@ BEGIN
         PERFORM refresh_routing_form_response_denormalized(NEW.id);
     EXCEPTION WHEN OTHERS THEN
         -- Log the error but don't fail the original operation
-        RAISE WARNING 'DENORM_ERROR: RoutingFormResponseDenormalized - FormResponse refresh failed for id %. Error: %', NEW.id, SQLERRM;
+        RAISE WARNING 'DENORM_ERROR: RoutingFormResponseDenormalized - refresh failed for response_id %. Error: %', NEW.id, SQLERRM;
     END;
     RETURN NEW;
 END;

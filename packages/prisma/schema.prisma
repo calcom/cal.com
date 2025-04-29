@@ -2119,11 +2119,11 @@ model RoutingFormResponseDenormalized {
   utm_term                String?
   utm_content             String?
 
-  @@index([id])
-  @@index([formId])
-  @@index([createdAt])
-  @@index([bookingUid])
-  @@index([bookingId])
-  @@index([bookingUserId])
-  @@index([eventTypeId, eventTypeParentId])
+  @@index([formId], name: "idx_form_id")
+  @@index([formId, createdAt], name: "idx_form_id_created_at")
+  @@index([bookingId], name: "idx_routing_form_response_booking_id")
+  @@index([bookingUserId], name: "idx_routing_form_response_booking_user_id")
+  @@index([responseByFieldId], type: Gin, name: "idx_response_by_field_id")
+  @@index([eventTypeId, eventTypeParentId], name: "idx_event_type_hierarchy")
+  @@index([bookingAssignmentReason], map: "idx_booking_assignment_reason_lower")
 }
