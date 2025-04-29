@@ -256,6 +256,7 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
 export type SelectedCalendarEventTypeIds = (number | null)[];
 
 export interface Calendar {
+  getCredentialId?(): number;
   createEvent(
     event: CalendarEvent,
     credentialId: number,
@@ -274,14 +275,16 @@ export interface Calendar {
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[],
-    shouldServeCache?: boolean
+    shouldServeCache?: boolean,
+    fallbackToPrimary?: boolean
   ): Promise<EventBusyDate[]>;
 
   // for OOO calibration (only google calendar for now)
   getAvailabilityWithTimeZones?(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    selectedCalendars: IntegrationCalendar[],
+    fallbackToPrimary?: boolean
   ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]>;
 
   fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown>;

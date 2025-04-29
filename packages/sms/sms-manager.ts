@@ -39,12 +39,11 @@ const handleSendingSMS = ({
       if (!team?.parent?.isOrganization) return;
 
       await checkSMSRateLimit({ identifier: `handleSendingSMS:team:${teamId}`, rateLimitingType: "sms" });
-      const sanitizedMessage = smsMessage.replace(/&#x2F;/g, "/");
 
       await sendSmsOrFallbackEmail({
         twilioData: {
           phoneNumber: reminderPhone,
-          body: sanitizedMessage,
+          body: smsMessage,
           sender: senderID,
           teamId,
           bookingUid,
