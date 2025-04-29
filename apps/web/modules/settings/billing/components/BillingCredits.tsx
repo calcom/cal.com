@@ -48,6 +48,8 @@ export default function BillingCredits() {
 
   if (isLoading) return <BillingCreditsSkeleton />;
 
+  if (!creditsData) return null;
+
   const onSubmit = (data: { quantity: number }) => {
     buyCreditsMutation.mutate({ quantity: data.quantity, teamId });
   };

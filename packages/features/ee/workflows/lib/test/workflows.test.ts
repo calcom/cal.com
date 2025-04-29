@@ -79,7 +79,7 @@ const mockEventTypes = [
     ],
   },
 ];
-
+//2024-05-20T11:59:59Z
 const mockBookings = [
   {
     uid: "jK7Rf8iYsOpmQUw9hB1vZxP",
@@ -734,8 +734,8 @@ describe("scheduleBookingReminders", () => {
     );
 
     const expectedScheduledDates = [
-      new Date("2024-05-20T17:30:00.000"),
-      new Date("2024-05-20T18:00:00.000Z"),
+      new Date("2024-05-20T12:15:00.000"),
+      new Date("2024-05-20T12:30:00.000Z"),
       new Date("2024-06-01T08:00:00.000Z"),
       new Date("2024-06-02T08:00:00.000Z"),
     ];
