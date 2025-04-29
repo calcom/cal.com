@@ -14,12 +14,13 @@ export const updateDelegationCredentialTokenObject = async ({
   const existingToken = await prisma.delegationCredentialAccesssToken.findFirst({
     where: {
       delegationCredentialId,
+      userId: null,
     },
   });
 
   if (existingToken) {
     await prisma.delegationCredentialAccesssToken.update({
-      where: { id: existingToken.id },
+      where: { id: existingToken.id, userId: null },
       data: { key: tokenObject },
     });
   } else {
@@ -27,6 +28,7 @@ export const updateDelegationCredentialTokenObject = async ({
       data: {
         key: tokenObject,
         delegationCredentialId,
+        userId: null,
       },
     });
   }
