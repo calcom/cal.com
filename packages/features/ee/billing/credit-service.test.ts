@@ -6,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import * as EmailManager from "@calcom/emails/email-manager";
 import { CreditType } from "@calcom/prisma/enums";
 
+import { cancelScheduledMessagesAndScheduleEmails } from "../workflows/lib/reminders/reminderScheduler";
 import { CreditService } from "./credit-service";
 
 vi.mock("@calcom/prisma", () => ({ prisma: prismaMock }));
@@ -113,7 +114,7 @@ describe("CreditService", () => {
   });
 
   describe("chargeCredits", () => {
-    it("should create expense log and send low balance warning email", async ({ emails }) => {
+    it("should create expense log and send low balance warning email", async () => {
       prismaMock.creditBalance.findUnique.mockResolvedValue({
         id: "1",
         additionalCredits: 10,
@@ -143,11 +144,11 @@ describe("CreditService", () => {
 
       vi.spyOn(CreditService.prototype, "getAllCreditsForTeam").mockResolvedValue({
         totalMonthlyCredits: 500,
-        totalRemainingMonthlyCredits: 10,
-        additionalCredits: 10,
+        totalRemainingMonthlyCredits: 20,
+        additionalCredits: 60,
       });
 
-      const result = await creditService.chargeCredits({
+      await creditService.chargeCredits({
         teamId: 1,
         credits: 5,
         bookingUid: "booking-123",
@@ -165,13 +166,114 @@ describe("CreditService", () => {
           }),
         })
       );
+      expect(cancelScheduledMessagesAndScheduleEmails).not.toHaveBeenCalled();
 
       expect(EmailManager.sendCreditBalanceLowWarningEmails).toHaveBeenCalled();
+    });
+
+    it("should create expense log and send limit reached email", async () => {
+      vi.mock("@calcom/features/ee/workflows/lib/reminders/reminderScheduler", () => ({
+        cancelScheduledMessagesAndScheduleEmails: vi.fn(),
+      }));
+
+      prismaMock.creditBalance.findUnique.mockResolvedValue({
+        id: "1",
+        additionalCredits: 0,
+        expenseLogs: [],
+      });
+
+      const mockTeam = {
+        id: 1,
+        credits: {
+          limitReachedAt: null,
+        },
+        name: "team-name",
+        members: [
+          {
+            user: {
+              name: "admin",
+              email: "admin@example.com",
+              locale: "en",
+            },
+          },
+        ],
+      };
+
+      prismaMock.team.findUnique.mockResolvedValue(mockTeam);
+
+      vi.spyOn(EmailManager, "sendCreditBalanceLimitReachedEmails").mockResolvedValue();
+
+      vi.spyOn(CreditService.prototype, "getAllCreditsForTeam").mockResolvedValue({
+        totalMonthlyCredits: 500,
+        totalRemainingMonthlyCredits: -1,
+        additionalCredits: 0,
+      });
+
+      await creditService.chargeCredits({
+        teamId: 1,
+        credits: 5,
+        bookingUid: "booking-123",
+        smsSid: "sms-123",
+      });
+
+      expect(prismaMock.creditExpenseLog.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            bookingUid: "booking-123",
+            creditBalanceId: "1",
+            creditType: CreditType.ADDITIONAL,
+            credits: 5,
+            smsSid: "sms-123",
+          }),
+        })
+      );
+
+      expect(cancelScheduledMessagesAndScheduleEmails).toHaveBeenCalled();
+
+      expect(EmailManager.sendCreditBalanceLimitReachedEmails).toHaveBeenCalled();
     });
   });
 
   describe("getTeamToCharge", () => {
-    it.skip("should return team with remaining credits", async () => {
+    it("should return team with remaining credits when teamId is provided", async () => {
+      vi.spyOn(CreditService.prototype, "getAllCreditsForTeam").mockResolvedValue({
+        totalMonthlyCredits: 500,
+        totalRemainingMonthlyCredits: 100,
+        additionalCredits: 50,
+      });
+
+      const result = await creditService.getTeamToCharge({
+        credits: 50,
+        teamId: 1,
+      });
+
+      expect(result).toEqual({
+        teamId: 1,
+        remaningCredits: 100,
+        creditType: CreditType.MONTHLY,
+      });
+    });
+
+    it("should use additional credits when monthly credits are out", async () => {
+      vi.spyOn(CreditService.prototype, "getAllCreditsForTeam").mockResolvedValue({
+        totalMonthlyCredits: 500,
+        totalRemainingMonthlyCredits: 0,
+        additionalCredits: 50,
+      });
+
+      const result = await creditService.getTeamToCharge({
+        credits: 30,
+        teamId: 1,
+      });
+
+      expect(result).toEqual({
+        teamId: 1,
+        remaningCredits: 20,
+        creditType: CreditType.ADDITIONAL,
+      });
+    });
+
+    it("should return team with available credits when userId is provided", async () => {
       const mockTeam = {
         id: 1,
         credits: {
@@ -179,17 +281,25 @@ describe("CreditService", () => {
         },
       };
 
-      (prismaMock.team.findUnique as any).mockResolvedValue(mockTeam);
+      prismaMock.membership.findMany.mockResolvedValue([{ id: 1 }]);
+      prismaMock.team.findUnique.mockResolvedValue(mockTeam);
+
+      vi.spyOn(CreditService.prototype, "getAllCreditsForTeam").mockResolvedValue({
+        totalMonthlyCredits: 500,
+        totalRemainingMonthlyCredits: 100,
+        additionalCredits: 50,
+      });
 
       const result = await creditService.getTeamToCharge({
-        credits: 5,
-        teamId: 1,
+        credits: 50,
+        userId: 1,
       });
 
       expect(result).toEqual({
         teamId: 1,
-        remaningCredits: -5,
-        creditType: CreditType.ADDITIONAL,
+        availableCredits: 150,
+        creditType: CreditType.MONTHLY,
+        remainingCredits: 100,
       });
     });
   });
