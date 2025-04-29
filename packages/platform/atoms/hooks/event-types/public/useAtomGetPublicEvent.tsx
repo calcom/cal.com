@@ -16,7 +16,6 @@ type Props = {
   username: string;
   eventSlug: string;
   isTeamEvent?: boolean;
-  // orgId?: number;
   teamId?: number;
   selectedDuration: number | null;
 };
