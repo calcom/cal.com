@@ -6,11 +6,6 @@ import db from "@calcom/prisma";
 import type { AppFlags } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
-interface CacheEntry {
-  value: boolean; // adapt to other supported value types in the future
-  expiry: number;
-}
-
 interface CacheOptions {
   ttl: number; // time in ms
 }
@@ -21,18 +16,9 @@ interface CacheOptions {
  * for users, teams, and global application features.
  */
 export class FeaturesRepository implements IFeaturesRepository {
-  // This is a temporary cache to avoid hitting the database on every lambda invocation
-  private static TEMP_CACHE: AppFlags | null = null;
-  private static featureFlagCache = new Map<keyof AppFlags, CacheEntry>();
   private static featuresCache: { data: any[]; expiry: number } | null = null;
 
-  private isExpired(entry: CacheEntry): boolean {
-    return Date.now() > entry.expiry;
-  }
-
   private clearCache() {
-    FeaturesRepository.TEMP_CACHE = null;
-    FeaturesRepository.featureFlagCache.clear();
     FeaturesRepository.featuresCache = null;
   }
 
@@ -65,14 +51,11 @@ export class FeaturesRepository implements IFeaturesRepository {
    * @returns Promise<AppFlags> - A map of feature flags to their enabled status
    */
   public async getFeatureFlagMap() {
-    // If we've already fetched the flags, return them
-    if (FeaturesRepository.TEMP_CACHE) return FeaturesRepository.TEMP_CACHE;
     const flags = await this.getAllFeatures();
-    FeaturesRepository.TEMP_CACHE = flags.reduce((acc, flag) => {
+    return flags.reduce((acc, flag) => {
       acc[flag.slug as keyof AppFlags] = flag.enabled;
       return acc;
     }, {} as AppFlags);
-    return FeaturesRepository.TEMP_CACHE;
   }
 
   /**
@@ -83,38 +66,12 @@ export class FeaturesRepository implements IFeaturesRepository {
    */
   async checkIfFeatureIsEnabledGlobally(
     slug: keyof AppFlags,
-    options: CacheOptions = { ttl: 5 * 60 * 1000 }
+    _options: CacheOptions = { ttl: 5 * 60 * 1000 }
   ): Promise<boolean> {
     try {
-      // pre-compute all app flags, each one will independently reload its own state after expiry.
-      if (FeaturesRepository.featureFlagCache.size === 0) {
-        const flags = await db.feature.findMany({ orderBy: { slug: "asc" } });
-        flags.forEach((flag) => {
-          FeaturesRepository.featureFlagCache.set(flag.slug as keyof AppFlags, {
-            value: flag.enabled,
-            expiry: Date.now() + options.ttl,
-          });
-        });
-      }
-
-      const cacheEntry = FeaturesRepository.featureFlagCache.get(slug);
-
-      if (cacheEntry && !this.isExpired(cacheEntry)) {
-        return cacheEntry.value;
-      }
-
-      const flag = await db.feature.findUnique({
-        where: {
-          slug,
-        },
-      });
-
-      const isEnabled = Boolean(flag && flag.enabled);
-      const expiry = Date.now() + options.ttl;
-
-      FeaturesRepository.featureFlagCache.set(slug, { value: isEnabled, expiry });
-
-      return isEnabled;
+      const features = await this.getAllFeatures();
+      const flag = features.find((f) => f.slug === slug);
+      return Boolean(flag && flag.enabled);
     } catch (err) {
       captureException(err);
       throw err;
