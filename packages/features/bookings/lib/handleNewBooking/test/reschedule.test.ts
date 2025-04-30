@@ -2043,7 +2043,7 @@ describe("handleNewBooking", () => {
                   id: 1,
                   slotInterval: 15,
                   length: 15,
-                  title: dynamicEventTitle,
+                  eventName: dynamicEventTitle,
                   users: [
                     {
                       id: 101,
