@@ -135,8 +135,6 @@
 }
 
 .cal-query-builder .rule {
-  /* border: 1px solid transparent; */
-  /* padding: 10px; */
   flex: 1;
   display: flex;
 }
