@@ -60,16 +60,8 @@
 
 .cal-query-builder .rule--body {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
+  grid-template-columns: 40% 20% 40%;
   width: 100%;
-}
-
-.cal-query-builder .rule--field,
-.cal-query-builder .rule--operator,
-.cal-query-builder .rule--value {
-  display: flex;
-  flex-grow: 1;
 }
 
 .cal-query-builder .rule--widget {
