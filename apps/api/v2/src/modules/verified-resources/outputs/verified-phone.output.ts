@@ -1,7 +1,15 @@
 import { ScheduleOutput } from "@/ee/schedules/schedules_2024_04_15/outputs/schedule.output";
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
-import { IsArray, IsEnum, IsNotEmptyObject, IsNumber, IsString, ValidateNested } from "class-validator";
+import {
+  IsArray,
+  IsEnum,
+  IsNotEmptyObject,
+  IsNumber,
+  IsString,
+  ValidateNested,
+  IsOptional,
+} from "class-validator";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 
@@ -52,6 +60,7 @@ export class TeamVerifiedPhoneOutputData {
 
   @Expose()
   @IsNumber()
+  @IsOptional()
   @ApiProperty({
     description: "The ID of the associated user, if applicable.",
     example: 45,
