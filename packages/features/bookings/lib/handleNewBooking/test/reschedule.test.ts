@@ -2034,6 +2034,8 @@ describe("handleNewBooking", () => {
 
           const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
           const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+          const dynamicEventTitle = "{Scheduler} and {Organiser}: Team Meeting";
+
           await createBookingScenario(
             getScenarioData({
               eventTypes: [
@@ -2041,6 +2043,7 @@ describe("handleNewBooking", () => {
                   id: 1,
                   slotInterval: 15,
                   length: 15,
+                  title: dynamicEventTitle,
                   users: [
                     {
                       id: 101,
@@ -2057,6 +2060,7 @@ describe("handleNewBooking", () => {
                   uid: uidOfBookingToBeRescheduled,
                   eventTypeId: 1,
                   userId: 101,
+                  title: `${booker.name} and ${roundRobinHost1.name}: Team Meeting`,
                   status: BookingStatus.ACCEPTED,
                   startTime: `${plus1DateString}T05:00:00.000Z`,
                   endTime: `${plus1DateString}T05:15:00.000Z`,
@@ -2130,6 +2134,8 @@ describe("handleNewBooking", () => {
            */
           expect(createdBooking.startTime?.toISOString()).toBe(`${plus1DateString}T04:00:00.000Z`);
           expect(createdBooking.endTime?.toISOString()).toBe(`${plus1DateString}T04:15:00.000Z`);
+
+          expect(createdBooking.title).toBe(`${booker.name} and ${roundRobinHost2.name}: Team Meeting`);
 
           await expectBookingInDBToBeRescheduledFromTo({
             from: {
