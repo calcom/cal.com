@@ -111,8 +111,6 @@ export default function BillingCredits() {
                 {errors.quantity && <InputError message={errors.quantity.message ?? t("invalid_input")} />}
               </div>
             </div>
-
-            {/* todo: disable button if 0 credits*/}
             <div className="mb-1 mt-auto">
               <Button color="primary" target="_blank" EndIcon="external-link" type="submit">
                 {t("buy_credits")}
