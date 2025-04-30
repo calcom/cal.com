@@ -689,7 +689,14 @@ export class InputBookingsService_2024_08_13 {
     // Convert status time based filters into date filters to reduce confusion and just work with date statuses
     if (query.status) {
       // Past bookings: from one month ago or user defined to now
-      if (query.status.includes("past")) {
+      if (query.status.includes("past") && query.status.includes("upcoming")) {
+        if (!query.afterStart) {
+          query.afterStart = this.getOneMonthAgo();
+        }
+        if (!query.beforeEnd) {
+          query.beforeEnd = this.getOneMonthAhead();
+        }
+      } else if (query.status.includes("past")) {
         if (!query.afterStart) {
           query.afterStart = this.getOneMonthAgo();
         }
@@ -698,9 +705,8 @@ export class InputBookingsService_2024_08_13 {
           if (!now) throw new BadRequestException("Failed to generate current UTC date");
           query.beforeEnd = now;
         }
-      }
-      // Upcoming bookings: from now to one month ahead or user defined
-      if (query.status.includes("upcoming")) {
+      } else if (query.status.includes("upcoming")) {
+        // Upcoming bookings: from now to one month ahead or user defined
         if (!query.afterStart) {
           const now = DateTime.now().setZone("utc").toISO();
           if (!now) throw new BadRequestException("Failed to generate current UTC date");
@@ -761,7 +767,7 @@ export class InputBookingsService_2024_08_13 {
     return query;
   }
 
-  private getOneMonthAgo(fromDate?: DateTime): string {
+  getOneMonthAgo(fromDate?: DateTime): string {
     const date = (fromDate || DateTime.now().setZone("utc")).minus({ months: 1 });
     const adjusted = date.set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
     const isoDate = adjusted.toISO();
@@ -771,7 +777,7 @@ export class InputBookingsService_2024_08_13 {
     return isoDate;
   }
 
-  private getOneMonthAhead(fromDate?: DateTime): string {
+  getOneMonthAhead(fromDate?: DateTime): string {
     const date = (fromDate || DateTime.now().setZone("utc")).plus({ months: 1 });
     const adjusted = date.set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
     const isoDate = adjusted.toISO();
