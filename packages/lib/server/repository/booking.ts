@@ -305,6 +305,7 @@ export class BookingRepository {
         selectedOptionIds: string | number | string[];
       };
     } | null;
+    includeNoShowInRRCalculation: boolean;
   }) {
     const allBookings = await prisma.booking.findMany({
       where: buildWhereClauseForActiveBookings({
@@ -313,6 +314,7 @@ export class BookingRepository {
         endDate,
         users,
         virtualQueuesData,
+        includeNoShowInRRCalculation,
       }),
       select: {
         id: true,
