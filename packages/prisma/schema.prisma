@@ -2087,7 +2087,7 @@ model WorkflowOptOutContact {
 }
 
 model BookingTimeStatusDenormalized {
-  id             Int      @id
+  id             Int           @id
   uid            String
   eventTypeId    Int?
   title          String?
@@ -2097,7 +2097,7 @@ model BookingTimeStatusDenormalized {
   createdAt      DateTime
   location       String?
   paid           Boolean?
-  status         String
+  status         BookingStatus
   rescheduled    Boolean?
   userId         Int?
   teamId         Int?
@@ -2109,7 +2109,7 @@ model BookingTimeStatusDenormalized {
   ratingFeedback String?
   rating         Int?
   noShowHost     Boolean?
-  isTeamBooking  Boolean?
+  isTeamBooking  Boolean
 
   @@index([userId], name: "idx_booking_user_id")
   @@index([createdAt], name: "idx_booking_created_at")

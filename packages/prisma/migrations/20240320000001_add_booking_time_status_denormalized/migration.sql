@@ -10,7 +10,7 @@ CREATE TABLE "BookingTimeStatusDenormalized" (
     "createdAt" TIMESTAMP(3) NOT NULL,
     location TEXT,
     paid BOOLEAN,
-    status TEXT NOT NULL,
+    status "BookingStatus" NOT NULL,
     rescheduled BOOLEAN,
     "userId" INTEGER,
     "teamId" INTEGER,
@@ -41,7 +41,7 @@ CREATE INDEX "idx_booking_user_id_team_booking" ON "BookingTimeStatusDenormalize
 -- Function to calculate timeStatus
 CREATE OR REPLACE FUNCTION calculate_time_status(
     rescheduled BOOLEAN,
-    status TEXT,
+    status "BookingStatus",
     end_time TIMESTAMP
 ) RETURNS TEXT AS $$
 BEGIN
