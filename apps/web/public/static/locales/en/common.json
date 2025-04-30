@@ -3135,6 +3135,7 @@
   "resend": "Resend",
   "verification_email_sent": "Verification email sent",
   "select_all_members": "Select all members",
+  "select_all_members_tooltip":"Selecting all members will add all future team members when they are added to the team.",
   "form_settings":"Form Settings",
   "remove_whitelist_status": "Remove whitelist status",
   "whitelist_user_workflows": "Whitelist user workflows",

@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label, Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export interface TeamMember {
   id: number;
@@ -106,6 +108,9 @@ export const TeamMemberSelect = ({
               data-testid="assign-all-team-members-toggle"
             />
             <span className="text-default text-sm">{t("select_all_members")}</span>
+            <Tooltip content={t("select_all_members_tooltip")}>
+              <Icon name="info" className="text-default text-sm" />
+            </Tooltip>
           </div>
         )}
       </div>
