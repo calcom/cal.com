@@ -255,7 +255,9 @@ export const ResultsView = ({
 
             {membersMatchResult.teamMembersMatchingAttributeLogic && (
               <ResultsSection
-                title={`${membersMatchResult.teamMembersMatchingAttributeLogic.length} next in queue`}
+                title={t("routing_form_next_in_queue", {
+                  count: membersMatchResult.teamMembersMatchingAttributeLogic.length,
+                })}
                 icon="user-check"
                 hint={
                   <div className="flex items-center gap-2 px-2 py-1">
@@ -271,7 +273,7 @@ export const ResultsView = ({
                       key={member.id}
                       email={member.email}
                       name={member.name}
-                      score={membersMatchResult.perUserData?.weights?.[member.id] || 0}
+                      score={membersMatchResult.perUserData?.bookingShortfalls?.[member.id] || 0}
                     />
                   ))}
                 </div>

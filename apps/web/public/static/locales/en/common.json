@@ -3162,5 +3162,6 @@
   "results": "Results",
   "view_form": "View Form",
   "sms_opt_out_message": "Text STOP to opt-out of SMS messages",
+  "routing_form_next_in_queue": "{{count}} next in queue",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
