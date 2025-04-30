@@ -67,6 +67,7 @@ interface GetLuckyUserParams<T extends PartialUser> {
     id: number;
     isRRWeightsEnabled: boolean;
     team: { parentId?: number | null; rrResetInterval: RRResetInterval | null } | null;
+    includeNoShowInRRCalculation: boolean;
   };
   // all routedTeamMemberIds or all hosts of event types
   allRRHosts: {
@@ -423,11 +424,13 @@ async function getBookingsOfInterval({
   users,
   virtualQueuesData,
   interval,
+  includeNoShowInRRCalculation,
 }: {
   eventTypeId: number;
   users: { id: number; email: string }[];
   virtualQueuesData: VirtualQueuesDataType | null;
   interval: RRResetInterval;
+  includeNoShowInRRCalculation: boolean;
 }) {
   return await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventTypeId,
@@ -435,6 +438,7 @@ async function getBookingsOfInterval({
     startDate: getIntervalStartDate(interval),
     endDate: new Date(),
     virtualQueuesData,
+    includeNoShowInRRCalculation,
   });
 }
 
