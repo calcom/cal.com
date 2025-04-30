@@ -124,31 +124,30 @@ export class FeaturesRepository implements IFeaturesRepository {
       const query = Prisma.sql`
         WITH RECURSIVE TeamHierarchy AS (
           -- Start with teams the user belongs to
-          SELECT DISTINCT t.id, t."parentId"
+          SELECT DISTINCT t.id, t."parentId",
+            CASE WHEN EXISTS (
+              SELECT 1 FROM "TeamFeatures" tf 
+              WHERE tf."teamId" = t.id AND tf."featureId" = ${slug}
+            ) THEN true ELSE false END as has_feature
           FROM "Team" t
           INNER JOIN "Membership" m ON m."teamId" = t.id
-          WHERE m."userId" = ${userId}
+          WHERE m."userId" = ${userId} AND m.accepted = true
 
           UNION ALL
 
           -- Recursively get parent teams
-          SELECT DISTINCT t.id, t."parentId"
-          FROM "Team" t
-          INNER JOIN TeamHierarchy th ON t.id = th."parentId"
-          WHERE t."parentId" IS NOT NULL
-          -- Stop recursion if we find a team with the feature
-          AND NOT EXISTS (
-            SELECT 1 
-            FROM "TeamFeatures" tf 
-            WHERE tf."teamId" = t.id 
-            AND tf."featureId" = ${slug}
-          )
+          SELECT DISTINCT p.id, p."parentId",
+            CASE WHEN EXISTS (
+              SELECT 1 FROM "TeamFeatures" tf 
+              WHERE tf."teamId" = p.id AND tf."featureId" = ${slug}
+            ) THEN true ELSE false END as has_feature
+          FROM "Team" p
+          INNER JOIN TeamHierarchy c ON p.id = c."parentId"
+          WHERE NOT c.has_feature -- Stop recursion if we found a team with the feature
         )
-        -- Check if any team in the hierarchy has the feature
         SELECT 1
-        FROM "TeamFeatures" tf
-        WHERE tf."featureId" = ${slug}
-        AND tf."teamId" IN (SELECT id FROM TeamHierarchy)
+        FROM TeamHierarchy
+        WHERE has_feature = true
         LIMIT 1;
       `;
 
@@ -170,43 +169,45 @@ export class FeaturesRepository implements IFeaturesRepository {
    */
   async checkIfTeamHasFeature(teamId: number, featureId: keyof AppFlags): Promise<boolean> {
     try {
-      // NOTE: Ensure table ("Team", "TeamFeatures") and column ("id", "parentId", "featureId", "teamId")
-      // names exactly match your Prisma schema.
+      // Early return if team has feature directly assigned
+      const teamHasFeature = await db.teamFeatures.findFirst({
+        where: {
+          teamId,
+          featureId,
+        },
+      });
+      if (teamHasFeature) return true;
+
       const query = Prisma.sql`
-        WITH RECURSIVE Ancestors AS (
-          -- Anchor member: Start with the initial team
-          SELECT id, "parentId"
+        WITH RECURSIVE TeamHierarchy AS (
+          -- Start with the initial team
+          SELECT id, "parentId",
+            CASE WHEN EXISTS (
+              SELECT 1 FROM "TeamFeatures" tf 
+              WHERE tf."teamId" = id AND tf."featureId" = ${featureId}
+            ) THEN true ELSE false END as has_feature
           FROM "Team"
           WHERE id = ${teamId}
 
           UNION ALL
 
-          -- Recursive member: Find the parent of the team found in the previous step
-          SELECT T.id, T."parentId"
-          FROM "Team" T
-          INNER JOIN Ancestors A ON T.id = A."parentId"
-          WHERE T."parentId" IS NOT NULL
-          -- Stop recursion if we find the feature in any ancestor
-          AND NOT EXISTS (
-            SELECT 1 
-            FROM "TeamFeatures" TF 
-            WHERE TF."teamId" = T.id 
-            AND TF."featureId" = ${featureId}
-          )
+          -- Recursively get parent teams
+          SELECT p.id, p."parentId",
+            CASE WHEN EXISTS (
+              SELECT 1 FROM "TeamFeatures" tf 
+              WHERE tf."teamId" = p.id AND tf."featureId" = ${featureId}
+            ) THEN true ELSE false END as has_feature
+          FROM "Team" p
+          INNER JOIN TeamHierarchy c ON p.id = c."parentId"
+          WHERE NOT c.has_feature -- Stop recursion if we found a team with the feature
         )
-        -- Final check: See if any team ID from the Ancestors list has the feature
         SELECT 1
-        FROM "TeamFeatures" TF
-        WHERE
-          TF."featureId" = ${featureId}
-          AND TF."teamId" IN (SELECT id FROM Ancestors)
+        FROM TeamHierarchy
+        WHERE has_feature = true
         LIMIT 1;
       `;
 
-      // Use a more general type for raw query result
       const result = await db.$queryRaw<unknown[]>(query);
-
-      // Return true if the query returned any row
       return result.length > 0;
     } catch (err) {
       captureException(err);
