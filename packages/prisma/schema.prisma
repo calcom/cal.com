@@ -2098,7 +2098,7 @@ model RoutingFormResponseDenormalized {
   formUserId              Int?
   bookingUid              String?
   bookingId               Int?
-  booking                 Booking?       @relation(fields: [bookingId], references: [id])
+  booking                 Booking?       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   bookingStatus           BookingStatus?
   bookingStatusOrder      Int?
   bookingCreatedAt        DateTime?      @db.Timestamp(3)
