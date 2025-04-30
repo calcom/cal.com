@@ -452,6 +452,88 @@ describe("getCalendarsEventsWithTimezones", () => {
       expect(getAvailabilityWithTimezonesSpy).not.toHaveBeenCalled();
       expect(result).toEqual([[]]);
     });
+
+    it("should return calendar event details with event title when isOverlayUser is true", async () => {
+      const googleCalendarEventDetails: EventBusyData[] = [
+        {
+          start: new Date(2010, 11, 2),
+          end: new Date(2010, 11, 3),
+          title: "google event title",
+        },
+      ];
+
+      const officeCalendarEventDetails: EventBusyData[] = [
+        {
+          start: new Date(2010, 11, 2, 4),
+          end: new Date(2010, 11, 2, 16),
+          title: "office event title",
+        },
+      ];
+
+      const selectedGoogleCalendar: SelectedCalendar = buildSelectedCalendar({
+        credentialId: 100,
+        externalId: "externalId",
+        integration: "google_calendar",
+        userId: 200,
+        id: "id",
+      });
+
+      const selectedOfficeCalendar: SelectedCalendar = buildSelectedCalendar({
+        credentialId: 100,
+        externalId: "externalId",
+        integration: "office365_calendar",
+        userId: 200,
+        id: "id",
+      });
+
+      const getGoogleEventDataSpy = vi
+        .spyOn(GoogleCalendarService.prototype, "getEventList")
+        .mockReturnValue(Promise.resolve(googleCalendarEventDetails));
+
+      const getOfficeEventDataSpy = vi
+        .spyOn(OfficeCalendarService.prototype, "getEventList")
+        .mockReturnValue(Promise.resolve(officeCalendarEventDetails));
+
+      const result = await getCalendarsEvents(
+        [
+          buildRegularCredential({
+            ...credential,
+            type: "google_calendar",
+          }),
+          buildRegularCredential({
+            ...credential,
+            type: "office365_calendar",
+            key: {
+              access_token: "access",
+              refresh_token: "refresh",
+              expires_in: Date.now() + 86400,
+            },
+          }),
+        ],
+        "2010-12-01",
+        "2010-12-04",
+        [selectedGoogleCalendar, selectedOfficeCalendar],
+        false,
+        true
+      );
+
+      expect(getGoogleEventDataSpy).toHaveBeenCalledWith("2010-12-01", "2010-12-04", [
+        selectedGoogleCalendar,
+      ]);
+      expect(getOfficeEventDataSpy).toHaveBeenCalledWith("2010-12-01", "2010-12-04", [
+        selectedOfficeCalendar,
+      ]);
+      expect(result).toEqual([
+        googleCalendarEventDetails.map((av) => ({
+          ...av,
+          source: "exampleApp",
+        })),
+        officeCalendarEventDetails.map((av) => ({
+          ...av,
+          source: "exampleApp",
+        })),
+      ]);
+    });
   });
 
   describe("Delegation Credentials", () => {
@@ -469,83 +551,5 @@ describe("getCalendarsEventsWithTimezones", () => {
       expect(getAvailabilityWithTimezonesSpy).toHaveBeenCalledWith(startDate, endDate, [], true);
       expect(result).toEqual([[]]);
     });
-  });
-
-  it("should return calendar event details with event title when isOverlayUser is true", async () => {
-    const googleCalendarEventDetails: EventBusyData[] = [
-      {
-        start: new Date(2010, 11, 2),
-        end: new Date(2010, 11, 3),
-        title: "google event title",
-      },
-    ];
-
-    const officeCalendarEventDetails: EventBusyData[] = [
-      {
-        start: new Date(2010, 11, 2, 4),
-        end: new Date(2010, 11, 2, 16),
-        title: "office event title",
-      },
-    ];
-
-    const selectedGoogleCalendar: SelectedCalendar = buildSelectedCalendar({
-      credentialId: 100,
-      externalId: "externalId",
-      integration: "google_calendar",
-      userId: 200,
-      id: "id",
-    });
-
-    const selectedOfficeCalendar: SelectedCalendar = buildSelectedCalendar({
-      credentialId: 100,
-      externalId: "externalId",
-      integration: "office365_calendar",
-      userId: 200,
-      id: "id",
-    });
-
-    const getGoogleEventDataSpy = vi
-      .spyOn(GoogleCalendarService.prototype, "getEventList")
-      .mockReturnValue(Promise.resolve(googleCalendarEventDetails));
-
-    const getOfficeEventDataSpy = vi
-      .spyOn(OfficeCalendarService.prototype, "getEventList")
-      .mockReturnValue(Promise.resolve(officeCalendarEventDetails));
-
-    const result = await getCalendarsEvents(
-      [
-        buildRegularCredential({
-          ...credential,
-          type: "google_calendar",
-        }),
-        buildRegularCredential({
-          ...credential,
-          type: "office365_calendar",
-          key: {
-            access_token: "access",
-            refresh_token: "refresh",
-            expires_in: Date.now() + 86400,
-          },
-        }),
-      ],
-      "2010-12-01",
-      "2010-12-04",
-      [selectedGoogleCalendar, selectedOfficeCalendar],
-      false,
-      true
-    );
-
-    expect(getGoogleEventDataSpy).toHaveBeenCalledWith("2010-12-01", "2010-12-04", [selectedGoogleCalendar]);
-    expect(getOfficeEventDataSpy).toHaveBeenCalledWith("2010-12-01", "2010-12-04", [selectedOfficeCalendar]);
-    expect(result).toEqual([
-      googleCalendarEventDetails.map((av) => ({
-        ...av,
-        source: "exampleApp",
-      })),
-      officeCalendarEventDetails.map((av) => ({
-        ...av,
-        source: "exampleApp",
-      })),
-    ]);
   });
 });
