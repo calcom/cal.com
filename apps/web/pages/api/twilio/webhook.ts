@@ -36,8 +36,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
         const smsSid = req.body.SmsSid;
 
-        const parsedTeamId = !!teamId ? Number(teamId) : undefined;
-        const parsedUserId = !!userId ? Number(userId) : undefined;
+        const parsedTeamId = teamId && !isNaN(Number(teamId)) ? Number(teamId) : undefined;
+        const parsedUserId = userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
+
         const parsedBookingUid = bookingUid as string;
 
         if (!parsedUserId && !parsedTeamId) {
@@ -55,6 +56,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               where: {
                 userId: parsedUserId,
                 accepted: true,
+              },
+              select: {
+                teamId: true,
               },
             });
             teamIdToCharge = teamMembership?.teamId;
@@ -78,6 +82,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             where: {
               id: parsedTeamId,
             },
+            select: {
+              isOrganization: true,
+              id: true,
+            },
           });
           orgId = team?.isOrganization ? team.id : undefined;
         }
@@ -97,7 +105,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             credits: 0,
           });
 
-          return res.status(200).send(`SMS are free for organziations. Credits set to 0`);
+          return res.status(200).send(`SMS are free for organizations. Credits set to 0`);
         }
 
         const price = await twilio.getPriceForSMS(smsSid);
