@@ -541,7 +541,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
         {...actionProps}
         className={classNames(
           props.className,
-          "w-full transition-none",
+          "text-default w-full transition-none",
           props.color === "destructive" && "border-0"
         )}>
         {children}
