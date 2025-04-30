@@ -717,6 +717,14 @@ const nextConfig = {
 if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
   plugins.push((nextConfig) =>
     withSentryConfig(nextConfig, {
+      autoInstrumentServerFunctions: false,
+      hideSourceMaps: true,
+      // disable source map generation for the server code
+      disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
+      silent: false,
+      sourcemaps: {
+        disable: process.env.SENTRY_DISABLE_SERVER_SOURCE_MAPS === "1",
+      },
       // For all available options, see:
       // https://www.npmjs.com/package/@sentry/webpack-plugin#options
       org: process.env.SENTRY_ORG,
@@ -740,6 +748,8 @@ if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
       // https://vercel.com/docs/cron-jobs
       automaticVercelMonitors: true,
       telemetry: false,
+      release: process.env.NEXT_PUBLIC_CALCOM_VERSION,
+      tracesSampleRate: parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE ?? "0.0") || 0.0,
     })
   );
 }
