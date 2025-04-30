@@ -278,7 +278,7 @@ export const BookerPlatformWrapper = (
 
   const [routingParams, setRoutingParams] = useState<{
     routedTeamMemberIds?: number[];
-    shouldServeCache?: boolean;
+    _shouldServeCache?: boolean;
     skipContactOwner?: boolean;
     isBookingDryRun?: boolean;
   }>({});
