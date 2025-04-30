@@ -673,6 +673,7 @@ export class EventTypeRepository {
       },
       secondaryEmailId: true,
       maxLeadThreshold: true,
+      includeNoShowInRRCalculation: true,
       useEventLevelSelectedCalendars: true,
     });
 
