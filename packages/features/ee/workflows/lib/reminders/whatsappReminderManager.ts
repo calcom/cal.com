@@ -207,7 +207,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
             fallbackData: isAttendeeAction(action)
               ? {
                   email: evt.attendees[0].email,
-                  t: await getTranslation(evt.attendees[0].language.locale, "common"),
+                  t: await getTranslation(evt.attendees[0].language.locale ?? "en", "common"),
                   replyTo: evt.organizer.email,
                   workflowStepId,
                 }

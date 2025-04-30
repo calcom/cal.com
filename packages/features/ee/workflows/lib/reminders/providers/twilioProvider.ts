@@ -85,9 +85,9 @@ export const sendSMS = async ({
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
     to: getSMSNumber(phoneNumber, isWhatsapp),
     from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender ? sender : getDefaultSender(),
-    statusCallback: `${WEBAPP_URL}/api/twilio/webhook?userId=${userId}${
-      teamId ? `&teamId=${teamId}` : ``
-    }&bookingUid=${bookingUid}`,
+    statusCallback: `${WEBAPP_URL}/api/twilio/webhook?userId=${userId}${teamId ? `&teamId=${teamId}` : ``}&${
+      bookingUid ? `&bookingUid=${bookingUid}` : ``
+    }`,
   });
 
   return response;
@@ -146,8 +146,8 @@ export const scheduleSMS = async ({
     scheduleType: "fixed",
     sendAt: scheduledDate,
     from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender ? sender : getDefaultSender(),
-    statusCallback: `${WEBAPP_URL}/api/twilio/webhook?userId=${userId}${
-      teamId ? `&teamId=${teamId}` : ``
+    statusCallback: `${WEBAPP_URL}/api/twilio/webhook?userId=${userId}${teamId ? `&teamId=${teamId}` : ``}&${
+      bookingUid ? `&bookingUid=${bookingUid}` : ``
     }&bookingUid=${bookingUid}`,
   });
 

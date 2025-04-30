@@ -19,7 +19,7 @@ CREATE TABLE "CreditExpenseLog" (
     "creditBalanceId" TEXT NOT NULL,
     "bookingUid" TEXT,
     "credits" INTEGER,
-    "creditType" "CreditType",
+    "creditType" "CreditType" NOT NULL,
     "date" TIMESTAMP(3) NOT NULL,
     "smsSid" TEXT,
 
@@ -27,16 +27,10 @@ CREATE TABLE "CreditExpenseLog" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "CreditBalance_id_key" ON "CreditBalance"("id");
-
--- CreateIndex
 CREATE UNIQUE INDEX "CreditBalance_teamId_key" ON "CreditBalance"("teamId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "CreditBalance_userId_key" ON "CreditBalance"("userId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "CreditExpenseLog_id_key" ON "CreditExpenseLog"("id");
 
 -- AddForeignKey
 ALTER TABLE "CreditBalance" ADD CONSTRAINT "CreditBalance_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;

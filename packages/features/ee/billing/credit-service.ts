@@ -39,7 +39,7 @@ export class CreditService {
       });
       teamToCharge = result?.teamId ?? null;
       creditType = result?.creditType ?? creditType;
-      remainingCredits = result?.remaningCredits;
+      remainingCredits = result?.remainingCredits;
     }
 
     if (!teamToCharge) {
@@ -195,7 +195,7 @@ export class CreditService {
         teamCredits.totalRemainingMonthlyCredits > 0 ? teamCredits.totalRemainingMonthlyCredits : 0;
       return {
         teamId,
-        remaningCredits: remaningMonthlyCredits + teamCredits.additionalCredits - credits,
+        remainingCredits: remaningMonthlyCredits + teamCredits.additionalCredits - credits,
         creditType: remaningMonthlyCredits > 0 ? CreditType.MONTHLY : CreditType.ADDITIONAL,
       };
     }

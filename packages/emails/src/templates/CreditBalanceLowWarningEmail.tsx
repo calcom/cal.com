@@ -43,7 +43,7 @@ export const CreditBalanceLowWarningEmail = (
           href={`${WEBAPP_URL}/settings/teams/${team.id}/billing`}
           endIconName="linkIcon"
         />
-      </div>{" "}
+      </div>
     </V2BaseEmailHtml>
   );
 };

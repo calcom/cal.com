@@ -31,6 +31,10 @@ async function postHandler(req: NextRequest) {
         gte: dayjs().subtract(1, "hour").toDate(),
       },
     },
+    select: {
+      smsSid: true,
+      id: true,
+    },
   });
 
   let pricesUpdated = 0;

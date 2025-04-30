@@ -43,6 +43,6 @@ export default class CreditBalanceLowWarningEmail extends BaseEmail {
   }
 
   protected getTextBody(): string {
-    return "You are running low on credits. Please buy more credits.";
+    return "Your team is running low on credits. Please buy more credits.";
   }
 }

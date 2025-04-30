@@ -26,8 +26,9 @@ import { resetTestSMS } from "@calcom/lib/testSMS";
 import { SMSLockState, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
-vi.mock(import("@calcom/lib/constants"), async (importOriginal) => {
-  const actual = await importOriginal();
+vi.mock("@calcom/lib/constants", async () => {
+  const actual = await vi.importActual<typeof import("@calcom/lib/constants")>("@calcom/lib/constants");
+
   return {
     ...actual,
     IS_SMS_CREDITS_ENABLED: false,

@@ -4,12 +4,12 @@ import { router } from "../../../trpc";
 import { ZBuyCreditsSchema } from "./buyCredits.schema";
 import { ZGetAllCreditsSchema } from "./getAllCredits.schema";
 
-type GetAllCreditsCache = {
+type CreditsCache = {
   getAllCredits?: typeof import("./getAllCredits.handler").getAllCreditsHandler;
   buyCredits?: typeof import("./buyCredits.handler").buyCreditsHandler;
 };
 
-const UNSTABLE_HANDLER_CACHE: GetAllCreditsCache = {};
+const UNSTABLE_HANDLER_CACHE: CreditsCache = {};
 
 export const creditsRouter = router({
   getAllCredits: authedProcedure.input(ZGetAllCreditsSchema).query(async ({ input, ctx }) => {

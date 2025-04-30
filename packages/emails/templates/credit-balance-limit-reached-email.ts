@@ -36,6 +36,6 @@ export default class CreditBalanceLimitReachedEmail extends BaseEmail {
   }
 
   protected getTextBody(): string {
-    return "You are running low on credits. Please buy more credits.";
+    return "Your team ran out of credits. Please buy more credits.";
   }
 }

@@ -7,7 +7,7 @@ on:
     # Runs “every minute” (see https://crontab.guru)
     - cron: "* * * * *"
 jobs:
-  cron-webhookTriggers:
+  cron-checkSmsPrices:
     env:
       APP_URL: ${{ secrets.APP_URL }}
       CRON_API_KEY: ${{ secrets.CRON_API_KEY }}

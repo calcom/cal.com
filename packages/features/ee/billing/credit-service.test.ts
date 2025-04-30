@@ -245,7 +245,7 @@ describe("CreditService", () => {
 
       expect(result).toEqual({
         teamId: 1,
-        remaningCredits: 100,
+        remainingCredits: 100,
         creditType: CreditType.MONTHLY,
       });
     });
@@ -264,7 +264,7 @@ describe("CreditService", () => {
 
       expect(result).toEqual({
         teamId: 1,
-        remaningCredits: 20,
+        remainingCredits: 20,
         creditType: CreditType.ADDITIONAL,
       });
     });

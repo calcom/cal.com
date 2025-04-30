@@ -6,23 +6,13 @@ import { HttpCode } from "./__handler";
 
 const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
   const session = data.object;
-  if (!session.client_reference_id || !session.amount_total) {
+  if (!session.amount_total) {
     throw new HttpCode(400, "Missing required payment details");
-  }
-
-  const user = await prisma.user.findUnique({
-    where: {
-      id: Number(session.client_reference_id),
-    },
-  });
-
-  if (!user) {
-    throw new HttpCode(404, "User not found");
   }
 
   const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
   const priceId = lineItems.data[0].price?.id;
-  const nrOfCredits = lineItems.data[0].quantity;
+  const nrOfCredits = lineItems.data[0].quantity ?? 0;
 
   if (!priceId || priceId !== process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID || !nrOfCredits) {
     throw new HttpCode(400, "Invalid price ID");
