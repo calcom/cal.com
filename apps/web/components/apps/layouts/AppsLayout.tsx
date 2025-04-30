@@ -10,7 +10,7 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 type AppsLayoutProps = {
   children: React.ReactNode;
-  isAdmin: boolean;
+  isAdmin?: boolean;
   actions?: (className?: string) => JSX.Element;
   emptyStore?: boolean;
 } & Omit<ComponentProps<typeof Shell>, "actions">;
