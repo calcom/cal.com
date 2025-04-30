@@ -12,7 +12,7 @@
   padding: 8px !important;
   border-radius: 16px;
   border: 1px solid var(--cal-border-muted);
-  background-color: var(--cal-bg)
+  background-color: var(--cal-bg);
 }
 
 .cal-query-builder .group--children:not(:empty) {

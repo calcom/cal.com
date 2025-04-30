@@ -282,12 +282,10 @@ export const TestForm = ({
               </div>
             )}
             <Results
-              onBack={() => setShowResults(false)}
               chosenRoute={chosenRoute}
               supportsTeamMembersMatchingLogic={supportsTeamMembersMatchingLogic}
               membersMatchResult={membersMatchResult}
               isPending={findTeamMembersMatchingAttributeLogicMutation.isPending}
-              eventTypeUrlWithoutParams={eventTypeUrlWithoutParams}
             />
             {isDialog && (
               <DialogFooter>

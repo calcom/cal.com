@@ -25,7 +25,7 @@ const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) 
     label: string;
     icon: IconName;
     onClick: () => void;
-    color?: "destructive";
+    color?: "destructive" | "minimal";
   };
 
   const actions: ActionItem[] = [
@@ -129,32 +129,30 @@ export default function FormCard({
         <div className="flex items-center justify-between p-2">
           <div className="flex items-center gap-2">
             {leftIcon && (
-              <div className="p-1.5 rounded-lg text-subtle border border-subtle">
+              <div className="text-subtle border-subtle rounded-lg border p-1.5">
                 <Icon name={leftIcon} className="text-default h-4 w-4" />
               </div>
             )}
-            {
-              collapsible && (
-                <Button
-                  size="sm"
-                  variant="icon"
-                  color="minimal"
-                  CustomStartIcon={
-                    <Icon
-                      name="chevron-up"
-                      className={classNames(
-                        "text-default h-4 w-4 transition-transform",
-                        isCollapsed && "rotate-180"
-                      )}
-                    />
-                  }
-                  onClick={() => {
-                    toggleFormCard();
-                  }}
-                  className="text-muted"
-                />
-              )
-            }
+            {collapsible && (
+              <Button
+                size="sm"
+                variant="icon"
+                color="minimal"
+                CustomStartIcon={
+                  <Icon
+                    name="chevron-up"
+                    className={classNames(
+                      "text-default h-4 w-4 transition-transform",
+                      isCollapsed && "rotate-180"
+                    )}
+                  />
+                }
+                onClick={() => {
+                  toggleFormCard();
+                }}
+                className="text-muted"
+              />
+            )}
             {isLabelEditable ? (
               <Input type="text" value={label} onChange={(e) => onLabelChange?.(e.target.value)} />
             ) : (

@@ -44,7 +44,7 @@ export const ResultsSection = ({
 
 export const TeamMember = ({ name, email, score }: { name: string | null; email: string; score: number }) => (
   <div className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
-    <div className="aspace-y-2 flex flex-col">
+    <div className="flex flex-col">
       <h4 className="text-emphasis font-medium">{name || "Nameless User"}</h4>
       <Badge variant="gray">{email}</Badge>
     </div>
@@ -59,21 +59,17 @@ export const TeamMember = ({ name, email, score }: { name: string | null; email:
 );
 
 interface ResultsViewProps {
-  onBack: () => void;
   chosenRoute: NonRouterRoute | null;
   supportsTeamMembersMatchingLogic?: boolean;
   membersMatchResult?: MembersMatchResultType | null;
   isPending?: boolean;
-  eventTypeUrlWithoutParams?: string;
 }
 
 export const ResultsView = ({
-  onBack,
   chosenRoute,
   supportsTeamMembersMatchingLogic = false,
   membersMatchResult = null,
   isPending = false,
-  eventTypeUrlWithoutParams = "",
 }: ResultsViewProps) => {
   const { t } = useLocale();
 

@@ -52,7 +52,7 @@ export const TeamMembersMatchResult = ({
 
   const renderQueue = () => {
     if (isNoLogicFound(membersMatchResult.teamMembersMatchingAttributeLogic)) {
-      if (!showAllData) return <div className="mt-4">{t("no_active_queues")}asdf</div>;
+      if (!showAllData) return <div className="mt-4">{t("no_active_queues")}</div>;
       if (membersMatchResult.checkedFallback) {
         return (
           <span className="font-semibold">
