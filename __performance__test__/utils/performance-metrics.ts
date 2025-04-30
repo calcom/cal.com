@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
-import type { Metric } from "web-vitals";
-import { reportWebVitals } from "web-vitals";
+import type { CLSMetric, FCPMetric, FIDMetric, INPMetric, LCPMetric, TTFBMetric } from "web-vitals";
+import { onCLS, onFCP, onFID, onINP, onLCP, onTTFB } from "web-vitals";
 
 type PerformanceMetric = {
   name: string;
@@ -9,19 +9,11 @@ type PerformanceMetric = {
   timestamp: number;
 };
 
-type WebVitalMetric = {
-  name: string;
-  value: number;
-  id: string;
-};
-
 export async function measurePageLoad(page: Page, pageName: string): Promise<PerformanceMetric[]> {
   const metrics: PerformanceMetric[] = [];
-
   const startTime = Date.now();
   await page.waitForLoadState("networkidle");
   const loadTime = Date.now() - startTime;
-
   metrics.push({
     name: "page-load-time",
     value: loadTime,
@@ -29,34 +21,74 @@ export async function measurePageLoad(page: Page, pageName: string): Promise<Per
     timestamp: Date.now(),
   });
 
-  const webVitalsMetrics = await page.evaluate(() => {
-    return new Promise<WebVitalMetric[]>((resolve) => {
-      const results: WebVitalMetric[] = [];
+  const webVitalsMetricsPromise = page.evaluate(() => {
+    return new Promise<PerformanceMetric[]>((resolve) => {
+      const localMetrics: PerformanceMetric[] = [];
 
-      function captureMetric(metric: Metric) {
-        results.push({
+      onCLS((metric: CLSMetric) => {
+        localMetrics.push({
           name: metric.name,
           value: metric.value,
-          id: metric.id,
+          page: "__PAGE_NAME__",
+          timestamp: Date.now(),
         });
+      });
 
-        if (results.length >= 5) {
-          // LCP, FID, CLS, TTFB, FCP
-          resolve(results);
-        }
-      }
+      onFCP((metric: FCPMetric) => {
+        localMetrics.push({
+          name: metric.name,
+          value: metric.value,
+          page: "__PAGE_NAME__",
+          timestamp: Date.now(),
+        });
+      });
 
-      reportWebVitals(captureMetric);
+      onFID((metric: FIDMetric) => {
+        localMetrics.push({
+          name: metric.name,
+          value: metric.value,
+          page: "__PAGE_NAME__",
+          timestamp: Date.now(),
+        });
+      });
+
+      onINP((metric: INPMetric) => {
+        localMetrics.push({
+          name: metric.name,
+          value: metric.value,
+          page: "__PAGE_NAME__",
+          timestamp: Date.now(),
+        });
+      });
+
+      onLCP((metric: LCPMetric) => {
+        localMetrics.push({
+          name: metric.name,
+          value: metric.value,
+          page: "__PAGE_NAME__",
+          timestamp: Date.now(),
+        });
+      });
+
+      onTTFB((metric: TTFBMetric) => {
+        localMetrics.push({
+          name: metric.name,
+          value: metric.value,
+          page: "__PAGE_NAME__",
+          timestamp: Date.now(),
+        });
+        // Resolve the promise after TTFB is reported as it's a good indicator of initial load completion
+        resolve(localMetrics);
+      });
     });
   });
 
+  const webVitalsMetrics = await webVitalsMetricsPromise;
+
+  // Replace the placeholder page name with the actual pageName
   webVitalsMetrics.forEach((metric) => {
-    metrics.push({
-      name: metric.name,
-      value: metric.value,
-      page: pageName,
-      timestamp: Date.now(),
-    });
+    metric.page = pageName;
+    metrics.push(metric);
   });
 
   return metrics;
@@ -68,28 +100,22 @@ export function generateReport(allMetrics: PerformanceMetric[]) {
     byPage: {},
     timestamp: Date.now(),
   };
-
   allMetrics.forEach((metric) => {
     if (!report.byPage[metric.page]) {
       report.byPage[metric.page] = {};
     }
-
     if (!report.byPage[metric.page][metric.name]) {
       report.byPage[metric.page][metric.name] = [];
     }
-
     report.byPage[metric.page][metric.name].push(metric.value);
   });
-
   Object.keys(report.byPage).forEach((page) => {
     report.summary[page] = {};
-
     Object.keys(report.byPage[page]).forEach((metricName) => {
       const values = report.byPage[page][metricName];
       const average = values.reduce((a, b) => a + b, 0) / values.length;
       report.summary[page][metricName] = average;
     });
   });
-
   return report;
 }
