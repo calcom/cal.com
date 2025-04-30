@@ -615,6 +615,7 @@ async function fetchAllDataNeededForCalculations<
       }),
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
+      includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
     }),
 
     getBookingsOfInterval({
@@ -622,6 +623,7 @@ async function fetchAllDataNeededForCalculations<
       users: notAvailableHosts,
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
+      includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
     }),
 
     getBookingsOfInterval({
@@ -631,6 +633,7 @@ async function fetchAllDataNeededForCalculations<
       }),
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
+      includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
     }),
 
     prisma.host.findMany({
