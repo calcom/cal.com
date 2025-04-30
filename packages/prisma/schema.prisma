@@ -2089,21 +2089,21 @@ model WorkflowOptOutContact {
 }
 
 model RoutingFormResponseDenormalized {
-  id                      Int       @id
-  response                Json      @db.JsonB
-  responseByFieldId       Json      @db.JsonB
+  id                      Int            @id
+  response                Json           @db.JsonB
+  responseByFieldId       Json           @db.JsonB
   formId                  String
   formName                String
   formTeamId              Int?
   formUserId              Int?
   bookingUid              String?
   bookingId               Int?
-  booking                 Booking?  @relation(fields: [bookingId], references: [id])
-  bookingStatus           String?
+  booking                 Booking?       @relation(fields: [bookingId], references: [id])
+  bookingStatus           BookingStatus?
   bookingStatusOrder      Int?
-  bookingCreatedAt        DateTime? @db.Timestamp(3)
-  bookingStartTime        DateTime? @db.Timestamp(3)
-  bookingEndTime          DateTime? @db.Timestamp(3)
+  bookingCreatedAt        DateTime?      @db.Timestamp(3)
+  bookingStartTime        DateTime?      @db.Timestamp(3)
+  bookingEndTime          DateTime?      @db.Timestamp(3)
   bookingUserId           Int?
   bookingUserName         String?
   bookingUserEmail        String?
@@ -2112,7 +2112,7 @@ model RoutingFormResponseDenormalized {
   eventTypeId             Int?
   eventTypeParentId       Int?
   eventTypeSchedulingType String?
-  createdAt               DateTime  @db.Timestamp(3)
+  createdAt               DateTime       @db.Timestamp(3)
   utm_source              String?
   utm_medium              String?
   utm_campaign            String?

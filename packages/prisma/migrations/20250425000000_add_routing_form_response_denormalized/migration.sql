@@ -9,7 +9,7 @@ CREATE TABLE "RoutingFormResponseDenormalized" (
     "formUserId" INTEGER,
     "bookingUid" TEXT,
     "bookingId" INTEGER,
-    "bookingStatus" TEXT,
+    "bookingStatus" "BookingStatus",
     "bookingStatusOrder" INTEGER,
     "bookingCreatedAt" TIMESTAMP(3),
     "bookingStartTime" TIMESTAMP(3),
