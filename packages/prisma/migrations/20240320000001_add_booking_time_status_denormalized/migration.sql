@@ -140,26 +140,70 @@ CREATE TRIGGER booking_delete_trigger
     FOR EACH ROW
     EXECUTE FUNCTION trigger_delete_booking_time_status_denormalized();
 
--- Trigger function for EventType changes
-CREATE OR REPLACE FUNCTION trigger_refresh_booking_time_status_denormalized_event_type()
+-- Function for teamId changes on EventType
+CREATE OR REPLACE FUNCTION refresh_booking_time_status_team_id()
 RETURNS TRIGGER AS $$
 BEGIN
-    BEGIN
+    IF NEW."teamId" IS DISTINCT FROM OLD."teamId" THEN
         UPDATE "BookingTimeStatusDenormalized" btsd
         SET
             "teamId" = NEW."teamId",
-            "eventLength" = NEW.length,
-            "eventParentId" = NEW."parentId",
             "isTeamBooking" = calculate_is_team_booking(NEW."teamId")
-        WHERE btsd."eventTypeId" = NEW.id;
-    EXCEPTION WHEN OTHERS THEN
-        RAISE WARNING 'DENORM_ERROR: BookingTimeStatusDenormalized - Failed to update EventType changes for id %, error: %', NEW.id, SQLERRM;
-    END;
+        WHERE btsd."eventTypeId" = NEW.id
+        AND (
+            btsd."teamId" IS DISTINCT FROM NEW."teamId"
+            OR btsd."isTeamBooking" IS DISTINCT FROM calculate_is_team_booking(NEW."teamId")
+        );
+    END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger function for user changes
+-- Function for length changes on EventType
+CREATE OR REPLACE FUNCTION refresh_booking_time_status_length()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.length IS DISTINCT FROM OLD.length THEN
+        UPDATE "BookingTimeStatusDenormalized" btsd
+        SET "eventLength" = NEW.length
+        WHERE btsd."eventTypeId" = NEW.id
+        AND btsd."eventLength" IS DISTINCT FROM NEW.length;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function for parentId changes on EventType
+CREATE OR REPLACE FUNCTION refresh_booking_time_status_parent_id()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW."parentId" IS DISTINCT FROM OLD."parentId" THEN
+        UPDATE "BookingTimeStatusDenormalized" btsd
+        SET "eventParentId" = NEW."parentId"
+        WHERE btsd."eventTypeId" = NEW.id
+        AND btsd."eventParentId" IS DISTINCT FROM NEW."parentId";
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create separate triggers for each property on EventType
+CREATE TRIGGER event_type_team_id_update_trigger
+    AFTER UPDATE OF "teamId" ON "EventType"
+    FOR EACH ROW
+    EXECUTE FUNCTION refresh_booking_time_status_team_id();
+
+CREATE TRIGGER event_type_length_update_trigger
+    AFTER UPDATE OF length ON "EventType"
+    FOR EACH ROW
+    EXECUTE FUNCTION refresh_booking_time_status_length();
+
+CREATE TRIGGER event_type_parent_id_update_trigger
+    AFTER UPDATE OF "parentId" ON "EventType"
+    FOR EACH ROW
+    EXECUTE FUNCTION refresh_booking_time_status_parent_id();
+
+-- Create triggers for users table
 CREATE OR REPLACE FUNCTION trigger_refresh_booking_time_status_denormalized_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -176,13 +220,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create triggers for EventType table
-CREATE TRIGGER event_type_update_trigger
-    AFTER UPDATE OF "teamId", length, "parentId" ON "EventType"
-    FOR EACH ROW
-    EXECUTE FUNCTION trigger_refresh_booking_time_status_denormalized_event_type();
-
--- Create triggers for users table
 CREATE TRIGGER user_update_trigger
     AFTER UPDATE OF email, username ON users
     FOR EACH ROW
