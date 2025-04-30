@@ -54,7 +54,6 @@ const FormView = ({
       exit={{ opacity: 0, x: 20 }}
       transition={{ duration: 0.2 }}>
       <form
-        className="px-1"
         noValidate
         onSubmit={(e) => {
           e.preventDefault();
