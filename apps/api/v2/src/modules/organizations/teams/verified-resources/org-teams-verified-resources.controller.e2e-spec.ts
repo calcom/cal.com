@@ -6,8 +6,8 @@ import { UsersModule } from "@/modules/users/users.module";
 import { RequestEmailVerificationInput } from "@/modules/verified-resources/inputs/request-email-verification.input";
 import { VerifyEmailInput } from "@/modules/verified-resources/inputs/verify-email.input";
 import {
-  VerifiedEmailOutput,
-  VerifiedEmailsOutput,
+  TeamVerifiedEmailOutput,
+  TeamVerifiedEmailsOutput,
 } from "@/modules/verified-resources/outputs/verified-email.output";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -136,7 +136,9 @@ describe("Organizations Teams Verified Resources", () => {
 
   it("should trigger email verification code", async () => {
     return request(app.getHttpServer())
-      .post(`/v2/organizations/${org.id}/teams/${orgTeam.id}/verified-resources/emails/request`)
+      .post(
+        `/v2/organizations/${org.id}/teams/${orgTeam.id}/verified-resources/emails/verification-code/request`
+      )
       .send({ email: emailToVerify } satisfies RequestEmailVerificationInput)
       .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
       .expect(200);
@@ -144,12 +146,14 @@ describe("Organizations Teams Verified Resources", () => {
 
   it("should verify email", async () => {
     return request(app.getHttpServer())
-      .post(`/v2/organizations/${org.id}/teams/${orgTeam.id}/verified-resources/emails/verify`)
+      .post(
+        `/v2/organizations/${org.id}/teams/${orgTeam.id}/verified-resources/emails/verification-code/verify`
+      )
       .send({ email: emailToVerify, code: "1234" } satisfies VerifyEmailInput)
       .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
       .expect(200)
       .then((res) => {
-        const response = res.body as VerifiedEmailOutput;
+        const response = res.body as TeamVerifiedEmailOutput;
         verifiedEmailId = response.data.id;
         expect(response.data.email).toEqual(emailToVerify);
         expect(response.data.teamId).toEqual(orgTeam.id);
@@ -162,7 +166,7 @@ describe("Organizations Teams Verified Resources", () => {
       .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
       .expect(200)
       .then((res) => {
-        const response = res.body as VerifiedEmailOutput;
+        const response = res.body as TeamVerifiedEmailOutput;
         expect(response.data.email).toEqual(emailToVerify);
         expect(response.data.teamId).toEqual(orgTeam.id);
       });
@@ -174,7 +178,7 @@ describe("Organizations Teams Verified Resources", () => {
       .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
       .expect(200)
       .then((res) => {
-        const response = res.body as VerifiedEmailsOutput;
+        const response = res.body as TeamVerifiedEmailsOutput;
         expect(response.data.find((verifiedEmail) => verifiedEmail.email === emailToVerify)).toBeDefined();
         expect(response.data.find((verifiedEmail) => verifiedEmail.teamId === orgTeam.id)).toBeDefined();
       });

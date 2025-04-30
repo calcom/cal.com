@@ -24,24 +24,29 @@ export class VerifiedResourcesService {
     }
 
     if (!res.ok) {
-      throw new BadRequestException("Email could not be verfied.");
+      throw new BadRequestException("Email could not be verified.");
     }
 
     if (res.skipped) {
-      throw new ConflictException("Email is already verfied.");
+      throw new ConflictException("Email is already verified.");
     }
 
     return true;
   }
 
   async requestPhoneVerificationCode(phone: string) {
-    await sendPhoneVerificationCode(phone);
+    try {
+      await sendPhoneVerificationCode(phone);
+    } catch (err) {
+      throw new BadRequestException("Could not send verification code to this phone number.");
+    }
+
     return true;
   }
 
   async verifyPhone(userId: number, phone: string, code: string, teamId?: number) {
     const result = await verifyPhoneNumber(phone, code, userId, teamId);
-    console.log("PHONE RESULT", result);
+
     if (result) {
       return await this.verifiedResourcesRepository.getVerifiedPhoneNumber(userId, phone, teamId);
     }

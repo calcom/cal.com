@@ -11,9 +11,9 @@ import { VerifyPhoneInput } from "@/modules/verified-resources/inputs/verify-pho
 import { RequestEmailVerificationOutput } from "@/modules/verified-resources/outputs/request-email-verification-output";
 import { RequestPhoneVerificationOutput } from "@/modules/verified-resources/outputs/request-phone-verification-output";
 import {
-  VerifiedEmailOutput,
-  VerifiedEmailOutputData,
-  VerifiedEmailsOutput,
+  TeamVerifiedEmailOutput,
+  TeamVerifiedEmailOutputData,
+  TeamVerifiedEmailsOutput,
 } from "@/modules/verified-resources/outputs/verified-email.output";
 import {
   VerifiedPhoneOutput,
@@ -52,7 +52,7 @@ export class TeamsVerifiedResourcesController {
   })
   @Roles("TEAM_ADMIN")
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
-  @Post("/emails/request")
+  @Post("/emails/verification-code/request")
   @Throttle({ limit: 5, ttl: 60000, blockDuration: 60000, name: "teams_verified_resources_emails_requests" })
   @HttpCode(HttpStatus.OK)
   async requestEmailVerificationCode(
@@ -76,7 +76,7 @@ export class TeamsVerifiedResourcesController {
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
-  @Post("/phone-numbers/request")
+  @Post("/phones/verification-code/request")
   @Throttle({ limit: 3, ttl: 60000, blockDuration: 60000, name: "teams_verified_resources_phones_requests" })
   @HttpCode(HttpStatus.OK)
   async requestPhoneVerificationCode(
@@ -97,13 +97,13 @@ export class TeamsVerifiedResourcesController {
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
-  @Post("/emails/verify")
+  @Post("/emails/verification-code/verify")
   @HttpCode(HttpStatus.OK)
   async verifyEmail(
     @Body() body: VerifyEmailInput,
     @GetUser("id") userId: number,
     @Param("teamId", ParseIntPipe) teamId: number
-  ): Promise<VerifiedEmailOutput> {
+  ): Promise<TeamVerifiedEmailOutput> {
     const verifiedEmail = await this.verifiedResourcesService.verifyEmail(
       userId,
       body.email,
@@ -112,7 +112,7 @@ export class TeamsVerifiedResourcesController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(VerifiedEmailOutputData, verifiedEmail),
+      data: plainToClass(TeamVerifiedEmailOutputData, verifiedEmail),
     };
   }
 
@@ -122,7 +122,7 @@ export class TeamsVerifiedResourcesController {
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
-  @Post("/phone-numbers/verify")
+  @Post("/phones/verification-code/verify")
   @HttpCode(HttpStatus.OK)
   async verifyPhoneNumber(
     @Body() body: VerifyPhoneInput,
@@ -151,7 +151,7 @@ export class TeamsVerifiedResourcesController {
   async getVerifiedEmails(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() pagination: SkipTakePagination
-  ): Promise<VerifiedEmailsOutput> {
+  ): Promise<TeamVerifiedEmailsOutput> {
     const verifiedEmails = await this.verifiedResourcesService.getTeamVerifiedEmails(
       teamId,
       pagination.skip,
@@ -159,7 +159,7 @@ export class TeamsVerifiedResourcesController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: verifiedEmails.map((verifiedEmail) => plainToClass(VerifiedEmailOutputData, verifiedEmail)),
+      data: verifiedEmails.map((verifiedEmail) => plainToClass(TeamVerifiedEmailOutputData, verifiedEmail)),
     };
   }
 
@@ -197,11 +197,11 @@ export class TeamsVerifiedResourcesController {
   async getVerifiedEmailById(
     @Param("id") id: number,
     @Param("teamId", ParseIntPipe) teamId: number
-  ): Promise<VerifiedEmailOutput> {
+  ): Promise<TeamVerifiedEmailOutput> {
     const verifiedEmail = await this.verifiedResourcesService.getTeamVerifiedEmailById(teamId, id);
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(VerifiedEmailOutputData, verifiedEmail),
+      data: plainToClass(TeamVerifiedEmailOutputData, verifiedEmail),
     };
   }
 

@@ -5,9 +5,8 @@ import { IsEmail, IsString } from "class-validator";
 export class VerifyEmailInput {
   @ApiProperty({
     type: String,
-    required: false,
     description: "Email to verify.",
-    example: "https://example.com/avatar.jpg",
+    example: "example@acme.com",
   })
   @IsEmail()
   @Expose()
@@ -15,7 +14,6 @@ export class VerifyEmailInput {
 
   @ApiProperty({
     type: String,
-    required: false,
     description: "verification code sent to the email to verify",
     example: "1ABG2C",
   })

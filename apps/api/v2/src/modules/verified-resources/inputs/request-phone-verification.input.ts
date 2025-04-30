@@ -5,7 +5,6 @@ import { IsPhoneNumber } from "class-validator";
 export class RequestPhoneVerificationInput {
   @ApiProperty({
     type: String,
-    required: false,
     description: "Phone number to verify.",
     example: "+372 5555 6666",
   })

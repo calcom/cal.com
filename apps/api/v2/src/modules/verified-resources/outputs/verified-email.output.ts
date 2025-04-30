@@ -5,7 +5,7 @@ import { IsArray, IsEnum, IsNotEmptyObject, IsNumber, IsString, ValidateNested }
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 
-export class VerifiedEmailOutputData {
+export class UserVerifiedEmailOutputData {
   @Expose()
   @IsNumber()
   @ApiProperty({
@@ -28,23 +28,38 @@ export class VerifiedEmailOutputData {
   @ApiProperty({
     description: "The ID of the associated user, if applicable.",
     example: 45,
-    nullable: true,
-    required: false,
   })
-  userId?: number | null;
+  userId!: number;
+}
+
+export class TeamVerifiedEmailOutputData {
+  @Expose()
+  @IsNumber()
+  @ApiProperty({
+    description: "The unique identifier for the verified email.",
+    example: 789,
+  })
+  id!: number;
+
+  @Expose()
+  @IsString()
+  @ApiProperty({
+    description: "The verified email address.",
+    example: "user@example.com",
+    format: "email",
+  })
+  email!: string;
 
   @Expose()
   @IsNumber()
   @ApiProperty({
     description: "The ID of the associated team, if applicable.",
     example: 89,
-    nullable: true,
-    required: false,
   })
-  teamId?: number | null;
+  teamId!: number;
 }
 
-export class VerifiedEmailOutput {
+export class TeamVerifiedEmailOutput {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
@@ -53,11 +68,24 @@ export class VerifiedEmailOutput {
     type: ScheduleOutput,
   })
   @IsNotEmptyObject()
-  @Type(() => VerifiedEmailOutputData)
-  data!: VerifiedEmailOutputData;
+  @Type(() => TeamVerifiedEmailOutputData)
+  data!: TeamVerifiedEmailOutputData;
 }
 
-export class VerifiedEmailsOutput {
+export class UserVerifiedEmailOutput {
+  @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
+  @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
+  status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
+
+  @ApiProperty({
+    type: ScheduleOutput,
+  })
+  @IsNotEmptyObject()
+  @Type(() => UserVerifiedEmailOutputData)
+  data!: UserVerifiedEmailOutputData;
+}
+
+export class TeamVerifiedEmailsOutput {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
@@ -68,6 +96,21 @@ export class VerifiedEmailsOutput {
   @IsNotEmptyObject()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => VerifiedEmailOutputData)
-  data!: VerifiedEmailOutputData[];
+  @Type(() => TeamVerifiedEmailOutputData)
+  data!: TeamVerifiedEmailOutputData[];
+}
+
+export class UserVerifiedEmailsOutput {
+  @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
+  @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
+  status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
+
+  @ApiProperty({
+    type: ScheduleOutput,
+  })
+  @IsNotEmptyObject()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => UserVerifiedEmailOutputData)
+  data!: UserVerifiedEmailOutputData[];
 }

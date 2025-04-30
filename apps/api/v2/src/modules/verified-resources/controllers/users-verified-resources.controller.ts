@@ -9,9 +9,9 @@ import { VerifyPhoneInput } from "@/modules/verified-resources/inputs/verify-pho
 import { RequestEmailVerificationOutput } from "@/modules/verified-resources/outputs/request-email-verification-output";
 import { RequestPhoneVerificationOutput } from "@/modules/verified-resources/outputs/request-phone-verification-output";
 import {
-  VerifiedEmailOutput,
-  VerifiedEmailOutputData,
-  VerifiedEmailsOutput,
+  UserVerifiedEmailOutput,
+  UserVerifiedEmailOutputData,
+  UserVerifiedEmailsOutput,
 } from "@/modules/verified-resources/outputs/verified-email.output";
 import {
   VerifiedPhoneOutput,
@@ -38,7 +38,7 @@ export class UserVerifiedResourcesController {
     description: `Sends a verification code to the email.`,
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
-  @Post("/emails/request")
+  @Post("/emails/verification-code/request")
   @HttpCode(HttpStatus.OK)
   @Throttle({ limit: 5, ttl: 60000, blockDuration: 60000, name: "users_verified_resources_emails_requests" })
   async requestEmailVerificationCode(
@@ -61,7 +61,7 @@ export class UserVerifiedResourcesController {
     description: `Sends a verification code to the phone number.`,
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
-  @Post("/phone-numbers/request")
+  @Post("/phones/verification-code/request")
   @HttpCode(HttpStatus.OK)
   @Throttle({ limit: 3, ttl: 60000, blockDuration: 60000, name: "users_verified_resources_phones_requests" })
   async requestPhoneVerificationCode(
@@ -81,16 +81,16 @@ export class UserVerifiedResourcesController {
     description: `Use code to verify an email`,
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
-  @Post("/emails/verify")
+  @Post("/emails/verification-code/verify")
   @HttpCode(HttpStatus.OK)
   async verifyEmail(
     @Body() body: VerifyEmailInput,
     @GetUser("id") userId: number
-  ): Promise<VerifiedEmailOutput> {
+  ): Promise<UserVerifiedEmailOutput> {
     const verifiedEmail = await this.verifiedResourcesService.verifyEmail(userId, body.email, body.code);
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(VerifiedEmailOutputData, verifiedEmail),
+      data: plainToClass(UserVerifiedEmailOutputData, verifiedEmail),
     };
   }
 
@@ -99,7 +99,7 @@ export class UserVerifiedResourcesController {
     description: `Use code to verify a phone number`,
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
-  @Post("/phone-numbers/verify")
+  @Post("/phones/verification-code/verify")
   @HttpCode(HttpStatus.OK)
   async verifyPhoneNumber(
     @Body() body: VerifyPhoneInput,
@@ -121,7 +121,7 @@ export class UserVerifiedResourcesController {
   async getVerifiedEmails(
     @GetUser("id") userId: number,
     @Query() pagination: SkipTakePagination
-  ): Promise<VerifiedEmailsOutput> {
+  ): Promise<UserVerifiedEmailsOutput> {
     const verifiedEmails = await this.verifiedResourcesService.getUserVerifiedEmails(
       userId,
       pagination.skip,
@@ -129,7 +129,7 @@ export class UserVerifiedResourcesController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: verifiedEmails.map((verifiedEmail) => plainToClass(VerifiedEmailOutputData, verifiedEmail)),
+      data: verifiedEmails.map((verifiedEmail) => plainToClass(UserVerifiedEmailOutputData, verifiedEmail)),
     };
   }
 
@@ -165,11 +165,11 @@ export class UserVerifiedResourcesController {
   async getVerifiedEmailById(
     @GetUser("id") userId: number,
     @Param("id") id: number
-  ): Promise<VerifiedEmailOutput> {
+  ): Promise<UserVerifiedEmailOutput> {
     const verifiedEmail = await this.verifiedResourcesService.getUserVerifiedEmailById(userId, id);
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(VerifiedEmailOutputData, verifiedEmail),
+      data: plainToClass(UserVerifiedEmailOutputData, verifiedEmail),
     };
   }
 
