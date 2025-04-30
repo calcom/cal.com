@@ -1,6 +1,5 @@
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
-import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -17,16 +16,7 @@ type GetAllCreditsOptions = {
 export const getAllCreditsHandler = async ({ ctx, input }: GetAllCreditsOptions) => {
   const { teamId } = input;
 
-  const adminMembership = await prisma.membership.findFirst({
-    where: {
-      userId: ctx.user.id,
-      teamId,
-      accepted: true,
-      role: {
-        in: [MembershipRole.ADMIN, MembershipRole.OWNER],
-      },
-    },
-  });
+  const adminMembership = await MembershipRepository.getAdminMembership(ctx.user.id, teamId);
 
   if (!adminMembership) {
     throw new TRPCError({

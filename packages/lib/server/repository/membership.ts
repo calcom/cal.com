@@ -1,5 +1,5 @@
 import { availabilityUserSelect, prisma } from "@calcom/prisma";
-import type { MembershipRole } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
@@ -286,5 +286,18 @@ export class MembershipRepository {
       teamMemberships,
       orgMemberships,
     };
+  }
+
+  static async getAdminMembership(userId: number, teamId: number) {
+    return prisma.membership.findFirst({
+      where: {
+        userId,
+        teamId,
+        accepted: true,
+        role: {
+          in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        },
+      },
+    });
   }
 }
