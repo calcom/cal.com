@@ -1,3 +1,4 @@
+import { IS_E2E_MODE } from "@calcom/lib/constants";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
@@ -7,7 +8,13 @@ export default defaultHandler({
     default: defaultResponder(async (req, res) => {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-      res.setHeader("Access-Control-Allow-Headers", "Content-Type, cache-control, pragma");
+      const allowedHeaders = [
+        "Content-Type",
+        "cache-control",
+        "pragma",
+        ...(IS_E2E_MODE ? ["x-cal-force-slug"] : []),
+      ];
+      res.setHeader("Access-Control-Allow-Headers", allowedHeaders.join(", "));
       res.status(204).end();
     }),
   }),

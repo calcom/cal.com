@@ -58,7 +58,7 @@ export const getEmbedIframe = async ({
   if (u.pathname === `${pathname}/embed`) {
     return embedIframe;
   }
-  console.log(`Embed iframe url pathname match. Expected: "${pathname}/embed"`, `Actual: ${u.pathname}`);
+  console.log(`Embed iframe url pathname mismatch. Expected: "${pathname}/embed"`, `Actual: ${u.pathname}`);
   return null;
 };
 
@@ -116,18 +116,9 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   // expect(await page.screenshot()).toMatchSnapshot("availability-page-1.png");
   // Remove /embed from the end if present.
   const eventSlug = new URL(frame.url()).pathname.replace(/\/embed$/, "");
-  await selectFirstAvailableTimeSlotNextMonth(frame, page);
-  // expect(await page.screenshot()).toMatchSnapshot("booking-page.png");
-  // --- fill form
-  await frame.fill('[name="name"]', "Embed User");
-  await frame.fill('[name="email"]', "embed-user@example.com");
-  const responsePromise = page.waitForResponse("**/api/book/event");
-  await frame.press('[name="email"]', "Enter");
-  const response = await responsePromise;
-  const booking = (await response.json()) as { uid: string; eventSlug: string };
-  expect(response.status()).toBe(200);
-  booking.eventSlug = eventSlug;
-  return booking;
+  const result = (await bookEvent({ frame, page })) as { uid: string; eventSlug: string };
+  result.eventSlug = eventSlug;
+  return result;
 }
 
 export async function rescheduleEvent(username: string, frame: Frame, page: Page) {
@@ -142,6 +133,21 @@ export async function rescheduleEvent(username: string, frame: Frame, page: Page
   const booking = responseObj.uid;
   return booking;
 }
+
+export async function bookEvent({ frame, page }: { frame: Frame; page: Page }) {
+  await selectFirstAvailableTimeSlotNextMonth(frame, page);
+  // expect(await page.screenshot()).toMatchSnapshot("booking-page.png");
+  // --- fill form
+  await frame.fill('[name="name"]', "Embed User");
+  await frame.fill('[name="email"]', "embed-user@example.com");
+  const responsePromise = page.waitForResponse("**/api/book/event");
+  await frame.press('[name="email"]', "Enter");
+  const response = await responsePromise;
+  const booking = (await response.json()) as { uid: string };
+  expect(response.status()).toBe(200);
+  return booking;
+}
+
 export async function installAppleCalendar(page: Page) {
   await page.goto("/apps/categories/calendar");
   await page.click('[data-testid="app-store-app-card-apple-calendar"]');
