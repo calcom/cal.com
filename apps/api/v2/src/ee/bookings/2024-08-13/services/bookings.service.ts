@@ -370,23 +370,25 @@ export class BookingsService_2024_08_13 {
     user: { email: string; id: number; orgId?: number },
     userIds?: number[]
   ) {
-    if (queryParams.attendeeEmail) {
-      queryParams.attendeeEmail = await this.getAttendeeEmail(queryParams.attendeeEmail, user);
+    const query = this.inputService.ensureDateRanges(queryParams);
+
+    if (query.attendeeEmail) {
+      query.attendeeEmail = await this.getAttendeeEmail(query.attendeeEmail, user);
     }
 
     const fetchedBookings: { bookings: { id: number }[] } = await getAllUserBookings({
-      bookingListingByStatus: queryParams.status || [],
-      skip: queryParams.skip ?? 0,
-      take: queryParams.take ?? 100,
+      bookingListingByStatus: query.status || [],
+      skip: query.skip ?? 0,
+      take: query.take ?? 100,
       filters: {
-        ...this.inputService.transformGetBookingsFilters(queryParams),
+        ...this.inputService.transformGetBookingsFilters(query),
         ...(userIds?.length ? { userIds } : {}),
       },
       ctx: {
         user,
         prisma: this.prismaReadService.prisma as unknown as PrismaClient,
       },
-      sort: this.inputService.transformGetBookingsSort(queryParams),
+      sort: this.inputService.transformGetBookingsSort(query),
     });
     // note(Lauris): fetchedBookings don't have attendees information and responses and i don't want to add them to the handler query,
     // because its used elsewhere in code that does not need that information, so i get ids, fetch bookings and then return them formatted in same order as ids.
