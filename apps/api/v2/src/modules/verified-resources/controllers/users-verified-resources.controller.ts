@@ -14,9 +14,9 @@ import {
   UserVerifiedEmailsOutput,
 } from "@/modules/verified-resources/outputs/verified-email.output";
 import {
-  VerifiedPhoneOutput,
-  VerifiedPhoneOutputData,
-  VerifiedPhonesOutput,
+  UserVerifiedPhoneOutput,
+  UserVerifiedPhoneOutputData,
+  UserVerifiedPhonesOutput,
 } from "@/modules/verified-resources/outputs/verified-phone.output";
 import { VerifiedResourcesService } from "@/modules/verified-resources/services/verified-resources.service";
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from "@nestjs/common";
@@ -82,6 +82,7 @@ export class UserVerifiedResourcesController {
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Post("/emails/verification-code/verify")
+  @Throttle({ limit: 3, ttl: 60000, blockDuration: 60000, name: "users_verified_resources_phones_verify" })
   @HttpCode(HttpStatus.OK)
   async verifyEmail(
     @Body() body: VerifyEmailInput,
@@ -104,11 +105,11 @@ export class UserVerifiedResourcesController {
   async verifyPhoneNumber(
     @Body() body: VerifyPhoneInput,
     @GetUser("id") userId: number
-  ): Promise<VerifiedPhoneOutput> {
+  ): Promise<UserVerifiedPhoneOutput> {
     const verifiedPhone = await this.verifiedResourcesService.verifyPhone(userId, body.phone, body.code);
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(VerifiedPhoneOutputData, verifiedPhone),
+      data: plainToClass(UserVerifiedPhoneOutputData, verifiedPhone),
     };
   }
 
@@ -142,7 +143,7 @@ export class UserVerifiedResourcesController {
   async getVerifiedPhoneNumbers(
     @GetUser("id") userId: number,
     @Query() pagination: SkipTakePagination
-  ): Promise<VerifiedPhonesOutput> {
+  ): Promise<UserVerifiedPhonesOutput> {
     const verifiedPhoneNumbers = await this.verifiedResourcesService.getUserVerifiedPhoneNumbers(
       userId,
       pagination.skip,
@@ -151,7 +152,7 @@ export class UserVerifiedResourcesController {
     return {
       status: SUCCESS_STATUS,
       data: verifiedPhoneNumbers.map((verifiedPhoneNumber) =>
-        plainToClass(VerifiedPhoneOutputData, verifiedPhoneNumber)
+        plainToClass(UserVerifiedPhoneOutputData, verifiedPhoneNumber)
       ),
     };
   }
@@ -182,14 +183,14 @@ export class UserVerifiedResourcesController {
   async getVerifiedPhoneById(
     @GetUser("id") userId: number,
     @Param("id") id: number
-  ): Promise<VerifiedPhoneOutput> {
+  ): Promise<UserVerifiedPhoneOutput> {
     const verifiedPhoneNumber = await this.verifiedResourcesService.getUserVerifiedPhoneNumberById(
       userId,
       id
     );
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(VerifiedPhoneOutputData, verifiedPhoneNumber),
+      data: plainToClass(UserVerifiedPhoneOutputData, verifiedPhoneNumber),
     };
   }
 }

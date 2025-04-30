@@ -11,7 +11,8 @@ import { TeamsVerifiedResourcesController } from "@/modules/teams/verified-resou
 import { UsersRepository } from "@/modules/users/users.repository";
 import { UserVerifiedResourcesController } from "@/modules/verified-resources/controllers/users-verified-resources.controller";
 import { VerifiedResourcesService } from "@/modules/verified-resources/services/verified-resources.service";
-import { VerifiedResourcesRepository } from "@/modules/verified-resources/verified-resources.repository";
+import { TeamsVerifiedResourcesRepository } from "@/modules/verified-resources/teams-verified-resources.repository";
+import { UsersVerifiedResourcesRepository } from "@/modules/verified-resources/users-verified-resources.repository";
 import { Module } from "@nestjs/common";
 
 @Module({
@@ -23,7 +24,8 @@ import { Module } from "@nestjs/common";
   ],
   providers: [
     VerifiedResourcesService,
-    VerifiedResourcesRepository,
+    UsersVerifiedResourcesRepository,
+    TeamsVerifiedResourcesRepository,
     MembershipsRepository,
     OrganizationsTeamsRepository,
     OrganizationsRepository,

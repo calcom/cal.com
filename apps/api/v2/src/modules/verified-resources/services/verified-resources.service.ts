@@ -1,4 +1,5 @@
-import { VerifiedResourcesRepository } from "@/modules/verified-resources/verified-resources.repository";
+import { TeamsVerifiedResourcesRepository } from "@/modules/verified-resources/teams-verified-resources.repository";
+import { UsersVerifiedResourcesRepository } from "@/modules/verified-resources/users-verified-resources.repository";
 import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 
 import {
@@ -9,7 +10,10 @@ import { sendEmailVerificationByCode, verifyEmailCodeHandler } from "@calcom/pla
 
 @Injectable()
 export class VerifiedResourcesService {
-  constructor(private readonly verifiedResourcesRepository: VerifiedResourcesRepository) {}
+  constructor(
+    private readonly usersVerifiedResourcesRepository: UsersVerifiedResourcesRepository,
+    private readonly teamsVerifiedResourcesRepository: TeamsVerifiedResourcesRepository
+  ) {}
 
   async requestEmailVerificationCode(user: { username: string; locale: string }, email: string) {
     const res = await sendEmailVerificationByCode({
@@ -48,7 +52,9 @@ export class VerifiedResourcesService {
     const result = await verifyPhoneNumber(phone, code, userId, teamId);
 
     if (result) {
-      return await this.verifiedResourcesRepository.getVerifiedPhoneNumber(userId, phone, teamId);
+      return teamId
+        ? await this.teamsVerifiedResourcesRepository.getTeamVerifiedPhoneNumber(userId, phone, teamId)
+        : await this.usersVerifiedResourcesRepository.getUserVerifiedPhoneNumber(userId, phone);
     }
 
     throw new BadRequestException("Could not verify phone number.");
@@ -60,49 +66,55 @@ export class VerifiedResourcesService {
       input: { email, code, teamId },
     });
     if (isValidToken) {
-      const verifiedEmail = await this.verifiedResourcesRepository.getVerifiedEmail(userId, email, teamId);
+      const verifiedEmail = teamId
+        ? await this.teamsVerifiedResourcesRepository.getTeamVerifiedEmail(userId, email, teamId)
+        : await this.usersVerifiedResourcesRepository.getUserVerifiedEmail(userId, email);
       return verifiedEmail;
     }
     throw new BadRequestException("Invalid Verification Code");
   }
 
   async getUserVerifiedEmailById(userId: number, id: number) {
-    return this.verifiedResourcesRepository.getUserVerifiedEmailById(userId, id);
+    return this.usersVerifiedResourcesRepository.getUserVerifiedEmailById(userId, id);
   }
 
   async getTeamVerifiedEmailById(teamId: number, id: number) {
-    return this.verifiedResourcesRepository.getTeamVerifiedEmailById(id, teamId);
+    return this.teamsVerifiedResourcesRepository.getTeamVerifiedEmailById(id, teamId);
   }
 
-  async getVerifiedEmail(userId: number, email: string, teamId?: number) {
-    return this.verifiedResourcesRepository.getVerifiedEmail(userId, email, teamId);
+  async getVerifiedEmail(userId: number, email: string) {
+    return this.usersVerifiedResourcesRepository.getUserVerifiedEmail(userId, email);
   }
 
   async getUserVerifiedEmails(userId: number, skip = 0, take = 250) {
-    return this.verifiedResourcesRepository.getUserVerifiedEmails(userId, skip, take);
+    return this.usersVerifiedResourcesRepository.getUserVerifiedEmails(userId, skip, take);
   }
 
   async getTeamVerifiedEmails(teamId: number, skip = 0, take = 250) {
-    return this.verifiedResourcesRepository.getTeamVerifiedEmails(teamId, skip, take);
+    return this.teamsVerifiedResourcesRepository.getTeamVerifiedEmails(teamId, skip, take);
   }
 
   async getUserVerifiedPhoneNumberById(userId: number, id: number) {
-    return this.verifiedResourcesRepository.getUserVerifiedPhoneNumberById(userId, id);
+    return this.usersVerifiedResourcesRepository.getUserVerifiedPhoneNumberById(userId, id);
   }
 
   async getTeamVerifiedPhoneNumberById(teamId: number, id: number) {
-    return this.verifiedResourcesRepository.getTeamVerifiedPhoneNumberById(teamId, id);
+    return this.teamsVerifiedResourcesRepository.getTeamVerifiedPhoneNumberById(teamId, id);
   }
 
-  async getVerifiedPhoneNumber(userId: number, phoneNumber: string, teamId?: number) {
-    return this.verifiedResourcesRepository.getVerifiedPhoneNumber(userId, phoneNumber, teamId);
+  async getUserVerifiedPhoneNumber(userId: number, phoneNumber: string) {
+    return this.usersVerifiedResourcesRepository.getUserVerifiedEmail(userId, phoneNumber);
+  }
+
+  async getTeamVerifiedPhoneNumber(userId: number, phoneNumber: string, teamId: number) {
+    return this.teamsVerifiedResourcesRepository.getTeamVerifiedPhoneNumber(userId, phoneNumber, teamId);
   }
 
   async getUserVerifiedPhoneNumbers(userId: number, skip = 0, take = 250) {
-    return this.verifiedResourcesRepository.getUserVerifiedPhoneNumbers(userId, skip, take);
+    return this.usersVerifiedResourcesRepository.getUserVerifiedPhoneNumbers(userId, skip, take);
   }
 
   async getTeamVerifiedPhoneNumbers(teamId: number, skip = 0, take = 250) {
-    return this.verifiedResourcesRepository.getTeamVerifiedPhoneNumbers(teamId, skip, take);
+    return this.teamsVerifiedResourcesRepository.getTeamVerifiedPhoneNumbers(teamId, skip, take);
   }
 }

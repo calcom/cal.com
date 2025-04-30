@@ -9315,7 +9315,7 @@
         ]
       }
     },
-    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/request": {
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/request": {
       "post": {
         "operationId": "OrgTeamsVerifiedResourcesController_requestEmailVerificationCode",
         "summary": "Request Email Verification Code",
@@ -9358,7 +9358,7 @@
         ]
       }
     },
-    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phone-numbers/request": {
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/verification-code/request": {
       "post": {
         "operationId": "OrgTeamsVerifiedResourcesController_requestPhoneVerificationCode",
         "summary": "Request Phone Number Verification Code",
@@ -9401,7 +9401,7 @@
         ]
       }
     },
-    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verify": {
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/verify": {
       "post": {
         "operationId": "OrgTeamsVerifiedResourcesController_verifyEmail",
         "summary": "Verify an email for an org team.",
@@ -9441,7 +9441,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VerifiedEmailOutput"
+                  "$ref": "#/components/schemas/TeamVerifiedEmailOutput"
                 }
               }
             }
@@ -9452,7 +9452,7 @@
         ]
       }
     },
-    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phone-numbers/verify": {
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/verification-code/verify": {
       "post": {
         "operationId": "OrgTeamsVerifiedResourcesController_verifyPhoneNumber",
         "summary": "Verify a phone number for an org team.",
@@ -9492,7 +9492,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VerifiedPhoneOutput"
+                  "$ref": "#/components/schemas/TeamVerifiedPhoneOutput"
                 }
               }
             }
@@ -9552,7 +9552,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VerifiedEmailsOutput"
+                  "$ref": "#/components/schemas/TeamVerifiedEmailsOutput"
                 }
               }
             }
@@ -9612,7 +9612,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VerifiedPhonesOutput"
+                  "$ref": "#/components/schemas/TeamVerifiedPhonesOutput"
                 }
               }
             }
@@ -9660,7 +9660,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VerifiedEmailOutput"
+                  "$ref": "#/components/schemas/TeamVerifiedEmailOutput"
                 }
               }
             }
@@ -9708,7 +9708,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VerifiedPhoneOutput"
+                  "$ref": "#/components/schemas/TeamVerifiedPhoneOutput"
                 }
               }
             }
@@ -11607,7 +11607,7 @@
         ]
       }
     },
-    "/v2/teams/{teamId}/verified-resources/emails/request": {
+    "/v2/teams/{teamId}/verified-resources/emails/verification-code/request": {
       "post": {
         "operationId": "TeamsVerifiedResourcesController_requestEmailVerificationCode",
         "summary": "Request Email Verification Code",
@@ -11650,7 +11650,7 @@
         ]
       }
     },
-    "/v2/teams/{teamId}/verified-resources/phone-numbers/request": {
+    "/v2/teams/{teamId}/verified-resources/phones/verification-code/request": {
       "post": {
         "operationId": "TeamsVerifiedResourcesController_requestPhoneVerificationCode",
         "summary": "Request Phone Number Verification Code",
@@ -11693,7 +11693,7 @@
         ]
       }
     },
-    "/v2/teams/{teamId}/verified-resources/emails/verify": {
+    "/v2/teams/{teamId}/verified-resources/emails/verification-code/verify": {
       "post": {
         "operationId": "TeamsVerifiedResourcesController_verifyEmail",
         "summary": "Verify an email for a team.",
@@ -11733,7 +11733,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VerifiedEmailOutput"
+                  "$ref": "#/components/schemas/TeamVerifiedEmailOutput"
                 }
               }
             }
@@ -11744,7 +11744,7 @@
         ]
       }
     },
-    "/v2/teams/{teamId}/verified-resources/phone-numbers/verify": {
+    "/v2/teams/{teamId}/verified-resources/phones/verification-code/verify": {
       "post": {
         "operationId": "TeamsVerifiedResourcesController_verifyPhoneNumber",
         "summary": "Verify a phone number for an org team.",
@@ -11784,7 +11784,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VerifiedPhoneOutput"
+                  "$ref": "#/components/schemas/TeamVerifiedPhoneOutput"
                 }
               }
             }
@@ -11844,7 +11844,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VerifiedEmailsOutput"
+                  "$ref": "#/components/schemas/TeamVerifiedEmailsOutput"
                 }
               }
             }
@@ -11904,7 +11904,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VerifiedPhonesOutput"
+                  "$ref": "#/components/schemas/TeamVerifiedPhonesOutput"
                 }
               }
             }
@@ -11952,7 +11952,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VerifiedEmailOutput"
+                  "$ref": "#/components/schemas/TeamVerifiedEmailOutput"
                 }
               }
             }
@@ -12000,7 +12000,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VerifiedPhoneOutput"
+                  "$ref": "#/components/schemas/TeamVerifiedPhoneOutput"
                 }
               }
             }
@@ -12011,7 +12011,7 @@
         ]
       }
     },
-    "/v2/verified-resources/emails/request": {
+    "/v2/verified-resources/emails/verification-code/request": {
       "post": {
         "operationId": "UserVerifiedResourcesController_requestEmailVerificationCode",
         "summary": "Request Email Verification Code",
@@ -12054,7 +12054,7 @@
         ]
       }
     },
-    "/v2/verified-resources/phone-numbers/request": {
+    "/v2/verified-resources/phones/verification-code/request": {
       "post": {
         "operationId": "UserVerifiedResourcesController_requestPhoneVerificationCode",
         "summary": "Request Phone Number Verification Code",
@@ -12097,7 +12097,7 @@
         ]
       }
     },
-    "/v2/verified-resources/emails/verify": {
+    "/v2/verified-resources/emails/verification-code/verify": {
       "post": {
         "operationId": "UserVerifiedResourcesController_verifyEmail",
         "summary": "Verify an email.",
@@ -12129,7 +12129,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VerifiedEmailOutput"
+                  "$ref": "#/components/schemas/UserVerifiedEmailOutput"
                 }
               }
             }
@@ -12140,7 +12140,7 @@
         ]
       }
     },
-    "/v2/verified-resources/phone-numbers/verify": {
+    "/v2/verified-resources/phones/verification-code/verify": {
       "post": {
         "operationId": "UserVerifiedResourcesController_verifyPhoneNumber",
         "summary": "Verify a phone number.",
@@ -12172,7 +12172,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VerifiedPhoneOutput"
+                  "$ref": "#/components/schemas/UserVerifiedPhoneOutput"
                 }
               }
             }
@@ -12224,7 +12224,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VerifiedEmailsOutput"
+                  "$ref": "#/components/schemas/UserVerifiedEmailsOutput"
                 }
               }
             }
@@ -12276,7 +12276,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VerifiedPhonesOutput"
+                  "$ref": "#/components/schemas/UserVerifiedPhonesOutput"
                 }
               }
             }
@@ -12316,7 +12316,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VerifiedEmailOutput"
+                  "$ref": "#/components/schemas/UserVerifiedEmailOutput"
                 }
               }
             }
@@ -12356,7 +12356,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VerifiedPhoneOutput"
+                  "$ref": "#/components/schemas/UserVerifiedPhoneOutput"
                 }
               }
             }
@@ -24636,7 +24636,10 @@
             "description": "Email to verify.",
             "example": "acme@example.com"
           }
-        }
+        },
+        "required": [
+          "email"
+        ]
       },
       "RequestEmailVerificationOutput": {
         "type": "object",
@@ -24662,7 +24665,10 @@
             "description": "Phone number to verify.",
             "example": "+372 5555 6666"
           }
-        }
+        },
+        "required": [
+          "phone"
+        ]
       },
       "RequestPhoneVerificationOutput": {
         "type": "object",
@@ -24686,14 +24692,18 @@
           "email": {
             "type": "string",
             "description": "Email to verify.",
-            "example": "https://example.com/avatar.jpg"
+            "example": "example@acme.com"
           },
           "code": {
             "type": "string",
             "description": "verification code sent to the email to verify",
             "example": "1ABG2C"
           }
-        }
+        },
+        "required": [
+          "email",
+          "code"
+        ]
       },
       "WorkingHours": {
         "type": "object",
@@ -24828,7 +24838,7 @@
           "readOnly"
         ]
       },
-      "VerifiedEmailOutput": {
+      "UserVerifiedEmailOutput": {
         "type": "object",
         "properties": {
           "status": {
@@ -24861,9 +24871,13 @@
             "description": "verification code sent to the phone number to verify",
             "example": "1ABG2C"
           }
-        }
+        },
+        "required": [
+          "phone",
+          "code"
+        ]
       },
-      "VerifiedPhoneOutput": {
+      "UserVerifiedPhoneOutput": {
         "type": "object",
         "properties": {
           "status": {
@@ -24883,7 +24897,7 @@
           "data"
         ]
       },
-      "VerifiedEmailsOutput": {
+      "UserVerifiedEmailsOutput": {
         "type": "object",
         "properties": {
           "status": {
@@ -24903,7 +24917,87 @@
           "data"
         ]
       },
-      "VerifiedPhonesOutput": {
+      "UserVerifiedPhonesOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "TeamVerifiedEmailOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "TeamVerifiedPhoneOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "TeamVerifiedEmailsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "TeamVerifiedPhonesOutput": {
         "type": "object",
         "properties": {
           "status": {

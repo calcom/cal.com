@@ -3,28 +3,8 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
-export class VerifiedResourcesRepository {
+export class TeamsVerifiedResourcesRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
-
-  async getUserVerifiedEmails(userId: number, skip = 0, take = 250) {
-    return this.dbRead.prisma.verifiedEmail.findMany({
-      where: {
-        userId,
-      },
-      skip,
-      take,
-    });
-  }
-
-  async getUserVerifiedPhoneNumbers(userId: number, skip = 0, take = 250) {
-    return this.dbRead.prisma.verifiedNumber.findMany({
-      where: {
-        userId,
-      },
-      skip,
-      take,
-    });
-  }
 
   async getTeamVerifiedEmails(teamId: number, skip = 0, take = 250) {
     return this.dbRead.prisma.verifiedEmail.findMany({
@@ -46,7 +26,7 @@ export class VerifiedResourcesRepository {
     });
   }
 
-  async getVerifiedEmail(userId: number, email: string, teamId?: number) {
+  async getTeamVerifiedEmail(userId: number, email: string, teamId: number) {
     return this.dbRead.prisma.verifiedEmail.findFirstOrThrow({
       where: {
         userId,
@@ -56,7 +36,7 @@ export class VerifiedResourcesRepository {
     });
   }
 
-  async getVerifiedPhoneNumber(userId: number, phone: string, teamId?: number) {
+  async getTeamVerifiedPhoneNumber(userId: number, phone: string, teamId: number) {
     return this.dbRead.prisma.verifiedNumber.findFirstOrThrow({
       where: {
         userId,
@@ -66,7 +46,7 @@ export class VerifiedResourcesRepository {
     });
   }
 
-  async getTeamVerifiedEmailById(id: number, teamId?: number) {
+  async getTeamVerifiedEmailById(id: number, teamId: number) {
     return this.dbRead.prisma.verifiedEmail.findFirst({
       where: {
         id,
@@ -75,29 +55,11 @@ export class VerifiedResourcesRepository {
     });
   }
 
-  async getTeamVerifiedPhoneNumberById(id: number, teamId?: number) {
+  async getTeamVerifiedPhoneNumberById(id: number, teamId: number) {
     return this.dbRead.prisma.verifiedNumber.findFirst({
       where: {
         id,
         teamId,
-      },
-    });
-  }
-
-  async getUserVerifiedEmailById(userId: number, id: number) {
-    return this.dbRead.prisma.verifiedEmail.findFirst({
-      where: {
-        userId,
-        id,
-      },
-    });
-  }
-
-  async getUserVerifiedPhoneNumberById(userId: number, id: number) {
-    return this.dbRead.prisma.verifiedNumber.findFirst({
-      where: {
-        userId,
-        id,
       },
     });
   }

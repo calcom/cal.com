@@ -40,9 +40,9 @@ jest
   .spyOn(AttendeeVerifyEmail.prototype as any, "getNodeMailerPayload")
   .mockImplementation(async function () {
     return {
-      to: ``,
-      from: ``,
-      subject: "",
+      to: `testnotrealemail@notreal.com`,
+      from: `testnotrealemail@notreal.com`,
+      subject: "No Subject",
       html: "<html><body>Mocked Email Content</body></html>",
       text: "body",
     };

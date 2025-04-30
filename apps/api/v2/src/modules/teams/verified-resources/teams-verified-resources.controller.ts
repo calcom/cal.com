@@ -16,9 +16,9 @@ import {
   TeamVerifiedEmailsOutput,
 } from "@/modules/verified-resources/outputs/verified-email.output";
 import {
-  VerifiedPhoneOutput,
-  VerifiedPhoneOutputData,
-  VerifiedPhonesOutput,
+  TeamVerifiedPhoneOutput,
+  TeamVerifiedPhoneOutputData,
+  TeamVerifiedPhonesOutput,
 } from "@/modules/verified-resources/outputs/verified-phone.output";
 import { VerifiedResourcesService } from "@/modules/verified-resources/services/verified-resources.service";
 import {
@@ -123,12 +123,13 @@ export class TeamsVerifiedResourcesController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
   @Post("/phones/verification-code/verify")
+  @Throttle({ limit: 3, ttl: 60000, blockDuration: 60000, name: "teams_verified_resources_phones_verify" })
   @HttpCode(HttpStatus.OK)
   async verifyPhoneNumber(
     @Body() body: VerifyPhoneInput,
     @GetUser("id") userId: number,
     @Param("teamId", ParseIntPipe) teamId: number
-  ): Promise<VerifiedPhoneOutput> {
+  ): Promise<TeamVerifiedPhoneOutput> {
     const verifiedPhone = await this.verifiedResourcesService.verifyPhone(
       userId,
       body.phone,
@@ -137,7 +138,7 @@ export class TeamsVerifiedResourcesController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(VerifiedPhoneOutputData, verifiedPhone),
+      data: plainToClass(TeamVerifiedPhoneOutputData, verifiedPhone),
     };
   }
 
@@ -173,7 +174,7 @@ export class TeamsVerifiedResourcesController {
   async getVerifiedPhoneNumbers(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() pagination: SkipTakePagination
-  ): Promise<VerifiedPhonesOutput> {
+  ): Promise<TeamVerifiedPhonesOutput> {
     const verifiedPhoneNumbers = await this.verifiedResourcesService.getTeamVerifiedPhoneNumbers(
       teamId,
       pagination.skip,
@@ -182,7 +183,7 @@ export class TeamsVerifiedResourcesController {
     return {
       status: SUCCESS_STATUS,
       data: verifiedPhoneNumbers.map((verifiedPhoneNumber) =>
-        plainToClass(VerifiedPhoneOutputData, verifiedPhoneNumber)
+        plainToClass(TeamVerifiedPhoneOutputData, verifiedPhoneNumber)
       ),
     };
   }
@@ -215,14 +216,14 @@ export class TeamsVerifiedResourcesController {
   async getVerifiedPhoneById(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("id") id: number
-  ): Promise<VerifiedPhoneOutput> {
+  ): Promise<TeamVerifiedPhoneOutput> {
     const verifiedPhoneNumber = await this.verifiedResourcesService.getTeamVerifiedPhoneNumberById(
       teamId,
       id
     );
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(VerifiedPhoneOutputData, verifiedPhoneNumber),
+      data: plainToClass(TeamVerifiedPhoneOutputData, verifiedPhoneNumber),
     };
   }
 }

@@ -5,7 +5,34 @@ import { IsArray, IsEnum, IsNotEmptyObject, IsNumber, IsString, ValidateNested }
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 
-export class VerifiedPhoneOutputData {
+export class UserVerifiedPhoneOutputData {
+  @Expose()
+  @IsNumber()
+  @ApiProperty({
+    description: "The unique identifier for the verified email.",
+    example: 789,
+  })
+  id!: number;
+
+  @Expose()
+  @IsString()
+  @ApiProperty({
+    description: "The verified phone number.",
+    example: "+37255556666",
+    format: "phone",
+  })
+  phoneNumber!: string;
+
+  @Expose()
+  @IsNumber()
+  @ApiProperty({
+    description: "The ID of the associated user, if applicable.",
+    example: 45,
+  })
+  userId!: number;
+}
+
+export class TeamVerifiedPhoneOutputData {
   @Expose()
   @IsNumber()
   @ApiProperty({
@@ -38,13 +65,11 @@ export class VerifiedPhoneOutputData {
   @ApiProperty({
     description: "The ID of the associated team, if applicable.",
     example: 89,
-    nullable: true,
-    required: false,
   })
-  teamId?: number | null;
+  teamId!: number;
 }
 
-export class VerifiedPhoneOutput {
+export class UserVerifiedPhoneOutput {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
@@ -53,11 +78,24 @@ export class VerifiedPhoneOutput {
     type: ScheduleOutput,
   })
   @IsNotEmptyObject()
-  @Type(() => VerifiedPhoneOutputData)
-  data!: VerifiedPhoneOutputData;
+  @Type(() => UserVerifiedPhoneOutputData)
+  data!: UserVerifiedPhoneOutputData;
 }
 
-export class VerifiedPhonesOutput {
+export class TeamVerifiedPhoneOutput {
+  @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
+  @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
+  status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
+
+  @ApiProperty({
+    type: ScheduleOutput,
+  })
+  @IsNotEmptyObject()
+  @Type(() => TeamVerifiedPhoneOutputData)
+  data!: TeamVerifiedPhoneOutputData;
+}
+
+export class UserVerifiedPhonesOutput {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
@@ -68,6 +106,21 @@ export class VerifiedPhonesOutput {
   @IsNotEmptyObject()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => VerifiedPhoneOutputData)
-  data!: VerifiedPhoneOutputData[];
+  @Type(() => UserVerifiedPhoneOutputData)
+  data!: UserVerifiedPhoneOutputData[];
+}
+
+export class TeamVerifiedPhonesOutput {
+  @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
+  @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
+  status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
+
+  @ApiProperty({
+    type: ScheduleOutput,
+  })
+  @IsNotEmptyObject()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => TeamVerifiedPhoneOutputData)
+  data!: TeamVerifiedPhoneOutputData[];
 }
