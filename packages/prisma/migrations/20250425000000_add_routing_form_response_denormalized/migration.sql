@@ -192,26 +192,57 @@ CREATE TRIGGER routing_form_response_delete_trigger
     FOR EACH ROW
     EXECUTE FUNCTION trigger_delete_routing_form_response_denormalized();
 
--- Trigger function for form changes
-CREATE OR REPLACE FUNCTION trigger_refresh_routing_form_response_denormalized_form()
+-- Trigger function for form name changes
+CREATE OR REPLACE FUNCTION trigger_refresh_routing_form_response_denormalized_form_name()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Update all responses for this form
+    -- Update all responses for this form's name
     UPDATE "RoutingFormResponseDenormalized" rfrd
-    SET
-        "formName" = NEW.name,
-        "formTeamId" = NEW."teamId",
-        "formUserId" = NEW."userId"
+    SET "formName" = NEW.name
     WHERE rfrd."formId" = NEW.id;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Create trigger for App_RoutingForms_Form table
-CREATE TRIGGER routing_form_update_trigger
-    AFTER UPDATE OF name, "teamId", "userId" ON "App_RoutingForms_Form"
+-- Trigger function for form team changes
+CREATE OR REPLACE FUNCTION trigger_refresh_routing_form_response_denormalized_form_team()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Update all responses for this form's team
+    UPDATE "RoutingFormResponseDenormalized" rfrd
+    SET "formTeamId" = NEW."teamId"
+    WHERE rfrd."formId" = NEW.id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger function for form user changes
+CREATE OR REPLACE FUNCTION trigger_refresh_routing_form_response_denormalized_form_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Update all responses for this form's user
+    UPDATE "RoutingFormResponseDenormalized" rfrd
+    SET "formUserId" = NEW."userId"
+    WHERE rfrd."formId" = NEW.id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create separate triggers for App_RoutingForms_Form table
+CREATE TRIGGER routing_form_name_update_trigger
+    AFTER UPDATE OF name ON "App_RoutingForms_Form"
     FOR EACH ROW
-    EXECUTE FUNCTION trigger_refresh_routing_form_response_denormalized_form();
+    EXECUTE FUNCTION trigger_refresh_routing_form_response_denormalized_form_name();
+
+CREATE TRIGGER routing_form_team_update_trigger
+    AFTER UPDATE OF "teamId" ON "App_RoutingForms_Form"
+    FOR EACH ROW
+    EXECUTE FUNCTION trigger_refresh_routing_form_response_denormalized_form_team();
+
+CREATE TRIGGER routing_form_user_update_trigger
+    AFTER UPDATE OF "userId" ON "App_RoutingForms_Form"
+    FOR EACH ROW
+    EXECUTE FUNCTION trigger_refresh_routing_form_response_denormalized_form_user();
 
 -- Trigger function for booking changes
 CREATE OR REPLACE FUNCTION trigger_refresh_routing_form_response_denormalized_booking()
