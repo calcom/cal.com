@@ -28,6 +28,7 @@ import { ZGetRoundRobinHostsInputSchema } from "./roundRobin/getRoundRobinHostsT
 import { ZRoundRobinManualReassignInputSchema } from "./roundRobin/roundRobinManualReassign.schema";
 import { ZRoundRobinReassignInputSchema } from "./roundRobin/roundRobinReassign.schema";
 import { ZSetInviteExpirationInputSchema } from "./setInviteExpiration.schema";
+import { ZSkipTeamTrialsInputSchema } from "./skipTeamTrials.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateInternalNotesPresetsInputSchema } from "./updateInternalNotesPresets.schema";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
@@ -188,6 +189,10 @@ export const viewerTeamsRouter = router({
     }),
   hasActiveTeamPlan: authedProcedure.query(async (opts) => {
     const { default: handler } = await import("./hasActiveTeamPlan.handler");
+    return handler(opts);
+  }),
+  skipTeamTrials: authedProcedure.input(ZSkipTeamTrialsInputSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./skipTeamTrials.handler");
     return handler(opts);
   }),
 });

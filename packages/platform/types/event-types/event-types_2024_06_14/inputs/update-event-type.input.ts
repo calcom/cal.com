@@ -393,6 +393,14 @@ class BaseUpdateEventTypeInput {
     example: "https://masterchief.com/argentina/flan/video/9129412",
   })
   successRedirectUrl?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description:
+      "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events",
+  })
+  hideOrganizerEmail?: boolean;
 }
 export class UpdateEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInput {
   @IsOptional()
