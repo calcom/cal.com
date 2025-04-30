@@ -8,13 +8,15 @@ export function bookingIdempotencyKeyExtension() {
     query: {
       booking: {
         async create({ args, query }) {
-          const idempotencyKey = uuidv5(
-            `${
-              args.data.eventType?.connect?.id
-            }.${args.data.startTime.valueOf()}.${args.data.endTime.valueOf()}.${args.data?.userId}`,
-            uuidv5.URL
-          );
-          args.data.idempotencyKey = idempotencyKey;
+          if (args.data.status === BookingStatus.ACCEPTED) {
+            const idempotencyKey = uuidv5(
+              `${
+                args.data.eventType?.connect?.id
+              }.${args.data.startTime.valueOf()}.${args.data.endTime.valueOf()}.${args.data?.userId}`,
+              uuidv5.URL
+            );
+            args.data.idempotencyKey = idempotencyKey;
+          }
           return query(args);
         },
         async update({ args, query }) {
