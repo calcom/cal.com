@@ -332,8 +332,91 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
   );
 
   return props.href ? (
-    <Link data-testid="link-component" passHref href={props.href} shallow={shallow && shallow} legacyBehavior>
-      {element}
+    <Link
+      data-testid="link-component"
+      href={props.href}
+      shallow={shallow && shallow}
+      onClick={
+        disabled
+          ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+              e.preventDefault();
+            }
+          : props.onClick
+      }
+      className={classNames(buttonClasses({ color, size, loading, variant }), props.className)}
+      aria-disabled={disabled ? "true" : undefined}
+      target={props.target ? props.target : undefined}
+      aria-current={elementType === "a" && props["aria-current"] ? props["aria-current"] : undefined}>
+      {CustomStartIcon ||
+        (StartIcon && (
+          <>
+            {variant === "fab" ? (
+              <>
+                <Icon name={StartIcon} className="hidden h-4 w-4 stroke-[1.5px]  md:inline-flex" />
+                <Icon name="plus" data-testid="plus" className="inline h-6 w-6 md:hidden" />
+              </>
+            ) : (
+              <Icon
+                data-name="start-icon"
+                name={StartIcon}
+                className={classNames(
+                  loading ? "invisible" : "visible",
+                  "button-icon group-active:translate-y-[0.5px]",
+                  variant === "icon" && "h-4 w-4",
+                  variant === "button" && "h-4 w-4 stroke-[1.5px] "
+                )}
+              />
+            )}
+          </>
+        ))}
+      <div
+        className={classNames(
+          "contents", // This makes the div behave like it doesn't exist in the layout
+          loading ? "invisible" : "visible",
+          variant === "fab" ? "hidden md:contents" : "",
+          "group-active:translate-y-[0.5px]"
+        )}>
+        {props.children}
+      </div>
+      {loading && (
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
+          <svg
+            className={classNames(
+              "mx-4 h-5 w-5 animate-spin",
+              color === "primary" ? "text-inverted" : "text-emphasis"
+            )}
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
+        </div>
+      )}
+      {EndIcon && (
+        <>
+          {variant === "fab" ? (
+            <>
+              <Icon name={EndIcon} className="-mr-1 me-2 ms-2 hidden h-5 w-5 md:inline" />
+              <Icon name="plus" data-testid="plus" className="inline h-6 w-6 md:hidden" />
+            </>
+          ) : (
+            <Icon
+              name={EndIcon}
+              className={classNames(
+                loading ? "invisible" : "visible",
+                "group-active:translate-y-[0.5px]",
+                variant === "icon" && "h-4 w-4",
+                variant === "button" && "h-4 w-4 stroke-[1.5px] "
+              )}
+            />
+          )}
+        </>
+      )}
     </Link>
   ) : (
     <Wrapper

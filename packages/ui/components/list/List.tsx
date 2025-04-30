@@ -56,13 +56,25 @@ export function ListItem(props: ListItemProps) {
     props.children
   );
 
-  return href ? (
-    <Link passHref href={href} legacyBehavior>
-      {element}
-    </Link>
-  ) : (
-    element
-  );
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className={classNames(
+          "bg-default border-subtle flex min-w-0 flex-1 items-center border-neutral-200 p-4 sm:mx-0 md:border md:p-4 xl:mt-0",
+          expanded ? "my-2 border" : "-mb-px border last:mb-0",
+          // Pass rounded false to not round the corners -> Useful when used in list we can use roundedContainer to create the right design
+          rounded ? "rounded-md" : "rounded-none",
+          props.className,
+          (props.onClick || href) && "hover:bg-muted"
+        )}
+        data-testid="list-item">
+        {props.children}
+      </Link>
+    );
+  }
+
+  return element;
 }
 
 export type ListLinkItemProps = {
