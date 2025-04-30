@@ -25,7 +25,7 @@ import { FormCard } from "@calcom/ui/components/card";
 import { SelectWithValidation as Select, TextArea } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { SelectField } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
 import type { IconName } from "@calcom/ui/components/icon";
 import { Icon } from "@calcom/ui/components/icon";
 
@@ -287,40 +287,56 @@ const WeightedAttributesSelector = ({
   };
 
   return attributesWithWeightsEnabled.length > 0 ? (
-    <div className="mt-8">
-      <SettingsToggle
-        title={t("use_attribute_weights")}
-        description={t("if_enabled_ignore_event_type_weights")}
-        checked={!!attributeIdForWeights}
-        onCheckedChange={(checked) => {
-          const attributeId = checked ? attributesWithWeightsEnabled[0].id : undefined;
-          setAttributeIdForWeights(attributeId);
-          onChangeAttributeIdForWeights(route, attributeId);
-        }}
-      />
-      {!!attributeIdForWeights ? (
-        <SelectField
-          size="sm"
-          containerClassName="mb-6 mt-4 data-testid-select-router"
-          label={t("attribute_for_weights")}
-          options={attributesWithWeightsEnabled.map((attribute) => {
-            return { value: attribute.id, label: attribute.name };
-          })}
-          value={{
-            value: attributeIdForWeights,
-            label: attributesWithWeightsEnabled.find((attribute) => attribute.id === attributeIdForWeights)
-              ?.name,
-          }}
-          onChange={(option) => {
-            if (option) {
-              setAttributeIdForWeights(option.value);
-              onChangeAttributeIdForWeights(route, option.value);
-            }
-          }}
-        />
-      ) : (
-        <></>
-      )}
+    <div className="bg-default border-subtle mt-4 rounded-2xl border px-4 py-2">
+      <>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-0.5">
+            <div className="border-subtle rounded-lg border p-1">
+              <Icon name="globe" className="text-subtle h-4 w-4" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-emphasis ml-2 text-sm font-medium">{t("use_attribute_weights")}</span>
+              <span className="text-subtle ml-2 text-sm">{t("if_enabled_ignore_event_type_weights")}</span>
+            </div>
+          </div>
+          <Switch
+            size="sm"
+            checked={!!attributeIdForWeights}
+            onCheckedChange={(checked) => {
+              const attributeId = checked ? attributesWithWeightsEnabled[0].id : undefined;
+              setAttributeIdForWeights(attributeId);
+              onChangeAttributeIdForWeights(route, attributeId);
+            }}
+          />
+        </div>
+        <div className="bg-muted mt-1 rounded-xl p-2">
+          {!!attributeIdForWeights ? (
+            <SelectField
+              size="sm"
+              containerClassName="data-testid-select-router"
+              label={t("attribute_for_weights")}
+              labelProps={{ className: "sr-only" }}
+              options={attributesWithWeightsEnabled.map((attribute) => {
+                return { value: attribute.id, label: attribute.name };
+              })}
+              value={{
+                value: attributeIdForWeights,
+                label: attributesWithWeightsEnabled.find(
+                  (attribute) => attribute.id === attributeIdForWeights
+                )?.name,
+              }}
+              onChange={(option) => {
+                if (option) {
+                  setAttributeIdForWeights(option.value);
+                  onChangeAttributeIdForWeights(route, option.value);
+                }
+              }}
+            />
+          ) : (
+            <></>
+          )}
+        </div>
+      </>
     </div>
   ) : null;
 };
