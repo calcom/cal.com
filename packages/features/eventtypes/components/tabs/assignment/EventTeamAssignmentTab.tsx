@@ -726,6 +726,19 @@ export const EventTeamAssignmentTab = ({
                     </RadioArea.Group>
                   )}
                 />
+                <div className="mt-4">
+                  <Controller
+                    name="includeNoShowInRRCalculation"
+                    render={({ field: { value, onChange } }) => (
+                      <SettingsToggle
+                        title="Include no show bookings in round robin calculations"
+                        labelClassName="mt-1.5"
+                        checked={value}
+                        onCheckedChange={(val) => onChange(val)}
+                      />
+                    )}
+                  />
+                </div>
               </div>
             </div>
           )}
