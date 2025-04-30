@@ -144,17 +144,11 @@ CREATE TRIGGER booking_delete_trigger
 CREATE OR REPLACE FUNCTION refresh_booking_time_status_team_id()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW."teamId" IS DISTINCT FROM OLD."teamId" THEN
-        UPDATE "BookingTimeStatusDenormalized" btsd
-        SET
-            "teamId" = NEW."teamId",
-            "isTeamBooking" = calculate_is_team_booking(NEW."teamId")
-        WHERE btsd."eventTypeId" = NEW.id
-        AND (
-            btsd."teamId" IS DISTINCT FROM NEW."teamId"
-            OR btsd."isTeamBooking" IS DISTINCT FROM calculate_is_team_booking(NEW."teamId")
-        );
-    END IF;
+    UPDATE "BookingTimeStatusDenormalized" btsd
+    SET
+        "teamId" = NEW."teamId",
+        "isTeamBooking" = calculate_is_team_booking(NEW."teamId")
+    WHERE btsd."eventTypeId" = NEW.id;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -163,12 +157,9 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION refresh_booking_time_status_length()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.length IS DISTINCT FROM OLD.length THEN
-        UPDATE "BookingTimeStatusDenormalized" btsd
-        SET "eventLength" = NEW.length
-        WHERE btsd."eventTypeId" = NEW.id
-        AND btsd."eventLength" IS DISTINCT FROM NEW.length;
-    END IF;
+    UPDATE "BookingTimeStatusDenormalized" btsd
+    SET "eventLength" = NEW.length
+    WHERE btsd."eventTypeId" = NEW.id;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -177,12 +168,9 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION refresh_booking_time_status_parent_id()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW."parentId" IS DISTINCT FROM OLD."parentId" THEN
-        UPDATE "BookingTimeStatusDenormalized" btsd
-        SET "eventParentId" = NEW."parentId"
-        WHERE btsd."eventTypeId" = NEW.id
-        AND btsd."eventParentId" IS DISTINCT FROM NEW."parentId";
-    END IF;
+    UPDATE "BookingTimeStatusDenormalized" btsd
+    SET "eventParentId" = NEW."parentId"
+    WHERE btsd."eventTypeId" = NEW.id;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
