@@ -119,7 +119,7 @@ const mockBookings = [
   },
 ];
 
-async function createWorkflowRemindersForWorkflow(workflowName: string) {
+async function createWorkflowRemindersAndTasksForWorkflow(workflowName: string) {
   const workflow = await prismock.workflow.findFirst({
     where: {
       name: workflowName,
@@ -151,6 +151,7 @@ async function createWorkflowRemindersForWorkflow(workflowName: string) {
           bookingUid: "jK7Rf8iYsOpmQUw9hB1vZxP",
         },
       },
+      uuid: "uuid-1",
       bookingUid: "jK7Rf8iYsOpmQUw9hB1vZxP",
       workflowStepId: workflow?.steps[0]?.id,
       method: WorkflowMethods.EMAIL,
@@ -164,6 +165,7 @@ async function createWorkflowRemindersForWorkflow(workflowName: string) {
           bookingUid: "mL4Dx9jTkQbnWEu3pR7yNcF",
         },
       },
+      uuid: "uuid-2",
       bookingUid: "mL4Dx9jTkQbnWEu3pR7yNcF",
       workflowStepId: workflow?.steps[0]?.id,
       method: WorkflowMethods.EMAIL,
@@ -177,6 +179,8 @@ async function createWorkflowRemindersForWorkflow(workflowName: string) {
           bookingUid: "Fd9Rf8iYsOpmQUw9hB1vKd8",
         },
       },
+      uuid: "uuid-3",
+
       bookingUid: "Fd9Rf8iYsOpmQUw9hB1vKd8",
       workflowStepId: workflow?.steps[0]?.id,
       method: WorkflowMethods.EMAIL,
@@ -190,6 +194,8 @@ async function createWorkflowRemindersForWorkflow(workflowName: string) {
           bookingUid: "Kd8Dx9jTkQbnWEu3pR7yKdl",
         },
       },
+      uuid: "uuid-4",
+
       bookingUid: "Kd8Dx9jTkQbnWEu3pR7yKdl",
       workflowStepId: workflow?.steps[0]?.id,
       method: WorkflowMethods.EMAIL,
@@ -199,8 +205,25 @@ async function createWorkflowRemindersForWorkflow(workflowName: string) {
     },
   ];
 
+  const tasksData = workflowRemindersData.map((reminder) => ({
+    type: "sendWorkflowEmails",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    referenceUid: reminder.uuid,
+    payload: "",
+    scheduledAt: reminder.scheduledDate,
+    attempts: 0,
+    maxAttempts: 3,
+  }));
+
   for (const data of workflowRemindersData) {
     await prismock.workflowReminder.create({
+      data,
+    });
+  }
+
+  for (const data of tasksData) {
+    await prismock.task.create({
       data,
     });
   }
@@ -209,7 +232,7 @@ async function createWorkflowRemindersForWorkflow(workflowName: string) {
 }
 
 describe("deleteRemindersOfActiveOnIds", () => {
-  test("should delete all reminders from removed event types", async ({}) => {
+  test("should delete all reminders and tasks from removed event types", async ({}) => {
     const organizer = getOrganizer({
       name: "Organizer",
       email: "organizer@example.com",
@@ -237,7 +260,7 @@ describe("deleteRemindersOfActiveOnIds", () => {
       })
     );
 
-    const workflow = await createWorkflowRemindersForWorkflow("User Workflow");
+    const workflow = await createWorkflowRemindersAndTasksForWorkflow("User Workflow");
 
     const removedActiveOnIds = [1];
     const activeOnIds = [2];
@@ -251,6 +274,7 @@ describe("deleteRemindersOfActiveOnIds", () => {
 
     const workflowReminders = await prismock.workflowReminder.findMany({
       select: {
+        uuid: true,
         booking: {
           select: {
             eventTypeId: true,
@@ -258,8 +282,19 @@ describe("deleteRemindersOfActiveOnIds", () => {
         },
       },
     });
+
     expect(workflowReminders.filter((reminder) => reminder.booking?.eventTypeId === 1).length).toBe(0);
     expect(workflowReminders.filter((reminder) => reminder.booking?.eventTypeId === 2).length).toBe(2);
+
+    const tasks = await prismock.task.findMany({
+      where: {
+        type: "sendWorkflowEmails",
+      },
+    });
+
+    expect(tasks.map((task) => task.referenceUid)).toEqual(
+      workflowReminders.map((reminder) => reminder.uuid)
+    );
   });
 
   test("should delete all reminders from removed event types (org workflow)", async ({}) => {
@@ -321,7 +356,7 @@ describe("deleteRemindersOfActiveOnIds", () => {
       })
     );
 
-    const workflow = await createWorkflowRemindersForWorkflow("Org Workflow");
+    const workflow = await createWorkflowRemindersAndTasksForWorkflow("Org Workflow");
 
     let removedActiveOnIds = [1];
     const activeOnIds = [2];
@@ -347,6 +382,17 @@ describe("deleteRemindersOfActiveOnIds", () => {
 
     // should still be active on all 4 bookings
     expect(workflowRemindersWithOneTeamActive.length).toBe(4);
+
+    const tasksWithOneTeamActive = await prismock.task.findMany({
+      where: {
+        type: "sendWorkflowEmails",
+      },
+    });
+
+    expect(tasksWithOneTeamActive.map((task) => task.referenceUid)).toEqual(
+      workflowRemindersWithOneTeamActive.map((reminder) => reminder.uuid)
+    );
+
     await deleteRemindersOfActiveOnIds({
       removedActiveOnIds,
       workflowSteps: workflow?.steps || [],
@@ -363,6 +409,16 @@ describe("deleteRemindersOfActiveOnIds", () => {
     });
 
     expect(workflowRemindersWithNoTeamActive.length).toBe(0);
+
+    const tasksWithNoTeamActive = await prismock.task.findMany({
+      where: {
+        type: "sendWorkflowEmails",
+      },
+    });
+
+    expect(tasksWithNoTeamActive.map((task) => task.referenceUid)).toEqual(
+      workflowRemindersWithNoTeamActive.map((reminder) => reminder.uuid)
+    );
   });
 });
 
@@ -421,7 +477,8 @@ describe("scheduleBookingReminders", () => {
       workflow.timeUnit,
       workflow.trigger,
       organizer.id,
-      null //teamId
+      null, //teamId
+      false //isOrg
     );
 
     const scheduledWorkflowReminders = await prismock.workflowReminder.findMany({
@@ -431,6 +488,13 @@ describe("scheduleBookingReminders", () => {
         },
       },
     });
+
+    const tasks = await prismock.task.findMany({
+      where: {
+        type: "sendWorkflowEmails",
+      },
+    });
+
     scheduledWorkflowReminders.sort((a, b) =>
       dayjs(a.scheduledDate).isBefore(dayjs(b.scheduledDate)) ? -1 : 1
     );
@@ -442,14 +506,15 @@ describe("scheduleBookingReminders", () => {
       new Date("2024-06-02T03:30:00.000Z"),
     ];
 
+    expect(tasks.length).toBe(scheduledWorkflowReminders.length);
+
     scheduledWorkflowReminders.forEach((reminder, index) => {
       expect(expectedScheduledDates[index].toISOString()).toStrictEqual(reminder.scheduledDate.toISOString());
       expect(reminder.method).toBe(WorkflowMethods.EMAIL);
-      if (index < 2) {
-        expect(reminder.scheduled).toBe(true);
-      } else {
-        expect(reminder.scheduled).toBe(false);
-      }
+      expect(reminder.scheduled).toBe(true);
+      const task = tasks.find((task) => reminder.uuid === task.referenceUid);
+      expect(task).not.toBeNull();
+      expect(task?.scheduledAt.toISOString()).toStrictEqual(expectedScheduledDates[index].toISOString());
     });
   });
 
@@ -505,7 +570,8 @@ describe("scheduleBookingReminders", () => {
       workflow.timeUnit,
       workflow.trigger,
       organizer.id,
-      null //teamId
+      null, //teamId
+      false //orgId
     );
 
     const scheduledWorkflowReminders = await prismock.workflowReminder.findMany({
@@ -526,10 +592,19 @@ describe("scheduleBookingReminders", () => {
       new Date("2024-06-02T06:00:00.000Z"),
     ];
 
+    const tasks = await prismock.task.findMany({
+      where: {
+        type: "sendWorkflowEmails",
+      },
+    });
+
     scheduledWorkflowReminders.forEach((reminder, index) => {
       expect(expectedScheduledDates[index].toISOString()).toStrictEqual(reminder.scheduledDate.toISOString());
       expect(reminder.method).toBe(WorkflowMethods.EMAIL);
-      expect(reminder.scheduled).toBe(false); // all are more than 2 hours in advance
+      expect(reminder.scheduled).toBe(true);
+      const task = tasks.find((task) => reminder.uuid === task.referenceUid);
+      expect(task).not.toBeNull();
+      expect(task?.scheduledAt.toISOString()).toStrictEqual(expectedScheduledDates[index].toISOString());
     });
   });
 
@@ -729,12 +804,21 @@ describe("deleteWorkfowRemindersOfRemovedMember", () => {
       })
     );
 
-    await createWorkflowRemindersForWorkflow("Org Workflow");
+    await createWorkflowRemindersAndTasksForWorkflow("Org Workflow");
 
     await deleteWorkfowRemindersOfRemovedMember(org, 101, true);
 
     const workflowReminders = await prismock.workflowReminder.findMany();
+
     expect(workflowReminders.length).toBe(0);
+
+    const tasks = await prismock.task.findMany({
+      where: {
+        type: "sendWorkflowEmails",
+      },
+    });
+
+    expect(tasks.length).toBe(0);
   });
 
   test("deletes reminders if member is removed from an org team ", async ({}) => {
@@ -815,10 +899,8 @@ describe("deleteWorkfowRemindersOfRemovedMember", () => {
       })
     );
 
-    await createWorkflowRemindersForWorkflow("Org Workflow 1");
-    await createWorkflowRemindersForWorkflow("Org Workflow 2");
-
-    const tes = await prismock.membership.findMany();
+    await createWorkflowRemindersAndTasksForWorkflow("Org Workflow 1");
+    await createWorkflowRemindersAndTasksForWorkflow("Org Workflow 2");
 
     await prismock.membership.delete({
       where: {
@@ -831,6 +913,7 @@ describe("deleteWorkfowRemindersOfRemovedMember", () => {
 
     const workflowReminders = await prismock.workflowReminder.findMany({
       select: {
+        uuid: true,
         workflowStep: {
           select: {
             workflow: {
@@ -852,5 +935,17 @@ describe("deleteWorkfowRemindersOfRemovedMember", () => {
 
     expect(workflow1Reminders.length).toBe(4);
     expect(workflow2Reminders.length).toBe(0);
+
+    const tasks = await prismock.task.findMany({
+      where: {
+        type: "sendWorkflowEmails",
+      },
+    });
+
+    expect(tasks.length).toBe(4);
+
+    expect(tasks.map((task) => task.referenceUid)).toEqual(
+      workflowReminders.map((reminder) => reminder.uuid)
+    );
   });
 });

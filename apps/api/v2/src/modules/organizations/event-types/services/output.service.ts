@@ -70,6 +70,7 @@ type Input = Pick<
   | "eventName"
   | "useEventTypeDestinationCalendarEmail"
   | "hideCalendarEventDetails"
+  | "hideOrganizerEmail"
   | "team"
 >;
 

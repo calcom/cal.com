@@ -8,12 +8,12 @@ import { useState, useEffect, useRef } from "react";
 import dayjs from "@calcom/dayjs";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/constants";
-import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
+import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Icon } from "@calcom/ui/components/icon";
 import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/components/icon";
 
 import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
 
@@ -225,8 +225,12 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
 
           <h3>{t("who")}:</h3>
           <p>
-            {booking?.user?.name} - {t("organizer")}:{" "}
-            <a href={`mailto:${booking?.user?.email}`}>{booking?.user?.email}</a>
+            {booking?.user?.name} - {t("organizer")}
+            {!booking?.eventType?.hideOrganizerEmail && (
+              <>
+                : <a href={`mailto:${booking?.user?.email}`}>{booking?.user?.email}</a>
+              </>
+            )}
           </p>
 
           {booking.attendees.length
