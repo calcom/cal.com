@@ -124,7 +124,7 @@ export class FeaturesRepository implements IFeaturesRepository {
       const query = Prisma.sql`
         WITH RECURSIVE TeamHierarchy AS (
           -- Start with teams the user belongs to
-          SELECT t.id, t."parentId"
+          SELECT DISTINCT t.id, t."parentId"
           FROM "Team" t
           INNER JOIN "Membership" m ON m."teamId" = t.id
           WHERE m."userId" = ${userId}
@@ -132,7 +132,7 @@ export class FeaturesRepository implements IFeaturesRepository {
           UNION ALL
 
           -- Recursively get parent teams
-          SELECT t.id, t."parentId"
+          SELECT DISTINCT t.id, t."parentId"
           FROM "Team" t
           INNER JOIN TeamHierarchy th ON t.id = th."parentId"
         )
@@ -177,6 +177,14 @@ export class FeaturesRepository implements IFeaturesRepository {
           SELECT T.id, T."parentId"
           FROM "Team" T
           INNER JOIN Ancestors A ON T.id = A."parentId"
+          WHERE T."parentId" IS NOT NULL
+          -- Stop recursion if we find the feature in any ancestor
+          AND NOT EXISTS (
+            SELECT 1 
+            FROM "TeamFeatures" TF 
+            WHERE TF."teamId" = T.id 
+            AND TF."featureId" = ${featureId}
+          )
         )
         -- Final check: See if any team ID from the Ancestors list has the feature
         SELECT 1
