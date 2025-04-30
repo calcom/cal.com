@@ -15,7 +15,9 @@ interface MultiDayEvent {
 
 export const handleMultiDayOverlayEvents = (events: MultiDayEvent[]) => {
   return events.flatMap((event, idx) => {
-    const daysDiff = dayjs(event.end).diff(event.start, "day");
+    const startDay = dayjs(event.start).startOf("day");
+    const endDay = dayjs(event.end).startOf("day");
+    const daysDiff = endDay.diff(startDay, "day");
     const multiDayEvents = [];
 
     for (let i = 0; i <= daysDiff; i++) {
