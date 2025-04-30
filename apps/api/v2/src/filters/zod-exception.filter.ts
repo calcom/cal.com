@@ -11,7 +11,7 @@ import { Response } from "@calcom/platform-types";
 export class ZodExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger("ZodExceptionFilter");
 
-  catch(error: any, host: ArgumentsHost) {
+  catch(error: ZodError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
