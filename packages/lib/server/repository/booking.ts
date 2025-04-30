@@ -29,6 +29,7 @@ const buildWhereClauseForActiveBookings = ({
   endDate,
   users,
   virtualQueuesData,
+  includeNoShowInRRCalculation = false,
 }: {
   eventTypeId: number;
   startDate?: Date;
@@ -41,21 +42,21 @@ const buildWhereClauseForActiveBookings = ({
       selectedOptionIds: string | number | string[];
     };
   } | null;
+  includeNoShowInRRCalculation: boolean;
 }): Prisma.BookingWhereInput => ({
   OR: [
     {
       userId: {
         in: users.map((user) => user.id),
       },
-      OR: [
-        {
-          noShowHost: false,
-        },
-        {
-          noShowHost: null,
-        },
-      ],
     },
+    ...(!includeNoShowInRRCalculation
+      ? [
+          {
+            OR: [{ noShowHost: false }, { noShowHost: null }],
+          },
+        ]
+      : []),
     {
       attendees: {
         some: {
@@ -66,7 +67,7 @@ const buildWhereClauseForActiveBookings = ({
       },
     },
   ],
-  attendees: { some: { noShow: false } },
+  ...(!includeNoShowInRRCalculation ? { attendees: { some: { noShow: false } } } : {}),
   status: BookingStatus.ACCEPTED,
   eventTypeId,
   ...(startDate || endDate
@@ -291,6 +292,7 @@ export class BookingRepository {
     startDate,
     endDate,
     virtualQueuesData,
+    includeNoShowInRRCalculation,
   }: {
     users: { id: number; email: string }[];
     eventTypeId: number;
