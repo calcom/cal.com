@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Select } from "@calcom/ui/components/form";
+import { Label, Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 
 export interface TeamMember {
@@ -78,33 +78,37 @@ export const TeamMemberSelect = ({
   };
 
   return (
-    <div className="space-y-4">
-      {selectAllEnabled && (
-        <div className="flex items-center space-x-2">
-          <Switch
-            checked={selectAll}
-            onCheckedChange={handleSelectAllChange}
-            disabled={disabled}
-            size="sm"
-            data-testid="assign-all-team-members-toggle"
-          />
-          <span className="text-default text-sm">{t("select_all_members")}</span>
-        </div>
-      )}
-      <Select
-        data-testid="routing-form-select-members"
-        isMulti
-        options={options}
-        value={selectedOptions}
-        onChange={(newValue) => {
-          const selectedIds = (newValue as TeamMemberOption[]).map((option) => parseInt(option.value, 10));
-          onChange(selectedIds);
-        }}
-        className={className}
-        placeholder={placeholder || t("select_members")}
-        isDisabled={disabled || selectAll}
-        size={size}
-      />
+    <div>
+      <Label htmlFor="routing-form-select-members">{t("routing_form_select_members_to_email")}</Label>
+      <div className="space-y-4">
+        <Select
+          id="routing-form-select-members"
+          data-testid="routing-form-select-members"
+          isMulti
+          options={options}
+          value={selectedOptions}
+          onChange={(newValue) => {
+            const selectedIds = (newValue as TeamMemberOption[]).map((option) => parseInt(option.value, 10));
+            onChange(selectedIds);
+          }}
+          className={className}
+          placeholder={placeholder || t("select_members")}
+          isDisabled={disabled || selectAll}
+          size={size}
+        />
+        {selectAllEnabled && (
+          <div className="flex items-center space-x-2">
+            <Switch
+              checked={selectAll}
+              onCheckedChange={handleSelectAllChange}
+              disabled={disabled}
+              size="sm"
+              data-testid="assign-all-team-members-toggle"
+            />
+            <span className="text-default text-sm">{t("select_all_members")}</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
