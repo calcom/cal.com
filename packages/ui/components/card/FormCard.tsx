@@ -56,7 +56,10 @@ const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) 
           <DropdownItem
             key={action.label}
             StartIcon={action.icon}
-            onClick={action.onClick}
+            onClick={(e) => {
+              e.preventDefault();
+              action.onClick();
+            }}
             color={action.color}>
             {action.label}
           </DropdownItem>
