@@ -135,6 +135,14 @@ export class FeaturesRepository implements IFeaturesRepository {
           SELECT DISTINCT t.id, t."parentId"
           FROM "Team" t
           INNER JOIN TeamHierarchy th ON t.id = th."parentId"
+          WHERE t."parentId" IS NOT NULL
+          -- Stop recursion if we find a team with the feature
+          AND NOT EXISTS (
+            SELECT 1 
+            FROM "TeamFeatures" tf 
+            WHERE tf."teamId" = t.id 
+            AND tf."featureId" = ${slug}
+          )
         )
         -- Check if any team in the hierarchy has the feature
         SELECT 1
