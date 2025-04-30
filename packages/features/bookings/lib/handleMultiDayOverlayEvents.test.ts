@@ -32,7 +32,6 @@ describe("handleMultiDayOverlayEvents", () => {
 
     const result = handleMultiDayOverlayEvents([multiDayEvent]);
 
-    // Should create 3 events (one for each day)
     expect(result).toHaveLength(3);
 
     // First day: should start at the original time, end at end of day
@@ -68,24 +67,21 @@ describe("handleMultiDayOverlayEvents", () => {
     expect(result[0].title).toEqual("Busy");
   });
 
+  // Edge case: Event that crosses midnight but has a total duration less than 24 hours
   it("should handle events that cross midnight", () => {
-    // Event that crosses midnight
     const crossMidnightEvent = {
-      start: new Date("2023-07-10T22:00:00"), // 10 PM on July 10
-      end: new Date("2023-07-11T02:00:00"), // 2 AM on July 11
+      start: new Date("2023-07-10T22:00:00"),
+      end: new Date("2023-07-11T02:00:00"),
       title: "Late Night Meeting",
     };
 
     const result = handleMultiDayOverlayEvents([crossMidnightEvent]);
 
-    // Should split into 2 events (one for each day)
     expect(result).toHaveLength(2);
 
-    // First part: From 10 PM to 11:59 PM on July 10
     expect(dayjs(result[0].start).format("YYYY-MM-DD HH:mm")).toEqual("2023-07-10 22:00");
     expect(dayjs(result[0].end).format("YYYY-MM-DD HH:mm")).toEqual("2023-07-10 23:59");
 
-    // Second part: From 00:00 AM to 2 AM on July 11
     expect(dayjs(result[1].start).format("YYYY-MM-DD HH:mm")).toEqual("2023-07-11 00:00");
     expect(dayjs(result[1].end).format("YYYY-MM-DD HH:mm")).toEqual("2023-07-11 02:00");
 
