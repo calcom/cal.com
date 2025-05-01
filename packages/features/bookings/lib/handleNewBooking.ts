@@ -452,6 +452,7 @@ async function handler(
           email: null,
         },
         paymentRequired: false,
+        seatReferenceUid: "",
       };
 
       return {
