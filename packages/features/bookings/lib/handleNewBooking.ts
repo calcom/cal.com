@@ -457,7 +457,7 @@ async function handler(
 
       return {
         ...bookingResponse,
-        luckyUsers: [bookingResponse.userId],
+        luckyUsers: bookingResponse.userId ? [bookingResponse.userId] : [],
         isDryRun,
         ...(isDryRun ? { troubleshooterData } : {}),
         paymentUid: undefined,
