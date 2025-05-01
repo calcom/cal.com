@@ -67,6 +67,7 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
     disableGuests: true,
     metadata: true,
     lockTimeZoneToggleOnBookingPage: true,
+    lockedTimeZone: true,
     requiresConfirmation: true,
     autoTranslateDescriptionEnabled: true,
     fieldTranslations: {
@@ -142,6 +143,11 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
         timeZone: true,
       },
     },
+    periodType: true,
+    periodDays: true, // days if limiting future bookings
+    periodEndDate: true, //end date limit by range
+    periodStartDate: true, //start date limit by range
+    periodCountCalendarDays: true, // count calendar days? Or only business days based on periodDays
     hidden: true,
     assignAllTeamMembers: true,
     rescheduleWithSameRoundRobinHost: true,
@@ -368,9 +374,11 @@ export const getPublicEvent = async (
           some: {
             username,
             isPlatformManaged: false,
-            movedToProfile: {
-              organization: {
-                isPlatform: true,
+            profiles: {
+              some: {
+                organization: {
+                  isPlatform: true,
+                },
               },
             },
           },

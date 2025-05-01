@@ -1,13 +1,17 @@
 import type { NextApiRequest } from "next";
 import { z } from "zod";
 
-import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import { buildNonDelegationCredential } from "@calcom/lib/server/buildNonDelegationCredential";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
 import { getCalendar } from "../../_utils/getCalendar";
+
+const log = logger.getSubLogger({ prefix: ["GoogleCalendarWebhook"] });
 
 const googleHeadersSchema = z.object({
   "x-goog-channel-expiration": z.string(), // Sat, 22 Mar 2025 19:14:43 GMT
@@ -59,6 +63,7 @@ async function postHandler(req: NextApiRequest) {
     "x-goog-channel-id": channelId,
     "x-goog-resource-id": eventId,
   } = googleHeadersSchema.parse(req.headers);
+  log.debug("postHandler", safeStringify({ channelToken, channelId, eventId }));
   if (channelToken !== process.env.GOOGLE_WEBHOOK_TOKEN) {
     throw new HttpError({ statusCode: 403, message: "Invalid API key" });
   }

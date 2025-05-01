@@ -405,6 +405,14 @@ async function handler(
 
   const dynamicUserList = Array.isArray(reqBody.user) ? reqBody.user : getUsernameList(reqBody.user);
   if (!eventType) throw new HttpError({ statusCode: 404, message: "event_type_not_found" });
+
+  if (eventType.seatsPerTimeSlot && eventType.recurringEvent) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "recurring_event_seats_error",
+    });
+  }
+
   const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
 
   const isTeamEventType =
@@ -1011,11 +1019,13 @@ async function handler(
       id: eventType.id,
       hideCalendarNotes: eventType.hideCalendarNotes,
       hideCalendarEventDetails: eventType.hideCalendarEventDetails,
+      hideOrganizerEmail: eventType.hideOrganizerEmail,
       schedulingType: eventType.schedulingType,
       seatsPerTimeSlot: eventType.seatsPerTimeSlot,
       // if seats are not enabled we should default true
       seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
       seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
+      customReplyToEmail: eventType.customReplyToEmail,
     })
     .withOrganizer({
       id: organizerUser.id,
@@ -1210,6 +1220,11 @@ async function handler(
     eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
     originalRescheduledBooking.userId !== evt.organizer.id;
 
+  const isBookingRequestedReschedule =
+    !!originalRescheduledBooking &&
+    !!originalRescheduledBooking.rescheduled &&
+    originalRescheduledBooking.status === BookingStatus.CANCELLED;
+
   let results: EventResult<AdditionalInformation & { url?: string; iCalUID?: string }>[] = [];
   let referencesToCreate: PartialReference[] = [];
 
@@ -1249,7 +1264,6 @@ async function handler(
         input: {
           bookerEmail,
           rescheduleReason,
-          changedOrganizer,
           smsReminderNumber,
           responses,
         },
@@ -1399,7 +1413,8 @@ async function handler(
       originalRescheduledBooking.uid,
       undefined,
       changedOrganizer,
-      previousHostDestinationCalendar
+      previousHostDestinationCalendar,
+      isBookingRequestedReschedule
     );
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.

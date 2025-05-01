@@ -31,7 +31,7 @@ type SubmenuItem = {
 
 export function FilterSegmentSelect() {
   const { t } = useLocale();
-  const { segments, selectedSegment, segmentId, setSegmentId } = useDataTable();
+  const { segments, selectedSegment, segmentId, setSegmentId, isSegmentEnabled } = useDataTable();
   const [segmentToRename, setSegmentToRename] = useState<FilterSegmentOutput | undefined>();
   const [segmentToDuplicate, setSegmentToDuplicate] = useState<FilterSegmentOutput | undefined>();
   const [segmentToDelete, setSegmentToDelete] = useState<FilterSegmentOutput | undefined>();
@@ -98,6 +98,14 @@ export function FilterSegmentSelect() {
         .sort((a, b) => a.label.localeCompare(b.label)),
     ];
   }, [segments, t]);
+
+  if (!isSegmentEnabled) {
+    return (
+      <Button color="secondary" StartIcon="list-filter" EndIcon="chevron-down" disabled>
+        {t("segment")}
+      </Button>
+    );
+  }
 
   return (
     <>

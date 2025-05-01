@@ -58,6 +58,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       periodDays: true,
       periodCountCalendarDays: true,
       lockTimeZoneToggleOnBookingPage: true,
+      lockedTimeZone: true,
       requiresConfirmation: true,
       requiresConfirmationForFreeEmail: true,
       requiresBookerEmailVerification: true,
@@ -70,6 +71,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       destinationCalendar: true,
       hideCalendarNotes: true,
       hideCalendarEventDetails: true,
+      hideOrganizerEmail: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
       seatsShowAttendees: true,
@@ -80,6 +82,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       assignAllTeamMembers: true,
       isRRWeightsEnabled: true,
       beforeEventBuffer: true,
+      customReplyToEmail: true,
       afterEventBuffer: true,
       parentId: true,
       parent: {

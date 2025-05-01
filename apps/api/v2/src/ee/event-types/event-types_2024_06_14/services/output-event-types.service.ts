@@ -87,6 +87,7 @@ type Input = Pick<
   | "destinationCalendar"
   | "useEventTypeDestinationCalendarEmail"
   | "hideCalendarEventDetails"
+  | "hideOrganizerEmail"
 >;
 
 @Injectable()
@@ -123,6 +124,7 @@ export class OutputEventTypesService_2024_06_14 {
       seatsShowAttendees,
       useEventTypeDestinationCalendarEmail,
       hideCalendarEventDetails,
+      hideOrganizerEmail,
     } = databaseEventType;
 
     const locations = this.transformLocations(databaseEventType.locations);
@@ -197,6 +199,7 @@ export class OutputEventTypesService_2024_06_14 {
       destinationCalendar,
       useDestinationCalendarEmail: useEventTypeDestinationCalendarEmail,
       hideCalendarEventDetails,
+      hideOrganizerEmail,
     };
   }
 

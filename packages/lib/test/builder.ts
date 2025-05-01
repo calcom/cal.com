@@ -111,6 +111,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     periodCountCalendarDays: null,
     recurringEvent: null,
     lockTimeZoneToggleOnBookingPage: false,
+    lockedTimeZone: "Europe/London",
     requiresConfirmation: false,
     requiresConfirmationForFreeEmail: false,
     requiresConfirmationWillBlockSlot: false,
@@ -150,6 +151,8 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     autoTranslateDescriptionEnabled: false,
     useEventLevelSelectedCalendars: false,
     allowReschedulingPastBookings: false,
+    hideOrganizerEmail: false,
+    customReplyToEmail: null,
     ...eventType,
   };
 };

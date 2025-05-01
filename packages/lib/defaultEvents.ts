@@ -92,6 +92,7 @@ const commons = {
   disableRescheduling: false,
   onlyShowFirstAvailableSlot: false,
   allowReschedulingPastBookings: false,
+  hideOrganizerEmail: false,
   id: 0,
   hideCalendarNotes: false,
   hideCalendarEventDetails: false,
@@ -99,6 +100,7 @@ const commons = {
   destinationCalendar: null,
   team: null,
   lockTimeZoneToggleOnBookingPage: false,
+  lockedTimeZone: "Europe/London",
   requiresConfirmation: false,
   requiresConfirmationForFreeEmail: false,
   requiresBookerEmailVerification: false,
@@ -128,6 +130,7 @@ const commons = {
   maxLeadThreshold: null,
   useEventLevelSelectedCalendars: false,
   rrResetInterval: null,
+  customReplyToEmail: null,
 };
 
 export const dynamicEvent = {

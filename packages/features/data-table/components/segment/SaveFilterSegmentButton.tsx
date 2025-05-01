@@ -50,6 +50,7 @@ export function SaveFilterSegmentButton() {
     columnSizing,
     selectedSegment,
     canSaveSegment,
+    isSegmentEnabled,
     setSegmentId,
     pageSize,
     searchTerm,
@@ -160,6 +161,14 @@ export function SaveFilterSegmentButton() {
     }
     setIsOpen(open);
   };
+
+  if (!isSegmentEnabled) {
+    return (
+      <Button StartIcon="bookmark" color="secondary" disabled>
+        {t("save")}
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>

@@ -53,6 +53,7 @@ export const useEventTypeForm = ({
       seatsShowAttendees: eventType.seatsShowAttendees,
       seatsShowAvailabilityCount: eventType.seatsShowAvailabilityCount,
       lockTimeZoneToggleOnBookingPage: eventType.lockTimeZoneToggleOnBookingPage,
+      lockedTimeZone: eventType.lockedTimeZone,
       locations: eventType.locations || [],
       destinationCalendar: eventType.destinationCalendar,
       recurringEvent: eventType.recurringEvent || null,
@@ -87,6 +88,7 @@ export const useEventTypeForm = ({
       slotInterval: eventType.slotInterval,
       minimumBookingNotice: eventType.minimumBookingNotice,
       allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
+      hideOrganizerEmail: eventType.hideOrganizerEmail,
       metadata: eventType.metadata,
       hosts: eventType.hosts.sort((a, b) => sortHosts(a, b, eventType.isRRWeightsEnabled)),
       successRedirectUrl: eventType.successRedirectUrl || "",
@@ -127,6 +129,7 @@ export const useEventTypeForm = ({
       isRRWeightsEnabled: eventType.isRRWeightsEnabled,
       maxLeadThreshold: eventType.maxLeadThreshold,
       useEventLevelSelectedCalendars: eventType.useEventLevelSelectedCalendars,
+      customReplyToEmail: eventType.customReplyToEmail || null,
     };
   }, [eventType, periodDates]);
 
@@ -280,6 +283,7 @@ export const useEventTypeForm = ({
       durationLimits,
       recurringEvent,
       eventTypeColor,
+      customReplyToEmail,
       locations,
       metadata,
       customInputs,
@@ -297,6 +301,13 @@ export const useEventTypeForm = ({
       ...input
     } = dirtyValues;
     if (length && !Number(length)) throw new Error(t("event_setup_length_error"));
+
+    const finalSeatsPerTimeSlot = seatsPerTimeSlot ?? values.seatsPerTimeSlot;
+    const finalRecurringEvent = recurringEvent ?? values.recurringEvent;
+
+    if (finalSeatsPerTimeSlot && finalRecurringEvent) {
+      throw new Error(t("recurring_event_seats_error"));
+    }
 
     if (bookingLimits) {
       const isValid = validateIntervalLimitOrder(bookingLimits);
@@ -350,6 +361,7 @@ export const useEventTypeForm = ({
       onlyShowFirstAvailableSlot,
       durationLimits,
       eventTypeColor,
+      customReplyToEmail,
       seatsPerTimeSlot,
       seatsShowAttendees,
       seatsShowAvailabilityCount,

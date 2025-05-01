@@ -2,7 +2,7 @@ import type { Availability } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
 import { getWorkingHours } from "@calcom/lib/availability";
-import { yyyymmdd } from "@calcom/lib/date-fns";
+import { yyyymmdd } from "@calcom/lib/dayjs";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
 type ScheduleAvailability = Pick<Availability, "days" | "startTime" | "endTime">[];
