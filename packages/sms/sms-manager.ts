@@ -29,12 +29,21 @@ const handleSendingSMS = ({
           parent: {
             select: {
               isOrganization: true,
+              organizationSettings: {
+                select: {
+                  disablePhoneOnlySMSNotifications: true,
+                },
+              },
             },
           },
         },
       });
 
-      if (!team?.parent?.isOrganization) return;
+      if (
+        !team?.parent?.isOrganization ||
+        team?.parent?.organizationSettings?.disablePhoneOnlySMSNotifications
+      )
+        return;
 
       await checkSMSRateLimit({ identifier: `handleSendingSMS:team:${teamId}`, rateLimitingType: "sms" });
       const sms = twilio.sendSMS(reminderPhone, smsMessage, senderID, teamId);
