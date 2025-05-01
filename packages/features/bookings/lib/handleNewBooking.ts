@@ -447,7 +447,10 @@ async function handler(
     if (requestedBooking) {
       const bookingResponse = {
         ...requestedBooking,
-        email: null,
+        user: {
+          ...requestedBooking.user,
+          email: null,
+        },
         paymentRequired: false,
       };
 
@@ -456,6 +459,7 @@ async function handler(
         luckyUsers: [bookingResponse.userId],
         isDryRun,
         ...(isDryRun ? { troubleshooterData } : {}),
+        paymentUid: undefined,
       };
     }
   }

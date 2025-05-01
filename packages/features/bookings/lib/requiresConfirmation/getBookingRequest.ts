@@ -25,6 +25,10 @@ export const getBookingRequest = async ({
       },
       status: BookingStatus.PENDING,
     },
+    include: {
+      attendees: true,
+      references: true,
+    },
   });
   return booking;
 };
