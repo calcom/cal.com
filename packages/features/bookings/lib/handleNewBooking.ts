@@ -2029,7 +2029,7 @@ async function handler(
       });
     }
   } catch (error) {
-    loggerWithEventDetails.error("Error while creating booking references", JSON.stringify({ error }));
+    loggerWithEventDetails.error("Error while creating booking references", safeStringify(error));
   }
 
   const evtWithMetadata = {

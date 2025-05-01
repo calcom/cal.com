@@ -53,6 +53,22 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
   constructor(calendar: Calendar | null = null) {
     this.calendar = calendar;
   }
+
+  /**
+   * Core calendar watching functionality that can be used for any type of calendar
+   */
+  async watchCalendarCore(args: { calendarId: string }) {
+    assertCalendarHasDbCredential(this.calendar);
+    const { calendarId } = args;
+    if (typeof this.calendar?.watchCalendarCore !== "function") {
+      log.info(
+        '[watchCalendarCore] Skipping watching calendar due to calendar not having "watchCalendarCore" method'
+      );
+      return null;
+    }
+    return await this.calendar?.watchCalendarCore({ calendarId });
+  }
+
   async watchCalendar(args: { calendarId: string; eventTypeIds: SelectedCalendarEventTypeIds }) {
     assertCalendarHasDbCredential(this.calendar);
     const { calendarId, eventTypeIds } = args;

@@ -3,6 +3,7 @@ import { vi } from "vitest";
 const setCredentialsMock = vi.fn();
 const freebusyQueryMock = vi.fn();
 const calendarListMock = vi.fn();
+const calendarEventsListMock = vi.fn();
 const calendarMockImplementation = {
   channels: {
     stop: vi.fn().mockResolvedValue(undefined),
@@ -20,6 +21,7 @@ const calendarMockImplementation = {
         expiration: "1111111111",
       },
     }),
+    list: calendarEventsListMock,
   },
   freebusy: {
     query: freebusyQueryMock,
@@ -37,4 +39,13 @@ const adminMock = {
   },
 };
 
-export { calendarMock, adminMock, setCredentialsMock, freebusyQueryMock, calendarListMock };
+vi.mock("@googleapis/calendar", () => calendarMock);
+
+export {
+  calendarMock,
+  adminMock,
+  setCredentialsMock,
+  freebusyQueryMock,
+  calendarListMock,
+  calendarEventsListMock,
+};

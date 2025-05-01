@@ -81,6 +81,7 @@ export type NewCalendarEventType = {
   hangoutLink?: string | null;
   conferenceData?: ConferenceData;
   delegatedToId?: string | null;
+  calendarEventId?: string | null;
 };
 
 export type CalendarEventType = {
@@ -298,7 +299,12 @@ export interface Calendar {
     eventTypeIds: SelectedCalendarEventTypeIds;
   }): Promise<unknown>;
 
-  onWatchedCalendarChange?(calendarId: string, eventId: string): Promise<unknown>;
+  onWatchedCalendarChange?(
+    calendarId: string,
+    resourceId: string,
+    resourceState?: string,
+    calendarType?: "selected" | "destination"
+  ): Promise<unknown>;
 
   unwatchCalendar?(options: {
     calendarId: string;

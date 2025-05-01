@@ -57,7 +57,13 @@ export class BookingReferenceRepository {
     bookingId: number;
   }) {
     await prisma.bookingReference.create({
-      data: { type: "google_calendar", uid: event.id, bookingId, rawData: event },
+      data: {
+        type: "google_calendar",
+        uid: event.id,
+        bookingId,
+        rawData: event,
+        calendarEventId: event.id, // Store event.id in calendarEventId field for bi-directional sync
+      },
     });
   }
 }

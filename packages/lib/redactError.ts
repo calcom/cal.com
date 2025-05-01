@@ -24,5 +24,6 @@ export const redactError = <T extends Error | unknown>(error: T) => {
     log.error("Error: ", JSON.stringify(error));
     return new Error("An error occurred while querying the database.");
   }
+  log.error("Error: ", error);
   return error;
 };

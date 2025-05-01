@@ -4,6 +4,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
@@ -128,10 +129,69 @@ const handleCalendarsToWatch = async () => {
   return result;
 };
 
+const handleDestinationCalendarsToWatch = async () => {
+  const calendarsToWatch = await DestinationCalendarRepository.getNextBatchToWatch(500);
+  const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToWatch);
+
+  const result = await Promise.allSettled(
+    Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
+      async ([externalId, { credentialId, id }]) => {
+        if (!credentialId) {
+          // So we don't retry on next cron run
+          await DestinationCalendarRepository.updateById(id, {
+            error: "Missing credentialId",
+          });
+          log.error("no credentialId for DestinationCalendar: ", { id, externalId, integration });
+          return;
+        }
+
+        try {
+          const cc = await CalendarCache.initFromCredentialId(credentialId);
+          // Use the watchCalendarCore method which doesn't require eventTypeIds
+          const watchResponse = await cc.watchCalendarCore({ calendarId: externalId });
+
+          if (watchResponse) {
+            await DestinationCalendarRepository.updateMany({
+              where: {
+                externalId,
+                integration: "google_calendar",
+              },
+              data: {
+                error: null,
+                // Store Google channel info if available
+                ...(watchResponse && {
+                  googleChannelId: watchResponse.id,
+                  googleChannelResourceId: watchResponse.resourceId,
+                  googleChannelExpiration: watchResponse.expiration,
+                }),
+              },
+            });
+          }
+        } catch (error) {
+          let errorMessage = "Unknown error";
+          if (error instanceof Error) {
+            errorMessage = error.message;
+          }
+          log.error("Error watching destination calendar", { id, externalId, error: errorMessage });
+          await DestinationCalendarRepository.updateById(id, {
+            error: `Error watching calendar: ${errorMessage}`,
+          });
+        }
+      }
+    )
+  );
+  result.forEach(logRejected);
+  return result;
+};
+
 // This cron is used to activate and renew calendar subscriptions
 const handler = defaultResponder(async (request: NextApiRequest) => {
   validateRequest(request);
-  await Promise.allSettled([handleCalendarsToWatch(), handleCalendarsToUnwatch()]);
+  await Promise.allSettled([
+    handleCalendarsToWatch(),
+    handleCalendarsToUnwatch(),
+    handleDestinationCalendarsToWatch(),
+  ]);
 
   // TODO: Credentials can be installed on a whole team, check for selected calendars on the team
   return {

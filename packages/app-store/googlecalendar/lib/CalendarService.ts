@@ -503,6 +503,7 @@ export default class GoogleCalendarService implements Calendar {
         password: "",
         url: "",
         iCalUID: event?.iCalUID,
+        calendarEventId: event?.id, // Add the event ID to be used when creating the BookingReference
       };
     } catch (error) {
       if (isGaxiosResponse(error)) {
@@ -932,10 +933,22 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
-  async onWatchedCalendarChanged(calendarId: string, eventId: string) {
+  async onWatchedCalendarChange(
+    calendarId: string,
+    resourceId: string,
+    resourceState: string,
+    calendarTypes: ("selected" | "destination")[]
+  ) {
+    log.debug(
+      "onWatchedCalendarChange",
+      safeStringify({ calendarId, resourceId, resourceState, calendarTypes })
+    );
+
     await Promise.all([
-      this.fetchSelectedCalendarsAvailabilityAndSetCache(),
-      this.updateBookingFromGoogleEventId(calendarId, eventId),
+      calendarTypes.includes("selected") ? this.fetchSelectedCalendarsAvailabilityAndSetCache() : null,
+      calendarTypes.includes("destination")
+        ? this.updateBookingFromGoogleEventId(calendarId, resourceId, resourceState)
+        : null,
     ]);
   }
 
@@ -944,10 +957,178 @@ export default class GoogleCalendarService implements Calendar {
     await this.fetchAvailabilityAndSetCache(selectedCalendars);
   }
 
-  private async updateBookingFromGoogleEventId(calendarId: string, eventId: string) {
+  private async updateBookingFromGoogleEventId(
+    calendarId: string,
+    resourceId: string,
+    resourceState: string
+  ) {
+    log.debug("updateBookingFromGoogleEventId", safeStringify({ calendarId, resourceId, resourceState }));
+
+    // Ignore 'sync' notifications as they don't represent specific event changes
+    if (resourceState === "sync") {
+      log.info(`Ignoring 'sync' notification for resource ${resourceId} in calendar ${calendarId}.`);
+      return;
+    }
+
+    // Process only 'exists' (update/create) or 'not_found' (delete)
+    // 'not_found' state will be handled implicitly by the 404 error in the catch block, but we explicitly allow it here.
+    if (resourceState !== "exists" && resourceState !== "not_found") {
+      log.warn(
+        `Received unexpected resourceState '${resourceState}' for resource ${resourceId} in calendar ${calendarId}. Ignoring.`
+      );
+      return;
+    }
+
+    // Get all calendar events that were updated recently to find the one that changed
     const calendar = await this.authedCalendar();
-    const event = await calendar.events.get({ calendarId, eventId });
-    console.log("event", JSON.stringify(event, null, 2));
+
+    try {
+      // Attempt to list recent events first for debugging
+      try {
+        const timeMin = dayjs().subtract(1, "hour").toISOString(); // Look back 1 hour
+        log.debug(
+          "Attempting calendar.events.list",
+          safeStringify({ calendarId, timeMin, attemptTime: dayjs().toISOString() })
+        );
+        const recentEvents = await calendar.events.list({
+          calendarId,
+          maxResults: 10,
+          orderBy: "updated", // Get the most recently updated events
+          showDeleted: true, // Include deleted events just in case
+          // singleEvents: false, // Set to false if dealing with recurring events potentially
+          updatedMin: timeMin,
+        });
+        log.debug(
+          "Recently updated events list:",
+          safeStringify({
+            count: recentEvents.data.items?.length,
+            itemsSummary: recentEvents.data.items?.map((item) => ({
+              id: item.id,
+              status: item.status,
+              updated: item.updated,
+              summary: item.summary,
+            })),
+          })
+        );
+
+        // Process each event to find the one that was updated or deleted
+        for (const item of recentEvents.data.items || []) {
+          log.debug("Processing event:", safeStringify({ item }));
+          // The resourceId here is for the channel/subscription, not the individual event
+          // We need to examine each event's data to find the one that changed
+          // In a real implementation, you might want to track the specific event that changed
+          await this.processUpdatedEvent(item);
+        }
+      } catch (listError) {
+        log.error("Error trying to list recent events for debugging:", safeStringify({ listError }));
+      }
+    } catch (error) {
+      const googleError = error as GoogleCalError & { response?: { status?: number } };
+      // Check if it's a "Not Found" error (HTTP 404), which Google sends for deletions via webhook
+      // We also check the resourceState just in case the fetch happens before deletion is fully processed
+      if (googleError.code === 404 || googleError.response?.status === 404 || resourceState === "not_found") {
+        log.warn(
+          `Google Calendar not found or deleted: calendarId=${calendarId}, resourceId=${resourceId}. Treating as deletion.`,
+          safeStringify({ resourceState })
+        );
+      } else {
+        // Log other errors more verbosely
+        log.error(
+          `Error fetching Google Calendar: calendarId=${calendarId}, resourceId=${resourceId}`,
+          safeStringify({
+            errorMessage: googleError.message,
+            errorCode: googleError.code,
+            errorStatus: googleError.response?.status,
+            errorStack: googleError.stack, // Include stack trace for deeper debugging
+          })
+        );
+      }
+    }
+  }
+
+  private async processUpdatedEvent(event: calendar_v3.Schema$Event) {
+    const eventId = event.id;
+    if (!eventId) {
+      log.warn("Received event with no ID, skipping");
+      return;
+    }
+
+    // 1. Find Cal.com Booking
+    const bookingRef = await prisma.bookingReference.findFirst({
+      where: { calendarEventId: eventId, type: "google_calendar" },
+    });
+
+    if (!bookingRef) {
+      log.warn(`Could not find Cal.com booking reference for Google Event ${eventId}. Skipping sync.`);
+      return;
+    }
+    if (!bookingRef.bookingId) {
+      log.error(
+        `BookingReference ${bookingRef.id} for Google Event ${eventId} has a null bookingId. Cannot sync.`
+      );
+      return;
+    }
+    const booking = await prisma.booking.findUnique({ where: { id: bookingRef.bookingId } });
+    if (!booking) {
+      log.warn(
+        `Could not find Cal.com booking ${bookingRef.bookingId} for Google Event ${eventId}. Skipping sync.`
+      );
+      return;
+    }
+
+    // 3. Process Update/Deletion based on fetched event status/times
+    if (event.status === "cancelled") {
+      log.info(
+        `Google Event ${eventId} is cancelled. Updating Cal.com booking ${bookingRef.bookingId} to CANCELLED.`
+      );
+      // TODO: Implement the actual booking cancellation here
+      await prisma.booking.update({
+        where: { id: bookingRef.bookingId },
+        data: {
+          status: "CANCELLED",
+          cancelledBy: "googleCalendarSync",
+        },
+      });
+    } else {
+      // Compare times (ensure timezone handling)
+      const googleStartTime = dayjs(event.start?.dateTime);
+      const googleEndTime = dayjs(event.end?.dateTime);
+      const bookingStartTime = dayjs(booking.startTime);
+      const bookingEndTime = dayjs(booking.endTime);
+
+      // Only update if times are different
+      if (!googleStartTime.isSame(bookingStartTime) || !googleEndTime.isSame(bookingEndTime)) {
+        // Check if the event is in the past
+        if (googleEndTime.isBefore(dayjs())) {
+          log.info(
+            `Google Event ${eventId} time change is in the past. Skipping update to Cal.com booking ${bookingRef.bookingId}.`
+          );
+          return;
+        }
+
+        log.info(
+          `Google Event ${eventId} times updated. Updating Cal.com booking ${bookingRef.bookingId}.`,
+          safeStringify({
+            oldStart: bookingStartTime.format(),
+            newStart: googleStartTime.format(),
+            oldEnd: bookingEndTime.format(),
+            newEnd: googleEndTime.format(),
+          })
+        );
+
+        // Implement the booking time update
+        await prisma.booking.update({
+          where: { id: bookingRef.bookingId },
+          data: {
+            startTime: googleStartTime.toDate(),
+            endTime: googleEndTime.toDate(),
+            rescheduledBy: "google_calendar",
+          },
+        });
+      } else {
+        log.debug(`No time change detected for booking ${bookingRef.bookingId}, skipping update`);
+      }
+    }
   }
 
   // It would error if the delegation credential is not set up correctly
@@ -955,6 +1136,25 @@ export default class GoogleCalendarService implements Calendar {
     const calendar = await this.authedCalendar();
     const cals = await calendar.calendarList.list({ fields: "items(id)" });
     return !!cals.data.items;
+  }
+
+  /**
+   * Core calendar watching functionality that can be used for any calendar type
+   * Returns the Google channel response without any eventType association
+   */
+  async watchCalendarCore({ calendarId }: { calendarId: string }) {
+    log.debug("watchCalendarCore", safeStringify({ calendarId }));
+    if (!process.env.GOOGLE_WEBHOOK_TOKEN) {
+      log.warn("GOOGLE_WEBHOOK_TOKEN is not set, skipping watching calendar");
+      return null;
+    }
+
+    try {
+      return await this.startWatchingCalendarsInGoogle({ calendarId });
+    } catch (error) {
+      this.log.error(`Failed to watch calendar ${calendarId} in watchCalendarCore`, error);
+      throw error;
+    }
   }
 
   /**
@@ -1003,7 +1203,8 @@ export default class GoogleCalendarService implements Calendar {
 
     if (!otherCalendarsWithSameSubscription.length) {
       try {
-        googleChannelProps = await this.startWatchingCalendarsInGoogle({ calendarId });
+        // Use watchCalendarCore instead of calling startWatchingCalendarsInGoogle directly
+        googleChannelProps = await this.watchCalendarCore({ calendarId });
       } catch (error) {
         this.log.error(`Failed to watch calendar ${calendarId}`, error);
         // We set error to prevent attempting to watch on next cron run
@@ -1020,16 +1221,42 @@ export default class GoogleCalendarService implements Calendar {
     await this.upsertSelectedCalendarsForEventTypeIds(
       {
         externalId: calendarId,
-        googleChannelId: googleChannelProps.id,
-        googleChannelKind: googleChannelProps.kind,
-        googleChannelResourceId: googleChannelProps.resourceId,
-        googleChannelResourceUri: googleChannelProps.resourceUri,
-        googleChannelExpiration: googleChannelProps.expiration,
+        googleChannelId: googleChannelProps?.id,
+        googleChannelKind: googleChannelProps?.kind,
+        googleChannelResourceId: googleChannelProps?.resourceId,
+        googleChannelResourceUri: googleChannelProps?.resourceUri,
+        googleChannelExpiration: googleChannelProps?.expiration,
         error,
       },
       eventTypeIds
     );
     return googleChannelProps;
+  }
+
+  /**
+   * Handler for associating event types with a channel response
+   */
+  async handleWatchEventTypeAssociation({
+    calendarId,
+    eventTypeIds,
+    watchResponse,
+  }: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+    watchResponse: GoogleChannelProps;
+  }) {
+    await this.upsertSelectedCalendarsForEventTypeIds(
+      {
+        externalId: calendarId,
+        googleChannelId: watchResponse?.id,
+        googleChannelKind: watchResponse?.kind,
+        googleChannelResourceId: watchResponse?.resourceId,
+        googleChannelResourceUri: watchResponse?.resourceUri,
+        googleChannelExpiration: watchResponse?.expiration,
+      },
+      eventTypeIds
+    );
+    return watchResponse;
   }
 
   /**

@@ -244,6 +244,16 @@ model DestinationCalendar {
   domainWideDelegation             DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
   domainWideDelegationCredentialId String?
 
+  // Used to identify a watched calendar channel in Google Calendar
+  googleChannelId          String?
+  googleChannelKind        String?
+  googleChannelResourceId  String?
+  googleChannelResourceUri String?
+  googleChannelExpiration  String?
+  lastProcessedTime        DateTime?
+
+  error String?
+
   @@index([userId])
   @@index([eventTypeId])
   @@index([credentialId])
@@ -605,6 +615,7 @@ model BookingReference {
   bookingId                  Int?
   externalCalendarId         String?
   deleted                    Boolean?
+  calendarEventId            String?
 
   credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: SetNull)
   credentialId                     Int?
@@ -618,6 +629,7 @@ model BookingReference {
   @@index([bookingId])
   @@index([type])
   @@index([uid])
+  @@index([calendarEventId])
 }
 
 model Attendee {

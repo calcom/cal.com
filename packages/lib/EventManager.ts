@@ -283,6 +283,10 @@ export default class EventManager {
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
         meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
         externalCalendarId: isCalendarType ? result.externalId : undefined,
+        // Add calendarEventId for calendar events - this will be used for bi-directional sync
+        calendarEventId: isCalendarType
+          ? result.createdEvent?.calendarEventId || result.createdEvent?.id?.toString()
+          : undefined,
         ...getCredentialPayload(result),
       };
     });
@@ -327,6 +331,7 @@ export default class EventManager {
     }
 
     const referencesToCreate = results.map((result) => {
+      const isCalendarType = result.type.includes("_calendar");
       return {
         type: result.type,
         uid: result.createdEvent?.id?.toString() ?? "",
@@ -334,6 +339,10 @@ export default class EventManager {
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,
         externalCalendarId: result.externalId,
+        // Add calendarEventId for calendar events - this will be used for bi-directional sync
+        calendarEventId: isCalendarType
+          ? result.createdEvent?.calendarEventId || result.createdEvent?.id?.toString()
+          : undefined,
         ...(result.credentialId && result.credentialId > 0 ? { credentialId: result.credentialId } : {}),
       };
     });

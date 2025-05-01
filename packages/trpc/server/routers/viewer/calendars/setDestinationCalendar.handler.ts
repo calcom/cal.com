@@ -103,22 +103,51 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
     where = { eventTypeId };
   } else where = { userId: user.id };
 
+  // --- Check for existing Google Channel Info --- START
+  let googleChannelInfo: Prisma.DestinationCalendarUpdateInput | null = null;
+  console.log("integration", integration);
+  if (integration === "google_calendar") {
+    const existingChannel = await DestinationCalendarRepository.findFirstWatchedByExternalId(
+      externalId,
+      integration
+    );
+    console.log("existingChannel", existingChannel);
+    if (existingChannel) {
+      googleChannelInfo = {
+        googleChannelId: existingChannel.googleChannelId,
+        googleChannelResourceId: existingChannel.googleChannelResourceId,
+        googleChannelKind: existingChannel.googleChannelKind,
+        googleChannelResourceUri: existingChannel.googleChannelResourceUri,
+        googleChannelExpiration: existingChannel.googleChannelExpiration,
+        lastProcessedTime: existingChannel.lastProcessedTime,
+        error: null, // Clear error if reusing valid info
+      };
+    }
+  }
+  // --- Check for existing Google Channel Info --- END
+
+  const updateData = {
+    integration,
+    externalId,
+    primaryEmail,
+    credentialId,
+    delegationCredentialId,
+    ...(googleChannelInfo || {}),
+  };
+
+  const createData = {
+    ...where,
+    integration,
+    externalId,
+    primaryEmail,
+    credentialId,
+    delegationCredentialId,
+    ...(googleChannelInfo || {}),
+  };
+
   await DestinationCalendarRepository.upsert({
     where,
-    update: {
-      integration,
-      externalId,
-      primaryEmail,
-      credentialId,
-      delegationCredentialId,
-    },
-    create: {
-      ...where,
-      integration,
-      externalId,
-      primaryEmail,
-      credentialId,
-      delegationCredentialId,
-    },
+    update: updateData,
+    create: createData,
   });
 };
