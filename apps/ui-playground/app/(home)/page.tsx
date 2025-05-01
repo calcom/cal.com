@@ -4,7 +4,7 @@ export default function Page() {
       <div>
         <h1 className="text-7xl leading-none md:text-8xl">
           Open UI for absolutely
-          <br /> Everyone
+          <br /> everyone
         </h1>
       </div>
     </div>
