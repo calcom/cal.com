@@ -190,6 +190,50 @@ export type ExpectedUrlDetails = {
 };
 
 expect.extend({
+  async waitForToBeEmbedCalLink(
+    iframe: Frame,
+    data: {
+      calNamespace: string;
+      getActionFiredDetails: (a: { calNamespace: string; actionType: string }) => Promise<any>;
+      expectedUrlDetails: ExpectedUrlDetails;
+      isPrerendered: boolean;
+      options: {
+        waitForMs: number;
+        checkIntervalMs: number;
+      };
+    }
+  ) {
+    let result = {
+      pass: false,
+      message: () => `Expected to be embed cal link`,
+    };
+
+    const startTime = Date.now();
+    while (Date.now() - startTime < data.options.waitForMs) {
+      // Directly call toBeEmbedCalLink's logic
+      result = await toBeEmbedCalLinkMatcher.call(
+        this,
+        iframe,
+        data.calNamespace,
+        data.getActionFiredDetails,
+        data.expectedUrlDetails,
+        data.isPrerendered
+      );
+
+      if (result.pass) {
+        return result;
+      }
+
+      console.warn(
+        "waitForToBeEmbedCalLink: Waiting to check again as previous result is't passing",
+        data.options.checkIntervalMs,
+        "ms"
+      );
+      await new Promise((resolve) => setTimeout(resolve, data.options.checkIntervalMs));
+    }
+    return result;
+  },
+
   async toBeEmbedCalLink(
     iframe: Frame,
     calNamespace: string,
@@ -319,6 +363,135 @@ expect.extend({
     };
   },
 });
+
+// Extract the matcher logic into a separate function
+async function toBeEmbedCalLinkMatcher(
+  this: any,
+  iframe: Frame,
+  calNamespace: string,
+  getActionFiredDetails: (a: { calNamespace: string; actionType: string }) => Promise<any>,
+  expectedUrlDetails: ExpectedUrlDetails = {},
+  isPrerendered: boolean
+) {
+  if (!iframe || !iframe.url) {
+    return {
+      pass: false,
+      message: () => `Expected to provide an iframe, got ${iframe}`,
+    };
+  }
+
+  const u = new URL(iframe.url());
+
+  const pathname = u.pathname;
+  if (expectedUrlDetails.pathname) {
+    const expectedPathname = `${expectedUrlDetails.pathname}/embed`;
+    if (pathname !== expectedPathname) {
+      return {
+        pass: false,
+        message: () => `Expected pathname to be ${expectedPathname} but got ${pathname}`,
+      };
+    }
+  }
+
+  const origin = u.origin;
+  const expectedOrigin = expectedUrlDetails.origin;
+  if (expectedOrigin && expectedOrigin !== origin) {
+    return {
+      pass: false,
+      message: () => `Expected origin to be ${expectedOrigin} but got ${origin}`,
+    };
+  }
+
+  const searchParams = u.searchParams;
+  const expectedSearchParams = expectedUrlDetails.searchParams || {};
+  for (const [expectedKey, expectedValue] of Object.entries(expectedSearchParams)) {
+    const value = searchParams.get(expectedKey);
+    if (value !== expectedValue) {
+      return {
+        message: () => `${expectedKey} should have value ${expectedValue} but got value ${value}`,
+        pass: false,
+      };
+    }
+  }
+
+  const frameElement = await iframe.frameElement();
+
+  if (isPrerendered) {
+    if (await frameElement.isVisible()) {
+      return {
+        pass: false,
+        message: () => `Expected prerender iframe to be not visible`,
+      };
+    }
+    return {
+      pass: true,
+      message: () => `is prerendered`,
+    };
+  }
+
+  const iframeReadyEventDetail = await new Promise(async (resolve) => {
+    const iframeReadyCheckInterval = setInterval(async () => {
+      const iframeReadyEventDetail = await getActionFiredDetails({
+        calNamespace,
+        actionType: "linkReady",
+      });
+      if (iframeReadyEventDetail) {
+        clearInterval(iframeReadyCheckInterval);
+        resolve(iframeReadyEventDetail);
+      }
+    }, 500);
+  });
+
+  if (!(await frameElement.isVisible())) {
+    return {
+      pass: false,
+      message: () => `Expected iframe to be visible`,
+    };
+  }
+
+  //At this point we know that window.initialBodyVisibility would be set as DOM would already have been ready(because linkReady event can only fire after that)
+  const {
+    visibility: visibilityBefore,
+    background: backgroundBefore,
+    initialValuesSet,
+  } = await iframe.evaluate(() => {
+    return {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      visibility: window.initialBodyVisibility,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      background: window.initialBodyBackground,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      initialValuesSet: window.initialValuesSet,
+    };
+  });
+  expect(initialValuesSet).toBe(true);
+  expect(visibilityBefore).toBe("hidden");
+  expect(backgroundBefore).toBe("transparent");
+
+  const { visibility: visibilityAfter, background: backgroundAfter } = await iframe.evaluate(() => {
+    return {
+      visibility: document.body.style.visibility,
+      background: document.body.style.background,
+    };
+  });
+
+  expect(visibilityAfter).toBe("visible");
+  expect(backgroundAfter).toBe("transparent");
+  if (!iframeReadyEventDetail) {
+    return {
+      pass: false,
+      message: () => `Iframe not ready to communicate with parent`,
+    };
+  }
+
+  return {
+    pass: true,
+    message: () => `passed`,
+  };
+}
 
 export default config;
 

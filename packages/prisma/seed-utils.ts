@@ -268,6 +268,7 @@ export async function createTeamAndAddUsers(
 }
 
 export async function seedAttributes(teamId: number) {
+  console.log("Seeding attributes");
   const mockAttributes = [
     {
       name: "Department",
@@ -430,6 +431,7 @@ export async function seedRoutingForms(
   javascriptEventId: number,
   salesEventId: number
 ) {
+  console.log("Insights: Seeding routing forms");
   const seededForm = {
     id: "948ae412-d995-4865-885a-48302588de03",
     name: `Seeded Form - Insights for ${teamId}`,

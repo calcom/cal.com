@@ -17,6 +17,7 @@ import type { Ensure } from "@calcom/types/utils";
 import prisma from ".";
 import mainAppStore from "./seed-app-store";
 import mainHugeEventTypesSeed from "./seed-huge-event-types";
+import { seedInsights } from "./seed-insights";
 import { createUserAndEventType } from "./seed-utils";
 import type { teamMetadataSchema } from "./zod-utils";
 
@@ -578,6 +579,7 @@ async function createOrganizationAndAddMembersAndTeams({
 }
 
 async function main() {
+  console.log("Seeding started");
   await createUserAndEventType({
     user: {
       email: "delete-me@example.com",
@@ -1168,175 +1170,182 @@ async function main() {
     ]
   );
 
-  await createOrganizationAndAddMembersAndTeams({
-    org: {
-      orgData: {
-        name: "Acme Inc",
-        slug: "acme",
-        isOrganization: true,
-        organizationSettings: {
-          isOrganizationVerified: true,
-          orgAutoAcceptEmail: "acme.com",
-          isAdminAPIEnabled: true,
+  await Promise.all([
+    createOrganizationAndAddMembersAndTeams({
+      org: {
+        orgData: {
+          name: "Acme Inc",
+          slug: "acme",
+          isOrganization: true,
+          organizationSettings: {
+            isOrganizationVerified: true,
+            orgAutoAcceptEmail: "acme.com",
+            isAdminAPIEnabled: true,
+          },
         },
-      },
-      members: [
-        {
-          memberData: {
-            email: "owner1-acme@example.com",
-            password: {
-              create: {
-                hash: "owner1-acme",
-              },
-            },
-            username: "owner1-acme",
-            name: "Owner 1",
-          },
-          orgMembership: {
-            role: "OWNER",
-            accepted: true,
-          },
-          orgProfile: {
-            username: "owner1",
-          },
-          inTeams: [
-            {
-              slug: "team1",
-              role: "ADMIN",
-            },
-          ],
-        },
-        ...Array.from({ length: 10 }, (_, i) => ({
-          memberData: {
-            email: `member${i}-acme@example.com`,
-            password: {
-              create: {
-                hash: `member${i}-acme`,
-              },
-            },
-            username: `member${i}-acme`,
-            name: `Member ${i}`,
-          },
-          orgMembership: {
-            role: MembershipRole.MEMBER,
-            accepted: true,
-          },
-          orgProfile: {
-            username: `member${i}`,
-          },
-          inTeams:
-            i % 2 === 0
-              ? [
-                  {
-                    slug: "team1",
-                    role: MembershipRole.MEMBER,
-                  },
-                ]
-              : [],
-        })),
-      ],
-    },
-    teams: [
-      {
-        teamData: {
-          name: "Team 1",
-          slug: "team1",
-        },
-        nonOrgMembers: [
+        members: [
           {
-            email: "non-acme-member-1@example.com",
-            password: {
-              create: {
-                hash: "non-acme-member-1",
+            memberData: {
+              email: "owner1-acme@example.com",
+              password: {
+                create: {
+                  hash: "owner1-acme",
+                },
               },
+              username: "owner1-acme",
+              name: "Owner 1",
             },
-            username: "non-acme-member-1",
-            name: "NonAcme Member1",
+            orgMembership: {
+              role: "OWNER",
+              accepted: true,
+            },
+            orgProfile: {
+              username: "owner1",
+            },
+            inTeams: [
+              {
+                slug: "team1",
+                role: "ADMIN",
+              },
+            ],
           },
+          ...Array.from({ length: 10 }, (_, i) => ({
+            memberData: {
+              email: `member${i}-acme@example.com`,
+              password: {
+                create: {
+                  hash: `member${i}-acme`,
+                },
+              },
+              username: `member${i}-acme`,
+              name: `Member ${i}`,
+            },
+            orgMembership: {
+              role: MembershipRole.MEMBER,
+              accepted: true,
+            },
+            orgProfile: {
+              username: `member${i}`,
+            },
+            inTeams:
+              i % 2 === 0
+                ? [
+                    {
+                      slug: "team1",
+                      role: MembershipRole.MEMBER,
+                    },
+                  ]
+                : [],
+          })),
         ],
       },
-    ],
-    usersOutsideOrg: [
-      {
-        name: "Jane Doe",
-        email: "jane@acme.com",
-        username: "jane-outside-org",
-      },
-    ],
-  });
-
-  await createOrganizationAndAddMembersAndTeams({
-    org: {
-      orgData: {
-        name: "Dunder Mifflin",
-        slug: "dunder-mifflin",
-        isOrganization: true,
-        organizationSettings: {
-          isOrganizationVerified: true,
-          orgAutoAcceptEmail: "dunder-mifflin.com",
-        },
-      },
-      members: [
+      teams: [
         {
-          memberData: {
-            email: "owner1-dunder@example.com",
-            password: {
-              create: {
-                hash: "owner1-dunder",
-              },
-            },
-            username: "owner1-dunder",
-            name: "Owner 1",
+          teamData: {
+            name: "Team 1",
+            slug: "team1",
           },
-          orgMembership: {
-            role: "OWNER",
-            accepted: true,
-          },
-          orgProfile: {
-            username: "owner1",
-          },
-          inTeams: [
+          nonOrgMembers: [
             {
-              slug: "team1",
-              role: "ADMIN",
+              email: "non-acme-member-1@example.com",
+              password: {
+                create: {
+                  hash: "non-acme-member-1",
+                },
+              },
+              username: "non-acme-member-1",
+              name: "NonAcme Member1",
             },
           ],
         },
       ],
-    },
-    teams: [
-      {
-        teamData: {
-          name: "Team 1",
-          slug: "team1",
+      usersOutsideOrg: [
+        {
+          name: "Jane Doe",
+          email: "jane@acme.com",
+          username: "jane-outside-org",
         },
-        nonOrgMembers: [
+      ],
+    }),
+    createOrganizationAndAddMembersAndTeams({
+      org: {
+        orgData: {
+          name: "Dunder Mifflin",
+          slug: "dunder-mifflin",
+          isOrganization: true,
+          organizationSettings: {
+            isOrganizationVerified: true,
+            orgAutoAcceptEmail: "dunder-mifflin.com",
+          },
+        },
+        members: [
           {
-            email: "non-dunder-member-1@example.com",
-            password: {
-              create: {
-                hash: "non-dunder-member-1",
+            memberData: {
+              email: "owner1-dunder@example.com",
+              password: {
+                create: {
+                  hash: "owner1-dunder",
+                },
               },
+              username: "owner1-dunder",
+              name: "Owner 1",
             },
-            username: "non-dunder-member-1",
-            name: "NonDunder Member1",
+            orgMembership: {
+              role: "OWNER",
+              accepted: true,
+            },
+            orgProfile: {
+              username: "owner1",
+            },
+            inTeams: [
+              {
+                slug: "team1",
+                role: "ADMIN",
+              },
+            ],
           },
         ],
       },
-    ],
-    usersOutsideOrg: [
-      {
-        name: "John Doe",
-        email: "john@dunder-mifflin.com",
-        username: "john-outside-org",
-      },
-    ],
-  });
+      teams: [
+        {
+          teamData: {
+            name: "Team 1",
+            slug: "team1",
+          },
+          nonOrgMembers: [
+            {
+              email: "non-dunder-member-1@example.com",
+              password: {
+                create: {
+                  hash: "non-dunder-member-1",
+                },
+              },
+              username: "non-dunder-member-1",
+              name: "NonDunder Member1",
+            },
+          ],
+        },
+      ],
+      usersOutsideOrg: [
+        {
+          name: "John Doe",
+          email: "john@dunder-mifflin.com",
+          username: "john-outside-org",
+        },
+      ],
+    }),
+  ]);
 }
 
 main()
-  .then(() => mainAppStore())
-  .then(() => mainHugeEventTypesSeed())
+  .then(() => {
+    console.log("Seeding app store and huge event types in parallel");
+    return Promise.all([mainAppStore(), mainHugeEventTypesSeed()]);
+  })
+  .then(() => {
+    console.log("Seeding insights");
+    return seedInsights();
+  })
   .catch((e) => {
     console.error(e);
     process.exit(1);
