@@ -115,6 +115,7 @@ describe("handleChildrenEventTypes", () => {
         secondaryEmailId,
         autoTranslateDescriptionEnabled,
         instantMeetingScheduleId,
+        includeNoShowInRRCalculation,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -171,6 +172,8 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        assignRRMembersUsingSegment,
+        includeNoShowInRRCalculation,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -192,7 +195,6 @@ describe("handleChildrenEventTypes", () => {
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
-          assignRRMembersUsingSegment: undefined,
           useEventLevelSelectedCalendars: undefined,
           customReplyToEmail: null,
           rrSegmentQueryValue: undefined,
@@ -276,6 +278,8 @@ describe("handleChildrenEventTypes", () => {
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
         autoTranslateDescriptionEnabled,
+        hashedLink,
+        includeNoShowInRRCalculation,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -308,7 +312,6 @@ describe("handleChildrenEventTypes", () => {
           requiresBookerEmailVerification: false,
           userId: 4,
           workflows: undefined,
-          hashedLink: undefined,
           rrSegmentQueryValue: undefined,
           assignRRMembersUsingSegment: false,
         },
@@ -333,6 +336,8 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        assignRRMembersUsingSegment,
+        includeNoShowInRRCalculation,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -355,7 +360,6 @@ describe("handleChildrenEventTypes", () => {
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
-          assignRRMembersUsingSegment: undefined,
           useEventLevelSelectedCalendars: undefined,
           rrSegmentQueryValue: undefined,
           customReplyToEmail: null,
@@ -397,6 +401,7 @@ describe("handleChildrenEventTypes", () => {
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
         autoTranslateDescriptionEnabled,
+        includeNoShowInRRCalculation,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
