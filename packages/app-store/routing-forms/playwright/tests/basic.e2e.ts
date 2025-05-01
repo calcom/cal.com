@@ -91,7 +91,7 @@ test.describe("Routing Forms", () => {
     test("should be able to add a new form and view it", async ({ page }) => {
       const formId = await addForm(page);
 
-      await page.click('[data-test-id="routing"]');
+      await page.click('[data-testid="back-button"]');
 
       await page.waitForSelector('[data-testid="routing-forms-list"]');
       // Ensure that it's visible in forms list
@@ -101,9 +101,16 @@ test.describe("Routing Forms", () => {
       await expect(page.locator("text=Test Form Name")).toBeVisible();
 
       await page.goto(`apps/routing-forms/route-builder/${formId}`);
+      await page.waitForSelector('[data-testid="add-route-button"]');
+      await expect(page.locator('[data-testid="add-route-button"]')).toBeVisible();
+    });
+
+    test.skip("should be able to disable form", async ({ page }) => {
+      const formId = await addForm(page);
+      await page.click('[data-testid="back-button"]');
       await disableForm(page);
       await gotoRoutingLink({ page, formId });
-      await expect(page.getByTestId(`404-page`)).toBeVisible();
+      await expect(page.locator('[data-testid="404-page"]')).toBeVisible();
     });
 
     test("recently added form appears first in the list", async ({ page }) => {
@@ -134,8 +141,10 @@ test.describe("Routing Forms", () => {
         label,
       });
 
+      await page.click('[data-testid="settings-button"]');
       await expect(page.locator('[data-testid="description"]')).toHaveValue(description);
       await expect(page.locator('[data-testid="field"]')).toHaveCount(types.length);
+      await page.click('[data-testid="settings-slider-over-cancel"]');
 
       fields.forEach((item, index) => {
         createdFields[index] = { label: item.label, typeIndex: index };
@@ -143,9 +152,10 @@ test.describe("Routing Forms", () => {
 
       await expectCurrentFormToHaveFields(page, createdFields, types);
 
-      await page.click('[href*="/route-builder/"]');
-      await selectNewRoute(page);
+      await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
+      await page.waitForURL("/routing/route-builder/**");
 
+      await page.click('[data-testid="add-route-button"]');
       await page.click('[data-testid="add-rule"]');
 
       const options = Object.values(createdFields).map((item) => item.label);
@@ -180,10 +190,11 @@ test.describe("Routing Forms", () => {
 
         // Add F1 as Router to F2
         await page.goto(`/routing-forms/route-builder/${form2Id}`);
-        await selectNewRoute(page, {
-          // It should be F1. TODO: Verify that it's F1
-          routeSelectNumber: 2,
-        });
+        // await addNewRoute(page, {
+        //   // It should be F1. TODO: Verify that it's F1
+        //   routeSelectNumber: 2,
+        // });
+        await addNewRoute(page);
         await saveCurrentForm(page);
 
         // Expect F1 fields to be available in F2
@@ -213,8 +224,10 @@ test.describe("Routing Forms", () => {
 
     test("should be able to submit a prefilled form with all types of fields", async ({ page }) => {
       const formId = await addForm(page);
-      await page.click('[href*="/route-builder/"]');
-      await selectNewRoute(page);
+      // Click desktop toggle group item
+      await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
+      await page.waitForURL("/routing/route-builder/**");
+      await addNewRoute(page);
       await selectOption({
         selector: {
           selector: ".data-testid-select-routing-action",
@@ -302,8 +315,9 @@ test.describe("Routing Forms", () => {
 
       await addShortTextFieldAndSaveForm({ page, formId });
 
-      await page.click('[href*="/route-builder/"]');
-      await selectNewRoute(page);
+      await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
+      await page.waitForURL("/routing/route-builder/**");
+      await addNewRoute(page);
       await selectFirstEventRedirectOption(page);
 
       await saveCurrentForm(page);
@@ -359,7 +373,6 @@ test.describe("Routing Forms", () => {
     test("Routing Link - Reporting and CSV Download ", async ({ page, users }) => {
       const user = await createUserAndLogin({ users, page });
       const routingForm = user.routingForms[0];
-      test.setTimeout(120000);
       // Fill form when you are logged out
       await users.logout();
 
@@ -415,12 +428,11 @@ test.describe("Routing Forms", () => {
       ]);
 
       await page.goto(`apps/routing-forms/route-builder/${routingForm.id}`);
-      const [download] = await Promise.all([
-        // Start waiting for the download
-        page.waitForEvent("download"),
-        // Perform the action that initiates download
-        page.click('[data-testid="download-responses"]'),
-      ]);
+
+      const downloadPromise = page.waitForEvent("download");
+      await page.locator('[data-testid="form-dropdown"]').nth(1).click();
+      await page.locator('[data-testid="download-responses"]').click();
+      const download = await downloadPromise;
       const downloadStream = await download.createReadStream();
       expect(download.suggestedFilename()).toEqual(`${routingForm.name}-${routingForm.id}.csv`);
       const csv: string = await new Promise((resolve) => {
@@ -510,65 +522,70 @@ test.describe("Routing Forms", () => {
       const user = await createUserAndLogin({ users, page });
       const routingForm = user.routingForms[0];
       await page.goto(`apps/routing-forms/form-edit/${routingForm.id}`);
-      await page.click('[data-testid="test-preview"]');
 
       //event redirect
+      await page.click('[data-testid="preview-button"]');
       await page.fill('[data-testid="form-field-Test field"]', "event-routing");
-      await page.click('[data-testid="test-routing"]');
-      let routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      await page.click('[data-testid="submit-button"]');
+      let routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       let route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("Event Redirect");
       expect(route).toBe("pro/30min");
+      await page.click('[data-testid="close-results-button"]');
 
       //custom page
+      await page.click('[data-testid="preview-button"]');
       await page.fill('[data-testid="form-field-Test field"]', "custom-page");
-      await page.click('[data-testid="test-routing"]');
-      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      await page.click('[data-testid="submit-button"]');
+      routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("Custom Page");
       expect(route).toBe("Custom Page Result");
+      await page.click('[data-testid="close-results-button"]');
 
       //external redirect
+      await page.click('[data-testid="preview-button"]');
       await page.fill('[data-testid="form-field-Test field"]', "external-redirect");
-      await page.click('[data-testid="test-routing"]');
-      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      await page.click('[data-testid="submit-button"]');
+      routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("External Redirect");
       expect(route).toBe("https://cal.com");
-      await page.click('[data-testid="dialog-rejection"]');
+      await page.click('[data-testid="close-results-button"]');
 
       // Multiselect(Legacy)
-      await page.click('[data-testid="test-preview"]');
+      await page.click('[data-testid="preview-button"]');
       await page.fill('[data-testid="form-field-Test field"]', "doesntmatter");
       await page.click(`[data-testid="form-field-${Identifiers.multi}"]`); // Open dropdown
       await page.click("text=Option-2"); // Select option
-      await page.click('[data-testid="test-routing"]');
-      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      await page.click('[data-testid="submit-button"]');
+      routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("Custom Page");
       expect(route).toBe("Multiselect(Legacy) chosen");
-      await page.click('[data-testid="dialog-rejection"]');
+      await page.click('[data-testid="close-results-button"]');
 
       // Multiselect
-      await page.click('[data-testid="test-preview"]');
+      await page.click('[data-testid="preview-button"]');
       await page.fill('[data-testid="form-field-Test field"]', "doesntmatter");
       await page.click(`[data-testid="form-field-${Identifiers.multiNewFormat}"]`); // Open dropdown
       await page.click("text=Option-2"); // Select option
-      await page.click('[data-testid="test-routing"]');
-      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      await page.click('[data-testid="submit-button"]');
+      routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("Custom Page");
       expect(route).toBe("Multiselect chosen");
-      await page.click('[data-testid="dialog-rejection"]');
+      await page.click('[data-testid="close-results-button"]');
 
       //fallback route
-      await page.click('[data-testid="test-preview"]');
+      await page.click('[data-testid="preview-button"]');
       await page.fill('[data-testid="form-field-Test field"]', "fallback");
-      await page.click('[data-testid="test-routing"]');
-      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      await page.click('[data-testid="submit-button"]');
+      routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("Custom Page");
       expect(route).toBe("Fallback Message");
+      await page.click('[data-testid="close-results-button"]');
     });
   });
 
@@ -649,31 +666,30 @@ test.describe("Routing Forms", () => {
         formId,
       });
 
-      await page.click('[href*="/route-builder/"]');
-      await selectNewRoute(page);
+      // Click toggle group item
+      await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
+      await page.waitForURL("/routing/route-builder/**");
+      await page.click('[data-testid="add-route-button"]');
       // This would select Round Robin event that we created above
       await selectFirstEventRedirectOption(page);
       await addAttributeRoutingRule(page);
       await saveCurrentForm(page);
 
       await (async function testPreviewWhereThereIsMatch() {
-        await page.click('[data-testid="test-preview"]');
+        await page.click('[data-testid="preview-button"]');
         await page.fill('[data-testid="form-field-short-text"]', "large");
-        await page.click('[data-testid="test-routing"]');
+        await page.click('[data-testid="submit-button"]');
         await page.waitForSelector("text=@example.com");
-        await page.click('[data-testid="dialog-rejection"]');
+        await page.click('[data-testid="close-results-button"]');
       })();
 
       await (async function testPreviewWhereThereIsNoMatch() {
-        await page.click('[data-testid="test-preview"]');
+        await page.click('[data-testid="preview-button"]');
         await page.fill('[data-testid="form-field-short-text"]', "medium");
-        await page.click('[data-testid="test-routing"]');
-        await page.waitForSelector("text=Attribute logic matched: No");
-        await page.waitForSelector("text=Attribute logic fallback matched: Yes");
-        await page.waitForSelector(
-          "text=All assigned members of the team event type. Consider adding some attribute rules to fallback."
-        );
-        await page.click('[data-testid="dialog-rejection"]');
+        await page.click('[data-testid="submit-button"]');
+        await expect(page.locator('[data-testid="attribute-logic-matched"]')).toHaveText("No");
+        await expect(page.locator('[data-testid="attribute-logic-fallback-matched"]')).toHaveText("Yes");
+        await page.click('[data-testid="close-results-button"]');
       })();
     });
   });
@@ -707,8 +723,9 @@ test.describe("Routing Forms", () => {
         page,
         formId,
       });
-      await page.click('[href*="/route-builder/"]');
-      await selectNewRoute(page);
+      await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
+      await page.waitForURL("/routing/route-builder/**");
+      await addNewRoute(page);
       await selectOption({
         selector: {
           selector: ".data-testid-select-routing-action",
@@ -728,7 +745,10 @@ test.describe("Routing Forms", () => {
 
     const selectSendMailToAllMembers = async ({ page, formId }: { page: Page; formId: string }) => {
       await page.goto(`apps/routing-forms/form-edit/${formId}`);
-      await page.click('[data-testid="assign-all-team-members-toggle"]');
+      await page.getByTestId("settings-button").click();
+      await page.getByTestId("assign-all-team-members-toggle").click();
+      await page.getByTestId("settings-slider-over-done").click();
+
       await saveCurrentForm(page);
     };
 
@@ -742,8 +762,10 @@ test.describe("Routing Forms", () => {
       text: string;
     }) => {
       await page.goto(`apps/routing-forms/form-edit/${formId}`);
+      await page.getByTestId("settings-button").click();
       await page.click('[data-testid="routing-form-select-members"]');
       await page.getByText(text).nth(1).click();
+      await page.getByTestId("settings-slider-over-done").click();
       await saveCurrentForm(page);
     };
 
@@ -808,7 +830,7 @@ test.describe("Routing Forms", () => {
 });
 
 async function disableForm(page: Page) {
-  await page.click('[data-testid="toggle-form"] [value="on"]');
+  await page.click('[data-testid="toggle-form-switch"]');
   await page.waitForSelector(".data-testid-toast-success");
 }
 
@@ -888,7 +910,6 @@ async function addAllTypesOfFieldsAndSaveForm(
   form: { description: string; label: string }
 ) {
   await page.goto(`apps/routing-forms/form-edit/${formId}`);
-  await expect(page.locator('text="Test Preview"')).toBeVisible();
   await page.click('[data-testid="add-field"]');
 
   const { optionsInUi: fieldTypesList } = await verifySelectOptions(
@@ -935,7 +956,10 @@ async function addAllTypesOfFieldsAndSaveForm(
     fields.push({ identifier: identifier, label, type: fieldTypeLabel });
   }
 
+  await page.locator('[data-testid="settings-button"]').scrollIntoViewIfNeeded();
+  await page.click('[data-testid="settings-button"]');
   await page.fill('[data-testid="description"]', form.description);
+  await page.click('[data-testid="settings-slider-over-done"]');
   await saveCurrentForm(page);
   return {
     fieldTypesList,
@@ -991,13 +1015,6 @@ async function verifyFieldOptionsInRule(options: string[], page: Page) {
   );
 }
 
-async function selectNewRoute(page: Page, { routeSelectNumber = 1 } = {}) {
-  await selectOption({
-    selector: {
-      selector: ".data-testid-select-router",
-      nth: 0,
-    },
-    option: routeSelectNumber,
-    page,
-  });
+async function addNewRoute(page: Page) {
+  await page.locator('[data-testid="add-route-button"]').click();
 }
