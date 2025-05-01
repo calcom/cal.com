@@ -100,7 +100,6 @@ const commons = {
   destinationCalendar: null,
   team: null,
   lockTimeZoneToggleOnBookingPage: false,
-  lockedTimeZone: "Europe/London",
   requiresConfirmation: false,
   requiresConfirmationForFreeEmail: false,
   requiresBookerEmailVerification: false,

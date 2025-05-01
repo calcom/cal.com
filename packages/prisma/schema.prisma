@@ -108,7 +108,6 @@ model EventType {
   periodDays                         Int?
   periodCountCalendarDays            Boolean?
   lockTimeZoneToggleOnBookingPage    Boolean                @default(false)
-  lockedTimeZone                     String                 @default("Europe/London")
   requiresConfirmation               Boolean                @default(false)
   requiresConfirmationWillBlockSlot  Boolean                @default(false)
   requiresConfirmationForFreeEmail   Boolean                @default(false)
@@ -532,6 +531,7 @@ model OrganizationSettings {
   isAdminAPIEnabled                   Boolean    @default(false)
   allowSEOIndexing                    Boolean    @default(false)
   orgProfileRedirectsToVerifiedDomain Boolean    @default(false)
+  disablePhoneOnlySMSNotifications    Boolean    @default(false)
 }
 
 enum MembershipRole {
