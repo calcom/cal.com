@@ -411,6 +411,7 @@ export default function Signup({
                     {...register("email")}
                     label={t("email")}
                     type="email"
+                    autoComplete="email"
                     disabled={prepopulateFormValues?.email}
                     data-testid="signup-emailfield"
                   />
@@ -419,6 +420,7 @@ export default function Signup({
                   {!isSamlSignup && (
                     <PasswordField
                       data-testid="signup-passwordfield"
+                      autoComplete="new-password"
                       label={t("password")}
                       {...register("password")}
                       hintErrors={["caplow", "min", "num"]}
