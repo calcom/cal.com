@@ -284,7 +284,7 @@ describe("Cal", () => {
    * We don't mock the createIframe method as it could update the 'this' objects which could affect the test, so we avoid mocking it
    */
   describe("calInstance.api.modal", () => {
-    const initialStateOfModal = null;
+    const initialStateOfModal = "loading";
     const baseModalArgs = {
       calLink: "john-doe/meeting",
       config: {

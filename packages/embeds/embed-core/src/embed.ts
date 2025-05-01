@@ -1097,6 +1097,9 @@ class CalApi {
     </cal-modal-box>`;
     this.cal.modalBox = template.content.children[0];
     this.cal.modalBox.appendChild(iframe);
+    // Set state through setAttribute so that onAttributeChangedCallback is triggered
+    this.cal.modalBox.setAttribute("state", "loading");
+
     if (__prerender) {
       this.cal.modalBox.setAttribute("state", "prerendering");
     }

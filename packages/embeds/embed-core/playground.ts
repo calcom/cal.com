@@ -681,6 +681,18 @@ if (only === "all" || only === "ns:routingFormPrerender") {
   });
 }
 
+if (only === "all" || only === "ns:routingFormWithoutPrerender") {
+  Cal("init", "routingFormWithoutPrerender", {
+    debug: true,
+    origin,
+  });
+
+  Cal.ns.routingFormWithoutPrerender("on", {
+    action: "*",
+    callback,
+  });
+}
+
 // Keep it at the bottom as it works on the API defined above for various cases
 (function ensureScrolledToCorrectIframe() {
   // Reset the hash so that we can scroll to correct iframe
