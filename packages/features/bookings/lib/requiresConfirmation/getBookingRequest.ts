@@ -28,6 +28,7 @@ export const getBookingRequest = async ({
     include: {
       attendees: true,
       references: true,
+      user: true,
     },
   });
   return booking;
