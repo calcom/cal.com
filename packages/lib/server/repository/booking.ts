@@ -49,14 +49,12 @@ const buildWhereClauseForActiveBookings = ({
       userId: {
         in: users.map((user) => user.id),
       },
-    },
-    ...(!includeNoShowInRRCalculation
-      ? [
-          {
+      ...(!includeNoShowInRRCalculation
+        ? {
             OR: [{ noShowHost: false }, { noShowHost: null }],
-          },
-        ]
-      : []),
+          }
+        : {}),
+    },
     {
       attendees: {
         some: {
