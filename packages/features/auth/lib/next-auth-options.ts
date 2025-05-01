@@ -773,8 +773,6 @@ export const getOptions = ({
     }) {
       const { user, account, profile, email, credentials } = params;
 
-      log.debug("callbacks:signin", safeStringify({ user, account, profile, email, credentials }));
-
       if (account?.provider === "email") {
         return true;
       }
