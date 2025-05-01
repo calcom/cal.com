@@ -31,6 +31,7 @@ import { TextField } from "@calcom/ui/components/form";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import { subdomainSuffix } from "../../../organizations/lib/orgDomains";
 
@@ -128,6 +129,7 @@ const OtherTeamProfileView = () => {
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.teams.list.invalidate();
+      revalidateTeamsList();
       await utils.viewer.eventTypes.invalidate();
       showToast(t("success"), "success");
     },
