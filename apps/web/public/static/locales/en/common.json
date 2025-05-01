@@ -3174,5 +3174,6 @@
   "routing_form_next_in_queue": "{{count}} next in queue",
   "routing_form_select_members_to_email": "Send email responses to",
   "routing_incomplete_booking_tab": "Incomplete Bookings",
+  "include_no_show_in_rr_calculation": "Include no show bookings in round robin calculations",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

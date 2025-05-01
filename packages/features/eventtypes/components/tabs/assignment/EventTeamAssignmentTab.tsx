@@ -731,7 +731,7 @@ export const EventTeamAssignmentTab = ({
                     name="includeNoShowInRRCalculation"
                     render={({ field: { value, onChange } }) => (
                       <SettingsToggle
-                        title="Include no show bookings in round robin calculations"
+                        title={t("include_no_show_in_rr_calculation")}
                         labelClassName="mt-1.5"
                         checked={value}
                         onCheckedChange={(val) => onChange(val)}
