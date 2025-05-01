@@ -62,11 +62,11 @@ const Icon = ({
     <div
       ref={ref}
       className={cn(
-        "bg-default border-subtle border-subtle inline-flex items-center justify-center border p-1",
-        size === "sm" && "rounded-md",
-        size === "md" && "rounded-[10px]"
+        "bg-default border-subtle border-subtle inline-flex items-center justify-center border",
+        size === "sm" && "rounded-md p-1",
+        size === "md" && "rounded-[10px] p-1.5"
       )}>
-      <IconComponent name={name} className={cn(size === "sm" && "h-4 w-4", size === "md" && "h-8 w-8")} />
+      <IconComponent name={name} className={cn(size === "sm" && "h-4 w-4", size === "md" && "h-6 w-6")} />
     </div>
   );
 };
@@ -196,15 +196,25 @@ const SubSectionContent = ({
   );
 };
 
+const SubSectionNested = ({
+  children,
+  ref,
+}: {
+  children: React.ReactNode;
+  ref?: React.Ref<HTMLDivElement>;
+}) => {
+  return (
+    <div ref={ref} className="bg-default border-subtle flex flex-col gap-2 rounded-xl border p-2">
+      {children}
+    </div>
+  );
+};
+
 export const Section = Object.assign(Root, {
   Header: Header,
-  Title: Title,
-  Description: Description,
-  Icon: Icon,
   Content: Content,
   SubSection: SubSection,
   SubSectionHeader: SubSectionHeader,
-  SubSectionHeaderRight: SubSectionHeaderRight,
-  SubSectionIcon: SubSectionIcon,
   SubSectionContent: SubSectionContent,
+  SubSectionNested: SubSectionNested,
 });

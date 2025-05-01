@@ -3,7 +3,7 @@
 import { RenderComponentWithSnippet } from "@/app/components/render";
 import { useState } from "react";
 
-import { Switch } from "@calcom/ui/components/form";
+import { Input, Switch } from "@calcom/ui/components/form";
 import { Section } from "@calcom/ui/components/section";
 
 export const SubSectionExample = () => {
@@ -51,7 +51,20 @@ export const SubSectionExample = () => {
               </Section.SubSectionHeader>
               {isSecondSubsectionOpen && (
                 <Section.SubSectionContent>
-                  <p>This is the content of the second subsection.</p>
+                  <div className="flex gap-3 px-3 py-1.5">
+                    <div className="text-subtle w-full text-sm font-medium">Field Name</div>
+                    <div className="text-subtle w-full text-sm font-medium">Field Type</div>
+                    <div className="text-subtle w-full text-sm font-medium">Value</div>
+                    <div className="text-subtle w-full text-sm font-medium">When to Write</div>
+                  </div>
+                  <Section.SubSectionNested>
+                    <div className="flex gap-3">
+                      <Input value="Customer Name" className="w-full" />
+                      <Input value="Text" className="w-full" />
+                      <Input value="John Doe" className="w-full" />
+                      <Input value="On Create" className="w-full" />
+                    </div>
+                  </Section.SubSectionNested>
                 </Section.SubSectionContent>
               )}
             </Section.SubSection>
@@ -114,7 +127,20 @@ const SectionWithSubsections = () => {
             </Section.SubSectionHeader>
             {isSecondSubsectionOpen && (
               <Section.SubSectionContent>
-                <p>This is the content of the second subsection.</p>
+                <div className="flex flex-col gap-2">
+                  <div className="text-subtle text-sm font-medium">Field Name</div>
+                  <div className="text-subtle text-sm font-medium">Field Type</div>
+                  <div className="text-subtle text-sm font-medium">Value</div>
+                  <div className="text-subtle text-sm font-medium">When to Write</div>
+                </div>
+                <Section.SubSectionNested>
+                  <div className="flex flex-col gap-2 mt-4">
+                    <div className="text-subtle text-sm font-medium">Field Name</div>
+                    <div className="text-subtle text-sm font-medium">Field Type</div>
+                    <div className="text-subtle text-sm font-medium">Value</div>
+                    <div className="text-subtle text-sm font-medium">When to Write</div>
+                  </div>
+                </Section.SubSectionNested>
               </Section.SubSectionContent>
             )}
           </Section.SubSection>
