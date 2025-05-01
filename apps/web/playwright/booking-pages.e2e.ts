@@ -287,7 +287,10 @@ test.describe("pro user", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 
-  test("cannot book an unconfirmed event multiple times with the same email", async ({ page, users }) => {
+  test("booking an unconfirmed event with the same email brings you to the original request", async ({
+    page,
+    users,
+  }) => {
     await page.locator('[data-testid="event-type-link"]:has-text("Opt in")').click();
     await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -298,7 +301,7 @@ test.describe("pro user", () => {
     await page.goto(pageUrl);
 
     await bookTimeSlot(page, { expectedStatusCode: 409 });
-    await expect(page.getByText("Could not book the meeting.")).toBeVisible();
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 
   test("can book with multiple guests", async ({ page, users }) => {
