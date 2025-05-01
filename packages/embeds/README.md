@@ -168,6 +168,29 @@ Cal.prerender({
 ```
 
 Key aspects:
+
 - Creates a hidden iframe
-- Pre-loads necessary resources
-- Maintains state for quick display
+- Loads the booking page but doesn't send the slots availability request
+- Tries to reuse whenever it makes sense and do a fresh load otherwise
+
+Iframe Reuse and Reload Conditions. There could be three situations:
+
+1. Reuse
+2. Reuse the iframe but refetch the slots
+3. Do a fresh load in iframe
+
+- **Reuse**:
+  - Modal opens when
+    - Modal is not in a failed state
+    - config, params are same as the last time
+    - No threshold violations
+
+- **Reuse the iframe but refetch the slots**:
+  - Only embed `config` changes (handled via "connect" flow)
+  - Query query params changes (handled via "connect" flow)
+  - Crossed slots stale time threshold (EMBED_MODAL_IFRAME_SLOT_STALE_TIME)
+
+- **Fresh Reload Conditions**:
+  - Different path being loaded(i.e. /pro vs /free)
+  - Modal is in a failed state
+  - Time since last render exceeds EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS

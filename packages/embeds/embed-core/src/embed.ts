@@ -517,11 +517,11 @@ export class Cal {
 
   getNextActionForModal({
     modal,
-    urlToLoad,
+    pathWithQueryToLoad,
     stateData,
   }: {
     modal: { uid: string };
-    urlToLoad: string;
+    pathWithQueryToLoad: string;
     stateData: {
       embedConfig: PrefillAndIframeAttrsConfig;
       previousEmbedConfig: PrefillAndIframeAttrsConfig | null;
@@ -540,7 +540,7 @@ export class Cal {
     const calConfig = this.getCalConfig();
     const lastLoadedUrlInIframeObject = this.getLastLoadedLinkInframe();
     const lastLoadedPathInIframe = lastLoadedUrlInIframeObject?.pathname ?? null;
-    const urlToLoadObject = new URL(urlToLoad, calConfig.calOrigin as string);
+    const urlToLoadObject = new URL(pathWithQueryToLoad, calConfig.calOrigin as string);
 
     const existingModalEl = document.querySelector(`cal-modal-box[uid="${modal.uid}"]`);
     const urlToLoadPath = urlToLoadObject.pathname;
@@ -695,7 +695,7 @@ export class Cal {
       });
       const actionToTake = this.getNextActionForModal({
         modal: { uid: modalBoxUid },
-        urlToLoad: `${routerRedirectUrl.pathname}${routerRedirectUrl.search}`,
+        pathWithQueryToLoad: `${routerRedirectUrl.pathname}${routerRedirectUrl.search}`,
         stateData: {
           ...stateData,
           embedConfig: newEmbedConfig,
@@ -724,7 +724,10 @@ export class Cal {
         // Connection Initiated
         this.doInIframe({
           method: "connect",
-          arg: newEmbedConfig,
+          arg: {
+            config: newEmbedConfig,
+            params: fromEntriesWithDuplicateKeys(routerRedirectUrl.searchParams.entries()),
+          },
         });
       }
     } else if ("message" in result) {
@@ -1013,7 +1016,7 @@ class CalApi {
       } else {
         const actionToTake = this.cal.getNextActionForModal({
           modal: { uid },
-          urlToLoad: calLinkUrlObject.pathname,
+          pathWithQueryToLoad: `${calLinkUrlObject.pathname}${calLinkUrlObject.search}`,
           stateData,
         });
 
@@ -1039,7 +1042,10 @@ class CalApi {
         } else if (actionToTake === "connect") {
           this.cal.doInIframe({
             method: "connect",
-            arg: configWithGuestKeyAndColorScheme,
+            arg: {
+              config: configWithGuestKeyAndColorScheme,
+              params: fromEntriesWithDuplicateKeys(calLinkUrlObject.searchParams.entries()),
+            },
           });
         }
       }

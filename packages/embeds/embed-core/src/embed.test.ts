@@ -432,7 +432,10 @@ describe("Cal", () => {
             // This would update the iframe document URL through embed-iframe.
             expect(calInstance.doInIframe).toHaveBeenCalledWith({
               method: "connect",
-              arg: expectedConfigAfterPrefilling,
+              arg: {
+                config: expectedConfigAfterPrefilling,
+                params: {},
+              },
             });
 
             vi.mocked(calInstance.doInIframe).mockClear();
@@ -550,7 +553,10 @@ describe("Cal", () => {
 
             expect(calInstance.doInIframe).toHaveBeenCalledWith({
               method: "connect",
-              arg: expectedConfigAfterPrefilling,
+              arg: {
+                config: expectedConfigAfterPrefilling,
+                params: {},
+              },
             });
 
             vi.mocked(calInstance.doInIframe).mockClear();
@@ -676,7 +682,10 @@ describe("Cal", () => {
             expect(calInstance.doInIframe).toHaveBeenCalledWith(
               expect.objectContaining({
                 method: "connect",
-                arg: configWithPrefilledValues,
+                arg: {
+                  config: configWithPrefilledValues,
+                  params: {},
+                },
               })
             );
           })();
@@ -999,7 +1008,7 @@ describe("Cal", () => {
 
   describe("getNextActionForModal", () => {
     const baseArgs = {
-      urlToLoad: "john-doe/meeting",
+      pathWithQueryToLoad: "john-doe/meeting",
       modal: {
         uid: "test-uid",
         element: document.querySelector("cal-modal-box") as HTMLElement,
@@ -1124,7 +1133,7 @@ describe("Cal", () => {
       calInstance.iframe.src = "https://app.cal.com/john-doe/meeting?param2=value2";
       const result = calInstance.getNextActionForModal({
         ...baseArgs,
-        urlToLoad: "john-doe/meeting?param1=value1",
+        pathWithQueryToLoad: "john-doe/meeting?param1=value1",
       });
       expect(result).toBe("connect");
     });

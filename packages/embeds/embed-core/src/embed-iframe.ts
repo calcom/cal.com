@@ -513,13 +513,30 @@ const methods = {
   /**
    * Connects new config to prerendered page
    */
-  connect: function connect(config: PrefillAndIframeAttrsConfig) {
-    log("Method: connect, requested with params", config);
+  connect: function connect({
+    config,
+    params,
+  }: {
+    config: PrefillAndIframeAttrsConfig;
+    // This is basically searchParams simplified as Record<string, string | string[]>
+    // So a=1&a=2&b=3 would be {a: ["1", "2"], b: "3"}
+    // We can't accept URLSearchParams as it isn't cloneable and thus postMessage doesn't support it
+    params: Record<string, string | string[]>;
+  }) {
+    log("Method: connect, requested with params", { config, params });
     const { iframeAttrs: _1, ...queryParamsFromConfig } = config;
     const connectVersion = (embedStore.connectVersion = embedStore.connectVersion + 1);
-
     // We reset it to allow informing parent again through `__dimensionChanged` event about possibly updated dimensions with changes in config
     embedStore.parentInformedAboutContentHeight = false;
+
+    // Config is just a typed and more declarative way to pass the query params from the parent(except iframeAttrs which is meant to be consumed by parent and not supposed to passed to child)
+    // So, query params can come directly by providing them to calLink or through config
+    const toBeThereParams = {
+      ...params,
+      // Query params from config takes precedence over query params in url
+      ...(queryParamsFromConfig as Record<string, string | string[]>),
+      "cal.embed.connectVersion": connectVersion.toString(),
+    };
 
     (function tryToConnect() {
       if (embedStore.prerenderState !== "completed") {
@@ -530,10 +547,7 @@ const methods = {
       log("Method: connect, prerenderState is completed. Connecting");
       connectPreloadedEmbed({
         // We know after removing iframeAttrs, that it is of this type
-        toBeThereParams: {
-          ...(queryParamsFromConfig as Record<string, string | string[]>),
-          "cal.embed.connectVersion": connectVersion.toString(),
-        },
+        toBeThereParams,
         toRemoveParams: ["preload", "prerender", "cal.skipSlotsFetch"],
       });
     })();

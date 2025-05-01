@@ -14,9 +14,28 @@
       document.write('<meta name="viewport" content="width=device-width"/>');
     }
 
-    if (!location.search.includes("only")) {
-      location.href = "?only=ns:routingFormPrerender"
-    }
+    (function addParamsAutomatically() {
+      const newSearchParams = new URLSearchParams(location.search);
+      let paramsChanged = false;
+      if (!newSearchParams.has("only")) {
+        newSearchParams.set("only", "ns:routingFormPrerender");
+        paramsChanged = true;
+      }
+
+      if (!newSearchParams.has("calOrigin")) {
+        newSearchParams.set("calOrigin", "http://acme.cal.remote:3000");
+        paramsChanged = true;
+      }
+
+      if (!newSearchParams.has("cal.embed.logging")) {
+        newSearchParams.set("cal.embed.logging", "1");
+        paramsChanged = true;
+      }
+
+      if (paramsChanged) {
+        location.href = "?" + newSearchParams.toString();
+      }
+  })();
 
   </script>
   <script>
