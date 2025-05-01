@@ -265,7 +265,7 @@ const FormEdit = ({
                   swapHookFormField(key, key + 1);
                 },
               }}
-              key={key}
+              key={field.id}
             />
           );
         })}
