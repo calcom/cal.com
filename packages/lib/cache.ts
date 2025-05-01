@@ -3,7 +3,7 @@ type CacheEntry<T> = {
   expiry: number;
 };
 
-const cache = new Map<string, CacheEntry<any>>();
+const cache = new Map<string, CacheEntry<unknown>>();
 
 /**
  * Set a value in the cache with an expiration time

@@ -38,7 +38,7 @@ export async function getAppWithMetadata(app: { dirName: string } | { slug: stri
 }
 
 /** Mainly to use in listings for the frontend, use in getStaticProps or getServerSideProps */
-export async function getAppRegistry() {
+export async function getAppRegistry(): Promise<App[]> {
   const cacheKey = "app-registry";
   const cachedApps = getCache<App[]>(cacheKey);
   if (cachedApps) return cachedApps;
@@ -69,9 +69,18 @@ export async function getAppRegistry() {
   return apps;
 }
 
-export async function getAppRegistryWithCredentials(userId: number, userAdminTeams: UserAdminTeams = []) {
+type AppWithCredentials = App & {
+  credentials: Credential[];
+  isDefault?: boolean;
+  dependencyData?: TDependencyData;
+};
+
+export async function getAppRegistryWithCredentials(
+  userId: number,
+  userAdminTeams: UserAdminTeams = []
+): Promise<AppWithCredentials[]> {
   const cacheKey = `app-registry-creds-${userId}-${userAdminTeams.join(",")}`;
-  const cachedApps = getCache(cacheKey);
+  const cachedApps = getCache<AppWithCredentials[]>(cacheKey);
   if (cachedApps) return cachedApps;
 
   // Get teamIds to grab existing credentials
