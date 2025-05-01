@@ -20,8 +20,7 @@ const DEFAULT_EXPECT_TIMEOUT = process.env.CI ? 30000 : 120000;
 // So, it should me much higher than sum of expect and navigation timeouts as there can be many async expects and navigations in a single test
 const DEFAULT_TEST_TIMEOUT = process.env.CI ? 60000 : 240000;
 
-// const headless = !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS;
-const headless = false;
+const headless = !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS;
 
 const IS_EMBED_TEST = process.argv.some((a) => a.startsWith("--project=@calcom/embed-core"));
 const IS_EMBED_REACT_TEST = process.argv.some((a) => a.startsWith("--project=@calcom/embed-react"));
@@ -32,7 +31,7 @@ const webServer: PlaywrightTestConfig["webServer"] = [
       "NEXT_PUBLIC_IS_E2E=1 NODE_OPTIONS='--dns-result-order=ipv4first' yarn workspace @calcom/web start -p 3000",
     port: 3000,
     timeout: 60_000,
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
   },
 ];
 
@@ -43,7 +42,7 @@ if (IS_EMBED_TEST) {
     command: "yarn workspace @calcom/embed-core dev",
     port: 3100,
     timeout: 60_000,
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
   });
 }
 
@@ -54,7 +53,7 @@ if (IS_EMBED_REACT_TEST) {
     command: "yarn workspace @calcom/embed-react dev",
     port: 3101,
     timeout: 60_000,
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
   });
 }
 
