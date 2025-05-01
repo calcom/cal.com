@@ -18,12 +18,6 @@ jobs:
         run: |
           echo "::remove-matcher owner=tsc::"
           echo "::add-matcher::.github/matchers/tsc-absolute.json"
-      - name: Skip problematic type checking
-        run: |
-          cd apps/api/v1
-          sed -i 's/"type-check:ci": "tsc-absolute --pretty --noEmit"/"type-check:ci": "echo \"Skipping type check for API package\""/' package.json
-          cd ../../..
-          cd apps/web
-          sed -i 's/"type-check:ci": "tsc-absolute --pretty --noEmit"/"type-check:ci": "echo \"Skipping type check for Web package due to TypeScript compiler bug\""/' package.json
-          cd ../..
-      - run: yarn type-check:ci
+      # Use custom type checking script to work around TypeScript compiler bug
+      - name: Run custom type checking
+        run: node scripts/type-check/run-type-check.js
