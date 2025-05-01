@@ -402,6 +402,11 @@ model NotificationsSubscriptions {
   userId       Int
   user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   subscription String
+  // Microsoft Graph fields
+  subscriptionId String?  // Microsoft Graph subscription ID
+  resourceUrl    String?  // Resource being monitored
+  expirationTime DateTime? // When the subscription expires
+  clientState    String?  // Secret token for validation
 
   @@index([userId, subscription])
 }

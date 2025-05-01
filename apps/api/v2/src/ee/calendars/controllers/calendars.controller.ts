@@ -13,6 +13,7 @@ import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GoogleCalendarService } from "@/ee/calendars/services/gcal.service";
 import { IcsFeedService } from "@/ee/calendars/services/ics-feed.service";
 import { OutlookService } from "@/ee/calendars/services/outlook.service";
+import { OutlookSubscriptionService } from "../services/outlook-subscription.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { ApiAuthGuardOnlyAllow } from "@/modules/auth/decorators/api-auth-guard-only-allow.decorator";
@@ -66,7 +67,8 @@ export class CalendarsController {
     private readonly googleCalendarService: GoogleCalendarService,
     private readonly appleCalendarService: AppleCalendarService,
     private readonly icsFeedService: IcsFeedService,
-    private readonly calendarsRepository: CalendarsRepository
+    private readonly calendarsRepository: CalendarsRepository,
+    private readonly outlookSubscriptionService: OutlookSubscriptionService
   ) {}
 
   @Post("/ics-feed/save")
@@ -299,5 +301,16 @@ export class CalendarsController {
         { strategy: "excludeAll" }
       ),
     };
+  }
+
+  @Get(":calendar/subscriptions")
+  @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({ summary: "Manage Microsoft Graph subscriptions" })
+  async getSubscriptions(@GetUser("id") userId: number, @Param("calendar") calendar: string): Promise<any> {
+    if (calendar === OFFICE_365_CALENDAR) {
+      return await this.outlookSubscriptionService.getUserSubscriptions(userId);
+    }
+    throw new BadRequestException("Subscriptions only supported for Office 365 calendar");
   }
 }
