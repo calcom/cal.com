@@ -115,6 +115,7 @@ describe("handleChildrenEventTypes", () => {
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
         autoTranslateDescriptionEnabled,
+        instantMeetingScheduleId,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -131,15 +132,14 @@ describe("handleChildrenEventTypes", () => {
         profileId: null,
         updatedValues: {},
       });
+
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
           ...evType,
           parentId: 1,
           users: { connect: [{ id: 4 }] },
           lockTimeZoneToggleOnBookingPage: false,
-          lockedTimeZone: "Europe/London",
           requiresBookerEmailVerification: false,
-          instantMeetingScheduleId: undefined,
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
