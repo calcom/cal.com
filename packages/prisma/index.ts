@@ -3,7 +3,7 @@ import { PrismaClient as PrismaClientWithoutExtension } from "@prisma/client";
 import { withAccelerate } from "@prisma/extension-accelerate";
 
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
-import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
+import { disallowUndefinedWhereExtension } from "./extensions/disallow-undefined-where-clause";
 import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
 import { usageTrackingExtention } from "./extensions/usage-tracking";
@@ -47,7 +47,7 @@ export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
     .$extends(excludeLockedUsersExtension())
     .$extends(excludePendingPaymentsExtension())
     .$extends(bookingIdempotencyKeyExtension())
-    .$extends(disallowUndefinedDeleteUpdateManyExtension())
+    .$extends(disallowUndefinedWhereExtension())
     .$extends(withAccelerate());
 
 // If any changed on middleware server restart is required
@@ -61,7 +61,7 @@ const prismaWithClientExtensions = prismaWithoutClientExtensions
   .$extends(excludeLockedUsersExtension())
   .$extends(excludePendingPaymentsExtension())
   .$extends(bookingIdempotencyKeyExtension())
-  .$extends(disallowUndefinedDeleteUpdateManyExtension())
+  .$extends(disallowUndefinedWhereExtension())
   .$extends(withAccelerate());
 
 export const prisma = globalForPrisma.prismaWithClientExtensions || prismaWithClientExtensions;
