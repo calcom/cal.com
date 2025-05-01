@@ -7,7 +7,7 @@ export const validateWhereClause = (where: any) => {
   }
 
   // Check if where is an empty object
-  if (typeof where === "object" && !Array.isArray(where) && Object.keys(where).length === 0) {
+  if (typeof where === "object" && !Array.isArray(where) && Object.keys(where || {}).length === 0) {
     throw new Error('The "where" clause cannot be an empty object {}.');
   }
 

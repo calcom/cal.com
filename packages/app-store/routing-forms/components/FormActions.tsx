@@ -174,7 +174,7 @@ export const FormActionsDropdown = ({
             type="button"
             variant="icon"
             color="secondary"
-            className={classNames("radix-state-open:rounded-r-md", disabled && "opacity-30")}
+            className={classNames(disabled && "opacity-30")}
             StartIcon="ellipsis"
           />
         </DropdownMenuTrigger>
@@ -499,6 +499,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
               extraClassNames
             )}>
             <Switch
+              data-testid="toggle-form-switch"
               disabled={!!disabled}
               checked={!routingForm.disabled}
               label={label}
@@ -540,7 +541,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
         {...actionProps}
         className={classNames(
           props.className,
-          "w-full transition-none",
+          "text-default w-full transition-none",
           props.color === "destructive" && "border-0"
         )}>
         {children}
