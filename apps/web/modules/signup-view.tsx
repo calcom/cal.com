@@ -408,6 +408,7 @@ export default function Signup({
                   ) : null}
                   {/* Email */}
                   <TextField
+                    id="signup-email"
                     {...register("email")}
                     label={t("email")}
                     type="email"
@@ -419,6 +420,7 @@ export default function Signup({
                   {/* Password */}
                   {!isSamlSignup && (
                     <PasswordField
+                      id="signup-password"
                       data-testid="signup-passwordfield"
                       autoComplete="new-password"
                       label={t("password")}
