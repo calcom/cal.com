@@ -1,24 +1,18 @@
 "use client";
 
-import MarkdownIt from "markdown-it";
-import type { InferGetStaticPropsType } from "next";
 import Link from "next/link";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
-import type { getStaticProps } from "@lib/apps/[slug]/getStaticProps";
+import type { AppDataProps } from "@lib/apps/[slug]/getStaticProps";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
 import App from "@components/apps/App";
 
-const md = new MarkdownIt("default", { html: true, breaks: true });
-
-export type PageProps = InferGetStaticPropsType<typeof getStaticProps>;
-
-function SingleAppPage(props: PageProps) {
+function SingleAppPage(props: AppDataProps) {
   const { error, setQuery: setError } = useRouterQuery("error");
   const { t } = useLocale();
   if (error === "account_already_linked") {

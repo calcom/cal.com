@@ -1,15 +1,17 @@
 import * as RadioGroup from "@radix-ui/react-radio-group";
-import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
-import { classNames } from "@calcom/lib";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import { bookerLayoutOptions, type BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Label, CheckboxField, Button } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Label } from "@calcom/ui/components/form";
+import { CheckboxField } from "@calcom/ui/components/form";
 
 import SectionBottomActions from "./SectionBottomActions";
 
@@ -34,7 +36,7 @@ type BookerLayoutSelectorProps = {
   isLoading?: boolean;
   isDisabled?: boolean;
   isOuterBorder?: boolean;
-  user?: Partial<Pick<RouterOutputs["viewer"]["me"], "defaultBookerLayouts">>;
+  user?: Partial<Pick<RouterOutputs["viewer"]["me"]["get"], "defaultBookerLayouts">>;
   isUserLoading?: boolean;
 };
 
@@ -104,7 +106,7 @@ type BookerLayoutFieldsProps = {
   showUserSettings: boolean;
   isDark?: boolean;
   isOuterBorder?: boolean;
-  user?: Partial<Pick<RouterOutputs["viewer"]["me"], "defaultBookerLayouts">>;
+  user?: Partial<Pick<RouterOutputs["viewer"]["me"]["get"], "defaultBookerLayouts">>;
   isUserLoading?: boolean;
 };
 
@@ -227,20 +229,26 @@ const BookerLayoutFields = ({
       </div>
       {disableFields && (
         <p className="text-sm">
-          <Trans i18nKey="bookerlayout_override_global_settings">
-            You can manage this for all your event types in Settings {"-> "}
-            <Link target="_blank" href="/settings/my-account/appearance" className="underline">
-              Appearance
-            </Link>{" "}
-            or{" "}
-            <Button
-              onClick={onOverrideSettings}
-              color="minimal"
-              className="h-fit p-0 font-normal underline hover:bg-transparent focus-visible:bg-transparent">
-              Override
-            </Button>{" "}
-            for this event only.
-          </Trans>
+          <ServerTrans
+            t={t}
+            i18nKey="bookerlayout_override_global_settings"
+            components={[
+              <Link
+                key="appearance-link"
+                target="_blank"
+                href="/settings/my-account/appearance"
+                className="underline">
+                Appearance
+              </Link>,
+              <Button
+                key="override-button"
+                onClick={onOverrideSettings}
+                color="minimal"
+                className="h-fit p-0 font-normal underline hover:bg-transparent focus-visible:bg-transparent">
+                Override
+              </Button>,
+            ]}
+          />
         </p>
       )}
     </div>

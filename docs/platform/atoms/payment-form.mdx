@@ -69,7 +69,7 @@ export default function EventType(id: number) {
 With this you're all set to accept payments for your bookings.
     </Step>
     <Step title="Use booker atom to access payment uid">
-      The booker atom has a prop called `onCreateBookingSuccess` which is a callback function that gets called at the time of a successful booking creation. This function takes a parameter called `data` which contains the payment uid and another property called paymentRequired which can be used to detect if the booking requres payment or not. You can use the payment uid to access the payment form atom. 
+      The booker atom has a prop called `onCreateBookingSuccess` which is a callback function that gets called at the time of a successful booking creation. This function takes a parameter called `data` which contains the payment uid and another property called paymentRequired which can be used to detect if the booking requires payment or not. You can use the payment uid to access the payment form atom. 
       
       Either store the payment uid in your database, a local state variable or pass it into another page as query parameters.
 

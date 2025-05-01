@@ -12,12 +12,13 @@ import type { EventAvailabilityTabCustomClassNames } from "@calcom/features/even
 import type { EventLimitsTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
 import type { EventRecurringTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/recurring/RecurringEventController";
 import type { EventSetupTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/setup/EventSetupTab";
-import type { EventTypeSetupProps, FormValues, TabMap } from "@calcom/features/eventtypes/lib/types";
+import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import { useDeleteEventTypeById } from "../../hooks/event-types/private/useDeleteEventTypeById";
 import { useDeleteTeamEventTypeById } from "../../hooks/event-types/private/useDeleteTeamEventTypeById";
+import { useAtomsContext } from "../../hooks/useAtomsContext";
 import { useMe } from "../../hooks/useMe";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
@@ -33,8 +34,7 @@ import EventPaymentsTabPlatformWrapper from "./EventPaymentsTabPlatformWrapper";
 import EventRecurringTabPlatformWrapper from "./EventRecurringTabPlatformWrapper";
 import SetupTab from "./EventSetupTabPlatformWrapper";
 import EventTeamAssignmentTabPlatformWrapper from "./EventTeamAssignmentTabPlatformWrapper";
-
-export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instant" | "ai" | "apps">;
+import type { PlatformTabs } from "./types";
 
 export type EventTypeCustomClassNames = {
   atomsWrapper?: string;
@@ -56,6 +56,7 @@ export type EventTypePlatformWrapperProps = {
   allowDelete: boolean;
   customClassNames?: EventTypeCustomClassNames;
   disableToasts?: boolean;
+  isDryRun?: boolean;
 };
 
 const EventType = ({
@@ -68,10 +69,12 @@ const EventType = ({
   allowDelete = true,
   customClassNames,
   disableToasts = false,
+  isDryRun = false,
   ...props
 }: EventTypeSetupProps & EventTypePlatformWrapperProps) => {
   const { t } = useLocale();
   const { toast } = useToast();
+  const { organizationId } = useAtomsContext();
   const isTeamEventTypeDeleted = useRef(false);
   const leaveWithoutAssigningHosts = useRef(false);
   const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
@@ -140,7 +143,13 @@ const EventType = ({
 
   const { form, handleSubmit } = useEventTypeForm({
     eventType,
-    onSubmit: (data) => updateMutation.mutate(data),
+    onSubmit: (data) => {
+      if (!isDryRun) {
+        updateMutation.mutate(data);
+      } else {
+        toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
+      }
+    },
   });
   const slug = form.watch("slug") ?? eventType.slug;
 
@@ -180,6 +189,7 @@ const EventType = ({
         eventType={eventType}
         teamMembers={teamMembers}
         customClassNames={customClassNames?.eventAssignmentTab}
+        orgId={organizationId}
       />
     ) : (
       <></>
@@ -242,11 +252,15 @@ const EventType = ({
   });
 
   const onDelete = () => {
-    if (allowDelete) {
+    if (allowDelete && !isDryRun) {
       isTeamEventTypeDeleted.current = true;
       team?.id
         ? deleteTeamEventTypeMutation.mutate({ eventTypeId: id, teamId: team.id })
         : deleteMutation.mutate(id);
+    }
+
+    if (isDryRun) {
+      handleDeleteSuccess();
     }
   };
 
@@ -305,6 +319,7 @@ export const EventTypePlatformWrapper = ({
   onDeleteError,
   allowDelete = true,
   customClassNames,
+  isDryRun,
 }: EventTypePlatformWrapperProps) => {
   const { data: eventTypeQueryData } = useAtomsEventTypeById(id);
   const queryClient = useQueryClient();
@@ -336,6 +351,7 @@ export const EventTypePlatformWrapper = ({
       onDeleteError={onDeleteError}
       allowDelete={allowDelete}
       customClassNames={customClassNames}
+      isDryRun={isDryRun}
     />
   );
 };

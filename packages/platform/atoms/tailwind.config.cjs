@@ -4,7 +4,7 @@ module.exports = {
   ...base,
   content: [
     ...base.content,
-    "../../../packages/ui/**/*.{js,ts,jsx,tsx,mdx}",
+    "../../../packages/ui/!(node_modules)/**/*.{js,ts,jsx,tsx,mdx}",
     "../../../node_modules/@tremor/**/*.{js,ts,jsx,tsx}",
     "./**/*.tsx",
   ],

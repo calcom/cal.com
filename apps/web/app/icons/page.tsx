@@ -2,7 +2,8 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 
-import { type IconName, IconSprites } from "@calcom/ui";
+import { IconSprites } from "@calcom/ui/components/icon";
+import type { IconName } from "@calcom/ui/components/icon";
 
 import { lucideIconList } from "../../../../packages/ui/components/icon/icon-list.mjs";
 import { IconGrid } from "./IconGrid";
@@ -18,7 +19,10 @@ const calFont = localFont({
 export const generateMetadata = async () => {
   return await _generateMetadata(
     (t) => t("icon_showcase"),
-    () => ""
+    () => "",
+    undefined,
+    undefined,
+    "/icons"
   );
 };
 export default async function IconsPage() {
@@ -35,7 +39,7 @@ export default async function IconsPage() {
           <IconGrid
             title="Filled Icons"
             icons={icons}
-            rootClassName="bg-darkgray-100 text-gray-50"
+            rootClassName="bg-inverted text-inverted"
             iconClassName="fill-blue-500"
           />
         </div>
@@ -43,4 +47,3 @@ export default async function IconsPage() {
     </div>
   );
 }
-export const dynamic = "force-static";

@@ -1,51 +1,37 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/availability/actions";
+import { revalidateSchedulePage } from "app/(use-page-wrapper)/availability/[schedule]/actions";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-import { AvailabilitySettings } from "@calcom/atoms/monorepo";
+import { AvailabilitySettings } from "@calcom/atoms/availability/AvailabilitySettings";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { withErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
-import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
-import type { TravelScheduleRepository } from "@calcom/lib/server/repository/travelSchedule";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 type PageProps = {
-  scheduleFetched?: Awaited<ReturnType<typeof ScheduleRepository.findDetailedScheduleById>>;
-  travelSchedules?: Awaited<ReturnType<typeof TravelScheduleRepository.findTravelSchedulesByUserId>>;
+  scheduleData: RouterOutputs["viewer"]["availability"]["schedule"]["get"];
+  travelSchedulesData: RouterOutputs["viewer"]["travelSchedules"]["get"];
 };
 
 export const AvailabilitySettingsWebWrapper = ({
-  scheduleFetched: scheduleProp,
-  travelSchedules: travelSchedulesProp,
+  scheduleData: schedule,
+  travelSchedulesData: travelSchedules,
 }: PageProps) => {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useUtils();
   const me = useMeQuery();
-  const scheduleId = searchParams?.get("schedule") ? Number(searchParams.get("schedule")) : -1;
   const fromEventType = searchParams?.get("fromEventType");
+  const scheduleId = schedule.id;
   const { timeFormat } = me.data || { timeFormat: null };
-  const { data: scheduleData, isPending: isFetchingPending } = trpc.viewer.availability.schedule.get.useQuery(
-    { scheduleId },
-    {
-      enabled: !!scheduleId && !scheduleProp,
-    }
-  );
-  const isPending = isFetchingPending && !scheduleProp;
-  const schedule = scheduleProp ?? scheduleData;
-
-  const { data: travelSchedulesData } = trpc.viewer.getTravelSchedules.useQuery(undefined, {
-    enabled: !travelSchedulesProp,
-  });
-  const travelSchedules = travelSchedulesProp ?? travelSchedulesData;
-
   const [isBulkUpdateModalOpen, setIsBulkUpdateModalOpen] = useState(false);
   const bulkUpdateDefaultAvailabilityMutation =
     trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation();
@@ -57,10 +43,12 @@ export const AvailabilitySettingsWebWrapper = ({
     bulkUpdateDefaultAvailabilityMutation.mutate(
       {
         eventTypeIds,
+        selectedDefaultScheduleId: scheduleId,
       },
       {
         onSuccess: () => {
           utils.viewer.availability.list.invalidate();
+          revalidateAvailabilityList();
           callback();
           showToast(t("success"), "success");
         },
@@ -69,7 +57,7 @@ export const AvailabilitySettingsWebWrapper = ({
   };
 
   const handleBulkEditDialogToggle = () => {
-    utils.viewer.getUsersDefaultConferencingApp.invalidate();
+    utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
   };
 
   const isDefaultSchedule = me.data?.defaultScheduleId === scheduleId;
@@ -85,7 +73,9 @@ export const AvailabilitySettingsWebWrapper = ({
         }
       }
       utils.viewer.availability.schedule.get.invalidate({ scheduleId: data.schedule.id });
+      revalidateSchedulePage(scheduleId);
       utils.viewer.availability.list.invalidate();
+      revalidateAvailabilityList();
       showToast(
         t("availability_updated_successfully", {
           scheduleName: data.schedule.name,
@@ -110,24 +100,17 @@ export const AvailabilitySettingsWebWrapper = ({
     },
     onSuccess: () => {
       showToast(t("schedule_deleted_successfully"), "success");
+      revalidateAvailabilityList();
       router.push("/availability");
     },
   });
-
-  // TODO: reimplement Skeletons for this page in here
-  if (isPending) return null;
-
-  // We wait for the schedule to be loaded before rendering the form inside AvailabilitySettings
-  // since `defaultValues` cannot be redeclared after first render and using `values` will
-  // trigger a form reset when revalidating. Introducing flaky behavior.
-  if (!schedule) return null;
 
   return (
     <AvailabilitySettings
       schedule={schedule}
       travelSchedules={isDefaultSchedule ? travelSchedules || [] : []}
       isDeleting={deleteMutation.isPending}
-      isLoading={isPending}
+      isLoading={false}
       isSaving={updateMutation.isPending}
       enableOverrides={true}
       timeFormat={timeFormat}

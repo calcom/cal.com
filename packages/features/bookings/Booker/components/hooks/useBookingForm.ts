@@ -23,6 +23,7 @@ export interface IUseBookingForm {
     name: string | null;
   };
   lastBookingResponse?: Record<string, string>;
+  clientId?: string;
 }
 
 export type UseBookingFormReturnType = ReturnType<typeof useBookingForm>;
@@ -36,6 +37,7 @@ export const useBookingForm = ({
   extraOptions,
   prefillFormParams,
   lastBookingResponse,
+  clientId,
 }: IUseBookingForm) => {
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
   const bookingData = useBookerStore((state) => state.bookingData);
@@ -60,10 +62,11 @@ export const useBookingForm = ({
     // Key is not really part of form values, but only used to have a key
     // to set generic error messages on. Needed until RHF has implemented root error keys.
     globalError: undefined;
+    cfToken?: string;
   };
   const isRescheduling = !!rescheduleUid && !!bookingData;
 
-  const { initialValues, key } = useInitialFormValues({
+  const { values: initialValues, key } = useInitialFormValues({
     eventType: event,
     rescheduleUid,
     isRescheduling,
@@ -74,6 +77,7 @@ export const useBookingForm = ({
     extraOptions,
     prefillFormParams,
     lastBookingResponse,
+    clientId,
   });
 
   const bookingForm = useForm<BookingFormValues>({

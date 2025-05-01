@@ -4,6 +4,8 @@ import Head from "next/head";
 
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
+import PageWrapper from "@components/PageWrapper";
+
 import { getServerSideProps } from "../../server/lib/router/getServerSideProps";
 
 export default function Router({ form, message }: inferSSRProps<typeof getServerSideProps>) {
@@ -22,5 +24,7 @@ export default function Router({ form, message }: inferSSRProps<typeof getServer
     </>
   );
 }
+
+Router.PageWrapper = PageWrapper;
 
 export { getServerSideProps };

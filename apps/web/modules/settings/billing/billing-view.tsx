@@ -2,16 +2,26 @@
 
 import { usePathname } from "next/navigation";
 
-import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import classNames from "@calcom/ui/classNames";
 
 interface CtaRowProps {
   title: string;
   description: string;
   children: React.ReactNode;
   className?: string;
+}
+
+declare global {
+  interface Window {
+    Plain?: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      init: (config: any) => void;
+      open: () => void;
+    };
+  }
 }
 
 export const CtaRow = ({ title, description, className, children }: CtaRowProps) => {

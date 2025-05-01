@@ -1,7 +1,7 @@
 import type { Dayjs } from "dayjs";
 
-import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
+import type { CurrentSeats } from "@calcom/lib/getUserAvailability";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 
 type BufferedBusyTimes = BufferedBusyTime[];

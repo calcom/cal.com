@@ -5,7 +5,14 @@ import { useEffect, useRef, useState, useCallback } from "react";
 
 import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
-import type { EmbedThemeConfig, UiConfig, EmbedNonStylesConfig, BookerLayouts, EmbedStyles } from "./types";
+import type {
+  EmbedThemeConfig,
+  UiConfig,
+  EmbedNonStylesConfig,
+  BookerLayouts,
+  EmbedStyles,
+  KnownConfig,
+} from "./types";
 import { useCompatSearchParams } from "./useCompatSearchParams";
 
 type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
@@ -14,6 +21,7 @@ const enum EMBED_IFRAME_STATE {
   NOT_INITIALIZED,
   INITIALIZED,
 }
+
 /**
  * All types of config that are critical to be processed as soon as possible are provided as query params to the iframe
  */
@@ -22,18 +30,7 @@ export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Rec
   iframeAttrs?: Record<string, string> & {
     id?: string;
   };
-
-  // TODO: It should have a dedicated prefill prop
-  // prefill: {},
-  "flag.coep"?: "true" | "false";
-
-  // TODO: Move layout and theme as nested props of ui as it makes it clear that these two can be configured using `ui` instruction as well any time.
-  // ui: {layout; theme}
-  layout?: BookerLayouts;
-  // TODO: Rename layout and theme as ui.layout and ui.theme as it makes it clear that these two can be configured using `ui` instruction as well any time.
-  "ui.color-scheme"?: string;
-  theme?: EmbedThemeConfig;
-};
+} & KnownConfig;
 
 declare global {
   interface Window {
@@ -42,6 +39,8 @@ declare global {
       embedStore: typeof embedStore;
       applyCssVars: (cssVarsPerTheme: UiConfig["cssVarsPerTheme"]) => void;
     };
+    // Marks that Booker has moved to some non-"loading" state
+    _embedBookerState?: "initializing" | "done";
   }
 }
 
@@ -80,6 +79,7 @@ const embedStore = {
   // Store all React State setters here.
   reactStylesStateSetters: {} as Record<keyof EmbedStyles, SetStyles>,
   reactNonStylesStateSetters: {} as Record<keyof EmbedNonStylesConfig, setNonStylesConfig>,
+  // Embed can show itself only after this is set to true
   parentInformedAboutContentHeight: false,
   windowLoadEventFired: false,
   setTheme: undefined as ((arg0: EmbedThemeConfig) => void) | undefined,
@@ -227,7 +227,7 @@ export const useEmbedTheme = () => {
 
 /**
  * It serves following purposes
- * - Gives consistent values for ui config even after Soft Navigation. When a new React component mounts, it would ensure that the component get's the correct value of ui config
+ * - Gives consistent values for ui config even after Soft Navigation. When a new React component mounts, it would ensure that the component gets the correct value of ui config
  * - Ensures that all the components using useEmbedUiConfig are updated when ui config changes. It is done by maintaining a list of all non-stale setters.
  */
 export const useEmbedUiConfig = () => {
@@ -243,7 +243,7 @@ export const useEmbedUiConfig = () => {
   return uiConfig;
 };
 
-// TODO: Make it usable as an attribute directly instead of styles value. It would allow us to go beyond styles e.g. for debugging we can add a special attribute indentifying the element on which UI config has been applied
+// TODO: Make it usable as an attribute directly instead of styles value. It would allow us to go beyond styles e.g. for debugging we can add a special attribute identifying the element on which UI config has been applied
 export const useEmbedStyles = (elementName: keyof EmbedStyles) => {
   const [, setStyles] = useState<EmbedStyles>({});
 
@@ -309,6 +309,14 @@ function getEmbedType() {
   }
 }
 
+function isBookerReady() {
+  return window._embedBookerState === "done";
+}
+
+function isBookerPage() {
+  return !!window._embedBookerState;
+}
+
 export const useIsEmbed = (embedSsr?: boolean) => {
   const [isEmbed, setIsEmbed] = useState(embedSsr);
   useEffect(() => {
@@ -333,7 +341,13 @@ export const useEmbedType = () => {
 };
 
 function unhideBody() {
-  document.body.style.visibility = "visible";
+  if (document.body.style.visibility !== "visible") {
+    document.body.style.visibility = "visible";
+  }
+  // Ensure that it stays visible and not reverted by React
+  runAsap(() => {
+    unhideBody();
+  });
 }
 
 // It is a map of methods that can be called by parent using doInIframe({method: "methodName", arg: "argument"})
@@ -385,12 +399,22 @@ const methods = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   parentKnowsIframeReady: (_unused: unknown) => {
     log("Method: `parentKnowsIframeReady` called");
+
     runAsap(function tryInformingLinkReady() {
       // TODO: Do it by attaching a listener for change in parentInformedAboutContentHeight
       if (!embedStore.parentInformedAboutContentHeight) {
         runAsap(tryInformingLinkReady);
         return;
       }
+
+      // Let's wait for Booker to be ready before showing the embed
+      // It means that booker has loaded all its data and is ready to show
+      // TODO: We could try to mark the embed as ready earlier in this case not relying on document.readyState
+      if (isBookerPage() && !isBookerReady()) {
+        runAsap(tryInformingLinkReady);
+        return;
+      }
+
       // No UI change should happen in sight. Let the parent height adjust and in next cycle show it.
       unhideBody();
       if (!isPrerendering()) {
@@ -453,10 +477,12 @@ function keepParentInformedAboutDimensionChanges() {
       }, 100);
       return;
     }
+
     if (!embedStore.windowLoadEventFired) {
       sdkActionManager?.fire("__windowLoadComplete", {});
     }
     embedStore.windowLoadEventFired = true;
+
     // Use the dimensions of main element as in most places there is max-width restriction on it and we just want to show the main content.
     // It avoids the unwanted padding outside main tag.
     const mainElement =
@@ -485,10 +511,12 @@ function keepParentInformedAboutDimensionChanges() {
 
     // During first render let iframe tell parent that how much is the expected height to avoid scroll.
     // Parent would set the same value as the height of iframe which would prevent scroll.
-    // On subsequent renders, consider html height as the height of the iframe. If we don't do this, then if iframe get's bigger in height, it would never shrink
+    // On subsequent renders, consider html height as the height of the iframe. If we don't do this, then if iframe gets bigger in height, it would never shrink
     const iframeHeight = isFirstTime ? documentScrollHeight : contentHeight;
     const iframeWidth = isFirstTime ? documentScrollWidth : contentWidth;
+
     embedStore.parentInformedAboutContentHeight = true;
+
     if (!iframeHeight || !iframeWidth) {
       runAsap(informAboutScroll);
       return;

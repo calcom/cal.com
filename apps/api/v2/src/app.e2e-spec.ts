@@ -14,6 +14,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { RateLimitRepositoryFixture } from "test/fixtures/repository/rate-limit.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 
 import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 import { User, PlatformOAuthClient, Team, RateLimit } from "@calcom/prisma/client";
@@ -24,7 +25,7 @@ describe("AppController", () => {
     let userRepositoryFixture: UserRepositoryFixture;
     let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
     let rateLimitRepositoryFixture: RateLimitRepositoryFixture;
-    const userEmail = "app-rate-limits-e2e@api.com";
+    const userEmail = `app-rate-limits-user-${randomString()}@api.com`;
     let user: User;
 
     let organization: Team;
@@ -94,7 +95,9 @@ describe("AppController", () => {
       );
 
       organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
-      organization = await organizationsRepositoryFixture.create({ name: "ecorp" });
+      organization = await organizationsRepositoryFixture.create({
+        name: `app-rate-limits-organization-${randomString()}`,
+      });
       oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
       oAuthClient = await createOAuthClient(organization.id);
       profilesRepositoryFixture = new ProfileRepositoryFixture(moduleRef);

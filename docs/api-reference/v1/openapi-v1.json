@@ -1523,11 +1523,11 @@
           {
             "in": "query",
             "name": "cancellationReason",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "string"
             },
-            "description": "The reason for cancellation of the booking"
+            "description": "The reason for cancellation of the booking, not required except for hosts"
           }
         ],
         "tags": ["Bookings"],
@@ -3208,7 +3208,7 @@
         "tags": ["Memberships"],
         "responses": {
           "201": {
-            "description": "OK, membership removed successfuly"
+            "description": "OK, membership removed successfully"
           },
           "400": {
             "description": "Bad request. Membership id is invalid."
@@ -4538,7 +4538,7 @@
         "tags": ["Users"],
         "responses": {
           "201": {
-            "description": "OK, user removed successfuly"
+            "description": "OK, user removed successfully"
           },
           "400": {
             "description": "Bad request. User id is invalid."

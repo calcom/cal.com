@@ -6,7 +6,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -126,8 +126,10 @@ export const Handler = async ({ ctx, input }: Options) => {
           bookingFields: true,
           disableGuests: true,
           metadata: true,
+          hideOrganizerEmail: true,
           customInputs: true,
           parentId: true,
+          customReplyToEmail: true,
           team: {
             select: {
               id: true,
@@ -202,12 +204,14 @@ export const Handler = async ({ ctx, input }: Options) => {
       timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
       language: { translate: tOrganizer, locale: user.locale ?? "en" },
     },
+    hideOrganizerEmail: updatedBooking.eventType?.hideOrganizerEmail,
     attendees: attendeesList,
     location: updatedBooking.location ?? "",
     uid: updatedBooking.uid,
     requiresConfirmation: false,
     eventTypeId: eventType?.id,
     videoCallData,
+    customReplyToEmail: eventType?.customReplyToEmail,
     team: !!updatedBooking.eventType?.team
       ? {
           name: updatedBooking.eventType.team.name,

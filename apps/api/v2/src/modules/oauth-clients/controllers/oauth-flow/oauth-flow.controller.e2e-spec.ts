@@ -4,6 +4,7 @@ import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { ZodExceptionFilter } from "@/filters/zod-exception.filter";
 import { AuthModule } from "@/modules/auth/auth.module";
+import { JwtService } from "@/modules/jwt/jwt.service";
 import { OAuthAuthorizeInput } from "@/modules/oauth-clients/inputs/authorize.input";
 import { ExchangeAuthorizationCodeInput } from "@/modules/oauth-clients/inputs/exchange-code.input";
 import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
@@ -19,6 +20,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withNextAuth } from "test/utils/withNextAuth";
 
 import { X_CAL_SECRET_KEY } from "@calcom/platform-constants";
@@ -67,10 +69,10 @@ describe("OAuthFlow Endpoints", () => {
     let oAuthClient: PlatformOAuthClient;
 
     let authorizationCode: string | null;
-    let refreshToken: string;
+    let responseRefreshToken: string;
 
     beforeAll(async () => {
-      const userEmail = "developer@platform.com";
+      const userEmail = `oauth-flow-user-${randomString()}@api.com`;
 
       const moduleRef: TestingModule = await withNextAuth(
         userEmail,
@@ -92,7 +94,9 @@ describe("OAuthFlow Endpoints", () => {
         email: userEmail,
       });
 
-      organization = await organizationsRepositoryFixture.create({ name: "organization" });
+      organization = await organizationsRepositoryFixture.create({
+        name: `oauth-flow-organization-${randomString()}`,
+      });
       await profilesRepositoryFixture.create({
         uid: "asd-asd",
         username: userEmail,
@@ -150,29 +154,70 @@ describe("OAuthFlow Endpoints", () => {
           .send(body)
           .expect(200);
 
-        expect(response.body?.data?.accessToken).toBeDefined();
-        expect(response.body?.data?.refreshToken).toBeDefined();
+        const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } = response.body.data;
+        expect(accessToken).toBeDefined();
+        expect(refreshToken).toBeDefined();
+        expect(accessTokenExpiresAt).toBeDefined();
+        expect(refreshTokenExpiresAt).toBeDefined();
 
-        refreshToken = response.body.data.refreshToken;
+        const jwtService = app.get(JwtService);
+        const decodedAccessToken = jwtService.decode(accessToken);
+        const decodedRefreshToken = jwtService.decode(refreshToken);
+
+        expect(decodedAccessToken.clientId).toBe(oAuthClient.id);
+        expect(decodedAccessToken.ownerId).toBe(user.id);
+        expect(decodedAccessToken.type).toBe("access_token");
+        expect(decodedAccessToken.expiresAt).toBe(new Date(accessTokenExpiresAt).valueOf());
+        expect(decodedAccessToken.iat).toBeGreaterThan(0);
+
+        expect(decodedRefreshToken.clientId).toBe(oAuthClient.id);
+        expect(decodedRefreshToken.ownerId).toBe(user.id);
+        expect(decodedRefreshToken.type).toBe("refresh_token");
+        expect(decodedRefreshToken.expiresAt).toBe(new Date(refreshTokenExpiresAt).valueOf());
+        expect(decodedRefreshToken.iat).toBeGreaterThan(0);
+
+        responseRefreshToken = refreshToken;
       });
     });
 
     describe("Refresh Token Endpoint", () => {
-      it("POST /oauth/:clientId/refresh", () => {
+      it("POST /oauth/:clientId/refresh", async () => {
         const secretKey = oAuthClient.secret;
         const body = {
-          refreshToken,
+          refreshToken: responseRefreshToken,
         };
 
-        return request(app.getHttpServer())
+        const response = await request(app.getHttpServer())
           .post(`/v2/oauth/${oAuthClient.id}/refresh`)
           .set("x-cal-secret-key", secretKey)
           .send(body)
-          .expect(200)
-          .then((response) => {
-            expect(response.body?.data?.accessToken).toBeDefined();
-            expect(response.body?.data?.refreshToken).toBeDefined();
-          });
+          .expect(200);
+
+        const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } = response.body.data;
+        expect(accessToken).toBeDefined();
+        expect(refreshToken).toBeDefined();
+        expect(accessTokenExpiresAt).toBeDefined();
+        expect(refreshTokenExpiresAt).toBeDefined();
+
+        const jwtService = app.get(JwtService);
+        const decodedAccessToken = jwtService.decode(accessToken);
+        const decodedRefreshToken = jwtService.decode(refreshToken);
+
+        expect(decodedAccessToken.clientId).toBe(oAuthClient.id);
+        expect(decodedAccessToken.ownerId).toBe(user.id);
+        expect(decodedAccessToken.userId).toBe(user.id);
+        expect(decodedAccessToken.type).toBe("access_token");
+        expect(decodedAccessToken.expiresAt).toBe(new Date(accessTokenExpiresAt).valueOf());
+        expect(decodedAccessToken.iat).toBeGreaterThan(0);
+
+        expect(decodedRefreshToken.clientId).toBe(oAuthClient.id);
+        expect(decodedRefreshToken.ownerId).toBe(user.id);
+        expect(decodedRefreshToken.userId).toBe(user.id);
+        expect(decodedRefreshToken.type).toBe("refresh_token");
+        expect(decodedRefreshToken.expiresAt).toBe(new Date(refreshTokenExpiresAt).valueOf());
+        expect(decodedRefreshToken.iat).toBeGreaterThan(0);
+
+        responseRefreshToken = refreshToken;
       });
     });
 

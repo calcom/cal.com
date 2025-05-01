@@ -38,6 +38,10 @@ export const getEnv = <K extends keyof Environment>(key: K, fallback?: Environme
   const value = process.env[key] as Environment[K] | undefined;
 
   if (value === undefined) {
+    // handle fallback falsy cases that should still be used as value
+    if (fallback === false || fallback === "" || fallback === 0) {
+      return fallback;
+    }
     if (fallback) {
       return fallback;
     }

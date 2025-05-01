@@ -2,13 +2,15 @@
 import { FloatingButton } from "./FloatingButton/FloatingButton";
 import { Inline } from "./Inline/inline";
 import { ModalBox } from "./ModalBox/ModalBox";
+import { addAppCssVars } from "./addAppCssVars";
 import type { InterfaceWithParent, interfaceWithParent, PrefillAndIframeAttrsConfig } from "./embed-iframe";
 import css from "./embed.css";
 import { SdkActionManager } from "./sdk-action-manager";
 import type { EventData, EventDataMap } from "./sdk-action-manager";
 import tailwindCss from "./tailwindCss";
 import type { UiConfig } from "./types";
-import { fromEntriesWithDuplicateKeys } from "./utils";
+import { getMaxHeightForModal } from "./ui-utils";
+import { fromEntriesWithDuplicateKeys, getConfigProp, generateDataAttributes } from "./utils";
 
 export type { PrefillAndIframeAttrsConfig } from "./embed-iframe";
 
@@ -25,6 +27,8 @@ export type Message = {
 // HACK: Redefine and don't import WEBAPP_URL as it causes import statement to be present in built file.
 // This is happening because we are not able to generate an App and a lib using single Vite Config.
 const WEBAPP_URL = process.env.EMBED_PUBLIC_WEBAPP_URL || `https://${process.env.EMBED_PUBLIC_VERCEL_URL}`;
+// Add App CSS Vars as soon as possible so that tailwind classes can work instantly.
+addAppCssVars();
 
 customElements.define("cal-modal-box", ModalBox);
 customElements.define("cal-floating-button", FloatingButton);
@@ -131,7 +135,7 @@ function withColorScheme(
   // https://fvsch.com/transparent-iframes#:~:text=the%20resolution%20was%3A-,If%20the%20color%20scheme%20of%20an%20iframe%20differs%20from%20embedding%20document%2C%20iframe%20gets%20an%20opaque%20canvas%20background%20appropriate%20to%20its%20color%20scheme.,-So%20the%20dark
   if (!config["ui.color-scheme"]) {
     const colorScheme = getColorScheme(containerEl);
-    // Only handle two color-schemes for now. We don't want to have unintented affect by always explicitly adding color-scheme
+    // Only handle two color-schemes for now. We don't want to have unintended affect by always explicitly adding color-scheme
     if (colorScheme) {
       config["ui.color-scheme"] = colorScheme;
     }
@@ -296,12 +300,6 @@ export class Cal {
       urlInstance.pathname = `${urlInstance.pathname}/embed`;
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    if (window.ENABLE_FUTURE_ROUTES) {
-      urlInstance.pathname = `/future${urlInstance.pathname}`;
-    }
-
     urlInstance.searchParams.set("embed", this.namespace);
 
     if (embedConfig.debug) {
@@ -378,10 +376,7 @@ export class Cal {
       }
 
       if (this.modalBox) {
-        // It ensures that if the iframe is so tall that it can't fit in the parent window without scroll. Then force the scroll by restricting the max-height to innerHeight
-        // This case is reproducible when viewing in ModalBox on Mobile.
-        const spacingTopPlusBottom = 2 * 50; // 50 is the padding we want to keep to show close button comfortably. Make it same as top for bottom.
-        iframe.style.maxHeight = `${window.innerHeight - spacingTopPlusBottom}px`;
+        iframe.style.maxHeight = `${getMaxHeightForModal()}px`;
       }
     });
 
@@ -393,7 +388,7 @@ export class Cal {
         // But it's okay to do it here for now because the embedded calLink also keeps itself hidden till it receives `parentKnowsIframeReady` message(It has it's own reasons for that)
         // Once the embedded calLink starts not hiding the document, we should optimize this line to make the iframe visible earlier than this.
 
-        // Imp: Don't use visiblity:visible as that would make the iframe show even if the host element(A paren tof the iframe) has visiblity:hidden set. Just reset the visibility to default
+        // Imp: Don't use visibility:visible as that would make the iframe show even if the host element(A paren tof the iframe) has visibility:hidden set. Just reset the visibility to default
         this.iframe.style.visibility = "";
       }
       this.doInIframe({ method: "parentKnowsIframeReady" } as const);
@@ -577,8 +572,21 @@ class CalApi {
     iframe.style.width = "100%";
 
     containerEl.classList.add("cal-inline-container");
+
     const template = document.createElement("template");
-    template.innerHTML = `<cal-inline style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%"></cal-inline><style>.cal-inline-container::-webkit-scrollbar{display:none}.cal-inline-container{scrollbar-width:none}</style>`;
+    const layout = getConfigProp(config, "layout");
+    const pageType = getConfigProp(config, "cal.embed.pageType");
+    const theme = getConfigProp(config, "theme");
+
+    template.innerHTML = `<cal-inline 
+      ${generateDataAttributes({
+        pageType,
+        theme,
+        layout,
+      })}
+      style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%">
+    </cal-inline>
+    <style>.cal-inline-container::-webkit-scrollbar{display:none}.cal-inline-container{scrollbar-width:none}</style>`;
     this.cal.inlineEl = template.content.children[0];
     this.cal.inlineEl.appendChild(iframe);
     containerEl.appendChild(template.content);
@@ -669,7 +677,13 @@ class CalApi {
       config.prerender = "true";
     }
 
-    const configWithGuestKeyAndColorScheme = withColorScheme(Cal.ensureGuestKey(config), containerEl);
+    const configWithGuestKeyAndColorScheme = withColorScheme(
+      Cal.ensureGuestKey({
+        ...config,
+        embedType: "modal",
+      }),
+      containerEl
+    );
     const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`);
 
     if (existingModalEl) {
@@ -700,7 +714,6 @@ class CalApi {
       throw new Error("iframeAttrs should be an object");
     }
 
-    config.embedType = "modal";
     let iframe = null;
 
     if (!iframe) {
@@ -715,7 +728,18 @@ class CalApi {
     iframe.style.height = "100%";
     iframe.style.width = "100%";
     const template = document.createElement("template");
-    template.innerHTML = `<cal-modal-box uid="${uid}"></cal-modal-box>`;
+    const pageType = getConfigProp(configWithGuestKeyAndColorScheme, "cal.embed.pageType");
+    const theme = getConfigProp(configWithGuestKeyAndColorScheme, "theme");
+    const layout = getConfigProp(configWithGuestKeyAndColorScheme, "layout");
+
+    template.innerHTML = `<cal-modal-box 
+      ${generateDataAttributes({
+        pageType,
+        theme,
+        layout,
+      })}
+      uid="${uid}">
+    </cal-modal-box>`;
     this.cal.modalBox = template.content.children[0];
     this.cal.modalBox.appendChild(iframe);
     if (__prerender) {

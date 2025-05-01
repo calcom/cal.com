@@ -3,10 +3,11 @@ import { BILLING_QUEUE, INCREMENT_JOB, IncrementJobDataType } from "@/modules/bi
 import { BillingRepository } from "@/modules/billing/billing.repository";
 import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
 import { PlatformPlan } from "@/modules/billing/types";
-import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { InjectQueue } from "@nestjs/bull";
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -310,6 +311,28 @@ export class BillingService implements OnModuleDestroy {
     if (job) {
       await job.remove();
       this.logger.log(`Removed increment job for cancelled booking ${bookingUid}`);
+    }
+  }
+
+  async cancelTeamSubscription(teamId: number) {
+    const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
+    const customerId = teamWithBilling?.platformBilling?.customerId;
+
+    if (!customerId) {
+      throw new NotFoundException("No customer id found for team in Stripe");
+    }
+
+    if (!teamWithBilling?.platformBilling || !teamWithBilling?.platformBilling.subscriptionId) {
+      throw new NotFoundException("Team plan not found");
+    }
+
+    try {
+      await this.stripeService
+        .getStripe()
+        .subscriptions.cancel(teamWithBilling?.platformBilling?.subscriptionId);
+    } catch (error) {
+      this.logger.log(error, "error while cancelling team subscription in stripe");
+      throw new BadRequestException("Failed to cancel team subscription");
     }
   }
 

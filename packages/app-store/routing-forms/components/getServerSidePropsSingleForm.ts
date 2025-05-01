@@ -1,9 +1,4 @@
-import type {
-  AppGetServerSidePropsContext,
-  AppPrisma,
-  AppSsrInit,
-  AppUser,
-} from "@calcom/types/AppGetServerSideProps";
+import type { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 
 import { enrichFormWithMigrationData } from "../enrichFormWithMigrationData";
 import { getSerializableForm } from "../lib/getSerializableForm";
@@ -11,11 +6,8 @@ import { getSerializableForm } from "../lib/getSerializableForm";
 export const getServerSidePropsForSingleFormView = async function getServerSidePropsForSingleFormView(
   context: AppGetServerSidePropsContext,
   prisma: AppPrisma,
-  user: AppUser,
-  ssrInit: AppSsrInit
+  user: AppUser
 ) {
-  const ssr = await ssrInit(context);
-
   if (!user) {
     return {
       redirect: {
@@ -30,8 +22,9 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
       notFound: true,
     };
   }
-  const formId = params.appPages[0];
-  if (!formId || params.appPages.length > 1) {
+  const appPages = params.pages.slice(1);
+  const formId = appPages[0];
+  if (!formId || appPages.length > 1) {
     return {
       notFound: true,
     };
@@ -113,7 +106,6 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
 
   return {
     props: {
-      trpcState: await ssr.dehydrate(),
       form: await getSerializableForm({ form: formWithoutProfileInfo }),
       enrichedWithUserProfileForm: await getSerializableForm({
         form: enrichFormWithMigrationData(formWithUserInfoProfile),

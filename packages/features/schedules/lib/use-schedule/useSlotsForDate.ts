@@ -1,9 +1,9 @@
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import type { Slots } from "./types";
+import type { Slots, Slot } from "./types";
 
 /**
- * Get's slots for a specific date from the schedule cache.
+ * Gets slots for a specific date from the schedule cache.
  * @param date Format YYYY-MM-DD
  * @param scheduleCache Instance of useScheduleWithCache
  */
@@ -18,14 +18,35 @@ export const useSlotsForDate = (date: string | null, slots?: Slots) => {
 };
 
 export const useSlotsForAvailableDates = (dates: (string | null)[], slots?: Slots) => {
-  const slotsForDates = useMemo(() => {
-    if (slots === undefined) return [];
-    return dates
+  const [slotsPerDay, setSlotsPerDay] = useState<{ date: string | null; slots: Slots[string] }[]>([]);
+
+  const toggleConfirmButton = useCallback((selectedSlot: Slot) => {
+    setSlotsPerDay((prevSlotsPerDay) =>
+      prevSlotsPerDay.map(({ date, slots }) => ({
+        date,
+        slots: slots.map((slot) => ({
+          ...slot,
+          showConfirmButton: slot.time === selectedSlot.time ? !selectedSlot?.showConfirmButton : false,
+        })),
+      }))
+    );
+  }, []);
+
+  useEffect(() => {
+    if (slots === undefined) {
+      setSlotsPerDay([]);
+      return;
+    }
+
+    const updatedSlots = dates
       .filter((date) => date !== null)
       .map((date) => ({
         slots: slots[`${date}`] || [],
         date,
       }));
-  }, [dates, slots]);
-  return slotsForDates;
+
+    setSlotsPerDay(updatedSlots);
+  }, [JSON.stringify(dates), JSON.stringify(slots)]);
+
+  return { slotsPerDay, setSlotsPerDay, toggleConfirmButton } as const;
 };

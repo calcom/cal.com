@@ -8,18 +8,19 @@ import {
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import tasker from "@calcom/features/tasker";
-import { validateIntervalLimitOrder } from "@calcom/lib";
+import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType, EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
-import { setDestinationCalendarHandler } from "../../loggedInViewer/setDestinationCalendar.handler";
+import type { TrpcSessionUser } from "../../../types";
+import { setDestinationCalendarHandler } from "../../viewer/calendars/setDestinationCalendar.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
   ensureUniqueBookingFields,
@@ -27,7 +28,6 @@ import {
   handleCustomInputs,
   handlePeriodType,
 } from "./util";
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 type User = {
@@ -38,6 +38,7 @@ type User = {
   };
   userLevelSelectedCalendars: SessionUser["userLevelSelectedCalendars"];
   organizationId: number | null;
+  email: SessionUser["email"];
   locale: string;
 };
 
@@ -81,6 +82,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     autoTranslateDescriptionEnabled,
     description: newDescription,
     title: newTitle,
+    seatsPerTimeSlot,
     ...rest
   } = input;
 
@@ -89,6 +91,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     select: {
       title: true,
       description: true,
+      seatsPerTimeSlot: true,
+      recurringEvent: true,
       fieldTranslations: {
         select: {
           field: true,
@@ -159,7 +163,18 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
+  const finalSeatsPerTimeSlot = seatsPerTimeSlot ?? eventType.seatsPerTimeSlot;
+  const finalRecurringEvent = recurringEvent ?? eventType.recurringEvent;
+
+  if (finalSeatsPerTimeSlot && finalRecurringEvent) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Recurring Events and Offer Seats cannot be active at the same time.",
+    });
+  }
+
   const teamId = input.teamId || eventType.team?.id;
+  const guestsField = bookingFields?.find((field) => field.name === "guests");
 
   ensureUniqueBookingFields(bookingFields);
   ensureEmailOrPhoneNumberIsPresent(bookingFields);
@@ -182,8 +197,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       rest.rrSegmentQueryValue === null ? Prisma.DbNull : (rest.rrSegmentQueryValue as Prisma.InputJsonValue),
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
     eventTypeColor: eventTypeColor === null ? Prisma.DbNull : (eventTypeColor as Prisma.InputJsonObject),
+    disableGuests: guestsField?.hidden ?? false,
+    seatsPerTimeSlot,
   };
   data.locations = locations ?? undefined;
+
   if (periodType) {
     data.periodType = handlePeriodType(periodType);
   }
@@ -260,7 +278,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
   // allows unsetting a schedule through { schedule: null, ... }
-  else if (null === schedule) {
+  else if (null === schedule || schedule === 0) {
     data.schedule = {
       disconnect: true,
     };

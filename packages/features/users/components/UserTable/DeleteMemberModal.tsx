@@ -1,9 +1,11 @@
 import { useSession } from "next-auth/react";
 import type { Dispatch } from "react";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Dialog, ConfirmationDialogContent, showToast } from "@calcom/ui";
+import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { showToast } from "@calcom/ui/components/toast";
 
 import type { UserTableAction, UserTableState } from "./types";
 
@@ -19,20 +21,9 @@ export function DeleteMemberModal({
   const utils = trpc.useUtils();
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     onSuccess() {
-      // @ts-expect-error rows can't be of type never[] but oldData can be due to the filter
-      utils.viewer.organizations.listMembers.setInfiniteData({ limit: 10, searchTerm: "" }, (oldData) => {
-        if (!oldData) return oldData;
-        return {
-          ...oldData,
-          pages: oldData.pages.map((page) => ({
-            ...page,
-            rows: page.rows.filter((member) => member.id !== state.deleteMember.user?.id),
-          })),
-        };
-      });
-
-      // Existing invalidations
-      Promise.all([utils.viewer.teams.get.invalidate(), utils.viewer.eventTypes.invalidate()]);
+      utils.viewer.organizations.listMembers.invalidate();
+      utils.viewer.teams.get.invalidate();
+      utils.viewer.eventTypes.invalidate();
 
       showToast(t("success"), "success");
 
@@ -57,7 +48,7 @@ export function DeleteMemberModal({
         title={t("remove_member")}
         confirmBtnText={t("confirm_remove_member")}
         onConfirm={() => {
-          // Shouldnt ever happen just for type safety
+          // Shouldn't ever happen just for type safety
           if (!session?.user.org?.id || !state?.deleteMember?.user?.id) return;
 
           removeMemberMutation.mutate({

@@ -1,7 +1,7 @@
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { prisma } from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
 

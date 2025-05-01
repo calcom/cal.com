@@ -44,5 +44,6 @@
     "json": {
       "include": ["apps/web/public/static/locales/[locale]/common.json"]
     }
-  }
+  },
+  "$schema": "https://lingo.dev/schema/i18n.json"
 }

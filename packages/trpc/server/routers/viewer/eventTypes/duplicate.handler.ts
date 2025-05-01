@@ -6,8 +6,8 @@ import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
-import { setDestinationCalendarHandler } from "../../loggedInViewer/setDestinationCalendar.handler";
+import type { TrpcSessionUser } from "../../../types";
+import { setDestinationCalendarHandler } from "../../viewer/calendars/setDestinationCalendar.handler";
 import type { TDuplicateInputSchema } from "./duplicate.schema";
 
 type DuplicateOptions = {
@@ -76,6 +76,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       bookingLimits,
       durationLimits,
       eventTypeColor,
+      customReplyToEmail,
       metadata,
       workflows,
       hashedLink,
@@ -115,6 +116,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       bookingLimits: bookingLimits ?? undefined,
       durationLimits: durationLimits ?? undefined,
       eventTypeColor: eventTypeColor ?? undefined,
+      customReplyToEmail: customReplyToEmail ?? undefined,
       metadata: metadata === null ? Prisma.DbNull : metadata,
       bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
       rrSegmentQueryValue:
@@ -156,8 +158,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
         data: customInputsData,
       });
     }
-
-    if (hashedLink) {
+    if (hashedLink.length > 0) {
       await prisma.hashedLink.create({
         data: {
           link: generateHashedLink(users[0]?.id ?? newEventType.teamId),

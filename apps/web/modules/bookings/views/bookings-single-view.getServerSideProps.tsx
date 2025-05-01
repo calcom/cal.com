@@ -1,3 +1,4 @@
+import { createRouterCaller } from "app/_trpc/context";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
@@ -10,11 +11,10 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
-import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
+import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const stringToBoolean = z
   .string()
@@ -45,13 +45,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     "@lib/booking"
   );
 
-  const ssr = await ssrInit(context);
-  const session = await getServerSession(context);
+  const session = await getServerSession({ req: context.req });
   let tz: string | null = null;
   let userTimeFormat: number | null = null;
   let requiresLoginToUpdate = false;
   if (session) {
-    const user = await ssr.viewer.me.fetch();
+    const caller = await createRouterCaller(meRouter);
+    const user = await caller.get();
     tz = user.timeZone;
     userTimeFormat = user.timeFormat;
   }
@@ -80,6 +80,17 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       originalBookingUid: bookingInfo.uid,
     });
     rescheduledToUid = rescheduledTo?.uid ?? null;
+  }
+
+  let previousBooking: {
+    rescheduledBy: string | null;
+    uid: string;
+  } | null = null;
+
+  if (bookingInfo.fromReschedule) {
+    previousBooking = await BookingRepository.findReschedulerByUid({
+      uid: bookingInfo.fromReschedule,
+    });
   }
 
   const eventTypeRaw = !bookingInfoRaw.eventTypeId
@@ -118,9 +129,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     ...eventTypeRaw,
     periodStartDate: eventTypeRaw.periodStartDate?.toString() ?? null,
     periodEndDate: eventTypeRaw.periodEndDate?.toString() ?? null,
-    metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata),
+    metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventTypeRaw.metadata),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
     customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
+    hideOrganizerEmail: eventTypeRaw.hideOrganizerEmail,
     bookingFields: eventTypeRaw.bookingFields.map((field) => {
       return {
         ...field,
@@ -163,10 +175,24 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   });
 
   const userId = session?.user?.id;
-  const isLoggedInUserHost =
-    userId &&
-    (eventType.users.some((user) => user.id === userId) ||
-      eventType.hosts.some(({ user }) => user.id === userId));
+
+  const checkIfUserIsHost = (userId?: number | null) => {
+    if (!userId) return false;
+
+    return (
+      bookingInfo?.user?.id === userId ||
+      eventType.users.some(
+        (user) =>
+          user.id === userId && bookingInfo.attendees.some((attendee) => attendee.email === user.email)
+      ) ||
+      eventType.hosts.some(
+        ({ user }) =>
+          user.id === userId && bookingInfo.attendees.some((attendee) => attendee.email === user.email)
+      )
+    );
+  };
+
+  const isLoggedInUserHost = checkIfUserIsHost(userId);
 
   if (!isLoggedInUserHost) {
     // Removing hidden fields from responses
@@ -179,6 +205,23 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 
   const { currentOrgDomain } = orgDomainConfig(context.req);
+
+  async function getInternalNotePresets(teamId: number | null) {
+    if (!teamId || !isLoggedInUserHost) return [];
+    return await prisma.internalNotePreset.findMany({
+      where: {
+        teamId,
+      },
+      select: {
+        id: true,
+        name: true,
+        cancellationReason: true,
+      },
+    });
+  }
+
+  const internalNotes = await getInternalNotePresets(eventType.team?.id ?? eventType.parent?.teamId ?? null);
+
   return {
     props: {
       orgSlug: currentOrgDomain,
@@ -187,14 +230,16 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       profile,
       eventType,
       recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),
-      trpcState: ssr.dehydrate(),
       dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
+      previousBooking,
       paymentStatus: payment,
       ...(tz && { tz }),
       userTimeFormat,
       requiresLoginToUpdate,
       rescheduledToUid,
+      isLoggedInUserHost,
+      internalNotePresets: internalNotes,
     },
   };
 }

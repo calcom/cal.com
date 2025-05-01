@@ -4,8 +4,8 @@ on:
   # "Scheduled workflows run on the latest commit on the default or base branch."
   # — https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#schedule
   schedule:
-    # Runs “every 5 minutes” (see https://crontab.guru)
-    - cron: "*/5 * * * *"
+    # Runs “every minute” (see https://crontab.guru)
+    - cron: "* * * * *"
 jobs:
   cron-webhookTriggers:
     env:

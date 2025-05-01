@@ -4,6 +4,7 @@ on: # yamllint disable-line rule:truthy
   release:
     types:
       - created
+      - published
   # in case manual trigger is needed
   workflow_dispatch:
     inputs:

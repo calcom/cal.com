@@ -1,6 +1,7 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
+import { getAllDelegationCredentialsForUser } from "@calcom/lib/delegationCredential/server";
 import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
@@ -13,7 +14,7 @@ export type TDependencyData = {
 }[];
 
 /**
- * Get App metdata either using dirName or slug
+ * Get App metadata either using dirName or slug
  */
 export async function getAppWithMetadata(app: { dirName: string } | { slug: string }) {
   let appMetadata: App | null;
@@ -79,14 +80,21 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
       },
     },
   });
+
   const user = await prisma.user.findUnique({
     where: {
       id: userId,
     },
     select: {
+      email: true,
+      id: true,
       metadata: true,
     },
   });
+
+  const delegationCredentials = user
+    ? await getAllDelegationCredentialsForUser({ user: { id: userId, email: user.email } })
+    : [];
 
   const usersDefaultApp = userMetadata.parse(user?.metadata)?.defaultConferencingApp?.appSlug;
   const apps = [] as (App & {
@@ -95,6 +103,11 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
   })[];
   const installCountPerApp = await getInstallCountPerApp();
   for await (const dbapp of dbApps) {
+    const delegationCredentialsForApp = delegationCredentials.filter(
+      (credential) => credential.appId === dbapp.slug
+    );
+    const nonDelegationCredentialsForApp = dbapp.credentials;
+    const allCredentials = [...delegationCredentialsForApp, ...nonDelegationCredentialsForApp];
     const app = await getAppWithMetadata(dbapp);
     if (!app) continue;
     // Skip if app isn't installed
@@ -116,7 +129,7 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
     apps.push({
       ...app,
       categories: dbapp.categories,
-      credentials: dbapp.credentials,
+      credentials: allCredentials,
       installed: true,
       installCount: installCountPerApp[dbapp.slug] || 0,
       isDefault: usersDefaultApp === dbapp.slug,

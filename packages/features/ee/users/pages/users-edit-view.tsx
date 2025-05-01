@@ -3,11 +3,11 @@
 import { usePathname, useRouter } from "next/navigation";
 import { z } from "zod";
 
-import NoSSR from "@calcom/core/components/NoSSR";
+import NoSSR from "@calcom/lib/components/NoSSR";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { getParserWithGeneric } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import { UserForm } from "../components/UserForm";

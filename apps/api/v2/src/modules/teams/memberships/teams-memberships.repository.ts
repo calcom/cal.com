@@ -4,6 +4,17 @@ import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/cr
 import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/update-team-membership.input";
 import { Injectable } from "@nestjs/common";
 
+import { Prisma } from "@calcom/prisma/client";
+
+export const MembershipUserSelect: Prisma.UserSelect = {
+  username: true,
+  email: true,
+  avatarUrl: true,
+  name: true,
+  metadata: true,
+  bio: true,
+};
+
 @Injectable()
 export class TeamsMembershipsRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
@@ -11,7 +22,7 @@ export class TeamsMembershipsRepository {
   async createTeamMembership(teamId: number, data: CreateTeamMembershipInput) {
     return this.dbWrite.prisma.membership.create({
       data: { ...data, teamId: teamId },
-      include: { user: { select: { username: true, email: true, avatarUrl: true, name: true } } },
+      include: { user: { select: MembershipUserSelect } },
     });
   }
 
@@ -20,7 +31,7 @@ export class TeamsMembershipsRepository {
       where: {
         teamId: teamId,
       },
-      include: { user: { select: { username: true, email: true, avatarUrl: true, name: true } } },
+      include: { user: { select: MembershipUserSelect } },
       skip,
       take,
     });
@@ -32,7 +43,7 @@ export class TeamsMembershipsRepository {
         id: membershipId,
         teamId: teamId,
       },
-      include: { user: { select: { username: true, email: true, avatarUrl: true, name: true } } },
+      include: { user: { select: MembershipUserSelect } },
     });
   }
 
@@ -63,7 +74,7 @@ export class TeamsMembershipsRepository {
         id: membershipId,
         teamId: teamId,
       },
-      include: { user: { select: { username: true, email: true, avatarUrl: true, name: true } } },
+      include: { user: { select: MembershipUserSelect } },
     });
   }
 }

@@ -31,6 +31,8 @@ function getOrgOrigin(orgSlug: string | null) {
   return orgOrigin;
 }
 
+test.describe.configure({ mode: "parallel" });
+
 test.describe("Bookings", () => {
   test.afterEach(async ({ orgs, users, page }) => {
     await users.deleteAll();
@@ -623,6 +625,7 @@ const markPhoneNumberAsRequiredAndEmailAsOptional = async (page: Page, eventId: 
 
 const markPhoneNumberAsRequiredField = async (page: Page, eventId: number) => {
   await page.goto(`/event-types/${eventId}?tabName=advanced`);
+  await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toContainText("Event Setup"); // fix the race condition
 
   await page.locator('[data-testid="field-attendeePhoneNumber"] [data-testid="toggle-field"]').click();
   await page.locator('[data-testid="field-attendeePhoneNumber"] [data-testid="edit-field-action"]').click();

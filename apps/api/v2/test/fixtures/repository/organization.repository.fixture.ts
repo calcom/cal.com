@@ -19,7 +19,10 @@ export class OrganizationRepositoryFixture {
   async create(data: Prisma.TeamCreateInput) {
     return await this.prismaWriteClient.$transaction(async (prisma) => {
       const team = await prisma.team.create({
-        data,
+        data: {
+          ...data,
+          isOrganization: true,
+        },
       });
 
       await prisma.organizationSettings.create({

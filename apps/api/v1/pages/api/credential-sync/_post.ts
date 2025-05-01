@@ -5,7 +5,7 @@ import { OAuth2UniversalSchema } from "@calcom/app-store/_utils/oauth/universalS
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
@@ -108,7 +108,7 @@ async function handler(req: NextApiRequest) {
   // ^ Workaround for the select in `create` not working
 
   if (createCalendarResources) {
-    const calendar = await getCalendar(credential);
+    const calendar = await getCalendar({ ...credential, delegatedTo: null });
     if (!calendar) throw new HttpError({ message: "Calendar missing for credential", statusCode: 500 });
     const calendars = await calendar.listCalendars();
     const calendarToCreate = calendars.find((calendar) => calendar.primary) || calendars[0];

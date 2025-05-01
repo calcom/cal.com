@@ -11,7 +11,6 @@ import slugify from "@calcom/lib/slugify";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
-import { ssrInit } from "@server/lib/ssr";
 
 const checkValidEmail = (email: string) => emailSchema.safeParse(email).success;
 
@@ -26,7 +25,7 @@ const querySchema = z.object({
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const emailVerificationEnabled = await getFeatureFlag(prisma, "email-verification");
-  await ssrInit(ctx);
+
   const signupDisabled = await getFeatureFlag(prisma, "disable-signup");
 
   const token = z.string().optional().parse(ctx.query.token);
@@ -49,9 +48,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     emailVerificationEnabled,
   };
 
-  // username + email prepopulated from query params
-  const { username: preFillusername, email: prefilEmail } = querySchema.parse(ctx.query);
-
   if ((process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" && !token) || signupDisabled) {
     return {
       redirect: {
@@ -63,13 +59,15 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   // no token given, treat as a normal signup without verification token
   if (!token) {
+    // username + email prepopulated from query params
+    const queryData = querySchema.safeParse(ctx.query);
     return {
       props: JSON.parse(
         JSON.stringify({
           ...props,
           prepopulateFormValues: {
-            username: preFillusername || null,
-            email: prefilEmail || null,
+            username: queryData.success ? queryData.data.username : null,
+            email: queryData.success ? queryData.data.email : null,
           },
         })
       ),

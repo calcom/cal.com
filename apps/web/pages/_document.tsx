@@ -14,7 +14,7 @@ function setHeader(ctx: NextPageContext, name: string, value: string) {
   try {
     ctx.res?.setHeader(name, value);
   } catch (e) {
-    // Getting "Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client" when revalidate calendar chache
+    // Getting "Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client" when revalidate calendar cache
     console.log(`Error setting header ${name}=${value} for ${ctx.asPath || "unknown asPath"}`, e);
   }
 }
@@ -121,7 +121,7 @@ class MyDocument extends Document<Props> {
         </Head>
 
         <body
-          className="dark:bg-darkgray-50 bg-subtle antialiased"
+          className="dark:bg-default bg-subtle antialiased"
           style={
             isEmbed
               ? {

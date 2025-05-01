@@ -16,22 +16,13 @@ export type RateLimitHelper = {
   onRateLimiterResponse?: (response: RatelimitResponse) => void;
 };
 
-let warningDisplayed = false;
-
-/** Prevent flooding the logs while testing/building */
-function logOnce(message: string) {
-  if (warningDisplayed) return;
-  log.warn(message);
-  warningDisplayed = true;
-}
-
 export const API_KEY_RATE_LIMIT = 30;
 
 export function rateLimiter() {
   const { UNKEY_ROOT_KEY } = process.env;
 
   if (!UNKEY_ROOT_KEY) {
-    logOnce("Disabled due to not finding UNKEY_ROOT_KEY env variable");
+    log.warn("Disabled because the UNKEY_ROOT_KEY environment variable was not found.");
     return () => ({ success: true, limit: 10, remaining: 999, reset: 0 } as RatelimitResponse);
   }
   const timeout = {
@@ -45,7 +36,6 @@ export function rateLimiter() {
       namespace: "core",
       limit: 10,
       duration: "60s",
-      async: true,
       timeout,
     }),
     common: new Ratelimit({
@@ -53,7 +43,6 @@ export function rateLimiter() {
       namespace: "common",
       limit: 200,
       duration: "60s",
-      async: true,
       timeout,
     }),
     forcedSlowMode: new Ratelimit({
@@ -61,7 +50,6 @@ export function rateLimiter() {
       namespace: "forcedSlowMode",
       limit: 1,
       duration: "30s",
-      async: true,
       timeout,
     }),
     api: new Ratelimit({
@@ -69,7 +57,6 @@ export function rateLimiter() {
       namespace: "api",
       limit: API_KEY_RATE_LIMIT,
       duration: "60s",
-      async: true,
       timeout,
     }),
     ai: new Ratelimit({
@@ -77,7 +64,6 @@ export function rateLimiter() {
       namespace: "ai",
       limit: 20,
       duration: "1d",
-      async: true,
       timeout,
     }),
     sms: new Ratelimit({
@@ -85,7 +71,6 @@ export function rateLimiter() {
       namespace: "sms",
       limit: 50,
       duration: "5m",
-      async: true,
       timeout,
     }),
     smsMonth: new Ratelimit({
@@ -93,7 +78,6 @@ export function rateLimiter() {
       namespace: "smsMonth",
       limit: 250,
       duration: "30d",
-      async: true,
       timeout,
     }),
   };

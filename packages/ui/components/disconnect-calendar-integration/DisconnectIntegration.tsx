@@ -1,6 +1,9 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { ButtonProps } from "@calcom/ui";
-import { Button, ConfirmationDialogContent, Dialog, DialogTrigger } from "@calcom/ui";
+
+import type { ButtonProps } from "../button/Button";
+import { Button } from "../button/Button";
+import { ConfirmationDialogContent } from "../dialog/ConfirmationDialogContent";
+import { Dialog, DialogTrigger } from "../dialog/Dialog";
 
 export const DisconnectIntegrationComponent = ({
   label,
@@ -10,6 +13,7 @@ export const DisconnectIntegrationComponent = ({
   onModalOpen,
   onDeletionConfirmation,
   buttonProps,
+  disabled,
 }: {
   label?: string;
   trashIcon?: boolean;
@@ -18,6 +22,7 @@ export const DisconnectIntegrationComponent = ({
   onModalOpen: () => void;
   onDeletionConfirmation: () => void;
   buttonProps?: ButtonProps;
+  disabled?: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -30,7 +35,7 @@ export const DisconnectIntegrationComponent = ({
             StartIcon={!trashIcon ? undefined : "trash"}
             size="base"
             variant={trashIcon && !label ? "icon" : "button"}
-            disabled={isGlobal}
+            disabled={isGlobal || disabled}
             {...buttonProps}>
             {label}
           </Button>

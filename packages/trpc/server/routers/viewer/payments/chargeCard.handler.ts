@@ -9,7 +9,7 @@ import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentS
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TChargeCardInputSchema } from "./chargeCard.schema";
 
 interface ChargeCardHandlerOptions {
@@ -74,6 +74,7 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
       language: { translate: tOrganizer, locale: booking.user?.locale ?? "en" },
     },
     attendees: attendeesList,
+    hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     paymentInfo: {
       amount: booking.payment[0].amount,
       currency: booking.payment[0].currency,
@@ -84,6 +85,19 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
   const idToSearchObject = booking.eventType?.teamId
     ? { teamId: booking.eventType.teamId }
     : { userId: ctx.user.id };
+
+  if (booking.eventType?.teamId) {
+    const userIsInTeam = await prisma.membership.findFirst({
+      where: {
+        userId: ctx.user.id,
+        teamId: booking.eventType?.teamId,
+      },
+    });
+
+    if (!userIsInTeam) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not in team" });
+    }
+  }
 
   const paymentCredential = await prisma.credential.findFirst({
     where: {
