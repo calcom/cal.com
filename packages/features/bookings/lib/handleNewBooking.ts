@@ -460,6 +460,7 @@ async function handler(
         isDryRun,
         ...(isDryRun ? { troubleshooterData } : {}),
         paymentUid: undefined,
+        paymentId: undefined,
       };
     }
   }
