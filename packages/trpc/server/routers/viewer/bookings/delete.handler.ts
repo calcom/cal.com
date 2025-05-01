@@ -54,4 +54,9 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   await prisma.booking.delete({
     where: { id },
   });
+
+  return {
+    id,
+    message: "Booking deleted successfully",
+  };
 };
