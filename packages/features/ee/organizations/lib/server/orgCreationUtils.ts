@@ -75,6 +75,7 @@ type OrgOwner = {
       slug: string | null;
       isOrganization: boolean;
     };
+    accepted: boolean;
   }[];
   completedOnboarding?: boolean;
   emailVerified?: Date | null;
@@ -204,8 +205,17 @@ export async function assertCanCreateOrg({
   });
 
   // Let slug verification be done before it as that gives better error message if the user creating the org is already a part of the org(i.e. the org exist and he is a member)
-  if (orgOwner.profile?.organizationId) {
+  const isPartOfAnotherOrg = !!orgOwner.profile?.organizationId;
+  if (isPartOfAnotherOrg) {
     throw new OrgCreationError("you_are_part_of_another_organization_cannot_create_organization");
+  }
+
+  // for platform Organization we don't add org profile to orgOwner so we've to check membership to check if user is part of another platform organization.
+  const isPartOfAnotherPlatformOrg = orgOwner.teams.some(
+    (membership) => membership.team.isOrganization && membership.accepted
+  );
+  if (isPartOfAnotherPlatformOrg) {
+    throw new OrgCreationError("you_are_part_of_another_platform_organization_cannot_create_organization");
   }
 
   const hasExistingPlatformOrOrgTeam = orgOwner?.teams.find((team) => {
@@ -258,6 +268,7 @@ export const findUserToBeOrgOwner = async (email: string) => {
               isPlatform: true,
             },
           },
+          accepted: true,
         },
       },
     },
