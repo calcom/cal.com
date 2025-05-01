@@ -149,29 +149,6 @@ export class BookingRepository {
     });
   }
 
-  static async groupByActiveBookingCounts({
-    users,
-    eventTypeId,
-    startDate,
-  }: {
-    users: { id: number; email: string }[];
-    eventTypeId: number;
-    startDate?: Date;
-  }) {
-    return await prisma.booking.groupBy({
-      by: ["userId"],
-      where: buildWhereClauseForActiveBookings({
-        users,
-        eventTypeId,
-        startDate,
-        virtualQueuesData: null,
-      }),
-      _count: {
-        _all: true,
-      },
-    });
-  }
-
   static async findAllExistingBookingsForEventTypeBetween({
     eventTypeId,
     seatedEvent = false,
