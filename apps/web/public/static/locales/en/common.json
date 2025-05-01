@@ -3169,5 +3169,6 @@
   "sms_opt_out_message": "Text STOP to opt-out of SMS messages",
   "routing_form_next_in_queue": "{{count}} next in queue",
   "routing_form_select_members_to_email": "Send email responses to",
+  "routing_incomplete_booking_tab": "Incomplete Bookings",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

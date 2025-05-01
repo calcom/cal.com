@@ -304,7 +304,7 @@ export function Header({
                 ? [
                     {
                       value: "incomplete-booking",
-                      label: t("incomplete_booking"),
+                      label: t("routing_incomplete_booking_tab"),
                       iconLeft: <Icon name="calendar" className="h-3 w-3" />,
                     },
                   ]
