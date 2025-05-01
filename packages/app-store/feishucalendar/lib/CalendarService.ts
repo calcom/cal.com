@@ -421,6 +421,17 @@ export default class FeishuCalendarService implements Calendar {
       }
     });
 
+    if (event.optionalGuestMembers) {
+      event.optionalGuestMembers.forEach((member) => {
+        const attendee: FeishuEventAttendee = {
+          type: "third_party",
+          is_optional: true,
+          third_party_email: member.email,
+        };
+        attendeeArray.push(attendee);
+      });
+    }
+
     return attendeeArray;
   };
 }

@@ -466,7 +466,7 @@ export default class ZohoCalendarService implements Calendar {
         end: dayjs(event.endTime).format("YYYYMMDDTHHmmssZZ"),
         timezone: event.organizer.timeZone,
       },
-      attendees: event.attendees.map((attendee) => ({ email: attendee.email })),
+      attendees: this.getAttendees(event),
       isprivate: event.seatsShowAttendees,
       reminders: [
         {
@@ -478,5 +478,19 @@ export default class ZohoCalendarService implements Calendar {
     };
 
     return zohoEvent;
+  };
+
+  private getAttendees = (event: CalendarEvent) => {
+    const attendees = event.attendees.map((attendee) => ({ email: attendee.email }));
+    if (event.optionalGuestMembers) {
+      attendees.push(
+        ...event.optionalGuestMembers.map((member) => ({
+          email: member.email,
+          // 2 is optional guest
+          attendance: 2,
+        }))
+      );
+    }
+    return attendees;
   };
 }
