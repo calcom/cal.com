@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { IframeHTMLAttributes } from "react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { AppDependencyComponent, InstallAppButton } from "@calcom/app-store/components";
@@ -111,7 +111,7 @@ export const AppPage = ({
     isPaid: !!paid,
   });
 
-  const handleAppInstall = () => {
+  const handleAppInstall = useCallback(() => {
     setIsLoading(true);
     if (isConferencing(categories)) {
       mutation.mutate({
@@ -130,7 +130,7 @@ export const AppPage = ({
     } else {
       router.push(getAppOnboardingUrl({ slug, step: AppOnboardingSteps.ACCOUNTS_STEP }));
     }
-  };
+  }, [type, variant, slug, mutation, availableForTeams, categories, router]);
 
   const priceInDollar = Intl.NumberFormat("en-US", {
     style: "currency",
@@ -149,21 +149,27 @@ export const AppPage = ({
 
   const appDbQuery = trpc.viewer.apps.appCredentialsByType.useQuery({ appType: type });
 
-  useEffect(
-    function refactorMeWithoutEffect() {
-      const data = appDbQuery.data;
+  const { credentialsCount, derivedExistingCredentials, derivedAppInstalledForAllTargets } = useMemo(() => {
+    const data = appDbQuery.data;
+    const credentialsCount = data?.credentials.length || 0;
+    const existingCreds = data?.credentials || [];
 
-      const credentialsCount = data?.credentials.length || 0;
-      setExistingCredentials(data?.credentials || []);
+    const appInstalledForAll =
+      availableForTeams && data?.userAdminTeams && data.userAdminTeams.length > 0
+        ? credentialsCount >= data.userAdminTeams.length
+        : credentialsCount > 0;
 
-      const appInstalledForAllTargets =
-        availableForTeams && data?.userAdminTeams && data.userAdminTeams.length > 0
-          ? credentialsCount >= data.userAdminTeams.length
-          : credentialsCount > 0;
-      setAppInstalledForAllTargets(appInstalledForAllTargets);
-    },
-    [appDbQuery.data, availableForTeams]
-  );
+    return {
+      credentialsCount,
+      derivedExistingCredentials: existingCreds,
+      derivedAppInstalledForAllTargets: appInstalledForAll,
+    };
+  }, [appDbQuery.data, availableForTeams]);
+
+  useEffect(() => {
+    setExistingCredentials(derivedExistingCredentials);
+    setAppInstalledForAllTargets(derivedAppInstalledForAllTargets);
+  }, [derivedExistingCredentials, derivedAppInstalledForAllTargets]);
 
   const dependencyData = trpc.viewer.apps.queryForDependencies.useQuery(dependencies, {
     enabled: !!dependencies,
