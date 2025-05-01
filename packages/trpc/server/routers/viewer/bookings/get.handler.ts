@@ -660,8 +660,32 @@ export async function getBookings({
 
   log.info(`Get bookings SQL query for user ${user.id}`, finalQuery);
 
+  type RawBookingResult = {
+    id: number;
+    title: string;
+    userPrimaryEmail: string | null;
+    description: string | null;
+    customInputs: Prisma.JsonValue;
+    startTime: Date;
+    endTime: Date;
+    metadata: Prisma.JsonValue;
+    uid: string;
+    responses: Prisma.JsonValue;
+    recurringEventId: string | null;
+    location: string | null;
+    eventTypeId: number | null;
+    status: string;
+    paid: boolean;
+    userId: number | null;
+    fromReschedule: string | null;
+    rescheduled: boolean;
+    isRecorded: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+
   const [plainBookings, countResult] = await Promise.all([
-    prisma.$queryRaw<any[]>(PrismaClientType.sql([finalQuery, ...params])),
+    prisma.$queryRaw<RawBookingResult[]>(PrismaClientType.sql([finalQuery, ...params])),
     prisma.$queryRaw<[{ count: bigint }]>(PrismaClientType.sql([countQuery, ...params])),
   ]);
 
@@ -687,10 +711,10 @@ export async function getBookings({
 
   const [recurringInfoBasicResult, recurringInfoExtendedResult] = await Promise.all([
     prisma.$queryRaw<{ recurringEventId: string; minStartTime: Date; countRecurringEventId: bigint }[]>(
-      PrismaClientType.sql([recurringInfoBasicQuery, String(user.id)])
+      PrismaClientType.sql([recurringInfoBasicQuery, ...params.slice(0, 1)]) // Use the already added parameter
     ),
     prisma.$queryRaw<{ recurringEventId: string; status: string; startTime: Date }[]>(
-      PrismaClientType.sql([recurringInfoExtendedQuery, String(user.id)])
+      PrismaClientType.sql([recurringInfoExtendedQuery, ...params.slice(0, 1)]) // Use the already added parameter
     ),
   ]);
 
@@ -755,39 +779,41 @@ export async function getBookings({
         },
       });
 
-      const eventType = await prisma.eventType.findUnique({
-        where: {
-          id: booking.eventTypeId,
-        },
-        select: {
-          slug: true,
-          id: true,
-          title: true,
-          eventName: true,
-          price: true,
-          recurringEvent: true,
-          currency: true,
-          metadata: true,
-          disableGuests: true,
-          seatsShowAttendees: true,
-          seatsShowAvailabilityCount: true,
-          eventTypeColor: true,
-          customReplyToEmail: true,
-          allowReschedulingPastBookings: true,
-          hideOrganizerEmail: true,
-          disableCancelling: true,
-          disableRescheduling: true,
-          schedulingType: true,
-          length: true,
-          team: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
+      const eventType = booking.eventTypeId
+        ? await prisma.eventType.findUnique({
+            where: {
+              id: booking.eventTypeId,
             },
-          },
-        },
-      });
+            select: {
+              slug: true,
+              id: true,
+              title: true,
+              eventName: true,
+              price: true,
+              recurringEvent: true,
+              currency: true,
+              metadata: true,
+              disableGuests: true,
+              seatsShowAttendees: true,
+              seatsShowAvailabilityCount: true,
+              eventTypeColor: true,
+              customReplyToEmail: true,
+              allowReschedulingPastBookings: true,
+              hideOrganizerEmail: true,
+              disableCancelling: true,
+              disableRescheduling: true,
+              schedulingType: true,
+              length: true,
+              team: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                },
+              },
+            },
+          })
+        : null;
 
       // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
       const filteredAttendees =
@@ -807,16 +833,18 @@ export async function getBookings({
         },
       });
 
-      const bookingUser = await prisma.user.findUnique({
-        where: {
-          id: booking.userId,
-        },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      });
+      const bookingUser = booking.userId
+        ? await prisma.user.findUnique({
+            where: {
+              id: booking.userId,
+            },
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          })
+        : null;
 
       let rescheduler = null;
       if (booking.fromReschedule) {
