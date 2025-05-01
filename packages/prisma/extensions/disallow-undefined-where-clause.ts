@@ -13,7 +13,7 @@ export const validateWhereClause = (where: any) => {
 
   // Check if where is an empty array
   if (Array.isArray(where) && where.length === 0) {
-    throw new Error('The"where" clause cannot be an empty array [].');
+    throw new Error('The "where" clause cannot be an empty array [].');
   }
 
   if (where) {
