@@ -62,18 +62,18 @@ describe("Disallow undefined where", () => {
   it("validateWhereClause should throw exception when the where object is undefined", async () => {
     const where = undefined;
 
-    expect(() => validateWhereClause(where)).toThrowError('"where clause cannot be undefined."');
+    expect(() => validateWhereClause(where)).toThrowError('The "where" clause cannot be undefined."');
   });
 
   it("validateWhereClause should throw exception when the where object is {}", async () => {
     const where = {};
 
-    expect(() => validateWhereClause(where)).toThrowError('"where" clause cannot be an empty object {}.');
+    expect(() => validateWhereClause(where)).toThrowError('The "where" clause cannot be an empty object {}.');
   });
 
   it("validateWhereClause should throw exception when the where object is []", async () => {
     const where = [];
 
-    expect(() => validateWhereClause(where)).toThrowError('"where" clause cannot be an empty array [].');
+    expect(() => validateWhereClause(where)).toThrowError('The "where" clause cannot be an empty array [].');
   });
 });

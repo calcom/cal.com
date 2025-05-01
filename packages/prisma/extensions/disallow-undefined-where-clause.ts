@@ -3,17 +3,17 @@ import { Prisma } from "@prisma/client";
 export const validateWhereClause = (where: any) => {
   // Check if where is undefined
   if (where === undefined) {
-    throw new Error('"where" clause cannot be undefined.');
+    throw new Error('The "where" clause cannot be undefined.');
   }
 
   // Check if where is an empty object
   if (typeof where === "object" && !Array.isArray(where) && Object.keys(where).length === 0) {
-    throw new Error('"where" clause cannot be an empty object {}.');
+    throw new Error('The "where" clause cannot be an empty object {}.');
   }
 
   // Check if where is an empty array
   if (Array.isArray(where) && where.length === 0) {
-    throw new Error('"where" clause cannot be an empty array [].');
+    throw new Error('The"where" clause cannot be an empty array [].');
   }
 
   if (where) {
