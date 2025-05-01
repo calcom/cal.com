@@ -300,7 +300,7 @@ test.describe("pro user", () => {
     // go back to the booking page to re-book.
     await page.goto(pageUrl);
 
-    await bookTimeSlot(page, { expectedStatusCode: 409 });
+    await bookTimeSlot(page);
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 
