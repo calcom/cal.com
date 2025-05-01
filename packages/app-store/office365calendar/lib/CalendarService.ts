@@ -2,6 +2,9 @@ import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microso
 import type { DefaultBodyType } from "msw";
 
 import dayjs from "@calcom/dayjs";
+import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
+import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
+import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import {
   CalendarAppDelegationCredentialInvalidGrantError,
@@ -10,6 +13,7 @@ import {
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
   Calendar,
@@ -297,13 +301,9 @@ export default class Office365CalendarService implements Calendar {
     }
   }
 
-  async getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
-    const dateFromParsed = new Date(dateFrom);
-    const dateToParsed = new Date(dateTo);
+  async fetchAvailability(args: FreeBusyArgs): Promise<ISettledResponse[]> {
+    const dateFromParsed = new Date(args.timeMin);
+    const dateToParsed = new Date(args.timeMax);
 
     const filter = `?startDateTime=${encodeURIComponent(
       dateFromParsed.toISOString()
@@ -311,6 +311,76 @@ export default class Office365CalendarService implements Calendar {
 
     const calendarSelectParams = "$select=showAs,start,end";
 
+    const selectedCalendarIds = args.items.map((item) => item.id);
+
+    const ids = await (selectedCalendarIds.length === 0
+      ? this.listCalendars().then((cals) => cals.map((e_2) => e_2.externalId).filter(Boolean) || [])
+      : Promise.resolve(selectedCalendarIds));
+    const requestsPromises = ids.map(async (calendarId, id) => ({
+      id,
+      method: "GET",
+      url: `${await this.getUserEndpoint()}/calendars/${calendarId}/calendarView${filter}&${calendarSelectParams}`,
+    }));
+    const requests = await Promise.all(requestsPromises);
+    const response = await this.apiGraphBatchCall(requests);
+    const responseBody = await this.handleErrorJsonOffice365Calendar(response);
+    let responseBatchApi: IBatchResponse = { responses: [] };
+    if (typeof responseBody === "string") {
+      responseBatchApi = this.handleTextJsonResponseWithHtmlInBody(responseBody);
+    }
+    let alreadySuccessResponse = [] as ISettledResponse[];
+
+    // Validate if any 429 status Retry-After is present
+    const retryAfter =
+      !!responseBatchApi?.responses && this.findRetryAfterResponse(responseBatchApi.responses);
+
+    if (retryAfter && responseBatchApi.responses) {
+      responseBatchApi = await this.fetchRequestWithRetryAfter(requests, responseBatchApi.responses, 2);
+    }
+
+    // Recursively fetch nextLink responses
+    alreadySuccessResponse = await this.fetchResponsesWithNextLink(responseBatchApi.responses);
+    return alreadySuccessResponse ? alreadySuccessResponse : [];
+  }
+
+  async getSettledResponseResult(
+    args: FreeBusyArgs,
+    shouldServeCache?: boolean
+  ): Promise<ISettledResponse[]> {
+    if (shouldServeCache === false) return await this.fetchAvailability(args);
+
+    const calendarCache = await CalendarCache.init(null);
+    const cached = await calendarCache.getCachedAvailability({
+      credentialId: this.credential.id,
+      userId: this.credential.userId,
+      args: {
+        timeMin: getTimeMin(args.timeMin),
+        timeMax: getTimeMax(args.timeMax),
+        items: args.items,
+      },
+    });
+    if (cached) {
+      this.log.debug("[Cache Hit] Returning cached freebusy result", safeStringify({ cached, args }));
+      return cached.value as unknown as ISettledResponse[];
+    }
+    this.log.debug("[Cache Miss] Fetching freebusy result", safeStringify({ args }));
+    return await this.fetchAvailability(args);
+  }
+
+  async getCacheOrFetchAvailability(
+    args: FreeBusyArgs,
+    shouldServeCache?: boolean
+  ): Promise<BufferedBusyTime[]> {
+    const freeBusyResult = await this.getSettledResponseResult(args, shouldServeCache);
+    return this.processBusyTimes(freeBusyResult);
+  }
+
+  async getAvailability(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[],
+    shouldServeCache?: boolean
+  ): Promise<EventBusyDate[]> {
     try {
       const selectedCalendarIds = selectedCalendars.reduce((calendarIds, calendar) => {
         if (calendar.integration === this.integrationName && calendar.externalId)
@@ -324,35 +394,14 @@ export default class Office365CalendarService implements Calendar {
         return Promise.resolve([]);
       }
 
-      const ids = await (selectedCalendarIds.length === 0
-        ? this.listCalendars().then((cals) => cals.map((e_2) => e_2.externalId).filter(Boolean) || [])
-        : Promise.resolve(selectedCalendarIds));
-      const requestsPromises = ids.map(async (calendarId, id) => ({
-        id,
-        method: "GET",
-        url: `${await this.getUserEndpoint()}/calendars/${calendarId}/calendarView${filter}&${calendarSelectParams}`,
-      }));
-      const requests = await Promise.all(requestsPromises);
-      const response = await this.apiGraphBatchCall(requests);
-      const responseBody = await this.handleErrorJsonOffice365Calendar(response);
-      let responseBatchApi: IBatchResponse = { responses: [] };
-      if (typeof responseBody === "string") {
-        responseBatchApi = this.handleTextJsonResponseWithHtmlInBody(responseBody);
-      }
-      let alreadySuccessResponse = [] as ISettledResponse[];
-
-      // Validate if any 429 status Retry-After is present
-      const retryAfter =
-        !!responseBatchApi?.responses && this.findRetryAfterResponse(responseBatchApi.responses);
-
-      if (retryAfter && responseBatchApi.responses) {
-        responseBatchApi = await this.fetchRequestWithRetryAfter(requests, responseBatchApi.responses, 2);
-      }
-
-      // Recursively fetch nextLink responses
-      alreadySuccessResponse = await this.fetchResponsesWithNextLink(responseBatchApi.responses);
-
-      return alreadySuccessResponse ? this.processBusyTimes(alreadySuccessResponse) : [];
+      return this.getCacheOrFetchAvailability(
+        {
+          timeMin: dateFrom,
+          timeMax: dateTo,
+          items: selectedCalendarIds.map((id) => ({ id })),
+        },
+        shouldServeCache
+      );
     } catch (err) {
       return Promise.reject([]);
     }
