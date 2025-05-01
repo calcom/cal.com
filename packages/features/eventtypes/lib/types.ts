@@ -26,6 +26,7 @@ export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["event
 export type EventTypeApps = RouterOutputs["viewer"]["apps"]["integrations"];
 export type Host = {
   isFixed: boolean;
+  isOrganizer: boolean;
   userId: number;
   priority: number;
   weight: number;

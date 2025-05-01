@@ -768,6 +768,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                         }))}
                         value={sendUpdatesTo.map((userId) => ({
                           isFixed: true,
+                          isOrganizer: false,
                           userId: userId,
                           priority: 2,
                           weight: 100,
