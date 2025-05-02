@@ -581,6 +581,9 @@ export async function getBookings({
     orderByClause = `ORDER BY data."startTime" ASC`;
   }
 
+  // Ensure consistent ordering by adding id as a secondary sort
+  orderByClause += `, data.id ASC`;
+
   const finalQuery = `
     SELECT * FROM (
       ${sqlQueries.join("\nUNION\n")}
@@ -713,7 +716,8 @@ export async function getBookings({
         a.email, 
         a.name, 
         a."timeZone", 
-        a.locale, 
+        a.locale,
+        a."noShow",
         a."bookingId"
       FROM "public"."Attendee" a
       JOIN booking_base b ON a."bookingId" = b.id
@@ -834,7 +838,8 @@ export async function getBookings({
             'name', a.name,
             'timeZone', a."timeZone",
             'locale', a.locale,
-            'bookingId', a."bookingId"
+            'bookingId', a."bookingId",
+            'noShow', a."noShow"
           )
         )
         FROM attendees a
