@@ -149,6 +149,14 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
         assignAllTeamMembers: true,
         bookingFields: [],
         locations: [],
+        metadata: {
+          disableStandardEmails: {
+            all: {
+              host: true,
+              attendee: true,
+            },
+          },
+        },
       });
 
       const orgEventType2 = await eventTypesRepositoryFixture.createTeamEventType({
@@ -162,6 +170,14 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
         assignAllTeamMembers: false,
         bookingFields: [],
         locations: [],
+        metadata: {
+          disableStandardEmails: {
+            all: {
+              host: true,
+              attendee: true,
+            },
+          },
+        },
       });
 
       orgEventTypeId2 = orgEventType2.id;
@@ -267,7 +283,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
       });
 
       await hostsRepositoryFixture.create({
-        isFixed: false,
+        isFixed: true,
         user: {
           connect: {
             id: orgUser2.id,
@@ -288,8 +304,8 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
 
     describe("create organization bookings", () => {
       it("should create an collective organization booking", async () => {
-        const start = getDateDaysFromNow({ days: 8, hours: 13, minutes: 0 });
-        const end = getDateDaysFromNow({ days: 8, hours: 14, minutes: 0 });
+        const start = getDateDaysFromNow({ days: 7, hours: 9, minutes: 0 });
+        const end = getDateDaysFromNow({ days: 7, hours: 10, minutes: 0 });
 
         const body: CreateBookingInput_2024_08_13 = {
           start: start.toISOString(),
@@ -344,8 +360,8 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
       });
 
       it("should create a round robin organization booking", async () => {
-        const start = getDateDaysFromNow({ days: 9, hours: 13, minutes: 0 });
-        const end = getDateDaysFromNow({ days: 9, hours: 14, minutes: 0 });
+        const start = getDateDaysFromNow({ days: 7, hours: 10, minutes: 0 });
+        const end = getDateDaysFromNow({ days: 7, hours: 11, minutes: 0 });
 
         const body: CreateBookingInput_2024_08_13 = {
           start: start.toISOString(),
@@ -400,8 +416,8 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
       });
 
       it("should create a non organization booking for org-user-1", async () => {
-        const start = getDateDaysFromNow({ days: 10, hours: 13, minutes: 0 });
-        const end = getDateDaysFromNow({ days: 10, hours: 14, minutes: 0 });
+        const start = getDateDaysFromNow({ days: 7, hours: 11, minutes: 0 });
+        const end = getDateDaysFromNow({ days: 7, hours: 12, minutes: 0 });
 
         const body: CreateBookingInput_2024_08_13 = {
           start: start.toISOString(),
@@ -456,8 +472,11 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
       });
 
       it("should create a non organization booking for org-user-2", async () => {
+        const start = getDateDaysFromNow({ days: 7, hours: 12, minutes: 0 });
+        const end = getDateDaysFromNow({ days: 7, hours: 13, minutes: 0 });
+
         const body: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 0, 11, 13, 0, 0)).toISOString(),
+          start: start.toISOString(),
           eventTypeId: nonOrgEventTypeId,
           attendee: {
             name: orgUser2.name ?? "",
@@ -487,7 +506,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
               expect(data.hosts[0].id).toEqual(nonOrgUser1.id);
               expect(data.status).toEqual("accepted");
               expect(data.start).toEqual(body.start);
-              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 11, 14, 0, 0)).toISOString());
+              expect(data.end).toEqual(end.toISOString());
               expect(data.duration).toEqual(60);
               expect(data.eventTypeId).toEqual(nonOrgEventTypeId);
               expect(data.attendees.length).toEqual(1);
