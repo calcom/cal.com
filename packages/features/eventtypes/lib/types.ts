@@ -160,7 +160,7 @@ export type FormValues = {
     redirectUrlOnExit?: string;
   };
   multipleRRHosts: boolean;
-  RRHostsPerMeeting?: number;
+  rrHostsPerMeeting?: number;
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;

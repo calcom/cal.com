@@ -2,7 +2,7 @@ import type { EventType as PrismaEventType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
-import { prisma, availabilityUserSelect } from "@calcom/prisma";
+import { availabilityUserSelect, prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
@@ -532,6 +532,8 @@ export class EventTypeRepository {
       assignRRMembersUsingSegment: true,
       rrSegmentQueryValue: true,
       isRRWeightsEnabled: true,
+      multipleRRHosts: true,
+      rrHostsPerMeeting: true,
       rescheduleWithSameRoundRobinHost: true,
       successRedirectUrl: true,
       forwardParamsSuccessRedirect: true,
@@ -829,7 +831,7 @@ export class EventTypeRepository {
         rrSegmentQueryValue: true,
         isRRWeightsEnabled: true,
         multipleRRHosts: true,
-        RRHostsPerMeeting: true,
+        rrHostsPerMeeting: true,
         maxLeadThreshold: true,
         includeNoShowInRRCalculation: true,
         useEventLevelSelectedCalendars: true,

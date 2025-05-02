@@ -83,7 +83,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     aiPhoneCallConfig,
     isRRWeightsEnabled,
     multipleRRHosts,
-    RRHostsPerMeeting,
+    rrHostsPerMeeting,
     autoTranslateDescriptionEnabled,
     description: newDescription,
     title: newTitle,
@@ -107,7 +107,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       },
       isRRWeightsEnabled: true,
       multipleRRHosts: true,
-      RRHostsPerMeeting: true,
+      rrHostsPerMeeting: true,
       hosts: {
         select: {
           userId: true,
@@ -210,7 +210,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     bookingFields,
     isRRWeightsEnabled,
     multipleRRHosts,
-    RRHostsPerMeeting,
+    rrHostsPerMeeting,
     rrSegmentQueryValue:
       rest.rrSegmentQueryValue === null ? Prisma.DbNull : (rest.rrSegmentQueryValue as Prisma.InputJsonValue),
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
