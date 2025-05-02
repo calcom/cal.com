@@ -1,8 +1,11 @@
 import { Prisma as PrismaClientType } from "@prisma/client";
+import type { SelectQueryBuilder } from "kysely";
 
 import dayjs from "@calcom/dayjs";
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
+import kysely from "@calcom/kysely";
+import type { DB as KyselyDb } from "@calcom/kysely";
 import { parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import logger from "@calcom/lib/logger";
@@ -193,6 +196,12 @@ export async function getBookings({
     getUserIdsAndEmailsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner, user.orgId),
   ]);
 
+  const bookingQueries: SelectQueryBuilder<
+    KyselyDb,
+    "Booking" | "EventType" | "Attendee" | "BookingSeat",
+    unknown
+  >[] = [];
+
   // If user is organization owner/admin, contains organization members emails and ids (organization plan)
   // If user is only team owner/admin, contain team members emails and ids (teams plan)
   const [userIdsWhereUserIsAdminOrOwner, userEmailsWhereUserIsAdminOrOwner] =
@@ -221,10 +230,42 @@ export async function getBookings({
 
     // 1. Booking created by one of the filtered users
     orConditions.push({ userId: usersFilter });
+    bookingQueries.push(
+      kysely
+        .selectFrom("Booking")
+        .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
+        .leftJoin("EventType", "EventType.id", "Booking.eventTypeId")
+        .leftJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
+        .selectAll("Booking")
+        .where("userId", "in", filters.userIds)
+    );
     // 2. Attendee email matches one of the filtered users' emails
     orConditions.push({ attendees: { some: { email: attendeesEmailFilter } } });
+    if (attendeeEmailsFromUserIdsFilter?.length) {
+      bookingQueries.push(
+        kysely
+          .selectFrom("Booking")
+          .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .leftJoin("EventType", "EventType.id", "Booking.eventTypeId")
+          .leftJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
+          .selectAll("Booking")
+          .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter)
+      );
+    }
+
     // 3. Seat reference attendee email matches one of the filtered users' emails
     orConditions.push({ seatsReferences: { some: { attendee: { email: attendeesEmailFilter } } } });
+    if (attendeeEmailsFromUserIdsFilter?.length) {
+      bookingQueries.push(
+        kysely
+          .selectFrom("Booking")
+          .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .leftJoin("EventType", "EventType.id", "Booking.eventTypeId")
+          .leftJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
+          .selectAll("Booking")
+          .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter)
+      );
+    }
   } else {
     // Filter by emails for auth user.
     const userEmailFilter = { equals: user.email };
@@ -235,15 +276,52 @@ export async function getBookings({
 
     // 1. Current user created bookings
     orConditions.push({ userId: { equals: user.id } });
+    bookingQueries.push(
+      kysely
+        .selectFrom("Booking")
+        .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
+        .leftJoin("EventType", "EventType.id", "Booking.eventTypeId")
+        .leftJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
+        .where("Booking.userId", "=", user.id)
+        .selectAll("Booking")
+    );
     // 2. Current user is an attendee
     orConditions.push({ attendees: { some: { email: userEmailFilter } } });
+    bookingQueries.push(
+      kysely
+        .selectFrom("Booking")
+        .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
+        .leftJoin("EventType", "EventType.id", "Booking.eventTypeId")
+        .leftJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
+        .selectAll("Booking")
+        .where("Attendee.email", "=", user.email)
+    );
     // 3. Current user is an attendee via seats reference
     orConditions.push({ seatsReferences: { some: { attendee: { email: userEmailFilter } } } });
+    bookingQueries.push(
+      kysely
+        .selectFrom("Booking")
+        .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
+        .leftJoin("EventType", "EventType.id", "Booking.eventTypeId")
+        .leftJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
+        .selectAll("Booking")
+        .where("Attendee.email", "=", user.email)
+    );
     // 4. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees
     // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees
     userEmailsFilterWhereUserIsOrgAdminOrOwner &&
       orConditions.push({ attendees: { some: { email: userEmailsFilterWhereUserIsOrgAdminOrOwner } } });
+    userEmailsFilterWhereUserIsOrgAdminOrOwner &&
+      bookingQueries.push(
+        kysely
+          .selectFrom("Booking")
+          .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .leftJoin("EventType", "EventType.id", "Booking.eventTypeId")
+          .leftJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
+          .selectAll("Booking")
+          .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner)
+      );
     // 5. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees via seatsReference
     // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees via seatsReference
@@ -251,16 +329,46 @@ export async function getBookings({
       orConditions.push({
         seatsReferences: { some: { attendee: { email: userEmailsFilterWhereUserIsOrgAdminOrOwner } } },
       });
+    userEmailsFilterWhereUserIsOrgAdminOrOwner &&
+      bookingQueries.push(
+        kysely
+          .selectFrom("Booking")
+          .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .leftJoin("EventType", "EventType.id", "Booking.eventTypeId")
+          .leftJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
+          .selectAll("Booking")
+          .where("Attendee.email", "=", userEmailsWhereUserIsAdminOrOwner)
+      );
     // 6. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN, get booking created for an event type within the organization
     // - If Current user is TEAM_OWNER/ADMIN, get bookings created for an event type within the team
     eventTypeIdsWhereUserIsAdminOrOwner?.length &&
       orConditions.push({ eventTypeId: { in: eventTypeIdsWhereUserIsAdminOrOwner } });
+    eventTypeIdsWhereUserIsAdminOrOwner?.length &&
+      bookingQueries.push(
+        kysely
+          .selectFrom("Booking")
+          .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .leftJoin("EventType", "EventType.id", "Booking.eventTypeId")
+          .leftJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
+          .selectAll("Booking")
+          .where("Booking.eventTypeId", "in", eventTypeIdsWhereUserIsAdminOrOwner)
+      );
     // 7. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN, get bookings created by users within the same organization
     // - If Current user is TEAM_OWNER/ADMIN, get bookings created by users within the same organization
     userIdsWhereUserIsAdminOrOwner?.length &&
       orConditions.push({ userId: { in: userIdsWhereUserIsAdminOrOwner } });
+    userIdsWhereUserIsAdminOrOwner?.length &&
+      bookingQueries.push(
+        kysely
+          .selectFrom("Booking")
+          .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .leftJoin("EventType", "EventType.id", "Booking.eventTypeId")
+          .leftJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
+          .where("Booking.userId", "in", userIdsWhereUserIsAdminOrOwner)
+          .selectAll("Booking")
+      );
   }
 
   const andConditions = [];
@@ -335,6 +443,50 @@ export async function getBookings({
     andConditions.push({ createdAt: { lte: dayjs.utc(filters.beforeCreatedDate).toDate() } });
   }
 
+  const queriesWithFilters = bookingQueries.map((query) => {
+    if (filters?.afterStartDate) {
+      query.where("Booking.startTime", ">=", dayjs.utc(filters.afterStartDate).toDate());
+    }
+    if (filters?.beforeEndDate) {
+      query.where("Booking.endTime", "<=", dayjs.utc(filters.beforeEndDate).toDate());
+    }
+    if (filters?.afterUpdatedDate) {
+      query.where("Booking.updatedAt", ">=", dayjs.utc(filters.afterUpdatedDate).toDate());
+    }
+    if (filters?.beforeUpdatedDate) {
+      query.where("Booking.updatedAt", "<=", dayjs.utc(filters.beforeUpdatedDate).toDate());
+    }
+    if (filters?.afterCreatedDate) {
+      query.where("Booking.createdAt", ">=", dayjs.utc(filters.afterCreatedDate).toDate());
+    }
+    if (filters?.beforeCreatedDate) {
+      query.where("Booking.createdAt", "<=", dayjs.utc(filters.beforeCreatedDate).toDate());
+    }
+
+    if (filters?.attendeeName) {
+      if (typeof filters.attendeeName === "string") {
+        // Simple string match (exact)
+        query.where("Attendee.name", "=", filters.attendeeName.trim());
+      } else if (isTextFilterValue(filters.attendeeName)) {
+        // TODO: write makeWhereClause equivalent for kysely
+        query.where("Attendee.email", "=", filters.attendeeName.data.operand);
+      }
+    }
+
+    // TODO: convert bookingListingFilters for kysely
+    query.where((eb) => eb("Booking.status", "=", "accepted").or("Booking.status", "=", "cancelled"));
+
+    if (eventTypeIdsFromTeamIdsFilter && eventTypeIdsFromTeamIdsFilter.length > 0) {
+      query.where("Booking.eventTypeId", "in", eventTypeIdsFromTeamIdsFilter);
+    }
+
+    if (eventTypeIdsFromEventTypeIdsFilter && eventTypeIdsFromEventTypeIdsFilter.length > 0) {
+      query.where("Booking.eventTypeId", "in", eventTypeIdsFromEventTypeIdsFilter);
+    }
+
+    return query;
+  });
+
   // All the possible date filter keys
   const dateFilterKeys = [
     "afterStartDate",
@@ -374,6 +526,13 @@ export async function getBookings({
       where: whereClause,
     }),
   ]);
+
+  const queryUnion = queriesWithFilters.reduce((acc, query) => {
+    return acc.union(query);
+  });
+
+  const bookingsWithKysely = await queryUnion.execute();
+  console.log({ bookingsWithKysely }, { plainBookings });
 
   const [
     recurringInfoBasic,
