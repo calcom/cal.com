@@ -207,6 +207,15 @@ export async function getBookings({
     }
   }
 
+  const selectAndFromClause = `SELECT "public"."Booking"."id", "public"."Booking"."title", "public"."Booking"."userPrimaryEmail", 
+  "public"."Booking"."description", "public"."Booking"."customInputs", "public"."Booking"."startTime", 
+  "public"."Booking"."endTime", "public"."Booking"."metadata", "public"."Booking"."uid", 
+  "public"."Booking"."responses", "public"."Booking"."recurringEventId", "public"."Booking"."location", 
+  "public"."Booking"."eventTypeId", "public"."Booking"."status"::text as "status", "public"."Booking"."paid", 
+  "public"."Booking"."userId", "public"."Booking"."fromReschedule", "public"."Booking"."rescheduled", 
+  "public"."Booking"."isRecorded", "public"."Booking"."createdAt", "public"."Booking"."updatedAt"
+  FROM "public"."Booking"`;
+
   const params: any[] = [];
   let paramIndex = 1;
 
@@ -222,27 +231,13 @@ export async function getBookings({
     // Filtered view: Booking must match one of the specified users
     const userIdsParams = filters.userIds.map((id) => addParam(id)).join(", ");
     sqlQueries.push(`
-      SELECT "public"."Booking"."id", "public"."Booking"."title", "public"."Booking"."userPrimaryEmail", 
-      "public"."Booking"."description", "public"."Booking"."customInputs", "public"."Booking"."startTime", 
-      "public"."Booking"."endTime", "public"."Booking"."metadata", "public"."Booking"."uid", 
-      "public"."Booking"."responses", "public"."Booking"."recurringEventId", "public"."Booking"."location", 
-      "public"."Booking"."eventTypeId", "public"."Booking"."status"::text as "status", "public"."Booking"."paid", 
-      "public"."Booking"."userId", "public"."Booking"."fromReschedule", "public"."Booking"."rescheduled", 
-      "public"."Booking"."isRecorded", "public"."Booking"."createdAt", "public"."Booking"."updatedAt"
-      FROM "public"."Booking" 
+      ${selectAndFromClause}
       WHERE "public"."Booking"."userId" IN (${userIdsParams})
     `);
   } else {
     // Regular view: Current user created bookings
     sqlQueries.push(`
-      SELECT "public"."Booking"."id", "public"."Booking"."title", "public"."Booking"."userPrimaryEmail", 
-      "public"."Booking"."description", "public"."Booking"."customInputs", "public"."Booking"."startTime", 
-      "public"."Booking"."endTime", "public"."Booking"."metadata", "public"."Booking"."uid", 
-      "public"."Booking"."responses", "public"."Booking"."recurringEventId", "public"."Booking"."location", 
-      "public"."Booking"."eventTypeId", "public"."Booking"."status"::text as "status", "public"."Booking"."paid", 
-      "public"."Booking"."userId", "public"."Booking"."fromReschedule", "public"."Booking"."rescheduled", 
-      "public"."Booking"."isRecorded", "public"."Booking"."createdAt", "public"."Booking"."updatedAt"
-      FROM "public"."Booking" 
+     ${selectAndFromClause}
       WHERE "public"."Booking"."userId" = ${addParam(user.id)}
     `);
 
@@ -255,14 +250,7 @@ export async function getBookings({
 
       if (userIdsParams) {
         sqlQueries.push(`
-          SELECT "public"."Booking"."id", "public"."Booking"."title", "public"."Booking"."userPrimaryEmail", 
-          "public"."Booking"."description", "public"."Booking"."customInputs", "public"."Booking"."startTime", 
-          "public"."Booking"."endTime", "public"."Booking"."metadata", "public"."Booking"."uid", 
-          "public"."Booking"."responses", "public"."Booking"."recurringEventId", "public"."Booking"."location", 
-          "public"."Booking"."eventTypeId", "public"."Booking"."status"::text as "status", "public"."Booking"."paid", 
-          "public"."Booking"."userId", "public"."Booking"."fromReschedule", "public"."Booking"."rescheduled", 
-          "public"."Booking"."isRecorded", "public"."Booking"."createdAt", "public"."Booking"."updatedAt"
-          FROM "public"."Booking" 
+          ${selectAndFromClause}
           WHERE "public"."Booking"."userId" IN (${userIdsParams})
         `);
       }
@@ -273,28 +261,14 @@ export async function getBookings({
     // Filtered view: Attendee email matches one of the filtered users' emails
     const attendeeEmailsParams = attendeeEmailsFromUserIdsFilter.map((email) => addParam(email)).join(", ");
     sqlQueries.push(`
-      SELECT "public"."Booking"."id", "public"."Booking"."title", "public"."Booking"."userPrimaryEmail", 
-      "public"."Booking"."description", "public"."Booking"."customInputs", "public"."Booking"."startTime", 
-      "public"."Booking"."endTime", "public"."Booking"."metadata", "public"."Booking"."uid", 
-      "public"."Booking"."responses", "public"."Booking"."recurringEventId", "public"."Booking"."location", 
-      "public"."Booking"."eventTypeId", "public"."Booking"."status"::text as "status", "public"."Booking"."paid", 
-      "public"."Booking"."userId", "public"."Booking"."fromReschedule", "public"."Booking"."rescheduled", 
-      "public"."Booking"."isRecorded", "public"."Booking"."createdAt", "public"."Booking"."updatedAt"
-      FROM "public"."Booking"
+     ${selectAndFromClause}
       INNER JOIN "public"."Attendee" ON "public"."Attendee"."bookingId" = "public"."Booking"."id"
       WHERE "public"."Attendee"."email" IN (${attendeeEmailsParams})
     `);
   } else {
     // Regular view: Current user is an attendee
     sqlQueries.push(`
-      SELECT "public"."Booking"."id", "public"."Booking"."title", "public"."Booking"."userPrimaryEmail", 
-      "public"."Booking"."description", "public"."Booking"."customInputs", "public"."Booking"."startTime", 
-      "public"."Booking"."endTime", "public"."Booking"."metadata", "public"."Booking"."uid", 
-      "public"."Booking"."responses", "public"."Booking"."recurringEventId", "public"."Booking"."location", 
-      "public"."Booking"."eventTypeId", "public"."Booking"."status"::text as "status", "public"."Booking"."paid", 
-      "public"."Booking"."userId", "public"."Booking"."fromReschedule", "public"."Booking"."rescheduled", 
-      "public"."Booking"."isRecorded", "public"."Booking"."createdAt", "public"."Booking"."updatedAt"
-      FROM "public"."Booking"
+      ${selectAndFromClause}
       INNER JOIN "public"."Attendee" ON "public"."Attendee"."bookingId" = "public"."Booking"."id"
       WHERE "public"."Attendee"."email" = ${addParam(user.email)}
     `);
@@ -308,14 +282,7 @@ export async function getBookings({
 
       if (orgMemberEmailsParams) {
         sqlQueries.push(`
-          SELECT "public"."Booking"."id", "public"."Booking"."title", "public"."Booking"."userPrimaryEmail", 
-          "public"."Booking"."description", "public"."Booking"."customInputs", "public"."Booking"."startTime", 
-          "public"."Booking"."endTime", "public"."Booking"."metadata", "public"."Booking"."uid", 
-          "public"."Booking"."responses", "public"."Booking"."recurringEventId", "public"."Booking"."location", 
-          "public"."Booking"."eventTypeId", "public"."Booking"."status"::text as "status", "public"."Booking"."paid", 
-          "public"."Booking"."userId", "public"."Booking"."fromReschedule", "public"."Booking"."rescheduled", 
-          "public"."Booking"."isRecorded", "public"."Booking"."createdAt", "public"."Booking"."updatedAt"
-          FROM "public"."Booking"
+          ${selectAndFromClause}
           INNER JOIN "public"."Attendee" ON "public"."Attendee"."bookingId" = "public"."Booking"."id"
           WHERE "public"."Attendee"."email" IN (${orgMemberEmailsParams})
         `);
@@ -328,14 +295,7 @@ export async function getBookings({
     const attendeeEmailsParams = attendeeEmailsFromUserIdsFilter.map((email) => addParam(email)).join(", ");
 
     sqlQueries.push(`
-      SELECT "public"."Booking"."id", "public"."Booking"."title", "public"."Booking"."userPrimaryEmail", 
-      "public"."Booking"."description", "public"."Booking"."customInputs", "public"."Booking"."startTime", 
-      "public"."Booking"."endTime", "public"."Booking"."metadata", "public"."Booking"."uid", 
-      "public"."Booking"."responses", "public"."Booking"."recurringEventId", "public"."Booking"."location", 
-      "public"."Booking"."eventTypeId", "public"."Booking"."status"::text as "status", "public"."Booking"."paid", 
-      "public"."Booking"."userId", "public"."Booking"."fromReschedule", "public"."Booking"."rescheduled", 
-      "public"."Booking"."isRecorded", "public"."Booking"."createdAt", "public"."Booking"."updatedAt"
-      FROM "public"."Booking"
+      ${selectAndFromClause}
       INNER JOIN "public"."BookingSeat" ON "public"."BookingSeat"."bookingId" = "public"."Booking"."id"
       INNER JOIN "public"."Attendee" ON "public"."Attendee"."id" = "public"."BookingSeat"."attendeeId"
       WHERE "public"."Attendee"."email" IN (${attendeeEmailsParams})
@@ -343,14 +303,7 @@ export async function getBookings({
   } else {
     // Regular view: Current user is an attendee via seats reference
     sqlQueries.push(`
-      SELECT "public"."Booking"."id", "public"."Booking"."title", "public"."Booking"."userPrimaryEmail", 
-      "public"."Booking"."description", "public"."Booking"."customInputs", "public"."Booking"."startTime", 
-      "public"."Booking"."endTime", "public"."Booking"."metadata", "public"."Booking"."uid", 
-      "public"."Booking"."responses", "public"."Booking"."recurringEventId", "public"."Booking"."location", 
-      "public"."Booking"."eventTypeId", "public"."Booking"."status"::text as "status", "public"."Booking"."paid", 
-      "public"."Booking"."userId", "public"."Booking"."fromReschedule", "public"."Booking"."rescheduled", 
-      "public"."Booking"."isRecorded", "public"."Booking"."createdAt", "public"."Booking"."updatedAt"
-      FROM "public"."Booking"
+      ${selectAndFromClause}
       INNER JOIN "public"."BookingSeat" ON "public"."BookingSeat"."bookingId" = "public"."Booking"."id"
       INNER JOIN "public"."Attendee" ON "public"."Attendee"."id" = "public"."BookingSeat"."attendeeId"
       WHERE "public"."Attendee"."email" = ${addParam(user.email)}
@@ -365,14 +318,7 @@ export async function getBookings({
 
       if (orgMemberEmailsParams) {
         sqlQueries.push(`
-          SELECT "public"."Booking"."id", "public"."Booking"."title", "public"."Booking"."userPrimaryEmail", 
-          "public"."Booking"."description", "public"."Booking"."customInputs", "public"."Booking"."startTime", 
-          "public"."Booking"."endTime", "public"."Booking"."metadata", "public"."Booking"."uid", 
-          "public"."Booking"."responses", "public"."Booking"."recurringEventId", "public"."Booking"."location", 
-          "public"."Booking"."eventTypeId", "public"."Booking"."status"::text as "status", "public"."Booking"."paid", 
-          "public"."Booking"."userId", "public"."Booking"."fromReschedule", "public"."Booking"."rescheduled", 
-          "public"."Booking"."isRecorded", "public"."Booking"."createdAt", "public"."Booking"."updatedAt"
-          FROM "public"."Booking"
+          ${selectAndFromClause}
           INNER JOIN "public"."BookingSeat" ON "public"."BookingSeat"."bookingId" = "public"."Booking"."id"
           INNER JOIN "public"."Attendee" ON "public"."Attendee"."id" = "public"."BookingSeat"."attendeeId"
           WHERE "public"."Attendee"."email" IN (${orgMemberEmailsParams})
@@ -384,14 +330,7 @@ export async function getBookings({
   if (!filters?.userIds && eventTypeIdsWhereUserIsAdminOrOwner?.length) {
     const eventTypeIdsParams = eventTypeIdsWhereUserIsAdminOrOwner.map((id) => addParam(id)).join(", ");
     sqlQueries.push(`
-      SELECT "public"."Booking"."id", "public"."Booking"."title", "public"."Booking"."userPrimaryEmail", 
-      "public"."Booking"."description", "public"."Booking"."customInputs", "public"."Booking"."startTime", 
-      "public"."Booking"."endTime", "public"."Booking"."metadata", "public"."Booking"."uid", 
-      "public"."Booking"."responses", "public"."Booking"."recurringEventId", "public"."Booking"."location", 
-      "public"."Booking"."eventTypeId", "public"."Booking"."status"::text as "status", "public"."Booking"."paid", 
-      "public"."Booking"."userId", "public"."Booking"."fromReschedule", "public"."Booking"."rescheduled", 
-      "public"."Booking"."isRecorded", "public"."Booking"."createdAt", "public"."Booking"."updatedAt"
-      FROM "public"."Booking" 
+      ${selectAndFromClause}
       WHERE "public"."Booking"."eventTypeId" IN (${eventTypeIdsParams})
     `);
   }
