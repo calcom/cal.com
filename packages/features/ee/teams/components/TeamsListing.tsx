@@ -31,7 +31,7 @@ export function TeamsListing({
   errorMsgFromInvite,
 }: TeamsListingProps) {
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const token = searchParams?.get("token") || null;
   const { t } = useLocale();
   const router = useRouter();
 

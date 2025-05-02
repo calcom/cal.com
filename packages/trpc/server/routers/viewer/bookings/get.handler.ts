@@ -734,8 +734,9 @@ export async function getBookings({
       }
     );
 
+    // Ensure recurringEventId is always a string, never null
     return {
-      recurringEventId: info.recurringEventId,
+      recurringEventId: info.recurringEventId || "",
       count: Number(info.countRecurringEventId),
       firstDate: info.minStartTime,
       bookings,
@@ -821,7 +822,7 @@ export async function getBookings({
           ? attendees.filter((attendee) => attendee.email === user.email)
           : attendees;
 
-      const payment = await prisma.payment.findFirst({
+      const payment = await prisma.payment.findMany({
         where: {
           bookingId: booking.id,
         },
@@ -877,27 +878,61 @@ export async function getBookings({
         },
       });
 
+      const processedEventType = eventType
+        ? {
+            ...eventType,
+            recurringEvent: parseRecurringEvent(eventType.recurringEvent),
+            eventTypeColor: parseEventTypeColor(eventType.eventTypeColor),
+            price: eventType.price || 0,
+            currency: eventType.currency || "usd",
+            metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
+          }
+        : {
+            id: 0,
+            slug: "",
+            title: "",
+            eventName: "",
+            price: 0,
+            recurringEvent: null,
+            currency: "usd",
+            metadata: {},
+            disableGuests: false,
+            seatsShowAttendees: false,
+            seatsShowAvailabilityCount: false,
+            eventTypeColor: null,
+            customReplyToEmail: null,
+            allowReschedulingPastBookings: false,
+            hideOrganizerEmail: false,
+            disableCancelling: false,
+            disableRescheduling: false,
+            schedulingType: null,
+            length: 0,
+            team: null,
+          };
+
+      const routedFromRoutingFormReponse = await prisma.routingFormResponse.findFirst({
+        where: {
+          bookingUid: booking.uid,
+        },
+        select: {
+          id: true,
+        },
+      });
+
       return {
         ...booking,
         attendees: filteredAttendees,
         seatsReferences,
-        eventType: eventType
-          ? {
-              ...eventType,
-              recurringEvent: parseRecurringEvent(eventType.recurringEvent),
-              eventTypeColor: parseEventTypeColor(eventType.eventTypeColor),
-              price: eventType.price || 0,
-              currency: eventType.currency || "usd",
-              metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
-            }
-          : null,
+        eventType: processedEventType,
         payment,
-        user: bookingUser,
+        user: bookingUser || { id: 0, name: "", email: "" }, // Default user to prevent null
         rescheduler,
         references,
         assignmentReason: assignmentReason ? [assignmentReason] : [],
         startTime: booking.startTime.toISOString(),
         endTime: booking.endTime.toISOString(),
+        status: booking.status as BookingStatus,
+        routedFromRoutingFormReponse: routedFromRoutingFormReponse || null,
       };
     })
   );
