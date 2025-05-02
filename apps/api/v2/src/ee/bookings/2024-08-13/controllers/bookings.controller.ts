@@ -169,7 +169,26 @@ export class BookingsController_2024_08_13 {
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Permissions([BOOKING_READ])
-  @ApiOperation({ summary: "Get all bookings" })
+  @ApiOperation({
+    summary: "Get all bookings",
+    description: `
+    Important - by default this endpoint returns bookings for the next 30 days and / or past 30 days. For example, if you don't pass any query parameters or pass query parameters:
+    1. "/v2/bookings" - returns bookings for the next 30 days and the past 30 days
+    2. "/v2/bookings?status=upcoming" - returns bookings for the next 30 days
+    3. "/v2/bookings?status=past" - returns bookings for the past 30 days
+    4. "/v2/bookings?status=upcoming,past" - returns bookings for the next 30 days and the past 30 days
+    5. "/v2/bookings?afterStart=2050-01-01" - returns bookings for the next 30 days starting from 2050-01-01
+    6. "/v2/bookings?beforeEnd=2060-01-01" - returns bookings for 30 days going backwards starting from 2060-01-01
+    7. "/v2/bookings?afterCreatedAt=2024-01-01" - returns bookings created during 30 days starting from 2024-01-01
+
+    If you want to fetch bookings for a longer or shorter time period then you have to explicitly state the start and the end of the time period. For example:
+    1. "/v2/bookings?status=upcoming&beforeEnd=2050-06-30",
+    2. "/v2/bookings?status=past&afterStart=2024-01-01",
+    3. "/v2/bookings?afterStart=2024-01-01&beforeEnd=2024-01-31"
+    4. "/v2/bookings?afterCreatedAt=2024-01-01&beforeCreatedAt=2024-01-31"
+    5. "/v2/bookings?afterUpdatedAt=2024-01-01&beforeUpdatedAt=2024-01-31"
+  `,
+  })
   async getBookings(
     @Query() queryParams: GetBookingsInput_2024_08_13,
     @GetUser() user: UserWithProfile

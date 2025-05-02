@@ -6396,6 +6396,7 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookings",
         "summary": "Get all bookings",
+        "description": "\n    Important - by default this endpoint returns bookings for the next 30 days and / or past 30 days. For example, if you don't pass any query parameters or pass query parameters:\n    1. \"/v2/bookings\" - returns bookings for the next 30 days and the past 30 days\n    2. \"/v2/bookings?status=upcoming\" - returns bookings for the next 30 days\n    3. \"/v2/bookings?status=past\" - returns bookings for the past 30 days\n    4. \"/v2/bookings?status=upcoming,past\" - returns bookings for the next 30 days and the past 30 days\n    5. \"/v2/bookings?afterStart=2050-01-01\" - returns bookings for the next 30 days starting from 2050-01-01\n    6. \"/v2/bookings?beforeEnd=2060-01-01\" - returns bookings for 30 days going backwards starting from 2060-01-01\n    7. \"/v2/bookings?afterCreatedAt=2024-01-01\" - returns bookings created during 30 days starting from 2024-01-01\n\n    If you want to fetch bookings for a longer or shorter time period then you have to explicitly state the start and the end of the time period. For example:\n    1. \"/v2/bookings?status=upcoming&beforeEnd=2050-06-30\",\n    2. \"/v2/bookings?status=past&afterStart=2024-01-01\",\n    3. \"/v2/bookings?afterStart=2024-01-01&beforeEnd=2024-01-31\"\n    4. \"/v2/bookings?afterCreatedAt=2024-01-01&beforeCreatedAt=2024-01-31\"\n    5. \"/v2/bookings?afterUpdatedAt=2024-01-01&beforeUpdatedAt=2024-01-31\"\n  ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -9110,7 +9111,7 @@
         "tags": ["Organization Team Verified Resources"]
       }
     },
-    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phone-numbers": {
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones": {
       "get": {
         "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedPhoneNumbers",
         "summary": "Get list of verified phone numbers of an org team.",
@@ -9214,7 +9215,7 @@
         "tags": ["Organization Team Verified Resources"]
       }
     },
-    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phone-numbers/{id}": {
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/{id}": {
       "get": {
         "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedPhoneById",
         "summary": "Get verified phone number of an org team by id.",
@@ -11311,7 +11312,7 @@
         "tags": ["Teams Verified Resources"]
       }
     },
-    "/v2/teams/{teamId}/verified-resources/phone-numbers": {
+    "/v2/teams/{teamId}/verified-resources/phones": {
       "get": {
         "operationId": "TeamsVerifiedResourcesController_getVerifiedPhoneNumbers",
         "summary": "Get list of verified phone numbers of a team.",
@@ -11415,7 +11416,7 @@
         "tags": ["Teams Verified Resources"]
       }
     },
-    "/v2/teams/{teamId}/verified-resources/phone-numbers/{id}": {
+    "/v2/teams/{teamId}/verified-resources/phones/{id}": {
       "get": {
         "operationId": "TeamsVerifiedResourcesController_getVerifiedPhoneById",
         "summary": "Get verified phone number of a team by id.",
@@ -11675,7 +11676,7 @@
         "tags": ["Verified Resources"]
       }
     },
-    "/v2/verified-resources/phone-numbers": {
+    "/v2/verified-resources/phones": {
       "get": {
         "operationId": "UserVerifiedResourcesController_getVerifiedPhoneNumbers",
         "summary": "Get list of verified phone numbers.",
@@ -11763,7 +11764,7 @@
         "tags": ["Verified Resources"]
       }
     },
-    "/v2/verified-resources/phone-numbers/{id}": {
+    "/v2/verified-resources/phones/{id}": {
       "get": {
         "operationId": "UserVerifiedResourcesController_getVerifiedPhoneById",
         "summary": "Get verified phone number by id.",
