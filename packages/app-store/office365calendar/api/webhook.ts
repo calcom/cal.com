@@ -2,15 +2,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
-import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
 import { getCalendar } from "../../_utils/getCalendar";
-
-const log = logger.getSubLogger({ prefix: ["Office365CalendarWebhook"] });
 
 async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   // Handle Microsoft Graph validation request
@@ -21,11 +17,8 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
 
-  // Validate clientState
   const clientState = req.body?.value?.[0]?.clientState;
   const subscriptionId = req.body?.value?.[0]?.subscriptionId;
-
-  log.debug("postHandler", safeStringify({ clientState, subscriptionId }));
 
   if (clientState !== process.env.MICROSOFT_WEBHOOK_TOKEN) {
     throw new HttpError({ statusCode: 403, message: "Invalid clientState" });
