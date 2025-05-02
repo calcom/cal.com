@@ -318,7 +318,7 @@ export class UsersRepository {
     });
   }
 
-  async getAllUserEmailsOfManagedOrganization(subscriptionId: string) {
+  async getOrgsManagedUserEmailsBySubscriptionId(subscriptionId: string) {
     return await this.dbRead.prisma.user.findMany({
       distinct: ["email"],
       where: {
