@@ -7,6 +7,7 @@ import {
   updateMeetingTokenIfExpired,
 } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import { CAL_VIDEO_MEETING_LINK_FOR_TESTING } from "@calcom/lib/constants";
 import { isENVDev } from "@calcom/lib/env";
@@ -135,6 +136,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const videoReference = getCalVideoReference(bookingObj.references);
 
+  const featureRepo = new FeaturesRepository();
+  const displayLogInOverlay = profile?.organizationId
+    ? await featureRepo.checkIfTeamHasFeature(profile.organizationId, "cal-video-log-in-overlay")
+    : false;
+
   return {
     props: {
       meetingUrl: videoReference.meetingUrl ?? "",
@@ -153,6 +159,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
       hasTeamPlan: !!hasTeamPlan,
       calVideoLogo,
+      displayLogInOverlay,
+      sessionUserId,
     },
   };
 }
