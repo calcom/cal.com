@@ -1,7 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
-import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { OrganizationsTeamsBookingsModule } from "@/modules/organizations/teams/bookings/organizations-teams-bookings.module";
@@ -20,6 +19,7 @@ import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repo
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { getWeeklyAvailability9To5, UTC0 } from "test/utils/availability";
+import { getDateDaysFromNow } from "test/utils/days";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
@@ -117,7 +117,7 @@ describe("Organizations UsersBookings Endpoints 2024-08-13", () => {
         {
           title: `user-bookings-2024-08-13-event-type-${randomString()}`,
           slug: personalEventTypeSlug,
-          length: 15,
+          length: 60,
         },
         teamUser.id
       );
@@ -192,8 +192,10 @@ describe("Organizations UsersBookings Endpoints 2024-08-13", () => {
 
     describe("create bookings", () => {
       it("should create a personal booking", async () => {
+        const start = getDateDaysFromNow({ days: 7, hours: 9, minutes: 0 });
+        const end = getDateDaysFromNow({ days: 7, hours: 10, minutes: 0 });
         const body: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
+          start: start.toISOString(),
           eventTypeId: personalEventTypeId,
           attendee: {
             name: "Mr Proper",
@@ -224,8 +226,8 @@ describe("Organizations UsersBookings Endpoints 2024-08-13", () => {
               expect(data.hosts[0].email).toEqual(teamUser.email);
               expect(data.status).toEqual("accepted");
               expect(data.start).toEqual(body.start);
-              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 13, 15, 0)).toISOString());
-              expect(data.duration).toEqual(15);
+              expect(data.end).toEqual(end.toISOString());
+              expect(data.duration).toEqual(60);
               expect(data.eventTypeId).toEqual(personalEventTypeId);
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
@@ -248,8 +250,11 @@ describe("Organizations UsersBookings Endpoints 2024-08-13", () => {
       });
 
       it("should create a personal booking using username and event slug and organization slug", async () => {
+        const start = getDateDaysFromNow({ days: 7, hours: 10, minutes: 0 });
+        const end = getDateDaysFromNow({ days: 7, hours: 11, minutes: 0 });
+
         const body: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString(),
+          start: start.toISOString(),
           eventTypeSlug: personalEventTypeSlug,
           username: teamUser.username!,
           organizationSlug: organization.slug!,
@@ -282,8 +287,8 @@ describe("Organizations UsersBookings Endpoints 2024-08-13", () => {
               expect(data.hosts[0].email).toEqual(teamUser.email);
               expect(data.status).toEqual("accepted");
               expect(data.start).toEqual(body.start);
-              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 14, 15, 0)).toISOString());
-              expect(data.duration).toEqual(15);
+              expect(data.end).toEqual(end.toISOString());
+              expect(data.duration).toEqual(60);
               expect(data.eventTypeId).toEqual(personalEventTypeId);
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
@@ -306,8 +311,10 @@ describe("Organizations UsersBookings Endpoints 2024-08-13", () => {
       });
 
       it("should create a team booking", async () => {
+        const start = getDateDaysFromNow({ days: 7, hours: 11, minutes: 0 });
+        const end = getDateDaysFromNow({ days: 7, hours: 12, minutes: 0 });
         const body: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 0, 8, 15, 0, 0)).toISOString(),
+          start: start.toISOString(),
           eventTypeId: team1EventTypeId,
           attendee: {
             name: "alice",
@@ -337,7 +344,7 @@ describe("Organizations UsersBookings Endpoints 2024-08-13", () => {
               expect(data.hosts[0].id).toEqual(teamUser.id);
               expect(data.status).toEqual("accepted");
               expect(data.start).toEqual(body.start);
-              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 16, 0, 0)).toISOString());
+              expect(data.end).toEqual(end.toISOString());
               expect(data.duration).toEqual(60);
               expect(data.eventTypeId).toEqual(team1EventTypeId);
               expect(data.attendees.length).toEqual(1);
