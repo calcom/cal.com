@@ -1,4 +1,5 @@
 import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microsoft-graph-types-beta";
+import { type Prisma } from "@prisma/client";
 import type { DefaultBodyType } from "msw";
 
 import dayjs from "@calcom/dayjs";
@@ -14,11 +15,14 @@ import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import prisma from "@calcom/prisma";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
   Calendar,
   CalendarEvent,
   EventBusyDate,
+  SelectedCalendarEventTypeIds,
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
@@ -28,6 +32,7 @@ import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
 import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
 import metadata from "../_metadata";
+import { startWatchingCalendarResponseSchema } from "../zod";
 import { getOfficeAppKeys } from "./getOfficeAppKeys";
 
 interface IRequest {
@@ -55,6 +60,15 @@ interface BodyValue {
   evt: { showAs: string };
   start: { dateTime: string };
 }
+
+// eslint-disable-next-line turbo/no-undeclared-env-vars -- OUTLOOK_WEBHOOK_URL only for local testing
+const OUTLOOK_WEBHOOK_URL_BASE = process.env.OUTLOOK_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
+const OUTLOOK_WEBHOOK_URL = `${OUTLOOK_WEBHOOK_URL_BASE}/api/integrations/office365calendar/webhook`;
+
+type OutlookSubscriptionProps = {
+  id?: string | null;
+  expiration?: string | null;
+};
 
 export default class Office365CalendarService implements Calendar {
   private url = "";
@@ -676,4 +690,256 @@ export default class Office365CalendarService implements Calendar {
 
     return response.json();
   };
+
+  async setAvailabilityInCache(args: FreeBusyArgs, data: ISettledResponse[]): Promise<void> {
+    this.log.debug("setAvailabilityInCache", safeStringify({ args, data }));
+    const calendarCache = await CalendarCache.init(null);
+    await calendarCache.upsertCachedAvailability({
+      credentialId: this.credential.id,
+      userId: this.credential.userId,
+      args,
+      value: JSON.parse(JSON.stringify(data)),
+    });
+  }
+
+  async fetchAvailabilityAndSetCache(selectedCalendars: IntegrationCalendar[]) {
+    this.log.debug("fetchAvailabilityAndSetCache", safeStringify({ selectedCalendars }));
+    const selectedCalendarsPerEventType = new Map<
+      SelectedCalendarEventTypeIds[number],
+      IntegrationCalendar[]
+    >();
+
+    selectedCalendars.reduce((acc, selectedCalendar) => {
+      const eventTypeId = selectedCalendar.eventTypeId ?? null;
+      const mapValue = selectedCalendarsPerEventType.get(eventTypeId);
+      if (mapValue) {
+        mapValue.push(selectedCalendar);
+      } else {
+        acc.set(eventTypeId, [selectedCalendar]);
+      }
+
+      return acc;
+    }, selectedCalendarsPerEventType);
+
+    for (const [_eventTypeId, selectedCalendars] of Array.from(selectedCalendarsPerEventType.entries())) {
+      const parsedArgs = {
+        /** Expand the start date to the start of the month to increase cache hits */
+        timeMin: getTimeMin(),
+        /** Expand the end date to the end of the month to increase cache hits */
+        timeMax: getTimeMax(),
+        // Dont use eventTypeId in key because it can be used by any eventType
+        // The only reason we are building it per eventType is because there can be different groups of calendars to lookup the availability for
+        items: selectedCalendars.map((sc) => ({ id: sc.externalId })),
+      };
+      const data = await this.fetchAvailability(parsedArgs);
+      await this.setAvailabilityInCache(parsedArgs, data);
+    }
+  }
+
+  async updateSelectedCalendarsForEventTypeIds(
+    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId" | "userId">,
+    eventTypeIds: SelectedCalendarEventTypeIds
+  ) {
+    this.log.debug(
+      "upsertSelectedCalendarsForEventTypeIds",
+      safeStringify({ data, eventTypeIds, credential: this.credential })
+    );
+    if (!this.credential.userId) {
+      this.log.error("updateSelectedCalendarsForEventTypeIds failed. userId is missing.");
+      return;
+    }
+
+    await SelectedCalendarRepository.updateManyForEventTypeIds({
+      data: {
+        ...data,
+        integration: this.integrationName,
+        credentialId: this.credential.id,
+        delegationCredentialId: this.credential.delegatedToId ?? null,
+        userId: this.credential.userId,
+      },
+      eventTypeIds,
+    });
+  }
+
+  async startWatchingCalendarsInOutlook({ calendarId }: { calendarId: string }) {
+    this.log.debug(`Subscribing to calendar ${calendarId}`, safeStringify({ OUTLOOK_WEBHOOK_URL }));
+
+    const rawRes = await this.fetcher("/subscriptions", {
+      method: "POST",
+      body: JSON.stringify({
+        changeType: "created,updated,deleted",
+        notificationUrl: OUTLOOK_WEBHOOK_URL,
+        resource: `${await this.getUserEndpoint()}/events`,
+        clientState: process.env.OUTLOOK_WEBHOOK_TOKEN,
+        /**
+         * Under 7 days
+         * https://learn.microsoft.com/en-us/graph/change-notifications-overview#subscription-lifetime
+         */
+        expirationDateTime: dayjs(new Date()).add(10_080, "minutes").toISOString(),
+      }),
+    });
+    const res = startWatchingCalendarResponseSchema.parse(await rawRes.json());
+    return res;
+  }
+
+  async stopWatchingCalendarsInOutlook(subscriptions: { outlookSubscriptionId: string | null }[]) {
+    const subs = subscriptions.filter((sub) => !!sub.outlookSubscriptionId);
+
+    this.log.debug(`Unsubscribing from calendars ${subs.map((sub) => sub.outlookSubscriptionId).join(", ")}`);
+    return await Promise.all(
+      subs.map(async (sub) => {
+        try {
+          return await this.fetcher(`/subscriptions/${sub.outlookSubscriptionId}`, {
+            method: "DELETE",
+          });
+        } catch (e) {
+          this.log.error(
+            `Failed to unsubscribe from calendar with subscriptionId: ${sub.outlookSubscriptionId}`,
+            e
+          );
+          return;
+        }
+      })
+    );
+  }
+
+  async watchCalendar({
+    calendarId,
+    eventTypeIds,
+  }: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+  }) {
+    this.log.debug("watchCalendar", safeStringify({ calendarId, eventTypeIds }));
+    if (!process.env.OUTLOOK_WEBHOOK_TOKEN) {
+      this.log.warn("OUTLOOK_WEBHOOK_TOKEN is not set, skipping watching calendar");
+      return;
+    }
+
+    const allCalendarsWithSubscription = await SelectedCalendarRepository.findMany({
+      where: {
+        credentialId: this.credential.id,
+        externalId: calendarId,
+        integration: this.integrationName,
+        outlookSubscriptionId: {
+          not: null,
+        },
+      },
+    });
+
+    const otherCalendarsWithSameSubscription = allCalendarsWithSubscription.filter(
+      (sc) => !eventTypeIds?.includes(sc.eventTypeId)
+    );
+
+    let outlookSubscriptionProps: OutlookSubscriptionProps = otherCalendarsWithSameSubscription.length
+      ? {
+          id: otherCalendarsWithSameSubscription[0].outlookSubscriptionId,
+          expiration: otherCalendarsWithSameSubscription[0].outlookSubscriptionExpiration,
+        }
+      : {};
+
+    if (!otherCalendarsWithSameSubscription.length) {
+      try {
+        const res = await this.startWatchingCalendarsInOutlook({ calendarId });
+        outlookSubscriptionProps = {
+          expiration: res.expirationDateTime,
+          id: res.subscriptionId,
+        };
+      } catch (error) {
+        this.log.error(`Failed to watch ${calendarId}`, error);
+      }
+    } else {
+      this.log.info(
+        `Calendar ${calendarId} is already being watched for event types ${otherCalendarsWithSameSubscription
+          .map((calendar) => calendar.eventTypeId)
+          .join(", ")}. So not watching again and instead reusing the existing subscription.`
+      );
+    }
+
+    await this.updateSelectedCalendarsForEventTypeIds(
+      {
+        externalId: calendarId,
+        outlookSubscriptionId: outlookSubscriptionProps.id,
+        outlookSubscriptionExpiration: outlookSubscriptionProps.expiration,
+      },
+      eventTypeIds
+    );
+  }
+
+  async unwatchCalendar({
+    calendarId,
+    eventTypeIds,
+  }: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+  }) {
+    const credentialId = this.credential.id;
+    const eventTypeIdsToBeUnwatched = eventTypeIds;
+
+    const calendarsWithSameCredentialId = await SelectedCalendarRepository.findMany({
+      where: {
+        credentialId,
+      },
+    });
+
+    const calendarWithSameExternalId = calendarsWithSameCredentialId.filter(
+      (sc) => sc.externalId === calendarId && sc.integration === this.integrationName
+    );
+
+    const calendarsWithSameExternalIdThatAreBeingWatched = calendarWithSameExternalId.filter(
+      (sc) => !!sc.outlookSubscriptionId
+    );
+
+    // Except those requested to be un-watched, other calendars are still being watched
+    const calendarsWithSameExternalIdToBeStillWatched = calendarsWithSameExternalIdThatAreBeingWatched.filter(
+      (sc) => !eventTypeIdsToBeUnwatched.includes(sc.eventTypeId)
+    );
+
+    if (calendarsWithSameExternalIdToBeStillWatched.length) {
+      this.log.info(
+        `There are other ${calendarsWithSameExternalIdToBeStillWatched.length} calendars with the same externalId_credentialId. Not unwatching. Just removing the channelId from this selected calendar`
+      );
+
+      // CalendarCache still need to exist
+      // We still need to keep the subscription
+
+      // Just remove the outlook subscription related fields from this selected calendar
+      await this.updateSelectedCalendarsForEventTypeIds(
+        {
+          externalId: calendarId,
+          outlookSubscriptionExpiration: null,
+          outlookSubscriptionId: null,
+        },
+        eventTypeIdsToBeUnwatched
+      );
+      return;
+    }
+
+    const allChannelsForThisCalendarBeingUnwatched = calendarsWithSameExternalIdThatAreBeingWatched.map(
+      (sc) => ({
+        outlookSubscriptionId: sc.outlookSubscriptionId,
+      })
+    );
+
+    // Delete the calendar cache to force a fresh cache
+    await prisma.calendarCache.deleteMany({ where: { credentialId } });
+    await this.stopWatchingCalendarsInOutlook(allChannelsForThisCalendarBeingUnwatched);
+    await this.updateSelectedCalendarsForEventTypeIds(
+      {
+        externalId: calendarId,
+        outlookSubscriptionExpiration: null,
+        outlookSubscriptionId: null,
+      },
+      eventTypeIdsToBeUnwatched
+    );
+
+    // Populate the cache back for the remaining calendars, if any
+    const remainingCalendars =
+      calendarsWithSameCredentialId.filter(
+        (sc) => sc.externalId !== calendarId && sc.integration === this.integrationName
+      ) || [];
+    if (remainingCalendars.length > 0) {
+      await this.fetchAvailabilityAndSetCache(remainingCalendars);
+    }
+  }
 }

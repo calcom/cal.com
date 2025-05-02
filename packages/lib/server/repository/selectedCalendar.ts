@@ -28,6 +28,12 @@ export type FindManyArgs = {
       | {
           not: null;
         };
+    outlookSubscriptionId?:
+      | string
+      | null
+      | {
+          not: null;
+        };
   };
   orderBy?: {
     userId?: "asc" | "desc";
@@ -233,6 +239,26 @@ export class SelectedCalendarRepository {
     });
   }
 
+  static async findByOutlookSubscriptionId(subscriptionId: string) {
+    return await prisma.selectedCalendar.findFirst({
+      where: {
+        outlookSubscriptionId: subscriptionId,
+      },
+      select: {
+        credential: {
+          select: {
+            ...credentialForCalendarServiceSelect,
+            selectedCalendars: {
+              orderBy: {
+                externalId: "asc",
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   static async findFirst({ where }: { where: Prisma.SelectedCalendarWhereInput }) {
     return await prisma.selectedCalendar.findFirst({
       where,
@@ -312,6 +338,36 @@ export class SelectedCalendarRepository {
         ...ensureUserLevelWhere,
       },
     });
+  }
+
+  static async updateManyForEventTypeIds({
+    data,
+    eventTypeIds,
+  }: {
+    data: Prisma.SelectedCalendarUncheckedCreateInput;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+  }) {
+    const userId = data.userId;
+    return await Promise.allSettled(
+      eventTypeIds.map((eventTypeId) => {
+        SelectedCalendarRepository.update({
+          where: {
+            userId: data.userId,
+            integration: data.integration,
+            externalId: data.externalId,
+            eventTypeId: data.eventTypeId || null,
+          },
+          data: {
+            ...data,
+            eventTypeId,
+            userId,
+            integration: data.integration,
+            externalId: data.externalId,
+            credentialId: data.credentialId,
+          },
+        });
+      })
+    );
   }
 
   static async upsertManyForEventTypeIds({
