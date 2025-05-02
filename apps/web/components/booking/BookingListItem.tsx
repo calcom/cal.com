@@ -79,13 +79,14 @@ type ReroutableBooking = Ensure<TeamEventBooking, "routedFromRoutingFormReponse"
 
 function buildParsedBooking(booking: BookingItemProps) {
   // The way we fetch bookings there could be eventType object even without an eventType, but id confirms its existence
-  const bookingEventType = booking.eventType.id
-    ? (booking.eventType as Ensure<
-        typeof booking.eventType,
-        // It would only ensure that the props are present, if they are optional in the original type. So, it is safe to assert here.
-        "id" | "length" | "title" | "slug" | "schedulingType" | "team"
-      >)
-    : null;
+  const bookingEventType =
+    booking.eventType && booking.eventType.id
+      ? (booking.eventType as Ensure<
+          typeof booking.eventType,
+          // It would only ensure that the props are present, if they are optional in the original type. So, it is safe to assert here.
+          "id" | "length" | "title" | "slug" | "schedulingType" | "team"
+        >)
+      : null;
 
   const bookingMetadata = bookingMetadataSchema.parse(booking.metadata ?? null);
   return {
@@ -119,15 +120,17 @@ function BookingListItem(booking: BookingItemProps) {
   const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
   const cardCharged = booking?.payment[0]?.success;
 
-  const attendeeList = booking.attendees.map((attendee) => {
-    return {
-      name: attendee.name,
-      email: attendee.email,
-      id: attendee.id,
-      noShow: attendee.noShow || false,
-      phoneNumber: attendee.phoneNumber,
-    };
-  });
+  const attendeeList = booking.attendees.map(
+    (attendee: { name: string; email: string; id: number; noShow?: boolean; phoneNumber?: string }) => {
+      return {
+        name: attendee.name,
+        email: attendee.email,
+        id: attendee.id,
+        noShow: attendee.noShow || false,
+        phoneNumber: attendee.phoneNumber,
+      };
+    }
+  );
 
   const noShowMutation = trpc.viewer.markNoShow.useMutation({
     onSuccess: async (data) => {
@@ -169,7 +172,9 @@ function BookingListItem(booking: BookingItemProps) {
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
   const isBookingFromRoutingForm = isBookingReroutable(parsedBooking);
 
-  const paymentAppData = getPaymentAppData(booking.eventType);
+  const paymentAppData = booking.eventType
+    ? getPaymentAppData(booking.eventType)
+    : { enabled: false, price: 0 };
 
   const location = booking.location as ReturnType<typeof getEventLocationValue>;
   const locationVideoCallUrl = parsedBooking.metadata?.videoCallUrl;
@@ -177,7 +182,7 @@ function BookingListItem(booking: BookingItemProps) {
   const { resolvedTheme, forcedTheme } = useGetTheme();
   const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
   const eventTypeColor =
-    booking.eventType.eventTypeColor &&
+    booking.eventType?.eventTypeColor &&
     booking.eventType.eventTypeColor[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
 
   const locationToDisplay = getSuccessPageLocationMessage(
@@ -221,8 +226,8 @@ function BookingListItem(booking: BookingItemProps) {
       disabled: mutation.isPending,
     },
     // For bookings with payment, only confirm if the booking is paid for
-    ...((isPending && !paymentAppData.enabled) ||
-    (paymentAppData.enabled && !!paymentAppData.price && booking.paid)
+    ...((isPending && !paymentAppData?.enabled) ||
+    (paymentAppData?.enabled && !!paymentAppData?.price && booking.paid)
       ? [
           {
             id: "confirm",
@@ -239,7 +244,7 @@ function BookingListItem(booking: BookingItemProps) {
   ];
 
   const editBookingActions: ActionType[] = [
-    ...(isBookingInPast && !booking.eventType.allowReschedulingPastBookings
+    ...(isBookingInPast && booking.eventType && !booking.eventType.allowReschedulingPastBookings
       ? []
       : [
           {
@@ -294,7 +299,7 @@ function BookingListItem(booking: BookingItemProps) {
         ]),
   ];
 
-  if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+  if (booking.eventType && booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
     editBookingActions.push({
       id: "reassign ",
       label: t("reassign"),
@@ -358,8 +363,8 @@ function BookingListItem(booking: BookingItemProps) {
     },
   ];
 
-  const isDisabledCancelling = booking.eventType.disableCancelling;
-  const isDisabledRescheduling = booking.eventType.disableRescheduling;
+  const isDisabledCancelling = booking.eventType?.disableCancelling || false;
+  const isDisabledRescheduling = booking.eventType?.disableRescheduling || false;
 
   if (isTabRecurring && isRecurring) {
     bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
@@ -475,7 +480,7 @@ function BookingListItem(booking: BookingItemProps) {
     },
   ];
 
-  const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
+  const showPendingPayment = paymentAppData?.enabled && booking.payment.length && !booking.paid;
 
   return (
     <>
@@ -739,11 +744,21 @@ function BookingListItem(booking: BookingItemProps) {
         />
       </div>
 
-      {isBookingFromRoutingForm && (
+      {isBookingFromRoutingForm && parsedBooking.eventType && (
         <RerouteDialog
           isOpenDialog={rerouteDialogIsOpen}
           setIsOpenDialog={setRerouteDialogIsOpen}
-          booking={{ ...parsedBooking, eventType: parsedBooking.eventType }}
+          booking={{
+            ...parsedBooking,
+            eventType: {
+              id: parsedBooking.eventType.id,
+              title: parsedBooking.eventType.title,
+              slug: parsedBooking.eventType.slug,
+              length: parsedBooking.eventType.length,
+              schedulingType: parsedBooking.eventType.schedulingType,
+              team: parsedBooking.eventType.team,
+            },
+          }}
         />
       )}
     </>
