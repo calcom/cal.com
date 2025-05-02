@@ -113,7 +113,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             <Select
               size="sm"
               id="add-attendees-as"
-              className="w-fit"
+              className="w-[200px]"
               options={recordOptions}
               value={createEventOnSelectedOption}
               onChange={(e) => {
@@ -129,7 +129,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         <Section.SubSection>
           <Section.SubSectionHeader
             icon="user-plus"
-            title={t("sales_force_ignore_guests")}
+            title={t("salesforce_ignore_guests")}
             labelFor="ignore-guests">
             <Switch
               size="sm"
