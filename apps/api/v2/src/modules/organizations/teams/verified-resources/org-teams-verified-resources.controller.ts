@@ -193,7 +193,7 @@ export class OrgTeamsVerifiedResourcesController {
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @PlatformPlan("ESSENTIALS")
-  @Get("/phone-numbers")
+  @Get("/phones")
   @Roles("TEAM_ADMIN")
   @HttpCode(HttpStatus.OK)
   async getVerifiedPhoneNumbers(
@@ -238,7 +238,7 @@ export class OrgTeamsVerifiedResourcesController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @Get("/phone-numbers/:id")
+  @Get("/phones/:id")
   @HttpCode(HttpStatus.OK)
   async getVerifiedPhoneById(
     @Param("teamId", ParseIntPipe) teamId: number,

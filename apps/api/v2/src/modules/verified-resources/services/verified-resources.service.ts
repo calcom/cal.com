@@ -99,7 +99,7 @@ export class VerifiedResourcesService {
   }
 
   async getTeamVerifiedPhoneNumberById(teamId: number, id: number) {
-    return this.teamsVerifiedResourcesRepository.getTeamVerifiedPhoneNumberById(teamId, id);
+    return this.teamsVerifiedResourcesRepository.getTeamVerifiedPhoneNumberById(id, teamId);
   }
 
   async getUserVerifiedPhoneNumber(userId: number, phoneNumber: string) {

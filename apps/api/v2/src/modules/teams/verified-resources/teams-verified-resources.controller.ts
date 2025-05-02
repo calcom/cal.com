@@ -168,7 +168,7 @@ export class TeamsVerifiedResourcesController {
     summary: "Get list of verified phone numbers of a team.",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
-  @Get("/phone-numbers")
+  @Get("/phones")
   @Roles("TEAM_ADMIN")
   @HttpCode(HttpStatus.OK)
   async getVerifiedPhoneNumbers(
@@ -211,7 +211,7 @@ export class TeamsVerifiedResourcesController {
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
-  @Get("/phone-numbers/:id")
+  @Get("/phones/:id")
   @HttpCode(HttpStatus.OK)
   async getVerifiedPhoneById(
     @Param("teamId", ParseIntPipe) teamId: number,

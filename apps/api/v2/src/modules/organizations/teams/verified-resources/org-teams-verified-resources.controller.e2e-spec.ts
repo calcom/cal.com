@@ -9,6 +9,10 @@ import {
   TeamVerifiedEmailOutput,
   TeamVerifiedEmailsOutput,
 } from "@/modules/verified-resources/outputs/verified-email.output";
+import {
+  TeamVerifiedPhoneOutput,
+  TeamVerifiedPhonesOutput,
+} from "@/modules/verified-resources/outputs/verified-phone.output";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -128,6 +132,18 @@ describe("Organizations Teams Verified Resources", () => {
       },
     });
 
+    verifiedPhoneId = (
+      await verifiedResourcesRepositoryFixtures.createPhone({
+        phoneNumber: phoneToVerify,
+        user: { connect: { id: user.id } },
+        team: {
+          connect: {
+            id: orgTeam.id,
+          },
+        },
+      })
+    ).id;
+
     app = moduleRef.createNestApplication();
     bootstrap(app as NestExpressApplication);
 
@@ -160,7 +176,7 @@ describe("Organizations Teams Verified Resources", () => {
       });
   });
 
-  it("should fetch veriffied email by id", async () => {
+  it("should fetch verified email by id", async () => {
     return request(app.getHttpServer())
       .get(`/v2/organizations/${org.id}/teams/${orgTeam.id}/verified-resources/emails/${verifiedEmailId}`)
       .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
@@ -168,6 +184,18 @@ describe("Organizations Teams Verified Resources", () => {
       .then((res) => {
         const response = res.body as TeamVerifiedEmailOutput;
         expect(response.data.email).toEqual(emailToVerify);
+        expect(response.data.teamId).toEqual(orgTeam.id);
+      });
+  });
+
+  it("should fetch verified number by id", async () => {
+    return request(app.getHttpServer())
+      .get(`/v2/organizations/${org.id}/teams/${orgTeam.id}/verified-resources/phones/${verifiedPhoneId}`)
+      .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+      .expect(200)
+      .then((res) => {
+        const response = res.body as TeamVerifiedPhoneOutput;
+        expect(response.data.phoneNumber).toEqual(phoneToVerify);
         expect(response.data.teamId).toEqual(orgTeam.id);
       });
   });
@@ -184,8 +212,23 @@ describe("Organizations Teams Verified Resources", () => {
       });
   });
 
+  it("should fetch verified phones", async () => {
+    return request(app.getHttpServer())
+      .get(`/v2/organizations/${org.id}/teams/${orgTeam.id}/verified-resources/phones`)
+      .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+      .expect(200)
+      .then((res) => {
+        const response = res.body as TeamVerifiedPhonesOutput;
+        expect(
+          response.data.find((verifiedPhone) => verifiedPhone.phoneNumber === phoneToVerify)
+        ).toBeDefined();
+        expect(response.data.find((verifiedPhone) => verifiedPhone.teamId === orgTeam.id)).toBeDefined();
+      });
+  });
+
   afterAll(async () => {
     await verifiedResourcesRepositoryFixtures.deleteEmailById(verifiedEmailId);
+    await verifiedResourcesRepositoryFixtures.deletePhoneById(verifiedPhoneId);
     await userRepositoryFixture.deleteByEmail(user.email);
     await organizationsRepositoryFixture.delete(org.id);
     await app.close();

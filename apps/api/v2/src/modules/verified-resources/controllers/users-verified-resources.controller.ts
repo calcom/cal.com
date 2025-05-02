@@ -138,7 +138,7 @@ export class UserVerifiedResourcesController {
     summary: "Get list of verified phone numbers.",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
-  @Get("/phone-numbers")
+  @Get("/phones")
   @HttpCode(HttpStatus.OK)
   async getVerifiedPhoneNumbers(
     @GetUser("id") userId: number,
@@ -178,7 +178,7 @@ export class UserVerifiedResourcesController {
     summary: "Get verified phone number by id.",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
-  @Get("/phone-numbers/:id")
+  @Get("/phones/:id")
   @HttpCode(HttpStatus.OK)
   async getVerifiedPhoneById(
     @GetUser("id") userId: number,
