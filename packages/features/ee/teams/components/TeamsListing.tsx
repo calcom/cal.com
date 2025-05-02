@@ -31,7 +31,7 @@ export function TeamsListing({
   errorMsgFromInvite,
 }: TeamsListingProps) {
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const token = searchParams?.get("token");
   const { t } = useLocale();
   const router = useRouter();
 
@@ -104,14 +104,14 @@ export function TeamsListing({
     <>
       {organizationInvites.length > 0 && (
         <div className="bg-subtle mb-6 rounded-md p-5">
-          <Label className="text-emphasis pb-2  font-semibold">{t("pending_organization_invites")}</Label>
+          <Label className="text-emphasis pb-2 font-semibold">{t("pending_organization_invites")}</Label>
           <TeamList user={user} teams={organizationInvites} pending />
         </div>
       )}
 
       {teamInvites.length > 0 && (
         <div className="bg-subtle mb-6 rounded-md p-5">
-          <Label className="text-emphasis pb-2  font-semibold">{t("pending_invites")}</Label>
+          <Label className="text-emphasis pb-2 font-semibold">{t("pending_invites")}</Label>
           <TeamList user={user} teams={teamInvites} pending />
         </div>
       )}
