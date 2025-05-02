@@ -23,7 +23,7 @@ export const changeNotificationWebhookPayloadSchema = z.object({
       changeType: z.enum(["created", "updated", "deleted"]),
       clientState: z.string().optional(),
       id: z.string().optional(),
-      lifecycleEvent: z.enum(["missed", "subscriptionRemoved", "reauthorizationRequired"]),
+      lifecycleEvent: z.enum(["missed", "subscriptionRemoved", "reauthorizationRequired"]).optional(),
       resource: z.string(),
       subscriptionExpirationDateTime: z.string().optional(),
       subscriptionId: z.string(),
