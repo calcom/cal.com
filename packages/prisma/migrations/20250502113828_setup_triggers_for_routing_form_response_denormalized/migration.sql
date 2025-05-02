@@ -1,44 +1,5 @@
--- Create the denormalized table
-CREATE TABLE "RoutingFormResponseDenormalized" (
-    id INTEGER PRIMARY KEY,
-    response JSONB NOT NULL DEFAULT '{}'::jsonb,
-    "responseByFieldId" JSONB NOT NULL DEFAULT '{}'::jsonb, -- {"57734f65-8bbb-4065-9e71-fb7f0b7485f8": "marta ortiz", ...} - text values are lowercased
-    "formId" TEXT NOT NULL,
-    "formName" TEXT NOT NULL,
-    "formTeamId" INTEGER,
-    "formUserId" INTEGER,
-    "bookingUid" TEXT,
-    "bookingId" INTEGER,
-    "bookingStatus" "BookingStatus",
-    "bookingStatusOrder" INTEGER,
-    "bookingCreatedAt" TIMESTAMP(3),
-    "bookingStartTime" TIMESTAMP(3),
-    "bookingEndTime" TIMESTAMP(3),
-    "bookingUserId" INTEGER,
-    "bookingUserName" TEXT,
-    "bookingUserEmail" TEXT,
-    "bookingUserAvatarUrl" TEXT,
-    "bookingAssignmentReason" TEXT,
-    -- EventType related fields
-    "eventTypeId" INTEGER,
-    "eventTypeParentId" INTEGER,
-    "eventTypeSchedulingType" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL,
-    "utm_source" TEXT,
-    "utm_medium" TEXT,
-    "utm_campaign" TEXT,
-    "utm_term" TEXT,
-    "utm_content" TEXT
-);
-
--- Create optimized indexes
-CREATE INDEX idx_form_id ON "RoutingFormResponseDenormalized" ("formId");
-CREATE INDEX idx_form_id_created_at ON "RoutingFormResponseDenormalized" ("formId", "createdAt");
-CREATE INDEX idx_routing_form_response_booking_id ON "RoutingFormResponseDenormalized" ("bookingId");
-CREATE INDEX idx_routing_form_response_booking_user_id ON "RoutingFormResponseDenormalized" ("bookingUserId");
-CREATE INDEX idx_response_by_field_id ON "RoutingFormResponseDenormalized" USING gin ("responseByFieldId");
-CREATE INDEX idx_event_type_hierarchy ON "RoutingFormResponseDenormalized" ("eventTypeId", "eventTypeParentId");
-CREATE INDEX idx_booking_assignment_reason_lower ON "RoutingFormResponseDenormalized" (LOWER("bookingAssignmentReason"));
+-- Add index for bookingAssignmentReason (lowercase)
+CREATE INDEX "RoutingFormResponseDenormalized_bookingAssignmentReason_idx" ON "RoutingFormResponseDenormalized" (LOWER("bookingAssignmentReason"));
 
 -- Function to calculate bookingStatusOrder
 CREATE OR REPLACE FUNCTION calculate_booking_status_order(status TEXT)
@@ -55,24 +16,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Function to extract response by field ID with lowercase text values
-CREATE OR REPLACE FUNCTION extract_response_by_field_id(response_json JSONB)
-RETURNS JSONB AS $$
-BEGIN
-    RETURN (
-        SELECT jsonb_object_agg(
-            key,
-            CASE
-                WHEN jsonb_typeof(value->'value') = 'string'
-                THEN to_jsonb(lower((value->>'value')::text))
-                ELSE value->'value'
-            END
-        )
-        FROM jsonb_each(response_json)
-    );
-END;
-$$ LANGUAGE plpgsql;
-
 -- Function to refresh a single form response's data
 CREATE OR REPLACE FUNCTION refresh_routing_form_response_denormalized(response_id INTEGER)
 RETURNS VOID AS $$
@@ -83,8 +26,6 @@ BEGIN
     -- Insert form response with all related data
     INSERT INTO "RoutingFormResponseDenormalized" (
         id,
-        response,
-        "responseByFieldId",
         "formId",
         "formName",
         "formTeamId",
@@ -113,8 +54,6 @@ BEGIN
     )
     SELECT 
         r.id,
-        COALESCE(r.response::jsonb, '{}'::jsonb) as response,
-        extract_response_by_field_id(COALESCE(r.response::jsonb, '{}'::jsonb)) as "responseByFieldId",
         r."formId",
         f.name as "formName",
         f."teamId" as "formTeamId",
@@ -309,4 +248,3 @@ CREATE TRIGGER event_type_update_trigger_for_routing_form
     AFTER UPDATE OF "parentId", "schedulingType" ON "EventType"
     FOR EACH ROW
     EXECUTE FUNCTION trigger_refresh_routing_form_response_denormalized_event_type();
-

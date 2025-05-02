@@ -1071,14 +1071,32 @@ model App_RoutingForms_FormResponse {
   createdAt    DateTime              @default(now())
   updatedAt    DateTime?             @updatedAt
 
-  routedToBookingUid String?  @unique
+  routedToBookingUid              String?                           @unique
   // We should not cascade delete the booking, because we want to keep the form response even if the routedToBooking is deleted
-  routedToBooking    Booking? @relation(fields: [routedToBookingUid], references: [uid])
-  chosenRouteId      String?
+  routedToBooking                 Booking?                          @relation(fields: [routedToBookingUid], references: [uid])
+  chosenRouteId                   String?
+  RoutingFormResponseField        RoutingFormResponseField[]
+  RoutingFormResponseDenormalized RoutingFormResponseDenormalized[]
 
   @@unique([formFillerId, formId])
   @@index([formFillerId])
   @@index([formId])
+}
+
+model RoutingFormResponseField {
+  id                              Int                              @id @default(autoincrement())
+  responseId                      Int
+  fieldId                         String
+  valueString                     String?
+  valueNumber                     Decimal?
+  valueStringArray                String[]
+  response                        App_RoutingForms_FormResponse    @relation(fields: [responseId], references: [id], onDelete: Cascade, map: "RoutingFormResponseField_responseId_fkey")
+  routingFormResponseDenormalized RoutingFormResponseDenormalized? @relation(fields: [responseId], references: [id], map: "RoutingFormResponseField_denormalized_fkey")
+
+  @@index([responseId])
+  @@index([fieldId])
+  @@index([valueNumber])
+  @@index([valueStringArray], type: Gin)
 }
 
 view RoutingFormResponse {
@@ -1108,6 +1126,44 @@ view RoutingFormResponse {
   utm_campaign                     String?
   utm_term                         String?
   utm_content                      String?
+}
+
+model RoutingFormResponseDenormalized {
+  id                      Int                           @id
+  formId                  String
+  formName                String
+  formTeamId              Int?
+  formUserId              Int?
+  bookingUid              String?
+  bookingId               Int?
+  booking                 Booking?                      @relation(fields: [bookingId], references: [id])
+  bookingStatus           BookingStatus?
+  bookingStatusOrder      Int?
+  bookingCreatedAt        DateTime?                     @db.Timestamp(3)
+  bookingStartTime        DateTime?                     @db.Timestamp(3)
+  bookingEndTime          DateTime?                     @db.Timestamp(3)
+  bookingUserId           Int?
+  bookingUserName         String?
+  bookingUserEmail        String?
+  bookingUserAvatarUrl    String?
+  bookingAssignmentReason String?
+  eventTypeId             Int?
+  eventTypeParentId       Int?
+  eventTypeSchedulingType String?
+  createdAt               DateTime                      @db.Timestamp(3)
+  utm_source              String?
+  utm_medium              String?
+  utm_campaign            String?
+  utm_term                String?
+  utm_content             String?
+  response                App_RoutingForms_FormResponse @relation(fields: [id], references: [id], onDelete: Cascade)
+  fields                  RoutingFormResponseField[]
+
+  @@index([formId])
+  @@index([formId, createdAt])
+  @@index([bookingId])
+  @@index([bookingUserId])
+  @@index([eventTypeId, eventTypeParentId])
 }
 
 model Feedback {
@@ -2086,44 +2142,4 @@ model WorkflowOptOutContact {
   updatedAt DateTime            @updatedAt
 
   @@unique([type, value])
-}
-
-model RoutingFormResponseDenormalized {
-  id                      Int            @id
-  response                Json           @db.JsonB
-  responseByFieldId       Json           @db.JsonB
-  formId                  String
-  formName                String
-  formTeamId              Int?
-  formUserId              Int?
-  bookingUid              String?
-  bookingId               Int?
-  booking                 Booking?       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  bookingStatus           BookingStatus?
-  bookingStatusOrder      Int?
-  bookingCreatedAt        DateTime?      @db.Timestamp(3)
-  bookingStartTime        DateTime?      @db.Timestamp(3)
-  bookingEndTime          DateTime?      @db.Timestamp(3)
-  bookingUserId           Int?
-  bookingUserName         String?
-  bookingUserEmail        String?
-  bookingUserAvatarUrl    String?
-  bookingAssignmentReason String?
-  eventTypeId             Int?
-  eventTypeParentId       Int?
-  eventTypeSchedulingType String?
-  createdAt               DateTime       @db.Timestamp(3)
-  utm_source              String?
-  utm_medium              String?
-  utm_campaign            String?
-  utm_term                String?
-  utm_content             String?
-
-  @@index([formId], name: "idx_form_id")
-  @@index([formId, createdAt], name: "idx_form_id_created_at")
-  @@index([bookingId], name: "idx_routing_form_response_booking_id")
-  @@index([bookingUserId], name: "idx_routing_form_response_booking_user_id")
-  @@index([responseByFieldId], type: Gin, name: "idx_response_by_field_id")
-  @@index([eventTypeId, eventTypeParentId], name: "idx_event_type_hierarchy")
-  @@index([bookingAssignmentReason], map: "idx_booking_assignment_reason_lower")
 }
