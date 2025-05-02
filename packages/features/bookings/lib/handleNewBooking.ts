@@ -192,14 +192,18 @@ const buildDryRunBooking = ({
   allHostUsers: { id: number }[];
   isManagedEventType: boolean;
 }) => {
+  const sanitizedOrganizerUser = {
+    ...organizerUser,
+    credentials: undefined,
+  };
   const booking = {
     id: -101,
     uid: "DRY_RUN_UID",
     iCalUID: "DRY_RUN_ICAL_UID",
     status: BookingStatus.ACCEPTED,
     eventTypeId: eventTypeId,
-    user: organizerUser,
-    userId: organizerUser.id,
+    user: sanitizedOrganizerUser,
+    userId: sanitizedOrganizerUser.id,
     title: eventName,
     startTime: new Date(startTime),
     endTime: new Date(endTime),
@@ -1383,6 +1387,7 @@ async function handler(
         allHostUsers: users,
         isManagedEventType,
       });
+
       booking = dryRunBooking;
       troubleshooterData = {
         ...troubleshooterData,
