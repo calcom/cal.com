@@ -125,8 +125,8 @@ export class UserVerifiedResourcesController {
   ): Promise<UserVerifiedEmailsOutput> {
     const verifiedEmails = await this.verifiedResourcesService.getUserVerifiedEmails(
       userId,
-      pagination.skip,
-      pagination.take
+      pagination?.skip ?? 0,
+      pagination?.take ?? 250
     );
     return {
       status: SUCCESS_STATUS,
@@ -146,8 +146,8 @@ export class UserVerifiedResourcesController {
   ): Promise<UserVerifiedPhonesOutput> {
     const verifiedPhoneNumbers = await this.verifiedResourcesService.getUserVerifiedPhoneNumbers(
       userId,
-      pagination.skip,
-      pagination.take
+      pagination?.skip ?? 0,
+      pagination?.take ?? 250
     );
     return {
       status: SUCCESS_STATUS,

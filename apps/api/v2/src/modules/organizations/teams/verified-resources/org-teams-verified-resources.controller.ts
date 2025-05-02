@@ -179,8 +179,8 @@ export class OrgTeamsVerifiedResourcesController {
   ): Promise<TeamVerifiedEmailsOutput> {
     const verifiedEmails = await this.verifiedResourcesService.getTeamVerifiedEmails(
       teamId,
-      pagination.skip,
-      pagination.take
+      pagination?.skip ?? 0,
+      pagination?.take ?? 250
     );
     return {
       status: SUCCESS_STATUS,
@@ -202,8 +202,8 @@ export class OrgTeamsVerifiedResourcesController {
   ): Promise<TeamVerifiedPhonesOutput> {
     const verifiedPhoneNumbers = await this.verifiedResourcesService.getTeamVerifiedPhoneNumbers(
       teamId,
-      pagination.skip,
-      pagination.take
+      pagination?.skip ?? 0,
+      pagination?.take ?? 250
     );
     return {
       status: SUCCESS_STATUS,
