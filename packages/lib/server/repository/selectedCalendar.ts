@@ -161,9 +161,11 @@ export class SelectedCalendarRepository {
             },
           },
         },
+        // RN we only support google calendar, outlook calendar subscriptions for now
         integration: {
           in: ["google_calendar", "office365_calendar"],
         },
+        // We skip retrying calendars that have errored
         error: null,
         OR: [
           // Google Calendar: Pending or expiring subscriptions
@@ -190,6 +192,7 @@ export class SelectedCalendarRepository {
    */
   static async getNextBatchToUnwatch(limit = 100) {
     const where: Prisma.SelectedCalendarWhereInput = {
+      // RN we only support google calendar, outlook calendar subscriptions for now
       integration: {
         in: ["google_calendar", "office365_calendar"],
       },
