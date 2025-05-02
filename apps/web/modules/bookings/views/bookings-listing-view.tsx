@@ -39,10 +39,10 @@ type BookingListingStatus = (typeof validStatuses)[number];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
 
 type RecurringInfo = {
-  recurringEventId: string | null;
+  recurringEventId: string;
   count: number;
-  firstDate: Date | null;
-  bookings: { [key: string]: Date[] };
+  firstDate: Date;
+  bookings: { CANCELLED: Date[]; ACCEPTED: Date[]; REJECTED: Date[]; PENDING: Date[]; AWAITING_HOST: Date[] };
 };
 
 const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
