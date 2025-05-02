@@ -207,24 +207,31 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           </Section.SubSectionHeader>
           {onBookingWriteToEventObject ? (
             <Section.SubSectionContent>
-              <div className="grid grid-cols-3 gap-4">
-                <div>{t("field_name")}</div>
-                <div>{t("value")}</div>
+              <div className="flex gap-4">
+                <div className="flex-1">{t("field_name")}</div>
+                <div className="flex-1">{t("value")}</div>
+                <div className="w-10" />
               </div>
               <Section.SubSectionNested>
                 {Object.keys(onBookingWriteToEventObjectMap).map((key) => (
-                  <div className="mt-2 grid grid-cols-3 gap-4" key={key}>
-                    <div>
-                      <InputField value={key} readOnly size="sm" />
+                  <div className="mt-2 flex items-center gap-4" key={key}>
+                    <div className="flex-1">
+                      <InputField value={key} readOnly size="sm" className="w-full" />
                     </div>
-                    <div>
-                      <InputField value={onBookingWriteToEventObjectMap[key]} readOnly size="sm" />
+                    <div className="flex-1">
+                      <InputField
+                        value={onBookingWriteToEventObjectMap[key]}
+                        readOnly
+                        size="sm"
+                        className="w-full"
+                      />
                     </div>
-                    <div>
+                    <div className="flex w-10 justify-center">
                       <Button
-                        StartIcon="trash"
+                        StartIcon="x"
                         variant="icon"
-                        color="destructive"
+                        size="sm"
+                        color="minimal"
                         onClick={() => {
                           const newObject = onBookingWriteToEventObjectMap;
                           delete onBookingWriteToEventObjectMap[key];
@@ -234,10 +241,11 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                     </div>
                   </div>
                 ))}
-                <div className="mt-2 grid grid-cols-3 gap-4">
-                  <div>
+                <div className="mt-2 flex gap-4">
+                  <div className="flex-1">
                     <InputField
                       size="sm"
+                      className="w-full"
                       value={newOnBookingWriteToEventObjectField.field}
                       onChange={(e) =>
                         setNewOnBookingWriteToEventObjectField({
@@ -247,9 +255,10 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                       }
                     />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <InputField
                       size="sm"
+                      className="w-full"
                       value={newOnBookingWriteToEventObjectField.value}
                       onChange={(e) =>
                         setNewOnBookingWriteToEventObjectField({
@@ -259,6 +268,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                       }
                     />
                   </div>
+                  <div className="w-10" />
                 </div>
               </Section.SubSectionNested>
               <Button

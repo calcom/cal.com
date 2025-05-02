@@ -93,31 +93,34 @@ const WriteToObjectSettings = ({
 
       {optionEnabled ? (
         <Section.SubSectionContent>
-          <div className="grid grid-cols-5 gap-4">
-            <div>{t("field_name")}</div>
-            <div>{t("field_type")}</div>
-            <div>{t("value")}</div>
-            <div>{t("when_to_write")}</div>
+          <div className="flex gap-4">
+            <div className="flex-1">{t("field_name")}</div>
+            <div className="flex-1">{t("field_type")}</div>
+            <div className="flex-1">{t("value")}</div>
+            <div className="flex-1">{t("when_to_write")}</div>
+            <div className="w-10" />
           </div>
           <Section.SubSectionNested>
             {Object.keys(writeToObjectData).map((key) => (
-              <div className="mt-2 flex grid grid-cols-5 items-center gap-4" key={key}>
-                <div>
-                  <InputField value={key} readOnly size="sm" />
+              <div className="mt-2 flex items-center gap-4" key={key}>
+                <div className="flex-1">
+                  <InputField value={key} readOnly size="sm" className="w-full" />
                 </div>
-                <div>
+                <div className="flex-1">
                   <Select
                     size="sm"
+                    className="w-full"
                     value={fieldTypeOptions.find(
                       (option) => option.value === writeToObjectData[key].fieldType
                     )}
                     isDisabled={true}
                   />
                 </div>
-                <div>
+                <div className="flex-1">
                   {writeToObjectData[key].fieldType === SalesforceFieldType.DATE ? (
                     <Select
                       size="sm"
+                      className="w-full"
                       value={dateFieldValueOptions.find(
                         (option) => option.value === writeToObjectData[key].value
                       )}
@@ -126,30 +129,37 @@ const WriteToObjectSettings = ({
                   ) : writeToObjectData[key].fieldType === SalesforceFieldType.CHECKBOX ? (
                     <Select
                       size="sm"
+                      className="w-full"
                       value={checkboxFieldValueOptions.find(
                         (option) => option.value === writeToObjectData[key].value
                       )}
                       isDisabled={true}
                     />
                   ) : (
-                    <InputField value={writeToObjectData[key].value as string} readOnly size="sm" />
+                    <InputField
+                      value={writeToObjectData[key].value as string}
+                      readOnly
+                      size="sm"
+                      className="w-full"
+                    />
                   )}
                 </div>
-                <div>
+                <div className="flex-1">
                   <Select
                     size="sm"
+                    className="w-full"
                     value={whenToWriteToRecordOptions.find(
                       (option) => option.value === writeToObjectData[key].whenToWrite
                     )}
                     isDisabled={true}
                   />
                 </div>
-                <div>
+                <div className="flex w-10 justify-center">
                   <Button
                     size="sm"
-                    StartIcon="trash"
+                    StartIcon="x"
                     variant="icon"
-                    color="destructive"
+                    color="minimal"
                     onClick={() => {
                       const newObject = writeToObjectData;
                       delete writeToObjectData[key];
@@ -159,10 +169,11 @@ const WriteToObjectSettings = ({
                 </div>
               </div>
             ))}
-            <div className="mt-2 grid grid-cols-5 gap-4">
-              <div>
+            <div className="mt-2 flex gap-4">
+              <div className="flex-1">
                 <InputField
                   size="sm"
+                  className="w-full"
                   value={newOnWriteToRecordEntry.field}
                   onChange={(e) =>
                     setNewOnWriteToRecordEntry({
@@ -172,9 +183,10 @@ const WriteToObjectSettings = ({
                   }
                 />
               </div>
-              <div>
+              <div className="flex-1">
                 <Select
                   size="sm"
+                  className="w-full"
                   options={fieldTypeOptions}
                   value={fieldTypeSelectedOption}
                   onChange={(e) => {
@@ -192,10 +204,11 @@ const WriteToObjectSettings = ({
                   }}
                 />
               </div>
-              <div>
+              <div className="flex-1">
                 {newOnWriteToRecordEntry.fieldType === SalesforceFieldType.DATE ? (
                   <Select
                     size="sm"
+                    className="w-full"
                     options={dateFieldValueOptions}
                     value={dateFieldSelectedOption}
                     onChange={(e) => {
@@ -211,6 +224,7 @@ const WriteToObjectSettings = ({
                 ) : newOnWriteToRecordEntry.fieldType === SalesforceFieldType.CHECKBOX ? (
                   <Select
                     size="sm"
+                    className="w-full"
                     options={checkboxFieldValueOptions}
                     value={checkboxFieldSelectedOption}
                     onChange={(e) => {
@@ -226,6 +240,7 @@ const WriteToObjectSettings = ({
                 ) : (
                   <InputField
                     size="sm"
+                    className="w-full"
                     value={newOnWriteToRecordEntry.value as string}
                     onChange={(e) =>
                       setNewOnWriteToRecordEntry({
@@ -236,9 +251,10 @@ const WriteToObjectSettings = ({
                   />
                 )}
               </div>
-              <div>
+              <div className="flex-1">
                 <Select
                   size="sm"
+                  className="w-full"
                   options={whenToWriteToRecordOptions}
                   value={whenToWriteSelectedOption}
                   onChange={(e) => {
@@ -252,6 +268,7 @@ const WriteToObjectSettings = ({
                   }}
                 />
               </div>
+              <div className="w-10" />
             </div>
           </Section.SubSectionNested>
           <Button
