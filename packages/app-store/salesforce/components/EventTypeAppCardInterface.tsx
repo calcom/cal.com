@@ -195,7 +195,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         ) : null}
 
         <Section.SubSection>
-          <Section.SubSectionHeader icon="zap" title={t("on_booking_write_to_event_object")}>
+          <Section.SubSectionHeader icon="badge-check" title={t("on_booking_write_to_event_object")}>
             <Switch
               size="sm"
               labelOnLeading
@@ -332,7 +332,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           <>
             <Section.SubSection>
               <Section.SubSectionHeader
-                icon="user-plus"
+                icon="users"
                 title={t("salesforce_book_directly_with_attendee_owner")}
                 labelFor="book-directly-with-attendee-owner">
                 <Switch
@@ -375,7 +375,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   {checkOwnerSelectedOption.value === SalesforceRecordEnum.CONTACT ? (
                     <Section.SubSection>
                       <Section.SubSectionHeader
-                        icon="user-plus"
+                        icon="users"
                         title={t("salesforce_round_robin_skip_fallback_to_lead_owner")}
                         labelFor="round-robin-skip-fallback-to-lead-owner">
                         <Switch
@@ -391,7 +391,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   ) : null}
                   <Section.SubSection>
                     <Section.SubSectionHeader
-                      icon="user-plus"
+                      icon="users"
                       title={t("salesforce_if_free_email_domain_skip_owner_check")}
                       labelFor="if-free-email-domain-skip-owner-check">
                       <Switch
@@ -426,7 +426,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
 
         <Section.SubSection>
           <Section.SubSectionHeader
-            icon="user-plus"
+            icon="calendar"
             title="Send no show attendee data to event object"
             labelFor="send-no-show-attendee-data">
             <Switch
