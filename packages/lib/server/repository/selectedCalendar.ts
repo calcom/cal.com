@@ -253,13 +253,19 @@ export class SelectedCalendarRepository {
     });
   }
 
-  static async findFirstByMicrosoftSubscriptionId(outlookSubscriptionId: string) {
-    return await prisma.selectedCalendar.findFirst({
+  static async findManyByOutlookSubscriptionIds(subscriptionIds: string[]) {
+    if (subscriptionIds.length === 0) {
+      return [];
+    }
+    return await prisma.selectedCalendar.findMany({
       where: {
-        outlookSubscriptionId,
+        outlookSubscriptionId: { in: subscriptionIds },
         integration: "office365_calendar",
       },
       select: {
+        id: true,
+        outlookSubscriptionId: true,
+        externalId: true,
         credential: {
           select: {
             ...credentialForCalendarServiceSelect,
