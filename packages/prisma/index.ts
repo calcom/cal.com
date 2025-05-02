@@ -7,6 +7,7 @@ import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallo
 import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
 import { usageTrackingExtention } from "./extensions/usage-tracking";
+import { setupSlowQueryMonitoring } from "./lib/slow-query-monitoring";
 import { bookingReferenceMiddleware } from "./middleware";
 
 const prismaOptions: Prisma.PrismaClientOptions = {};
@@ -32,7 +33,24 @@ if (!isNaN(loggerLevel)) {
       break;
     default:
       // For values 0, 1, 2 (or anything else below 3)
-      prismaOptions.log = ["query", "info", "error", "warn"];
+      prismaOptions.log = [
+        {
+          emit: "event",
+          level: "query",
+        },
+        {
+          emit: "stdout",
+          level: "error",
+        },
+        {
+          emit: "stdout",
+          level: "warn",
+        },
+        {
+          emit: "stdout",
+          level: "info",
+        },
+      ];
       break;
   }
 }
@@ -41,14 +59,23 @@ if (!isNaN(loggerLevel)) {
 const prismaWithoutClientExtensions =
   globalForPrisma.prismaWithoutClientExtensions || new PrismaClientWithoutExtension(prismaOptions);
 
-export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
-  new PrismaClientWithoutExtension({ ...prismaOptions, ...options })
+// Setup slow query monitoring
+setupSlowQueryMonitoring(prismaWithoutClientExtensions);
+
+export const customPrisma = (options?: Prisma.PrismaClientOptions) => {
+  const client = new PrismaClientWithoutExtension({ ...prismaOptions, ...options });
+
+  // Setup slow query monitoring for custom instance
+  setupSlowQueryMonitoring(client);
+
+  return client
     .$extends(usageTrackingExtention())
     .$extends(excludeLockedUsersExtension())
     .$extends(excludePendingPaymentsExtension())
     .$extends(bookingIdempotencyKeyExtension())
     .$extends(disallowUndefinedDeleteUpdateManyExtension())
     .$extends(withAccelerate());
+};
 
 // If any changed on middleware server restart is required
 // TODO: Migrate it to $extends
