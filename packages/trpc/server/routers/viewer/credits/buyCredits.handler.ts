@@ -1,4 +1,4 @@
-import stripe from "@calcom/features/ee/payments/server/stripe";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -14,17 +14,24 @@ type BuyCreditsOptions = {
 export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
   const { quantity, teamId } = input;
 
+  if (!process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Credits are not enabled",
+    });
+  }
+
   const redirect_uri = `${WEBAPP_URL}/settings/teams/${teamId}/billing`;
 
-  const session = await stripe.checkout.sessions.create({
-    line_items: [{ price: process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID, quantity }],
-    mode: "payment",
-    success_url: redirect_uri,
-    cancel_url: redirect_uri,
-    metadata: {
-      teamId: teamId.toString(),
-    },
+  const billingService = new StripeBillingService();
+
+  const { checkoutUrl } = await billingService.createOneTimeCheckout({
+    priceId: process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID,
+    quantity,
+    successUrl: redirect_uri,
+    cancelUrl: redirect_uri,
+    metadata: { teamId: teamId.toString() },
   });
 
-  return { sessionUrl: session.url };
+  return { sessionUrl: checkoutUrl };
 };
