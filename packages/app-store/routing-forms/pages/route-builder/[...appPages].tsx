@@ -1430,8 +1430,6 @@ export default function RouteBuilder({
   appUrl,
   enrichedWithUserProfileForm,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
-  console.log("########### enrichedWithUserProfileForm ############", enrichedWithUserProfileForm);
-
   return (
     <>
       <SingleForm
