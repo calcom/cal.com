@@ -300,4 +300,15 @@ export class MembershipRepository {
       },
     });
   }
+  static async findAllAcceptedMemberships(userId: number) {
+    return prisma.membership.findMany({
+      where: {
+        userId,
+        accepted: true,
+      },
+      select: {
+        teamId: true,
+      },
+    });
+  }
 }

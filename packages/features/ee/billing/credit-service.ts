@@ -9,7 +9,9 @@ import { cancelScheduledMessagesAndScheduleEmails } from "@calcom/features/ee/wo
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
-import { prisma } from "@calcom/prisma";
+import { CreditsRepository } from "@calcom/lib/server/repository/credits";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { CreditType } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["[CreditService]"] });
@@ -69,23 +71,11 @@ export class CreditService {
     if (!IS_SMS_CREDITS_ENABLED) return true;
 
     if (teamId) {
-      const team = await prisma.team.findUnique({
-        where: {
-          id: teamId,
-        },
-        select: {
-          credits: {
-            select: {
-              limitReachedAt: true,
-            },
-          },
-        },
-      });
-
-      if (!team) return false;
+      const creditBalance = await CreditsRepository.findCreditBalance({ teamId });
 
       const limitReached =
-        team.credits?.limitReachedAt && dayjs(team.credits.limitReachedAt).isAfter(dayjs().startOf("month"));
+        creditBalance?.limitReachedAt &&
+        dayjs(creditBalance.limitReachedAt).isAfter(dayjs().startOf("month"));
 
       if (!limitReached) return true;
 
@@ -94,10 +84,8 @@ export class CreditService {
       const availableCredits = teamCredits.totalRemainingMonthlyCredits + teamCredits.additionalCredits;
 
       if (availableCredits > 0) {
-        await prisma.creditBalance.update({
-          where: {
-            teamId,
-          },
+        await CreditsRepository.updateCreditBalance({
+          teamId,
           data: {
             limitReachedAt: null,
             warningSentAt: null,
@@ -116,45 +104,23 @@ export class CreditService {
   }
 
   async getTeamWithAvailableCredits(userId: number) {
-    const teams = await prisma.membership.findMany({
-      where: {
-        userId,
-        accepted: true,
-      },
-    });
+    const memberships = await MembershipRepository.findAllAcceptedMemberships(userId);
 
     //check if user is member of team that has available credits
-    for (const team of teams) {
-      const teamWithCredits = await prisma.team.findUnique({
-        where: {
-          id: team.id,
-        },
-        select: {
-          id: true,
-          credits: {
-            select: {
-              id: true,
-              limitReachedAt: true,
-            },
-          },
-        },
-      });
+    for (const membership of memberships) {
+      const creditBalance = await CreditsRepository.findCreditBalance({ teamId: membership.teamId });
 
-      if (!teamWithCredits) continue;
-
-      const allCredits = await this.getAllCreditsForTeam(teamWithCredits.id);
+      const allCredits = await this.getAllCreditsForTeam(membership.teamId);
       const limitReached =
-        teamWithCredits.credits?.limitReachedAt &&
-        dayjs(teamWithCredits.credits.limitReachedAt).isAfter(dayjs().startOf("month"));
+        creditBalance?.limitReachedAt &&
+        dayjs(creditBalance.limitReachedAt).isAfter(dayjs().startOf("month"));
 
       const availableCredits = allCredits.totalRemainingMonthlyCredits + allCredits.additionalCredits;
 
       if (!limitReached || availableCredits > 0) {
         if (limitReached) {
-          await prisma.creditBalance.update({
-            where: {
-              teamId: teamWithCredits.id,
-            },
+          await CreditsRepository.updateCreditBalance({
+            teamId: membership.teamId,
             data: {
               limitReachedAt: null,
               warningSentAt: null,
@@ -162,7 +128,7 @@ export class CreditService {
           });
         }
         return {
-          teamId: teamWithCredits.id,
+          teamId: membership.teamId,
           availableCredits,
           creditType:
             allCredits.totalRemainingMonthlyCredits > 0 ? CreditType.MONTHLY : CreditType.ADDITIONAL,
@@ -171,7 +137,7 @@ export class CreditService {
     }
 
     return {
-      teamId: teams[0].id,
+      teamId: memberships[0].teamId,
       availableCredits: 0,
       creditType: CreditType.ADDITIONAL,
     };
@@ -215,38 +181,20 @@ export class CreditService {
     creditType: CreditType;
   }) {
     const { credits, creditType, bookingUid, smsSid, teamId } = props;
-    let creditBalance: { id: string; additionalCredits: number } | null = null;
-
-    creditBalance = await prisma.creditBalance.findUnique({
-      where: {
-        teamId,
-      },
-      select: {
-        id: true,
-        additionalCredits: true,
-      },
-    });
+    let creditBalance: { id: string; additionalCredits: number } | null =
+      await CreditsRepository.findCreditBalance({ teamId });
 
     if (!creditBalance) {
-      creditBalance = await prisma.creditBalance.create({
-        data: {
-          teamId: teamId,
-        },
-        select: {
-          id: true,
-          additionalCredits: true,
-        },
+      creditBalance = await CreditsRepository.createCreditBalance({
+        teamId,
       });
     }
 
     if (credits && creditType === CreditType.ADDITIONAL) {
       const decrementValue =
         credits <= creditBalance.additionalCredits ? credits : creditBalance.additionalCredits;
-
-      await prisma.creditBalance.update({
-        where: {
-          id: creditBalance.id,
-        },
+      await CreditsRepository.updateCreditBalance({
+        id: creditBalance.id,
         data: {
           additionalCredits: {
             decrement: decrementValue,
@@ -257,15 +205,13 @@ export class CreditService {
 
     if (creditBalance) {
       // also track logs with undefined credits (will be set on the cron job)
-      await prisma.creditExpenseLog.create({
-        data: {
-          creditBalanceId: creditBalance.id,
-          credits,
-          creditType,
-          date: new Date(),
-          bookingUid,
-          smsSid,
-        },
+      await CreditsRepository.createCreditExpenseLog({
+        creditBalanceId: creditBalance.id,
+        credits,
+        creditType,
+        date: new Date(),
+        bookingUid,
+        smsSid,
       });
     }
   }
@@ -287,9 +233,7 @@ export class CreditService {
     const { totalMonthlyCredits } = await this.getAllCreditsForTeam(teamId);
     const warningLimit = totalMonthlyCredits * 0.2;
     if (remainingCredits < warningLimit) {
-      const creditBalance = await prisma.creditBalance.findUnique({
-        where: { teamId },
-      });
+      const creditBalance = await CreditsRepository.findCreditBalance({ teamId });
 
       if (
         creditBalance?.limitReachedAt &&
@@ -298,24 +242,7 @@ export class CreditService {
         return; // team has already reached limit this month
       }
 
-      const team = await prisma.team.findUnique({
-        where: { id: teamId },
-        select: {
-          name: true,
-          members: {
-            where: { role: { in: ["ADMIN", "OWNER"] }, accepted: true },
-            select: {
-              user: {
-                select: {
-                  name: true,
-                  email: true,
-                  locale: true,
-                },
-              },
-            },
-          },
-        },
-      });
+      const team = await TeamRepository.findTeamWithAdmins(teamId);
 
       if (!team) {
         log.error("Team not found to send warning email");
@@ -337,8 +264,8 @@ export class CreditService {
           },
         });
 
-        await prisma.creditBalance.update({
-          where: { teamId },
+        await CreditsRepository.updateCreditBalance({
+          teamId,
           data: {
             limitReachedAt: new Date(),
             warningSentAt: null,
@@ -370,8 +297,8 @@ export class CreditService {
         },
       });
 
-      await prisma.creditBalance.update({
-        where: { teamId },
+      await CreditsRepository.updateCreditBalance({
+        teamId,
         data: {
           warningSentAt: new Date(),
         },
@@ -379,8 +306,8 @@ export class CreditService {
       return;
     }
 
-    await prisma.creditBalance.update({
-      where: { teamId },
+    await CreditsRepository.updateCreditBalance({
+      teamId,
       data: {
         warningSentAt: null,
         limitReachedAt: null,
@@ -389,22 +316,7 @@ export class CreditService {
   }
 
   async getMonthlyCredits(teamId: number) {
-    const team = await prisma.team.findUnique({
-      where: {
-        id: teamId,
-      },
-      select: {
-        members: {
-          select: {
-            accepted: true,
-          },
-        },
-        id: true,
-        metadata: true,
-        parentId: true,
-        isOrganization: true,
-      },
-    });
+    const team = await TeamRepository.findTeamWithMembers(teamId);
 
     if (!team) return 0;
 
@@ -436,27 +348,7 @@ export class CreditService {
   }
 
   async getAllCreditsForTeam(teamId: number) {
-    const creditBalance = await prisma.creditBalance.findUnique({
-      where: {
-        teamId,
-      },
-      select: {
-        additionalCredits: true,
-        expenseLogs: {
-          where: {
-            date: {
-              gte: dayjs().startOf("month").toDate(),
-              lte: new Date(),
-            },
-            creditType: CreditType.MONTHLY,
-          },
-          select: {
-            date: true,
-            credits: true,
-          },
-        },
-      },
-    });
+    const creditBalance = await CreditsRepository.findCreditBalanceWithExpenseLogs({ teamId });
 
     const totalMonthlyCredits = await this.getMonthlyCredits(teamId);
     const totalMonthlyCreditsUsed =
