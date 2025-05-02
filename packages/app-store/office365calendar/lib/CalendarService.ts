@@ -775,7 +775,7 @@ export default class Office365CalendarService implements Calendar {
          * Under 7 days
          * https://learn.microsoft.com/en-us/graph/change-notifications-overview#subscription-lifetime
          */
-        expirationDateTime: dayjs(new Date()).add(10_080, "minutes").toISOString(),
+        expirationDateTime: dayjs(new Date()).add(10_000, "minutes").toISOString(),
       }),
     });
     const res = startWatchingCalendarResponseSchema.parse(await rawRes.json());
