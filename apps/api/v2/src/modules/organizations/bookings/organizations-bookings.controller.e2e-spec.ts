@@ -93,12 +93,17 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
       organization = await organizationsRepositoryFixture.create({ name: "organization bookings" });
+      oAuthClient = await createOAuthClient(organization.id);
       team1 = await teamRepositoryFixture.create({
         name: "team orgs booking 1",
         isOrganization: false,
         parent: { connect: { id: organization.id } },
+        createdByOAuthClient: {
+          connect: {
+            id: oAuthClient.id,
+          },
+        },
       });
-      oAuthClient = await createOAuthClient(organization.id);
 
       nonOrgUser1 = await userRepositoryFixture.create({
         email: nonOrgUserEmail1,
@@ -149,14 +154,6 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
         assignAllTeamMembers: true,
         bookingFields: [],
         locations: [],
-        metadata: {
-          disableStandardEmails: {
-            all: {
-              host: true,
-              attendee: true,
-            },
-          },
-        },
       });
 
       const orgEventType2 = await eventTypesRepositoryFixture.createTeamEventType({
@@ -170,14 +167,6 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
         assignAllTeamMembers: false,
         bookingFields: [],
         locations: [],
-        metadata: {
-          disableStandardEmails: {
-            all: {
-              host: true,
-              attendee: true,
-            },
-          },
-        },
       });
 
       orgEventTypeId2 = orgEventType2.id;
