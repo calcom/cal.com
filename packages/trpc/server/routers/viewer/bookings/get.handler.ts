@@ -649,12 +649,20 @@ export async function getBookings({
 
   const totalCount = Number(countResult[0].count);
 
-  const recurringInfoParams: any[] = [];
-  let recurringInfoParamIndex = 1;
+  const recurringInfoBasicParams: any[] = [];
+  let recurringInfoBasicParamIndex = 1;
 
-  const addRecurringInfoParam = (value: any) => {
-    recurringInfoParams.push(value);
-    return `$${recurringInfoParamIndex++}`;
+  const addRecurringInfoBasicParam = (value: any) => {
+    recurringInfoBasicParams.push(value);
+    return `$${recurringInfoBasicParamIndex++}`;
+  };
+
+  const recurringInfoExtendedParams: any[] = [];
+  let recurringInfoExtendedParamIndex = 1;
+
+  const addRecurringInfoExtendedParam = (value: any) => {
+    recurringInfoExtendedParams.push(value);
+    return `$${recurringInfoExtendedParamIndex++}`;
   };
 
   const recurringInfoBasicQuery = `
@@ -663,7 +671,7 @@ export async function getBookings({
            COUNT("recurringEventId") as "countRecurringEventId"
     FROM "public"."Booking"
     WHERE "recurringEventId" IS NOT NULL
-    AND "userId" = ${addRecurringInfoParam(user.id)}
+    AND "userId" = ${addRecurringInfoBasicParam(user.id)}
     GROUP BY "recurringEventId"
   `;
 
@@ -671,16 +679,16 @@ export async function getBookings({
     SELECT "recurringEventId", "status", "startTime"
     FROM "public"."Booking"
     WHERE "recurringEventId" IS NOT NULL
-    AND "userId" = ${addRecurringInfoParam(user.id)}
+    AND "userId" = ${addRecurringInfoExtendedParam(user.id)}
     GROUP BY "recurringEventId", "status", "startTime"
   `;
 
   const [recurringInfoBasicResult, recurringInfoExtendedResult] = await Promise.all([
     prisma.$queryRaw<{ recurringEventId: string; minStartTime: Date; countRecurringEventId: bigint }[]>(
-      PrismaClientType.sql([recurringInfoBasicQuery, ...recurringInfoParams])
+      PrismaClientType.sql([recurringInfoBasicQuery, ...recurringInfoBasicParams])
     ),
     prisma.$queryRaw<{ recurringEventId: string; status: string; startTime: Date }[]>(
-      PrismaClientType.sql([recurringInfoExtendedQuery, ...recurringInfoParams])
+      PrismaClientType.sql([recurringInfoExtendedQuery, ...recurringInfoExtendedParams])
     ),
   ]);
 
