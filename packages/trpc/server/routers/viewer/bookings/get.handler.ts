@@ -586,7 +586,7 @@ export async function getBookings({
 
   const finalQuery = `
     SELECT * FROM (
-      ${sqlQueries.join("\nUNION\n")}
+      ${sqlQueries.join("\nUNION ALL\n")}
     ) data
     ${whereConditions.length > 0 ? `WHERE ${whereConditions.join(" AND ")}` : ""}
     ${orderByClause}
