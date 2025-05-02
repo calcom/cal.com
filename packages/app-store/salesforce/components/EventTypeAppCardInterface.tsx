@@ -373,35 +373,45 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
               {isRoundRobinLeadSkipEnabled ? (
                 <>
                   {checkOwnerSelectedOption.value === SalesforceRecordEnum.CONTACT ? (
-                    <div className="my-4">
+                    <Section.SubSection>
+                      <Section.SubSectionHeader
+                        icon="user-plus"
+                        title={t("salesforce_round_robin_skip_fallback_to_lead_owner")}
+                        labelFor="round-robin-skip-fallback-to-lead-owner">
+                        <Switch
+                          id="round-robin-skip-fallback-to-lead-owner"
+                          size="sm"
+                          checked={roundRobinSkipFallbackToLeadOwner}
+                          onCheckedChange={(checked) => {
+                            setAppData("roundRobinSkipFallbackToLeadOwner", checked);
+                          }}
+                        />
+                      </Section.SubSectionHeader>
+                    </Section.SubSection>
+                  ) : null}
+                  <Section.SubSection>
+                    <Section.SubSectionHeader
+                      icon="user-plus"
+                      title={t("salesforce_if_free_email_domain_skip_owner_check")}
+                      labelFor="if-free-email-domain-skip-owner-check">
                       <Switch
-                        label={t("salesforce_round_robin_skip_fallback_to_lead_owner")}
-                        labelOnLeading
-                        checked={roundRobinSkipFallbackToLeadOwner}
+                        id="if-free-email-domain-skip-owner-check"
+                        size="sm"
+                        checked={ifFreeEmailDomainSkipOwnerCheck}
                         onCheckedChange={(checked) => {
-                          setAppData("roundRobinSkipFallbackToLeadOwner", checked);
+                          setAppData("ifFreeEmailDomainSkipOwnerCheck", checked);
                         }}
                       />
-                    </div>
-                  ) : null}
-                  <div className="my-4">
-                    <Switch
-                      label={t("salesforce_if_free_email_domain_skip_owner_check")}
-                      labelOnLeading
-                      checked={ifFreeEmailDomainSkipOwnerCheck}
-                      onCheckedChange={(checked) => {
-                        setAppData("ifFreeEmailDomainSkipOwnerCheck", checked);
-                      }}
-                    />
-                  </div>
+                    </Section.SubSectionHeader>
+                    <Alert severity="info" title={t("skip_rr_description")} />
+                  </Section.SubSection>
                 </>
               ) : null}
-              <Alert className="mt-2" severity="neutral" title={t("skip_rr_description")} />
             </>
           </>
         ) : null}
 
-        <div className="mt-4">
+        <Section.SubSection>
           <WriteToObjectSettings
             bookingAction={BookingActionEnum.ON_CANCEL}
             optionLabel={t("salesforce_on_cancel_write_to_event")}
@@ -412,26 +422,32 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             }}
             updateWriteToObjectData={(data) => setAppData("onCancelWriteToEventRecordFields", data)}
           />
-        </div>
+        </Section.SubSection>
 
-        <div className="ml-2 mt-4">
-          <Switch
-            label="Send no show attendee data to event object"
-            checked={sendNoShowAttendeeData}
-            onCheckedChange={(checked) => {
-              setAppData("sendNoShowAttendeeData", checked);
-            }}
-          />
+        <Section.SubSection>
+          <Section.SubSectionHeader
+            icon="user-plus"
+            title="Send no show attendee data to event object"
+            labelFor="send-no-show-attendee-data">
+            <Switch
+              id="send-no-show-attendee-data"
+              size="sm"
+              checked={sendNoShowAttendeeData}
+              onCheckedChange={(checked) => {
+                setAppData("sendNoShowAttendeeData", checked);
+              }}
+            />
+          </Section.SubSectionHeader>
           {sendNoShowAttendeeData ? (
-            <div className="mt-2">
+            <Section.SubSectionContent>
               <p className="mb-2">Field name to check (must be checkbox data type)</p>
               <InputField
                 value={sendNoShowAttendeeDataField}
                 onChange={(e) => setAppData("sendNoShowAttendeeDataField", e.target.value)}
               />
-            </div>
+            </Section.SubSectionContent>
           ) : null}
-        </div>
+        </Section.SubSection>
       </Section.Content>
     </AppCard>
   );
