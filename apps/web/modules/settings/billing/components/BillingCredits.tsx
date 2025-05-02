@@ -1,3 +1,5 @@
+"use client";
+
 import { ProgressBar } from "@tremor/react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
