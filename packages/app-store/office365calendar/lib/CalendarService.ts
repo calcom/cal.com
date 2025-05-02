@@ -41,7 +41,7 @@ interface IRequest {
   id: number;
 }
 
-interface ISettledResponse {
+export interface ISettledResponse {
   id: string;
   status: number;
   headers: {

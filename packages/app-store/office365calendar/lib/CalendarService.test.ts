@@ -1,6 +1,6 @@
 import prismock from "../../../../tests/libs/__mocks__/prisma";
 import oAuthManagerMock from "../../tests/__mocks__/OAuthManager";
-import { eventsBatchMockResponse } from "./__mocks__/office365apis";
+import { eventsBatchMockResponse, getEventsBatchMockResponse } from "./__mocks__/office365apis";
 
 import { describe, test, expect, beforeEach, vi } from "vitest";
 
@@ -134,13 +134,21 @@ function handleEventsRequest() {
     json: async () => ({
       value: [
         {
-          id: "calendar-id-1",
+          id: "example@cal.com",
           name: "Test Calendar",
           isDefaultCalendar: true,
           canEdit: true,
         },
       ],
     }),
+  };
+}
+
+function handleBatchRequest() {
+  return {
+    status: 200,
+    headers: new Map([["Content-Type", "application/json"]]),
+    json: async () => Promise.resolve({ responses: eventsBatchMockResponse }),
   };
 }
 
@@ -153,6 +161,10 @@ beforeEach(() => {
   oAuthManagerMock.OAuthManager = vi.fn().mockImplementation(() => ({
     requestRaw: vi.fn().mockImplementation(({ url }: { url: string; options?: RequestInit }) => {
       log.debug("Mocked request URL:", url);
+      if (url.includes("/$batch")) {
+        return Promise.resolve(handleBatchRequest());
+      }
+
       if (url.includes("/calendar/events")) {
         return Promise.resolve(handleEventsRequest());
       }
@@ -219,5 +231,108 @@ describe("CalendarCache", () => {
     });
 
     expect(cachedAvailability).toBeNull();
+  });
+
+  test("fetchAvailabilityAndSetCache should fetch and cache availability for selected calendars grouped by eventTypeId", async () => {
+    const credentialInDb = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credentialInDb);
+
+    const selectedCalendars = [
+      {
+        externalId: "calendar1@test.com",
+        eventTypeId: 1,
+      },
+      {
+        externalId: "calendar2@test.com",
+        eventTypeId: 1,
+      },
+      {
+        externalId: "calendar1@test.com",
+        eventTypeId: 2,
+      },
+      {
+        externalId: "calendar1@test.com",
+        eventTypeId: null,
+      },
+      {
+        externalId: "calendar2@test.com",
+        eventTypeId: null,
+      },
+    ];
+
+    vi.spyOn(calendarService, "fetchAvailability").mockResolvedValue(eventsBatchMockResponse);
+    const setAvailabilityInCacheSpy = vi.spyOn(calendarService, "setAvailabilityInCache");
+
+    await calendarService.fetchAvailabilityAndSetCache(selectedCalendars);
+
+    // Should make 2 calls - one for each unique eventTypeId
+    expect(calendarService.fetchAvailability).toHaveBeenCalledTimes(3);
+
+    // First call for eventTypeId 1 calendars
+    expect(calendarService.fetchAvailability).toHaveBeenNthCalledWith(1, {
+      timeMin: expect.any(String),
+      timeMax: expect.any(String),
+      items: [{ id: "calendar1@test.com" }, { id: "calendar2@test.com" }],
+    });
+
+    // Second call for eventTypeId 2 calendar
+    expect(calendarService.fetchAvailability).toHaveBeenNthCalledWith(2, {
+      timeMin: expect.any(String),
+      timeMax: expect.any(String),
+      items: [{ id: "calendar1@test.com" }],
+    });
+
+    // Second call for eventTypeId 2 calendar
+    expect(calendarService.fetchAvailability).toHaveBeenNthCalledWith(3, {
+      timeMin: expect.any(String),
+      timeMax: expect.any(String),
+      items: [{ id: "calendar1@test.com" }, { id: "calendar2@test.com" }],
+    });
+
+    // Should cache results for both calls
+    expect(setAvailabilityInCacheSpy).toHaveBeenCalledTimes(3);
+    expect(setAvailabilityInCacheSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        items: expect.any(Array),
+      }),
+      eventsBatchMockResponse
+    );
+  });
+
+  test("A cache set through fetchAvailabilityAndSetCache should be used when doing getAvailability", async () => {
+    const credentialInDb = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credentialInDb);
+    vi.setSystemTime(new Date("2025-04-01T00:00:00.000Z"));
+    const selectedCalendars = [
+      {
+        externalId: "calendar1@test.com",
+        integration: "office365_calendar",
+        eventTypeId: null,
+        credentialId: credentialInDb.id,
+        userId: credentialInDb.userId as number,
+      },
+    ];
+
+    const calendarCachesBefore = await prismock.calendarCache.findMany();
+    expect(calendarCachesBefore).toHaveLength(0);
+
+    const dateFromToCompare = "2025-05-02T07:00:00.0000000";
+    const dateToToCompare = "2025-05-02T07:30:00.0000000";
+
+    vi.spyOn(calendarService, "fetchAvailability").mockResolvedValue(
+      getEventsBatchMockResponse({
+        calendarIds: selectedCalendars.map((calendar) => calendar.externalId),
+        startDateTime: dateFromToCompare,
+        endDateTime: dateToToCompare,
+      })
+    );
+    await calendarService.fetchAvailabilityAndSetCache(selectedCalendars);
+    const calendarCachesAfter = await prismock.calendarCache.findMany();
+    console.log({ calendarCachesAfter });
+    expect(calendarCachesAfter).toHaveLength(1);
+    const dateFrom = "2025-04-01T00:00:00.000Z";
+    const dateTo = "2025-06-01T00:00:00.000Z";
+    const result = await calendarService.getAvailability(dateFrom, dateTo, selectedCalendars, true);
+    expect(result).toEqual([{ start: `${dateFromToCompare}Z`, end: `${dateToToCompare}Z` }]);
   });
 });
