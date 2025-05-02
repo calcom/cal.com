@@ -205,11 +205,13 @@ model Credential {
   paymentStatus     String?
   billingCycleStart Int?
 
-  destinationCalendars DestinationCalendar[]
-  selectedCalendars    SelectedCalendar[]
-  invalid              Boolean?              @default(false)
-  CalendarCache        CalendarCache[]
-  references           BookingReference[]
+  destinationCalendars   DestinationCalendar[]
+  selectedCalendars      SelectedCalendar[]
+  invalid                Boolean?              @default(false)
+  CalendarCache          CalendarCache[]
+  references             BookingReference[]
+  delegationCredentialId String?
+  delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([appId])
@@ -528,6 +530,7 @@ model OrganizationSettings {
   isAdminAPIEnabled                   Boolean    @default(false)
   allowSEOIndexing                    Boolean    @default(false)
   orgProfileRedirectsToVerifiedDomain Boolean    @default(false)
+  disablePhoneOnlySMSNotifications    Boolean    @default(false)
 }
 
 enum MembershipRole {
@@ -546,8 +549,6 @@ model Membership {
   user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   disableImpersonation Boolean           @default(false)
   AttributeToUser      AttributeToUser[]
-  createdAt            DateTime?         @default(now())
-  updatedAt            DateTime?         @updatedAt
 
   @@unique([userId, teamId])
   @@index([teamId])
@@ -761,21 +762,24 @@ model Availability {
 }
 
 model SelectedCalendar {
-  id                               String                @id @default(uuid())
-  user                             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                           Int
-  integration                      String
-  externalId                       String
-  credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  credentialId                     Int?
+  id                       String      @id @default(uuid())
+  user                     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                   Int
+  integration              String
+  externalId               String
+  credential               Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  credentialId             Int?
   // Used to identify a watched calendar channel in Google Calendar
-  googleChannelId                  String?
-  googleChannelKind                String?
-  googleChannelResourceId          String?
-  googleChannelResourceUri         String?
-  googleChannelExpiration          String?
-  delegationCredential             DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
-  delegationCredentialId           String?
+  googleChannelId          String?
+  googleChannelKind        String?
+  googleChannelResourceId  String?
+  googleChannelResourceUri String?
+  googleChannelExpiration  String?
+
+  delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  delegationCredentialId String?
+
+  // Deprecated and unused: Use delegationCredential instead
   domainWideDelegationCredential   DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
   domainWideDelegationCredentialId String?
   error                            String?
@@ -792,6 +796,7 @@ model SelectedCalendar {
   @@index([integration])
   @@index([externalId])
   @@index([eventTypeId])
+  @@index([credentialId])
 }
 
 enum EventTypeCustomInputType {
@@ -1468,10 +1473,12 @@ model CalendarCache {
   value        Json
   expiresAt    DateTime
   credentialId Int
+  userId       Int?
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
 
   @@id([credentialId, key])
   @@unique([credentialId, key])
+  @@index([userId, key])
 }
 
 enum RedirectType {
@@ -1834,12 +1841,14 @@ model DelegationCredential {
   bookingReferences   BookingReference[]
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
+  credentials         Credential[]
 
   // Should be fair to assume that one domain can be only on one workspace platform at a time. So, one can't have two different workspace platforms for the same domain
   // Because we don't know which domain the organization might have, we couldn't make "domain" unique here as that would prevent an actual owner of the domain to be unable to use that domain if it is used by someone else.
   @@unique([organizationId, domain])
 }
 
+// Deprecated and probably unused - Use DelegationCredential instead
 model DomainWideDelegation {
   id                  String                @id @default(uuid())
   workspacePlatform   WorkspacePlatform     @relation(fields: [workspacePlatformId], references: [id], onDelete: Cascade)
