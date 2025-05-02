@@ -19,7 +19,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { getWeeklyAvailability9To5 } from "test/utils/availability";
+import { getWeeklyAvailability9To5, UTC0 } from "test/utils/availability";
 import { getDateDaysFromNow } from "test/utils/days";
 import { withApiAuth } from "test/utils/withApiAuth";
 
@@ -297,7 +297,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "alice",
             email: "alice@gmail.com",
-            timeZone: "Europe/Madrid",
+            timeZone: UTC0,
             language: "es",
           },
           meetingUrl: "https://meet.google.com/abc-def-ghi",
@@ -353,7 +353,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "alice",
             email: "alice@gmail.com",
-            timeZone: "Europe/Madrid",
+            timeZone: UTC0,
             language: "es",
           },
           meetingUrl: "https://meet.google.com/abc-def-ghi",
@@ -409,7 +409,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: orgUser.name ?? "",
             email: orgUserEmail,
-            timeZone: orgUser.timeZone ?? "Europe/Madrid",
+            timeZone: orgUser.timeZone ?? UTC0,
             language: "en",
           },
           meetingUrl: "https://meet.google.com/abc-def-ghi",
@@ -462,7 +462,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: orgUser2.name ?? "",
             email: orgUserEmail2,
-            timeZone: orgUser2.timeZone ?? "Europe/Madrid",
+            timeZone: orgUser2.timeZone ?? UTC0,
             language: "en",
           },
           meetingUrl: "https://meet.google.com/abc-def-ghi",

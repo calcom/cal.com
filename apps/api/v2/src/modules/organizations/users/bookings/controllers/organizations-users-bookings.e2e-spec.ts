@@ -19,6 +19,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { getWeeklyAvailability9To5, UTC0 } from "test/utils/availability";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
@@ -122,11 +123,7 @@ describe("Organizations UsersBookings Endpoints 2024-08-13", () => {
       );
       personalEventTypeId = personalEvent.id;
 
-      const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
-        timeZone: "Europe/Rome",
-        isDefault: true,
-      };
+      const userSchedule = getWeeklyAvailability9To5();
       await schedulesService.createUserSchedule(teamUser.id, userSchedule);
 
       await profileRepositoryFixture.create({
@@ -201,7 +198,7 @@ describe("Organizations UsersBookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "Mr Proper",
             email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
+            timeZone: UTC0,
             language: "it",
           },
           location: "https://meet.google.com/abc-def-ghi",
@@ -259,7 +256,7 @@ describe("Organizations UsersBookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "Mr Proper",
             email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
+            timeZone: UTC0,
             language: "it",
           },
           location: "https://meet.google.com/abc-def-ghi",
@@ -315,7 +312,7 @@ describe("Organizations UsersBookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "alice",
             email: "alice@gmail.com",
-            timeZone: "Europe/Madrid",
+            timeZone: UTC0,
             language: "es",
           },
           meetingUrl: "https://meet.google.com/abc-def-ghi",
