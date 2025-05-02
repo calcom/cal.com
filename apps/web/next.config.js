@@ -190,8 +190,10 @@ const nextConfig = {
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     optimizePackageImports: ["@calcom/ui"],
-    turbo: {},
+    workerThreads: false,
+    cpus: 1,
   },
+  turbopack: {},
   productionBrowserSourceMaps: process.env.SENTRY_DISABLE_CLIENT_SOURCE_MAPS === "0",
   /* We already do type check on GH actions */
   typescript: {
@@ -717,8 +719,12 @@ const nextConfig = {
 if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
   plugins.push((nextConfig) =>
     withSentryConfig(nextConfig, {
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      // Upload a larger set of source maps for prettier stack traces (increases build time)
+      widenClientFileUpload: true,
       autoInstrumentServerFunctions: false,
-      hideSourceMaps: true,
       // disable source map generation for the server code
       disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
       silent: false,
