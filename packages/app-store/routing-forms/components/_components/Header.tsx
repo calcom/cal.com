@@ -300,15 +300,6 @@ export function Header({
                 label: t("routing"),
                 iconLeft: <Icon name="waypoints" className="h-3 w-3" />,
               },
-              ...(showIncompleteBookingTab
-                ? [
-                    {
-                      value: "incomplete-booking",
-                      label: t("routing_incomplete_booking_tab"),
-                      iconLeft: <Icon name="calendar" className="h-3 w-3" />,
-                    },
-                  ]
-                : []),
             ]}
           />
         </div>
