@@ -85,7 +85,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       assignAllTeamMembers: true,
       isRRWeightsEnabled: true,
       multipleRRHosts: true,
-      RRHostsPerMeeting: true,
+      rrHostsPerMeeting: true,
       beforeEventBuffer: true,
       customReplyToEmail: true,
       afterEventBuffer: true,

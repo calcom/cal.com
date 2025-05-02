@@ -1,6 +1,6 @@
 import type { Prisma, User } from "@prisma/client";
 
-import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
+import type { Fields, FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
@@ -10,8 +10,7 @@ import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
-import type { Booking } from "@calcom/prisma/client";
-import type { SelectedCalendar } from "@calcom/prisma/client";
+import type { Booking, SelectedCalendar } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
 import { BookingStatus, RRTimestampBasis, RRResetInterval } from "@calcom/prisma/enums";
 import type { EventBusyDate } from "@calcom/types/Calendar";
@@ -72,7 +71,8 @@ interface GetLuckyUserParams<T extends PartialUser> {
       rrTimestampBasis: RRTimestampBasis;
     } | null;
     multipleRRHosts: boolean;
-    RRHostsPerMeeting: number;
+    rrHostsPerMeeting: number;
+    rrHostCount?: number;
     includeNoShowInRRCalculation: boolean;
   };
   // all routedTeamMemberIds or all hosts of event types
@@ -209,7 +209,7 @@ function leastRecentlyBookedUser<T extends PartialUser>({
   }
 
   const leastRecentlyBookedUser = availableUsers.sort((a, b) => {
-    if (eventType.rrHostCount > 1) {
+    if ((eventType.rrHostCount ?? 1) > 1) {
       if (userIdAndAtCreatedPair[a.id].count > userIdAndAtCreatedPair[b.id].count) return 1;
       else if (userIdAndAtCreatedPair[a.id].count < userIdAndAtCreatedPair[b.id].count) return -1;
     }

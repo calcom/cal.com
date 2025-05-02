@@ -165,7 +165,7 @@ export type FormValues = {
   };
   maxActiveBookingPerBookerOfferReschedule: boolean;
   multipleRRHosts: boolean;
-  RRHostsPerMeeting?: number;
+  rrHostsPerMeeting?: number;
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;

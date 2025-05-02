@@ -81,7 +81,7 @@ const BaseEventTypeUpdateInput = _EventTypeModel
     assignAllTeamMembers: z.boolean(),
     isRRWeightsEnabled: z.boolean(),
     multipleRRHosts: z.boolean(),
-    rrHostsPerMeeting: z.number().optional().min(1).default(1),
+    rrHostsPerMeeting: z.number().min(1).default(1),
     metadata: EventTypeMetaDataSchema,
     bookingFields: eventTypeBookingFields,
     assignRRMembersUsingSegment: z.boolean().optional(),
@@ -90,14 +90,7 @@ const BaseEventTypeUpdateInput = _EventTypeModel
     seatsPerTimeSlot: z.number().min(1).max(MAX_SEATS_PER_TIME_SLOT).nullable().optional(),
   })
   .partial()
-  .extend(_EventTypeModel.pick({ id: true }).shape)
-  .refine(({ rrHostsPerMeeting, hosts }) => {
-    const RRHosts = hosts?.filter((host) => !host.isFixed) || [];
-    if (RRHosts.length < rrHostsPerMeeting) {
-      return false;
-    }
-    return true;
-  });
+  .extend(_EventTypeModel.pick({ id: true }).shape);
 
 export const ZUpdateInputSchema = BaseEventTypeUpdateInput.extend({
   aiPhoneCallConfig: aiPhoneCallConfig.refine(

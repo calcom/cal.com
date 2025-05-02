@@ -150,7 +150,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     secondaryEmailId: null,
     isRRWeightsEnabled: false,
     multipleRRHosts: false,
-    RRHostsPerMeeting: 1,
+    rrHostsPerMeeting: 1,
     eventTypeColor: null,
     assignRRMembersUsingSegment: false,
     rrSegmentQueryValue: null,

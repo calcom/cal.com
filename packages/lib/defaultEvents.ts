@@ -5,8 +5,7 @@ import slugify from "@calcom/lib/slugify";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { userSelect } from "@calcom/prisma/selects";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 type User = Omit<Prisma.UserGetPayload<typeof userSelect>, "selectedCalendars"> & {
@@ -122,6 +121,8 @@ const commons = {
   assignRRMembersUsingSegment: false,
   rrSegmentQueryValue: null,
   isRRWeightsEnabled: false,
+  multipleRRHosts: false,
+  rrHostsPerMeeting: 1,
   rescheduleWithSameRoundRobinHost: false,
   useEventTypeDestinationCalendarEmail: false,
   secondaryEmailId: null,
