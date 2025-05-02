@@ -8,7 +8,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import { type BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -651,8 +651,8 @@ export async function getBookings({
   };
 
   const [plainBookings, countResult] = await Promise.all([
-    prisma.$queryRaw<RawBookingResult[]>(PrismaClientType.sql([finalQuery, ...finalParams])),
-    prisma.$queryRaw<[{ count: bigint }]>(PrismaClientType.sql([countQuery, ...finalParams])),
+    prisma.$queryRaw<RawBookingResult[]>(Prisma.sql([finalQuery, ...finalParams])),
+    prisma.$queryRaw<[{ count: bigint }]>(Prisma.sql([countQuery, ...finalParams])),
   ]);
 
   const totalCount = Number(countResult[0].count);
@@ -693,10 +693,10 @@ export async function getBookings({
 
   const [recurringInfoBasicResult, recurringInfoExtendedResult] = await Promise.all([
     prisma.$queryRaw<{ recurringEventId: string; minStartTime: Date; countRecurringEventId: bigint }[]>(
-      PrismaClientType.sql([recurringInfoBasicQuery, ...recurringInfoBasicParams])
+      Prisma.sql([recurringInfoBasicQuery, ...recurringInfoBasicParams])
     ),
     prisma.$queryRaw<{ recurringEventId: string; status: string; startTime: Date }[]>(
-      PrismaClientType.sql([recurringInfoExtendedQuery, ...recurringInfoExtendedParams])
+      Prisma.sql([recurringInfoExtendedQuery, ...recurringInfoExtendedParams])
     ),
   ]);
 
@@ -1018,7 +1018,7 @@ export async function getBookings({
   `;
 
   const comprehensiveResults = await prisma.$queryRaw<any[]>(
-    PrismaClientType.sql([comprehensiveQuery, ...comprehensiveParams])
+    Prisma.sql([comprehensiveQuery, ...comprehensiveParams])
   );
 
   const bookings = comprehensiveResults.map((result) => {
