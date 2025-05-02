@@ -784,8 +784,9 @@ test.describe("Routing Forms", () => {
         forTeam: true,
       });
 
-      await page.click('[href*="/route-builder/"]');
-      await selectNewRoute(page);
+      await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
+      await page.waitForURL("/routing/route-builder/**");
+      await addNewRoute(page);
       // This would select Round Robin event that we created above
       await selectFirstEventRedirectOption(page);
       await addAttributeRoutingRuleWithOperator(page, "1", "5");
@@ -793,14 +794,11 @@ test.describe("Routing Forms", () => {
 
       // asserting there is no match as attribute value for the member is 10, while input is between 1 and 5
       await (async function testPreviewWhereThereIsNoMatch() {
-        await page.click('[data-testid="test-preview"]');
-        await page.click('[data-testid="test-routing"]');
-        await page.waitForSelector("text=Attribute logic matched: No");
-        await page.waitForSelector("text=Attribute logic fallback matched: Yes");
-        await page.waitForSelector(
-          "text=All assigned members of the team event type. Consider adding some attribute rules to fallback."
-        );
-        await page.click('[data-testid="dialog-rejection"]');
+        await page.click('[data-testid="preview-button"]');
+        await page.click('[data-testid="submit-button"]');
+        await expect(page.locator('[data-testid="attribute-logic-matched"]')).toHaveText("No");
+        await expect(page.locator('[data-testid="attribute-logic-fallback-matched"]')).toHaveText("Yes");
+        await page.click('[data-testid="close-results-button"]');
       })();
     });
   });
@@ -869,8 +867,9 @@ test.describe("Routing Forms", () => {
         forTeam: true,
       });
 
-      await page.click('[href*="/route-builder/"]');
-      await selectNewRoute(page);
+      await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
+      await page.waitForURL("/routing/route-builder/**");
+      await addNewRoute(page);
       // This would select Round Robin event that we created above
       await selectFirstEventRedirectOption(page);
       await addAttributeRoutingRuleWithOperator(page, "1", "5");
@@ -878,10 +877,10 @@ test.describe("Routing Forms", () => {
 
       // asserting there is a match as attribute value for the member is 3 that is between 1 and 5
       await (async function testPreviewWhereThereIsMatch() {
-        await page.click('[data-testid="test-preview"]');
-        await page.click('[data-testid="test-routing"]');
+        await page.click('[data-testid="preview-button"]');
+        await page.click('[data-testid="submit-button"]');
         await page.waitForSelector("text=@example.com");
-        await page.click('[data-testid="dialog-rejection"]');
+        await page.click('[data-testid="close-results-button"]');
       })();
     });
   });
