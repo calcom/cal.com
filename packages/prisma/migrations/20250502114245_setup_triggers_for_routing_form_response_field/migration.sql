@@ -9,16 +9,21 @@ DECLARE
     field_record jsonb;
     response_field jsonb;
     field_type text;
+    response_data jsonb;
 BEGIN
-    -- Validate formId exists
-    IF NEW."formId" IS NULL THEN
-        RAISE WARNING 'formId is NULL, skipping processing';
-        RETURN NEW;
+    -- For INSERT trigger on RoutingFormResponseDenormalized, we need to get the response data from App_RoutingForms_FormResponse
+    -- For UPDATE trigger on App_RoutingForms_FormResponse, we can use NEW.response directly
+    IF TG_TABLE_NAME = 'RoutingFormResponseDenormalized' THEN
+        SELECT response INTO response_data
+        FROM "App_RoutingForms_FormResponse"
+        WHERE id = NEW.id;
+    ELSE
+        response_data := NEW.response::jsonb;
     END IF;
 
-    -- Validate response is valid JSON
-    IF NEW.response IS NULL OR jsonb_typeof(NEW.response::jsonb) != 'object' THEN
-        RAISE WARNING 'response is not a valid JSON object, skipping processing';
+    -- Validate response_data exists and is a valid JSON object
+    IF response_data IS NULL OR jsonb_typeof(response_data) != 'object' THEN
+        RAISE WARNING 'Invalid response data for id %. Type: %', NEW.id, COALESCE(jsonb_typeof(response_data), 'null');
         RETURN NEW;
     END IF;
 
@@ -52,7 +57,7 @@ BEGIN
             END IF;
 
             -- Get the response field object for this field
-            response_field := NEW.response::jsonb->(field_record->>'id');
+            response_field := response_data->(field_record->>'id');
             
             -- Skip if no response for this field
             IF response_field IS NULL THEN
@@ -124,13 +129,13 @@ EXCEPTION WHEN OTHERS THEN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create trigger for INSERT
-CREATE TRIGGER routing_form_response_insert_trigger
-    AFTER INSERT ON "App_RoutingForms_FormResponse"
+-- Create trigger for INSERT on RoutingFormResponseDenormalized
+CREATE TRIGGER routing_form_response_denormalized_insert_trigger
+    AFTER INSERT ON "RoutingFormResponseDenormalized"
     FOR EACH ROW
     EXECUTE FUNCTION handle_routing_form_response_fields();
 
--- Create trigger for UPDATE
+-- Create trigger for UPDATE on App_RoutingForms_FormResponse
 CREATE TRIGGER routing_form_response_update_trigger
     AFTER UPDATE OF response ON "App_RoutingForms_FormResponse"
     FOR EACH ROW
