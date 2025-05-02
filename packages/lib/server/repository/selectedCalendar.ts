@@ -162,17 +162,21 @@ export class SelectedCalendarRepository {
           },
         },
         // We only support google calendar and outlook subscriptions for now
-        OR: [{ integration: "google_calendar" }, { integration: "office365_calendar" }],
+        OR: [
+          {
+            integration: "google_calendar",
+            OR: [{ googleChannelExpiration: null }, { googleChannelExpiration: { lt: tomorrowTimestamp } }],
+          },
+          {
+            integration: "office365_calendar",
+            OR: [
+              { outlookSubscriptionExpiration: null },
+              { outlookSubscriptionExpiration: { lt: tomorrowTimestamp } },
+            ],
+          },
+        ],
         // We skip retrying calendars that have errored
         error: null,
-        OR: [
-          // Either is a calendar pending to be watched
-          { outlookSubscriptionExpiration: null },
-          { googleChannelExpiration: null },
-          // Or is a calendar that is about to expire
-          { outlookSubscriptionExpiration: { lt: tomorrowTimestamp } },
-          { googleChannelExpiration: { lt: tomorrowTimestamp } },
-        ],
       },
     });
     return nextBatch;
@@ -184,8 +188,16 @@ export class SelectedCalendarRepository {
   static async getNextBatchToUnwatch(limit = 100) {
     const where: Prisma.SelectedCalendarWhereInput = {
       // We only support google calendar and outlook subscriptions for now
-      OR: [{ integration: "google_calendar" }, { integration: "office365_calendar" }],
-      OR: [{ googleChannelExpiration: { not: null } }, { outlookSubscriptionExpiration: { not: null } }],
+      OR: [
+        {
+          integration: "office365_calendar",
+          outlookSubscriptionExpiration: { not: null },
+        },
+        {
+          integration: "google_calendar",
+          googleChannelExpiration: { not: null },
+        },
+      ],
       user: {
         teams: {
           every: {
