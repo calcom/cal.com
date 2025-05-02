@@ -1003,7 +1003,7 @@ export async function getBookings({
 
     const filteredAttendees =
       seatsReferences.length && eventType && !eventType.seatsShowAttendees
-        ? attendees.filter((attendee) => attendee.email === user.email)
+        ? attendees.filter((attendee: { email: string }) => attendee.email === user.email)
         : attendees;
 
     return {
