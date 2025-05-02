@@ -22,6 +22,8 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { getWeeklyAvailability9To5 } from "test/utils/availability";
+import { getDateDaysBeforeNow, getDateDaysFromNow } from "test/utils/days";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
@@ -114,11 +116,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
         },
       });
 
-      const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: `user-bookings-2024-08-13-schedule-${randomString()}`,
-        timeZone: "Europe/Rome",
-        isDefault: true,
-      };
+      const userSchedule = getWeeklyAvailability9To5();
+
       await schedulesService.createUserSchedule(user.id, userSchedule);
 
       const event = await eventTypesRepositoryFixture.create(
@@ -150,8 +149,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             id: user.id,
           },
         },
-        startTime: new Date(Date.UTC(2020, 0, 8, 13, 0, 0)),
-        endTime: new Date(Date.UTC(2020, 0, 8, 14, 0, 0)),
+        startTime: getDateDaysBeforeNow({ days: 1, hours: 13, minutes: 0 }),
+        endTime: getDateDaysBeforeNow({ days: 1, hours: 14, minutes: 0 }),
         title: "peer coding lets goo",
         uid: `booking-in-the-past-${randomString()}`,
         eventType: {
@@ -333,9 +332,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       it("should create a booking", async () => {
+        const start = getDateDaysFromNow({ days: 7, hours: 9, minutes: 0 });
+        const end = getDateDaysFromNow({ days: 7, hours: 10, minutes: 0 });
+
         const googleMeetUrl = "https://meet.google.com/abc-def-ghi";
+
         const body: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
+          start: start.toISOString(),
           eventTypeId,
           attendee: {
             name: "Mr Proper",
@@ -375,7 +378,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.hosts[0].email).toEqual(user.email);
               expect(data.status).toEqual("accepted");
               expect(data.start).toEqual(body.start);
-              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString());
+              expect(data.end).toEqual(end.toISOString());
               expect(data.duration).toEqual(60);
               expect(data.eventTypeId).toEqual(eventTypeId);
               expect(data.eventType).toEqual({
@@ -426,8 +429,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       it("should create a recurring booking", async () => {
+        const start = getDateDaysFromNow({ days: 8, hours: 9, minutes: 0 });
+        const end = getDateDaysFromNow({ days: 8, hours: 10, minutes: 0 });
+
         const body: CreateRecurringBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 1, 4, 13, 0, 0)).toISOString(),
+          start: start.toISOString(),
           eventTypeId: recurringEventTypeId,
           attendee: {
             name: "Mr Proper Recurring",
@@ -461,8 +467,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(firstBooking.uid).toBeDefined();
               expect(firstBooking.hosts[0].id).toEqual(user.id);
               expect(firstBooking.status).toEqual("accepted");
-              expect(firstBooking.start).toEqual(new Date(Date.UTC(2030, 1, 4, 13, 0, 0)).toISOString());
-              expect(firstBooking.end).toEqual(new Date(Date.UTC(2030, 1, 4, 14, 0, 0)).toISOString());
+              expect(firstBooking.start).toEqual(start.toISOString());
+              expect(firstBooking.end).toEqual(end.toISOString());
               expect(firstBooking.duration).toEqual(60);
               expect(firstBooking.eventTypeId).toEqual(recurringEventTypeId);
               expect(firstBooking.attendees[0]).toEqual({
@@ -482,8 +488,12 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(secondBooking.uid).toBeDefined();
               expect(secondBooking.hosts[0].id).toEqual(user.id);
               expect(secondBooking.status).toEqual("accepted");
-              expect(secondBooking.start).toEqual(new Date(Date.UTC(2030, 1, 11, 13, 0, 0)).toISOString());
-              expect(secondBooking.end).toEqual(new Date(Date.UTC(2030, 1, 11, 14, 0, 0)).toISOString());
+              expect(secondBooking.start).toEqual(
+                getDateDaysFromNow({ days: 15, hours: 9, minutes: 0 }).toISOString()
+              );
+              expect(secondBooking.end).toEqual(
+                getDateDaysFromNow({ days: 15, hours: 10, minutes: 0 }).toISOString()
+              );
               expect(secondBooking.duration).toEqual(60);
               expect(secondBooking.eventTypeId).toEqual(recurringEventTypeId);
               expect(secondBooking.recurringBookingUid).toBeDefined();
@@ -503,8 +513,12 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(thirdBooking.uid).toBeDefined();
               expect(thirdBooking.hosts[0].id).toEqual(user.id);
               expect(thirdBooking.status).toEqual("accepted");
-              expect(thirdBooking.start).toEqual(new Date(Date.UTC(2030, 1, 18, 13, 0, 0)).toISOString());
-              expect(thirdBooking.end).toEqual(new Date(Date.UTC(2030, 1, 18, 14, 0, 0)).toISOString());
+              expect(thirdBooking.start).toEqual(
+                getDateDaysFromNow({ days: 22, hours: 9, minutes: 0 }).toISOString()
+              );
+              expect(thirdBooking.end).toEqual(
+                getDateDaysFromNow({ days: 22, hours: 10, minutes: 0 }).toISOString()
+              );
               expect(thirdBooking.duration).toEqual(60);
               expect(thirdBooking.eventTypeId).toEqual(recurringEventTypeId);
               expect(thirdBooking.recurringBookingUid).toBeDefined();
