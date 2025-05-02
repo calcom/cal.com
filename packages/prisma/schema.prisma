@@ -175,7 +175,7 @@ model EventType {
   rescheduleWithSameRoundRobinHost Boolean @default(false)
 
   secondaryEmailId Int?
-  secondaryEmail SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
+  secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -206,12 +206,12 @@ model Credential {
   paymentStatus     String?
   billingCycleStart Int?
 
-  destinationCalendars DestinationCalendar[]
-  selectedCalendars    SelectedCalendar[]
-  invalid              Boolean?              @default(false)
-  CalendarCache        CalendarCache[]
-  references           BookingReference[]
-  delegationCredentialId String?              
+  destinationCalendars   DestinationCalendar[]
+  selectedCalendars      SelectedCalendar[]
+  invalid                Boolean?              @default(false)
+  CalendarCache          CalendarCache[]
+  references             BookingReference[]
+  delegationCredentialId String?
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -776,6 +776,9 @@ model SelectedCalendar {
   googleChannelResourceUri String?
   googleChannelExpiration  String?
 
+  outlookSubscriptionId         String?
+  outlookSubscriptionExpiration String?
+
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId String?
 
@@ -792,6 +795,7 @@ model SelectedCalendar {
   // Think about introducing a generated unique key ${userId}_${integration}_${externalId}_${eventTypeId}
   @@unique([userId, integration, externalId, eventTypeId])
   @@unique([googleChannelId, eventTypeId])
+  @@unique([outlookSubscriptionId, eventTypeId])
   @@index([userId])
   @@index([integration])
   @@index([externalId])
@@ -1467,7 +1471,7 @@ view BookingTimeStatus {
 model CalendarCache {
   // To be made required in a followup
   id String? @default(uuid())
-  
+
   // The key would be the unique URL that is requested by the user
   key          String
   value        Json
@@ -1475,9 +1479,10 @@ model CalendarCache {
   credentialId Int
   userId       Int?
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+
   @@id([credentialId, key])
-  @@index([userId, key])
   @@unique([credentialId, key])
+  @@index([userId, key])
 }
 
 enum RedirectType {
