@@ -166,7 +166,7 @@ function leastRecentlyBookedUser<T extends PartialUser>({
     (keyValuePair: { [userId: number]: { mostRecentBooking: Date; count: number } }, user) => {
       keyValuePair[user.id] = {
         mostRecentBooking:
-          keyValuePair[user.id].mostRecentBooking || user.bookings[0]?.createdAt || new Date(0),
+          keyValuePair[user.id]?.mostRecentBooking || user.bookings[0]?.createdAt || new Date(0),
         count: (keyValuePair[user.id]?.count || 0) + 1,
       };
       return keyValuePair;
