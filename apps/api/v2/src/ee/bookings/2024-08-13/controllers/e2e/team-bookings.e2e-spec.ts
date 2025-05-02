@@ -22,6 +22,8 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { getWeeklyAvailability9To5 } from "test/utils/availability";
+import { getDateDaysFromNow } from "test/utils/days";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
@@ -150,11 +152,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         },
       });
 
-      const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: `team-bookings-2024-08-13-schedule-${randomString()}`,
-        timeZone: "Europe/Rome",
-        isDefault: true,
-      };
+      const userSchedule = getWeeklyAvailability9To5();
       await schedulesService.createUserSchedule(teamUser.id, userSchedule);
       await schedulesService.createUserSchedule(teamUser2.id, userSchedule);
 
@@ -366,8 +364,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
     describe("create team bookings", () => {
       it("should create a team 1 booking", async () => {
+        const start = getDateDaysFromNow({ days: 7, hours: 9, minutes: 0 });
+        const end = getDateDaysFromNow({ days: 7, hours: 10, minutes: 0 });
+
         const body: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
+          start: start.toISOString(),
           eventTypeId: team1EventTypeId,
           attendee: {
             name: "alice",
@@ -397,7 +398,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.hosts[0].id).toEqual(teamUser.id);
               expect(data.status).toEqual("accepted");
               expect(data.start).toEqual(body.start);
-              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString());
+              expect(data.end).toEqual(end.toISOString());
               expect(data.duration).toEqual(60);
               expect(data.eventTypeId).toEqual(team1EventTypeId);
               expect(data.attendees.length).toEqual(1);
@@ -419,9 +420,12 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       it("should create a phone based booking", async () => {
+        const start = getDateDaysFromNow({ days: 7, hours: 11, minutes: 0 });
+        const end = getDateDaysFromNow({ days: 7, hours: 11, minutes: 15 });
+
         const phoneNumber = "+919876543210";
         const body: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 0, 8, 15, 0, 0)).toISOString(),
+          start: start.toISOString(),
           eventTypeId: phoneOnlyEventTypeId,
           attendee: {
             name: "alice",
@@ -451,7 +455,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.hosts[0].id).toEqual(teamUser.id);
               expect(data.status).toEqual("accepted");
               expect(data.start).toEqual(body.start);
-              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 15, 15, 0)).toISOString());
+              expect(data.end).toEqual(end.toISOString());
               expect(data.duration).toEqual(15);
               expect(data.eventTypeId).toEqual(phoneOnlyEventTypeId);
               expect(data.attendees.length).toEqual(1);
@@ -476,8 +480,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       it("should create a team 2 booking", async () => {
+        const start = getDateDaysFromNow({ days: 7, hours: 14, minutes: 0 });
+        const end = getDateDaysFromNow({ days: 7, hours: 15, minutes: 0 });
+
         const body: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)).toISOString(),
+          start: start.toISOString(),
           eventTypeId: team2EventTypeId,
           attendee: {
             name: "bob",
@@ -507,7 +514,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.hosts[0].id).toEqual(teamUser.id);
               expect(data.status).toEqual("accepted");
               expect(data.start).toEqual(body.start);
-              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 11, 0, 0)).toISOString());
+              expect(data.end).toEqual(end.toISOString());
               expect(data.duration).toEqual(60);
               expect(data.eventTypeId).toEqual(team2EventTypeId);
               expect(data.attendees.length).toEqual(2);
