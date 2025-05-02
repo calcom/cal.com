@@ -13,6 +13,7 @@ import { Button } from "@calcom/ui/components/button";
 import { InputField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
+import { Section } from "@calcom/ui/components/section";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { SalesforceRecordEnum } from "../lib/enums";
@@ -74,14 +75,21 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   // Used when creating events under leads or contacts under account
   const CreateContactUnderAccount = () => {
     return (
-      <Switch
-        label={t("salesforce_create_new_contact_under_account")}
-        labelOnLeading
-        checked={createNewContactUnderAccount}
-        onCheckedChange={(checked) => {
-          setAppData("createNewContactUnderAccount", checked);
-        }}
-      />
+      <Section.SubSection>
+        <Section.SubSectionHeader
+          icon="at-sign"
+          title={t("salesforce_create_new_contact_under_account")}
+          labelFor="create-new-contact-under-account">
+          <Switch
+            size="sm"
+            labelOnLeading
+            checked={createNewContactUnderAccount}
+            onCheckedChange={(checked) => {
+              setAppData("createNewContactUnderAccount", checked);
+            }}
+          />
+        </Section.SubSectionHeader>
+      </Section.SubSection>
     );
   };
 
@@ -95,94 +103,115 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       }}
       switchChecked={enabled}
       hideSettingsIcon>
-      <>
-        <div className="mb-4 ml-2">
-          <label className="text-emphasis mb-2 align-text-top text-sm font-medium">
-            {t("salesforce_create_record_as")}
-          </label>
-          <Select
-            className="mt-2 w-60"
-            options={recordOptions}
-            value={createEventOnSelectedOption}
-            onChange={(e) => {
-              if (e) {
-                setCreateEventOnSelectedOption(e);
-                setAppData("createEventOn", e.value);
-              }
-            }}
-          />
-        </div>
-        <div className="mb-4">
-          <Switch
-            label={t("salesforce_ignore_guests")}
-            labelOnLeading
-            checked={ignoreGuests}
-            onCheckedChange={(checked) => {
-              setAppData("ignoreGuests", checked);
-            }}
-          />
-        </div>
+      <Section.Content>
+        <Section.SubSection>
+          <Section.SubSectionHeader
+            icon="zap"
+            title={t("salesforce_add_attendees_as")}
+            justify="start"
+            labelFor="add-attendees-as">
+            <Select
+              size="sm"
+              id="add-attendees-as"
+              className="w-fit"
+              options={recordOptions}
+              value={createEventOnSelectedOption}
+              onChange={(e) => {
+                if (e) {
+                  setCreateEventOnSelectedOption(e);
+                  setAppData("createEventOn", e.value);
+                }
+              }}
+            />
+          </Section.SubSectionHeader>
+        </Section.SubSection>
+
+        <Section.SubSection>
+          <Section.SubSectionHeader
+            icon="user-plus"
+            title={t("sales_force_ignore_guests")}
+            labelFor="ignore-guests">
+            <Switch
+              size="sm"
+              labelOnLeading
+              checked={ignoreGuests}
+              onCheckedChange={(checked) => {
+                setAppData("ignoreGuests", checked);
+              }}
+            />
+          </Section.SubSectionHeader>
+        </Section.SubSection>
+
         {createEventOnSelectedOption.value === SalesforceRecordEnum.CONTACT ? (
-          <div>
-            <Switch
-              label={t("skip_contact_creation", { appName: "Salesforce" })}
-              labelOnLeading
-              checked={isSkipContactCreationEnabled}
-              onCheckedChange={(checked) => {
-                setAppData("skipContactCreation", checked);
-              }}
-            />
-          </div>
+          <Section.SubSection>
+            <Section.SubSectionHeader
+              icon="user-plus"
+              title={t("skip_contact_creation", { appName: "Salesforce" })}
+              labelFor="skip-contact-creation">
+              <Switch
+                size="sm"
+                labelOnLeading
+                checked={isSkipContactCreationEnabled}
+                onCheckedChange={(checked) => {
+                  setAppData("skipContactCreation", checked);
+                }}
+              />
+            </Section.SubSectionHeader>
+          </Section.SubSection>
         ) : null}
+
         {createEventOnSelectedOption.value === SalesforceRecordEnum.LEAD ? (
-          <div>
-            <Switch
-              label={t("salesforce_create_event_on_contact")}
-              labelOnLeading
-              checked={createEventOnLeadCheckForContact}
-              onCheckedChange={(checked) => {
-                setAppData("createEventOnLeadCheckForContact", checked);
-              }}
-            />
-            <div className="mt-4">
-              <CreateContactUnderAccount />
-            </div>
-          </div>
+          <>
+            <Section.SubSection>
+              <Section.SubSectionHeader
+                icon="user-plus"
+                title={t("salesforce_create_event_on_contact")}
+                labelFor="create-event-on-contact">
+                <Switch size="sm" labelOnLeading checked={createEventOnLeadCheckForContact} />
+              </Section.SubSectionHeader>
+            </Section.SubSection>
+            <CreateContactUnderAccount />
+          </>
         ) : null}
         {createEventOnSelectedOption.value === SalesforceRecordEnum.ACCOUNT ? (
           <>
-            <div className="mb-4">
-              <CreateContactUnderAccount />
-            </div>
-            <div>
-              <Switch
-                label={t("salesforce_if_account_does_not_exist")}
-                labelOnLeading
-                checked={createLeadIfAccountNull}
-                onCheckedChange={(checked) => {
-                  setAppData("createLeadIfAccountNull", checked);
-                }}
-              />
-            </div>
+            <CreateContactUnderAccount />
+            <Section.SubSection>
+              <Section.SubSectionHeader
+                icon="user-plus"
+                title={t("salesforce_if_account_does_not_exist")}
+                labelFor="create-lead-if-account-null">
+                <Switch
+                  size="sm"
+                  labelOnLeading
+                  checked={createLeadIfAccountNull}
+                  onCheckedChange={(checked) => {
+                    setAppData("createLeadIfAccountNull", checked);
+                  }}
+                />
+              </Section.SubSectionHeader>
+            </Section.SubSection>
           </>
         ) : null}
 
-        <div className="mt-4">
-          <Switch
-            label={t("on_booking_write_to_event_object")}
-            labelOnLeading
-            checked={onBookingWriteToEventObject}
-            onCheckedChange={(checked) => {
-              setAppData("onBookingWriteToEventObject", checked);
-            }}
-          />
+        <Section.SubSection>
+          <Section.SubSectionHeader icon="zap" title={t("on_booking_write_to_event_object")}>
+            <Switch
+              size="sm"
+              labelOnLeading
+              checked={onBookingWriteToEventObject}
+              onCheckedChange={(checked) => {
+                setAppData("onBookingWriteToEventObject", checked);
+              }}
+            />
+          </Section.SubSectionHeader>
           {onBookingWriteToEventObject ? (
-            <div className="ml-2 mt-2">
+            <Section.SubSectionContent>
               <div className="grid grid-cols-3 gap-4">
                 <div>{t("field_name")}</div>
                 <div>{t("value")}</div>
               </div>
-              <div>
+              <Section.SubSectionNested>
                 {Object.keys(onBookingWriteToEventObjectMap).map((key) => (
                   <div className="mt-2 grid grid-cols-3 gap-4" key={key}>
                     <div>
@@ -229,9 +258,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                     />
                   </div>
                 </div>
-              </div>
+              </Section.SubSectionNested>
               <Button
-                className="mt-2"
+                className="mt-2 w-fit"
                 size="sm"
                 disabled={
                   !(newOnBookingWriteToEventObjectField.field && newOnBookingWriteToEventObjectField.value)
@@ -255,11 +284,11 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 }}>
                 {t("add_new_field")}
               </Button>
-            </div>
+            </Section.SubSectionContent>
           ) : null}
-        </div>
+        </Section.SubSection>
 
-        <div className="mt-4">
+        <Section.SubSection>
           <WriteToObjectSettings
             bookingAction={BookingActionEnum.ON_BOOKING}
             optionLabel={t("salesforce_on_booking_write_to_record", { record: createEventOn })}
@@ -270,86 +299,106 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             }}
             updateWriteToObjectData={(data) => setAppData("onBookingWriteToRecordFields", data)}
           />
-        </div>
+        </Section.SubSection>
 
-        <div className="mt-4">
-          <Switch
-            label="Change record owner on booking"
-            labelOnLeading
-            checked={onBookingChangeRecordOwner}
-            onCheckedChange={(checked) => {
-              setAppData("onBookingChangeRecordOwner", checked);
-            }}
-          />
-        </div>
-        {onBookingChangeRecordOwner ? (
-          <div className="ml-2 mt-2">
-            <p className="mb-2">{t("salesforce_owner_name_to_change")}</p>
-            <InputField
-              value={onBookingChangeRecordOwnerName}
-              onChange={(e) => setAppData("onBookingChangeRecordOwnerName", e.target.value)}
-            />
-          </div>
-        ) : null}
-
-        {eventType.schedulingType === SchedulingType.ROUND_ROBIN ? (
-          <div className="mt-4">
+        <Section.SubSection>
+          <Section.SubSectionHeader
+            icon="user-plus"
+            title={t("salesforce_change_record_owner_on_booking")}
+            labelFor="change-record-owner-on-booking">
             <Switch
-              label={t("salesforce_book_directly_with_attendee_owner")}
+              size="sm"
               labelOnLeading
-              checked={isRoundRobinLeadSkipEnabled}
+              checked={onBookingChangeRecordOwner}
               onCheckedChange={(checked) => {
-                setAppData("roundRobinLeadSkip", checked);
-                if (checked) {
-                  // temporary solution, enabled should always be already set
-                  setAppData("enabled", checked);
-                }
+                setAppData("onBookingChangeRecordOwner", checked);
               }}
             />
-            {isRoundRobinLeadSkipEnabled ? (
-              <>
-                <div className="my-4 ml-2">
-                  <label className="text-emphasis mb-2 align-text-top text-sm font-medium">
-                    {t("salesforce_check_owner_of")}
-                  </label>
-                  <Select
-                    className="mt-2 w-60"
-                    options={checkOwnerOptions}
-                    value={checkOwnerSelectedOption}
-                    onChange={(e) => {
-                      if (e) {
-                        setCheckOwnerSelectedOption(e);
-                        setAppData("roundRobinSkipCheckRecordOn", e.value);
-                      }
-                    }}
-                  />
-                </div>
-                {checkOwnerSelectedOption.value === SalesforceRecordEnum.CONTACT ? (
-                  <div className="my-4">
-                    <Switch
-                      label={t("salesforce_round_robin_skip_fallback_to_lead_owner")}
-                      labelOnLeading
-                      checked={roundRobinSkipFallbackToLeadOwner}
-                      onCheckedChange={(checked) => {
-                        setAppData("roundRobinSkipFallbackToLeadOwner", checked);
+          </Section.SubSectionHeader>
+          {onBookingChangeRecordOwner ? (
+            <Section.SubSectionContent>
+              <div>
+                <p className="mb-2">{t("salesforce_owner_name_to_change")}</p>
+                <InputField
+                  value={onBookingChangeRecordOwnerName}
+                  onChange={(e) => setAppData("onBookingChangeRecordOwnerName", e.target.value)}
+                />
+              </div>
+            </Section.SubSectionContent>
+          ) : null}
+        </Section.SubSection>
+
+        {eventType.schedulingType === SchedulingType.ROUND_ROBIN ? (
+          <>
+            <Section.SubSection>
+              <Section.SubSectionHeader
+                icon="user-plus"
+                title={t("salesforce_book_directly_with_attendee_owner")}
+                labelFor="book-directly-with-attendee-owner">
+                <Switch
+                  size="sm"
+                  id="book-directly-witha-attendee-owner"
+                  checked={isRoundRobinLeadSkipEnabled}
+                  onCheckedChange={(checked) => {
+                    setAppData("roundRobinLeadSkip", checked);
+                    if (checked) {
+                      // temporary solution, enabled should always be already set
+                      setAppData("enabled", checked);
+                    }
+                  }}
+                />
+              </Section.SubSectionHeader>
+              {isRoundRobinLeadSkipEnabled ? (
+                <Section.SubSectionContent>
+                  <div>
+                    <label className="text-emphasis mb-2 align-text-top text-sm font-medium">
+                      {t("salesforce_check_owner_of")}
+                    </label>
+                    <Select
+                      className="mt-2 w-60"
+                      options={checkOwnerOptions}
+                      value={checkOwnerSelectedOption}
+                      onChange={(e) => {
+                        if (e) {
+                          setCheckOwnerSelectedOption(e);
+                          setAppData("roundRobinSkipCheckRecordOn", e.value);
+                        }
                       }}
                     />
                   </div>
-                ) : null}
-                <div className="my-4">
-                  <Switch
-                    label={t("salesforce_if_free_email_domain_skip_owner_check")}
-                    labelOnLeading
-                    checked={ifFreeEmailDomainSkipOwnerCheck}
-                    onCheckedChange={(checked) => {
-                      setAppData("ifFreeEmailDomainSkipOwnerCheck", checked);
-                    }}
-                  />
-                </div>
-              </>
-            ) : null}
-            <Alert className="mt-2" severity="neutral" title={t("skip_rr_description")} />
-          </div>
+                </Section.SubSectionContent>
+              ) : null}
+            </Section.SubSection>
+            <>
+              {isRoundRobinLeadSkipEnabled ? (
+                <>
+                  {checkOwnerSelectedOption.value === SalesforceRecordEnum.CONTACT ? (
+                    <div className="my-4">
+                      <Switch
+                        label={t("salesforce_round_robin_skip_fallback_to_lead_owner")}
+                        labelOnLeading
+                        checked={roundRobinSkipFallbackToLeadOwner}
+                        onCheckedChange={(checked) => {
+                          setAppData("roundRobinSkipFallbackToLeadOwner", checked);
+                        }}
+                      />
+                    </div>
+                  ) : null}
+                  <div className="my-4">
+                    <Switch
+                      label={t("salesforce_if_free_email_domain_skip_owner_check")}
+                      labelOnLeading
+                      checked={ifFreeEmailDomainSkipOwnerCheck}
+                      onCheckedChange={(checked) => {
+                        setAppData("ifFreeEmailDomainSkipOwnerCheck", checked);
+                      }}
+                    />
+                  </div>
+                </>
+              ) : null}
+              <Alert className="mt-2" severity="neutral" title={t("skip_rr_description")} />
+            </>
+          </>
         ) : null}
 
         <div className="mt-4">
@@ -383,7 +432,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             </div>
           ) : null}
         </div>
-      </>
+      </Section.Content>
     </AppCard>
   );
 };

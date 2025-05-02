@@ -6,6 +6,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
 import { InputField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
+import { Section } from "@calcom/ui/components/section";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { WhenToWriteToRecord, SalesforceFieldType, DateFieldTypeData } from "../../lib/enums";
@@ -81,21 +82,24 @@ const WriteToObjectSettings = ({
 
   return (
     <>
-      <Switch
-        label={optionLabel}
-        labelOnLeading
-        checked={optionEnabled}
-        onCheckedChange={optionSwitchOnChange}
-      />
+      <Section.SubSectionHeader icon="star" labelFor="write-to-object-settings" title={optionLabel}>
+        <Switch
+          checked={optionEnabled}
+          onCheckedChange={optionSwitchOnChange}
+          id="write-to-object-settings"
+          size="sm"
+        />
+      </Section.SubSectionHeader>
+
       {optionEnabled ? (
-        <div className="ml-2 mt-2">
+        <Section.SubSectionContent>
           <div className="grid grid-cols-5 gap-4">
             <div>{t("field_name")}</div>
             <div>{t("field_type")}</div>
             <div>{t("value")}</div>
             <div>{t("when_to_write")}</div>
           </div>
-          <div>
+          <Section.SubSectionNested>
             {Object.keys(writeToObjectData).map((key) => (
               <div className="mt-2 grid grid-cols-5 gap-4" key={key}>
                 <div>
@@ -238,7 +242,7 @@ const WriteToObjectSettings = ({
                 />
               </div>
             </div>
-          </div>
+          </Section.SubSectionNested>
           <Button
             className="mt-2"
             size="sm"
@@ -274,7 +278,7 @@ const WriteToObjectSettings = ({
             }}>
             {t("add_new_field")}
           </Button>
-        </div>
+        </Section.SubSectionContent>
       ) : null}
     </>
   );

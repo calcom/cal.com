@@ -135,11 +135,9 @@ export default function AppCard({
       </Section.Header>
       {hideAppCardOptions ? null : (
         <div ref={animationRef}>
-          {app?.isInstalled && switchChecked && <hr className="border-subtle" />}
-
           {app?.isInstalled && switchChecked ? (
             app.isSetupAlready === undefined || app.isSetupAlready ? (
-              <div className="relative p-4 pt-5 text-sm [&_input]:mb-0 [&_input]:leading-4">
+              <div className="relative text-sm [&_input]:mb-0 [&_input]:leading-4">
                 {!hideSettingsIcon && !isPlatform && (
                   <Link href={`/apps/${app.slug}/setup`} className="absolute right-4 top-4">
                     <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />

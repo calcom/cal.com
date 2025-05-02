@@ -132,10 +132,12 @@ const SubSectionHeader = ({
   title,
   classNames,
   justify = "between",
+  labelFor,
 }: {
   children: React.ReactNode;
   icon?: IconName;
   title: string;
+  labelFor?: string;
   classNames?: {
     container?: string;
     title?: string;
@@ -155,7 +157,9 @@ const SubSectionHeader = ({
       <div className={cn("flex items-center gap-2", classNames?.title)}>
         {icon && <Icon name={icon} size="sm" />}
         <div className={cn("flex", classNames?.title)}>
-          <h4 className="text-default text-sm font-medium leading-none">{title}</h4>
+          <h4 className="text-default text-sm font-medium leading-none" id={labelFor}>
+            {title}
+          </h4>
         </div>
       </div>
       {children}
