@@ -757,7 +757,7 @@ export async function getBookings({
       FROM "public"."BookingSeat" bs
       JOIN "public"."Attendee" a ON bs."attendeeId" = a.id
       JOIN booking_base b ON bs."bookingId" = b.id
-      WHERE a.email = ${addParam(user.email)}
+      WHERE a.email = ${addComprehensiveParam(user.email)}
     ),
     
     event_types AS (
