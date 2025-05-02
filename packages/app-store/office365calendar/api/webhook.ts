@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { uniqueBy } from "@calcom/lib/array";
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -49,7 +50,9 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   const events = webhookBodyParseRes.data.value;
   const body: WebhookResponse = {};
 
-  const promises = events.map(async (event) => {
+  const uniqueEvents = uniqueBy(events, ["subscriptionId"]);
+
+  const promises = uniqueEvents.map(async (event) => {
     if (!isApiKeyValid(event.clientState)) {
       body[event.subscriptionId] = {
         processed: false,
