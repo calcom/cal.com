@@ -89,6 +89,8 @@ describe("POST /api/selected-calendars", () => {
         googleChannelResourceUri: null,
         googleChannelExpiration: null,
         error: null,
+        outlookSubscriptionExpiration: null,
+        outlookSubscriptionId: null,
       });
 
       await handler(req, res);
@@ -128,6 +130,8 @@ describe("POST /api/selected-calendars", () => {
         domainWideDelegationCredentialId: null,
         eventTypeId: null,
         error: null,
+        outlookSubscriptionExpiration: null,
+        outlookSubscriptionId: null,
       });
 
       await handler(req, res);
