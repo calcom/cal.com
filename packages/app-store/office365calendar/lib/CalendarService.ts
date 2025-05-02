@@ -901,7 +901,7 @@ export default class Office365CalendarService implements Calendar {
 
     if (calendarsWithSameExternalIdToBeStillWatched.length) {
       this.log.info(
-        `There are other ${calendarsWithSameExternalIdToBeStillWatched.length} calendars with the same externalId_credentialId. Not unwatching. Just removing the channelId from this selected calendar`
+        `There are other ${calendarsWithSameExternalIdToBeStillWatched.length} calendars with the same externalId_credentialId. Not unwatching. Just removing the subscriptionId from this selected calendar`
       );
 
       // CalendarCache still need to exist
