@@ -8,7 +8,7 @@ import { TimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-const handleSendingSMS = ({
+const handleSendingSMS = async ({
   reminderPhone,
   smsMessage,
   senderID,
@@ -21,39 +21,47 @@ const handleSendingSMS = ({
   teamId: number;
   bookingUid?: string | null;
 }) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const team = await prisma.team.findUnique({
-        where: {
-          id: teamId,
-        },
+  const team = await prisma.team.findUnique({
+    where: { id: teamId },
+    select: {
+      parent: {
         select: {
-          parent: {
+          isOrganization: true,
+          organizationSettings: {
             select: {
-              isOrganization: true,
+              disablePhoneOnlySMSNotifications: true,
             },
           },
         },
-      });
-
-      if (!team?.parent?.isOrganization) return;
-
-      await checkSMSRateLimit({ identifier: `handleSendingSMS:team:${teamId}`, rateLimitingType: "sms" });
-
-      const smsOrFallbackEmail = await sendSmsOrFallbackEmail({
-        twilioData: {
-          phoneNumber: reminderPhone,
-          body: smsMessage,
-          sender: senderID,
-          teamId,
-          bookingUid,
-        },
-      });
-      resolve(smsOrFallbackEmail);
-    } catch (e) {
-      reject(console.error(`sendSmsOrFallbackEmail failed`, e));
-    }
+      },
+    },
   });
+
+  if (!team?.parent?.isOrganization || team?.parent?.organizationSettings?.disablePhoneOnlySMSNotifications) {
+    return; // resolves implicitly (as undefined)
+  }
+
+  try {
+    await checkSMSRateLimit({
+      identifier: `handleSendingSMS:team:${teamId}`,
+      rateLimitingType: "sms",
+    });
+
+    const smsOrFallbackEmail = await sendSmsOrFallbackEmail({
+      twilioData: {
+        phoneNumber: reminderPhone,
+        body: smsMessage,
+        sender: senderID,
+        teamId,
+        bookingUid,
+      },
+    });
+
+    return smsOrFallbackEmail;
+  } catch (e) {
+    console.error("sendSmsOrFallbackEmail failed", e);
+    throw e; // propagate the error
+  }
 };
 
 export default abstract class SMSManager {
