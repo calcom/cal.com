@@ -215,10 +215,10 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 {Object.keys(onBookingWriteToEventObjectMap).map((key) => (
                   <div className="mt-2 grid grid-cols-3 gap-4" key={key}>
                     <div>
-                      <InputField value={key} readOnly />
+                      <InputField value={key} readOnly size="sm" />
                     </div>
                     <div>
-                      <InputField value={onBookingWriteToEventObjectMap[key]} readOnly />
+                      <InputField value={onBookingWriteToEventObjectMap[key]} readOnly size="sm" />
                     </div>
                     <div>
                       <Button
@@ -237,6 +237,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 <div className="mt-2 grid grid-cols-3 gap-4">
                   <div>
                     <InputField
+                      size="sm"
                       value={newOnBookingWriteToEventObjectField.field}
                       onChange={(e) =>
                         setNewOnBookingWriteToEventObjectField({
@@ -248,6 +249,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   </div>
                   <div>
                     <InputField
+                      size="sm"
                       value={newOnBookingWriteToEventObjectField.value}
                       onChange={(e) =>
                         setNewOnBookingWriteToEventObjectField({
@@ -320,6 +322,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
               <div>
                 <p className="mb-2">{t("salesforce_owner_name_to_change")}</p>
                 <InputField
+                  size="sm"
                   value={onBookingChangeRecordOwnerName}
                   onChange={(e) => setAppData("onBookingChangeRecordOwnerName", e.target.value)}
                 />
@@ -355,6 +358,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                       {t("salesforce_check_owner_of")}
                     </label>
                     <Select
+                      size="sm"
                       className="mt-2 w-60"
                       options={checkOwnerOptions}
                       value={checkOwnerSelectedOption}
@@ -442,6 +446,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             <Section.SubSectionContent>
               <p className="mb-2">Field name to check (must be checkbox data type)</p>
               <InputField
+                size="sm"
                 value={sendNoShowAttendeeDataField}
                 onChange={(e) => setAppData("sendNoShowAttendeeDataField", e.target.value)}
               />

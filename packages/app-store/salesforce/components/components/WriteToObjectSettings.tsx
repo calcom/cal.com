@@ -103,10 +103,11 @@ const WriteToObjectSettings = ({
             {Object.keys(writeToObjectData).map((key) => (
               <div className="mt-2 grid grid-cols-5 gap-4" key={key}>
                 <div>
-                  <InputField value={key} readOnly />
+                  <InputField value={key} readOnly size="sm" />
                 </div>
                 <div>
                   <Select
+                    size="sm"
                     value={fieldTypeOptions.find(
                       (option) => option.value === writeToObjectData[key].fieldType
                     )}
@@ -116,6 +117,7 @@ const WriteToObjectSettings = ({
                 <div>
                   {writeToObjectData[key].fieldType === SalesforceFieldType.DATE ? (
                     <Select
+                      size="sm"
                       value={dateFieldValueOptions.find(
                         (option) => option.value === writeToObjectData[key].value
                       )}
@@ -123,17 +125,19 @@ const WriteToObjectSettings = ({
                     />
                   ) : writeToObjectData[key].fieldType === SalesforceFieldType.CHECKBOX ? (
                     <Select
+                      size="sm"
                       value={checkboxFieldValueOptions.find(
                         (option) => option.value === writeToObjectData[key].value
                       )}
                       isDisabled={true}
                     />
                   ) : (
-                    <InputField value={writeToObjectData[key].value as string} readOnly />
+                    <InputField value={writeToObjectData[key].value as string} readOnly size="sm" />
                   )}
                 </div>
                 <div>
                   <Select
+                    size="sm"
                     value={whenToWriteToRecordOptions.find(
                       (option) => option.value === writeToObjectData[key].whenToWrite
                     )}
@@ -142,6 +146,7 @@ const WriteToObjectSettings = ({
                 </div>
                 <div>
                   <Button
+                    size="sm"
                     StartIcon="trash"
                     variant="icon"
                     color="destructive"
@@ -157,6 +162,7 @@ const WriteToObjectSettings = ({
             <div className="mt-2 grid grid-cols-5 gap-4">
               <div>
                 <InputField
+                  size="sm"
                   value={newOnWriteToRecordEntry.field}
                   onChange={(e) =>
                     setNewOnWriteToRecordEntry({
@@ -168,6 +174,7 @@ const WriteToObjectSettings = ({
               </div>
               <div>
                 <Select
+                  size="sm"
                   options={fieldTypeOptions}
                   value={fieldTypeSelectedOption}
                   onChange={(e) => {
@@ -188,6 +195,7 @@ const WriteToObjectSettings = ({
               <div>
                 {newOnWriteToRecordEntry.fieldType === SalesforceFieldType.DATE ? (
                   <Select
+                    size="sm"
                     options={dateFieldValueOptions}
                     value={dateFieldSelectedOption}
                     onChange={(e) => {
@@ -202,6 +210,7 @@ const WriteToObjectSettings = ({
                   />
                 ) : newOnWriteToRecordEntry.fieldType === SalesforceFieldType.CHECKBOX ? (
                   <Select
+                    size="sm"
                     options={checkboxFieldValueOptions}
                     value={checkboxFieldSelectedOption}
                     onChange={(e) => {
@@ -216,6 +225,7 @@ const WriteToObjectSettings = ({
                   />
                 ) : (
                   <InputField
+                    size="sm"
                     value={newOnWriteToRecordEntry.value as string}
                     onChange={(e) =>
                       setNewOnWriteToRecordEntry({
@@ -228,6 +238,7 @@ const WriteToObjectSettings = ({
               </div>
               <div>
                 <Select
+                  size="sm"
                   options={whenToWriteToRecordOptions}
                   value={whenToWriteSelectedOption}
                   onChange={(e) => {
