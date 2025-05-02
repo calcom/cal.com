@@ -592,13 +592,21 @@ export async function getBookings({
   `
   );
 
+  const finalParams = [...params]; // Clone the params array
+  let finalParamIndex = params.length + 1; // Start from the next index after the last param
+
+  const addFinalParam = (value: any) => {
+    finalParams.push(value);
+    return `$${finalParamIndex++}`;
+  };
+
   const finalQuery = `
     SELECT * FROM (
       ${numberedQueries.join("\nUNION ALL\n")}
     ) data
     ${whereConditions.length > 0 ? `WHERE ${whereConditions.join(" AND ")}` : ""}
     ${orderByClause}
-    LIMIT ${addParam(take)} OFFSET ${addParam(skip)}
+    LIMIT ${addFinalParam(take)} OFFSET ${addFinalParam(skip)}
   `;
 
   const countQuery = `
@@ -635,7 +643,7 @@ export async function getBookings({
   };
 
   const [plainBookings, countResult] = await Promise.all([
-    prisma.$queryRaw<RawBookingResult[]>(PrismaClientType.sql([finalQuery, ...params])),
+    prisma.$queryRaw<RawBookingResult[]>(PrismaClientType.sql([finalQuery, ...finalParams])),
     prisma.$queryRaw<[{ count: bigint }]>(PrismaClientType.sql([countQuery, ...params])),
   ]);
 
