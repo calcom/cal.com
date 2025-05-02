@@ -1459,6 +1459,44 @@ view BookingTimeStatus {
   isTeamBooking  Boolean
 }
 
+model BookingTimeStatusDenormalized {
+  id             Int           @id
+  uid            String
+  eventTypeId    Int?
+  title          String?
+  description    String?
+  startTime      DateTime
+  endTime        DateTime
+  createdAt      DateTime
+  location       String?
+  paid           Boolean?
+  status         BookingStatus
+  rescheduled    Boolean?
+  userId         Int?
+  teamId         Int?
+  eventLength    Int?
+  timeStatus     String?
+  eventParentId  Int?
+  userEmail      String?
+  username       String?
+  ratingFeedback String?
+  rating         Int?
+  noShowHost     Boolean?
+  isTeamBooking  Boolean
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([eventTypeId])
+  @@index([eventParentId])
+  @@index([timeStatus])
+  @@index([teamId])
+  @@index([startTime])
+  @@index([endTime])
+  @@index([status])
+  @@index([teamId, isTeamBooking])
+  @@index([userId, isTeamBooking])
+}
+
 model CalendarCache {
   // To be made required in a followup
   id String? @default(uuid())
@@ -2084,42 +2122,4 @@ model WorkflowOptOutContact {
   updatedAt DateTime            @updatedAt
 
   @@unique([type, value])
-}
-
-model BookingTimeStatusDenormalized {
-  id             Int           @id
-  uid            String
-  eventTypeId    Int?
-  title          String?
-  description    String?
-  startTime      DateTime
-  endTime        DateTime
-  createdAt      DateTime
-  location       String?
-  paid           Boolean?
-  status         BookingStatus
-  rescheduled    Boolean?
-  userId         Int?
-  teamId         Int?
-  eventLength    Int?
-  timeStatus     String?
-  eventParentId  Int?
-  userEmail      String?
-  username       String?
-  ratingFeedback String?
-  rating         Int?
-  noShowHost     Boolean?
-  isTeamBooking  Boolean
-
-  @@index([userId], name: "idx_booking_user_id")
-  @@index([createdAt], name: "idx_booking_created_at")
-  @@index([eventTypeId], name: "idx_event_type_id")
-  @@index([eventParentId], name: "idx_event_parent_id")
-  @@index([timeStatus], name: "idx_booking_time_status")
-  @@index([teamId], name: "idx_booking_team_id")
-  @@index([startTime], name: "idx_booking_start_time")
-  @@index([endTime], name: "idx_booking_end_time")
-  @@index([status], name: "idx_booking_status")
-  @@index([teamId, isTeamBooking], name: "idx_booking_team_id_team_booking")
-  @@index([userId, isTeamBooking], name: "idx_booking_user_id_team_booking")
 }

@@ -1,43 +1,3 @@
--- Create the denormalized table
-CREATE TABLE "BookingTimeStatusDenormalized" (
-    id INTEGER NOT NULL PRIMARY KEY,
-    uid TEXT NOT NULL,
-    "eventTypeId" INTEGER,
-    title TEXT,
-    description TEXT,
-    "startTime" TIMESTAMP(3) NOT NULL,
-    "endTime" TIMESTAMP(3) NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL,
-    location TEXT,
-    paid BOOLEAN,
-    status "BookingStatus" NOT NULL,
-    rescheduled BOOLEAN,
-    "userId" INTEGER,
-    "teamId" INTEGER,
-    "eventLength" INTEGER,
-    "timeStatus" TEXT,
-    "eventParentId" INTEGER,
-    "userEmail" TEXT,
-    "username" TEXT,
-    "ratingFeedback" TEXT,
-    "rating" INTEGER,
-    "noShowHost" BOOLEAN,
-    "isTeamBooking" BOOLEAN
-);
-
--- Create indexes to match likely query patterns
-CREATE INDEX "idx_booking_user_id" ON "BookingTimeStatusDenormalized" ("userId");
-CREATE INDEX "idx_booking_created_at" ON "BookingTimeStatusDenormalized" ("createdAt");
-CREATE INDEX "idx_event_type_id" ON "BookingTimeStatusDenormalized" ("eventTypeId");
-CREATE INDEX "idx_event_parent_id" ON "BookingTimeStatusDenormalized" ("eventParentId");
-CREATE INDEX "idx_booking_time_status" ON "BookingTimeStatusDenormalized" ("timeStatus");
-CREATE INDEX "idx_booking_team_id" ON "BookingTimeStatusDenormalized" ("teamId");
-CREATE INDEX "idx_booking_start_time" ON "BookingTimeStatusDenormalized" ("startTime");
-CREATE INDEX "idx_booking_end_time" ON "BookingTimeStatusDenormalized" ("endTime");
-CREATE INDEX "idx_booking_status" ON "BookingTimeStatusDenormalized" ("status");
-CREATE INDEX "idx_booking_team_id_team_booking" ON "BookingTimeStatusDenormalized" ("teamId", "isTeamBooking");
-CREATE INDEX "idx_booking_user_id_team_booking" ON "BookingTimeStatusDenormalized" ("userId", "isTeamBooking");
-
 -- Function to calculate timeStatus
 CREATE OR REPLACE FUNCTION calculate_time_status(
     rescheduled BOOLEAN,
@@ -88,7 +48,7 @@ BEGIN
         "Booking"."userId",
         et."teamId",
         et.length AS "eventLength",
-        calculate_time_status("Booking".rescheduled, "Booking".status::text, "Booking"."endTime") AS "timeStatus",
+        calculate_time_status("Booking".rescheduled, "Booking".status, "Booking"."endTime") AS "timeStatus",
         et."parentId" AS "eventParentId",
         "u"."email" AS "userEmail",
         "u"."username" AS "username",
