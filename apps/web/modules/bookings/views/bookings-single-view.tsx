@@ -61,6 +61,11 @@ import { timeZone } from "@calcom/web/lib/clock";
 
 import type { PageProps } from "./bookings-single-view.getServerSideProps";
 
+interface AssignmentReason {
+  reasonEnum: AssignmentReasonEnum;
+  reasonString?: string;
+}
+
 const stringToBoolean = z
   .string()
   .optional()
@@ -554,17 +559,17 @@ export default function Success(props: PageProps) {
                                 <Alert
                                   severity="info"
                                   message={
-                                    (bookingInfo.metadata.assignmentReason as any)?.reasonEnum ===
+                                    (bookingInfo.metadata.assignmentReason as AssignmentReason).reasonEnum ===
                                     AssignmentReasonEnum.SALESFORCE_ASSIGNMENT
                                       ? t("routed_by_salesforce_ownership", {
                                           reason:
-                                            (bookingInfo.metadata.assignmentReason as any)?.reasonString ||
-                                            "",
+                                            (bookingInfo.metadata.assignmentReason as AssignmentReason)
+                                              .reasonString || "",
                                         })
                                       : t("routed_by_attributes", {
                                           reason:
-                                            (bookingInfo.metadata.assignmentReason as any)?.reasonString ||
-                                            "",
+                                            (bookingInfo.metadata.assignmentReason as AssignmentReason)
+                                              .reasonString || "",
                                         })
                                   }
                                 />
