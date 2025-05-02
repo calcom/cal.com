@@ -693,188 +693,245 @@ export async function getBookings({
     })
   );
 
-  // Now enrich bookings with relation data
-  const bookings = await Promise.all(
-    plainBookings.map(async (booking) => {
-      const attendees = await prisma.attendee.findMany({
-        where: {
-          bookingId: booking.id,
+  const bookingMap = new Map<number, any>();
+
+  for (const booking of plainBookings) {
+    bookingMap.set(booking.id, {
+      ...booking,
+      attendees: [],
+      seatsReferences: [],
+      eventType: null,
+      payment: [],
+      user: { id: 0, name: "", email: "" },
+      rescheduler: null,
+      references: [],
+      assignmentReason: [],
+      startTime: booking.startTime.toISOString(),
+      endTime: booking.endTime.toISOString(),
+      status: booking.status as BookingStatus,
+      routedFromRoutingFormReponse: null,
+    });
+  }
+
+  const bookingIds = plainBookings.map((booking) => booking.id);
+  if (bookingIds.length === 0) {
+    return { bookings: [], recurringInfo, totalCount };
+  }
+
+  const bookingIdsParam = bookingIds.map(() => addParam(bookingIds.shift())).join(", ");
+
+  const attendeesQuery = `
+    SELECT a.*, b.id as "bookingId"
+    FROM "public"."Attendee" a
+    JOIN "public"."Booking" b ON a."bookingId" = b.id
+    WHERE b.id IN (${bookingIdsParam})
+  `;
+
+  const seatsReferencesQuery = `
+    SELECT bs.*, a.email as "attendeeEmail", b.id as "bookingId"
+    FROM "public"."BookingSeat" bs
+    JOIN "public"."Attendee" a ON bs."attendeeId" = a.id
+    JOIN "public"."Booking" b ON bs."bookingId" = b.id
+    WHERE b.id IN (${bookingIdsParam})
+    AND a.email = ${addParam(user.email)}
+  `;
+
+  const eventTypesQuery = `
+    SELECT et.*, t.id as "teamId", t.name as "teamName", t.slug as "teamSlug", b.id as "bookingId"
+    FROM "public"."EventType" et
+    LEFT JOIN "public"."Team" t ON et."teamId" = t.id
+    JOIN "public"."Booking" b ON et.id = b."eventTypeId"
+    WHERE b.id IN (${bookingIdsParam})
+  `;
+
+  const paymentsQuery = `
+    SELECT p.*, b.id as "bookingId"
+    FROM "public"."Payment" p
+    JOIN "public"."Booking" b ON p."bookingId" = b.id
+    WHERE b.id IN (${bookingIdsParam})
+  `;
+
+  const usersQuery = `
+    SELECT u.id, u.name, u.email, b.id as "bookingId"
+    FROM "public"."User" u
+    JOIN "public"."Booking" b ON u.id = b."userId"
+    WHERE b.id IN (${bookingIdsParam})
+  `;
+
+  // 6. Fetch all rescheduled bookings
+  const rescheduledQuery = `
+    SELECT b2.uid, b2."rescheduledBy", b1.id as "bookingId"
+    FROM "public"."Booking" b1
+    JOIN "public"."Booking" b2 ON b1."fromReschedule" = b2.uid
+    WHERE b1.id IN (${bookingIdsParam})
+    AND b1."fromReschedule" IS NOT NULL
+  `;
+
+  const assignmentReasonQuery = `
+    SELECT ar.*, b.id as "bookingId"
+    FROM "public"."AssignmentReason" ar
+    JOIN "public"."Booking" b ON ar."bookingId" = b.id
+    WHERE b.id IN (${bookingIdsParam})
+    ORDER BY ar."createdAt" DESC
+  `;
+
+  const referencesQuery = `
+    SELECT br.*, b.id as "bookingId"
+    FROM "public"."BookingReference" br
+    JOIN "public"."Booking" b ON br."bookingId" = b.id
+    WHERE b.id IN (${bookingIdsParam})
+  `;
+
+  const routingFormResponseQuery = `
+    SELECT rfr.id, b.id as "bookingId"
+    FROM "public"."RoutingFormResponse" rfr
+    JOIN "public"."Booking" b ON rfr."bookingUid" = b.uid
+    WHERE b.id IN (${bookingIdsParam})
+  `;
+
+  const [
+    attendeesResult,
+    seatsReferencesResult,
+    eventTypesResult,
+    paymentsResult,
+    usersResult,
+    rescheduledResult,
+    assignmentReasonResult,
+    referencesResult,
+    routingFormResponseResult,
+  ] = await Promise.all([
+    prisma.$queryRaw<any[]>(PrismaClientType.sql([attendeesQuery, ...params])),
+    prisma.$queryRaw<any[]>(PrismaClientType.sql([seatsReferencesQuery, ...params])),
+    prisma.$queryRaw<any[]>(PrismaClientType.sql([eventTypesQuery, ...params])),
+    prisma.$queryRaw<any[]>(PrismaClientType.sql([paymentsQuery, ...params])),
+    prisma.$queryRaw<any[]>(PrismaClientType.sql([usersQuery, ...params])),
+    prisma.$queryRaw<any[]>(PrismaClientType.sql([rescheduledQuery, ...params])),
+    prisma.$queryRaw<any[]>(PrismaClientType.sql([assignmentReasonQuery, ...params])),
+    prisma.$queryRaw<any[]>(PrismaClientType.sql([referencesQuery, ...params])),
+    prisma.$queryRaw<any[]>(PrismaClientType.sql([routingFormResponseQuery, ...params])),
+  ]);
+
+  for (const attendee of attendeesResult) {
+    const booking = bookingMap.get(attendee.bookingId);
+    if (booking) {
+      booking.attendees.push({
+        id: attendee.id,
+        email: attendee.email,
+        name: attendee.name,
+        timeZone: attendee.timeZone,
+        locale: attendee.locale,
+        bookingId: attendee.bookingId,
+      });
+    }
+  }
+
+  for (const seatRef of seatsReferencesResult) {
+    const booking = bookingMap.get(seatRef.bookingId);
+    if (booking) {
+      booking.seatsReferences.push({
+        referenceUid: seatRef.referenceUid,
+        attendee: {
+          email: seatRef.attendeeEmail,
         },
       });
+    }
+  }
 
-      const seatsReferences = await prisma.bookingSeat.findMany({
-        where: {
-          bookingId: booking.id,
-          attendee: {
-            email: user.email,
-          },
-        },
-        select: {
-          referenceUid: true,
-          attendee: {
-            select: {
-              email: true,
-            },
-          },
-        },
-      });
-
-      const eventType = booking.eventTypeId
-        ? await prisma.eventType.findUnique({
-            where: {
-              id: booking.eventTypeId,
-            },
-            select: {
-              slug: true,
-              id: true,
-              title: true,
-              eventName: true,
-              price: true,
-              recurringEvent: true,
-              currency: true,
-              metadata: true,
-              disableGuests: true,
-              seatsShowAttendees: true,
-              seatsShowAvailabilityCount: true,
-              eventTypeColor: true,
-              customReplyToEmail: true,
-              allowReschedulingPastBookings: true,
-              hideOrganizerEmail: true,
-              disableCancelling: true,
-              disableRescheduling: true,
-              schedulingType: true,
-              length: true,
-              team: {
-                select: {
-                  id: true,
-                  name: true,
-                  slug: true,
-                },
-              },
-            },
-          })
-        : null;
-
-      // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
-      const filteredAttendees =
-        seatsReferences.length && eventType && !eventType.seatsShowAttendees
-          ? attendees.filter((attendee) => attendee.email === user.email)
-          : attendees;
-
-      const payment = await prisma.payment.findMany({
-        where: {
-          bookingId: booking.id,
-        },
-        select: {
-          paymentOption: true,
-          amount: true,
-          currency: true,
-          success: true,
-        },
-      });
-
-      const bookingUser = booking.userId
-        ? await prisma.user.findUnique({
-            where: {
-              id: booking.userId,
-            },
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          })
-        : null;
-
-      let rescheduler = null;
-      if (booking.fromReschedule) {
-        const rescheduledBooking = await prisma.booking.findUnique({
-          where: {
-            uid: booking.fromReschedule,
-          },
-          select: {
-            rescheduledBy: true,
-          },
-        });
-        if (rescheduledBooking) {
-          rescheduler = rescheduledBooking.rescheduledBy;
-        }
-      }
-
-      const assignmentReason = await prisma.assignmentReason.findFirst({
-        where: {
-          bookingId: booking.id,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: 1,
-      });
-
-      const references = await prisma.bookingReference.findMany({
-        where: {
-          bookingId: booking.id,
-        },
-      });
-
-      const processedEventType = eventType
-        ? {
-            ...eventType,
-            recurringEvent: parseRecurringEvent(eventType.recurringEvent),
-            eventTypeColor: parseEventTypeColor(eventType.eventTypeColor),
-            price: eventType.price || 0,
-            currency: eventType.currency || "usd",
-            metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
-          }
-        : {
-            id: 0,
-            slug: "",
-            title: "",
-            eventName: "",
-            price: 0,
-            recurringEvent: null,
-            currency: "usd",
-            metadata: {},
-            disableGuests: false,
-            seatsShowAttendees: false,
-            seatsShowAvailabilityCount: false,
-            eventTypeColor: null,
-            customReplyToEmail: null,
-            allowReschedulingPastBookings: false,
-            hideOrganizerEmail: false,
-            disableCancelling: false,
-            disableRescheduling: false,
-            schedulingType: null,
-            length: 0,
-            team: null,
-          };
-
-      const routedFromRoutingFormReponse = await prisma.routingFormResponse.findFirst({
-        where: {
-          bookingUid: booking.uid,
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      return {
-        ...booking,
-        attendees: filteredAttendees,
-        seatsReferences,
-        eventType: processedEventType,
-        payment,
-        user: bookingUser || { id: 0, name: "", email: "" }, // Default user to prevent null
-        rescheduler,
-        references,
-        assignmentReason: assignmentReason ? [assignmentReason] : [],
-        startTime: booking.startTime.toISOString(),
-        endTime: booking.endTime.toISOString(),
-        status: booking.status as BookingStatus,
-        routedFromRoutingFormReponse: routedFromRoutingFormReponse || null,
+  for (const eventType of eventTypesResult) {
+    const booking = bookingMap.get(eventType.bookingId);
+    if (booking) {
+      const processedEventType = {
+        id: eventType.id,
+        slug: eventType.slug || "",
+        title: eventType.title || "",
+        eventName: eventType.eventName || "",
+        price: eventType.price || 0,
+        recurringEvent: parseRecurringEvent(eventType.recurringEvent),
+        currency: eventType.currency || "usd",
+        metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
+        disableGuests: eventType.disableGuests || false,
+        seatsShowAttendees: eventType.seatsShowAttendees || false,
+        seatsShowAvailabilityCount: eventType.seatsShowAvailabilityCount || false,
+        eventTypeColor: parseEventTypeColor(eventType.eventTypeColor),
+        customReplyToEmail: eventType.customReplyToEmail,
+        allowReschedulingPastBookings: eventType.allowReschedulingPastBookings || false,
+        hideOrganizerEmail: eventType.hideOrganizerEmail || false,
+        disableCancelling: eventType.disableCancelling || false,
+        disableRescheduling: eventType.disableRescheduling || false,
+        schedulingType: eventType.schedulingType,
+        length: eventType.length || 0,
+        team: eventType.teamId
+          ? {
+              id: eventType.teamId,
+              name: eventType.teamName || "",
+              slug: eventType.teamSlug || "",
+            }
+          : null,
       };
-    })
-  );
+
+      booking.eventType = processedEventType;
+
+      if (booking.seatsReferences.length && !processedEventType.seatsShowAttendees) {
+        booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
+      }
+    }
+  }
+
+  for (const payment of paymentsResult) {
+    const booking = bookingMap.get(payment.bookingId);
+    if (booking) {
+      booking.payment.push({
+        paymentOption: payment.paymentOption,
+        amount: payment.amount,
+        currency: payment.currency,
+        success: payment.success,
+      });
+    }
+  }
+
+  for (const bookingUser of usersResult) {
+    const booking = bookingMap.get(bookingUser.bookingId);
+    if (booking) {
+      booking.user = {
+        id: bookingUser.id,
+        name: bookingUser.name || "",
+        email: bookingUser.email || "",
+      };
+    }
+  }
+
+  // 6. Process rescheduled bookings
+  for (const rescheduled of rescheduledResult) {
+    const booking = bookingMap.get(rescheduled.bookingId);
+    if (booking) {
+      booking.rescheduler = rescheduled.rescheduledBy;
+    }
+  }
+
+  for (const reason of assignmentReasonResult) {
+    const booking = bookingMap.get(reason.bookingId);
+    if (booking) {
+      if (booking.assignmentReason.length === 0) {
+        booking.assignmentReason.push(reason);
+      }
+    }
+  }
+
+  for (const reference of referencesResult) {
+    const booking = bookingMap.get(reference.bookingId);
+    if (booking) {
+      booking.references.push(reference);
+    }
+  }
+
+  for (const response of routingFormResponseResult) {
+    const booking = bookingMap.get(response.bookingId);
+    if (booking) {
+      booking.routedFromRoutingFormReponse = { id: response.id };
+    }
+  }
+
+  const bookings = Array.from(bookingMap.values());
 
   return { bookings, recurringInfo, totalCount };
 }
