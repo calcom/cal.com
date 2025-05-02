@@ -50,8 +50,19 @@ export default function AppCard({
   return (
     <Section className={classNames(!app?.isInstalled && "rounded-none")}>
       <Section.Header
-        title={app?.name}
-        description={app?.description}
+        rawHeading={
+          <div>
+            <div className="flex w-full items-center gap-1">
+              <Section.Title>{app?.name}</Section.Title>
+              {!app?.isInstalled && (
+                <span className="bg-emphasis ml-1 rounded px-1 py-0.5 text-xs font-medium leading-3 tracking-[0.01em]">
+                  {app?.categories[0].charAt(0).toUpperCase() + app?.categories[0].slice(1)}
+                </span>
+              )}
+            </div>
+            <Section.Description>{app?.description}</Section.Description>
+          </div>
+        }
         iconSlot={
           <Link
             href={`/apps/${app.slug}`}
@@ -62,28 +73,9 @@ export default function AppCard({
               alt={app?.name}
             />
           </Link>
-        }
-        // className={classNames(app.isInstalled ? "p-4 text-sm sm:p-4" : "px-5 py-4 text-sm sm:px-5")}
-      >
-        <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-0">
-          {/* Don't know why but w-[42px] isn't working, started happening when I started using next/dynamic */}
-
-          <div className="flex flex-col pe-3">
-            <div className="text-emphasis">
-              {/* <span className={classNames(app?.isInstalled && "text-base", "font-semibold leading-4")}>
-                {app?.name}
-              </span> */}
-              {!app?.isInstalled && (
-                <span className="bg-emphasis ml-1 rounded px-1 py-0.5 text-xs font-medium leading-3 tracking-[0.01em]">
-                  {app?.categories[0].charAt(0).toUpperCase() + app?.categories[0].slice(1)}
-                </span>
-              )}
-            </div>
-            {/* <p title={app?.description} className="text-default line-clamp-1 pt-1 text-sm font-normal">
-              {description || app?.description}
-            </p> */}
-          </div>
-          <div className="ml-auto flex items-center space-x-2">
+        }>
+        <div>
+          <div>
             {/* {app.credentialOwner && !isPlatform && (
               <div className="ml-auto">
                 <Badge variant="gray">
