@@ -4,7 +4,7 @@ import {
   BulkUpdateEventTypeToDefaultLocationDto,
   EventTypesAppInput,
 } from "@/modules/atoms/inputs/event-types-app.input";
-import { GetAtomPublicEventTypeQueryParams } from "@/modules/atoms/inputs/get-atom-public-event-type-query-params.input.ts.input";
+import { GetAtomPublicEventTypeQueryParams } from "@/modules/atoms/inputs/get-atom-public-event-type-query-params.input";
 import { EventTypesAtomService } from "@/modules/atoms/services/event-types-atom.service";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
