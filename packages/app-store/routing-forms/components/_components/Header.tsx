@@ -111,6 +111,17 @@ const Actions = ({
               StartIcon="external-link">
               {t("view_form")}
             </FormAction>
+            {isMobile ? (
+              <FormAction
+                action="incompleteBooking"
+                className="w-full"
+                routingForm={form}
+                color="minimal"
+                type="button"
+                StartIcon="calendar">
+                {t("routing_incomplete_booking_tab")}
+              </FormAction>
+            ) : null}
             <FormAction
               action="copyLink"
               className="w-full"
@@ -338,7 +349,7 @@ export function Header({
               ? [
                   {
                     value: "incomplete-booking",
-                    label: t("incomplete_booking"),
+                    label: t("routing_incomplete_booking_tab"),
                     iconLeft: <Icon name="calendar" className="h-3 w-3" />,
                   },
                 ]
