@@ -11,6 +11,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { Toaster } from "sonner";
 import type { z } from "zod";
 
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { buildEmptyQueryValue, raqbQueryValueUtils } from "@calcom/lib/raqb/raqbUtils";
@@ -385,6 +386,9 @@ const Route = ({
 
   const { eventOptions } = buildEventsData({ eventTypesByGroup, form, route });
 
+  const orgBranding = useOrgBranding();
+  const isOrganization = !!orgBranding;
+
   // /team/{TEAM_SLUG}/{EVENT_SLUG} -> /team/{TEAM_SLUG}
   const eventTypePrefix =
     eventOptions.length !== 0
@@ -554,7 +558,7 @@ const Route = ({
     : null;
 
   const attributesQueryBuilder =
-    route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm ? (
+    route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm && isOrganization ? (
       <div className="mt-4">
         {/* TODO: */}
         {eventTypeRedirectUrlSelectedOption?.eventTypeAppMetadata &&
@@ -1426,6 +1430,8 @@ export default function RouteBuilder({
   appUrl,
   enrichedWithUserProfileForm,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
+  console.log("########### enrichedWithUserProfileForm ############", enrichedWithUserProfileForm);
+
   return (
     <>
       <SingleForm
