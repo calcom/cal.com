@@ -4,6 +4,8 @@ import * as Sentry from "@sentry/nextjs";
 
 import logger from "@calcom/lib/logger";
 
+import { createReplacer } from "./replacer";
+
 const SLOW_QUERY_THRESHOLD_MS = process.env.PRISMA_SLOW_QUERY_THRESHOLD_MS
   ? parseInt(process.env.PRISMA_SLOW_QUERY_THRESHOLD_MS, 10)
   : 500;
@@ -26,30 +28,14 @@ const SENSITIVE_FIELDS = [
   "token",
 ];
 
+// Create a Set for efficient O(1) average time complexity lookups
+const SENSITIVE_FIELDS_SET = new Set<string>(SENSITIVE_FIELDS);
+
 function redactSensitiveData(data: unknown): unknown {
-  if (!data || typeof data !== "object") {
-    return data;
-  }
-
+  if (!data || typeof data !== "object") return data;
   try {
-    let jsonString = JSON.stringify(data);
-
-    // Create a regex to find sensitive keys and replace their values
-    // This regex looks for "sensitiveKey":"anyValue" patterns
-    // It handles string, number, boolean, null, array, and object values.
-    for (const field of SENSITIVE_FIELDS) {
-      // Escape special characters in the field name for regex
-      const escapedField = field.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
-      // Match the key (in quotes) followed by a colon, optional whitespace,
-      // and then the value (string, number, boolean, null, object, or array)
-      const regex = new RegExp(
-        `"${escapedField}"\s*:\s*(?:"(?:[^"\\]|\\.)*"|\d+(?:\.\d+)?|true|false|null|\[.*?\]|\{[^]*?\})`,
-        "gi"
-      );
-      jsonString = jsonString.replace(regex, `"${field}":"[REDACTED]"`);
-    }
-
-    return JSON.parse(jsonString);
+    const closureReplacer = createReplacer(SENSITIVE_FIELDS_SET);
+    return JSON.parse(JSON.stringify(data, closureReplacer, 2));
   } catch (error) {
     // Fallback or logging if JSON operations fail
     logger.error("Failed to redact sensitive data using JSON.stringify/parse", error);
