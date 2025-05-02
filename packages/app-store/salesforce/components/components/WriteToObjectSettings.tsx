@@ -101,7 +101,7 @@ const WriteToObjectSettings = ({
           </div>
           <Section.SubSectionNested>
             {Object.keys(writeToObjectData).map((key) => (
-              <div className="mt-2 grid grid-cols-5 gap-4" key={key}>
+              <div className="mt-2 flex grid grid-cols-5 items-center gap-4" key={key}>
                 <div>
                   <InputField value={key} readOnly size="sm" />
                 </div>
@@ -255,7 +255,9 @@ const WriteToObjectSettings = ({
             </div>
           </Section.SubSectionNested>
           <Button
-            className="mt-2"
+            className="text-subtle mt-2 w-fit"
+            StartIcon="plus"
+            color="minimal"
             size="sm"
             disabled={
               !(
