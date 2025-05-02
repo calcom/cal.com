@@ -4,9 +4,8 @@ import type { SelectQueryBuilder } from "kysely";
 import dayjs from "@calcom/dayjs";
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
-import type { Booking } from "@calcom/kysely";
+import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
-import type { Attendee, BookingSeat, EventType } from "@calcom/kysely/types";
 import { parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import logger from "@calcom/lib/logger";
@@ -197,16 +196,7 @@ export async function getBookings({
     getUserIdsAndEmailsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner, user.orgId),
   ]);
 
-  const bookingQueries: SelectQueryBuilder<
-    {
-      Booking: Booking;
-      Attendee: Attendee | null;
-      BookingSeat: BookingSeat | null;
-      EventType: EventType | null;
-    },
-    "Booking" | "EventType" | "Attendee" | "BookingSeat",
-    unknown
-  >[] = [];
+  const bookingQueries: SelectQueryBuilder<DB, "Booking", unknown>[] = [];
 
   // If user is organization owner/admin, contains organization members emails and ids (organization plan)
   // If user is only team owner/admin, contain team members emails and ids (teams plan)
@@ -237,13 +227,7 @@ export async function getBookings({
     // 1. Booking created by one of the filtered users
     orConditions.push({ userId: usersFilter });
     bookingQueries.push(
-      kysely
-        .selectFrom("Booking")
-        .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
-        .leftJoin("EventType", "EventType.id", "Booking.eventTypeId")
-        .leftJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
-        .selectAll("Booking")
-        .where("userId", "in", filters.userIds)
+      kysely.selectFrom("Booking").selectAll("Booking").where("userId", "in", filters.userIds)
     );
     // 2. Attendee email matches one of the filtered users' emails
     orConditions.push({ attendees: { some: { email: attendeesEmailFilter } } });
@@ -251,9 +235,7 @@ export async function getBookings({
       bookingQueries.push(
         kysely
           .selectFrom("Booking")
-          .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .leftJoin("EventType", "EventType.id", "Booking.eventTypeId")
-          .leftJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
           .selectAll("Booking")
           .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter)
       );
@@ -265,9 +247,8 @@ export async function getBookings({
       bookingQueries.push(
         kysely
           .selectFrom("Booking")
-          .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .leftJoin("EventType", "EventType.id", "Booking.eventTypeId")
-          .leftJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .innerJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
           .selectAll("Booking")
           .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter)
       );
@@ -283,38 +264,24 @@ export async function getBookings({
     // 1. Current user created bookings
     orConditions.push({ userId: { equals: user.id } });
     bookingQueries.push(
-      kysely
-        .selectFrom("Booking")
-        .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
-        .leftJoin("EventType", "EventType.id", "Booking.eventTypeId")
-        .leftJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
-        .where("Booking.userId", "=", user.id)
-        .selectAll("Booking")
+      kysely.selectFrom("Booking").where("Booking.userId", "=", user.id).selectAll("Booking")
     );
     // 2. Current user is an attendee
     orConditions.push({ attendees: { some: { email: userEmailFilter } } });
     bookingQueries.push(
       kysely
         .selectFrom("Booking")
-        .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
-        .leftJoin("EventType", "EventType.id", "Booking.eventTypeId")
-        .leftJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
+        .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
         .selectAll("Booking")
         .where("Attendee.email", "=", user.email)
     );
     // 3. Current user is an attendee via seats reference
     orConditions.push({ seatsReferences: { some: { attendee: { email: userEmailFilter } } } });
-    const a = kysely
-      .selectFrom("Booking")
-      .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
 
-      .selectAll("Booking");
     bookingQueries.push(
       kysely
         .selectFrom("Booking")
-        .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
-        .leftJoin("EventType", "EventType.id", "Booking.eventTypeId")
-        .leftJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
+        .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
         .selectAll("Booking")
         .where("Attendee.email", "=", user.email)
     );
@@ -327,9 +294,7 @@ export async function getBookings({
       bookingQueries.push(
         kysely
           .selectFrom("Booking")
-          .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .leftJoin("EventType", "EventType.id", "Booking.eventTypeId")
-          .leftJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
           .selectAll("Booking")
           .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner)
       );
@@ -344,9 +309,8 @@ export async function getBookings({
       bookingQueries.push(
         kysely
           .selectFrom("Booking")
-          .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .leftJoin("EventType", "EventType.id", "Booking.eventTypeId")
-          .leftJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .innerJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
           .selectAll("Booking")
           .where("Attendee.email", "=", userEmailsWhereUserIsAdminOrOwner)
       );
@@ -359,9 +323,7 @@ export async function getBookings({
       bookingQueries.push(
         kysely
           .selectFrom("Booking")
-          .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .leftJoin("EventType", "EventType.id", "Booking.eventTypeId")
-          .leftJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
+          .innerJoin("EventType", "EventType.id", "Booking.eventTypeId")
           .selectAll("Booking")
           .where("Booking.eventTypeId", "in", eventTypeIdsWhereUserIsAdminOrOwner)
       );
@@ -374,9 +336,6 @@ export async function getBookings({
       bookingQueries.push(
         kysely
           .selectFrom("Booking")
-          .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .leftJoin("EventType", "EventType.id", "Booking.eventTypeId")
-          .leftJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
           .where("Booking.userId", "in", userIdsWhereUserIsAdminOrOwner)
           .selectAll("Booking")
       );
@@ -477,10 +436,14 @@ export async function getBookings({
     if (filters?.attendeeName) {
       if (typeof filters.attendeeName === "string") {
         // Simple string match (exact)
-        query.where("Attendee.name", "=", filters.attendeeName.trim());
+        query
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .where("Attendee.name", "=", filters.attendeeName.trim());
       } else if (isTextFilterValue(filters.attendeeName)) {
         // TODO: write makeWhereClause equivalent for kysely
-        query.where("Attendee.email", "=", filters.attendeeName.data.operand);
+        query
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .where("Attendee.email", "=", filters.attendeeName.data.operand);
       }
     }
 
