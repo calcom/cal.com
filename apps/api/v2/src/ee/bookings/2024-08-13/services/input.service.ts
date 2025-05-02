@@ -701,15 +701,13 @@ export class InputBookingsService_2024_08_13 {
           query.afterStart = this.getOneMonthAgo();
         }
         if (!query.beforeEnd) {
-          const now = DateTime.now().setZone("utc").toISO();
-          if (!now) throw new BadRequestException("Failed to generate current UTC date");
+          const now = DateTime.now().setZone("utc").toISO() || undefined;
           query.beforeEnd = now;
         }
       } else if (query.status.includes("upcoming")) {
         // Upcoming bookings: from now to one month ahead or user defined
         if (!query.afterStart) {
-          const now = DateTime.now().setZone("utc").toISO();
-          if (!now) throw new BadRequestException("Failed to generate current UTC date");
+          const now = DateTime.now().setZone("utc").toISO() || undefined;
           query.afterStart = now;
         }
         if (!query.beforeEnd) {
@@ -767,24 +765,16 @@ export class InputBookingsService_2024_08_13 {
     return query;
   }
 
-  getOneMonthAgo(fromDate?: DateTime): string {
+  getOneMonthAgo(fromDate?: DateTime) {
     const date = (fromDate || DateTime.now().setZone("utc")).minus({ months: 1 });
     const adjusted = date.set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
-    const isoDate = adjusted.toISO();
-    if (!isoDate) {
-      throw new BadRequestException("Failed to generate one month ago date");
-    }
-    return isoDate;
+    return adjusted.toISO() || undefined;
   }
 
-  getOneMonthAhead(fromDate?: DateTime): string {
+  getOneMonthAhead(fromDate?: DateTime) {
     const date = (fromDate || DateTime.now().setZone("utc")).plus({ months: 1 });
     const adjusted = date.set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
-    const isoDate = adjusted.toISO();
-    if (!isoDate) {
-      throw new BadRequestException("Failed to generate one month ahead date");
-    }
-    return isoDate;
+    return adjusted.toISO() || undefined;
   }
 
   async createCancelBookingRequest(
