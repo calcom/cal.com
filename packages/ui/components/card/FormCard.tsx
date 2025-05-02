@@ -7,21 +7,81 @@ import classNames from "@calcom/ui/classNames";
 
 import type { BadgeProps } from "../badge";
 import { Badge } from "../badge";
-import { Divider } from "../divider";
+import { Button } from "../button";
+import { Dropdown, DropdownMenuTrigger, DropdownMenuContent, DropdownItem } from "../dropdown";
 import { Input } from "../form/inputs/TextField";
 import { Icon } from "../icon";
+import type { IconName } from "../icon";
 
 type Action = { check: () => boolean; fn: () => void };
+
+type FormCardActionsProps = {
+  deleteField?: Action | null;
+  duplicateField?: Action | null;
+};
+
+const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) => {
+  type ActionItem = {
+    label: string;
+    icon: IconName;
+    onClick: () => void;
+    color?: "destructive" | "minimal";
+  };
+
+  const actions: ActionItem[] = [
+    duplicateField?.fn && {
+      label: "Duplicate",
+      icon: "copy",
+      onClick: () => duplicateField.fn(),
+    },
+    deleteField?.fn && {
+      label: "Delete",
+      icon: "trash",
+      color: "minimal",
+      onClick: () => deleteField.fn(),
+    },
+  ].filter((action): action is ActionItem => !!action);
+
+  if (actions.length === 0) return null;
+
+  return (
+    <Dropdown>
+      <DropdownMenuTrigger asChild>
+        <Button type="button" variant="icon" color="minimal" className="ml-2">
+          <Icon name="ellipsis" className="text-default h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        {actions.map((action) => (
+          <DropdownItem
+            key={action.label}
+            StartIcon={action.icon}
+            onClick={(e) => {
+              e.preventDefault();
+              action.onClick();
+            }}
+            color={action.color}>
+            {action.label}
+          </DropdownItem>
+        ))}
+      </DropdownMenuContent>
+    </Dropdown>
+  );
+};
+
 export default function FormCard({
   children,
   label,
   isLabelEditable,
   onLabelChange,
   deleteField,
+  duplicateField,
   moveUp,
   moveDown,
   className,
   badge,
+  collapsible = true,
+  leftIcon,
   ...restProps
 }: {
   children: React.ReactNode;
@@ -29,14 +89,17 @@ export default function FormCard({
   isLabelEditable?: boolean;
   onLabelChange?: (label: string) => void;
   deleteField?: Action | null;
+  duplicateField?: Action | null;
   moveUp?: Action | null;
   moveDown?: Action | null;
   className?: string;
   badge?: { text: string; href?: string; variant: BadgeProps["variant"] } | null;
+  leftIcon?: IconName;
+  collapsible?: boolean;
 } & JSX.IntrinsicElements["div"]) {
   className = classNames(
-    className,
-    "flex items-center group relative w-full rounded-md p-4 border border-subtle"
+    "flex items-center group relative w-full rounded-2xl p-1 border border-subtle bg-muted mb-2",
+    className
   );
 
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -47,11 +110,11 @@ export default function FormCard({
 
   return (
     <div className={className} {...restProps}>
-      <div>
+      <div className="absolute left-0 top-1/2 -translate-y-1/2">
         {moveUp?.check() ? (
           <button
             type="button"
-            className="bg-default text-muted hover:text-emphasis invisible absolute left-0 -ml-[13px] -mt-10 flex h-6 w-6 scale-0 items-center   justify-center rounded-md border p-1 transition-all hover:border-transparent  hover:shadow group-hover:visible group-hover:scale-100 "
+            className="bg-default text-muted hover:text-emphasis invisible -ml-[13px] mb-1 flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
             onClick={() => moveUp?.fn()}>
             <Icon name="arrow-up" />
           </button>
@@ -59,15 +122,40 @@ export default function FormCard({
         {moveDown?.check() ? (
           <button
             type="button"
-            className="bg-default text-muted hover:text-emphasis invisible absolute left-0 -ml-[13px] -mt-2  flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
+            className="bg-default text-muted hover:text-emphasis invisible -ml-[13px] flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
             onClick={() => moveDown?.fn()}>
             <Icon name="arrow-down" />
           </button>
         ) : null}
       </div>
       <div className="w-full">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-center justify-between p-2">
+          <div className="flex items-center gap-2">
+            {leftIcon && (
+              <div className="text-subtle border-subtle rounded-lg border p-1.5">
+                <Icon name={leftIcon} className="text-default h-4 w-4" />
+              </div>
+            )}
+            {collapsible && (
+              <Button
+                size="sm"
+                variant="icon"
+                color="minimal"
+                CustomStartIcon={
+                  <Icon
+                    name="chevron-up"
+                    className={classNames(
+                      "text-default h-4 w-4 transition-transform",
+                      isCollapsed && "rotate-180"
+                    )}
+                  />
+                }
+                onClick={() => {
+                  toggleFormCard();
+                }}
+                className="text-muted"
+              />
+            )}
             {isLabelEditable ? (
               <Input type="text" value={label} onChange={(e) => onLabelChange?.(e.target.value)} />
             ) : (
@@ -80,31 +168,10 @@ export default function FormCard({
             )}
           </div>
           <div>
-            <button
-              type="button"
-              onClick={() => {
-                toggleFormCard();
-              }}
-              color="secondary">
-              <Icon name="chevrons-down-up" className="text-default h-4 w-4" />
-            </button>
-            {deleteField?.check() ? (
-              <button
-                type="button"
-                className="ml-2"
-                onClick={() => {
-                  deleteField?.fn();
-                }}
-                color="secondary">
-                <Icon name="trash-2" className="text-default h-4 w-4" />
-              </button>
-            ) : null}
+            <FormCardActions deleteField={deleteField} duplicateField={duplicateField} />
           </div>
         </div>
-        <div className={isCollapsed ? "hidden" : ""}>
-          <Divider className="mb-6 mt-3" />
-          {children}
-        </div>
+        <div className={isCollapsed ? "hidden" : ""}>{children}</div>
       </div>
     </div>
   );
