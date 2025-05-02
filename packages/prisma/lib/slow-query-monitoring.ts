@@ -26,17 +26,36 @@ const SENSITIVE_FIELDS = [
   "token",
 ];
 
-function redactSensitiveData(params: unknown): unknown {
-  if (!params || typeof params !== "object") return params;
-
-  const redacted = { ...params };
-  for (const key in redacted) {
-    if (SENSITIVE_FIELDS.some((field) => key.toLowerCase().includes(field))) {
-      // @ts-expect-error - This is a temporary solution to avoid type errors
-      redacted[key] = "[REDACTED]";
-    }
+function redactSensitiveData(data: unknown): unknown {
+  if (!data || typeof data !== "object") {
+    return data;
   }
-  return redacted;
+
+  try {
+    let jsonString = JSON.stringify(data);
+
+    // Create a regex to find sensitive keys and replace their values
+    // This regex looks for "sensitiveKey":"anyValue" patterns
+    // It handles string, number, boolean, null, array, and object values.
+    for (const field of SENSITIVE_FIELDS) {
+      // Escape special characters in the field name for regex
+      const escapedField = field.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
+      // Match the key (in quotes) followed by a colon, optional whitespace,
+      // and then the value (string, number, boolean, null, object, or array)
+      const regex = new RegExp(
+        `"${escapedField}"\s*:\s*(?:"(?:[^"\\]|\\.)*"|\d+(?:\.\d+)?|true|false|null|\[.*?\]|\{[^]*?\})`,
+        "gi"
+      );
+      jsonString = jsonString.replace(regex, `"${field}":"[REDACTED]"`);
+    }
+
+    return JSON.parse(jsonString);
+  } catch (error) {
+    // Fallback or logging if JSON operations fail
+    logger.error("Failed to redact sensitive data using JSON.stringify/parse", error);
+    // Return a generic redacted object or the original data as a fallback
+    return { error: "Redaction failed" };
+  }
 }
 
 // Helper function to setup slow query monitoring
