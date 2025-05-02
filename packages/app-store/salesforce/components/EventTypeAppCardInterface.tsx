@@ -10,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { InputField } from "@calcom/ui/components/form";
+import { InputField, Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { Section } from "@calcom/ui/components/section";
@@ -207,14 +207,14 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           </Section.SubSectionHeader>
           {onBookingWriteToEventObject ? (
             <Section.SubSectionContent>
-              <div className="flex gap-4">
+              <div className="text-subtle flex gap-3 px-3 py-[6px] text-sm font-medium">
                 <div className="flex-1">{t("field_name")}</div>
                 <div className="flex-1">{t("value")}</div>
                 <div className="w-10" />
               </div>
               <Section.SubSectionNested>
                 {Object.keys(onBookingWriteToEventObjectMap).map((key) => (
-                  <div className="mt-2 flex items-center gap-4" key={key}>
+                  <div className="flex items-center gap-2" key={key}>
                     <div className="flex-1">
                       <InputField value={key} readOnly size="sm" className="w-full" />
                     </div>
@@ -328,10 +328,15 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             />
           </Section.SubSectionHeader>
           {onBookingChangeRecordOwner ? (
-            <Section.SubSectionContent>
+            <Section.SubSectionContent classNames={{ container: "p-3" }}>
               <div>
-                <p className="mb-2">{t("salesforce_owner_name_to_change")}</p>
+                <Label
+                  htmlFor="on-booking-change-record-owner-name"
+                  className="text-subtle text-sm font-medium">
+                  {t("salesforce_owner_name_to_change")}
+                </Label>
                 <InputField
+                  id="on-booking-change-record-owner-name"
                   size="sm"
                   value={onBookingChangeRecordOwnerName}
                   onChange={(e) => setAppData("onBookingChangeRecordOwnerName", e.target.value)}
@@ -362,14 +367,16 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 />
               </Section.SubSectionHeader>
               {isRoundRobinLeadSkipEnabled ? (
-                <Section.SubSectionContent>
+                <Section.SubSectionContent classNames={{ container: "p-3" }}>
                   <div>
-                    <label className="text-emphasis mb-2 align-text-top text-sm font-medium">
+                    <Label
+                      htmlFor="round-robin-skip-check-record-on"
+                      className="text-subtle text-sm font-medium">
                       {t("salesforce_check_owner_of")}
-                    </label>
+                    </Label>
                     <Select
                       size="sm"
-                      className="mt-2 w-60"
+                      className="w-60"
                       options={checkOwnerOptions}
                       value={checkOwnerSelectedOption}
                       onChange={(e) => {
@@ -453,9 +460,14 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             />
           </Section.SubSectionHeader>
           {sendNoShowAttendeeData ? (
-            <Section.SubSectionContent>
-              <p className="mb-2">Field name to check (must be checkbox data type)</p>
+            <Section.SubSectionContent classNames={{ container: "p-3" }}>
+              <Label
+                htmlFor="send-no-show-attendee-data-field-name"
+                className="text-subtle text-sm font-medium">
+                Field name to check (must be checkbox data type)
+              </Label>
               <InputField
+                id="send-no-show-attendee-data-field-name"
                 size="sm"
                 value={sendNoShowAttendeeDataField}
                 onChange={(e) => setAppData("sendNoShowAttendeeDataField", e.target.value)}

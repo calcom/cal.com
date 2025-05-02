@@ -93,7 +93,7 @@ const WriteToObjectSettings = ({
 
       {optionEnabled ? (
         <Section.SubSectionContent>
-          <div className="flex gap-4">
+          <div className="text-subtle flex gap-3 px-3 py-[6px] text-sm font-medium">
             <div className="flex-1">{t("field_name")}</div>
             <div className="flex-1">{t("field_type")}</div>
             <div className="flex-1">{t("value")}</div>
@@ -102,7 +102,7 @@ const WriteToObjectSettings = ({
           </div>
           <Section.SubSectionNested>
             {Object.keys(writeToObjectData).map((key) => (
-              <div className="mt-2 flex items-center gap-4" key={key}>
+              <div className="flex items-center gap-2" key={key}>
                 <div className="flex-1">
                   <InputField value={key} readOnly size="sm" className="w-full" />
                 </div>
@@ -169,7 +169,7 @@ const WriteToObjectSettings = ({
                 </div>
               </div>
             ))}
-            <div className="mt-2 flex gap-4">
+            <div className="flex gap-2">
               <div className="flex-1">
                 <InputField
                   size="sm"

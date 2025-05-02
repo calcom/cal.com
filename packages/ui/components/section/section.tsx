@@ -167,43 +167,27 @@ const SubSectionHeader = ({
   );
 };
 
-const SubSectionHeaderRight = ({
-  children,
-  ref,
-}: {
-  children: React.ReactNode;
-  ref?: React.Ref<HTMLDivElement>;
-}) => {
-  return (
-    <div ref={ref} className="flex items-center justify-end">
-      {children}
-    </div>
-  );
-};
-
-const SubSectionIcon = ({ icon, ref }: { icon: IconName; ref?: React.Ref<HTMLDivElement> }) => {
-  return (
-    <div
-      ref={ref}
-      className="bg-default border-subtle border-subtle text-subtle rounded-[10px] rounded-lg border p-1">
-      <IconComponent name={icon} />
-    </div>
-  );
-};
-
 const SubSectionContent = ({
   children,
   ref,
   invert,
+  classNames,
 }: {
   children: React.ReactNode;
   ref?: React.Ref<HTMLDivElement>;
+  classNames?: {
+    container?: string;
+  };
   invert?: boolean;
 }) => {
   return (
     <div
       ref={ref}
-      className={cn("bg-muted flex flex-col rounded-lg p-2.5", invert && "bg-default border-subtle border")}>
+      className={cn(
+        "bg-muted flex flex-col rounded-lg px-[6px] py-1",
+        invert && "bg-default border-subtle border",
+        classNames?.container
+      )}>
       {children}
     </div>
   );
