@@ -70,7 +70,7 @@ BEGIN
     BEGIN
         PERFORM refresh_booking_time_status_denormalized(NEW.id);
     EXCEPTION WHEN OTHERS THEN
-        RAISE WARNING 'DENORM_ERROR: BookingTimeStatusDenormalized - Failed to handle booking change for id %, error: %', NEW.id, SQLERRM;
+        RAISE WARNING 'DENORM_ERROR: BookingTimeStatusDenormalized - Failed to handle booking change for id %', NEW.id;
     END;
     RETURN NEW;
 END;
@@ -83,7 +83,7 @@ BEGIN
     BEGIN
         DELETE FROM "BookingTimeStatusDenormalized" WHERE id = OLD.id;
     EXCEPTION WHEN OTHERS THEN
-        RAISE WARNING 'DENORM_ERROR: BookingTimeStatusDenormalized - Failed to delete denormalized booking id %, error: %', OLD.id, SQLERRM;
+        RAISE WARNING 'DENORM_ERROR: BookingTimeStatusDenormalized - Failed to delete denormalized booking id %', OLD.id;
     END;
     RETURN OLD;
 END;
@@ -162,7 +162,7 @@ BEGIN
             "username" = NEW.username
         WHERE btsd."userId" = NEW.id;
     EXCEPTION WHEN OTHERS THEN
-        RAISE WARNING 'DENORM_ERROR: BookingTimeStatusDenormalized - Failed to update user changes for id %, error: %', NEW.id, SQLERRM;
+        RAISE WARNING 'DENORM_ERROR: BookingTimeStatusDenormalized - Failed to update user changes for id %', NEW.id;
     END;
     RETURN NEW;
 END;
