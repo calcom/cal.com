@@ -61,7 +61,7 @@ export const sendSMS = async ({
   if (testMode) {
     setTestSMS({
       to: getSMSNumber(phoneNumber, isWhatsapp),
-      from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender ? sender : getDefaultSender(),
+      from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender || getDefaultSender(),
       message: body,
     });
     console.log(
@@ -84,18 +84,14 @@ export const sendSMS = async ({
     body: body,
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
     to: getSMSNumber(phoneNumber, isWhatsapp),
-    from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender ? sender : getDefaultSender(),
-    statusCallback: createStatusCallbackUrl(userId, teamId, bookingUid),
+    from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender || getDefaultSender(),
+    statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
   });
 
   return response;
 };
 
-const createStatusCallbackUrl = (
-  userId?: number | null,
-  teamId?: number | null,
-  bookingUid?: string | null
-) => {
+const getStatusCallbackUrl = (userId?: number | null, teamId?: number | null, bookingUid?: string | null) => {
   const query = new URLSearchParams();
   if (userId) query.append("userId", userId);
   if (teamId) query.append("teamId", teamId);
@@ -132,7 +128,7 @@ export const scheduleSMS = async ({
   if (testMode) {
     setTestSMS({
       to: getSMSNumber(phoneNumber, isWhatsapp),
-      from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender ? sender : getDefaultSender(),
+      from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender || getDefaultSender(),
       message: body,
     });
     console.log(
@@ -156,7 +152,7 @@ export const scheduleSMS = async ({
     scheduleType: "fixed",
     sendAt: scheduledDate,
     from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender || getDefaultSender(),
-    statusCallback: createStatusCallbackUrl(userId, teamId, bookingUid),
+    statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
   });
 
   return response;
