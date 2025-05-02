@@ -620,7 +620,6 @@
   "your_full_name": "Your full name",
   "no_name": "No name",
   "enter_number_between_range": "Please enter a number between 1 and {{maxOccurences}}",
-  "if_you_dont_have_an_account": "If you don't have a cal.com account, you can continue as a guest.",
   "continue_as_guest_description": "Quick and easy - no account required. Perfect for one-time meetings.",
   "email_address": "Email address",
   "enter_valid_email": "Please enter a valid email",

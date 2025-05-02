@@ -216,15 +216,11 @@ export function LogInOverlay(props: LogInOverlayProps) {
         title={t("join_video_call")}
         description={t("choose_how_you_d_like_to_join_call")}
         className="bg-black text-white sm:max-w-[480px]">
-        <div className="py-8">
+        <div className="pb-8">
           <div className="space-y-8">
-            <div className="space-y-3">
-              <h4 className="text-lg font-semibold text-white">{t("if_you_dont_have_an_account")}</h4>
-              <p className="text-sm text-gray-300">{t("continue_as_guest_description")}</p>
-              <Button color="primary" className="mt-4 w-full justify-center " onClick={() => setOpen(false)}>
-                {t("continue_as_guest")}
-              </Button>
-            </div>
+            <Button color="primary" className="mt-4 w-full justify-center " onClick={() => setOpen(false)}>
+              {t("continue_as_guest")}
+            </Button>
 
             {/* Divider */}
             <div className="relative py-2">
@@ -232,7 +228,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
                 <span className="w-full border-t border-gray-600" />
               </div>
               <div className="relative flex justify-center">
-                <span className="bg-black px-4 text-sm text-gray-400">or</span>
+                <span className="bg-black px-4 text-sm text-gray-400">{t("or")}</span>
               </div>
             </div>
 
