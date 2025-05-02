@@ -169,33 +169,4 @@ export class BookingsRepository_2024_08_13 {
       },
     });
   }
-
-  async getAcceptedUserBookingForTimeRange(userId: number, startTime: Date, endTime: Date) {
-    return this.dbRead.prisma.booking.findFirst({
-      where: {
-        userId,
-        status: "ACCEPTED",
-        startTime: {
-          gte: startTime,
-          lte: endTime,
-        },
-      },
-    });
-  }
-
-  async getBookingAsAttendeeWithinTimeRange(userEmail: string, startTime: Date, endTime: Date) {
-    return this.dbRead.prisma.booking.findFirst({
-      where: {
-        attendees: {
-          some: {
-            email: userEmail,
-          },
-        },
-        startTime: {
-          gte: startTime,
-          lte: endTime,
-        },
-      },
-    });
-  }
 }
