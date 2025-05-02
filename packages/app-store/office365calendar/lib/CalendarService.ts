@@ -761,8 +761,8 @@ export default class Office365CalendarService implements Calendar {
     });
   }
 
-  async startWatchingCalendarsInOutlook({ calendarId }: { calendarId: string }) {
-    this.log.debug(`Subscribing to calendar ${calendarId}`, safeStringify({ OUTLOOK_WEBHOOK_URL }));
+  async startWatchingCalendarInOutlook({ calendarId }: { calendarId: string }) {
+    this.log.debug(`Subscribing to calendar ${calendarId}`);
 
     const rawRes = await this.fetcher("/subscriptions", {
       method: "POST",
@@ -841,7 +841,7 @@ export default class Office365CalendarService implements Calendar {
 
     if (!otherCalendarsWithSameSubscription.length) {
       try {
-        const res = await this.startWatchingCalendarsInOutlook({ calendarId });
+        const res = await this.startWatchingCalendarInOutlook({ calendarId });
         outlookSubscriptionProps = {
           expiration: res.expirationDateTime,
           id: res.id,
