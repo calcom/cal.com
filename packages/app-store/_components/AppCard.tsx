@@ -48,13 +48,7 @@ export default function AppCard({
   const isPlatform = useIsPlatform();
 
   return (
-    <Section
-    // className={classNames(
-    //   "border-subtle",
-    //   app?.isInstalled && "mb-4 rounded-md border",
-    //   !app.enabled && "grayscale"
-    // )}
-    >
+    <Section className={classNames(!app?.isInstalled && "rounded-none")}>
       <Section.Header
         title={app?.name}
         description={app?.description}
@@ -133,29 +127,30 @@ export default function AppCard({
           </div>
         </div>
       </Section.Header>
-      {hideAppCardOptions ? null : (
-        <div ref={animationRef}>
-          {app?.isInstalled && switchChecked ? (
-            app.isSetupAlready === undefined || app.isSetupAlready ? (
-              <div className="relative text-sm [&_input]:mb-0 [&_input]:leading-4">
-                {!hideSettingsIcon && !isPlatform && (
-                  <Link href={`/apps/${app.slug}/setup`} className="absolute right-4 top-4">
-                    <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
+      {hideAppCardOptions
+        ? null
+        : app?.isInstalled &&
+          switchChecked && (
+            <div ref={animationRef}>
+              {app.isSetupAlready === undefined || app.isSetupAlready ? (
+                <div className="relative text-sm [&_input]:mb-0 [&_input]:leading-4">
+                  {!hideSettingsIcon && !isPlatform && (
+                    <Link href={`/apps/${app.slug}/setup`} className="absolute right-4 top-4">
+                      <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
+                    </Link>
+                  )}
+                  {children}
+                </div>
+              ) : (
+                <div className="flex h-64 w-full flex-col items-center justify-center gap-4 ">
+                  <p>{t("this_app_is_not_setup_already")}</p>
+                  <Link href={`/apps/${app.slug}/setup`}>
+                    <Button StartIcon="settings">{t("setup")}</Button>
                   </Link>
-                )}
-                {children}
-              </div>
-            ) : (
-              <div className="flex h-64 w-full flex-col items-center justify-center gap-4 ">
-                <p>{t("this_app_is_not_setup_already")}</p>
-                <Link href={`/apps/${app.slug}/setup`}>
-                  <Button StartIcon="settings">{t("setup")}</Button>
-                </Link>
-              </div>
-            )
-          ) : null}
-        </div>
-      )}
+                </div>
+              )}
+            </div>
+          )}
     </Section>
   );
 }

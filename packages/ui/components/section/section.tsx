@@ -5,11 +5,19 @@ import cn from "../../classNames";
 import type { IconName } from "../icon";
 import { Icon as IconComponent } from "../icon";
 
-const Root = ({ children, ref }: { children: React.ReactNode; ref?: React.Ref<HTMLDivElement> }) => {
+const Root = ({
+  children,
+  ref,
+  className,
+}: {
+  children: React.ReactNode;
+  ref?: React.Ref<HTMLDivElement>;
+  className?: string;
+}) => {
   const [animateRef] = useAutoAnimate<HTMLDivElement>();
 
   return (
-    <div ref={animateRef} className="bg-muted flex flex-col gap-4 rounded-2xl p-4">
+    <div ref={animateRef} className={cn("bg-muted flex flex-col gap-4 rounded-2xl p-4", className)}>
       {children}
     </div>
   );

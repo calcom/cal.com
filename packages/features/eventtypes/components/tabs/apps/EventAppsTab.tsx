@@ -13,6 +13,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Section } from "@calcom/ui/components/section";
 
 export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
   EventTypeAppCardComponentProps["eventType"];
@@ -153,13 +154,11 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
       </div>
       {/* TODO: Add back after salesforce v3 dev */}
       {!appsDisableProps.disabled && (
-        <div className="bg-muted mt-6 rounded-md p-8">
+        <div className="bg-muted mt-4 rounded-2xl p-4">
           {!isPending && notInstalledApps?.length ? (
-            <>
-              <h2 className="text-emphasis mb-2 text-xl font-semibold leading-5 tracking-[0.01em]">
-                {t("available_apps_lower_case")}
-              </h2>
-              <p className="text-default mb-6 text-sm font-normal">
+            <div className="mb-4 flex flex-col">
+              <Section.Title>{t("available_apps_lower_case")}</Section.Title>
+              <Section.Description>
                 <ServerTrans
                   t={t}
                   i18nKey="available_apps_desc"
@@ -169,10 +168,10 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
                     </Link>,
                   ]}
                 />
-              </p>
-            </>
+              </Section.Description>
+            </div>
           ) : null}
-          <div className="bg-default border-subtle divide-subtle divide-y rounded-md border before:border-0">
+          <div className="bg-default border-subtle divide-subtle divide-y overflow-hidden rounded-xl border before:border-0">
             {notInstalledApps?.map((app) => (
               <EventTypeAppCard
                 getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
