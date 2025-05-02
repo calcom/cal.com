@@ -837,16 +837,19 @@ export default class Office365CalendarService implements Calendar {
           expiration: otherCalendarsWithSameSubscription[0].outlookSubscriptionExpiration,
         }
       : {};
+    let error: string | undefined;
 
     if (!otherCalendarsWithSameSubscription.length) {
       try {
         const res = await this.startWatchingCalendarsInOutlook({ calendarId });
         outlookSubscriptionProps = {
           expiration: res.expirationDateTime,
-          id: res.subscriptionId,
+          id: res.id,
         };
       } catch (error) {
         this.log.error(`Failed to watch ${calendarId}`, error);
+        // We set error to prevent attempting to watch on next cron run
+        error = error instanceof Error ? error.message : "Unknown error";
       }
     } else {
       this.log.info(
@@ -861,6 +864,7 @@ export default class Office365CalendarService implements Calendar {
         externalId: calendarId,
         outlookSubscriptionId: outlookSubscriptionProps.id,
         outlookSubscriptionExpiration: outlookSubscriptionProps.expiration,
+        error,
       },
       eventTypeIds
     );
