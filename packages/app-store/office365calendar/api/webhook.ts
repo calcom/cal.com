@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
-import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
@@ -11,18 +10,6 @@ import { graphValidationTokenChallengeSchema, changeNotificationWebhookPayloadSc
 
 const log = logger.getSubLogger({ prefix: ["Office365CalendarWebhook"] });
 
-async function getHandler(req: NextApiRequest, res: NextApiResponse) {
-  const graphValidationTokenChallengeParseRes = graphValidationTokenChallengeSchema.safeParse(req.query);
-  if (!graphValidationTokenChallengeParseRes.success) {
-    throw new HttpError({ statusCode: 403, message: "Missing validation token" });
-  }
-
-  const validationToken = graphValidationTokenChallengeParseRes.data;
-
-  res.setHeader("Content-Type", "text/plain");
-  return res.status(200).send(validationToken);
-}
-
 interface WebhookResponse {
   [key: string]: {
     processed: boolean;
@@ -30,7 +17,26 @@ interface WebhookResponse {
   };
 }
 
+function isApiKeyValid(clientState?: string) {
+  return clientState === process.env.OUTLOOK_WEBHOOK_TOKEN;
+}
+
+function getValidationToken(req: NextApiRequest) {
+  const graphValidationTokenChallengeParseRes = graphValidationTokenChallengeSchema.safeParse(req.query);
+  if (!graphValidationTokenChallengeParseRes.success) {
+    return null;
+  }
+
+  return graphValidationTokenChallengeParseRes.data.validationToken;
+}
+
 async function postHandler(req: NextApiRequest, res: NextApiResponse) {
+  const validationToken = getValidationToken(req);
+  if (validationToken) {
+    res.setHeader("Content-Type", "text/plain");
+    return res.status(200).send(validationToken);
+  }
+
   const webhookBodyParseRes = changeNotificationWebhookPayloadSchema.safeParse(req.body);
 
   if (!webhookBodyParseRes.success) {
@@ -90,13 +96,8 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === "GET") return getHandler(req, res);
   if (req.method === "POST") return postHandler(req, res);
 
-  res.setHeader("Allow", "POST, GET");
+  res.setHeader("Allow", "POST");
   return res.status(405).json({});
-}
-
-function isApiKeyValid(clientState?: string) {
-  return clientState === process.env.OUTLOOK_WEBHOOK_TOKEN;
 }
