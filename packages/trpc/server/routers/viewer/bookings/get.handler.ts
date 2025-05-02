@@ -693,245 +693,353 @@ export async function getBookings({
     })
   );
 
-  const bookingMap = new Map<number, any>();
-
-  for (const booking of plainBookings) {
-    bookingMap.set(booking.id, {
-      ...booking,
-      attendees: [],
-      seatsReferences: [],
-      eventType: null,
-      payment: [],
-      user: { id: 0, name: "", email: "" },
-      rescheduler: null,
-      references: [],
-      assignmentReason: [],
-      startTime: booking.startTime.toISOString(),
-      endTime: booking.endTime.toISOString(),
-      status: booking.status as BookingStatus,
-      routedFromRoutingFormReponse: null,
-    });
-  }
-
-  const bookingIds = plainBookings.map((booking) => booking.id);
-  if (bookingIds.length === 0) {
+  if (plainBookings.length === 0) {
     return { bookings: [], recurringInfo, totalCount };
   }
 
+  const bookingIds = plainBookings.map((booking) => booking.id);
   const bookingIdsParam = bookingIds.map(() => addParam(bookingIds.shift())).join(", ");
 
-  const attendeesQuery = `
-    SELECT a.*, b.id as "bookingId"
-    FROM "public"."Attendee" a
-    JOIN "public"."Booking" b ON a."bookingId" = b.id
-    WHERE b.id IN (${bookingIdsParam})
+  const comprehensiveQuery = `
+    WITH booking_base AS (
+      SELECT b.*
+      FROM "public"."Booking" b
+      WHERE b.id IN (${bookingIdsParam})
+    ),
+    
+    attendees AS (
+      SELECT 
+        a.id, 
+        a.email, 
+        a.name, 
+        a."timeZone", 
+        a.locale, 
+        a."bookingId"
+      FROM "public"."Attendee" a
+      JOIN booking_base b ON a."bookingId" = b.id
+    ),
+    
+    seats_references AS (
+      SELECT 
+        bs."referenceUid", 
+        a.email as "attendeeEmail", 
+        bs."bookingId"
+      FROM "public"."BookingSeat" bs
+      JOIN "public"."Attendee" a ON bs."attendeeId" = a.id
+      JOIN booking_base b ON bs."bookingId" = b.id
+      WHERE a.email = ${addParam(user.email)}
+    ),
+    
+    event_types AS (
+      SELECT 
+        et.*,
+        t.id as "teamId", 
+        t.name as "teamName", 
+        t.slug as "teamSlug", 
+        b.id as "bookingId"
+      FROM "public"."EventType" et
+      LEFT JOIN "public"."Team" t ON et."teamId" = t.id
+      JOIN booking_base b ON et.id = b."eventTypeId"
+    ),
+    
+    payments AS (
+      SELECT 
+        p."paymentOption", 
+        p.amount, 
+        p.currency, 
+        p.success, 
+        p."bookingId"
+      FROM "public"."Payment" p
+      JOIN booking_base b ON p."bookingId" = b.id
+    ),
+    
+    booking_users AS (
+      SELECT 
+        u.id, 
+        u.name, 
+        u.email, 
+        b.id as "bookingId"
+      FROM "public"."User" u
+      JOIN booking_base b ON u.id = b."userId"
+    ),
+    
+    rescheduled_bookings AS (
+      SELECT 
+        b2.uid, 
+        b2."rescheduledBy", 
+        b1.id as "bookingId"
+      FROM booking_base b1
+      JOIN "public"."Booking" b2 ON b1."fromReschedule" = b2.uid
+      WHERE b1."fromReschedule" IS NOT NULL
+    ),
+    
+    assignment_reasons AS (
+      SELECT DISTINCT ON (ar."bookingId")
+        ar.id,
+        ar.reason,
+        ar."createdAt",
+        ar."bookingId"
+      FROM "public"."AssignmentReason" ar
+      JOIN booking_base b ON ar."bookingId" = b.id
+      ORDER BY ar."bookingId", ar."createdAt" DESC
+    ),
+    
+    booking_references AS (
+      SELECT 
+        br.id,
+        br.type,
+        br.uid,
+        br."bookingId"
+      FROM "public"."BookingReference" br
+      JOIN booking_base b ON br."bookingId" = b.id
+    ),
+    
+    routing_form_responses AS (
+      SELECT 
+        rfr.id, 
+        b.id as "bookingId"
+      FROM "public"."RoutingFormResponse" rfr
+      JOIN booking_base b ON rfr."bookingUid" = b.uid
+    )
+    
+    SELECT 
+      b.id,
+      b.title,
+      b.description,
+      b."userPrimaryEmail",
+      b."customInputs",
+      b."startTime",
+      b."endTime",
+      b.metadata,
+      b.uid,
+      b.responses,
+      b."recurringEventId",
+      b.location,
+      b."eventTypeId",
+      b.status::text as status,
+      b.paid,
+      b."userId",
+      b."fromReschedule",
+      b.rescheduled,
+      b."isRecorded",
+      b."createdAt",
+      b."updatedAt",
+      
+      -- Attendees as JSON array
+      COALESCE(
+        (SELECT json_agg(
+          json_build_object(
+            'id', a.id,
+            'email', a.email,
+            'name', a.name,
+            'timeZone', a."timeZone",
+            'locale', a.locale,
+            'bookingId', a."bookingId"
+          )
+        )
+        FROM attendees a
+        WHERE a."bookingId" = b.id), '[]'
+      ) as "attendeesJson",
+      
+      -- Seat references as JSON array
+      COALESCE(
+        (SELECT json_agg(
+          json_build_object(
+            'referenceUid', sr."referenceUid",
+            'attendee', json_build_object(
+              'email', sr."attendeeEmail"
+            )
+          )
+        )
+        FROM seats_references sr
+        WHERE sr."bookingId" = b.id), '[]'
+      ) as "seatsReferencesJson",
+      
+      -- Event Type as JSON object
+      (SELECT row_to_json(et)
+       FROM (
+         SELECT 
+           et.id,
+           et.slug,
+           et.title,
+           et."eventName",
+           et.price,
+           et."recurringEvent",
+           et.currency,
+           et.metadata,
+           et."disableGuests",
+           et."seatsShowAttendees",
+           et."seatsShowAvailabilityCount",
+           et."eventTypeColor",
+           et."customReplyToEmail",
+           et."allowReschedulingPastBookings",
+           et."hideOrganizerEmail",
+           et."disableCancelling",
+           et."disableRescheduling",
+           et."schedulingType",
+           et.length,
+           CASE WHEN et."teamId" IS NOT NULL THEN
+             json_build_object(
+               'id', et."teamId",
+               'name', et."teamName",
+               'slug', et."teamSlug"
+             )
+           ELSE NULL END as team
+         FROM event_types et
+         WHERE et."bookingId" = b.id
+         LIMIT 1
+       ) et
+      ) as "eventTypeJson",
+      
+      -- Payments as JSON array
+      COALESCE(
+        (SELECT json_agg(
+          json_build_object(
+            'paymentOption', p."paymentOption",
+            'amount', p.amount,
+            'currency', p.currency,
+            'success', p.success
+          )
+        )
+        FROM payments p
+        WHERE p."bookingId" = b.id), '[]'
+      ) as "paymentJson",
+      
+      -- User as JSON object
+      (SELECT row_to_json(u)
+       FROM (
+         SELECT 
+           bu.id,
+           bu.name,
+           bu.email
+         FROM booking_users bu
+         WHERE bu."bookingId" = b.id
+         LIMIT 1
+       ) u
+      ) as "userJson",
+      
+      -- Rescheduler
+      (SELECT rb."rescheduledBy"
+       FROM rescheduled_bookings rb
+       WHERE rb."bookingId" = b.id
+       LIMIT 1
+      ) as "rescheduler",
+      
+      -- Assignment reasons as JSON array
+      COALESCE(
+        (SELECT json_agg(
+          json_build_object(
+            'id', ar.id,
+            'reason', ar.reason,
+            'createdAt', ar."createdAt"
+          )
+        )
+        FROM assignment_reasons ar
+        WHERE ar."bookingId" = b.id), '[]'
+      ) as "assignmentReasonJson",
+      
+      -- References as JSON array
+      COALESCE(
+        (SELECT json_agg(
+          json_build_object(
+            'id', br.id,
+            'type', br.type,
+            'uid', br.uid
+          )
+        )
+        FROM booking_references br
+        WHERE br."bookingId" = b.id), '[]'
+      ) as "referencesJson",
+      
+      -- Routing form response as JSON object
+      (SELECT json_build_object(
+        'id', rfr.id
+      )
+      FROM routing_form_responses rfr
+      WHERE rfr."bookingId" = b.id
+      LIMIT 1) as "routingFormResponseJson"
+      
+    FROM booking_base b
   `;
 
-  const seatsReferencesQuery = `
-    SELECT bs.*, a.email as "attendeeEmail", b.id as "bookingId"
-    FROM "public"."BookingSeat" bs
-    JOIN "public"."Attendee" a ON bs."attendeeId" = a.id
-    JOIN "public"."Booking" b ON bs."bookingId" = b.id
-    WHERE b.id IN (${bookingIdsParam})
-    AND a.email = ${addParam(user.email)}
-  `;
+  const comprehensiveResults = await prisma.$queryRaw<any[]>(
+    PrismaClientType.sql([comprehensiveQuery, ...params])
+  );
 
-  const eventTypesQuery = `
-    SELECT et.*, t.id as "teamId", t.name as "teamName", t.slug as "teamSlug", b.id as "bookingId"
-    FROM "public"."EventType" et
-    LEFT JOIN "public"."Team" t ON et."teamId" = t.id
-    JOIN "public"."Booking" b ON et.id = b."eventTypeId"
-    WHERE b.id IN (${bookingIdsParam})
-  `;
+  const bookings = comprehensiveResults.map((result) => {
+    const attendees = JSON.parse(result.attendeesJson || "[]");
+    const seatsReferences = JSON.parse(result.seatsReferencesJson || "[]");
+    const eventTypeData = result.eventTypeJson;
+    const payment = JSON.parse(result.paymentJson || "[]");
+    const userData = result.userJson || { id: 0, name: "", email: "" };
+    const assignmentReason = JSON.parse(result.assignmentReasonJson || "[]");
+    const references = JSON.parse(result.referencesJson || "[]");
+    const routedFromRoutingFormReponse = result.routingFormResponseJson;
 
-  const paymentsQuery = `
-    SELECT p.*, b.id as "bookingId"
-    FROM "public"."Payment" p
-    JOIN "public"."Booking" b ON p."bookingId" = b.id
-    WHERE b.id IN (${bookingIdsParam})
-  `;
+    const eventType = eventTypeData
+      ? {
+          id: eventTypeData.id,
+          slug: eventTypeData.slug || "",
+          title: eventTypeData.title || "",
+          eventName: eventTypeData.eventName || "",
+          price: eventTypeData.price || 0,
+          recurringEvent: parseRecurringEvent(eventTypeData.recurringEvent),
+          currency: eventTypeData.currency || "usd",
+          metadata: EventTypeMetaDataSchema.parse(eventTypeData.metadata || {}),
+          disableGuests: eventTypeData.disableGuests || false,
+          seatsShowAttendees: eventTypeData.seatsShowAttendees || false,
+          seatsShowAvailabilityCount: eventTypeData.seatsShowAvailabilityCount || false,
+          eventTypeColor: parseEventTypeColor(eventTypeData.eventTypeColor),
+          customReplyToEmail: eventTypeData.customReplyToEmail,
+          allowReschedulingPastBookings: eventTypeData.allowReschedulingPastBookings || false,
+          hideOrganizerEmail: eventTypeData.hideOrganizerEmail || false,
+          disableCancelling: eventTypeData.disableCancelling || false,
+          disableRescheduling: eventTypeData.disableRescheduling || false,
+          schedulingType: eventTypeData.schedulingType,
+          length: eventTypeData.length || 0,
+          team: eventTypeData.team,
+        }
+      : null;
 
-  const usersQuery = `
-    SELECT u.id, u.name, u.email, b.id as "bookingId"
-    FROM "public"."User" u
-    JOIN "public"."Booking" b ON u.id = b."userId"
-    WHERE b.id IN (${bookingIdsParam})
-  `;
+    const filteredAttendees =
+      seatsReferences.length && eventType && !eventType.seatsShowAttendees
+        ? attendees.filter((attendee) => attendee.email === user.email)
+        : attendees;
 
-  // 6. Fetch all rescheduled bookings
-  const rescheduledQuery = `
-    SELECT b2.uid, b2."rescheduledBy", b1.id as "bookingId"
-    FROM "public"."Booking" b1
-    JOIN "public"."Booking" b2 ON b1."fromReschedule" = b2.uid
-    WHERE b1.id IN (${bookingIdsParam})
-    AND b1."fromReschedule" IS NOT NULL
-  `;
+    return {
+      id: result.id,
+      title: result.title,
+      description: result.description,
+      userPrimaryEmail: result.userPrimaryEmail,
+      customInputs: result.customInputs,
+      startTime: new Date(result.startTime).toISOString(),
+      endTime: new Date(result.endTime).toISOString(),
+      metadata: result.metadata,
+      uid: result.uid,
+      responses: result.responses,
+      recurringEventId: result.recurringEventId,
+      location: result.location,
+      eventTypeId: result.eventTypeId,
+      status: result.status as BookingStatus,
+      paid: result.paid,
+      userId: result.userId,
+      fromReschedule: result.fromReschedule,
+      rescheduled: result.rescheduled,
+      isRecorded: result.isRecorded,
+      createdAt: result.createdAt,
+      updatedAt: result.updatedAt,
 
-  const assignmentReasonQuery = `
-    SELECT ar.*, b.id as "bookingId"
-    FROM "public"."AssignmentReason" ar
-    JOIN "public"."Booking" b ON ar."bookingId" = b.id
-    WHERE b.id IN (${bookingIdsParam})
-    ORDER BY ar."createdAt" DESC
-  `;
-
-  const referencesQuery = `
-    SELECT br.*, b.id as "bookingId"
-    FROM "public"."BookingReference" br
-    JOIN "public"."Booking" b ON br."bookingId" = b.id
-    WHERE b.id IN (${bookingIdsParam})
-  `;
-
-  const routingFormResponseQuery = `
-    SELECT rfr.id, b.id as "bookingId"
-    FROM "public"."RoutingFormResponse" rfr
-    JOIN "public"."Booking" b ON rfr."bookingUid" = b.uid
-    WHERE b.id IN (${bookingIdsParam})
-  `;
-
-  const [
-    attendeesResult,
-    seatsReferencesResult,
-    eventTypesResult,
-    paymentsResult,
-    usersResult,
-    rescheduledResult,
-    assignmentReasonResult,
-    referencesResult,
-    routingFormResponseResult,
-  ] = await Promise.all([
-    prisma.$queryRaw<any[]>(PrismaClientType.sql([attendeesQuery, ...params])),
-    prisma.$queryRaw<any[]>(PrismaClientType.sql([seatsReferencesQuery, ...params])),
-    prisma.$queryRaw<any[]>(PrismaClientType.sql([eventTypesQuery, ...params])),
-    prisma.$queryRaw<any[]>(PrismaClientType.sql([paymentsQuery, ...params])),
-    prisma.$queryRaw<any[]>(PrismaClientType.sql([usersQuery, ...params])),
-    prisma.$queryRaw<any[]>(PrismaClientType.sql([rescheduledQuery, ...params])),
-    prisma.$queryRaw<any[]>(PrismaClientType.sql([assignmentReasonQuery, ...params])),
-    prisma.$queryRaw<any[]>(PrismaClientType.sql([referencesQuery, ...params])),
-    prisma.$queryRaw<any[]>(PrismaClientType.sql([routingFormResponseQuery, ...params])),
-  ]);
-
-  for (const attendee of attendeesResult) {
-    const booking = bookingMap.get(attendee.bookingId);
-    if (booking) {
-      booking.attendees.push({
-        id: attendee.id,
-        email: attendee.email,
-        name: attendee.name,
-        timeZone: attendee.timeZone,
-        locale: attendee.locale,
-        bookingId: attendee.bookingId,
-      });
-    }
-  }
-
-  for (const seatRef of seatsReferencesResult) {
-    const booking = bookingMap.get(seatRef.bookingId);
-    if (booking) {
-      booking.seatsReferences.push({
-        referenceUid: seatRef.referenceUid,
-        attendee: {
-          email: seatRef.attendeeEmail,
-        },
-      });
-    }
-  }
-
-  for (const eventType of eventTypesResult) {
-    const booking = bookingMap.get(eventType.bookingId);
-    if (booking) {
-      const processedEventType = {
-        id: eventType.id,
-        slug: eventType.slug || "",
-        title: eventType.title || "",
-        eventName: eventType.eventName || "",
-        price: eventType.price || 0,
-        recurringEvent: parseRecurringEvent(eventType.recurringEvent),
-        currency: eventType.currency || "usd",
-        metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
-        disableGuests: eventType.disableGuests || false,
-        seatsShowAttendees: eventType.seatsShowAttendees || false,
-        seatsShowAvailabilityCount: eventType.seatsShowAvailabilityCount || false,
-        eventTypeColor: parseEventTypeColor(eventType.eventTypeColor),
-        customReplyToEmail: eventType.customReplyToEmail,
-        allowReschedulingPastBookings: eventType.allowReschedulingPastBookings || false,
-        hideOrganizerEmail: eventType.hideOrganizerEmail || false,
-        disableCancelling: eventType.disableCancelling || false,
-        disableRescheduling: eventType.disableRescheduling || false,
-        schedulingType: eventType.schedulingType,
-        length: eventType.length || 0,
-        team: eventType.teamId
-          ? {
-              id: eventType.teamId,
-              name: eventType.teamName || "",
-              slug: eventType.teamSlug || "",
-            }
-          : null,
-      };
-
-      booking.eventType = processedEventType;
-
-      if (booking.seatsReferences.length && !processedEventType.seatsShowAttendees) {
-        booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
-      }
-    }
-  }
-
-  for (const payment of paymentsResult) {
-    const booking = bookingMap.get(payment.bookingId);
-    if (booking) {
-      booking.payment.push({
-        paymentOption: payment.paymentOption,
-        amount: payment.amount,
-        currency: payment.currency,
-        success: payment.success,
-      });
-    }
-  }
-
-  for (const bookingUser of usersResult) {
-    const booking = bookingMap.get(bookingUser.bookingId);
-    if (booking) {
-      booking.user = {
-        id: bookingUser.id,
-        name: bookingUser.name || "",
-        email: bookingUser.email || "",
-      };
-    }
-  }
-
-  // 6. Process rescheduled bookings
-  for (const rescheduled of rescheduledResult) {
-    const booking = bookingMap.get(rescheduled.bookingId);
-    if (booking) {
-      booking.rescheduler = rescheduled.rescheduledBy;
-    }
-  }
-
-  for (const reason of assignmentReasonResult) {
-    const booking = bookingMap.get(reason.bookingId);
-    if (booking) {
-      if (booking.assignmentReason.length === 0) {
-        booking.assignmentReason.push(reason);
-      }
-    }
-  }
-
-  for (const reference of referencesResult) {
-    const booking = bookingMap.get(reference.bookingId);
-    if (booking) {
-      booking.references.push(reference);
-    }
-  }
-
-  for (const response of routingFormResponseResult) {
-    const booking = bookingMap.get(response.bookingId);
-    if (booking) {
-      booking.routedFromRoutingFormReponse = { id: response.id };
-    }
-  }
-
-  const bookings = Array.from(bookingMap.values());
+      attendees: filteredAttendees,
+      seatsReferences: seatsReferences,
+      eventType: eventType,
+      payment: payment,
+      user: userData,
+      rescheduler: result.rescheduler,
+      references: references,
+      assignmentReason: assignmentReason,
+      routedFromRoutingFormReponse: routedFromRoutingFormReponse,
+    };
+  });
 
   return { bookings, recurringInfo, totalCount };
 }
