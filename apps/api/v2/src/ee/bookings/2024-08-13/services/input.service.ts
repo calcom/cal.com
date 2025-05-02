@@ -719,14 +719,7 @@ export class InputBookingsService_2024_08_13 {
     }
 
     // If no date filters at all, set default range
-    const hasNoDateFilters =
-      !query.afterStart &&
-      !query.beforeEnd &&
-      !query.afterCreatedAt &&
-      !query.beforeCreatedAt &&
-      !query.afterUpdatedAt &&
-      !query.beforeUpdatedAt;
-    if (hasNoDateFilters) {
+    if (this.hasNoDateFilters(query)) {
       query.afterStart = this.getOneMonthAgo();
       query.beforeEnd = this.getOneMonthAhead();
       return query;
@@ -775,6 +768,17 @@ export class InputBookingsService_2024_08_13 {
     const date = (fromDate || DateTime.now().setZone("utc")).plus({ months: 1 });
     const adjusted = date.set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
     return adjusted.toISO() || undefined;
+  }
+
+  hasNoDateFilters(query: GetBookingsInput_2024_08_13) {
+    return (
+      !query.afterStart &&
+      !query.beforeEnd &&
+      !query.afterCreatedAt &&
+      !query.beforeCreatedAt &&
+      !query.afterUpdatedAt &&
+      !query.beforeUpdatedAt
+    );
   }
 
   async createCancelBookingRequest(
