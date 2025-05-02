@@ -22,8 +22,6 @@ import { Queue } from "bull";
 import { DateTime } from "luxon";
 import Stripe from "stripe";
 
-import { User } from "@calcom/prisma/client";
-
 @Injectable()
 export class BillingService implements OnModuleDestroy {
   private logger = new Logger("BillingService");
@@ -268,51 +266,53 @@ export class BillingService implements OnModuleDestroy {
     const teamWithBilling = await this.billingRepository.getBillingForTeamBySubscriptionId(subscriptionId);
 
     if (teamWithBilling?.plan === "PER_ACTIVE_USER") {
-      const oAuthClients = await this.oAuthClientRepository.getOrganizationOAuthClients(teamWithBilling.id);
-
-      const allManagedUsers = oAuthClients.map((client) => {
-        return this.oAuthClientRepository.getAllManagedUsersOfOAuthClient(client.id);
-      });
-      const managedUsersFlattened = (await Promise.all(allManagedUsers)).flatMap(
-        (managedUser) => managedUser
-      );
-
-      const activeManagedUsers = await this.getActiveManagedUsers(
-        managedUsersFlattened,
-        invoice.period_start,
-        invoice.period_end
+      const activeManagedUsersCount = await this.getActiveManagedUsersCount(
+        subscriptionId,
+        new Date(invoice.period_start * 1000),
+        new Date(invoice.period_end * 1000)
       );
 
       await this.stripeService.getStripe().subscriptions.update(subscriptionId, {
         items: [
           {
-            quantity: activeManagedUsers.length > 0 ? activeManagedUsers.length : 1,
+            quantity: activeManagedUsersCount > 0 ? activeManagedUsersCount : 1,
           },
         ],
       });
     }
   }
 
-  async getActiveManagedUsers(users: User[], start: number, end: number) {
-    const activeManagedUsers = users.filter(async (managedUser) => {
-      // a managed user is only considered active if they are either the host of a booking or one of the attendees
-      const managedUserActiveBooking = await this.bookingsRepository.getAcceptedUserBookingForTimeRange(
-        managedUser.id,
-        new Date(start),
-        new Date(end)
-      );
+  async getActiveManagedUsersCount(subscriptionId: string, invoiceStart: Date, invoiceEnd: Date) {
+    const managedUsersEmails = await this.usersRepository.getOrgsManagedUserEmailsBySubscriptionId(
+      subscriptionId
+    );
 
-      const bookingWhereManagedUserIsAttendee =
-        await this.bookingsRepository.getBookingAsAttendeeWithinTimeRange(
-          managedUser.email,
-          new Date(start),
-          new Date(end)
-        );
+    if (!managedUsersEmails) return 0;
 
-      return !!managedUserActiveBooking || !!bookingWhereManagedUserIsAttendee;
-    });
+    if (!invoiceStart || !invoiceEnd) {
+      this.logger.log("Invoice period start or end date is null");
+      return 0;
+    }
 
-    return activeManagedUsers;
+    const activeManagedUserEmailsAsHost = await this.usersRepository.getActiveManagedUsersAsHost(
+      subscriptionId,
+      invoiceStart,
+      invoiceEnd
+    );
+
+    const notActiveHostEmails = managedUsersEmails
+      .filter((email) => !activeManagedUserEmailsAsHost.includes(email))
+      .map((email) => email.email);
+
+    if (notActiveHostEmails.length === 0) return activeManagedUserEmailsAsHost.length;
+
+    const activeManagedUserEmailsAsAttendee = await this.usersRepository.getActiveManagedUsersAsAttendee(
+      notActiveHostEmails,
+      invoiceStart,
+      invoiceEnd
+    );
+
+    return activeManagedUserEmailsAsAttendee.length + activeManagedUserEmailsAsHost.length;
   }
 
   async updateStripeSubscriptionForTeam(teamId: number, plan: PlatformPlan) {
