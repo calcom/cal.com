@@ -25,8 +25,8 @@ export class CreditService {
     userId?: number;
     teamId?: number;
     credits: number | null;
-    bookingUid: string;
-    smsSid: string;
+    bookingUid?: string;
+    smsSid?: string;
   }) {
     let teamToCharge = credits === 0 && teamId ? teamId : null;
     let creditType: CreditType = CreditType.ADDITIONAL;
@@ -208,8 +208,8 @@ export class CreditService {
   }
 
   private async createExpenseLog(props: {
-    bookingUid: string;
-    smsSid: string;
+    bookingUid?: string;
+    smsSid?: string;
     teamId: number;
     credits: number | null;
     creditType: CreditType;

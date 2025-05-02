@@ -85,12 +85,22 @@ export const sendSMS = async ({
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
     to: getSMSNumber(phoneNumber, isWhatsapp),
     from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender ? sender : getDefaultSender(),
-    statusCallback: `${WEBAPP_URL}/api/twilio/webhook?userId=${userId}${teamId ? `&teamId=${teamId}` : ``}&${
-      bookingUid ? `&bookingUid=${bookingUid}` : ``
-    }`,
+    statusCallback: createStatusCallbackUrl(userId, teamId, bookingUid),
   });
 
   return response;
+};
+
+const createStatusCallbackUrl = (
+  userId?: number | null,
+  teamId?: number | null,
+  bookingUid?: string | null
+) => {
+  const query = new URLSearchParams();
+  if (userId) query.append("userId", userId);
+  if (teamId) query.append("teamId", teamId);
+  if (bookingUid) query.append("bookingUid", bookingUid);
+  return `${WEBAPP_URL}/api/twilio/webhook${query.toString() ? `?${query.toString()}` : ""}`;
 };
 
 export const scheduleSMS = async ({
@@ -140,15 +150,13 @@ export const scheduleSMS = async ({
     });
   }
   const response = await twilio.messages.create({
-    body: body,
+    body,
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
     to: getSMSNumber(phoneNumber, isWhatsapp),
     scheduleType: "fixed",
     sendAt: scheduledDate,
-    from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender ? sender : getDefaultSender(),
-    statusCallback: `${WEBAPP_URL}/api/twilio/webhook?userId=${userId}${teamId ? `&teamId=${teamId}` : ``}&${
-      bookingUid ? `&bookingUid=${bookingUid}` : ``
-    }&bookingUid=${bookingUid}`,
+    from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender || getDefaultSender(),
+    statusCallback: createStatusCallbackUrl(userId, teamId, bookingUid),
   });
 
   return response;
