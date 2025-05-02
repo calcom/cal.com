@@ -84,13 +84,15 @@ const Header = ({
   title,
   description,
   iconSlot,
+  rawHeading,
 }: {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   ref?: React.Ref<HTMLDivElement>;
   icon?: IconName;
   iconSlot?: React.ReactNode;
   title?: string;
   description?: string;
+  rawHeading?: React.ReactNode;
 }) => {
   return (
     <div ref={ref} className="flex items-center justify-between gap-3">
@@ -100,6 +102,7 @@ const Header = ({
         <div className="flex flex-col gap-0.5">
           {title && <Title>{title}</Title>}
           {description && <Description>{description}</Description>}
+          {rawHeading && rawHeading}
         </div>
       </div>
       {children}
@@ -210,6 +213,8 @@ const SubSectionNested = ({
 export const Section = Object.assign(Root, {
   Header: Header,
   Content: Content,
+  Title: Title,
+  Description: Description,
   SubSection: SubSection,
   SubSectionHeader: SubSectionHeader,
   SubSectionContent: SubSectionContent,

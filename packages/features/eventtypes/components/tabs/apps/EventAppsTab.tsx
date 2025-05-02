@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useFormContext } from "react-hook-form";
 
 import { EventTypeAppCard } from "@calcom/app-store/_components/EventTypeAppCardInterface";
@@ -151,7 +152,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
         </div>
       </div>
       {/* TODO: Add back after salesforce v3 dev */}
-      {/* {!appsDisableProps.disabled && (
+      {!appsDisableProps.disabled && (
         <div className="bg-muted mt-6 rounded-md p-8">
           {!isPending && notInstalledApps?.length ? (
             <>
@@ -184,7 +185,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
             ))}
           </div>
         </div>
-      )} */}
+      )}
     </>
   );
 };
