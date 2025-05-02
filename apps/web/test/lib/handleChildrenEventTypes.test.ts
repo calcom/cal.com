@@ -111,11 +111,10 @@ describe("handleChildrenEventTypes", () => {
         timeZone,
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
+        lockedTimeZone,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
         autoTranslateDescriptionEnabled,
-        instantMeetingScheduleId,
-        includeNoShowInRRCalculation,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -132,14 +131,15 @@ describe("handleChildrenEventTypes", () => {
         profileId: null,
         updatedValues: {},
       });
-
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
           ...evType,
           parentId: 1,
           users: { connect: [{ id: 4 }] },
           lockTimeZoneToggleOnBookingPage: false,
+          lockedTimeZone: "Europe/London",
           requiresBookerEmailVerification: false,
+          instantMeetingScheduleId: undefined,
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
@@ -170,10 +170,9 @@ describe("handleChildrenEventTypes", () => {
         scheduleId,
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
+        lockedTimeZone,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
-        assignRRMembersUsingSegment,
-        includeNoShowInRRCalculation,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -195,12 +194,14 @@ describe("handleChildrenEventTypes", () => {
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
+          assignRRMembersUsingSegment: undefined,
           useEventLevelSelectedCalendars: undefined,
           customReplyToEmail: null,
           rrSegmentQueryValue: undefined,
           locations: [],
           scheduleId: null,
           lockTimeZoneToggleOnBookingPage: false,
+          lockedTimeZone: "Europe/London",
           requiresBookerEmailVerification: false,
           hashedLink: {
             deleteMany: {},
@@ -275,11 +276,10 @@ describe("handleChildrenEventTypes", () => {
         timeZone,
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
+        lockedTimeZone,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
         autoTranslateDescriptionEnabled,
-        hashedLink,
-        includeNoShowInRRCalculation,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -309,9 +309,11 @@ describe("handleChildrenEventTypes", () => {
           customReplyToEmail: null,
           instantMeetingScheduleId: undefined,
           lockTimeZoneToggleOnBookingPage: false,
+          lockedTimeZone: "Europe/London",
           requiresBookerEmailVerification: false,
           userId: 4,
           workflows: undefined,
+          hashedLink: undefined,
           rrSegmentQueryValue: undefined,
           assignRRMembersUsingSegment: false,
         },
@@ -334,10 +336,9 @@ describe("handleChildrenEventTypes", () => {
         userId,
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
+        lockedTimeZone,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
-        assignRRMembersUsingSegment,
-        includeNoShowInRRCalculation,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -360,6 +361,7 @@ describe("handleChildrenEventTypes", () => {
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
+          assignRRMembersUsingSegment: undefined,
           useEventLevelSelectedCalendars: undefined,
           rrSegmentQueryValue: undefined,
           customReplyToEmail: null,
@@ -368,6 +370,7 @@ describe("handleChildrenEventTypes", () => {
             deleteMany: {},
           },
           lockTimeZoneToggleOnBookingPage: false,
+          lockedTimeZone: "Europe/London",
           requiresBookerEmailVerification: false,
           instantMeetingScheduleId: undefined,
         },
@@ -398,10 +401,14 @@ describe("handleChildrenEventTypes", () => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
+        lockedTimeZone,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
         autoTranslateDescriptionEnabled,
+        hashedLink,
         includeNoShowInRRCalculation,
+        instantMeetingScheduleId,
+        assignRRMembersUsingSegment,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -424,6 +431,7 @@ describe("handleChildrenEventTypes", () => {
         schedulingType: SchedulingType.MANAGED,
         requiresBookerEmailVerification: false,
         lockTimeZoneToggleOnBookingPage: false,
+        lockedTimeZone: "Europe/London",
         useEventTypeDestinationCalendarEmail: false,
         workflows: [],
         parentId: 1,
@@ -455,7 +463,6 @@ describe("handleChildrenEventTypes", () => {
           recurringEvent: undefined,
           eventTypeColor: undefined,
           customReplyToEmail: null,
-          instantMeetingScheduleId: undefined,
           locations: [],
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
@@ -467,28 +474,24 @@ describe("handleChildrenEventTypes", () => {
           workflows: {
             create: [{ workflowId: 11 }],
           },
-          hashedLink: undefined,
           rrSegmentQueryValue: undefined,
           assignRRMembersUsingSegment: false,
           useEventLevelSelectedCalendars: false,
         },
       });
-      const { profileId, ...rest } = evType;
+      const { profileId, rrSegmentQueryValue, ...rest } = evType;
       if ("workflows" in rest) delete rest.workflows;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
           locations: [],
-          assignRRMembersUsingSegment: undefined,
           useEventLevelSelectedCalendars: undefined,
           customReplyToEmail: null,
-          rrSegmentQueryValue: undefined,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
           hashedLink: {
             deleteMany: {},
           },
-          instantMeetingScheduleId: undefined,
         },
         where: {
           userId_parentId: {
