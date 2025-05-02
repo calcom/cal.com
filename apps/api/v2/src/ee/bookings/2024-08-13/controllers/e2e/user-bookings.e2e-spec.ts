@@ -22,7 +22,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { getWeeklyAvailability9To5 } from "test/utils/availability";
+import { getWeeklyAvailability9To5, UTC0 } from "test/utils/availability";
 import { getDateDaysBeforeNow, getDateDaysFromNow } from "test/utils/days";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
@@ -170,7 +170,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             email: "oldie@gmail.com",
             name: "Oldie",
             locale: "lv",
-            timeZone: "Europe/Rome",
+            timeZone: UTC0,
           },
         },
         rating: 10,
@@ -209,7 +209,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             attendee: {
               name: "Mr Proper",
               email: "mr_proper@gmail.com",
-              timeZone: "Europe/Rome",
+              timeZone: UTC0,
               language: "it",
             },
             location: "https://meet.google.com/abc-def-ghi",
@@ -285,7 +285,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             attendee: {
               name: "Mr Proper",
               email: "mr_proper@gmail.com",
-              timeZone: "Europe/Rome",
+              timeZone: UTC0,
               language: "it",
             },
             location: "https://meet.google.com/abc-def-ghi",
@@ -311,7 +311,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             attendee: {
               name: "Mr Proper",
               email: "mr_proper@gmail.com",
-              timeZone: "Europe/Rome",
+              timeZone: UTC0,
               language: "it",
             },
             location: "https://meet.google.com/abc-def-ghi",
@@ -343,7 +343,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "Mr Proper",
             email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
+            timeZone: UTC0,
             language: "it",
           },
           location: googleMeetUrl,
@@ -438,7 +438,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "Mr Proper Recurring",
             email: "mr_proper_recurring@gmail.com",
-            timeZone: "Europe/Rome",
+            timeZone: UTC0,
             language: "it",
           },
           location: "https://meet.google.com/abc-def-ghi",
@@ -631,7 +631,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               email: "oldie@gmail.com",
               name: "Oldie",
               locale: "lv",
-              timeZone: "Europe/Rome",
+              timeZone: UTC0,
             },
           },
           rating: 10,
@@ -1688,7 +1688,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "Mr Proper",
             email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
+            timeZone: UTC0,
             language: "it",
           },
           location: googleMeetUrl,
@@ -1721,7 +1721,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "Mr Proper",
             email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
+            timeZone: UTC0,
             language: "it",
           },
           location: googleMeetUrl,
@@ -1870,7 +1870,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "Mr Proper",
             email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
+            timeZone: UTC0,
             language: "it",
           },
           location: {
@@ -1906,7 +1906,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "Mr Proper",
             email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
+            timeZone: UTC0,
             language: "it",
           },
           location: {
@@ -1939,7 +1939,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "Mr Proper",
             email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
+            timeZone: UTC0,
             language: "it",
           },
           location: {
@@ -1972,7 +1972,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "Mr Proper",
             email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
+            timeZone: UTC0,
             language: "it",
           },
           location: {
@@ -2007,7 +2007,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "Mr Proper",
             email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
+            timeZone: UTC0,
             language: "it",
           },
           location: {
@@ -2043,7 +2043,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "Mr Proper",
             email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
+            timeZone: UTC0,
             language: "it",
           },
           location: {
@@ -2079,7 +2079,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "Mr Proper",
             email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
+            timeZone: UTC0,
             language: "it",
           },
           location: {
@@ -2113,7 +2113,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "Mr Proper",
             email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
+            timeZone: UTC0,
             language: "it",
           },
           location: {
@@ -2136,7 +2136,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "Mr Proper",
             email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
+            timeZone: UTC0,
             language: "it",
           },
           location: {
@@ -2157,7 +2157,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         const email = `user-bookings-attendee-${randomString(10)}@gmail.com`;
         const username = `user-bookings-attendee-${randomString(10)}`;
         const locale = "it";
-        const timeZone = "Europe/Rome";
+        const timeZone = UTC0;
         const attendee = await userRepositoryFixture.create({
           email,
           username,

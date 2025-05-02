@@ -22,11 +22,14 @@ import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repo
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { UTC0 } from "test/utils/availability";
+import { getDateDaysFromNow } from "test/utils/days";
 import { randomString } from "test/utils/randomString";
 
 import {
   CAL_API_VERSION_HEADER,
   SUCCESS_STATUS,
+  VERSION_2024_06_11,
   VERSION_2024_06_14,
   VERSION_2024_08_13,
 } from "@calcom/platform-constants";
@@ -35,6 +38,8 @@ import {
   BookingOutput_2024_08_13,
   CreateBookingInput_2024_08_13,
   CreateEventTypeInput_2024_06_14,
+  CreateScheduleInput_2024_06_11,
+  CreateScheduleOutput_2024_06_11,
   EventTypeOutput_2024_06_14,
   GetBookingsOutput_2024_08_13,
 } from "@calcom/platform-types";
@@ -57,7 +62,7 @@ describe("Managed user bookings 2024-08-13", () => {
   const platformAdminEmail = `managed-users-bookings-2024-08-13-admin-${randomString()}@api.com`;
   let platformAdmin: User;
 
-  const managedUsersTimeZone = "Europe/Rome";
+  const managedUsersTimeZone = UTC0;
   const firstManagedUserEmail = `managed-user-bookings-2024-08-13-first-user-${randomString()}@api.com`;
   const secondManagedUserEmail = `managed-user-bookings-2024-08-13-second-user-${randomString()}@api.com`;
   const thirdManagedUserEmail = `managed-user-bookings-2024-08-13-third-user-${randomString()}@api.com`;
@@ -71,6 +76,19 @@ describe("Managed user bookings 2024-08-13", () => {
   let firstManagedUserBookingsCount = 0;
   let secondManagedUserBookingsCount = 0;
   let thirdManagedUserBookingsCount = 0;
+
+  const schedule: CreateScheduleInput_2024_06_11 = {
+    isDefault: true,
+    name: "Default Schedule",
+    timeZone: managedUsersTimeZone,
+    availability: [
+      {
+        days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        startTime: "09:00",
+        endTime: "17:00",
+      },
+    ],
+  };
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -185,6 +203,19 @@ describe("Managed user bookings 2024-08-13", () => {
       });
   });
 
+  it("should create a default schedule for managed user", async () => {
+    return request(app.getHttpServer())
+      .post("/api/v2/schedules")
+      .set("Authorization", `Bearer ${firstManagedUser.accessToken}`)
+      .set(CAL_API_VERSION_HEADER, VERSION_2024_06_11)
+      .send(schedule)
+      .expect(201)
+      .then(async (response) => {
+        const responseBody: CreateScheduleOutput_2024_06_11 = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      });
+  });
+
   it(`should create second managed user`, async () => {
     const requestBody: CreateManagedUserInput = {
       email: secondManagedUserEmail,
@@ -212,6 +243,19 @@ describe("Managed user bookings 2024-08-13", () => {
     expect(responseBody.data.refreshToken).toBeDefined();
 
     secondManagedUser = responseBody.data;
+  });
+
+  it("should create a default schedule for second managed user", async () => {
+    return request(app.getHttpServer())
+      .post("/api/v2/schedules")
+      .set("Authorization", `Bearer ${secondManagedUser.accessToken}`)
+      .set(CAL_API_VERSION_HEADER, VERSION_2024_06_11)
+      .send(schedule)
+      .expect(201)
+      .then(async (response) => {
+        const responseBody: CreateScheduleOutput_2024_06_11 = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      });
   });
 
   it(`should create third managed user`, async () => {
@@ -243,10 +287,25 @@ describe("Managed user bookings 2024-08-13", () => {
     thirdManagedUser = responseBody.data;
   });
 
+  it("should create a default schedule for third managed user", async () => {
+    return request(app.getHttpServer())
+      .post("/api/v2/schedules")
+      .set("Authorization", `Bearer ${thirdManagedUser.accessToken}`)
+      .set(CAL_API_VERSION_HEADER, VERSION_2024_06_11)
+      .send(schedule)
+      .expect(201)
+      .then(async (response) => {
+        const responseBody: CreateScheduleOutput_2024_06_11 = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      });
+  });
+
   describe("bookings using original emails", () => {
     it("managed user should be booked by managed user attendee and booking shows up in both users' bookings", async () => {
+      const start = getDateDaysFromNow({ days: 8, hours: 13, minutes: 0 });
+
       const body: CreateBookingInput_2024_08_13 = {
-        start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
+        start: start.toISOString(),
         eventTypeId: firstManagedUserEventTypeId,
         attendee: {
           name: secondManagedUser.user.name!,
@@ -295,8 +354,9 @@ describe("Managed user bookings 2024-08-13", () => {
     });
 
     it("managed user should be booked by managed user attendee and managed user as a guest and booking shows up in all three users' bookings", async () => {
+      const start = getDateDaysFromNow({ days: 8, hours: 14, minutes: 0 });
       const body: CreateBookingInput_2024_08_13 = {
-        start: new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString(),
+        start: start.toISOString(),
         eventTypeId: firstManagedUserEventTypeId,
         attendee: {
           name: thirdManagedUser.user.name!,
@@ -362,8 +422,9 @@ describe("Managed user bookings 2024-08-13", () => {
 
   describe("bookings using OAuth client emails", () => {
     it("managed user should be booked by managed user attendee and booking shows up in both users' bookings", async () => {
+      const start = getDateDaysFromNow({ days: 8, hours: 15, minutes: 0 });
       const body: CreateBookingInput_2024_08_13 = {
-        start: new Date(Date.UTC(2030, 0, 8, 15, 0, 0)).toISOString(),
+        start: start.toISOString(),
         eventTypeId: firstManagedUserEventTypeId,
         attendee: {
           name: secondManagedUser.user.name!,
@@ -412,8 +473,9 @@ describe("Managed user bookings 2024-08-13", () => {
     });
 
     it("managed user should be booked by managed user attendee and managed user as a guest and booking shows up in all three users' bookings", async () => {
+      const start = getDateDaysFromNow({ days: 8, hours: 15, minutes: 30 });
       const body: CreateBookingInput_2024_08_13 = {
-        start: new Date(Date.UTC(2030, 0, 8, 15, 30, 0)).toISOString(),
+        start: start.toISOString(),
         eventTypeId: firstManagedUserEventTypeId,
         attendee: {
           name: thirdManagedUser.user.name!,

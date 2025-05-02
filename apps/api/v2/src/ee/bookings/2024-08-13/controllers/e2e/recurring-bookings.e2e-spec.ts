@@ -17,6 +17,8 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { getWeeklyAvailability9To5, UTC0 } from "test/utils/availability";
+import { getDateDaysFromNow } from "test/utils/days";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
@@ -84,11 +86,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         },
       });
 
-      const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: `recurring-bookings-2024-08-13-schedule-${randomString()}`,
-        timeZone: "Europe/Rome",
-        isDefault: true,
-      };
+      const userSchedule = getWeeklyAvailability9To5();
       await schedulesService.createUserSchedule(user.id, userSchedule);
 
       const recurringEvent = await eventTypesRepositoryFixture.create(
@@ -131,7 +129,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         attendee: {
           name: "Mr Proper Recurring",
           email: "mr_proper_recurring@gmail.com",
-          timeZone: "Europe/Rome",
+          timeZone: UTC0,
           language: "it",
         },
         location: "https://meet.google.com/abc-def-ghi",
@@ -153,7 +151,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         attendee: {
           name: "Mr Proper Recurring",
           email: "mr_proper_recurring@gmail.com",
-          timeZone: "Europe/Rome",
+          timeZone: UTC0,
           language: "it",
         },
         location: "https://meet.google.com/abc-def-ghi",
@@ -230,7 +228,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         attendee: {
           name: "Mr Proper Recurring",
           email: "mr_proper_recurring@gmail.com",
-          timeZone: "Europe/Rome",
+          timeZone: UTC0,
           language: "it",
         },
         location: "https://meet.google.com/abc-def-ghi",
@@ -401,7 +399,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
         name: `recurring-bookings-2024-08-13-schedule-${randomString()}`,
-        timeZone: "Europe/Rome",
+        timeZone: UTC0,
         isDefault: true,
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
@@ -439,13 +437,15 @@ describe("Bookings Endpoints 2024-08-13", () => {
     }
 
     it("should create a recurring booking", async () => {
+      const start = getDateDaysFromNow({ days: 7, hours: 9, minutes: 0 });
+
       const body: CreateRecurringBookingInput_2024_08_13 = {
-        start: new Date(Date.UTC(2030, 1, 4, 13, 0, 0)).toISOString(),
+        start: start.toISOString(),
         eventTypeId: recurringEventTypeId,
         attendee: {
           name: "Mr Proper Recurring",
           email: "mr_proper_recurring@gmail.com",
-          timeZone: "Europe/Rome",
+          timeZone: UTC0,
           language: "it",
         },
         location: "https://meet.google.com/abc-def-ghi",
@@ -611,7 +611,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
         name: `recurring-bookings-2024-08-13-schedule-${randomString()}`,
-        timeZone: "Europe/Rome",
+        timeZone: UTC0,
         isDefault: true,
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
@@ -649,13 +649,15 @@ describe("Bookings Endpoints 2024-08-13", () => {
     }
 
     it("should create a recurring booking", async () => {
+      const start = getDateDaysFromNow({ days: 7, hours: 12, minutes: 0 });
+
       const body: CreateRecurringBookingInput_2024_08_13 = {
-        start: new Date(Date.UTC(2040, 1, 3, 13, 0, 0)).toISOString(),
+        start: start.toISOString(),
         eventTypeId: recurringEventTypeId,
         attendee: {
           name: "Mr Proper Recurring",
           email: "mr_proper_recurring@gmail.com",
-          timeZone: "Europe/Rome",
+          timeZone: UTC0,
           language: "it",
         },
         location: "https://meet.google.com/abc-def-ghi",

@@ -19,6 +19,8 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { getWeeklyAvailability9To5 } from "test/utils/availability";
+import { getDateDaysFromNow } from "test/utils/days";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import {
@@ -131,11 +133,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
         },
       });
 
-      const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
-        timeZone: "Europe/Rome",
-        isDefault: true,
-      };
+      const userSchedule = getWeeklyAvailability9To5();
       await schedulesService.createUserSchedule(orgUser.id, userSchedule);
       await schedulesService.createUserSchedule(orgUser2.id, userSchedule);
       await schedulesService.createUserSchedule(nonOrgUser1.id, userSchedule);
@@ -290,8 +288,11 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
 
     describe("create organization bookings", () => {
       it("should create an collective organization booking", async () => {
+        const start = getDateDaysFromNow({ days: 8, hours: 13, minutes: 0 });
+        const end = getDateDaysFromNow({ days: 8, hours: 14, minutes: 0 });
+
         const body: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 0, 9, 13, 0, 0)).toISOString(),
+          start: start.toISOString(),
           eventTypeId: orgEventTypeId,
           attendee: {
             name: "alice",
@@ -321,7 +322,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
               expect(data.hosts[0].id).toEqual(orgUser.id);
               expect(data.status).toEqual("accepted");
               expect(data.start).toEqual(body.start);
-              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 9, 14, 0, 0)).toISOString());
+              expect(data.end).toEqual(end.toISOString());
               expect(data.duration).toEqual(60);
               expect(data.eventTypeId).toEqual(orgEventTypeId);
               expect(data.attendees.length).toEqual(2);
@@ -343,8 +344,11 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
       });
 
       it("should create a round robin organization booking", async () => {
+        const start = getDateDaysFromNow({ days: 9, hours: 13, minutes: 0 });
+        const end = getDateDaysFromNow({ days: 9, hours: 14, minutes: 0 });
+
         const body: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 0, 10, 13, 0, 0)).toISOString(),
+          start: start.toISOString(),
           eventTypeId: orgEventTypeId2,
           attendee: {
             name: "alice",
@@ -374,7 +378,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
               expect(data.hosts[0].id).toEqual(orgUser2.id);
               expect(data.status).toEqual("accepted");
               expect(data.start).toEqual(body.start);
-              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 10, 14, 0, 0)).toISOString());
+              expect(data.end).toEqual(end.toISOString());
               expect(data.duration).toEqual(60);
               expect(data.eventTypeId).toEqual(orgEventTypeId2);
               expect(data.attendees.length).toEqual(1);
@@ -396,8 +400,11 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
       });
 
       it("should create a non organization booking for org-user-1", async () => {
+        const start = getDateDaysFromNow({ days: 10, hours: 13, minutes: 0 });
+        const end = getDateDaysFromNow({ days: 10, hours: 14, minutes: 0 });
+
         const body: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
+          start: start.toISOString(),
           eventTypeId: nonOrgEventTypeId,
           attendee: {
             name: orgUser.name ?? "",
@@ -427,7 +434,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
               expect(data.hosts[0].id).toEqual(nonOrgUser1.id);
               expect(data.status).toEqual("accepted");
               expect(data.start).toEqual(body.start);
-              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString());
+              expect(data.end).toEqual(end.toISOString());
               expect(data.duration).toEqual(60);
               expect(data.eventTypeId).toEqual(nonOrgEventTypeId);
               expect(data.attendees.length).toEqual(1);

@@ -19,6 +19,8 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { getWeeklyAvailability9To5, UTC0 } from "test/utils/availability";
+import { getDateDaysFromNow } from "test/utils/days";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
@@ -33,10 +35,7 @@ import {
   GetSeatedBookingOutput_2024_08_13,
   RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
-import {
-  CreateBookingInput_2024_08_13,
-  CreateRecurringBookingInput_2024_08_13,
-} from "@calcom/platform-types";
+import { CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
 import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
 describe("Bookings Endpoints 2024-08-13", () => {
@@ -103,11 +102,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         },
       });
 
-      const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: `seated-bookings-2024-08-13-schedule-${randomString()}`,
-        timeZone: "Europe/Rome",
-        isDefault: true,
-      };
+      const userSchedule = getWeeklyAvailability9To5();
       await schedulesService.createUserSchedule(user.id, userSchedule);
       const seatedEvent = await eventTypesRepositoryFixture.create(
         {
@@ -143,13 +138,15 @@ describe("Bookings Endpoints 2024-08-13", () => {
     }
 
     it("should book an event type with seats for the first time", async () => {
+      const start = getDateDaysFromNow({ days: 7, hours: 9, minutes: 0 });
+
       const body: CreateBookingInput_2024_08_13 = {
-        start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
+        start: start.toISOString(),
         eventTypeId: seatedEventTypeId,
         attendee: {
           name: nameAttendeeOne,
           email: emailAttendeeOne,
-          timeZone: "Europe/Rome",
+          timeZone: UTC0,
           language: "it",
         },
         bookingFieldsResponses: {
@@ -215,13 +212,15 @@ describe("Bookings Endpoints 2024-08-13", () => {
     });
 
     it("should book an event type with seats for the second time", async () => {
+      const start = getDateDaysFromNow({ days: 7, hours: 9, minutes: 0 });
+
       const body: CreateBookingInput_2024_08_13 = {
-        start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
+        start: start.toISOString(),
         eventTypeId: seatedEventTypeId,
         attendee: {
           name: nameAttendeeTwo,
           email: emailAttendeeTwo,
-          timeZone: "Europe/Rome",
+          timeZone: UTC0,
           language: "it",
         },
         bookingFieldsResponses: {

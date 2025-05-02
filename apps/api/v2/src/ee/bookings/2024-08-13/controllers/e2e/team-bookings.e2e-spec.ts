@@ -2,7 +2,6 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
-import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
@@ -22,7 +21,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { getWeeklyAvailability9To5 } from "test/utils/availability";
+import { getWeeklyAvailability9To5, UTC0 } from "test/utils/availability";
 import { getDateDaysFromNow } from "test/utils/days";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
@@ -373,7 +372,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "alice",
             email: "alice@gmail.com",
-            timeZone: "Europe/Madrid",
+            timeZone: UTC0,
             language: "es",
           },
           meetingUrl: "https://meet.google.com/abc-def-ghi",
@@ -430,7 +429,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "alice",
             phoneNumber,
-            timeZone: "Europe/Madrid",
+            timeZone: UTC0,
             language: "es",
           },
           meetingUrl: "https://meet.google.com/abc-def-ghi",
@@ -489,7 +488,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "bob",
             email: "bob@gmail.com",
-            timeZone: "Europe/Rome",
+            timeZone: UTC0,
             language: "it",
           },
           meetingUrl: "https://meet.google.com/abc-def-ghi",
@@ -691,7 +690,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "alice",
             email: "alice@gmail.com",
-            timeZone: "Europe/Madrid",
+            timeZone: UTC0,
             language: "es",
           },
           meetingUrl: "https://meet.google.com/abc-def-ghi",
@@ -713,7 +712,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           attendee: {
             name: "alice",
             email: "alice@gmail.com",
-            timeZone: "Europe/Madrid",
+            timeZone: UTC0,
             language: "es",
           },
           meetingUrl: "https://meet.google.com/abc-def-ghi",
