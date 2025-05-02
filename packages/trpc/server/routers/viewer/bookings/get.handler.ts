@@ -641,13 +641,21 @@ export async function getBookings({
 
   const totalCount = Number(countResult[0].count);
 
+  const recurringInfoParams: any[] = [];
+  let recurringInfoParamIndex = 1;
+
+  const addRecurringInfoParam = (value: any) => {
+    recurringInfoParams.push(value);
+    return `$${recurringInfoParamIndex++}`;
+  };
+
   const recurringInfoBasicQuery = `
     SELECT "recurringEventId",
            MIN("startTime") as "minStartTime", 
            COUNT("recurringEventId") as "countRecurringEventId"
     FROM "public"."Booking"
     WHERE "recurringEventId" IS NOT NULL
-    AND "userId" = ${addParam(user.id)}
+    AND "userId" = ${addRecurringInfoParam(user.id)}
     GROUP BY "recurringEventId"
   `;
 
@@ -655,16 +663,16 @@ export async function getBookings({
     SELECT "recurringEventId", "status", "startTime"
     FROM "public"."Booking"
     WHERE "recurringEventId" IS NOT NULL
-    AND "userId" = ${addParam(user.id)}
+    AND "userId" = ${addRecurringInfoParam(user.id)}
     GROUP BY "recurringEventId", "status", "startTime"
   `;
 
   const [recurringInfoBasicResult, recurringInfoExtendedResult] = await Promise.all([
     prisma.$queryRaw<{ recurringEventId: string; minStartTime: Date; countRecurringEventId: bigint }[]>(
-      PrismaClientType.sql([recurringInfoBasicQuery, ...params.slice(0, 1)]) // Use the already added parameter
+      PrismaClientType.sql([recurringInfoBasicQuery, ...recurringInfoParams])
     ),
     prisma.$queryRaw<{ recurringEventId: string; status: string; startTime: Date }[]>(
-      PrismaClientType.sql([recurringInfoExtendedQuery, ...params.slice(0, 1)]) // Use the already added parameter
+      PrismaClientType.sql([recurringInfoExtendedQuery, ...recurringInfoParams])
     ),
   ]);
 
@@ -709,7 +717,16 @@ export async function getBookings({
   }
 
   const bookingIds = plainBookings.map((booking) => booking.id);
-  const bookingIdsParam = bookingIds.map(() => addParam(bookingIds.shift())).join(", ");
+
+  const comprehensiveParams: any[] = [];
+  let comprehensiveParamIndex = 1;
+
+  const addComprehensiveParam = (value: any) => {
+    comprehensiveParams.push(value);
+    return `$${comprehensiveParamIndex++}`;
+  };
+
+  const bookingIdsParam = bookingIds.map((id) => addComprehensiveParam(id)).join(", ");
 
   const comprehensiveQuery = `
     WITH booking_base AS (
@@ -977,7 +994,7 @@ export async function getBookings({
   `;
 
   const comprehensiveResults = await prisma.$queryRaw<any[]>(
-    PrismaClientType.sql([comprehensiveQuery, ...params])
+    PrismaClientType.sql([comprehensiveQuery, ...comprehensiveParams])
   );
 
   const bookings = comprehensiveResults.map((result) => {
