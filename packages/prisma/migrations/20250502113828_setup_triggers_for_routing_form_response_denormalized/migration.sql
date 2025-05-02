@@ -105,7 +105,7 @@ BEGIN
         PERFORM refresh_routing_form_response_denormalized(NEW.id);
     EXCEPTION WHEN OTHERS THEN
         -- Log the error but don't fail the original operation
-        RAISE WARNING 'DENORM_ERROR: RoutingFormResponseDenormalized - refresh failed for response_id %. Error: %', NEW.id, SQLERRM;
+        RAISE WARNING 'DENORM_ERROR: RoutingFormResponseDenormalized - refresh failed for response_id %', NEW.id;
     END;
     RETURN NEW;
 END;

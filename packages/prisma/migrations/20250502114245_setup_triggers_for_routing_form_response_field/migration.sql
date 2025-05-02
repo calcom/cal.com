@@ -55,7 +55,9 @@ BEGIN
             response_field := NEW.response::jsonb->(field_record->>'id');
             
             -- Skip if no response for this field
-            CONTINUE WHEN response_field IS NULL;
+            IF response_field IS NULL THEN
+                CONTINUE;
+            END IF;
             
             -- Get field type
             field_type := field_record->>'type';
@@ -73,7 +75,7 @@ BEGIN
                             ARRAY(SELECT jsonb_array_elements_text(response_field->'value'))
                         );
                     EXCEPTION WHEN OTHERS THEN
-                        RAISE WARNING 'Failed to insert multiselect values for field %: %', field_record->>'id', SQLERRM;
+                        RAISE WARNING 'Failed to insert multiselect values for field %', field_record->>'id';
                     END;
                 END IF;
             ELSIF field_type = 'number' THEN
@@ -88,7 +90,7 @@ BEGIN
                             (response_field->>'value')::decimal
                         );
                     EXCEPTION WHEN OTHERS THEN
-                        RAISE WARNING 'Failed to insert number value for field %: %', field_record->>'id', SQLERRM;
+                        RAISE WARNING 'Failed to insert number value for field %', field_record->>'id';
                     END;
                 END IF;
             ELSE
@@ -103,13 +105,13 @@ BEGIN
                             response_field->>'value'
                         );
                     EXCEPTION WHEN OTHERS THEN
-                        RAISE WARNING 'Failed to insert string value for field %: %', field_record->>'id', SQLERRM;
+                        RAISE WARNING 'Failed to insert string value for field %', field_record->>'id';
                     END;
                 END IF;
             END IF;
         EXCEPTION WHEN OTHERS THEN
             -- Log the error and continue processing other fields
-            RAISE WARNING 'Error processing field %: %', field_record->>'id', SQLERRM;
+            RAISE WARNING 'Error processing field %', field_record->>'id';
             CONTINUE;
         END;
     END LOOP;
@@ -117,7 +119,7 @@ BEGIN
     RETURN NEW;
 EXCEPTION WHEN OTHERS THEN
     -- Log any unhandled errors and continue
-    RAISE WARNING 'Unhandled error in handle_routing_form_response_fields: %', SQLERRM;
+    RAISE WARNING 'Unhandled error in handle_routing_form_response_fields for response %', NEW.id;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -130,8 +132,7 @@ CREATE TRIGGER routing_form_response_insert_trigger
 
 -- Create trigger for UPDATE
 CREATE TRIGGER routing_form_response_update_trigger
-    AFTER UPDATE ON "App_RoutingForms_FormResponse"
+    AFTER UPDATE OF response ON "App_RoutingForms_FormResponse"
     FOR EACH ROW
-    WHEN (OLD.response IS DISTINCT FROM NEW.response)
     EXECUTE FUNCTION handle_routing_form_response_fields();
 

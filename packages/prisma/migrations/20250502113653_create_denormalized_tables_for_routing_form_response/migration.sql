@@ -58,6 +58,12 @@ CREATE INDEX "RoutingFormResponseField_valueStringArray_idx" ON "RoutingFormResp
 CREATE INDEX "RoutingFormResponseDenormalized_formId_idx" ON "RoutingFormResponseDenormalized"("formId");
 
 -- CreateIndex
+CREATE INDEX "RoutingFormResponseDenormalized_formTeamId_idx" ON "RoutingFormResponseDenormalized"("formTeamId");
+
+-- CreateIndex
+CREATE INDEX "RoutingFormResponseDenormalized_formUserId_idx" ON "RoutingFormResponseDenormalized"("formUserId");
+
+-- CreateIndex
 CREATE INDEX "RoutingFormResponseDenormalized_formId_createdAt_idx" ON "RoutingFormResponseDenormalized"("formId", "createdAt");
 
 -- CreateIndex

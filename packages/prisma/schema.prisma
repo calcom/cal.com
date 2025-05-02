@@ -642,70 +642,70 @@ enum BookingStatus {
 }
 
 model Booking {
-  id                              Int                               @id @default(autoincrement())
-  uid                             String                            @unique
+  id                           Int                               @id @default(autoincrement())
+  uid                          String                            @unique
   // (optional) UID based on slot start/end time & email against duplicates
-  idempotencyKey                  String?                           @unique
-  user                            User?                             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                          Int?
+  idempotencyKey               String?                           @unique
+  user                         User?                             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                       Int?
   // User's email at the time of booking
   /// @zod.custom(imports.emailSchema)
-  userPrimaryEmail                String?
-  references                      BookingReference[]
-  eventType                       EventType?                        @relation(fields: [eventTypeId], references: [id])
-  eventTypeId                     Int?
-  title                           String
-  description                     String?
-  customInputs                    Json?
+  userPrimaryEmail             String?
+  references                   BookingReference[]
+  eventType                    EventType?                        @relation(fields: [eventTypeId], references: [id])
+  eventTypeId                  Int?
+  title                        String
+  description                  String?
+  customInputs                 Json?
   /// @zod.custom(imports.bookingResponses)
-  responses                       Json?
-  startTime                       DateTime
-  endTime                         DateTime
-  attendees                       Attendee[]
-  location                        String?
-  createdAt                       DateTime                          @default(now())
-  updatedAt                       DateTime?                         @updatedAt
-  status                          BookingStatus                     @default(ACCEPTED)
-  paid                            Boolean                           @default(false)
-  payment                         Payment[]
-  destinationCalendar             DestinationCalendar?              @relation(fields: [destinationCalendarId], references: [id])
-  destinationCalendarId           Int?
-  cancellationReason              String?
-  rejectionReason                 String?
-  reassignReason                  String?
-  reassignBy                      User?                             @relation("reassignByUser", fields: [reassignById], references: [id])
-  reassignById                    Int?
-  dynamicEventSlugRef             String?
-  dynamicGroupSlugRef             String?
-  rescheduled                     Boolean?
-  fromReschedule                  String?
-  recurringEventId                String?
-  smsReminderNumber               String?
-  workflowReminders               WorkflowReminder[]
-  scheduledJobs                   String[] // scheduledJobs is deprecated, please use scheduledTriggers instead
-  seatsReferences                 BookingSeat[]
+  responses                    Json?
+  startTime                    DateTime
+  endTime                      DateTime
+  attendees                    Attendee[]
+  location                     String?
+  createdAt                    DateTime                          @default(now())
+  updatedAt                    DateTime?                         @updatedAt
+  status                       BookingStatus                     @default(ACCEPTED)
+  paid                         Boolean                           @default(false)
+  payment                      Payment[]
+  destinationCalendar          DestinationCalendar?              @relation(fields: [destinationCalendarId], references: [id])
+  destinationCalendarId        Int?
+  cancellationReason           String?
+  rejectionReason              String?
+  reassignReason               String?
+  reassignBy                   User?                             @relation("reassignByUser", fields: [reassignById], references: [id])
+  reassignById                 Int?
+  dynamicEventSlugRef          String?
+  dynamicGroupSlugRef          String?
+  rescheduled                  Boolean?
+  fromReschedule               String?
+  recurringEventId             String?
+  smsReminderNumber            String?
+  workflowReminders            WorkflowReminder[]
+  scheduledJobs                String[] // scheduledJobs is deprecated, please use scheduledTriggers instead
+  seatsReferences              BookingSeat[]
   /// @zod.custom(imports.bookingMetadataSchema)
-  metadata                        Json?
-  isRecorded                      Boolean                           @default(false)
-  iCalUID                         String?                           @default("")
-  iCalSequence                    Int                               @default(0)
-  instantMeetingToken             InstantMeetingToken?
-  rating                          Int?
-  ratingFeedback                  String?
-  noShowHost                      Boolean?                          @default(false)
-  scheduledTriggers               WebhookScheduledTriggers[]
-  oneTimePassword                 String?                           @unique @default(uuid())
+  metadata                     Json?
+  isRecorded                   Boolean                           @default(false)
+  iCalUID                      String?                           @default("")
+  iCalSequence                 Int                               @default(0)
+  instantMeetingToken          InstantMeetingToken?
+  rating                       Int?
+  ratingFeedback               String?
+  noShowHost                   Boolean?                          @default(false)
+  scheduledTriggers            WebhookScheduledTriggers[]
+  oneTimePassword              String?                           @unique @default(uuid())
   /// @zod.email()
-  cancelledBy                     String?
+  cancelledBy                  String?
   /// @zod.email()
-  rescheduledBy                   String?
+  rescheduledBy                String?
   // Ah, made a typo here. Should have been routedFromRoutingFormRe"s"ponse. Live with it :(
-  routedFromRoutingFormReponse    App_RoutingForms_FormResponse?
-  assignmentReason                AssignmentReason[]
-  internalNote                    BookingInternalNote[]
-  creationSource                  CreationSource?
-  tracking                        Tracking?
-  RoutingFormResponseDenormalized RoutingFormResponseDenormalized[]
+  routedFromRoutingFormReponse App_RoutingForms_FormResponse?
+  assignmentReason             AssignmentReason[]
+  internalNote                 BookingInternalNote[]
+  creationSource               CreationSource?
+  tracking                     Tracking?
+  routingFormResponses         RoutingFormResponseDenormalized[]
 
   @@index([eventTypeId])
   @@index([userId])
@@ -1048,7 +1048,6 @@ model App_RoutingForms_Form {
   updatedById              Int?
   // This is the user who created the form and also the user who has read-write access to the form
   // If teamId is set, the members of the team would also have access to form readOnly or read-write depending on their permission level as team member.
-  // If teamId is set, the members of the team would also have access to form readOnly or read-write depending on their permission level as team member.
   userId                   Int
   team                     Team?                                       @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId                   Int?
@@ -1071,16 +1070,17 @@ model App_RoutingForms_FormResponse {
   createdAt    DateTime              @default(now())
   updatedAt    DateTime?             @updatedAt
 
-  routedToBookingUid              String?                           @unique
+  routedToBookingUid        String?                           @unique
   // We should not cascade delete the booking, because we want to keep the form response even if the routedToBooking is deleted
-  routedToBooking                 Booking?                          @relation(fields: [routedToBookingUid], references: [uid])
-  chosenRouteId                   String?
-  RoutingFormResponseField        RoutingFormResponseField[]
-  RoutingFormResponseDenormalized RoutingFormResponseDenormalized[]
+  routedToBooking           Booking?                          @relation(fields: [routedToBookingUid], references: [uid])
+  chosenRouteId             String?
+  routingFormResponseFields RoutingFormResponseField[]
+  routingFormResponses      RoutingFormResponseDenormalized[]
 
   @@unique([formFillerId, formId])
   @@index([formFillerId])
   @@index([formId])
+  @@index([routedToBookingUid])
 }
 
 model RoutingFormResponseField {
@@ -1160,6 +1160,8 @@ model RoutingFormResponseDenormalized {
   fields                  RoutingFormResponseField[]
 
   @@index([formId])
+  @@index([formTeamId])
+  @@index([formUserId])
   @@index([formId, createdAt])
   @@index([bookingId])
   @@index([bookingUserId])
