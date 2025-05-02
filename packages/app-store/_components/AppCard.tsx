@@ -5,12 +5,11 @@ import { useTranslation } from "react-i18next";
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Switch } from "@calcom/ui/components/form";
-import { Badge } from "@calcom/ui/components/badge";
-import { Icon } from "@calcom/ui/components/icon";
-import { Avatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Section } from "@calcom/ui/components/section";
 
 import type { CredentialOwner } from "../types";
 import OmniInstallAppButton from "./OmniInstallAppButton";
@@ -49,45 +48,49 @@ export default function AppCard({
   const isPlatform = useIsPlatform();
 
   return (
-    <div
-      className={classNames(
-        "border-subtle",
-        app?.isInstalled && "mb-4 rounded-md border",
-        !app.enabled && "grayscale"
-      )}>
-      <div className={classNames(app.isInstalled ? "p-4 text-sm sm:p-4" : "px-5 py-4 text-sm sm:px-5")}>
-        <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-0">
-          {/* Don't know why but w-[42px] isn't working, started happening when I started using next/dynamic */}
+    <Section
+    // className={classNames(
+    //   "border-subtle",
+    //   app?.isInstalled && "mb-4 rounded-md border",
+    //   !app.enabled && "grayscale"
+    // )}
+    >
+      <Section.Header
+        title={app?.name}
+        description={app?.description}
+        iconSlot={
           <Link
             href={`/apps/${app.slug}`}
             className={classNames(app?.isInstalled ? "mr-[11px]" : "mr-3", "h-auto w-10 rounded-sm")}>
             <img
-              className={classNames(
-                app?.logo.includes("-dark") && "dark:invert",
-                app?.isInstalled ? "min-w-[42px]" : "min-w-[40px]",
-                "w-full"
-              )}
+              className={classNames(app?.logo.includes("-dark") && "dark:invert", "w-full min-w-[30px]")}
               src={app?.logo}
               alt={app?.name}
             />
           </Link>
+        }
+        // className={classNames(app.isInstalled ? "p-4 text-sm sm:p-4" : "px-5 py-4 text-sm sm:px-5")}
+      >
+        <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-0">
+          {/* Don't know why but w-[42px] isn't working, started happening when I started using next/dynamic */}
+
           <div className="flex flex-col pe-3">
             <div className="text-emphasis">
-              <span className={classNames(app?.isInstalled && "text-base", "font-semibold leading-4")}>
+              {/* <span className={classNames(app?.isInstalled && "text-base", "font-semibold leading-4")}>
                 {app?.name}
-              </span>
+              </span> */}
               {!app?.isInstalled && (
                 <span className="bg-emphasis ml-1 rounded px-1 py-0.5 text-xs font-medium leading-3 tracking-[0.01em]">
                   {app?.categories[0].charAt(0).toUpperCase() + app?.categories[0].slice(1)}
                 </span>
               )}
             </div>
-            <p title={app?.description} className="text-default line-clamp-1 pt-1 text-sm font-normal">
+            {/* <p title={app?.description} className="text-default line-clamp-1 pt-1 text-sm font-normal">
               {description || app?.description}
-            </p>
+            </p> */}
           </div>
           <div className="ml-auto flex items-center space-x-2">
-            {app.credentialOwner && !isPlatform && (
+            {/* {app.credentialOwner && !isPlatform && (
               <div className="ml-auto">
                 <Badge variant="gray">
                   <div className="flex items-center">
@@ -101,10 +104,11 @@ export default function AppCard({
                   </div>
                 </Badge>
               </div>
-            )}
+            )} */}
             {app?.isInstalled || app.credentialOwner ? (
               <div className="ml-auto flex items-center">
                 <Switch
+                  size="sm"
                   disabled={!app.enabled || managedDisabled || disableSwitch}
                   onCheckedChange={(enabled) => {
                     if (switchOnClick) {
@@ -128,7 +132,7 @@ export default function AppCard({
             )}
           </div>
         </div>
-      </div>
+      </Section.Header>
       {hideAppCardOptions ? null : (
         <div ref={animationRef}>
           {app?.isInstalled && switchChecked && <hr className="border-subtle" />}
@@ -154,6 +158,6 @@ export default function AppCard({
           ) : null}
         </div>
       )}
-    </div>
+    </Section>
   );
 }

@@ -53,11 +53,13 @@ const Icon = ({
   ref,
   name,
   size = "md",
+  iconSlot,
 }: {
   ref?: React.Ref<HTMLDivElement>;
-  name: IconName;
   size?: "sm" | "md";
-}) => {
+  name?: IconName;
+  iconSlot?: React.ReactNode;
+} & ({ name: IconName; iconSlot?: never } | { name?: never; iconSlot: React.ReactNode })) => {
   return (
     <div
       ref={ref}
@@ -66,7 +68,11 @@ const Icon = ({
         size === "sm" && "rounded-md p-1",
         size === "md" && "rounded-[10px] p-1.5"
       )}>
-      <IconComponent name={name} className={cn(size === "sm" && "h-4 w-4", size === "md" && "h-6 w-6")} />
+      {iconSlot ? (
+        iconSlot
+      ) : (
+        <IconComponent name={name!} className={cn(size === "sm" && "h-4 w-4", size === "md" && "h-6 w-6")} />
+      )}
     </div>
   );
 };
@@ -77,17 +83,20 @@ const Header = ({
   icon,
   title,
   description,
+  iconSlot,
 }: {
   children: React.ReactNode;
   ref?: React.Ref<HTMLDivElement>;
   icon?: IconName;
+  iconSlot?: React.ReactNode;
   title?: string;
   description?: string;
 }) => {
   return (
     <div ref={ref} className="flex items-center justify-between gap-3">
       <div className="flex items-center gap-2">
-        {icon && <Icon name={icon} />}
+        {icon && !iconSlot && <Icon name={icon} />}
+        {iconSlot && <Icon iconSlot={iconSlot} />}
         <div className="flex flex-col gap-0.5">
           {title && <Title>{title}</Title>}
           {description && <Description>{description}</Description>}
