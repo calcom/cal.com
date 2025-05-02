@@ -582,7 +582,7 @@ export async function getBookings({
   }
 
   // Ensure consistent ordering by adding id as a secondary sort
-  orderByClause += `, data.id ASC`;
+  orderByClause += `, data."id" ASC`;
 
   const finalQuery = `
     SELECT * FROM (
@@ -708,6 +708,7 @@ export async function getBookings({
       SELECT b.*
       FROM "public"."Booking" b
       WHERE b.id IN (${bookingIdsParam})
+      ORDER BY b."startTime" ASC, b.id ASC
     ),
     
     attendees AS (
@@ -972,7 +973,11 @@ export async function getBookings({
   );
 
   const bookings = comprehensiveResults.map((result) => {
-    const attendees = JSON.parse(result.attendeesJson || "[]");
+    const attendees = JSON.parse(result.attendeesJson || "[]").map((attendee: any) => ({
+      ...attendee,
+      // Ensure noShow is properly typed as boolean
+      noShow: attendee.noShow === true,
+    }));
     const seatsReferences = JSON.parse(result.seatsReferencesJson || "[]");
     const eventTypeData = result.eventTypeJson;
     const payment = JSON.parse(result.paymentJson || "[]");
