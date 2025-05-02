@@ -584,9 +584,17 @@ export async function getBookings({
   // Ensure consistent ordering by adding id as a secondary sort
   orderByClause += `, data."id" ASC`;
 
+  const numberedQueries = sqlQueries.map(
+    (query) => `
+    SELECT *, ROW_NUMBER() OVER (ORDER BY "startTime" ASC) as row_num FROM (
+      ${query}
+    ) as subquery
+  `
+  );
+
   const finalQuery = `
     SELECT * FROM (
-      ${sqlQueries.join("\nUNION ALL\n")}
+      ${numberedQueries.join("\nUNION ALL\n")}
     ) data
     ${whereConditions.length > 0 ? `WHERE ${whereConditions.join(" AND ")}` : ""}
     ${orderByClause}
