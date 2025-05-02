@@ -36,6 +36,6 @@ export const changeNotificationWebhookPayloadSchema = z.object({
  * https://learn.microsoft.com/en-us/graph/api/subscription-post-subscriptions?view=graph-rest-1.0&tabs=http#response-1
  */
 export const startWatchingCalendarResponseSchema = z.object({
-  subscriptionId: z.string(),
+  id: z.string(),
   expirationDateTime: z.string(),
 });
