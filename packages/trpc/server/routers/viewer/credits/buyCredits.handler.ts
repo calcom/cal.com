@@ -1,6 +1,9 @@
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TBuyCreditsSchema } from "./buyCredits.schema";
 
@@ -12,12 +15,20 @@ type BuyCreditsOptions = {
 };
 
 export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
-  const { quantity, teamId } = input;
-
   if (!process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID) {
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
       message: "Credits are not enabled",
+    });
+  }
+
+  const { quantity, teamId } = input;
+
+  const adminMembership = await MembershipRepository.getAdminMembership(ctx.user.id, teamId);
+
+  if (!adminMembership) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
     });
   }
 

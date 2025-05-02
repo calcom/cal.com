@@ -242,6 +242,7 @@ export async function getCountryCodeForNumber(phoneNumber: string) {
 export async function getPriceForSMS(smsSid: string) {
   const twilio = createTwilioClient();
   const message = await twilio.messages(smsSid).fetch();
+  if (message.price == null || message.price === "null") return null;
   return Math.abs(parseFloat(message.price));
 }
 

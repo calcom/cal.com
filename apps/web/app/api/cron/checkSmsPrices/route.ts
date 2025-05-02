@@ -81,7 +81,12 @@ async function postHandler(req: NextRequest) {
           });
         }
 
-        const teamCredits = await creditService.getAllCreditsForTeam(updatedLog.creditBalance.teamId ?? 0);
+        if (!updatedLog.creditBalance.teamId) {
+          logger.error(`teamId missing for expense log ${log.id}`);
+          return;
+        }
+
+        const teamCredits = await creditService.getAllCreditsForTeam(updatedLog.creditBalance.teamId);
 
         const remainingMonthlyCredits = Math.max(0, teamCredits.totalRemainingMonthlyCredits);
 

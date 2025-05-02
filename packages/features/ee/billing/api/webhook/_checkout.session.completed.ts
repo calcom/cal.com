@@ -10,18 +10,18 @@ const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
     throw new HttpCode(400, "Missing required payment details");
   }
 
-  const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
-  const priceId = lineItems.data[0].price?.id;
-  const nrOfCredits = lineItems.data[0].quantity ?? 0;
-
-  if (!priceId || priceId !== process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID || !nrOfCredits) {
-    throw new HttpCode(400, "Invalid price ID");
-  }
-
   const teamId = session.metadata?.teamId ? Number(session.metadata.teamId) : null;
 
   if (!teamId) {
     throw new HttpCode(400, "Team id missing but required");
+  }
+
+  const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
+  const priceId = lineItems.data[0]?.price?.id;
+  const nrOfCredits = lineItems.data[0]?.quantity ?? 0;
+
+  if (!priceId || priceId !== process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID || !nrOfCredits) {
+    throw new HttpCode(400, "Invalid price ID");
   }
 
   await saveToCreditBalance({ teamId, nrOfCredits });
@@ -34,6 +34,9 @@ async function saveToCreditBalance({ teamId, nrOfCredits }: { teamId: number; nr
     where: {
       teamId,
     },
+    select: {
+      id: true,
+    },
   });
 
   if (creditBalance) {
@@ -43,13 +46,13 @@ async function saveToCreditBalance({ teamId, nrOfCredits }: { teamId: number; nr
       },
       data: { additionalCredits: { increment: nrOfCredits }, limitReachedAt: null, warningSentAt: null },
     });
-  } else {
-    await prisma.creditBalance.create({
-      data: {
-        teamId: teamId,
-        additionalCredits: nrOfCredits,
-      },
-    });
+    return;
   }
+  await prisma.creditBalance.create({
+    data: {
+      teamId: teamId,
+      additionalCredits: nrOfCredits,
+    },
+  });
 }
 export default handler;

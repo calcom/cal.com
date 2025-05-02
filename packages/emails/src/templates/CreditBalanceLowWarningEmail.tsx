@@ -27,7 +27,7 @@ export const CreditBalanceLowWarningEmail = (
         <> {user.t("hi_user_name", { name: user.name })},</>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px", marginBottom: "20px" }}>
-        <>{user.t("credit_limit_reached_message", { teamName: team.name })}</>
+        <>{user.t("low_credits_warning_message", { teamName: team.name })}</>
       </p>
       <p
         style={{
