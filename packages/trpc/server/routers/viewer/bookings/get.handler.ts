@@ -4,8 +4,9 @@ import type { SelectQueryBuilder } from "kysely";
 import dayjs from "@calcom/dayjs";
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
+import type { Booking } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
-import type { DB as KyselyDb } from "@calcom/kysely";
+import type { Attendee, BookingSeat, EventType } from "@calcom/kysely/types";
 import { parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import logger from "@calcom/lib/logger";
@@ -197,7 +198,12 @@ export async function getBookings({
   ]);
 
   const bookingQueries: SelectQueryBuilder<
-    KyselyDb,
+    {
+      Booking: Booking;
+      Attendee: Attendee | null;
+      BookingSeat: BookingSeat | null;
+      EventType: EventType | null;
+    },
     "Booking" | "EventType" | "Attendee" | "BookingSeat",
     unknown
   >[] = [];
@@ -298,6 +304,11 @@ export async function getBookings({
     );
     // 3. Current user is an attendee via seats reference
     orConditions.push({ seatsReferences: { some: { attendee: { email: userEmailFilter } } } });
+    const a = kysely
+      .selectFrom("Booking")
+      .leftJoin("Attendee", "Attendee.bookingId", "Booking.id")
+
+      .selectAll("Booking");
     bookingQueries.push(
       kysely
         .selectFrom("Booking")
