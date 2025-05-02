@@ -28,7 +28,7 @@ export type FindManyArgs = {
       | {
           not: null;
         };
-    subscriptionId?:
+    outlookSubscriptionId?:
       | string
       | null
       | {

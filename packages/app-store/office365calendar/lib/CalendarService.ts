@@ -522,7 +522,7 @@ export default class Office365CalendarService implements Calendar {
         credentialId: this.credential.id,
         externalId: calendarId,
         integration: this.integrationName,
-        subscriptionId: {
+        outlookSubscriptionId: {
           not: null,
         },
       },
