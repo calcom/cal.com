@@ -92,7 +92,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
   return (
     <>
       <div>
-        <div className="before:border-0">
+        <div className="flex flex-col gap-4 before:border-0">
           {(isManagedEventType || isChildrenManagedEventType) && (
             <Alert
               severity={appsDisableProps.isLocked ? "neutral" : "info"}
