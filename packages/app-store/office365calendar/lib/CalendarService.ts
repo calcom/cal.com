@@ -736,7 +736,7 @@ export default class Office365CalendarService implements Calendar {
     }
   }
 
-  async updateSelectedCalendarsForEventTypeIds(
+  async upsertSelectedCalendarsForEventTypeIds(
     data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId" | "userId">,
     eventTypeIds: SelectedCalendarEventTypeIds
   ) {
@@ -745,11 +745,11 @@ export default class Office365CalendarService implements Calendar {
       safeStringify({ data, eventTypeIds, credential: this.credential })
     );
     if (!this.credential.userId) {
-      this.log.error("updateSelectedCalendarsForEventTypeIds failed. userId is missing.");
+      this.log.error("upsertSelectedCalendarsForEventTypeIds failed. userId is missing.");
       return;
     }
 
-    await SelectedCalendarRepository.updateManyForEventTypeIds({
+    await SelectedCalendarRepository.upsertManyForEventTypeIds({
       data: {
         ...data,
         integration: this.integrationName,
@@ -859,7 +859,7 @@ export default class Office365CalendarService implements Calendar {
       );
     }
 
-    await this.updateSelectedCalendarsForEventTypeIds(
+    await this.upsertSelectedCalendarsForEventTypeIds(
       {
         externalId: calendarId,
         outlookSubscriptionId: outlookSubscriptionProps.id,
@@ -908,7 +908,7 @@ export default class Office365CalendarService implements Calendar {
       // We still need to keep the subscription
 
       // Just remove the outlook subscription related fields from this selected calendar
-      await this.updateSelectedCalendarsForEventTypeIds(
+      await this.upsertSelectedCalendarsForEventTypeIds(
         {
           externalId: calendarId,
           outlookSubscriptionExpiration: null,
@@ -928,7 +928,7 @@ export default class Office365CalendarService implements Calendar {
     // Delete the calendar cache to force a fresh cache
     await prisma.calendarCache.deleteMany({ where: { credentialId } });
     await this.stopWatchingCalendarsInOutlook(allChannelsForThisCalendarBeingUnwatched);
-    await this.updateSelectedCalendarsForEventTypeIds(
+    await this.upsertSelectedCalendarsForEventTypeIds(
       {
         externalId: calendarId,
         outlookSubscriptionExpiration: null,

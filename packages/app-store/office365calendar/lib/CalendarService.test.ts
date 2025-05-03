@@ -7,6 +7,7 @@ import { describe, test, expect, beforeEach, vi } from "vitest";
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import logger from "@calcom/lib/logger";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
 
 import CalendarService from "./CalendarService";
@@ -127,46 +128,58 @@ const testSelectedCalendar = {
   externalId: "example@cal.com",
 };
 
-function handleEventsRequest() {
-  return {
-    status: 200,
-    headers: new Map([["Content-Type", "application/json"]]),
-    json: async () => ({
-      value: [
-        {
-          id: "example@cal.com",
-          name: "Test Calendar",
-          isDefaultCalendar: true,
-          canEdit: true,
-        },
-      ],
-    }),
-  };
-}
-
-function handleBatchRequest() {
-  return {
-    status: 200,
-    headers: new Map([["Content-Type", "application/json"]]),
-    json: async () => Promise.resolve({ responses: eventsBatchMockResponse }),
-  };
-}
-
 vi.mock("@calcom/features/flags/server/utils", () => ({
   getFeatureFlag: vi.fn().mockReturnValue(true),
 }));
 
 beforeEach(() => {
   vi.clearAllMocks();
+  global.fetch = vi.fn().mockImplementation((url: string) => {
+    if (url.includes("/token")) {
+      return Promise.resolve({
+        status: 200,
+        headers: new Map([["Content-Type", "application/json"]]),
+        clone: vi.fn().mockImplementation(() => ({
+          json: async () => ({
+            access_token: "mock-access-token",
+          }),
+        })),
+        json: async () => ({
+          access_token: "mock-access-token",
+        }),
+      });
+    }
+
+    if (url.includes("/users?")) {
+      return Promise.resolve({
+        status: 200,
+        headers: new Map([["Content-Type", "application/json"]]),
+        json: async () => ({
+          value: [{ id: "mock-user-id" }],
+        }),
+      });
+    }
+  });
   oAuthManagerMock.OAuthManager = vi.fn().mockImplementation(() => ({
     requestRaw: vi.fn().mockImplementation(({ url }: { url: string; options?: RequestInit }) => {
       log.debug("Mocked request URL:", url);
       if (url.includes("/$batch")) {
-        return Promise.resolve(handleBatchRequest());
+        return Promise.resolve({
+          status: 200,
+          headers: new Map([["Content-Type", "application/json"]]),
+          json: async () => Promise.resolve({ responses: eventsBatchMockResponse }),
+        });
       }
 
-      if (url.includes("/calendar/events")) {
-        return Promise.resolve(handleEventsRequest());
+      if (url.includes("/subscriptions")) {
+        return Promise.resolve({
+          status: 200,
+          headers: new Map([["Content-Type", "application/json"]]),
+          json: async () => ({
+            id: "mock-subscription-id",
+            expirationDateTime: "11111111111111",
+          }),
+        });
       }
 
       return Promise.resolve({
@@ -334,5 +347,226 @@ describe("CalendarCache", () => {
     const dateTo = "2025-06-01T00:00:00.000Z";
     const result = await calendarService.getAvailability(dateFrom, dateTo, selectedCalendars, true);
     expect(result).toEqual([{ start: `${dateFromToCompare}Z`, end: `${dateToToCompare}Z` }]);
+  });
+});
+
+const defaultDelegatedCredential = {
+  serviceAccountKey: {
+    client_id: "service-client-id",
+    private_key: "service-private-key",
+    tenant_id: "service-tenant-id",
+  },
+} as const;
+
+async function createDelegationCredentialForCalendarService({
+  user,
+  delegatedTo,
+  delegationCredentialId,
+}: {
+  user?: { email: string } | null;
+  delegatedTo?: typeof defaultDelegatedCredential;
+  delegationCredentialId: string;
+}) {
+  return await createCredentialForCalendarService({
+    user: user || {
+      email: "service@example.com",
+    },
+    delegatedTo: delegatedTo || defaultDelegatedCredential,
+    delegationCredentialId,
+  });
+}
+
+async function expectSelectedCalendarToHaveOutlookSubscriptionProps(
+  id: string,
+  outlookSubscriptionProps: {
+    outlookSubscriptionId: string;
+    outlookSubscriptionExpiration: string;
+  }
+) {
+  const selectedCalendar = await SelectedCalendarRepository.findById(id);
+
+  expect(selectedCalendar).toEqual(expect.objectContaining(outlookSubscriptionProps));
+}
+
+describe("Watching and unwatching calendar", () => {
+  test("Calendar can be watched and unwatched", async () => {
+    const credentialInDb = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credentialInDb);
+
+    await calendarService.watchCalendar({
+      calendarId: testSelectedCalendar.externalId,
+      eventTypeIds: [null],
+    });
+
+    /**
+     * Watching a non-existent selectedCalendar creates it,
+     * not sure if this is the expected behavior
+     */
+    const watchedCalendar = await prismock.selectedCalendar.findFirst({
+      where: {
+        userId: credentialInDb.userId as number,
+        externalId: testSelectedCalendar.externalId,
+        integration: "office365_calendar",
+      },
+    });
+
+    expect(watchedCalendar).toEqual(
+      expect.objectContaining({
+        userId: testSelectedCalendar.userId,
+        eventTypeId: null,
+        integration: testSelectedCalendar.integration,
+        externalId: testSelectedCalendar.externalId,
+        credentialId: 1,
+        delegationCredentialId: null,
+        outlookSubscriptionId: "mock-subscription-id",
+        outlookSubscriptionExpiration: "11111111111111",
+      })
+    );
+
+    expect(watchedCalendar?.id).toBeDefined();
+
+    await calendarService.unwatchCalendar({
+      calendarId: testSelectedCalendar.externalId,
+      eventTypeIds: [null],
+    });
+    const calendarAfterUnwatch = await prismock.selectedCalendar.findFirst({
+      where: {
+        userId: credentialInDb.userId as number,
+        externalId: testSelectedCalendar.externalId,
+        integration: "office365_calendar",
+      },
+    });
+
+    expect(calendarAfterUnwatch).toEqual(
+      expect.objectContaining({
+        userId: 1,
+        eventTypeId: null,
+        integration: "office365_calendar",
+        externalId: "example@cal.com",
+        credentialId: 1,
+        delegationCredentialId: null,
+        outlookSubscriptionId: null,
+        outlookSubscriptionExpiration: null,
+      })
+    );
+    expect(calendarAfterUnwatch?.id).toBeDefined();
+  });
+
+  describe("Delegation Credential", () => {
+    test("On watching a SelectedCalendar having delegationCredential, it should set outlookSubscriptionId and other props", async () => {
+      const delegationCredential1Member = await createDelegationCredentialForCalendarService({
+        user: { email: "user1@example.com" },
+        delegationCredentialId: "delegation-credential-id-1",
+      });
+
+      await prismock.selectedCalendar.create({
+        data: {
+          userId: delegationCredential1Member.userId as number,
+          externalId: testSelectedCalendar.externalId,
+          integration: "office365_calendar",
+        },
+      });
+
+      const calendarService = new CalendarService(delegationCredential1Member);
+      await calendarService.watchCalendar({
+        calendarId: testSelectedCalendar.externalId,
+        eventTypeIds: [null],
+      });
+
+      const calendars = await prismock.selectedCalendar.findMany();
+      // Ensure no new calendar is created
+      expect(calendars).toHaveLength(1);
+      const watchedCalendar = calendars[0];
+
+      await expectSelectedCalendarToHaveOutlookSubscriptionProps(watchedCalendar.id, {
+        outlookSubscriptionId: "mock-subscription-id",
+        outlookSubscriptionExpiration: "11111111111111",
+      });
+    });
+
+    async function createDelegationCredentialForCalendarCache({
+      user,
+      delegatedTo,
+      delegationCredentialId,
+    }: {
+      user?: { email: string } | null;
+      delegatedTo?: typeof defaultDelegatedCredential;
+      delegationCredentialId: string;
+    }) {
+      delegatedTo = delegatedTo || defaultDelegatedCredential;
+      const credentialInDb = await createCredentialForCalendarService({
+        user: user || {
+          email: "service@example.com",
+        },
+      });
+
+      return {
+        ...createInMemoryCredential({
+          userId: credentialInDb.userId as number,
+          delegationCredentialId,
+          delegatedTo,
+        }),
+        ...credentialInDb,
+      };
+    }
+
+    async function createSelectedCalendarForDelegationCredential(data: {
+      userId: number;
+      credentialId: number | null;
+      delegationCredentialId: string;
+      externalId: string;
+      integration: string;
+      outlookSubscriptionId: string | null;
+      outlookSubscriptionExpiration: string | null;
+    }) {
+      if (!data.delegationCredentialId) {
+        throw new Error("delegationCredentialId is required");
+      }
+      return await prismock.selectedCalendar.create({
+        data: {
+          ...data,
+        },
+      });
+    }
+
+    async function expectSelectedCalendarToNotHaveOutlookSubscriptionProps(id: string) {
+      const selectedCalendar = await SelectedCalendarRepository.findById(id);
+
+      expect(selectedCalendar).toEqual(
+        expect.objectContaining({
+          outlookSubscriptionId: null,
+          outlookSubscriptionExpiration: null,
+        })
+      );
+    }
+
+    test("On unwatching a SelectedCalendar connected to Delegation Credential, it should remove outlookSubscriptionId and other props", async () => {
+      const delegationCredential1Member1 = await createDelegationCredentialForCalendarCache({
+        user: { email: "user1@example.com" },
+        delegationCredentialId: "delegation-credential-id-1",
+      });
+
+      const selectedCalendar = await createSelectedCalendarForDelegationCredential({
+        userId: delegationCredential1Member1.userId as number,
+        delegationCredentialId: delegationCredential1Member1.delegatedToId as string,
+        credentialId: delegationCredential1Member1.id,
+        externalId: testSelectedCalendar.externalId,
+        integration: "office365_calendar",
+        outlookSubscriptionId: "mock-channel-id",
+        outlookSubscriptionExpiration: "1111111111",
+      });
+
+      const calendarService = new CalendarService(delegationCredential1Member1);
+      await calendarService.unwatchCalendar({
+        calendarId: selectedCalendar.externalId,
+        eventTypeIds: [null],
+      });
+
+      const calendars = await prismock.selectedCalendar.findMany();
+      expect(calendars).toHaveLength(1);
+      const calendarAfterUnwatch = calendars[0];
+
+      expectSelectedCalendarToNotHaveOutlookSubscriptionProps(calendarAfterUnwatch.id);
+    });
   });
 });
