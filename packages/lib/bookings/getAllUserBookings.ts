@@ -82,6 +82,7 @@ const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, 
     passedBookingsStatusFilter: {
       OR: combinedFilters,
     },
+    bookingListingByStatus,
     filters: filters,
     orderBy,
     take,

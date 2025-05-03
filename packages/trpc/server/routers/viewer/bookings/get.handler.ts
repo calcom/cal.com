@@ -1,5 +1,6 @@
 import { Prisma as PrismaClientType } from "@prisma/client";
-import type { SelectQueryBuilder } from "kysely";
+import { DeduplicateJoinsPlugin, type SelectQueryBuilder } from "kysely";
+import { jsonObjectFrom } from "kysely/helpers/postgres";
 
 import dayjs from "@calcom/dayjs";
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
@@ -11,7 +12,6 @@ import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
-import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { type BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -28,6 +28,8 @@ type GetOptions = {
   };
   input: TGetInputSchema;
 };
+
+type InputByStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfirmed";
 
 const log = logger.getSubLogger({ prefix: ["bookings.get"] });
 
@@ -62,6 +64,7 @@ export async function getBookings({
   user,
   prisma,
   passedBookingsStatusFilter,
+  bookingListingByStatus,
   filters,
   orderBy,
   take,
@@ -71,12 +74,21 @@ export async function getBookings({
   filters: TGetInputSchema["filters"];
   prisma: PrismaClient;
   passedBookingsStatusFilter: Prisma.BookingWhereInput;
+  bookingListingByStatus: InputByStatus[];
   orderBy: Prisma.BookingOrderByWithAggregationInput;
   take: number;
   skip: number;
 }) {
   const bookingSelect = {
-    ...bookingMinimalSelect,
+    id: true,
+    title: true,
+    userPrimaryEmail: true,
+    description: true,
+    customInputs: true,
+    startTime: true,
+    endTime: true,
+    attendees: true,
+    metadata: true,
     uid: true,
     responses: true,
     /**
@@ -196,7 +208,7 @@ export async function getBookings({
     getUserIdsAndEmailsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner, user.orgId),
   ]);
 
-  const bookingQueries: SelectQueryBuilder<DB, "Booking", unknown>[] = [];
+  const bookingQueries: SelectQueryBuilder<DB, "Booking", { id: number }>[] = [];
 
   // If user is organization owner/admin, contains organization members emails and ids (organization plan)
   // If user is only team owner/admin, contain team members emails and ids (teams plan)
@@ -227,7 +239,7 @@ export async function getBookings({
     // 1. Booking created by one of the filtered users
     orConditions.push({ userId: usersFilter });
     bookingQueries.push(
-      kysely.selectFrom("Booking").selectAll("Booking").where("userId", "in", filters.userIds)
+      kysely.selectFrom("Booking").select("Booking.id").where("userId", "in", filters.userIds)
     );
     // 2. Attendee email matches one of the filtered users' emails
     orConditions.push({ attendees: { some: { email: attendeesEmailFilter } } });
@@ -236,7 +248,7 @@ export async function getBookings({
         kysely
           .selectFrom("Booking")
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .selectAll("Booking")
+          .select("Booking.id")
           .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter)
       );
     }
@@ -249,7 +261,7 @@ export async function getBookings({
           .selectFrom("Booking")
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
           .innerJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
-          .selectAll("Booking")
+          .select("Booking.id")
           .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter)
       );
     }
@@ -264,7 +276,7 @@ export async function getBookings({
     // 1. Current user created bookings
     orConditions.push({ userId: { equals: user.id } });
     bookingQueries.push(
-      kysely.selectFrom("Booking").where("Booking.userId", "=", user.id).selectAll("Booking")
+      kysely.selectFrom("Booking").where("Booking.userId", "=", user.id).select("Booking.id")
     );
     // 2. Current user is an attendee
     orConditions.push({ attendees: { some: { email: userEmailFilter } } });
@@ -272,7 +284,7 @@ export async function getBookings({
       kysely
         .selectFrom("Booking")
         .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-        .selectAll("Booking")
+        .select("Booking.id")
         .where("Attendee.email", "=", user.email)
     );
     // 3. Current user is an attendee via seats reference
@@ -282,7 +294,7 @@ export async function getBookings({
       kysely
         .selectFrom("Booking")
         .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-        .selectAll("Booking")
+        .select("Booking.id")
         .where("Attendee.email", "=", user.email)
     );
     // 4. Scope depends on `user.orgId`:
@@ -295,7 +307,7 @@ export async function getBookings({
         kysely
           .selectFrom("Booking")
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .selectAll("Booking")
+          .select("Booking.id")
           .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner)
       );
     // 5. Scope depends on `user.orgId`:
@@ -311,7 +323,7 @@ export async function getBookings({
           .selectFrom("Booking")
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
           .innerJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
-          .selectAll("Booking")
+          .select("Booking.id")
           .where("Attendee.email", "=", userEmailsWhereUserIsAdminOrOwner)
       );
     // 6. Scope depends on `user.orgId`:
@@ -324,7 +336,7 @@ export async function getBookings({
         kysely
           .selectFrom("Booking")
           .innerJoin("EventType", "EventType.id", "Booking.eventTypeId")
-          .selectAll("Booking")
+          .select("Booking.id")
           .where("Booking.eventTypeId", "in", eventTypeIdsWhereUserIsAdminOrOwner)
       );
     // 7. Scope depends on `user.orgId`:
@@ -337,7 +349,7 @@ export async function getBookings({
         kysely
           .selectFrom("Booking")
           .where("Booking.userId", "in", userIdsWhereUserIsAdminOrOwner)
-          .selectAll("Booking")
+          .select("Booking.id")
       );
   }
 
@@ -437,18 +449,20 @@ export async function getBookings({
       if (typeof filters.attendeeName === "string") {
         // Simple string match (exact)
         query
+          .withPlugin(new DeduplicateJoinsPlugin())
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
           .where("Attendee.name", "=", filters.attendeeName.trim());
       } else if (isTextFilterValue(filters.attendeeName)) {
         // TODO: write makeWhereClause equivalent for kysely
-        query
-          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .where("Attendee.email", "=", filters.attendeeName.data.operand);
+        addAdvancedAttendeeNameWhereClause(
+          query.withPlugin(new DeduplicateJoinsPlugin()),
+          filters.attendeeName.data.operator,
+          filters.attendeeName.data.operand
+        );
       }
     }
 
-    // TODO: convert bookingListingFilters for kysely
-    query.where((eb) => eb("Booking.status", "=", "accepted").or("Booking.status", "=", "cancelled"));
+    addStatusesQueryFilters(query, bookingListingByStatus);
 
     if (eventTypeIdsFromTeamIdsFilter && eventTypeIdsFromTeamIdsFilter.length > 0) {
       query.where("Booking.eventTypeId", "in", eventTypeIdsFromTeamIdsFilter);
@@ -505,8 +519,47 @@ export async function getBookings({
     return acc.union(query);
   });
 
-  const bookingsWithKysely = await queryUnion.execute();
-  console.log({ bookingsWithKysely }, { plainBookings });
+  const bookingIdsWithKysely = await queryUnion.limit(take).offset(skip).execute();
+  const bookingCountWithKysely = await queryUnion
+    .clearSelect()
+    .select(({ fn }) => fn.countAll().as("bookingCount"))
+    .executeTakeFirst();
+
+  const bookingWithKysely = await kysely
+    .selectFrom("Booking")
+    .where(
+      "id",
+      "in",
+      bookingIdsWithKysely.map((booking) => booking.id)
+    )
+    .select((eb) => [
+      "Booking.id",
+      "Booking.title",
+      "Booking.userPrimaryEmail",
+      "Booking.description",
+      "Booking.customInputs",
+      "Booking.startTime",
+      "Booking.endTime",
+      "Booking.metadata",
+      "Booking.uid",
+      "Booking.responses",
+      "Booking.recurringEventId",
+      "Booking.location",
+      "Booking.status",
+      "Booking.paid",
+      "Booking.fromReschedule",
+      "Booking.rescheduled",
+      "Booking.isRecorded",
+      jsonObjectFrom(
+        eb
+          .selectFrom("App_RoutingForms_FormResponse")
+          .select("id")
+          .whereRef("App_RoutingForms_FormResponse.routedToBookingUid", "=", "Booking.uid")
+      ).as("routedFromRoutingFormReponse"),
+    ])
+    .execute();
+
+  console.log({ bookingWithKysely, bookingCountWithKysely }, { plainBookings });
 
   const [
     recurringInfoBasic,
@@ -812,4 +865,108 @@ async function getUserIdsAndEmailsWhereUserIsAdminOrOwner(
     },
   });
   return [users.map((user) => user.id), users.map((user) => user.email)];
+}
+
+function addStatusesQueryFilters(
+  query: SelectQueryBuilder<DB, "Booking", unknown>,
+  statuses: InputByStatus[]
+) {
+  if (statuses?.length) {
+    query.where(({ eb, or, and }) =>
+      or(
+        statuses.map((status) => {
+          if (status === "upcoming") {
+            return and([
+              eb("Booking.endTime", ">=", new Date()),
+              or([
+                and([eb("Booking.recurringEventId", "is not", null), eb("Booking.status", "=", "accepted")]),
+                and([
+                  eb("Booking.recurringEventId", "is not", null),
+                  eb("Booking.status", "not in", ["cancelled", "rejected"]),
+                ]),
+              ]),
+            ]);
+          }
+
+          if (status === "recurring") {
+            return and([
+              eb("endTime", ">=", new Date()),
+              eb("recurringEventId", "is not", null),
+              eb("status", "not in", ["cancelled", "rejected"]),
+            ]);
+          }
+
+          if (status === "past") {
+            return and([eb("endTime", "<=", new Date()), eb("status", "not in", ["cancelled", "rejected"])]);
+          }
+
+          if (status === "cancelled") {
+            return eb("status", "in", ["cancelled", "rejected"]);
+          }
+
+          if (status === "unconfirmed") {
+            return and([eb("endTime", ">=", new Date()), eb("status", "=", "pending")]);
+          }
+
+          return and([]);
+        })
+      )
+    );
+  }
+
+  return query;
+}
+
+function addAdvancedAttendeeNameWhereClause(
+  query: SelectQueryBuilder<DB, "Booking", unknown>,
+  operator:
+    | "endsWith"
+    | "startsWith"
+    | "equals"
+    | "notEquals"
+    | "contains"
+    | "notContains"
+    | "isEmpty"
+    | "isNotEmpty",
+  operand: string
+) {
+  switch (operator) {
+    case "endsWith":
+      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where("Attendee.name", "like", `%${operand}`);
+      break;
+    case "startsWith":
+      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where("Attendee.name", "like", `${operand}%`);
+      break;
+
+    case "equals":
+      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where("Attendee.name", "=", `${operand}`);
+      break;
+
+    case "notEquals":
+      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where("Attendee.name", "!=", `${operand}`);
+      break;
+
+    case "contains":
+      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where("Attendee.name", "like", `%${operand}%`);
+      break;
+
+    case "notContains":
+      query
+        .innerJoin("Attendee", "Attendee.id", "Booking.id")
+        .where("Attendee.name", "not like", `%${operand}%`);
+      break;
+
+    case "isEmpty":
+      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where("Attendee.name", "=", "");
+      break;
+
+    case "isNotEmpty":
+      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where("Attendee.name", "!=", "");
+      break;
+
+    default:
+      break;
+  }
+
+  return query;
 }
