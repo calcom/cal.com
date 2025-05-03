@@ -2,6 +2,7 @@ import prismock from "../../../../tests/libs/__mocks__/prisma";
 import oAuthManagerMock from "../../tests/__mocks__/OAuthManager";
 import { eventsBatchMockResponse, getEventsBatchMockResponse } from "./__mocks__/office365apis";
 
+import type { Calendar as OfficeCalendar, User } from "@microsoft/microsoft-graph-types-beta";
 import type { Mock } from "vitest";
 import { describe, test, expect, beforeEach, vi } from "vitest";
 
@@ -134,10 +135,13 @@ vi.mock("@calcom/features/flags/server/utils", () => ({
 }));
 
 let requestRawSpyInstance: Mock;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let updateTokenObject: any;
 
 beforeEach(() => {
   vi.clearAllMocks();
   global.fetch = vi.fn().mockImplementation((url: string) => {
+    log.debug("Mocked request URL:", url);
     if (url.includes("/token")) {
       return Promise.resolve({
         status: 200,
@@ -163,14 +167,15 @@ beforeEach(() => {
       });
     }
   });
-  oAuthManagerMock.OAuthManager = vi.fn().mockImplementation(() => {
+  oAuthManagerMock.OAuthManager = vi.fn().mockImplementation((arg) => {
+    updateTokenObject = arg.updateTokenObject;
     const requestRawSpy = vi.fn().mockImplementation(({ url }: { url: string; options?: RequestInit }) => {
       log.debug("Mocked request URL:", url);
       if (url.includes("/$batch")) {
         return Promise.resolve({
           status: 200,
           headers: new Map([["Content-Type", "application/json"]]),
-          json: async () => Promise.resolve({ responses: eventsBatchMockResponse }),
+          json: async () => Promise.resolve(JSON.stringify({ responses: eventsBatchMockResponse })),
         });
       }
 
@@ -185,6 +190,31 @@ beforeEach(() => {
         });
       }
 
+      if (url.includes("/calendars")) {
+        return Promise.resolve({
+          status: 200,
+          headers: new Map([["Content-Type", "application/json"]]),
+          json: async (): Promise<{ value: OfficeCalendar[] }> => ({
+            value: [
+              {
+                id: "mock-calendar-id",
+                name: "Mock Calendar",
+              },
+            ],
+          }),
+        });
+      }
+
+      if (url.includes("/me") || url.includes("/users/")) {
+        return Promise.resolve({
+          status: 200,
+          headers: new Map([["Content-Type", "application/json"]]),
+          json: async (): Promise<User> => ({
+            mail: "example@cal.com",
+          }),
+        });
+      }
+
       return Promise.resolve({
         status: 404,
         headers: new Map([["Content-Type", "application/json"]]),
@@ -195,6 +225,16 @@ beforeEach(() => {
     requestRawSpyInstance = requestRawSpy;
     return {
       requestRaw: requestRawSpy,
+      getTokenObjectOrFetch: vi.fn().mockImplementation(() => {
+        return {
+          token: {
+            access_token: "FAKE_ACCESS_TOKEN",
+          },
+        };
+      }),
+      request: vi.fn().mockResolvedValue({
+        json: [],
+      }),
     };
   });
 });
@@ -797,5 +837,75 @@ describe("Watching and unwatching calendar", () => {
 
       expectSelectedCalendarToNotHaveOutlookSubscriptionProps(calendarAfterUnwatch.id);
     });
+  });
+});
+
+test("`updateTokenObject` should update credential in DB", async () => {
+  const credentialInDb = await createCredentialForCalendarService();
+
+  const newTokenObject = {
+    access_token: "NEW_FAKE_ACCESS_TOKEN",
+  };
+
+  // Scenario: OAuthManager causes `updateTokenObject` to be called
+  await updateTokenObject(newTokenObject);
+
+  const newCredential = await prismock.credential.findFirst({
+    where: {
+      id: credentialInDb.id,
+    },
+  });
+
+  // Expect update in DB
+  expect(newCredential).toEqual(
+    expect.objectContaining({
+      key: newTokenObject,
+    })
+  );
+});
+
+// eslint-disable-next-line playwright/no-skipped-test -- TODO: Handle errors and create tests
+describe.skip("Delegation Credential Error handling");
+
+describe("getAvailability", () => {
+  test("returns availability for selected calendars", async () => {
+    const credential = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credential);
+    const mockedBusyTimes = [
+      {
+        start: "2025-05-02",
+        end: "2025-05-02",
+      },
+    ];
+
+    const currentRequestRawSpyImplementation = requestRawSpyInstance.getMockImplementation();
+
+    requestRawSpyInstance.mockImplementation(({ url }: { url: string; options?: RequestInit }) => {
+      if (url.includes("/$batch")) {
+        log.debug("Mocked request URL:", url);
+        return Promise.resolve({
+          status: 200,
+          headers: new Map([["Content-Type", "application/json"]]),
+          json: async () =>
+            Promise.resolve(
+              JSON.stringify({
+                responses: getEventsBatchMockResponse({
+                  calendarIds: ["example@cal.com"],
+                  endDateTime: mockedBusyTimes[0].end,
+                  startDateTime: mockedBusyTimes[0].start,
+                }),
+              })
+            ),
+        });
+      }
+
+      return currentRequestRawSpyImplementation?.({ url });
+    });
+
+    const availability = await calendarService.getAvailability("2024-05-01", "2026-05-03", [], false);
+
+    expect(availability).toEqual([
+      { start: `${mockedBusyTimes[0].start}Z`, end: `${mockedBusyTimes[0].end}Z` },
+    ]);
   });
 });
