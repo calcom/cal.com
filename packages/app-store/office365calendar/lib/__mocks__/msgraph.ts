@@ -52,7 +52,7 @@ export const mockResponses = {
     new Response(
       JSON.stringify({
         id: "mock-subscription-id",
-        expirationDateTime: "2025-05-07T00:00:00",
+        expirationDateTime: "2025-05-07T00:00:00Z",
       })
     ),
 
