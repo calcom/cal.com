@@ -1043,7 +1043,8 @@ export async function login(
 
   // Check if current URL already has a login form with callbackUrl
   const currentUrl = page.url();
-  if (!currentUrl.includes("callbackUrl") && !loginLocator.isVisible()) {
+  const isLoginFormVisible = await loginLocator.isVisible();
+  if (!currentUrl.includes("callbackUrl") && !isLoginFormVisible) {
     await page.goto("/");
     await page.waitForSelector("text=Welcome back");
   }
