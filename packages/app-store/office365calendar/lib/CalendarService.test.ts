@@ -2,6 +2,7 @@ import prismock from "../../../../tests/libs/__mocks__/prisma";
 import oAuthManagerMock from "../../tests/__mocks__/OAuthManager";
 import { eventsBatchMockResponse, getEventsBatchMockResponse } from "./__mocks__/office365apis";
 
+import type { Mock } from "vitest";
 import { describe, test, expect, beforeEach, vi } from "vitest";
 
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
@@ -132,6 +133,8 @@ vi.mock("@calcom/features/flags/server/utils", () => ({
   getFeatureFlag: vi.fn().mockReturnValue(true),
 }));
 
+let requestRawSpyInstance: Mock;
+
 beforeEach(() => {
   vi.clearAllMocks();
   global.fetch = vi.fn().mockImplementation((url: string) => {
@@ -160,8 +163,8 @@ beforeEach(() => {
       });
     }
   });
-  oAuthManagerMock.OAuthManager = vi.fn().mockImplementation(() => ({
-    requestRaw: vi.fn().mockImplementation(({ url }: { url: string; options?: RequestInit }) => {
+  oAuthManagerMock.OAuthManager = vi.fn().mockImplementation(() => {
+    const requestRawSpy = vi.fn().mockImplementation(({ url }: { url: string; options?: RequestInit }) => {
       log.debug("Mocked request URL:", url);
       if (url.includes("/$batch")) {
         return Promise.resolve({
@@ -187,8 +190,13 @@ beforeEach(() => {
         headers: new Map([["Content-Type", "application/json"]]),
         json: async () => ({ message: "Not Found" }),
       });
-    }),
-  }));
+    });
+
+    requestRawSpyInstance = requestRawSpy;
+    return {
+      requestRaw: requestRawSpy,
+    };
+  });
 });
 
 describe("CalendarCache", () => {
@@ -388,6 +396,62 @@ async function expectSelectedCalendarToHaveOutlookSubscriptionProps(
   expect(selectedCalendar).toEqual(expect.objectContaining(outlookSubscriptionProps));
 }
 
+async function createDelegationCredentialForCalendarCache({
+  user,
+  delegatedTo,
+  delegationCredentialId,
+}: {
+  user?: { email: string } | null;
+  delegatedTo?: typeof defaultDelegatedCredential;
+  delegationCredentialId: string;
+}) {
+  delegatedTo = delegatedTo || defaultDelegatedCredential;
+  const credentialInDb = await createCredentialForCalendarService({
+    user: user || {
+      email: "service@example.com",
+    },
+  });
+
+  return {
+    ...createInMemoryCredential({
+      userId: credentialInDb.userId as number,
+      delegationCredentialId,
+      delegatedTo,
+    }),
+    ...credentialInDb,
+  };
+}
+
+async function createSelectedCalendarForDelegationCredential(data: {
+  userId: number;
+  credentialId: number | null;
+  delegationCredentialId: string;
+  externalId: string;
+  integration: string;
+  outlookSubscriptionId: string | null;
+  outlookSubscriptionExpiration: string | null;
+}) {
+  if (!data.delegationCredentialId) {
+    throw new Error("delegationCredentialId is required");
+  }
+  return await prismock.selectedCalendar.create({
+    data: {
+      ...data,
+    },
+  });
+}
+
+async function expectSelectedCalendarToNotHaveOutlookSubscriptionProps(id: string) {
+  const selectedCalendar = await SelectedCalendarRepository.findById(id);
+
+  expect(selectedCalendar).toEqual(
+    expect.objectContaining({
+      outlookSubscriptionId: null,
+      outlookSubscriptionExpiration: null,
+    })
+  );
+}
+
 describe("Watching and unwatching calendar", () => {
   test("Calendar can be watched and unwatched", async () => {
     const credentialInDb = await createCredentialForCalendarService();
@@ -452,6 +516,227 @@ describe("Watching and unwatching calendar", () => {
     expect(calendarAfterUnwatch?.id).toBeDefined();
   });
 
+  test("watchCalendar should not do outlook subscription if already subscribed for the same calendarId", async () => {
+    const credentialInDb = await createCredentialForCalendarService();
+    const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb.id);
+    const userLevelCalendar = await SelectedCalendarRepository.create({
+      userId: credentialInDb.userId as number,
+      externalId: "externalId@cal.com",
+      integration: "office365_calendar",
+      eventTypeId: null,
+      credentialId: credentialInDb.id,
+    });
+
+    const eventTypeLevelCalendar = await SelectedCalendarRepository.create({
+      userId: credentialInDb.userId as number,
+      externalId: "externalId@cal.com",
+      integration: "office365_calendar",
+      eventTypeId: 1,
+      credentialId: credentialInDb.id,
+    });
+
+    await calendarCache.watchCalendar({
+      calendarId: userLevelCalendar.externalId,
+      eventTypeIds: [userLevelCalendar.eventTypeId],
+    });
+
+    /**
+     * Should call /subscriptions to create a subscription
+     * for the first time
+     */
+    expect(requestRawSpyInstance).toHaveBeenCalledTimes(1);
+
+    await expectSelectedCalendarToHaveOutlookSubscriptionProps(userLevelCalendar.id, {
+      outlookSubscriptionId: "mock-subscription-id",
+      outlookSubscriptionExpiration: "11111111111111",
+    });
+
+    // Watch different selectedcalendar with same externalId and credentialId
+    await calendarCache.watchCalendar({
+      calendarId: eventTypeLevelCalendar.externalId,
+      eventTypeIds: [eventTypeLevelCalendar.eventTypeId],
+    });
+
+    /**
+     * Should not call /subscriptions again, as the calendar is already subscribed
+     */
+    expect(requestRawSpyInstance).toHaveBeenCalledTimes(1);
+
+    await expectSelectedCalendarToHaveOutlookSubscriptionProps(eventTypeLevelCalendar.id, {
+      outlookSubscriptionId: "mock-subscription-id",
+      outlookSubscriptionExpiration: "11111111111111",
+    });
+  });
+
+  test("watchCalendar should do outlook subscription if already subscribed but for different calendarId", async () => {
+    const credentialInDb = await createCredentialForCalendarService();
+    const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb.id);
+    const userLevelCalendar = await SelectedCalendarRepository.create({
+      userId: credentialInDb.userId as number,
+      externalId: "externalId@cal.com",
+      integration: "office365_calendar",
+      eventTypeId: null,
+      credentialId: credentialInDb.id,
+    });
+
+    const eventTypeLevelCalendar = await SelectedCalendarRepository.create({
+      userId: credentialInDb.userId as number,
+      externalId: "externalId2@cal.com",
+      integration: "office365_calendar",
+      eventTypeId: 1,
+      credentialId: credentialInDb.id,
+    });
+
+    await calendarCache.watchCalendar({
+      calendarId: userLevelCalendar.externalId,
+      eventTypeIds: [userLevelCalendar.eventTypeId],
+    });
+
+    /**
+     * Should call /subscriptions to create a subscription
+     * for the first time
+     */
+    expect(requestRawSpyInstance).toHaveBeenCalledTimes(1);
+
+    await expectSelectedCalendarToHaveOutlookSubscriptionProps(userLevelCalendar.id, {
+      outlookSubscriptionId: "mock-subscription-id",
+      outlookSubscriptionExpiration: "11111111111111",
+    });
+
+    // Watch different selectedcalendar with same externalId and credentialId
+    await calendarCache.watchCalendar({
+      calendarId: eventTypeLevelCalendar.externalId,
+      eventTypeIds: [eventTypeLevelCalendar.eventTypeId],
+    });
+
+    /**
+     * Should call /subscriptions again, as the calendar is different
+     */
+    expect(requestRawSpyInstance).toHaveBeenCalledTimes(2);
+
+    await expectSelectedCalendarToHaveOutlookSubscriptionProps(eventTypeLevelCalendar.id, {
+      outlookSubscriptionId: "mock-subscription-id",
+      outlookSubscriptionExpiration: "11111111111111",
+    });
+  });
+
+  async function expectCacheToBeSet({
+    credentialId,
+    itemsInKey,
+  }: {
+    credentialId: number;
+    itemsInKey: { id: string }[];
+  }) {
+    const caches = await prismock.calendarCache.findMany({
+      where: {
+        credentialId,
+      },
+    });
+    expect(caches).toHaveLength(1);
+    expect(JSON.parse(caches[0].key)).toEqual(
+      expect.objectContaining({
+        items: itemsInKey,
+      })
+    );
+  }
+
+  test("unwatchCalendar should not unsubscribe from outlook if there is another selectedCalendar with same externalId and credentialId", async () => {
+    const credentialInDb1 = await createCredentialForCalendarService();
+    const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
+
+    await prismock.calendarCache.create({
+      data: {
+        key: "test-key",
+        value: "test-value",
+        expiresAt: new Date(Date.now() + 100000000),
+        credentialId: credentialInDb1.id,
+      },
+    });
+
+    const someOtherCache = await prismock.calendarCache.create({
+      data: {
+        key: JSON.stringify({
+          items: [{ id: "someOtherExternalId@cal.com" }],
+        }),
+        value: "test-value-2",
+        expiresAt: new Date(Date.now() + 100000000),
+        credentialId: 999,
+      },
+    });
+
+    const commonProps = {
+      userId: credentialInDb1.userId as number,
+      externalId: "externalId@cal.com",
+      integration: "office365_calendar",
+      credentialId: credentialInDb1.id,
+    };
+
+    const userLevelCalendar = await SelectedCalendarRepository.create({
+      ...commonProps,
+      outlookSubscriptionId: "user-level-id",
+      outlookSubscriptionExpiration: "11111111111111",
+      eventTypeId: null,
+    });
+
+    const eventTypeLevelCalendar = await SelectedCalendarRepository.create({
+      ...commonProps,
+      outlookSubscriptionId: "event-type-level-id",
+      outlookSubscriptionExpiration: "11111111111111",
+      eventTypeId: 1,
+    });
+
+    const eventTypeLevelCalendarForSomeOtherExternalIdButSameCredentialId =
+      await SelectedCalendarRepository.create({
+        ...commonProps,
+        outlookSubscriptionId: "other-external-id-but-same-credential-id",
+        outlookSubscriptionExpiration: "11111111111111",
+        externalId: "externalId2@cal.com",
+        eventTypeId: 2,
+      });
+
+    await calendarCache.unwatchCalendar({
+      calendarId: userLevelCalendar.externalId,
+      eventTypeIds: [userLevelCalendar.eventTypeId],
+    });
+
+    // There is another selectedCalendar with same externalId and credentialId, so actual unsubscription does not happen
+    expect(requestRawSpyInstance).toHaveBeenCalledTimes(0);
+    await expectSelectedCalendarToNotHaveOutlookSubscriptionProps(userLevelCalendar.id);
+
+    await calendarCache.unwatchCalendar({
+      calendarId: eventTypeLevelCalendar.externalId,
+      eventTypeIds: [eventTypeLevelCalendar.eventTypeId],
+    });
+
+    /**
+     * Will be called twice, because we are unsubscribing from
+     * all calendar with same externalId
+     */
+    expect(requestRawSpyInstance).toHaveBeenCalledTimes(2);
+
+    // Concerned cache will just have remaining externalIds
+    await expectCacheToBeSet({
+      credentialId: credentialInDb1.id,
+      itemsInKey: [{ id: eventTypeLevelCalendarForSomeOtherExternalIdButSameCredentialId.externalId }],
+    });
+
+    await expectCacheToBeSet({
+      credentialId: someOtherCache.credentialId,
+      itemsInKey: JSON.parse(someOtherCache.key).items,
+    });
+
+    await expectSelectedCalendarToNotHaveOutlookSubscriptionProps(eventTypeLevelCalendar.id);
+
+    // Some other selectedCalendar stays unaffected
+    await expectSelectedCalendarToHaveOutlookSubscriptionProps(
+      eventTypeLevelCalendarForSomeOtherExternalIdButSameCredentialId.id,
+      {
+        outlookSubscriptionId: "other-external-id-but-same-credential-id",
+        outlookSubscriptionExpiration: "11111111111111",
+      }
+    );
+  });
+
   describe("Delegation Credential", () => {
     test("On watching a SelectedCalendar having delegationCredential, it should set outlookSubscriptionId and other props", async () => {
       const delegationCredential1Member = await createDelegationCredentialForCalendarService({
@@ -484,62 +769,6 @@ describe("Watching and unwatching calendar", () => {
       });
     });
 
-    async function createDelegationCredentialForCalendarCache({
-      user,
-      delegatedTo,
-      delegationCredentialId,
-    }: {
-      user?: { email: string } | null;
-      delegatedTo?: typeof defaultDelegatedCredential;
-      delegationCredentialId: string;
-    }) {
-      delegatedTo = delegatedTo || defaultDelegatedCredential;
-      const credentialInDb = await createCredentialForCalendarService({
-        user: user || {
-          email: "service@example.com",
-        },
-      });
-
-      return {
-        ...createInMemoryCredential({
-          userId: credentialInDb.userId as number,
-          delegationCredentialId,
-          delegatedTo,
-        }),
-        ...credentialInDb,
-      };
-    }
-
-    async function createSelectedCalendarForDelegationCredential(data: {
-      userId: number;
-      credentialId: number | null;
-      delegationCredentialId: string;
-      externalId: string;
-      integration: string;
-      outlookSubscriptionId: string | null;
-      outlookSubscriptionExpiration: string | null;
-    }) {
-      if (!data.delegationCredentialId) {
-        throw new Error("delegationCredentialId is required");
-      }
-      return await prismock.selectedCalendar.create({
-        data: {
-          ...data,
-        },
-      });
-    }
-
-    async function expectSelectedCalendarToNotHaveOutlookSubscriptionProps(id: string) {
-      const selectedCalendar = await SelectedCalendarRepository.findById(id);
-
-      expect(selectedCalendar).toEqual(
-        expect.objectContaining({
-          outlookSubscriptionId: null,
-          outlookSubscriptionExpiration: null,
-        })
-      );
-    }
-
     test("On unwatching a SelectedCalendar connected to Delegation Credential, it should remove outlookSubscriptionId and other props", async () => {
       const delegationCredential1Member1 = await createDelegationCredentialForCalendarCache({
         user: { email: "user1@example.com" },
@@ -552,7 +781,7 @@ describe("Watching and unwatching calendar", () => {
         credentialId: delegationCredential1Member1.id,
         externalId: testSelectedCalendar.externalId,
         integration: "office365_calendar",
-        outlookSubscriptionId: "mock-channel-id",
+        outlookSubscriptionId: "mock-subscription-id",
         outlookSubscriptionExpiration: "1111111111",
       });
 
