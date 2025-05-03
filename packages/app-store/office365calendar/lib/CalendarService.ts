@@ -22,6 +22,7 @@ import type {
   EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
+  SelectedCalendarEventTypeIds,
 } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
 
@@ -509,7 +510,13 @@ export default class Office365CalendarService implements Calendar {
     });
   }
 
-  async watchCalendar({ calendarId, eventTypeIds }: { calendarId: string; eventTypeIds: number[] }) {
+  async watchCalendar({
+    calendarId,
+    eventTypeIds,
+  }: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+  }) {
     this.log.debug("watchCalendar", { calendarId, eventTypeIds });
 
     if (!process.env.MICROSOFT_WEBHOOK_TOKEN) {
@@ -572,7 +579,13 @@ export default class Office365CalendarService implements Calendar {
     return subscriptionProps;
   }
 
-  async unwatchCalendar({ calendarId, eventTypeIds }: { calendarId: string; eventTypeIds: number[] }) {
+  async unwatchCalendar({
+    calendarId,
+    eventTypeIds,
+  }: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+  }) {
     const credentialId = this.credential.id;
     const eventTypeIdsToBeUnwatched = eventTypeIds;
 
@@ -730,7 +743,7 @@ export default class Office365CalendarService implements Calendar {
 
   async upsertSelectedCalendarsForEventTypeIds(
     data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId" | "userId">,
-    eventTypeIds: number[]
+    eventTypeIds: SelectedCalendarEventTypeIds
   ) {
     this.log.debug("upsertSelectedCalendarsForEventTypeIds", {
       data,

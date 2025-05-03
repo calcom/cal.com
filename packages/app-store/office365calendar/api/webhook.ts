@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import type { z } from "zod";
 
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
@@ -9,26 +10,9 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
 import { getCalendar } from "../../_utils/getCalendar";
+import { webhookPayloadSchema } from "../zod";
 
 const log = logger.getSubLogger({ prefix: ["Office365CalendarWebhook"] });
-
-interface Notification {
-  subscriptionId: string;
-  clientState?: string;
-  resource: string;
-  changeType: "created" | "updated" | "deleted";
-  resourceData?: {
-    "@odata.type"?: string;
-    "@odata.id"?: string;
-    id?: string;
-  };
-  subscriptionExpirationDateTime?: string;
-  tenantId?: string;
-}
-
-interface WebhookPayload {
-  value: Notification[];
-}
 
 // Parse the calendarId from the resource field (e.g., "me/calendars/<calendarId>/events/<eventId>")
 function parseCalendarId(resource: string): string | null {
@@ -46,19 +30,11 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   // Parse and validate the webhook payload
-  let payload: WebhookPayload;
+  let payload: z.infer<typeof webhookPayloadSchema>;
   try {
-    if (!req.body || typeof req.body !== "object") {
-      throw new Error("Invalid payload: body is missing or not an object");
-    }
-    payload = req.body as WebhookPayload;
-    if (!Array.isArray(payload.value)) {
-      throw new Error("Invalid payload: value is not an array");
-    }
+    payload = webhookPayloadSchema.parse(req.body);
   } catch (error) {
-    log.error("Failed to parse webhook payload", {
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+    log.error("Failed to parse webhook payload", { error: safeStringify(error) });
     throw new HttpError({ statusCode: 400, message: "Invalid webhook payload" });
   }
 
@@ -77,32 +53,8 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
     errors: [] as string[],
   };
 
-  // Validate and filter notifications
+  // Validate clientState for each notification
   const validNotifications = payload.value.filter((notification) => {
-    if (!notification.subscriptionId || typeof notification.subscriptionId !== "string") {
-      log.warn("Missing or invalid subscriptionId", safeStringify(notification));
-      results.skipped++;
-      results.errors.push(`Missing or invalid subscriptionId: ${safeStringify(notification.subscriptionId)}`);
-      return false;
-    }
-    if (!notification.resource || typeof notification.resource !== "string") {
-      log.warn("Missing or invalid resource", { subscriptionId: notification.subscriptionId });
-      results.skipped++;
-      results.errors.push(`Missing or invalid resource for subscription ${notification.subscriptionId}`);
-      return false;
-    }
-    if (!notification.changeType || !["created", "updated", "deleted"].includes(notification.changeType)) {
-      log.warn("Invalid changeType", {
-        subscriptionId: notification.subscriptionId,
-        changeType: notification.changeType,
-      });
-      results.skipped++;
-      results.errors.push(
-        `Invalid changeType for subscription ${notification.subscriptionId}: ${notification.changeType}`
-      );
-      return false;
-    }
-    // Validate clientState (optional but must match if present)
     if (notification.clientState && notification.clientState !== process.env.MICROSOFT_WEBHOOK_TOKEN) {
       log.warn("Invalid clientState", { subscriptionId: notification.subscriptionId });
       results.skipped++;
@@ -129,7 +81,10 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   // Group notifications by credentialId for batch cache updates
   const notificationsByCredential = new Map<
     number,
-    { notification: Notification; calendar: (typeof selectedCalendars)[0] }[]
+    {
+      notification: z.infer<typeof webhookPayloadSchema>["value"][0];
+      calendar: (typeof selectedCalendars)[0];
+    }[]
   >();
 
   for (const notification of validNotifications) {
