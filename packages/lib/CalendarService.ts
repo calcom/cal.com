@@ -99,7 +99,13 @@ const getDuration = (start: string, end: string): DurationObject => ({
 });
 
 const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>
-  attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION", rsvp: false }));
+  attendees.map(({ email, name }) => ({
+    name,
+    email,
+    partstat: "NEEDS-ACTION",
+    rsvp: false,
+    scheduleAgent: "CLIENT",
+  }));
 
 export default abstract class BaseCalendarService implements Calendar {
   private url = "";

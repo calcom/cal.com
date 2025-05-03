@@ -76,10 +76,10 @@ DTSTART:20250101T000000Z
 DESCRIPTION:Test Description
 LOCATION:Test Location
 ORGANIZER;CN=Test Organizer:mailto:test@test.com
-ATTENDEE;RSVP=FALSE;PARTSTAT=NEEDS-ACTION;CN=Test Attendee:mailto:attendee@
-\ttest.com
-ATTENDEE;RSVP=FALSE;PARTSTAT=NEEDS-ACTION;CN=Test Organizer 2:mailto:test2@
-\ttest.com
+ATTENDEE;RSVP=FALSE;PARTSTAT=NEEDS-ACTION;SCHEDULE-AGENT=CLIENT;CN=Test Att
+\tendee:mailto:attendee@test.com
+ATTENDEE;RSVP=FALSE;PARTSTAT=NEEDS-ACTION;SCHEDULE-AGENT=CLIENT;CN=Test Org
+\tanizer 2:mailto:test2@test.com
 DURATION:PT60M
 END:VEVENT
 END:VCALENDAR
@@ -138,12 +138,14 @@ function getExpectedICSInput({ title }: { title: string }) {
         name: "Test Attendee",
         partstat: "NEEDS-ACTION",
         rsvp: false,
+        scheduleAgent: "CLIENT",
       },
       {
         email: "test2@test.com",
         name: "Test Organizer 2",
         partstat: "NEEDS-ACTION",
         rsvp: false,
+        scheduleAgent: "CLIENT",
       },
     ],
   };
