@@ -357,11 +357,8 @@ export default class Office365CalendarService implements Calendar {
     return alreadySuccessResponse ? alreadySuccessResponse : [];
   }
 
-  async getSettledResponseResult(
-    args: FreeBusyArgs,
-    shouldServeCache?: boolean
-  ): Promise<ISettledResponse[]> {
-    if (shouldServeCache === false) return await this.fetchAvailability(args);
+  async getFreeBusyResult(args: FreeBusyArgs, shouldServeCache?: boolean): Promise<BufferedBusyTime[]> {
+    if (shouldServeCache === false) return this.processBusyTimes(await this.fetchAvailability(args));
 
     const calendarCache = await CalendarCache.init(null);
     const cached = await calendarCache.getCachedAvailability({
@@ -375,18 +372,17 @@ export default class Office365CalendarService implements Calendar {
     });
     if (cached) {
       this.log.debug("[Cache Hit] Returning cached freebusy result", safeStringify({ cached, args }));
-      return cached.value as unknown as ISettledResponse[];
+      return cached.value as unknown as BufferedBusyTime[];
     }
     this.log.debug("[Cache Miss] Fetching freebusy result", safeStringify({ args }));
-    return await this.fetchAvailability(args);
+    return this.processBusyTimes(await this.fetchAvailability(args));
   }
 
   async getCacheOrFetchAvailability(
     args: FreeBusyArgs,
     shouldServeCache?: boolean
   ): Promise<BufferedBusyTime[]> {
-    const freeBusyResult = await this.getSettledResponseResult(args, shouldServeCache);
-    return this.processBusyTimes(freeBusyResult);
+    return await this.getFreeBusyResult(args, shouldServeCache);
   }
 
   async getAvailability(
@@ -691,7 +687,7 @@ export default class Office365CalendarService implements Calendar {
     return response.json();
   };
 
-  async setAvailabilityInCache(args: FreeBusyArgs, data: ISettledResponse[]): Promise<void> {
+  async setAvailabilityInCache(args: FreeBusyArgs, data: BufferedBusyTime[]): Promise<void> {
     this.log.debug("setAvailabilityInCache", safeStringify({ args, data }));
     const calendarCache = await CalendarCache.init(null);
     await calendarCache.upsertCachedAvailability({
@@ -732,7 +728,7 @@ export default class Office365CalendarService implements Calendar {
         items: selectedCalendars.map((sc) => ({ id: sc.externalId })),
       };
       const data = await this.fetchAvailability(parsedArgs);
-      await this.setAvailabilityInCache(parsedArgs, data);
+      await this.setAvailabilityInCache(parsedArgs, this.processBusyTimes(data));
     }
   }
 
