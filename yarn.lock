@@ -3359,6 +3359,7 @@ __metadata:
     i18next: ^23.2.3
     ical.js: ^1.4.0
     ics: ^2.37.0
+    ics2: ^2.37.2
     jimp: ^0.16.1
     next-collect: ^0.2.1
     next-i18next: ^15.4.2
@@ -30043,6 +30044,16 @@ __metadata:
   dependencies:
     safer-buffer: ">= 2.1.2 < 3.0.0"
   checksum: 3f60d47a5c8fc3313317edfd29a00a692cc87a19cac0159e2ce711d0ebc9019064108323b5e493625e25594f11c6236647d8e256fbe7a58f4a3b33b89e6d30bf
+  languageName: node
+  linkType: hard
+
+"ics2@npm:^2.37.2":
+  version: 2.37.2
+  resolution: "ics2@npm:2.37.2"
+  dependencies:
+    nanoid: ^3.1.23
+    yup: ^0.32.9
+  checksum: 754aa53fdd4e62cc7e44e1a99e68d38f2cef6e10e41b4e8c2f2b61c62c1e897402f61f09fca739de910a6b06356f0cf9de1d2db4f3b73d4914b5f92c21feae11
   languageName: node
   linkType: hard
 

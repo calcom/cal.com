@@ -2,8 +2,8 @@
 /// <reference path="../types/ical.d.ts"/>
 import type { Prisma } from "@prisma/client";
 import ICAL from "ical.js";
-import type { Attendee, DateArray, DurationObject } from "ics";
-import { createEvent } from "ics";
+import type { Attendee, DateArray, DurationObject } from "ics2";
+import { createEvent } from "ics2";
 import type { DAVAccount, DAVCalendar, DAVObject } from "tsdav";
 import {
   createAccount,
@@ -99,7 +99,7 @@ const getDuration = (start: string, end: string): DurationObject => ({
 });
 
 const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>
-  attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
+  attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION", rsvp: false }));
 
 export default abstract class BaseCalendarService implements Calendar {
   private url = "";

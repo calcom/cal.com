@@ -1,4 +1,4 @@
-import * as ics from "ics";
+import * as ics from "ics2";
 import { createCalendarObject, fetchCalendarObjects, updateCalendarObject } from "tsdav";
 import { describe, expect, it, vi } from "vitest";
 
@@ -137,11 +137,13 @@ function getExpectedICSInput({ title }: { title: string }) {
         email: "attendee@test.com",
         name: "Test Attendee",
         partstat: "NEEDS-ACTION",
+        rsvp: false,
       },
       {
         email: "test2@test.com",
         name: "Test Organizer 2",
         partstat: "NEEDS-ACTION",
+        rsvp: false,
       },
     ],
   };
