@@ -64,11 +64,12 @@ export default function AppCard({
           </div>
         }
         iconSlot={
-          <Link
-            href={`/apps/${app.slug}`}
-            className={classNames(app?.isInstalled ? "mr-[11px]" : "mr-3", "h-auto w-10 rounded-sm")}>
+          <Link href={`/apps/${app.slug}`} className="flex h-8 w-8 items-center justify-center">
             <img
-              className={classNames(app?.logo.includes("-dark") && "dark:invert", "w-full min-w-[30px]")}
+              className={classNames(
+                app?.logo.includes("-dark") && "dark:invert",
+                "max-h-full max-w-full object-contain"
+              )}
               src={app?.logo}
               alt={app?.name}
             />

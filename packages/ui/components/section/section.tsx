@@ -72,7 +72,7 @@ const Icon = ({
     <div
       ref={ref}
       className={cn(
-        "bg-default border-subtle border-subtle inline-flex items-center justify-center border",
+        "bg-default border-subtle border-subtle flex items-center justify-center border",
         size === "sm" && "rounded-md p-1",
         size === "md" && "rounded-[10px] p-1.5"
       )}>
