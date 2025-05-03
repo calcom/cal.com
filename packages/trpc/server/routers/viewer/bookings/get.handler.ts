@@ -324,7 +324,7 @@ export async function getBookings({
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
           .innerJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
           .select("Booking.id")
-          .where("Attendee.email", "=", userEmailsWhereUserIsAdminOrOwner)
+          .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner)
       );
     // 6. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN, get booking created for an event type within the organization
