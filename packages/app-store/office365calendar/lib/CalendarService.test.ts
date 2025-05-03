@@ -809,3 +809,332 @@ describe("Watching and unwatching calendar", () => {
     });
   });
 });
+
+describe("getAvailability", () => {
+  test("returns availability for selected calendars with primary fallback", async () => {
+    const credential = await createCredentialForCalendarService();
+    const calendarService = new Office365CalendarService(credential);
+
+    const fetcherSpy = vi
+      .spyOn(calendarService, "fetcher" as any)
+      .mockImplementation(async (endpoint, init) => {
+        return fetcherMock(endpoint, init);
+      });
+    fetcherMock.mockImplementation(async (endpoint) => {
+      if (endpoint === "/me") return mockResponses.user();
+      if (endpoint === "/users/user@example.com") return mockResponses.user();
+      if (endpoint.includes("/calendars?$select")) return mockResponses.calendars();
+      if (endpoint.includes("/$batch")) {
+        const batchResponse = await mockResponses.batchAvailability(["cal1"]).json();
+        return Promise.resolve({
+          status: 200,
+          headers: new Map([
+            ["Content-Type", "application/json"],
+            ["Retry-After", "0"],
+          ]),
+          json: async () => Promise.resolve(JSON.stringify({ responses: batchResponse.responses })),
+        });
+      }
+      return new Response(null, { status: 404 });
+    });
+
+    const availability = await calendarService.getAvailability(
+      "2025-05-04T00:00:00Z",
+      "2025-05-04T23:59:59Z",
+      [],
+      false,
+      true
+    );
+
+    expect(availability).toEqual([{ start: "2025-05-04T10:00:00Z", end: "2025-05-04T11:00:00Z" }]);
+    expect(fetcherMock).toHaveBeenCalledWith(
+      "/$batch",
+      expect.objectContaining({
+        method: "POST",
+        body: expect.stringContaining('"url":"/users/user@example.com/calendars/cal1/calendarView'),
+      })
+    );
+    fetcherSpy.mockRestore();
+  });
+
+  // test("handles pagination with @odata.nextLink in availability", async () => {
+  //   const credential = await createCredentialForCalendarService();
+  //   const calendarService = new Office365CalendarService(credential);
+
+  //   const fetcherSpy = vi
+  //     .spyOn(calendarService, "fetcher" as any)
+  //     .mockImplementation(async (endpoint, init) => {
+  //       log.debug("fetcherSpy", { endpoint, init });
+  //       return fetcherMock(endpoint, init);
+  //     });
+  //   fetcherMock.mockImplementation(async (endpoint) => {
+  //     if (endpoint === "/me") return mockResponses.user();
+  //     if (endpoint === "/users/user@example.com") return mockResponses.user();
+  //     if (endpoint.includes("/calendars?$select")) return mockResponses.calendars();
+  //     if (endpoint.includes("/$batch")) {
+  //       // const batchResponse = await mockResponses.batchAvailabilityPagination(["cal1"]).json();
+  //       return Promise.resolve({
+  //         status: 200,
+  //         headers: new Map([
+  //           ["Content-Type", "application/json"],
+  //           ["Retry-After", "0"],
+  //         ]),
+  //         json: async () =>
+  //           Promise.resolve({ responses: mockResponses.batchAvailabilityPagination(["cal1"]) }),
+  //       });
+  //     }
+  //     if (endpoint.includes("next")) {
+  //       const batchResponse = await mockResponses.nextPage().json();
+  //       return Promise.resolve({
+  //         status: 200,
+  //         headers: new Map([
+  //           ["Content-Type", "application/json"],
+  //           ["Retry-After", "0"],
+  //         ]),
+  //         json: async () => Promise.resolve(JSON.stringify({ responses: batchResponse.responses })),
+  //       });
+  //     }
+
+  //     return new Response(null, { status: 404 });
+  //   });
+
+  //   const availability = await calendarService.getAvailability(
+  //     "2025-05-04T00:00:00Z",
+  //     "2025-05-04T23:59:59Z",
+  //     [{ externalId: "cal1", integration: "office365_calendar" }],
+  //     false
+  //   );
+
+  //   expect(availability).toEqual([
+  //     { start: "2025-05-04T10:00:00Z", end: "2025-05-04T11:00:00Z" },
+  //     { start: "2025-05-04T12:00:00Z", end: "2025-05-04T13:00:00Z" },
+  //   ]);
+  //   fetcherSpy.mockRestore();
+  // });
+
+  // test("handles retry-after for 429 responses in availability", async () => {
+  //   const credential = await createCredentialForCalendarService();
+  //   const calendarService = new Office365CalendarService(credential);
+
+  //   let callCount = 0;
+  //   const fetcherSpy = vi
+  //     .spyOn(calendarService, "fetcher" as any)
+  //     .mockImplementation(async (endpoint, init) => {
+  //       return fetcherMock(endpoint, init);
+  //     });
+  //   fetcherMock.mockImplementation(async (endpoint) => {
+  //     if (endpoint === "/me") return mockResponses.user();
+  //     if (endpoint.includes("/calendars?$select")) return mockResponses.calendars();
+  //     if (endpoint.includes("/$batch")) {
+  //       callCount++;
+  //       if (callCount === 1) {
+  //         return Promise.resolve({
+  //           status: 200,
+  //           headers: new Map([
+  //             ["Content-Type", "application/json"],
+  //             ["Retry-After", "0"],
+  //           ]),
+  //           json: async () =>
+  //             Promise.resolve(
+  //               JSON.stringify({
+  //                 responses: [
+  //                   {
+  //                     id: "0",
+  //                     status: 429,
+  //                     headers: { "Retry-After": "1" },
+  //                     body: {},
+  //                   },
+  //                 ],
+  //               })
+  //             ),
+  //         });
+  //       }
+  //       const batchResponse = await mockResponses.batchAvailability(["cal1"]).json();
+  //       return Promise.resolve({
+  //         status: 200,
+  //         headers: new Map([
+  //           ["Content-Type", "application/json"],
+  //           ["Retry-After", "0"],
+  //         ]),
+  //         json: async () => Promise.resolve(JSON.stringify({ responses: batchResponse.responses })),
+  //       });
+  //     }
+  //     return new Response(null, { status: 404 });
+  //   });
+
+  //   const availability = await calendarService.getAvailability(
+  //     "2025-05-04T00:00:00Z",
+  //     "2025-05-04T23:59:59Z",
+  //     [{ externalId: "cal1", integration: "office365_calendar" }],
+  //     false
+  //   );
+
+  //   expect(availability).toEqual([{ start: "2025-05-04T10:00:00Z", end: "2025-05-04T11:00:00Z" }]);
+  //   expect(callCount).toBe(2); // Initial call + retry
+  //   fetcherSpy.mockRestore();
+  // });
+});
+
+// describe("Delegation Credential Error handling", () => {
+//   test("handles missing tenantId for delegation credential", async () => {
+//     const credentialWithDelegation = await createCredentialForCalendarService({
+//       user: { email: "user@example.com" },
+//       delegatedTo: {
+//         serviceAccountKey: {
+//           client_id: "id",
+//           private_key: "key",
+//           tenant_id: "",
+//         },
+//       },
+//     });
+
+//     expect(() => new Office365CalendarService(credentialWithDelegation)).toThrow(
+//       "Invalid DelegationCredential Settings: tenantId is missing"
+//     );
+//   });
+
+//   test("handles missing client_id or private_key for delegation credential", async () => {
+//     const credentialWithDelegation = await createCredentialForCalendarService({
+//       user: { email: "user@example.com" },
+//       delegatedTo: {
+//         serviceAccountKey: {
+//           tenant_id: "tenant123",
+//           client_id: "",
+//           private_key: "",
+//         },
+//       },
+//     });
+
+//     const calendarService = new Office365CalendarService(credentialWithDelegation);
+//     await expect(calendarService.getAzureUserId(credentialWithDelegation)).rejects.toThrow(
+//       "Delegation credential without clientId or Secret"
+//     );
+//   });
+
+//   test("handles user not found in Azure AD", async () => {
+//     const credentialWithDelegation = await createCredentialForCalendarService({
+//       user: { email: "user@example.com" },
+//       delegatedTo: mockDelegatedCredential.delegatedTo,
+//     });
+
+//     const calendarService = new Office365CalendarService(credentialWithDelegation);
+//     vi.spyOn(global, "fetch")
+//       .mockResolvedValueOnce(new Response(JSON.stringify({ access_token: "token" }), { status: 200 }))
+//       .mockResolvedValueOnce(new Response(JSON.stringify({ value: [] }), { status: 200 }));
+
+//     await expect(calendarService.getAzureUserId(credentialWithDelegation)).rejects.toThrow(
+//       "User might not exist in Microsoft Azure Active Directory"
+//     );
+//   });
+
+//   test("testDelegationCredentialSetup returns true for valid credentials", async () => {
+//     const credentialWithDelegation = await createCredentialForCalendarService({
+//       user: { email: "user@example.com" },
+//       delegatedTo: mockDelegatedCredential.delegatedTo,
+//     });
+
+//     const calendarService = new Office365CalendarService(credentialWithDelegation);
+//     vi.spyOn(global, "fetch").mockResolvedValueOnce(
+//       new Response(JSON.stringify({ access_token: "token" }), { status: 200 })
+//     );
+
+//     const result = await calendarService.testDelegationCredentialSetup();
+//     expect(result).toBe(true);
+//   });
+
+//   test("testDelegationCredentialSetup returns false for invalid credentials", async () => {
+//     const credentialWithDelegation = await createCredentialForCalendarService({
+//       user: { email: "user@example.com" },
+//       delegatedTo: {
+//         serviceAccountKey: {
+//           tenant_id: "tenant123",
+//         },
+//       },
+//     });
+
+//     const calendarService = new Office365CalendarService(credentialWithDelegation);
+//     const result = await calendarService.testDelegationCredentialSetup();
+//     expect(result).toBe(false);
+//   });
+// });
+
+// describe("Office365CalendarService credential handling", () => {
+//   test("uses regular auth when no delegation credential is provided", async () => {
+//     const regularCredential = await createCredentialForCalendarService();
+//     const calendarService = new Office365CalendarService(regularCredential);
+
+//     fetcherMock.mockImplementation(async (endpoint) => {
+//       if (endpoint === "/me") return mockResponses.user();
+//       return new Response(null, { status: 404 });
+//     });
+
+//     const userId = await calendarService.getAzureUserId(regularCredential);
+//     expect(userId).toBe("user@example.com");
+//     expect(fetcherMock).toHaveBeenCalledWith("/me");
+//   });
+
+//   test("uses delegated auth with tenantId when delegation credential is provided", async () => {
+//     const credentialWithDelegation = await createCredentialForCalendarService({
+//       user: { email: "user@example.com" },
+//       delegatedTo: mockDelegatedCredential.delegatedTo,
+//     });
+
+//     const calendarService = new Office365CalendarService(credentialWithDelegation);
+//     vi.spyOn(global, "fetch")
+//       .mockResolvedValueOnce(new Response(JSON.stringify({ access_token: "token" }), { status: 200 }))
+//       .mockResolvedValueOnce(
+//         new Response(JSON.stringify({ value: [{ userPrincipalName: "user@example.com", id: "user123" }] }), {
+//           status: 200,
+//         })
+//       );
+
+//     const userId = await calendarService.getAzureUserId(credentialWithDelegation);
+//     expect(userId).toBe("user@example.com");
+//     expect(global.fetch).toHaveBeenCalledWith(
+//       "https://login.microsoftonline.com/tenant123/oauth2/v2.0/token",
+//       expect.any(Object)
+//     );
+//   });
+// });
+
+// describe("Response Handling", () => {
+//   test("handleTextJsonResponseWithHtmlInBody should parse response with HTML", async () => {
+//     const credentialInDb = await createCredentialForCalendarService();
+//     const calendarService = new Office365CalendarService(credentialInDb);
+
+//     fetcherMock.mockImplementation(async (endpoint) => {
+//       if (endpoint === "/me") return mockResponses.user();
+//       if (endpoint.includes("/$batch")) {
+//         return Promise.resolve({
+//           status: 200,
+//           headers: new Map([
+//             ["Content-Type", "application/json"],
+//             ["Retry-After", "0"],
+//           ]),
+//           json: async () =>
+//             Promise.resolve(
+//               JSON.stringify({
+//                 responses: [
+//                   {
+//                     id: "0",
+//                     status: 200,
+//                     body: "<html><body>Error</body></html>",
+//                   },
+//                 ],
+//               })
+//             ),
+//         });
+//       }
+//       return new Response(null, { status: 404 });
+//     });
+
+//     const availability = await calendarService.getAvailability(
+//       "2025-05-04T00:00:00Z",
+//       "2025-05-04T23:59:59Z",
+//       [{ externalId: "cal1", integration: "office365_calendar" }],
+//       false
+//     );
+
+//     expect(availability).toEqual([]);
+//   });
+// });

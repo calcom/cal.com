@@ -19,8 +19,8 @@ export const mockResponses = {
     new Response(
       JSON.stringify({
         value: [
-          { id: "cal1", name: "Calendar 1" },
-          { id: "cal2", name: "Calendar 2" },
+          { id: "cal1", name: "Calendar 1", isDefaultCalendar: true },
+          { id: "cal2", name: "Calendar 2", isDefaultCalendar: false },
         ],
       }),
       {
@@ -46,6 +46,52 @@ export const mockResponses = {
           },
         })),
       })
+    ),
+
+  batchAvailabilityPagination: (calendarIds: string[]) => {
+    return calendarIds.map((id, index) => ({
+      id: index.toString(),
+      status: 200,
+      body: {
+        value: [
+          {
+            showAs: "busy",
+            start: { dateTime: "2025-05-04T10:00:00Z" },
+            end: { dateTime: "2025-05-04T11:00:00Z" },
+          },
+        ],
+        "@odata.nextLink":
+          "https://graph.microsoft.com/v1.0/users/user@example.com/calendars/cal1/calendarView?next",
+      },
+    }));
+  },
+
+  nextPage: () =>
+    new Response(
+      JSON.stringify({
+        responses: [
+          {
+            id: "0",
+            status: 200,
+            body: {
+              value: [
+                {
+                  showAs: "busy",
+                  start: { dateTime: "2025-05-04T12:00:00Z" },
+                  end: { dateTime: "2025-05-04T13:00:00Z" },
+                },
+              ],
+            },
+          },
+        ],
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Retry-After": "0",
+        },
+      }
     ),
 
   subscriptionCreate: () =>
