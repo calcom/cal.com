@@ -272,8 +272,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 </div>
               </Section.SubSectionNested>
               <Button
-                className="mt-2 w-fit"
+                className="text-subtle mt-2 w-fit"
                 size="sm"
+                variant="secondary"
                 disabled={
                   !(newOnBookingWriteToEventObjectField.field && newOnBookingWriteToEventObjectField.value)
                 }
