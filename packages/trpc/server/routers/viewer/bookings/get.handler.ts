@@ -1,6 +1,6 @@
 import { Prisma as PrismaClientType } from "@prisma/client";
 import { DeduplicateJoinsPlugin, type SelectQueryBuilder } from "kysely";
-import { jsonObjectFrom } from "kysely/helpers/postgres";
+import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
 
 import dayjs from "@calcom/dayjs";
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
@@ -502,30 +502,21 @@ export async function getBookings({
 
   log.info(`Get bookings where clause for user ${user.id}`, JSON.stringify(whereClause));
 
-  const [plainBookings, totalCount] = await Promise.all([
-    prisma.booking.findMany({
-      where: whereClause,
-      select: bookingSelect,
-      orderBy,
-      take,
-      skip,
-    }),
-    prisma.booking.count({
-      where: whereClause,
-    }),
-  ]);
-
   const queryUnion = queriesWithFilters.reduce((acc, query) => {
     return acc.union(query);
   });
 
+  const totalCount = Number(
+    (
+      await queryUnion
+        .clearSelect()
+        .select(({ fn }) => fn.countAll().as("bookingCount"))
+        .executeTakeFirst()
+    )?.bookingCount ?? 0
+  );
   const bookingIdsWithKysely = await queryUnion.limit(take).offset(skip).execute();
-  const bookingCountWithKysely = await queryUnion
-    .clearSelect()
-    .select(({ fn }) => fn.countAll().as("bookingCount"))
-    .executeTakeFirst();
 
-  const bookingWithKysely = await kysely
+  const plainBookings = await kysely
     .selectFrom("Booking")
     .where(
       "id",
@@ -556,10 +547,77 @@ export async function getBookings({
           .select("id")
           .whereRef("App_RoutingForms_FormResponse.routedToBookingUid", "=", "Booking.uid")
       ).as("routedFromRoutingFormReponse"),
+      jsonObjectFrom(
+        eb
+          .selectFrom("EventType")
+          .select((eb) => [
+            "EventType.slug",
+            "EventType.id",
+            "EventType.title",
+            "EventType.eventName",
+            "EventType.price",
+            "EventType.recurringEvent",
+            "EventType.currency",
+            "EventType.metadata",
+            "EventType.disableGuests",
+            "EventType.seatsShowAttendees",
+            "EventType.seatsShowAvailabilityCount",
+            "EventType.eventTypeColor",
+            "EventType.customReplyToEmail",
+            "EventType.allowReschedulingPastBookings",
+            "EventType.hideOrganizerEmail",
+            "EventType.disableCancelling",
+            "EventType.disableRescheduling",
+            "EventType.schedulingType",
+            "EventType.length",
+            jsonObjectFrom(
+              eb
+                .selectFrom("Team")
+                .select(["Team.id", "Team.name", "Team.slug"])
+                .whereRef("EventType.teamId", "=", "Team.id")
+            ).as("team"),
+          ])
+          .whereRef("EventType.id", "=", "Booking.eventTypeId")
+      ).as("eventType"),
+      jsonObjectFrom(
+        eb.selectFrom("Payment").select("id").whereRef("Payment.bookingId", "=", "Booking.id")
+      ).as("payment"),
+      jsonObjectFrom(
+        eb
+          .selectFrom("users")
+          .select(["users.id", "users.name", "users.email"])
+          .whereRef("Booking.userId", "=", "users.id")
+      ).as("user"),
+      jsonArrayFrom(
+        eb.selectFrom("Attendee").selectAll().whereRef("Attendee.bookingId", "=", "Booking.id")
+      ).as("attendees"),
+      jsonArrayFrom(
+        eb
+          .selectFrom("BookingSeat")
+          .select((eb) => [
+            "BookingSeat.referenceUid",
+            jsonObjectFrom(
+              eb
+                .selectFrom("Attendee")
+                .select(["Attendee.email"])
+                .whereRef("BookingSeat.attendeeId", "=", "Attendee.id")
+                .where("Attendee.email", "=", user.email)
+            ).as("attendee"),
+          ])
+          .whereRef("BookingSeat.bookingId", "=", "Booking.id")
+      ).as("seatsReferences"),
+      jsonObjectFrom(
+        eb
+          .selectFrom("AssignmentReason")
+          .selectAll()
+          .whereRef("AssignmentReason.bookingId", "=", "Booking.id")
+          .orderBy("AssignmentReason.createdAt", "desc")
+          .limit(1)
+      ).as("assignmentReason"),
     ])
     .execute();
 
-  console.log({ bookingWithKysely, bookingCountWithKysely }, { plainBookings });
+  console.log({ plainBookings, totalCount });
 
   const [
     recurringInfoBasic,
