@@ -78,7 +78,7 @@ export const ToggleGroup = ({
               )}>
               <div
                 className={classNames(
-                  "flex items-center gap-2",
+                  "flex items-center gap-1",
                   orientation === "horizontal" && "justify-center",
                   orientation === "vertical" && "justify-start"
                 )}>

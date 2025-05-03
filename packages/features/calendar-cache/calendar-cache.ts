@@ -15,7 +15,6 @@ export class CalendarCache {
   static async initFromCredentialId(credentialId: number): Promise<ICalendarCacheRepository> {
     log.debug("initFromCredentialId", safeStringify({ credentialId }));
     const credentialForCalendarCache = await getCredentialForCalendarCache({ credentialId });
-
     const calendarForCalendarCache = await getCalendar(credentialForCalendarCache);
     return await CalendarCache.init(calendarForCalendarCache);
   }

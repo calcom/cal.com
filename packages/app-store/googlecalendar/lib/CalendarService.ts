@@ -317,7 +317,7 @@ export default class GoogleCalendarService implements Calendar {
     return attendees;
   };
 
-  private async stopWatchingCalendarsInGoogle(
+  public async stopWatchingCalendarsInGoogle(
     channels: { googleChannelResourceId: string | null; googleChannelId: string | null }[]
   ) {
     const calendar = await this.authedCalendar();
@@ -944,12 +944,35 @@ export default class GoogleCalendarService implements Calendar {
       safeStringify({ calendarId, resourceId, resourceState, calendarTypes })
     );
 
-    await Promise.all([
+    const [calendarCachePromiseResult, eventsToSyncPromiseResult] = await Promise.allSettled([
       calendarTypes.includes("selected") ? this.fetchSelectedCalendarsAvailabilityAndSetCache() : null,
       calendarTypes.includes("destination")
-        ? this.updateBookingFromGoogleEventId(calendarId, resourceId, resourceState)
+        ? this.getEventsThatShouldBeSyncedDownstream(calendarId, resourceId, resourceState)
         : null,
     ]);
+
+    const calendarCacheError =
+      calendarCachePromiseResult.status === "rejected" ? calendarCachePromiseResult.reason : null;
+    const calendarCacheResult =
+      calendarCachePromiseResult.status === "fulfilled" ? calendarCachePromiseResult.value : null;
+
+    const eventsToSyncError =
+      eventsToSyncPromiseResult.status === "rejected" ? eventsToSyncPromiseResult.reason : null;
+    const eventsToSyncResult =
+      eventsToSyncPromiseResult.status === "fulfilled" ? eventsToSyncPromiseResult.value : null;
+
+    if (calendarCacheError) {
+      log.error("calendarCacheResult", safeStringify(calendarCacheError));
+    }
+
+    if (eventsToSyncError) {
+      log.error("eventsToSyncResult", safeStringify(eventsToSyncError));
+    }
+
+    return {
+      calendarCacheResult,
+      eventsToSync: eventsToSyncResult,
+    };
   }
 
   private async fetchSelectedCalendarsAvailabilityAndSetCache() {
@@ -957,12 +980,59 @@ export default class GoogleCalendarService implements Calendar {
     await this.fetchAvailabilityAndSetCache(selectedCalendars);
   }
 
-  private async updateBookingFromGoogleEventId(
+  private async fetchRecentlyUpdatedEvents({
+    calendarId,
+    updatedMin,
+    includeDeleted,
+    maxResults,
+  }: {
+    calendarId: string;
+    updatedMin: string;
+    includeDeleted: boolean;
+    maxResults: number;
+  }) {
+    try {
+      const calendar = await this.authedCalendar();
+      const events = await calendar.events.list({
+        calendarId,
+        maxResults,
+        orderBy: "updated", // Get the most recently updated events
+        showDeleted: includeDeleted,
+        // singleEvents: false, // Set to false if dealing with recurring events potentially
+        updatedMin,
+      });
+
+      log.debug(
+        "Recently updated events list:",
+        safeStringify({
+          count: events.data.items?.length,
+          itemsSummary: events.data.items?.map((item) => ({
+            id: item.id,
+            status: item.status,
+            updated: item.updated,
+            summary: item.summary,
+            start: item.start,
+            end: item.end,
+          })),
+        })
+      );
+
+      return events.data.items || [];
+    } catch (error) {
+      log.error("Error fetching events", safeStringify(error));
+      throw error;
+    }
+  }
+
+  private async getEventsThatShouldBeSyncedDownstream(
     calendarId: string,
     resourceId: string,
     resourceState: string
   ) {
-    log.debug("updateBookingFromGoogleEventId", safeStringify({ calendarId, resourceId, resourceState }));
+    log.debug(
+      "getEventsThatShouldBeSyncedDownstream",
+      safeStringify({ calendarId, resourceId, resourceState })
+    );
 
     // Ignore 'sync' notifications as they don't represent specific event changes
     if (resourceState === "sync") {
@@ -979,156 +1049,23 @@ export default class GoogleCalendarService implements Calendar {
       return;
     }
 
-    // Get all calendar events that were updated recently to find the one that changed
-    const calendar = await this.authedCalendar();
-
-    try {
-      // Attempt to list recent events first for debugging
-      try {
-        const timeMin = dayjs().subtract(1, "hour").toISOString(); // Look back 1 hour
-        log.debug(
-          "Attempting calendar.events.list",
-          safeStringify({ calendarId, timeMin, attemptTime: dayjs().toISOString() })
-        );
-        const recentEvents = await calendar.events.list({
-          calendarId,
-          maxResults: 10,
-          orderBy: "updated", // Get the most recently updated events
-          showDeleted: true, // Include deleted events just in case
-          // singleEvents: false, // Set to false if dealing with recurring events potentially
-          updatedMin: timeMin,
-        });
-        log.debug(
-          "Recently updated events list:",
-          safeStringify({
-            count: recentEvents.data.items?.length,
-            itemsSummary: recentEvents.data.items?.map((item) => ({
-              id: item.id,
-              status: item.status,
-              updated: item.updated,
-              summary: item.summary,
-            })),
-          })
-        );
-
-        // Process each event to find the one that was updated or deleted
-        for (const item of recentEvents.data.items || []) {
-          log.debug("Processing event:", safeStringify({ item }));
-          // The resourceId here is for the channel/subscription, not the individual event
-          // We need to examine each event's data to find the one that changed
-          // In a real implementation, you might want to track the specific event that changed
-          await this.processUpdatedEvent(item);
-        }
-      } catch (listError) {
-        log.error("Error trying to list recent events for debugging:", safeStringify({ listError }));
-      }
-    } catch (error) {
-      const googleError = error as GoogleCalError & { response?: { status?: number } };
-      // Check if it's a "Not Found" error (HTTP 404), which Google sends for deletions via webhook
-      // We also check the resourceState just in case the fetch happens before deletion is fully processed
-      if (googleError.code === 404 || googleError.response?.status === 404 || resourceState === "not_found") {
-        log.warn(
-          `Google Calendar not found or deleted: calendarId=${calendarId}, resourceId=${resourceId}. Treating as deletion.`,
-          safeStringify({ resourceState })
-        );
-      } else {
-        // Log other errors more verbosely
-        log.error(
-          `Error fetching Google Calendar: calendarId=${calendarId}, resourceId=${resourceId}`,
-          safeStringify({
-            errorMessage: googleError.message,
-            errorCode: googleError.code,
-            errorStatus: googleError.response?.status,
-            errorStack: googleError.stack, // Include stack trace for deeper debugging
-          })
-        );
-      }
-    }
-  }
-
-  private async processUpdatedEvent(event: calendar_v3.Schema$Event) {
-    const eventId = event.id;
-    if (!eventId) {
-      log.warn("Received event with no ID, skipping");
-      return;
-    }
-
-    // 1. Find Cal.com Booking
-    const bookingRef = await prisma.bookingReference.findFirst({
-      where: { calendarEventId: eventId, type: "google_calendar" },
+    const timeMin = dayjs().subtract(1, "hour").toISOString(); // Look back 1 hour
+    const recentlyUpdatedEvents = await this.fetchRecentlyUpdatedEvents({
+      calendarId,
+      updatedMin: timeMin,
+      includeDeleted: true,
+      maxResults: 10,
     });
+    const concernedEvents = recentlyUpdatedEvents.map((event) => ({
+      id: event.id,
+      status: event.status,
+      startTime: event.start.dateTime,
+      endTime: event.end.dateTime,
+    }));
 
-    if (!bookingRef) {
-      log.warn(`Could not find Cal.com booking reference for Google Event ${eventId}. Skipping sync.`);
-      return;
-    }
-    if (!bookingRef.bookingId) {
-      log.error(
-        `BookingReference ${bookingRef.id} for Google Event ${eventId} has a null bookingId. Cannot sync.`
-      );
-      return;
-    }
-    const booking = await prisma.booking.findUnique({ where: { id: bookingRef.bookingId } });
-    if (!booking) {
-      log.warn(
-        `Could not find Cal.com booking ${bookingRef.bookingId} for Google Event ${eventId}. Skipping sync.`
-      );
-      return;
-    }
+    log.debug("concernedEvents", safeStringify(concernedEvents));
 
-    // 3. Process Update/Deletion based on fetched event status/times
-    if (event.status === "cancelled") {
-      log.info(
-        `Google Event ${eventId} is cancelled. Updating Cal.com booking ${bookingRef.bookingId} to CANCELLED.`
-      );
-      // TODO: Implement the actual booking cancellation here
-      await prisma.booking.update({
-        where: { id: bookingRef.bookingId },
-        data: {
-          status: "CANCELLED",
-          cancelledBy: "googleCalendarSync",
-        },
-      });
-    } else {
-      // Compare times (ensure timezone handling)
-      const googleStartTime = dayjs(event.start?.dateTime);
-      const googleEndTime = dayjs(event.end?.dateTime);
-      const bookingStartTime = dayjs(booking.startTime);
-      const bookingEndTime = dayjs(booking.endTime);
-
-      // Only update if times are different
-      if (!googleStartTime.isSame(bookingStartTime) || !googleEndTime.isSame(bookingEndTime)) {
-        // Check if the event is in the past
-        if (googleEndTime.isBefore(dayjs())) {
-          log.info(
-            `Google Event ${eventId} time change is in the past. Skipping update to Cal.com booking ${bookingRef.bookingId}.`
-          );
-          return;
-        }
-
-        log.info(
-          `Google Event ${eventId} times updated. Updating Cal.com booking ${bookingRef.bookingId}.`,
-          safeStringify({
-            oldStart: bookingStartTime.format(),
-            newStart: googleStartTime.format(),
-            oldEnd: bookingEndTime.format(),
-            newEnd: googleEndTime.format(),
-          })
-        );
-
-        // Implement the booking time update
-        await prisma.booking.update({
-          where: { id: bookingRef.bookingId },
-          data: {
-            startTime: googleStartTime.toDate(),
-            endTime: googleEndTime.toDate(),
-            rescheduledBy: "google_calendar",
-          },
-        });
-      } else {
-        log.debug(`No time change detected for booking ${bookingRef.bookingId}, skipping update`);
-      }
-    }
+    return concernedEvents;
   }
 
   // It would error if the delegation credential is not set up correctly

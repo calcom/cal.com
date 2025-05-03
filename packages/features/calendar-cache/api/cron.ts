@@ -4,8 +4,8 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import prisma from "@calcom/prisma";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import { CalendarCache } from "../calendar-cache";
@@ -129,68 +129,92 @@ const handleCalendarsToWatch = async () => {
   return result;
 };
 
-const handleDestinationCalendarsToWatch = async () => {
-  const calendarsToWatch = await DestinationCalendarRepository.getNextBatchToWatch(500);
-  const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToWatch);
+const handleSyncedCalendarSubscription = async () => {
+  log.info("handleSyncedCalendarSubscriptiond");
+  // Step 1: Identify ALL potential candidates from CalendarSync for supported integrations
+  const tobeWatched = await prisma.calendarSync.findMany({
+    where: {
+      subscription: null,
+    },
+  });
 
-  const result = await Promise.allSettled(
-    Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
-      async ([externalId, { credentialId, id }]) => {
-        if (!credentialId) {
-          // So we don't retry on next cron run
-          await DestinationCalendarRepository.updateById(id, {
-            error: "Missing credentialId",
-          });
-          log.error("no credentialId for DestinationCalendar: ", { id, externalId, integration });
+  log.info("tobeWatched", JSON.stringify(tobeWatched, null, 2));
+
+  if (!tobeWatched.length) {
+    log.info("No CalendarSync records found needing subscription management.");
+    return [];
+  }
+
+  log.info("tobeWatched", JSON.stringify(tobeWatched, null, 2));
+
+  const results = await Promise.allSettled(
+    tobeWatched.map(async (calendar) => {
+      const { id: syncedCalendarId, externalCalendarId, integration, credentialId } = calendar;
+
+      // Ensure credentialId is valid (TypeScript check, already filtered by Prisma)
+      if (!credentialId) {
+        log.error(`CalendarSync record ${syncedCalendarId} missing credentialId despite query filter.`);
+        return; // Should not happen
+      }
+
+      try {
+        const cc = await CalendarCache.initFromCredentialId(credentialId);
+
+        // --- Case 1: CREATE Subscription --- -> TODO: Remove the error that prevents this from running
+        log.info(`Attempting to CREATE subscription for SyncedCalendar ${syncedCalendarId}`);
+
+        const watchResponse = await cc.watchCalendarCore({ calendarId: externalCalendarId });
+
+        if (!watchResponse) {
           return;
         }
 
-        try {
-          const cc = await CalendarCache.initFromCredentialId(credentialId);
-          // Use the watchCalendarCore method which doesn't require eventTypeIds
-          const watchResponse = await cc.watchCalendarCore({ calendarId: externalId });
+        // Create the Subscription record
+        const newSubscription = await prisma.subscription.create({
+          data: {
+            credentialId: credentialId,
+            externalCalendarId: externalCalendarId,
+            providerType: "google_calendar",
+            providerSubscriptionId: watchResponse.id,
+            providerSubscriptionKind: watchResponse.kind,
+            providerResourceId: watchResponse.resourceId,
+            providerResourceUri: watchResponse.resourceUri,
+            providerExpiration: watchResponse.expiration ? new Date(Number(watchResponse.expiration)) : null,
+            providerSyncToken: watchResponse.syncToken,
+            status: "ACTIVE", // Start as ACTIVE
+            lastSyncAt: new Date(),
+            // TODO: Remove this field from DB and here
+            webhookUrl: "",
+          },
+        });
 
-          if (watchResponse) {
-            await DestinationCalendarRepository.updateMany({
-              where: {
-                externalId,
-                integration: "google_calendar",
-              },
-              data: {
-                error: null,
-                // Store Google channel info if available
-                ...(watchResponse && {
-                  googleChannelId: watchResponse.id,
-                  googleChannelResourceId: watchResponse.resourceId,
-                  googleChannelExpiration: watchResponse.expiration,
-                }),
-              },
-            });
-          }
-        } catch (error) {
-          let errorMessage = "Unknown error";
-          if (error instanceof Error) {
-            errorMessage = error.message;
-          }
-          log.error("Error watching destination calendar", { id, externalId, error: errorMessage });
-          await DestinationCalendarRepository.updateById(id, {
-            error: `Error watching calendar: ${errorMessage}`,
-          });
-        }
+        // Link it back to the CalendarSync record
+        await prisma.calendarSync.update({
+          where: { id: syncedCalendarId },
+          data: { subscriptionId: newSubscription.id },
+        });
+
+        log.info(
+          `Successfully CREATED subscription ${newSubscription.id} and linked to SyncedCalendar ${syncedCalendarId}`
+        );
+      } catch (error) {
+        log.error(`Error managing subscription for SyncedCalendar ${syncedCalendarId}`, { error });
       }
-    )
+    })
   );
-  result.forEach(logRejected);
-  return result;
+
+  results.forEach(logRejected);
+  return results;
 };
 
 // This cron is used to activate and renew calendar subscriptions
 const handler = defaultResponder(async (request: NextApiRequest) => {
   validateRequest(request);
-  await Promise.allSettled([
-    handleCalendarsToWatch(),
-    handleCalendarsToUnwatch(),
-    handleDestinationCalendarsToWatch(),
+  // Removed handleDestinationCalendarsToWatch - its logic is merged into handleSyncedCalendarSubscription
+  await Promise.all([
+    // handleCalendarsToWatch(),
+    // handleCalendarsToUnwatch(),
+    handleSyncedCalendarSubscription(),
   ]);
 
   // TODO: Credentials can be installed on a whole team, check for selected calendars on the team

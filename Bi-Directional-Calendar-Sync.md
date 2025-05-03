@@ -35,68 +35,52 @@ No additional configuration is needed. Once Google Calendar is connected as your
 - Past events are not affected by changes in Google Calendar
 - Notifications from Google Calendar may occasionally be delayed
 - Sync is not 100% reliable - occasional dropped notifications may occur
-- Recurring events may have special handling requirements
 - Currently only supports Google Calendar (Outlook support coming in the future)
 
 ## Troubleshooting
 
-### Common Issues
-- **Changes in Google Calendar not reflecting in Cal.com**:
-  - Webhook notifications can be delayed by up to an hour in rare cases
-  - Check if the event is in the past (past events are not modified)
-  - Verify your Google Calendar connection is still active
-
-- **Multiple updates occurring for a single change**:
-  - This can happen when multiple subscriptions exist for the same calendar
-  - This is normal behavior and Cal.com handles duplicate notifications
-
-- **Calendar disconnection issues**:
-  - If you change your destination calendar, you may need to reconnect
-
-## Upcoming Features (Phase 2)
-- Event title synchronization
-- Advanced conflict resolution
-- Improved error handling and monitoring
-- Support for Microsoft Outlook Calendar
-- User-configurable sync preferences
-- Enhanced reliability and performance
 
 ## For Developers
-
-### Architecture
-The bi-directional sync implementation consists of several components:
-
-1. **Webhook Handler** (`packages/app-store/googlecalendar/api/webhook.ts`):
-   - Receives notifications from Google Calendar
-   - Routes data to appropriate services
-
-2. **CalendarService**:
-   - `onWatchedCalendarChange` method processes calendar changes
-   - Identifies corresponding Cal.com bookings
-   - Applies necessary updates or cancellations
-
-3. **Database Models**:
-   - Enhanced `BookingReference` with `calendarEventId` field
-   - `DestinationCalendar` stores Google Channel information
 
 ### API References
 - [Google Calendar Push Notifications](https://developers.google.com/workspace/calendar/api/guides/push)
 
-### Testing
-- E2E tests available in `apps/web/playwright/calendar-sync.e2e.ts`
-- Mock calendar app (`packages/app-store/mock-calendar-app`) for testing
+## Architecture:
 
-### Implementation Notes
-- We track the last processed time for reliable synchronization
-- Multiple webhook notifications for the same event are handled appropriately
-- Channel subscriptions are renewed automatically before expiration 
-
-
+Actors Involved:
+- `CRON:bi-directional-calendar-sync`
+- `CRON:subscription-cron`
+- Third Party Calendar Webhook(webhook.handler.ts)
+- handleNewBooking.ts
+- CalendarService#onWatchedCalendarChange
 
 Flow:
-- User connects Google Calendar to Cal.com
-- A cron runs every few mins to check if there is a DestinationCalendar record that needs to be watched
-- If there is a record that needs to be watched, it will be watched
-   - If it is already being watched via SelectedCalendar, we still rewatch it but we plan not to.
-   - Due to re-watch we create two subscriptions for the same externalId and when something changes we receive two notifications.
-      - One channel ID corresponds to type=SelectedCalendar and other corresponds to type=DestinationCalendar and thus they do different jobs.
+- Bi-directional sync is enabled for User's organization
+- On creating a booking we push a task to Tasker that would create a CalendarSync record. 
+   NOTE: It could be delayed by a few minutes, due to how the tasker works. So,if a booking is created for the first time in a calendar, it could take a few minutes for sync to actually get enabled. We could improve this further by creating CalendarSync records on DestinationCalendar upsert_
+- `CRON:bi-directional-calendar-sync` runs every few minutes and it does the following.
+   - Creates a subscription record for each of CalendarSync records that doesn't have a subscription record yet. The subscription record doesn't have channel related fields yet, it would just have credentialId, providerType, externalCalendarId, status=PENDING.
+- `CRON:subscription-cron` runs every few minutes and it does the following. We keep this cron separate as it could be used by both SelectedCalendar and CalendarSync.
+   - For each of the status=PENDING records in Subscription table, it creates a subscription in provider using the credential and updates the subscription record with the channel related fields, moving the status to ACTIVE.
+- When both the above Crons have run atleast once, we consider the sync to be established for all the required calendars for bi-directional sync.
+- Now, lets say a booking is created in Cal.com, it would be added to Google Calendar as well. At this moment, BookingReference table holds calendarEventId that refers to the eventId in third party calendar(in this case Google Calendar).
+- Now let's say that the booking's time changes, we will receive a webhook event that will be handled by webhook.handle.ts.
+   - It identifies that for the particular channel, if there is associated CalendarSync, if yes it means that there might be something to sync from the third party calendar events to Cal.com bookings.
+   - We delegate the work to CalendarService#onWatchedCalendarChange method, which will do the following:
+      - It fetches latest updated few events from the third party calendar.
+      - For every such third party calendar event, that has corresponding BookingReference.calendarEventId, it updates the corresponding Booking record in Cal.com with the new details from the third party calendar event.
+
+Notes:
+- We could use lastUsedAt field in CalendarSync table, which is update every time a booking uses that calendar as the destination. We could start updating that as well in a follow up as we avoid the need to make the changes in handleNewBooking flow.
+
+
+TODO:
+- [ ] Renew test
+- [ ] Expire a subscription in Google Calendar when the subscription is deleted in Cal.com
+- [ ] Stopping channel subscript requires passing both channelId and resourceId, does that mean channelId is shared across resources. Should we use resourceId as well in webhook.handler.ts to filter out relevant records.
+- [ ] Ensure that a subscription record is never deleted, unless it has been expired by Cal.com itself, then it is safe to be deleted. This is important because otherwise we wouldn't be able to stop subscription on that if needed and such channels could cause increased push notification delay. They can be obtained from logs though, received when there is change in calendar.
+- [ ] unusubscribe from channel,resourceId which are not connected to any CalendarSync record.
+ 
+Follow up:
+- [ ] Delegation Credential support
+- [ ] Test and support recurring events
