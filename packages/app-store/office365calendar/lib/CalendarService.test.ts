@@ -10,11 +10,14 @@ import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import logger from "@calcom/lib/logger";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
 
 import CalendarService from "./CalendarService";
 
 const log = logger.getSubLogger({ prefix: ["Office365CalendarService.test"] });
+
+vi.stubEnv("OUTLOOK_WEBHOOK_TOKEN", "test-webhook-token");
 
 const office365calendarTestCredentialKey = {
   scope: "https://graph.microsoft.com/.default",
@@ -245,6 +248,13 @@ describe("CalendarCache", () => {
     const dateFrom1 = new Date().toISOString();
     const dateTo1 = new Date().toISOString();
 
+    const mockedFreeBusyTimes: BufferedBusyTime[] = [
+      {
+        start: "2025-05-02T07:00:00.0000000Z",
+        end: "2025-05-02T07:30:00.0000000Z",
+      },
+    ];
+
     const calendarCache = await CalendarCache.init(null);
     await calendarCache.upsertCachedAvailability({
       credentialId: credentialInDb.id,
@@ -254,19 +264,14 @@ describe("CalendarCache", () => {
         timeMax: getTimeMax(dateTo1),
         items: [{ id: testSelectedCalendar.externalId }],
       },
-      value: JSON.parse(JSON.stringify(eventsBatchMockResponse)),
+      value: JSON.parse(JSON.stringify(mockedFreeBusyTimes)),
     });
 
     const calendarService = new CalendarService(credentialInDb);
 
     // Test cache hit
     const data = await calendarService.getAvailability(dateFrom1, dateTo1, [testSelectedCalendar], true);
-    expect(data).toEqual([
-      {
-        start: "2025-05-02T07:00:00.0000000Z",
-        end: "2025-05-02T07:30:00.0000000Z",
-      },
-    ]);
+    expect(data).toEqual(mockedFreeBusyTimes);
   });
 
   test("Calendar Cache is being ignored on cache MISS", async () => {
@@ -321,7 +326,20 @@ describe("CalendarCache", () => {
       },
     ];
 
-    vi.spyOn(calendarService, "fetchAvailability").mockResolvedValue(eventsBatchMockResponse);
+    const mockedFreeBusyTimes: BufferedBusyTime[] = [
+      {
+        start: "2025-05-02T07:00:00.0000000",
+        end: "2025-05-02T07:30:00.0000000",
+      },
+    ];
+
+    vi.spyOn(calendarService, "fetchAvailability").mockResolvedValue(
+      getEventsBatchMockResponse({
+        calendarIds: [selectedCalendars[0].externalId],
+        startDateTime: mockedFreeBusyTimes[0].start as string,
+        endDateTime: mockedFreeBusyTimes[0].end as string,
+      })
+    );
     const setAvailabilityInCacheSpy = vi.spyOn(calendarService, "setAvailabilityInCache");
 
     await calendarService.fetchAvailabilityAndSetCache(selectedCalendars);
@@ -356,7 +374,10 @@ describe("CalendarCache", () => {
       expect.objectContaining({
         items: expect.any(Array),
       }),
-      eventsBatchMockResponse
+      mockedFreeBusyTimes.map((time) => ({
+        start: `${time.start}Z`,
+        end: `${time.end}Z`,
+      }))
     );
   });
 
