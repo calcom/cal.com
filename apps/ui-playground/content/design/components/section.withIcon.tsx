@@ -43,21 +43,21 @@ const SectionWithIcon = () => {
   
   return (
     <Section>
-      <Section.Header 
-        icon="calendar"
-        title="Section with Icon"
-        description="This section includes an icon in the header. Toggle to see auto-animation."
-      >
-        <Section.HeaderRight>
+        <Section.Header
+          icon="calendar"
+          title="Section with Icon"
+          description="This section includes an icon in the header. Toggle to see auto-animation.">
           <Switch size="sm" checked={isOpen} onCheckedChange={setIsOpen} />
-        </Section.HeaderRight>
-      </Section.Header>
-      {isOpen && (
-        <Section.Content>
-          <p>This section demonstrates how to include an icon in the header and uses FormKit auto-animate for smooth transitions when toggling content visibility.</p>
-        </Section.Content>
-      )}
-    </Section>
+        </Section.Header>
+        {isOpen && (
+          <Section.Content>
+            <p>
+              This section demonstrates how to include an icon in the header and uses FormKit auto-animate for
+              smooth transitions when toggling content visibility.
+            </p>
+          </Section.Content>
+        )}
+      </Section>
   );
 };
 `;

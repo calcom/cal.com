@@ -88,65 +88,64 @@ const SectionWithSubsections = () => {
   const [isSecondSubsectionOpen, setIsSecondSubsectionOpen] = useState(true);
   
   return (
-    <Section>
-      <Section.Header
-        icon="calendar"
-        title="Section with Subsections"
-        description="This section contains nested subsections">
-        <Switch size="sm" checked={isMainOpen} onCheckedChange={setIsMainOpen} />
-      </Section.Header>
-      {isMainOpen && (
-        <Section.Content>
-          <Section.SubSection>
-            <Section.SubSectionHeader
-              icon="user"
-              title="Create new records for guests added"
-              description="Automatically create contact records when guests are added to events">
-              <Switch
-                size="sm"
-                checked={isFirstSubsectionOpen}
-                onCheckedChange={setIsFirstSubsectionOpen}
-              />
-            </Section.SubSectionHeader>
-            {isFirstSubsectionOpen && (
-              <Section.SubSectionContent>
-                <p>This is the content of the first subsection.</p>
-              </Section.SubSectionContent>
-            )}
-          </Section.SubSection>
-          <Section.SubSection>
-            <Section.SubSectionHeader
-              icon="settings"
-              title="Open Settings"
-              description="Configure additional options for this integration">
-              <Switch
-                size="sm"
-                checked={isSecondSubsectionOpen}
-                onCheckedChange={setIsSecondSubsectionOpen}
-              />
-            </Section.SubSectionHeader>
-            {isSecondSubsectionOpen && (
-              <Section.SubSectionContent>
-                <div className="flex flex-col gap-2">
-                  <div className="text-subtle text-sm font-medium">Field Name</div>
-                  <div className="text-subtle text-sm font-medium">Field Type</div>
-                  <div className="text-subtle text-sm font-medium">Value</div>
-                  <div className="text-subtle text-sm font-medium">When to Write</div>
-                </div>
-                <Section.SubSectionNested>
-                  <div className="flex flex-col gap-2 mt-4">
-                    <div className="text-subtle text-sm font-medium">Field Name</div>
-                    <div className="text-subtle text-sm font-medium">Field Type</div>
-                    <div className="text-subtle text-sm font-medium">Value</div>
-                    <div className="text-subtle text-sm font-medium">When to Write</div>
+     <Section>
+        <Section.Header
+          icon="calendar"
+          title="Section with Subsections"
+          description="This section contains nested subsections">
+          <Switch size="sm" checked={isMainOpen} onCheckedChange={setIsMainOpen} />
+        </Section.Header>
+        {isMainOpen && (
+          <Section.Content>
+            <Section.SubSection>
+              <Section.SubSectionHeader icon="zap" title="Automatic Sync (Justify Start)" justify="start">
+                <Switch size="sm" />
+              </Section.SubSectionHeader>
+            </Section.SubSection>
+            <Section.SubSection>
+              <Section.SubSectionHeader icon="user" title="Create new records for guests added">
+                <Switch
+                  size="sm"
+                  checked={isFirstSubsectionOpen}
+                  onCheckedChange={setIsFirstSubsectionOpen}
+                />
+              </Section.SubSectionHeader>
+              {isFirstSubsectionOpen && (
+                <Section.SubSectionContent>
+                  <p>This is the content of the first subsection.</p>
+                </Section.SubSectionContent>
+              )}
+            </Section.SubSection>
+            <Section.SubSection>
+              <Section.SubSectionHeader icon="settings" title="Open Settings">
+                <Switch
+                  size="sm"
+                  checked={isSecondSubsectionOpen}
+                  onCheckedChange={setIsSecondSubsectionOpen}
+                />
+              </Section.SubSectionHeader>
+              {isSecondSubsectionOpen && (
+                <Section.SubSectionContent>
+                  <div className="flex gap-3 px-3 py-1.5">
+                    <div className="text-subtle w-full text-sm font-medium">Field Name</div>
+                    <div className="text-subtle w-full text-sm font-medium">Field Type</div>
+                    <div className="text-subtle w-full text-sm font-medium">Value</div>
+                    <div className="text-subtle w-full text-sm font-medium">When to Write</div>
                   </div>
-                </Section.SubSectionNested>
-              </Section.SubSectionContent>
-            )}
-          </Section.SubSection>
-        </Section.Content>
-      )}
-    </Section>
+                  <Section.SubSectionNested>
+                    <div className="flex gap-3">
+                      <Input value="Customer Name" className="w-full" />
+                      <Input value="Text" className="w-full" />
+                      <Input value="John Doe" className="w-full" />
+                      <Input value="On Create" className="w-full" />
+                    </div>
+                  </Section.SubSectionNested>
+                </Section.SubSectionContent>
+              )}
+            </Section.SubSection>
+          </Section.Content>
+        )}
+      </Section>
   );
 };
 `;
