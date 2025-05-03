@@ -49,6 +49,35 @@ const testSelectedCalendar = {
   externalId: "cal1",
 };
 
+function createInMemoryCredential({
+  userId,
+  delegationCredentialId,
+  delegatedTo,
+}: {
+  userId: number;
+  delegationCredentialId: string | null;
+  delegatedTo: NonNullable<CredentialForCalendarServiceWithTenantId["delegatedTo"]>;
+}) {
+  return {
+    id: -1,
+    userId,
+    key: {
+      access_token: "NOOP_UNUSED_DELEGATION_TOKEN",
+    },
+    invalid: false,
+    teamId: null,
+    team: null,
+    type: "office365_calendar",
+    appId: "office365_calendar",
+    delegatedToId: delegationCredentialId,
+    delegatedTo: delegatedTo.serviceAccountKey
+      ? {
+          serviceAccountKey: delegatedTo.serviceAccountKey,
+        }
+      : null,
+  };
+}
+
 async function createCredentialForCalendarService({
   user = { email: "user@example.com" },
   delegatedTo = null,
@@ -122,6 +151,58 @@ async function createSelectedCalendarForRegularCredential(data: {
     throw new Error("credentialId is required");
   }
   return await prismock.selectedCalendar.create({ data });
+}
+
+const defaultDelegatedCredential = {
+  serviceAccountKey: {
+    client_id: "service-client-id",
+    private_key: "service-private-key",
+    tenant_id: "service-tenant-id",
+  },
+} as const;
+
+async function createDelegationCredentialForCalendarService({
+  user,
+  delegatedTo,
+  delegationCredentialId,
+}: {
+  user?: { email: string } | null;
+  delegatedTo?: typeof defaultDelegatedCredential;
+  delegationCredentialId: string;
+}) {
+  return await createCredentialForCalendarService({
+    user: user || {
+      email: "service@example.com",
+    },
+    delegatedTo: delegatedTo || defaultDelegatedCredential,
+    delegationCredentialId,
+  });
+}
+
+async function createDelegationCredentialForCalendarCache({
+  user,
+  delegatedTo,
+  delegationCredentialId,
+}: {
+  user?: { email: string } | null;
+  delegatedTo?: typeof defaultDelegatedCredential;
+  delegationCredentialId: string;
+}) {
+  delegatedTo = delegatedTo || defaultDelegatedCredential;
+  const credentialInDb = await createCredentialForCalendarService({
+    user: user || {
+      email: "service@example.com",
+    },
+  });
+
+  return {
+    ...createInMemoryCredential({
+      userId: credentialInDb.userId!,
+      delegationCredentialId,
+      delegatedTo,
+    }),
+    ...credentialInDb,
+  };
 }
 
 async function expectCacheToBeNotSet({ credentialId }: { credentialId: number }) {
@@ -621,5 +702,110 @@ describe("Watching and unwatching calendar", () => {
     expectOutlookUnsubscriptionToHaveOccurredAndClearMock(["mock-subscription-id"]);
     await expectSelectedCalendarToNotHaveOutlookSubscriptionProps(eventTypeLevelCalendar.id);
     fetcherSpy.mockRestore();
+  });
+
+  describe("Delegation Credential", () => {
+    test("On watching a SelectedCalendar having delegationCredential, it should set outlookSubscriptionId and other props", async () => {
+      const delegationCredential = await createDelegationCredentialForCalendarService({
+        user: { email: "user1@example.com" },
+        delegationCredentialId: "delegation-credential-id-1",
+      });
+
+      await prismock.selectedCalendar.create({
+        data: {
+          userId: delegationCredential.userId!,
+          externalId: testSelectedCalendar.externalId,
+          integration: "office365_calendar",
+          credentialId: delegationCredential.id,
+          delegationCredentialId: delegationCredential.delegatedToId!,
+        },
+      });
+
+      const calendarService = new Office365CalendarService(delegationCredential);
+      vi.spyOn(global, "fetch")
+        .mockResolvedValueOnce(new Response(JSON.stringify({ access_token: "token" }), { status: 200 }))
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({ value: [{ userPrincipalName: "user@example.com", id: "user123" }] }),
+            {
+              status: 200,
+            }
+          )
+        );
+      const fetcherSpy = vi
+        .spyOn(calendarService, "fetcher" as any)
+        .mockImplementation(async (endpoint, init) => {
+          return fetcherMock(endpoint, init);
+        });
+      fetcherMock.mockImplementation(async (endpoint) => {
+        if (endpoint === "/me") return mockResponses.user();
+        if (endpoint === "/subscriptions") return mockResponses.subscriptionCreate();
+        return new Response(null, { status: 404 });
+      });
+
+      await calendarService.watchCalendar({
+        calendarId: testSelectedCalendar.externalId,
+        eventTypeIds: [null],
+      });
+
+      expectOutlookSubscriptionToHaveOccurredAndClearMock(fetcherSpy);
+      const calendars = await prismock.selectedCalendar.findMany();
+      expect(calendars).toHaveLength(1);
+      await expectSelectedCalendarToHaveOutlookSubscriptionProps(calendars[0].id, {
+        outlookSubscriptionId: "mock-subscription-id",
+        outlookSubscriptionExpiration: "2025-05-07T00:00:00Z",
+      });
+      fetcherSpy.mockRestore();
+    });
+
+    test("On unwatching a SelectedCalendar connected to Delegation Credential, it should remove outlookSubscriptionId and other props", async () => {
+      const delegationCredential = await createDelegationCredentialForCalendarCache({
+        user: { email: "user1@example.com" },
+        delegationCredentialId: "delegation-credential-id-1",
+      });
+
+      const selectedCalendar = await createSelectedCalendarForDelegationCredential({
+        userId: delegationCredential.userId!,
+        delegationCredentialId: delegationCredential.delegatedToId!,
+        credentialId: delegationCredential.id,
+        externalId: testSelectedCalendar.externalId,
+        integration: "office365_calendar",
+        outlookSubscriptionId: "mock-subscription-id",
+        outlookSubscriptionExpiration: "2025-05-07T00:00:00Z",
+      });
+
+      const calendarService = new Office365CalendarService(delegationCredential);
+      vi.spyOn(global, "fetch")
+        .mockResolvedValueOnce(new Response(JSON.stringify({ access_token: "token" }), { status: 200 }))
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({ value: [{ userPrincipalName: "user@example.com", id: "user123" }] }),
+            {
+              status: 200,
+            }
+          )
+        );
+      const fetcherSpy = vi
+        .spyOn(calendarService, "fetcher" as any)
+        .mockImplementation(async (endpoint, init) => {
+          return fetcherMock(endpoint, init);
+        });
+      fetcherMock.mockImplementation(async (endpoint) => {
+        if (endpoint === "/me") return mockResponses.user();
+        if (endpoint.includes("/subscriptions/")) return mockResponses.subscriptionDelete();
+        return new Response(null, { status: 404 });
+      });
+
+      await calendarService.unwatchCalendar({
+        calendarId: selectedCalendar.externalId,
+        eventTypeIds: [null],
+      });
+
+      expectOutlookUnsubscriptionToHaveOccurredAndClearMock(["mock-subscription-id"]);
+      const calendars = await prismock.selectedCalendar.findMany();
+      expect(calendars).toHaveLength(1);
+      await expectSelectedCalendarToNotHaveOutlookSubscriptionProps(calendars[0].id);
+      fetcherSpy.mockRestore();
+    });
   });
 });
