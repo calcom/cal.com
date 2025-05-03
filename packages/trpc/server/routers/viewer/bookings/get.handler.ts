@@ -426,53 +426,73 @@ export async function getBookings({
   }
 
   const queriesWithFilters = bookingQueries.map((query) => {
+    let fullQuery = query;
     if (filters?.afterStartDate) {
-      query.where("Booking.startTime", ">=", dayjs.utc(filters.afterStartDate).toDate());
+      fullQuery = fullQuery.where("Booking.startTime", ">=", new Date(filters.afterStartDate));
     }
     if (filters?.beforeEndDate) {
-      query.where("Booking.endTime", "<=", dayjs.utc(filters.beforeEndDate).toDate());
+      fullQuery = fullQuery.where("Booking.endTime", "<=", new Date(filters.beforeEndDate));
     }
     if (filters?.afterUpdatedDate) {
-      query.where("Booking.updatedAt", ">=", dayjs.utc(filters.afterUpdatedDate).toDate());
+      fullQuery = fullQuery.where("Booking.updatedAt", ">=", new Date(filters.afterUpdatedDate));
     }
     if (filters?.beforeUpdatedDate) {
-      query.where("Booking.updatedAt", "<=", dayjs.utc(filters.beforeUpdatedDate).toDate());
+      fullQuery = fullQuery.where("Booking.updatedAt", "<=", new Date(filters.beforeUpdatedDate));
     }
     if (filters?.afterCreatedDate) {
-      query.where("Booking.createdAt", ">=", dayjs.utc(filters.afterCreatedDate).toDate());
+      fullQuery = fullQuery.where("Booking.createdAt", ">=", new Date(filters.afterCreatedDate));
     }
     if (filters?.beforeCreatedDate) {
-      query.where("Booking.createdAt", "<=", dayjs.utc(filters.beforeCreatedDate).toDate());
+      fullQuery = fullQuery.where("Booking.createdAt", "<=", new Date(filters.beforeCreatedDate));
     }
 
     if (filters?.attendeeName) {
       if (typeof filters.attendeeName === "string") {
         // Simple string match (exact)
-        query
+        fullQuery = fullQuery
           .withPlugin(new DeduplicateJoinsPlugin())
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
           .where("Attendee.name", "=", filters.attendeeName.trim());
       } else if (isTextFilterValue(filters.attendeeName)) {
         // TODO: write makeWhereClause equivalent for kysely
-        addAdvancedAttendeeNameWhereClause(
-          query.withPlugin(new DeduplicateJoinsPlugin()),
+        fullQuery = addAdvancedAttendeeWhereClause(
+          fullQuery.withPlugin(new DeduplicateJoinsPlugin()),
+          "name",
           filters.attendeeName.data.operator,
           filters.attendeeName.data.operand
         );
       }
     }
 
-    addStatusesQueryFilters(query, bookingListingByStatus);
+    if (filters?.attendeeEmail) {
+      if (typeof filters.attendeeEmail === "string") {
+        // Simple string match (exact)
+        fullQuery = fullQuery
+          .withPlugin(new DeduplicateJoinsPlugin())
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .where("Attendee.email", "=", filters.attendeeEmail.trim());
+      } else if (isTextFilterValue(filters.attendeeEmail)) {
+        // TODO: write makeWhereClause equivalent for kysely
+        fullQuery = addAdvancedAttendeeWhereClause(
+          fullQuery.withPlugin(new DeduplicateJoinsPlugin()),
+          "email",
+          filters.attendeeEmail.data.operator,
+          filters.attendeeEmail.data.operand
+        );
+      }
+    }
+
+    fullQuery = addStatusesQueryFilters(fullQuery, bookingListingByStatus);
 
     if (eventTypeIdsFromTeamIdsFilter && eventTypeIdsFromTeamIdsFilter.length > 0) {
-      query.where("Booking.eventTypeId", "in", eventTypeIdsFromTeamIdsFilter);
+      fullQuery = fullQuery.where("Booking.eventTypeId", "in", eventTypeIdsFromTeamIdsFilter);
     }
 
     if (eventTypeIdsFromEventTypeIdsFilter && eventTypeIdsFromEventTypeIdsFilter.length > 0) {
-      query.where("Booking.eventTypeId", "in", eventTypeIdsFromEventTypeIdsFilter);
+      fullQuery = fullQuery.where("Booking.eventTypeId", "in", eventTypeIdsFromEventTypeIdsFilter);
     }
 
-    return query;
+    return fullQuery;
   });
 
   // All the possible date filter keys
@@ -606,7 +626,7 @@ export async function getBookings({
           ])
           .whereRef("BookingSeat.bookingId", "=", "Booking.id")
       ).as("seatsReferences"),
-      jsonObjectFrom(
+      jsonArrayFrom(
         eb
           .selectFrom("AssignmentReason")
           .selectAll()
@@ -930,7 +950,7 @@ function addStatusesQueryFilters(
   statuses: InputByStatus[]
 ) {
   if (statuses?.length) {
-    query.where(({ eb, or, and }) =>
+    return query.where(({ eb, or, and }) =>
       or(
         statuses.map((status) => {
           if (status === "upcoming") {
@@ -939,7 +959,7 @@ function addStatusesQueryFilters(
               or([
                 and([eb("Booking.recurringEventId", "is not", null), eb("Booking.status", "=", "accepted")]),
                 and([
-                  eb("Booking.recurringEventId", "is not", null),
+                  eb("Booking.recurringEventId", "is", null),
                   eb("Booking.status", "not in", ["cancelled", "rejected"]),
                 ]),
               ]),
@@ -948,35 +968,39 @@ function addStatusesQueryFilters(
 
           if (status === "recurring") {
             return and([
-              eb("endTime", ">=", new Date()),
-              eb("recurringEventId", "is not", null),
-              eb("status", "not in", ["cancelled", "rejected"]),
+              eb("Booking.endTime", ">=", new Date()),
+              eb("Booking.recurringEventId", "is not", null),
+              eb("Booking.status", "not in", ["cancelled", "rejected"]),
             ]);
           }
 
           if (status === "past") {
-            return and([eb("endTime", "<=", new Date()), eb("status", "not in", ["cancelled", "rejected"])]);
+            return and([
+              eb("Booking.endTime", "<=", new Date()),
+              eb("Booking.status", "not in", ["cancelled", "rejected"]),
+            ]);
           }
 
           if (status === "cancelled") {
-            return eb("status", "in", ["cancelled", "rejected"]);
+            return eb("Booking.status", "in", ["cancelled", "rejected"]);
           }
 
           if (status === "unconfirmed") {
-            return and([eb("endTime", ">=", new Date()), eb("status", "=", "pending")]);
+            return and([eb("Booking.endTime", ">=", new Date()), eb("Booking.status", "=", "pending")]);
           }
 
           return and([]);
         })
       )
-    );
+    ) as SelectQueryBuilder<DB, "Booking", { id: number }>;
   }
 
-  return query;
+  return query as SelectQueryBuilder<DB, "Booking", { id: number }>;
 }
 
-function addAdvancedAttendeeNameWhereClause(
+function addAdvancedAttendeeWhereClause(
   query: SelectQueryBuilder<DB, "Booking", unknown>,
+  key: "name" | "email",
   operator:
     | "endsWith"
     | "startsWith"
@@ -990,41 +1014,47 @@ function addAdvancedAttendeeNameWhereClause(
 ) {
   switch (operator) {
     case "endsWith":
-      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where("Attendee.name", "like", `%${operand}`);
+      query
+        .innerJoin("Attendee", "Attendee.id", "Booking.id")
+        .where(`Attendee.${key}`, "like", `%${operand}`);
       break;
     case "startsWith":
-      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where("Attendee.name", "like", `${operand}%`);
+      query
+        .innerJoin("Attendee", "Attendee.id", "Booking.id")
+        .where(`Attendee.${key}`, "like", `${operand}%`);
       break;
 
     case "equals":
-      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where("Attendee.name", "=", `${operand}`);
+      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where(`Attendee.${key}`, "=", `${operand}`);
       break;
 
     case "notEquals":
-      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where("Attendee.name", "!=", `${operand}`);
+      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where(`Attendee.${key}`, "!=", `${operand}`);
       break;
 
     case "contains":
-      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where("Attendee.name", "like", `%${operand}%`);
+      query
+        .innerJoin("Attendee", "Attendee.id", "Booking.id")
+        .where(`Attendee.${key}`, "like", `%${operand}%`);
       break;
 
     case "notContains":
       query
         .innerJoin("Attendee", "Attendee.id", "Booking.id")
-        .where("Attendee.name", "not like", `%${operand}%`);
+        .where(`Attendee.${key}`, "not like", `%${operand}%`);
       break;
 
     case "isEmpty":
-      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where("Attendee.name", "=", "");
+      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where(`Attendee.${key}`, "=", "");
       break;
 
     case "isNotEmpty":
-      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where("Attendee.name", "!=", "");
+      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where(`Attendee.${key}`, "!=", "");
       break;
 
     default:
       break;
   }
 
-  return query;
+  return query as SelectQueryBuilder<DB, "Booking", { id: number }>;
 }

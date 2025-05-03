@@ -1,4 +1,4 @@
-import { Kysely, PostgresDialect } from "kysely";
+import { Kysely, ParseJSONResultsPlugin, PostgresDialect } from "kysely";
 import { Pool } from "pg";
 
 import type { DB, Booking } from "./types.ts";
@@ -13,6 +13,7 @@ const dialect = new PostgresDialect({
 
 const db = new Kysely<DB>({
   dialect,
+  plugins: [new ParseJSONResultsPlugin()],
 });
 
 export default db;
