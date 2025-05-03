@@ -171,7 +171,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               </Section.Description>
             </div>
           ) : null}
-          <div className="bg-default border-subtle divide-subtle divide-y overflow-hidden rounded-xl border before:border-0">
+          <div className="bg-default border-muted flex flex-col gap-4 rounded-xl border p-3">
             {notInstalledApps?.map((app) => (
               <EventTypeAppCard
                 getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}

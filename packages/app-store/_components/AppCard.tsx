@@ -48,7 +48,7 @@ export default function AppCard({
   const isPlatform = useIsPlatform();
 
   return (
-    <Section className={classNames(!app?.isInstalled && "rounded-none")}>
+    <Section className={classNames(!app?.isInstalled && "rounded-xl")}>
       <Section.Header
         rawHeading={
           <div>
