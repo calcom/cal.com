@@ -274,7 +274,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
               <Button
                 className="text-subtle mt-2 w-fit"
                 size="sm"
-                variant="secondary"
+                color="secondary"
                 disabled={
                   !(newOnBookingWriteToEventObjectField.field && newOnBookingWriteToEventObjectField.value)
                 }
