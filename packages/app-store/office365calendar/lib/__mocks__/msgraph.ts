@@ -1,6 +1,26 @@
 import { vi } from "vitest";
 
-export const fetcherMock = vi.fn();
+export const defaultFetcherMockImplementation = vi.fn(async (endpoint, init) => {
+  if (endpoint === "/me") {
+    return mockResponses.user();
+  }
+  if (endpoint.includes("/$batch")) {
+    const batchResponse = await mockResponses.batchAvailability(["cal1"]).json();
+    return Promise.resolve({
+      status: 200,
+      headers: new Map([
+        ["Content-Type", "application/json"],
+        ["Retry-After", "0"],
+      ]),
+      json: async () => Promise.resolve(JSON.stringify({ responses: batchResponse.responses })),
+    });
+  }
+  if (endpoint === "/subscriptions") return mockResponses.subscriptionCreate();
+  if (endpoint.includes("/subscriptions/")) return mockResponses.subscriptionDelete();
+  if (endpoint === "/users/user@example.com") return mockResponses.user();
+  if (endpoint.includes("/calendars?$select")) return mockResponses.calendars();
+  return new Response(null, { status: 404 });
+});
 
 export const mockResponses = {
   user: () =>

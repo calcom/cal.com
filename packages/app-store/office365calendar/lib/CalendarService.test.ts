@@ -1,6 +1,6 @@
 import prismock from "../../../../tests/libs/__mocks__/prisma";
 import oAuthManagerMock, { defaultMockOAuthManager } from "../../tests/__mocks__/OAuthManager";
-import { fetcherMock, mockResponses } from "./__mocks__/msgraph";
+import { defaultFetcherMockImplementation, mockResponses } from "./__mocks__/msgraph";
 
 import { vi, describe, test, expect, beforeEach, afterEach } from "vitest";
 import "vitest-fetch-mock";
@@ -269,11 +269,11 @@ function expectOutlookSubscriptionToNotHaveOccurredAndClearMock(fetcherSpy: any)
   fetcherSpy.mockClear();
 }
 
-function expectOutlookUnsubscriptionToHaveOccurredAndClearMock(subscriptionIds: string[]) {
+function expectOutlookUnsubscriptionToHaveOccurredAndClearMock(fetcherSpy: any, subscriptionIds: string[]) {
   subscriptionIds.forEach((id) => {
-    expect(fetcherMock).toHaveBeenCalledWith(`/subscriptions/${id}`, { method: "DELETE" });
+    expect(fetcherSpy).toHaveBeenCalledWith(`/subscriptions/${id}`, { method: "DELETE" });
   });
-  fetcherMock.mockClear();
+  fetcherSpy.mockClear();
 }
 
 function expectOutlookUnsubscriptionToNotHaveOccurredAndClearMock(fetcherSpy: any) {
@@ -319,7 +319,6 @@ const calendarCacheHelpers = {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  fetcherMock.mockClear();
   vi.mocked(getTokenObjectFromCredential).mockReturnValue({
     access_token: "mock_access_token",
     refresh_token: "mock_refresh_token",
@@ -362,38 +361,38 @@ describe("Calendar Cache", () => {
   });
 
   test("Calendar Cache is being ignored on cache MISS", async () => {
+    const calendarCache = await CalendarCache.init(null);
     const credentialInDb = await createCredentialForCalendarService();
-    const { dateFrom, dateTo } = calendarCacheHelpers.getDatePair();
+    const dateFrom = new Date(Date.now()).toISOString();
+    const dateTo = new Date(Date.now() + 100000000).toISOString();
     const calendarService = new Office365CalendarService(credentialInDb);
 
-    // Spy on fetcher for this instance
     const fetcherSpy = vi
       .spyOn(calendarService, "fetcher" as any)
-      .mockImplementation(async (endpoint, init) => {
-        return fetcherMock(endpoint, init);
-      });
+      .mockImplementation(defaultFetcherMockImplementation);
 
-    fetcherMock.mockImplementation(async (endpoint, init) => {
-      if (endpoint === "/me") {
-        return mockResponses.user();
-      }
-      if (endpoint.includes("/$batch")) {
-        const batchResponse = await mockResponses.batchAvailability([testSelectedCalendar.externalId]).json();
-        return Promise.resolve({
-          status: 200,
-          headers: new Map([
-            ["Content-Type", "application/json"],
-            ["Retry-After", "0"],
-          ]),
-          json: async () => Promise.resolve(JSON.stringify({ responses: batchResponse.responses })),
-        });
-      }
-      return new Response(null, { status: 404 });
+    // Test Cache Miss
+    await calendarService.getAvailability(dateFrom, dateTo, [testSelectedCalendar]);
+    expect(fetcherSpy).toHaveBeenCalledWith(
+      "/$batch",
+      expect.objectContaining({
+        method: "POST",
+        body: expect.stringContaining('"url":"/users/user@example.com/calendars/cal1/calendarView'),
+      })
+    );
+
+    // Expect cache to be ignored in case of a MISS
+    const cachedAvailability = await calendarCache.getCachedAvailability({
+      credentialId: credentialInDb.id,
+      userId: null,
+      args: {
+        timeMin: dateFrom,
+        timeMax: dateTo,
+        items: [{ id: testSelectedCalendar.externalId }],
+      },
     });
 
-    const data = await calendarService.getAvailability(dateFrom, dateTo, [testSelectedCalendar]);
-
-    expect(data).toEqual([{ start: "2025-05-04T10:00:00Z", end: "2025-05-04T11:00:00Z" }]);
+    expect(cachedAvailability).toBeNull();
     fetcherSpy.mockRestore();
   });
 
@@ -409,39 +408,19 @@ describe("Calendar Cache", () => {
 
     const fetcherSpy = vi
       .spyOn(calendarService, "fetcher" as any)
-      .mockImplementation(async (endpoint, init) => {
-        return fetcherMock(endpoint, init);
-      });
-
-    fetcherMock.mockImplementation(async (endpoint, init) => {
-      if (endpoint === "/me") {
-        return mockResponses.user();
-      }
-      if (endpoint.includes("/$batch")) {
-        const batchResponse = await mockResponses.batchAvailability(["cal1", "cal2"]).json();
-        return Promise.resolve({
-          status: 200,
-          headers: new Map([
-            ["Content-Type", "application/json"],
-            ["Retry-After", "0"],
-          ]),
-          json: async () => Promise.resolve(JSON.stringify({ responses: batchResponse.responses })),
-        });
-      }
-      return new Response(null, { status: 404 });
-    });
+      .mockImplementation(defaultFetcherMockImplementation);
 
     const setAvailabilityInCacheSpy = vi.spyOn(calendarService, "setAvailabilityInCache");
 
     await calendarService.fetchAvailabilityAndSetCache(selectedCalendars);
-    expect(fetcherMock).toHaveBeenCalledWith(
+    expect(fetcherSpy).toHaveBeenCalledWith(
       "/$batch",
       expect.objectContaining({
         method: "POST",
         body: expect.stringContaining('"url":"/users/user@example.com/calendars/cal1/calendarView'),
       })
     );
-    expect(fetcherMock).toHaveBeenCalledWith(
+    expect(fetcherSpy).toHaveBeenCalledWith(
       "/$batch",
       expect.objectContaining({
         method: "POST",
@@ -472,39 +451,13 @@ describe("Calendar Cache", () => {
 
     const fetcherSpy = vi
       .spyOn(calendarService, "fetcher" as any)
-      .mockImplementation(async (endpoint, init) => {
-        return fetcherMock(endpoint, init);
-      });
-    fetcherMock.mockImplementation(async (endpoint, init) => {
-      if (endpoint === "/me") {
-        return mockResponses.user();
-      }
-      if (endpoint.includes("/$batch")) {
-        const batchResponse = await mockResponses.batchAvailability(["cal1"]).json();
-        return Promise.resolve({
-          status: 200,
-          headers: new Map([
-            ["Content-Type", "application/json"],
-            ["Retry-After", "0"],
-          ]),
-          json: async () => Promise.resolve(JSON.stringify({ responses: batchResponse.responses })),
-        });
-      }
-      return new Response(null, { status: 404 });
-    });
+      .mockImplementation(defaultFetcherMockImplementation);
 
     const calendarCachesBefore = await prismock.calendarCache.findMany();
     expect(calendarCachesBefore).toHaveLength(0);
     await calendarService.fetchAvailabilityAndSetCache(selectedCalendars);
     const calendarCachesAfter = await prismock.calendarCache.findMany();
     expect(calendarCachesAfter).toHaveLength(1);
-
-    fetcherMock.mockImplementation(async (endpoint, init) => {
-      if (endpoint === "/me") {
-        return mockResponses.user();
-      }
-      return new Response(null, { status: 404 });
-    });
 
     const result = await calendarService.getAvailability(
       "2025-05-04T00:00:00.000Z",
@@ -513,7 +466,7 @@ describe("Calendar Cache", () => {
       true
     );
     expect(result).toEqual(mockedBusyTimes);
-    expect(fetcherMock).not.toHaveBeenCalledWith(expect.stringContaining("/$batch"));
+    expect(fetcherSpy).not.toHaveBeenCalledWith(expect.stringContaining("/$batch"));
     fetcherSpy.mockRestore();
   });
 });
@@ -523,24 +476,15 @@ describe("Watching and unwatching calendar", () => {
     const credentialInDb = await createCredentialForCalendarService();
     const calendarService = new Office365CalendarService(credentialInDb);
 
-    // Spy on fetcher for this instance
     const fetcherSpy = vi
       .spyOn(calendarService, "fetcher" as any)
-      .mockImplementation(async (endpoint, init) => {
-        return fetcherMock(endpoint, init);
-      });
-
-    fetcherMock.mockImplementation(async (endpoint) => {
-      if (endpoint === "/me") return mockResponses.user();
-      if (endpoint === "/subscriptions") return mockResponses.subscriptionCreate();
-      if (endpoint.includes("/subscriptions/")) return mockResponses.subscriptionDelete();
-      return new Response(null, { status: 404 });
-    });
+      .mockImplementation(defaultFetcherMockImplementation);
 
     await calendarService.watchCalendar({
       calendarId: testSelectedCalendar.externalId,
       eventTypeIds: [null],
     });
+    expectOutlookSubscriptionToHaveOccurredAndClearMock(fetcherSpy);
 
     const watchedCalendar = await prismock.selectedCalendar.findFirst({
       where: {
@@ -549,7 +493,6 @@ describe("Watching and unwatching calendar", () => {
         integration: "office365_calendar",
       },
     });
-
     expect(watchedCalendar).toEqual(
       expect.objectContaining({
         userId: credentialInDb.userId,
@@ -566,6 +509,7 @@ describe("Watching and unwatching calendar", () => {
       calendarId: testSelectedCalendar.externalId,
       eventTypeIds: [null],
     });
+    expectOutlookUnsubscriptionToHaveOccurredAndClearMock(fetcherSpy, ["mock-subscription-id"]);
 
     const calendarAfterUnwatch = await prismock.selectedCalendar.findFirst({
       where: {
@@ -574,15 +518,13 @@ describe("Watching and unwatching calendar", () => {
         integration: "office365_calendar",
       },
     });
-
     expect(calendarAfterUnwatch).toEqual(
       expect.objectContaining({
         outlookSubscriptionId: null,
         outlookSubscriptionExpiration: null,
       })
     );
-    expectOutlookSubscriptionToHaveOccurredAndClearMock(fetcherSpy);
-    expectOutlookUnsubscriptionToHaveOccurredAndClearMock(["mock-subscription-id"]);
+
     fetcherSpy.mockRestore();
   });
 
@@ -611,30 +553,20 @@ describe("Watching and unwatching calendar", () => {
     // Spy on fetcher for this instance
     const fetcherSpy = vi
       .spyOn(calendarService, "fetcher" as any)
-      .mockImplementation(async (endpoint, init) => {
-        return fetcherMock(endpoint, init);
-      });
-
-    fetcherMock.mockImplementation(async (endpoint) => {
-      if (endpoint === "/me") return mockResponses.user();
-      if (endpoint === "/subscriptions") return mockResponses.subscriptionCreate();
-      if (endpoint.includes("/subscriptions/")) return mockResponses.subscriptionDelete();
-      return new Response(null, { status: 404 });
-    });
+      .mockImplementation(defaultFetcherMockImplementation);
 
     await calendarService.watchCalendar({
       calendarId: userLevelCalendar.externalId,
       eventTypeIds: [userLevelCalendar.eventTypeId],
     });
-
     expectOutlookSubscriptionToHaveOccurredAndClearMock(fetcherSpy);
 
     await calendarService.watchCalendar({
       calendarId: eventTypeLevelCalendar.externalId,
       eventTypeIds: [eventTypeLevelCalendar.eventTypeId],
     });
-
     expectOutlookSubscriptionToNotHaveOccurredAndClearMock(fetcherSpy);
+
     await expectSelectedCalendarToHaveOutlookSubscriptionProps(eventTypeLevelCalendar.id, {
       outlookSubscriptionId: "mock-subscription-id",
       outlookSubscriptionExpiration: "2025-05-07T00:00:00Z",
@@ -677,20 +609,12 @@ describe("Watching and unwatching calendar", () => {
     // Spy on fetcher for this instance
     const fetcherSpy = vi
       .spyOn(calendarService, "fetcher" as any)
-      .mockImplementation(async (endpoint, init) => {
-        return fetcherMock(endpoint, init);
-      });
-    fetcherMock.mockImplementation(async (endpoint) => {
-      if (endpoint === "/me") return mockResponses.user();
-      if (endpoint.includes("/subscriptions/")) return mockResponses.subscriptionDelete();
-      return new Response(null, { status: 404 });
-    });
+      .mockImplementation(defaultFetcherMockImplementation);
 
     await calendarService.unwatchCalendar({
       calendarId: userLevelCalendar.externalId,
       eventTypeIds: [userLevelCalendar.eventTypeId],
     });
-
     expectOutlookUnsubscriptionToNotHaveOccurredAndClearMock(fetcherSpy);
     await expectSelectedCalendarToNotHaveOutlookSubscriptionProps(userLevelCalendar.id);
 
@@ -698,9 +622,9 @@ describe("Watching and unwatching calendar", () => {
       calendarId: eventTypeLevelCalendar.externalId,
       eventTypeIds: [eventTypeLevelCalendar.eventTypeId],
     });
-
-    expectOutlookUnsubscriptionToHaveOccurredAndClearMock(["mock-subscription-id"]);
+    expectOutlookUnsubscriptionToHaveOccurredAndClearMock(fetcherSpy, ["mock-subscription-id"]);
     await expectSelectedCalendarToNotHaveOutlookSubscriptionProps(eventTypeLevelCalendar.id);
+
     fetcherSpy.mockRestore();
   });
 
@@ -734,27 +658,21 @@ describe("Watching and unwatching calendar", () => {
         );
       const fetcherSpy = vi
         .spyOn(calendarService, "fetcher" as any)
-        .mockImplementation(async (endpoint, init) => {
-          return fetcherMock(endpoint, init);
-        });
-      fetcherMock.mockImplementation(async (endpoint) => {
-        if (endpoint === "/me") return mockResponses.user();
-        if (endpoint === "/subscriptions") return mockResponses.subscriptionCreate();
-        return new Response(null, { status: 404 });
-      });
+        .mockImplementation(defaultFetcherMockImplementation);
 
       await calendarService.watchCalendar({
         calendarId: testSelectedCalendar.externalId,
         eventTypeIds: [null],
       });
-
       expectOutlookSubscriptionToHaveOccurredAndClearMock(fetcherSpy);
+
       const calendars = await prismock.selectedCalendar.findMany();
       expect(calendars).toHaveLength(1);
       await expectSelectedCalendarToHaveOutlookSubscriptionProps(calendars[0].id, {
         outlookSubscriptionId: "mock-subscription-id",
         outlookSubscriptionExpiration: "2025-05-07T00:00:00Z",
       });
+
       fetcherSpy.mockRestore();
     });
 
@@ -787,21 +705,14 @@ describe("Watching and unwatching calendar", () => {
         );
       const fetcherSpy = vi
         .spyOn(calendarService, "fetcher" as any)
-        .mockImplementation(async (endpoint, init) => {
-          return fetcherMock(endpoint, init);
-        });
-      fetcherMock.mockImplementation(async (endpoint) => {
-        if (endpoint === "/me") return mockResponses.user();
-        if (endpoint.includes("/subscriptions/")) return mockResponses.subscriptionDelete();
-        return new Response(null, { status: 404 });
-      });
+        .mockImplementation(defaultFetcherMockImplementation);
 
       await calendarService.unwatchCalendar({
         calendarId: selectedCalendar.externalId,
         eventTypeIds: [null],
       });
+      expectOutlookUnsubscriptionToHaveOccurredAndClearMock(fetcherSpy, ["mock-subscription-id"]);
 
-      expectOutlookUnsubscriptionToHaveOccurredAndClearMock(["mock-subscription-id"]);
       const calendars = await prismock.selectedCalendar.findMany();
       expect(calendars).toHaveLength(1);
       await expectSelectedCalendarToNotHaveOutlookSubscriptionProps(calendars[0].id);
@@ -817,26 +728,7 @@ describe("getAvailability", () => {
 
     const fetcherSpy = vi
       .spyOn(calendarService, "fetcher" as any)
-      .mockImplementation(async (endpoint, init) => {
-        return fetcherMock(endpoint, init);
-      });
-    fetcherMock.mockImplementation(async (endpoint) => {
-      if (endpoint === "/me") return mockResponses.user();
-      if (endpoint === "/users/user@example.com") return mockResponses.user();
-      if (endpoint.includes("/calendars?$select")) return mockResponses.calendars();
-      if (endpoint.includes("/$batch")) {
-        const batchResponse = await mockResponses.batchAvailability(["cal1"]).json();
-        return Promise.resolve({
-          status: 200,
-          headers: new Map([
-            ["Content-Type", "application/json"],
-            ["Retry-After", "0"],
-          ]),
-          json: async () => Promise.resolve(JSON.stringify({ responses: batchResponse.responses })),
-        });
-      }
-      return new Response(null, { status: 404 });
-    });
+      .mockImplementation(defaultFetcherMockImplementation);
 
     const availability = await calendarService.getAvailability(
       "2025-05-04T00:00:00Z",
@@ -845,9 +737,8 @@ describe("getAvailability", () => {
       false,
       true
     );
-
     expect(availability).toEqual([{ start: "2025-05-04T10:00:00Z", end: "2025-05-04T11:00:00Z" }]);
-    expect(fetcherMock).toHaveBeenCalledWith(
+    expect(fetcherSpy).toHaveBeenCalledWith(
       "/$batch",
       expect.objectContaining({
         method: "POST",
@@ -1049,13 +940,7 @@ describe("Office365CalendarService credential handling", () => {
 
     const fetcherSpy = vi
       .spyOn(calendarService, "fetcher" as any)
-      .mockImplementation(async (endpoint, init) => {
-        return fetcherMock(endpoint, init);
-      });
-    fetcherMock.mockImplementation(async (endpoint) => {
-      if (endpoint === "/me") return mockResponses.user();
-      return new Response(null, { status: 404 });
-    });
+      .mockImplementation(defaultFetcherMockImplementation);
 
     const userEndpoint = await calendarService.getUserEndpoint();
     expect(userEndpoint).toBe("/users/user@example.com");
@@ -1095,14 +980,9 @@ describe("Response Handling", () => {
     const credentialInDb = await createCredentialForCalendarService();
     const calendarService = new Office365CalendarService(credentialInDb);
 
-    const fetcherSpy = vi
-      .spyOn(calendarService, "fetcher" as any)
-      .mockImplementation(async (endpoint, init) => {
-        return fetcherMock(endpoint, init);
-      });
-    fetcherMock.mockImplementation(async (endpoint) => {
+    const fetcherSpy = vi.spyOn(calendarService, "fetcher" as any).mockImplementation(async (endpoint) => {
       if (endpoint === "/me") return mockResponses.user();
-      if (endpoint.includes("/$batch")) {
+      if (String(endpoint).includes("/$batch")) {
         return Promise.resolve({
           status: 200,
           headers: new Map([
