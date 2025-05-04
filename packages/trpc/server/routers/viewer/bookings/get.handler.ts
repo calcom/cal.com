@@ -65,6 +65,7 @@ export async function getBookings({
   prisma,
   passedBookingsStatusFilter,
   bookingListingByStatus,
+  sort,
   filters,
   orderBy,
   take,
@@ -76,6 +77,12 @@ export async function getBookings({
   passedBookingsStatusFilter: Prisma.BookingWhereInput;
   bookingListingByStatus: InputByStatus[];
   orderBy: Prisma.BookingOrderByWithAggregationInput;
+  sort?: {
+    sortStart?: "asc" | "desc";
+    sortEnd?: "asc" | "desc";
+    sortCreated?: "asc" | "desc";
+    sortUpdated?: "asc" | "desc";
+  };
   take: number;
   skip: number;
 }) {
@@ -239,7 +246,14 @@ export async function getBookings({
     // 1. Booking created by one of the filtered users
     orConditions.push({ userId: usersFilter });
     bookingQueries.push(
-      kysely.selectFrom("Booking").select("Booking.id").where("userId", "in", filters.userIds)
+      kysely
+        .selectFrom("Booking")
+        .select("Booking.id")
+        .select("Booking.startTime")
+        .select("Booking.endTime")
+        .select("Booking.createdAt")
+        .select("Booking.updatedAt")
+        .where("userId", "in", filters.userIds)
     );
     // 2. Attendee email matches one of the filtered users' emails
     orConditions.push({ attendees: { some: { email: attendeesEmailFilter } } });
@@ -247,8 +261,12 @@ export async function getBookings({
       bookingQueries.push(
         kysely
           .selectFrom("Booking")
-          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
           .select("Booking.id")
+          .select("Booking.startTime")
+          .select("Booking.endTime")
+          .select("Booking.createdAt")
+          .select("Booking.updatedAt")
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
           .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter)
       );
     }
@@ -259,9 +277,13 @@ export async function getBookings({
       bookingQueries.push(
         kysely
           .selectFrom("Booking")
+          .select("Booking.id")
+          .select("Booking.startTime")
+          .select("Booking.endTime")
+          .select("Booking.createdAt")
+          .select("Booking.updatedAt")
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
           .innerJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
-          .select("Booking.id")
           .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter)
       );
     }
@@ -276,15 +298,26 @@ export async function getBookings({
     // 1. Current user created bookings
     orConditions.push({ userId: { equals: user.id } });
     bookingQueries.push(
-      kysely.selectFrom("Booking").where("Booking.userId", "=", user.id).select("Booking.id")
+      kysely
+        .selectFrom("Booking")
+        .select("Booking.id")
+        .select("Booking.startTime")
+        .select("Booking.endTime")
+        .select("Booking.createdAt")
+        .select("Booking.updatedAt")
+        .where("Booking.userId", "=", user.id)
     );
     // 2. Current user is an attendee
     orConditions.push({ attendees: { some: { email: userEmailFilter } } });
     bookingQueries.push(
       kysely
         .selectFrom("Booking")
-        .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
         .select("Booking.id")
+        .select("Booking.startTime")
+        .select("Booking.endTime")
+        .select("Booking.createdAt")
+        .select("Booking.updatedAt")
+        .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
         .where("Attendee.email", "=", user.email)
     );
     // 3. Current user is an attendee via seats reference
@@ -293,9 +326,13 @@ export async function getBookings({
     bookingQueries.push(
       kysely
         .selectFrom("Booking")
-        .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
         .select("Booking.id")
-        .where("Attendee.email", "=", user.email)
+        .select("Booking.startTime")
+        .select("Booking.endTime")
+        .select("Booking.createdAt")
+        .select("Booking.updatedAt")
+        .innerJoin("BookingSeat", "BookingSeat.bookingId", "Booking.id")
+        .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
     );
     // 4. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees
@@ -306,8 +343,12 @@ export async function getBookings({
       bookingQueries.push(
         kysely
           .selectFrom("Booking")
-          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
           .select("Booking.id")
+          .select("Booking.startTime")
+          .select("Booking.endTime")
+          .select("Booking.createdAt")
+          .select("Booking.updatedAt")
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
           .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner)
       );
     // 5. Scope depends on `user.orgId`:
@@ -321,9 +362,13 @@ export async function getBookings({
       bookingQueries.push(
         kysely
           .selectFrom("Booking")
+          .select("Booking.id")
+          .select("Booking.startTime")
+          .select("Booking.endTime")
+          .select("Booking.createdAt")
+          .select("Booking.updatedAt")
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
           .innerJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
-          .select("Booking.id")
           .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner)
       );
     // 6. Scope depends on `user.orgId`:
@@ -335,8 +380,12 @@ export async function getBookings({
       bookingQueries.push(
         kysely
           .selectFrom("Booking")
-          .innerJoin("EventType", "EventType.id", "Booking.eventTypeId")
           .select("Booking.id")
+          .select("Booking.startTime")
+          .select("Booking.endTime")
+          .select("Booking.createdAt")
+          .select("Booking.updatedAt")
+          .innerJoin("EventType", "EventType.id", "Booking.eventTypeId")
           .where("Booking.eventTypeId", "in", eventTypeIdsWhereUserIsAdminOrOwner)
       );
     // 7. Scope depends on `user.orgId`:
@@ -348,8 +397,12 @@ export async function getBookings({
       bookingQueries.push(
         kysely
           .selectFrom("Booking")
-          .where("Booking.userId", "in", userIdsWhereUserIsAdminOrOwner)
           .select("Booking.id")
+          .select("Booking.startTime")
+          .select("Booking.endTime")
+          .select("Booking.createdAt")
+          .select("Booking.updatedAt")
+          .where("Booking.userId", "in", userIdsWhereUserIsAdminOrOwner)
       );
   }
 
@@ -427,23 +480,21 @@ export async function getBookings({
 
   const queriesWithFilters = bookingQueries.map((query) => {
     let fullQuery = query;
+
     if (filters?.afterStartDate) {
-      fullQuery = fullQuery.where("Booking.startTime", ">=", new Date(filters.afterStartDate));
+      fullQuery = fullQuery.where("Booking.startTime", ">=", dayjs.utc(filters.afterStartDate).toDate());
     }
     if (filters?.beforeEndDate) {
-      fullQuery = fullQuery.where("Booking.endTime", "<=", new Date(filters.beforeEndDate));
+      fullQuery = fullQuery.where("Booking.endTime", "<=", dayjs.utc(filters.beforeEndDate).toDate());
     }
     if (filters?.afterUpdatedDate) {
-      fullQuery = fullQuery.where("Booking.updatedAt", ">=", new Date(filters.afterUpdatedDate));
+      fullQuery = fullQuery.where("Booking.updatedAt", ">=", dayjs.utc(filters.afterUpdatedDate).toDate());
     }
     if (filters?.beforeUpdatedDate) {
-      fullQuery = fullQuery.where("Booking.updatedAt", "<=", new Date(filters.beforeUpdatedDate));
+      fullQuery = fullQuery.where("Booking.updatedAt", "<=", dayjs.utc(filters.beforeUpdatedDate).toDate());
     }
     if (filters?.afterCreatedDate) {
-      fullQuery = fullQuery.where("Booking.createdAt", ">=", new Date(filters.afterCreatedDate));
-    }
-    if (filters?.beforeCreatedDate) {
-      fullQuery = fullQuery.where("Booking.createdAt", "<=", new Date(filters.beforeCreatedDate));
+      fullQuery = fullQuery.where("Booking.createdAt", ">=", dayjs.utc(filters.afterCreatedDate).toDate());
     }
 
     if (filters?.attendeeName) {
@@ -522,120 +573,134 @@ export async function getBookings({
 
   log.info(`Get bookings where clause for user ${user.id}`, JSON.stringify(whereClause));
 
+  console.log("QUERES WITH FILTER", queriesWithFilters?.length);
   const queryUnion = queriesWithFilters.reduce((acc, query) => {
     return acc.union(query);
   });
 
+  const kyselyOrderBy = getOrderBy(bookingListingByStatus, sort);
+
+  const bookingIdsWithKysely = await queryUnion.orderBy(kyselyOrderBy.key, kyselyOrderBy.order).execute();
+  console.log("CRASH 2");
   const totalCount = Number(
     (
-      await queryUnion
-        .clearSelect()
+      await kysely
+        .selectFrom(queryUnion.as("union_subquery"))
         .select(({ fn }) => fn.countAll().as("bookingCount"))
         .executeTakeFirst()
     )?.bookingCount ?? 0
   );
-  const bookingIdsWithKysely = await queryUnion.limit(take).offset(skip).execute();
 
-  const plainBookings = await kysely
-    .selectFrom("Booking")
-    .where(
-      "id",
-      "in",
-      bookingIdsWithKysely.map((booking) => booking.id)
-    )
-    .select((eb) => [
-      "Booking.id",
-      "Booking.title",
-      "Booking.userPrimaryEmail",
-      "Booking.description",
-      "Booking.customInputs",
-      "Booking.startTime",
-      "Booking.endTime",
-      "Booking.metadata",
-      "Booking.uid",
-      "Booking.responses",
-      "Booking.recurringEventId",
-      "Booking.location",
-      "Booking.status",
-      "Booking.paid",
-      "Booking.fromReschedule",
-      "Booking.rescheduled",
-      "Booking.isRecorded",
-      jsonObjectFrom(
-        eb
-          .selectFrom("App_RoutingForms_FormResponse")
-          .select("id")
-          .whereRef("App_RoutingForms_FormResponse.routedToBookingUid", "=", "Booking.uid")
-      ).as("routedFromRoutingFormReponse"),
-      jsonObjectFrom(
-        eb
-          .selectFrom("EventType")
-          .select((eb) => [
-            "EventType.slug",
-            "EventType.id",
-            "EventType.title",
-            "EventType.eventName",
-            "EventType.price",
-            "EventType.recurringEvent",
-            "EventType.currency",
-            "EventType.metadata",
-            "EventType.disableGuests",
-            "EventType.seatsShowAttendees",
-            "EventType.seatsShowAvailabilityCount",
-            "EventType.eventTypeColor",
-            "EventType.customReplyToEmail",
-            "EventType.allowReschedulingPastBookings",
-            "EventType.hideOrganizerEmail",
-            "EventType.disableCancelling",
-            "EventType.disableRescheduling",
-            "EventType.schedulingType",
-            "EventType.length",
-            jsonObjectFrom(
-              eb
-                .selectFrom("Team")
-                .select(["Team.id", "Team.name", "Team.slug"])
-                .whereRef("EventType.teamId", "=", "Team.id")
-            ).as("team"),
-          ])
-          .whereRef("EventType.id", "=", "Booking.eventTypeId")
-      ).as("eventType"),
-      jsonObjectFrom(
-        eb.selectFrom("Payment").select("id").whereRef("Payment.bookingId", "=", "Booking.id")
-      ).as("payment"),
-      jsonObjectFrom(
-        eb
-          .selectFrom("users")
-          .select(["users.id", "users.name", "users.email"])
-          .whereRef("Booking.userId", "=", "users.id")
-      ).as("user"),
-      jsonArrayFrom(
-        eb.selectFrom("Attendee").selectAll().whereRef("Attendee.bookingId", "=", "Booking.id")
-      ).as("attendees"),
-      jsonArrayFrom(
-        eb
-          .selectFrom("BookingSeat")
-          .select((eb) => [
-            "BookingSeat.referenceUid",
-            jsonObjectFrom(
-              eb
-                .selectFrom("Attendee")
-                .select(["Attendee.email"])
-                .whereRef("BookingSeat.attendeeId", "=", "Attendee.id")
-                .where("Attendee.email", "=", user.email)
-            ).as("attendee"),
-          ])
-          .whereRef("BookingSeat.bookingId", "=", "Booking.id")
-      ).as("seatsReferences"),
-      jsonArrayFrom(
-        eb
-          .selectFrom("AssignmentReason")
-          .selectAll()
-          .whereRef("AssignmentReason.bookingId", "=", "Booking.id")
-          .orderBy("AssignmentReason.createdAt", "desc")
-          .limit(1)
-      ).as("assignmentReason"),
-    ])
-    .execute();
+  console.log("CRASH 3", bookingIdsWithKysely);
+
+  const plainBookings = !(bookingIdsWithKysely?.length === 0)
+    ? await kysely
+        .selectFrom("Booking")
+        .where(
+          "id",
+          "in",
+          bookingIdsWithKysely.map((booking) => booking.id)
+        )
+        .select((eb) => [
+          "Booking.id",
+          "Booking.title",
+          "Booking.userPrimaryEmail",
+          "Booking.description",
+          "Booking.customInputs",
+          "Booking.startTime",
+          "Booking.createdAt",
+          "Booking.updatedAt",
+          "Booking.endTime",
+          "Booking.metadata",
+          "Booking.uid",
+          "Booking.responses",
+          "Booking.recurringEventId",
+          "Booking.location",
+          "Booking.status",
+          "Booking.paid",
+          "Booking.fromReschedule",
+          "Booking.rescheduled",
+          "Booking.isRecorded",
+          jsonObjectFrom(
+            eb
+              .selectFrom("App_RoutingForms_FormResponse")
+              .select("id")
+              .whereRef("App_RoutingForms_FormResponse.routedToBookingUid", "=", "Booking.uid")
+          ).as("routedFromRoutingFormReponse"),
+          jsonObjectFrom(
+            eb
+              .selectFrom("EventType")
+              .select((eb) => [
+                "EventType.slug",
+                "EventType.id",
+                "EventType.title",
+                "EventType.eventName",
+                "EventType.price",
+                "EventType.recurringEvent",
+                "EventType.currency",
+                "EventType.metadata",
+                "EventType.disableGuests",
+                "EventType.seatsShowAttendees",
+                "EventType.seatsShowAvailabilityCount",
+                "EventType.eventTypeColor",
+                "EventType.customReplyToEmail",
+                "EventType.allowReschedulingPastBookings",
+                "EventType.hideOrganizerEmail",
+                "EventType.disableCancelling",
+                "EventType.disableRescheduling",
+                "EventType.schedulingType",
+                "EventType.length",
+                jsonObjectFrom(
+                  eb
+                    .selectFrom("Team")
+                    .select(["Team.id", "Team.name", "Team.slug"])
+                    .whereRef("EventType.teamId", "=", "Team.id")
+                ).as("team"),
+              ])
+              .whereRef("EventType.id", "=", "Booking.eventTypeId")
+          ).as("eventType"),
+          jsonObjectFrom(
+            eb.selectFrom("Payment").select("id").whereRef("Payment.bookingId", "=", "Booking.id")
+          ).as("payment"),
+          jsonObjectFrom(
+            eb
+              .selectFrom("users")
+              .select(["users.id", "users.name", "users.email"])
+              .whereRef("Booking.userId", "=", "users.id")
+          ).as("user"),
+          jsonArrayFrom(
+            eb.selectFrom("Attendee").selectAll().whereRef("Attendee.bookingId", "=", "Booking.id")
+          ).as("attendees"),
+          jsonArrayFrom(
+            eb
+              .selectFrom("BookingSeat")
+              .select((eb) => [
+                "BookingSeat.referenceUid",
+                jsonObjectFrom(
+                  eb
+                    .selectFrom("Attendee")
+                    .select(["Attendee.email"])
+                    .whereRef("BookingSeat.attendeeId", "=", "Attendee.id")
+                    .where("Attendee.email", "=", user.email)
+                ).as("attendee"),
+              ])
+              .whereRef("BookingSeat.bookingId", "=", "Booking.id")
+          ).as("seatsReferences"),
+          jsonArrayFrom(
+            eb
+              .selectFrom("AssignmentReason")
+              .selectAll()
+              .whereRef("AssignmentReason.bookingId", "=", "Booking.id")
+              .orderBy("AssignmentReason.createdAt", "desc")
+              .limit(1)
+          ).as("assignmentReason"),
+        ])
+        .orderBy(kyselyOrderBy.key, kyselyOrderBy.order)
+        .limit(take)
+        .offset(skip)
+        .execute()
+    : [];
+  console.log("CRASH 4");
 
   console.log({ plainBookings, totalCount });
 
@@ -1057,4 +1122,41 @@ function addAdvancedAttendeeWhereClause(
   }
 
   return query as SelectQueryBuilder<DB, "Booking", { id: number }>;
+}
+
+function getOrderBy(
+  bookingListingByStatus: InputByStatus[],
+  sort?: {
+    sortStart?: "asc" | "desc";
+    sortEnd?: "asc" | "desc";
+    sortCreated?: "asc" | "desc";
+    sortUpdated?: "asc" | "desc";
+  }
+): { key: "startTime" | "endTime" | "createdAt" | "updatedAt"; order: "desc" | "asc" } {
+  const bookingListingOrderby = {
+    upcoming: { startTime: "asc" },
+    recurring: { startTime: "asc" },
+    past: { startTime: "desc" },
+    cancelled: { startTime: "desc" },
+    unconfirmed: { startTime: "asc" },
+  } as const;
+
+  if (bookingListingByStatus?.length === 1 && !sort) {
+    return { key: "startTime", order: bookingListingOrderby[bookingListingByStatus[0]].startTime };
+  }
+
+  if (sort?.sortStart) {
+    return { key: "startTime", order: sort.sortStart };
+  }
+  if (sort?.sortEnd) {
+    return { key: "endTime", order: sort.sortEnd };
+  }
+  if (sort?.sortCreated) {
+    return { key: "createdAt", order: sort.sortCreated };
+  }
+  if (sort?.sortUpdated) {
+    return { key: "updatedAt", order: sort.sortUpdated };
+  }
+
+  return { key: "startTime", order: "asc" };
 }
