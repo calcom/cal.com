@@ -975,166 +975,165 @@ describe("getAvailability", () => {
   // });
 });
 
-// describe("Delegation Credential Error handling", () => {
-//   test("handles missing tenantId for delegation credential", async () => {
-//     const credentialWithDelegation = await createCredentialForCalendarService({
-//       user: { email: "user@example.com" },
-//       delegatedTo: {
-//         serviceAccountKey: {
-//           client_id: "id",
-//           private_key: "key",
-//           tenant_id: "",
-//         },
-//       },
-//     });
+describe("Delegation Credential Error handling", () => {
+  test("handles missing tenantId for delegation credential", async () => {
+    const credentialWithDelegation = await createCredentialForCalendarService({
+      user: { email: "user@example.com" },
+      delegatedTo: {
+        serviceAccountKey: {
+          client_id: "id",
+          private_key: "key",
+          tenant_id: "",
+        },
+      },
+    });
+    const calendarService = new Office365CalendarService(credentialWithDelegation);
+    await expect(calendarService.testDelegationCredentialSetup()).rejects.toThrow(
+      "Invalid DelegationCredential Settings: tenantId is missing"
+    );
+  });
 
-//     expect(() => new Office365CalendarService(credentialWithDelegation)).toThrow(
-//       "Invalid DelegationCredential Settings: tenantId is missing"
-//     );
-//   });
+  test("handles missing client_id or private_key for delegation credential", async () => {
+    const credentialWithDelegation = await createCredentialForCalendarService({
+      user: { email: "user@example.com" },
+      delegatedTo: {
+        serviceAccountKey: {
+          tenant_id: "tenant123",
+          client_id: "",
+          private_key: "",
+        },
+      },
+    });
+    const calendarService = new Office365CalendarService(credentialWithDelegation);
+    await expect(calendarService.getUserEndpoint()).rejects.toThrow(
+      "Delegation credential without clientId or Secret"
+    );
+  });
 
-//   test("handles missing client_id or private_key for delegation credential", async () => {
-//     const credentialWithDelegation = await createCredentialForCalendarService({
-//       user: { email: "user@example.com" },
-//       delegatedTo: {
-//         serviceAccountKey: {
-//           tenant_id: "tenant123",
-//           client_id: "",
-//           private_key: "",
-//         },
-//       },
-//     });
+  test("handles user not found in Azure AD", async () => {
+    const credentialWithDelegation = await createDelegationCredentialForCalendarService({
+      user: { email: "user1@example.com" },
+      delegationCredentialId: "delegation-credential-id-1",
+    });
 
-//     const calendarService = new Office365CalendarService(credentialWithDelegation);
-//     await expect(calendarService.getAzureUserId(credentialWithDelegation)).rejects.toThrow(
-//       "Delegation credential without clientId or Secret"
-//     );
-//   });
+    const calendarService = new Office365CalendarService(credentialWithDelegation);
+    vi.spyOn(global, "fetch")
+      .mockResolvedValueOnce(new Response(JSON.stringify({ access_token: "token" }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ value: [] }), { status: 200 }));
 
-//   test("handles user not found in Azure AD", async () => {
-//     const credentialWithDelegation = await createCredentialForCalendarService({
-//       user: { email: "user@example.com" },
-//       delegatedTo: mockDelegatedCredential.delegatedTo,
-//     });
+    await expect(calendarService.getUserEndpoint()).rejects.toThrow(
+      "User might not exist in Microsoft Azure Active Directory"
+    );
+  });
 
-//     const calendarService = new Office365CalendarService(credentialWithDelegation);
-//     vi.spyOn(global, "fetch")
-//       .mockResolvedValueOnce(new Response(JSON.stringify({ access_token: "token" }), { status: 200 }))
-//       .mockResolvedValueOnce(new Response(JSON.stringify({ value: [] }), { status: 200 }));
+  test("testDelegationCredentialSetup returns true for valid credentials", async () => {
+    const credentialWithDelegation = await createDelegationCredentialForCalendarService({
+      user: { email: "user1@example.com" },
+      delegationCredentialId: "delegation-credential-id-1",
+    });
 
-//     await expect(calendarService.getAzureUserId(credentialWithDelegation)).rejects.toThrow(
-//       "User might not exist in Microsoft Azure Active Directory"
-//     );
-//   });
+    const calendarService = new Office365CalendarService(credentialWithDelegation);
+    vi.spyOn(global, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify({ access_token: "token" }), { status: 200 })
+    );
 
-//   test("testDelegationCredentialSetup returns true for valid credentials", async () => {
-//     const credentialWithDelegation = await createCredentialForCalendarService({
-//       user: { email: "user@example.com" },
-//       delegatedTo: mockDelegatedCredential.delegatedTo,
-//     });
+    const result = await calendarService.testDelegationCredentialSetup();
+    expect(result).toBe(true);
+  });
+});
 
-//     const calendarService = new Office365CalendarService(credentialWithDelegation);
-//     vi.spyOn(global, "fetch").mockResolvedValueOnce(
-//       new Response(JSON.stringify({ access_token: "token" }), { status: 200 })
-//     );
+describe("Office365CalendarService credential handling", () => {
+  test("uses regular auth when no delegation credential is provided", async () => {
+    const regularCredential = await createCredentialForCalendarService();
+    const calendarService = new Office365CalendarService(regularCredential);
 
-//     const result = await calendarService.testDelegationCredentialSetup();
-//     expect(result).toBe(true);
-//   });
+    const fetcherSpy = vi
+      .spyOn(calendarService, "fetcher" as any)
+      .mockImplementation(async (endpoint, init) => {
+        return fetcherMock(endpoint, init);
+      });
+    fetcherMock.mockImplementation(async (endpoint) => {
+      if (endpoint === "/me") return mockResponses.user();
+      return new Response(null, { status: 404 });
+    });
 
-//   test("testDelegationCredentialSetup returns false for invalid credentials", async () => {
-//     const credentialWithDelegation = await createCredentialForCalendarService({
-//       user: { email: "user@example.com" },
-//       delegatedTo: {
-//         serviceAccountKey: {
-//           tenant_id: "tenant123",
-//         },
-//       },
-//     });
+    const userEndpoint = await calendarService.getUserEndpoint();
+    expect(userEndpoint).toBe("/users/user@example.com");
+    expect(fetcherSpy).toHaveBeenCalledWith("/me");
+    fetcherSpy.mockClear();
+  });
 
-//     const calendarService = new Office365CalendarService(credentialWithDelegation);
-//     const result = await calendarService.testDelegationCredentialSetup();
-//     expect(result).toBe(false);
-//   });
-// });
+  test("uses delegated auth with tenantId when delegation credential is provided", async () => {
+    const credentialWithDelegation = await createDelegationCredentialForCalendarService({
+      user: { email: "user1@example.com" },
+      delegationCredentialId: "delegation-credential-id-1",
+    });
 
-// describe("Office365CalendarService credential handling", () => {
-//   test("uses regular auth when no delegation credential is provided", async () => {
-//     const regularCredential = await createCredentialForCalendarService();
-//     const calendarService = new Office365CalendarService(regularCredential);
+    const calendarService = new Office365CalendarService(credentialWithDelegation);
+    vi.spyOn(global, "fetch")
+      .mockResolvedValueOnce(new Response(JSON.stringify({ access_token: "token" }), { status: 200 }))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({ value: [{ userPrincipalName: "delegated@example.com", id: "user123" }] }),
+          {
+            status: 200,
+          }
+        )
+      );
 
-//     fetcherMock.mockImplementation(async (endpoint) => {
-//       if (endpoint === "/me") return mockResponses.user();
-//       return new Response(null, { status: 404 });
-//     });
+    const userEndpoint = await calendarService.getUserEndpoint();
+    expect(userEndpoint).toBe("/users/delegated@example.com");
+    expect(global.fetch).toHaveBeenCalledWith(
+      `https://login.microsoftonline.com/${credentialWithDelegation.delegatedTo?.serviceAccountKey.tenant_id}/oauth2/v2.0/token`,
+      expect.any(Object)
+    );
+  });
+});
 
-//     const userId = await calendarService.getAzureUserId(regularCredential);
-//     expect(userId).toBe("user@example.com");
-//     expect(fetcherMock).toHaveBeenCalledWith("/me");
-//   });
+describe("Response Handling", () => {
+  test("handleTextJsonResponseWithHtmlInBody should parse response with HTML", async () => {
+    const credentialInDb = await createCredentialForCalendarService();
+    const calendarService = new Office365CalendarService(credentialInDb);
 
-//   test("uses delegated auth with tenantId when delegation credential is provided", async () => {
-//     const credentialWithDelegation = await createCredentialForCalendarService({
-//       user: { email: "user@example.com" },
-//       delegatedTo: mockDelegatedCredential.delegatedTo,
-//     });
+    const fetcherSpy = vi
+      .spyOn(calendarService, "fetcher" as any)
+      .mockImplementation(async (endpoint, init) => {
+        return fetcherMock(endpoint, init);
+      });
+    fetcherMock.mockImplementation(async (endpoint) => {
+      if (endpoint === "/me") return mockResponses.user();
+      if (endpoint.includes("/$batch")) {
+        return Promise.resolve({
+          status: 200,
+          headers: new Map([
+            ["Content-Type", "application/json"],
+            ["Retry-After", "0"],
+          ]),
+          json: async () =>
+            Promise.resolve(
+              JSON.stringify({
+                responses: [
+                  {
+                    id: "0",
+                    status: 200,
+                    body: "<html><body>Error</body></html>",
+                  },
+                ],
+              })
+            ),
+        });
+      }
+      return new Response(null, { status: 404 });
+    });
 
-//     const calendarService = new Office365CalendarService(credentialWithDelegation);
-//     vi.spyOn(global, "fetch")
-//       .mockResolvedValueOnce(new Response(JSON.stringify({ access_token: "token" }), { status: 200 }))
-//       .mockResolvedValueOnce(
-//         new Response(JSON.stringify({ value: [{ userPrincipalName: "user@example.com", id: "user123" }] }), {
-//           status: 200,
-//         })
-//       );
+    const availability = await calendarService.getAvailability(
+      "2025-05-04T00:00:00Z",
+      "2025-05-04T23:59:59Z",
+      [{ externalId: "cal1", integration: "office365_calendar" }],
+      false
+    );
 
-//     const userId = await calendarService.getAzureUserId(credentialWithDelegation);
-//     expect(userId).toBe("user@example.com");
-//     expect(global.fetch).toHaveBeenCalledWith(
-//       "https://login.microsoftonline.com/tenant123/oauth2/v2.0/token",
-//       expect.any(Object)
-//     );
-//   });
-// });
-
-// describe("Response Handling", () => {
-//   test("handleTextJsonResponseWithHtmlInBody should parse response with HTML", async () => {
-//     const credentialInDb = await createCredentialForCalendarService();
-//     const calendarService = new Office365CalendarService(credentialInDb);
-
-//     fetcherMock.mockImplementation(async (endpoint) => {
-//       if (endpoint === "/me") return mockResponses.user();
-//       if (endpoint.includes("/$batch")) {
-//         return Promise.resolve({
-//           status: 200,
-//           headers: new Map([
-//             ["Content-Type", "application/json"],
-//             ["Retry-After", "0"],
-//           ]),
-//           json: async () =>
-//             Promise.resolve(
-//               JSON.stringify({
-//                 responses: [
-//                   {
-//                     id: "0",
-//                     status: 200,
-//                     body: "<html><body>Error</body></html>",
-//                   },
-//                 ],
-//               })
-//             ),
-//         });
-//       }
-//       return new Response(null, { status: 404 });
-//     });
-
-//     const availability = await calendarService.getAvailability(
-//       "2025-05-04T00:00:00Z",
-//       "2025-05-04T23:59:59Z",
-//       [{ externalId: "cal1", integration: "office365_calendar" }],
-//       false
-//     );
-
-//     expect(availability).toEqual([]);
-//   });
-// });
+    expect(availability).toEqual([]);
+    fetcherSpy.mockClear();
+  });
+});
