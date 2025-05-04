@@ -391,6 +391,7 @@ export function FormActionsProvider({
 
 type FormActionType =
   | "preview"
+  | "incompleteBooking"
   | "edit"
   | "copyLink"
   | "toggle"
@@ -469,6 +470,9 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     },
     edit: {
       href: `${appUrl}/form-edit/${routingForm?.id}`,
+    },
+    incompleteBooking: {
+      href: `${appUrl}/incomplete-booking/${routingForm?.id}`,
     },
     download: {
       href: `/api/integrations/routing-forms/responses/${routingForm?.id}`,
