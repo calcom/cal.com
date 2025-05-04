@@ -580,7 +580,11 @@ export async function getBookings({
 
   const kyselyOrderBy = getOrderBy(bookingListingByStatus, sort);
 
-  const bookingIdsWithKysely = await queryUnion.orderBy(kyselyOrderBy.key, kyselyOrderBy.order).execute();
+  const bookingIdsWithKysely = await queryUnion
+    .orderBy(kyselyOrderBy.key, kyselyOrderBy.order)
+    .limit(take)
+    .offset(skip)
+    .execute();
   console.log("CRASH 2");
   const totalCount = Number(
     (
@@ -696,8 +700,6 @@ export async function getBookings({
           ).as("assignmentReason"),
         ])
         .orderBy(kyselyOrderBy.key, kyselyOrderBy.order)
-        .limit(take)
-        .offset(skip)
         .execute()
     : [];
   console.log("CRASH 4");
