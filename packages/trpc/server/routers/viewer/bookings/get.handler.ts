@@ -333,6 +333,7 @@ export async function getBookings({
         .select("Booking.updatedAt")
         .innerJoin("BookingSeat", "BookingSeat.bookingId", "Booking.id")
         .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+        .where("Attendee.email", "=", user.email)
     );
     // 4. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees
@@ -573,19 +574,27 @@ export async function getBookings({
 
   log.info(`Get bookings where clause for user ${user.id}`, JSON.stringify(whereClause));
 
-  console.log("QUERES WITH FILTER", queriesWithFilters?.length);
   const queryUnion = queriesWithFilters.reduce((acc, query) => {
     return acc.union(query);
   });
 
   const kyselyOrderBy = getOrderBy(bookingListingByStatus, sort);
 
-  const bookingIdsWithKysely = await queryUnion
+  const bookingIdsWithKyselyCompiled = await queryUnion
     .orderBy(kyselyOrderBy.key, kyselyOrderBy.order)
     .limit(take)
     .offset(skip)
-    .execute();
-  console.log("CRASH 2");
+    .compile();
+
+  const bookingIdsWithKysely = (await kysely.executeQuery(bookingIdsWithKyselyCompiled)).rows;
+  console.log("GENERATED SQL", bookingIdsWithKyselyCompiled.sql, bookingIdsWithKyselyCompiled.parameters);
+  console.log(
+    "GENERATED SQL bookingIdsWithKysely",
+    bookingIdsWithKyselyCompiled.sql,
+    bookingIdsWithKyselyCompiled.parameters,
+    bookingIdsWithKysely
+  );
+
   const totalCount = Number(
     (
       await kysely
@@ -594,8 +603,6 @@ export async function getBookings({
         .executeTakeFirst()
     )?.bookingCount ?? 0
   );
-
-  console.log("CRASH 3", bookingIdsWithKysely);
 
   const plainBookings = !(bookingIdsWithKysely?.length === 0)
     ? await kysely
@@ -702,9 +709,6 @@ export async function getBookings({
         .orderBy(kyselyOrderBy.key, kyselyOrderBy.order)
         .execute()
     : [];
-  console.log("CRASH 4");
-
-  console.log({ plainBookings, totalCount });
 
   const [
     recurringInfoBasic,
