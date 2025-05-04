@@ -12,7 +12,7 @@ import type { EventAvailabilityTabCustomClassNames } from "@calcom/features/even
 import type { EventLimitsTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
 import type { EventRecurringTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/recurring/RecurringEventController";
 import type { EventSetupTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/setup/EventSetupTab";
-import type { EventTypeSetupProps, FormValues, TabMap } from "@calcom/features/eventtypes/lib/types";
+import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 
@@ -34,8 +34,7 @@ import EventPaymentsTabPlatformWrapper from "./EventPaymentsTabPlatformWrapper";
 import EventRecurringTabPlatformWrapper from "./EventRecurringTabPlatformWrapper";
 import SetupTab from "./EventSetupTabPlatformWrapper";
 import EventTeamAssignmentTabPlatformWrapper from "./EventTeamAssignmentTabPlatformWrapper";
-
-export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instant" | "ai" | "apps">;
+import type { PlatformTabs } from "./types";
 
 export type EventTypeCustomClassNames = {
   atomsWrapper?: string;
@@ -57,6 +56,7 @@ export type EventTypePlatformWrapperProps = {
   allowDelete: boolean;
   customClassNames?: EventTypeCustomClassNames;
   disableToasts?: boolean;
+  isDryRun?: boolean;
 };
 
 const EventType = ({
@@ -69,6 +69,7 @@ const EventType = ({
   allowDelete = true,
   customClassNames,
   disableToasts = false,
+  isDryRun = false,
   ...props
 }: EventTypeSetupProps & EventTypePlatformWrapperProps) => {
   const { t } = useLocale();
@@ -142,7 +143,13 @@ const EventType = ({
 
   const { form, handleSubmit } = useEventTypeForm({
     eventType,
-    onSubmit: (data) => updateMutation.mutate(data),
+    onSubmit: (data) => {
+      if (!isDryRun) {
+        updateMutation.mutate(data);
+      } else {
+        toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
+      }
+    },
   });
   const slug = form.watch("slug") ?? eventType.slug;
 
@@ -245,11 +252,15 @@ const EventType = ({
   });
 
   const onDelete = () => {
-    if (allowDelete) {
+    if (allowDelete && !isDryRun) {
       isTeamEventTypeDeleted.current = true;
       team?.id
         ? deleteTeamEventTypeMutation.mutate({ eventTypeId: id, teamId: team.id })
         : deleteMutation.mutate(id);
+    }
+
+    if (isDryRun) {
+      handleDeleteSuccess();
     }
   };
 
@@ -308,6 +319,7 @@ export const EventTypePlatformWrapper = ({
   onDeleteError,
   allowDelete = true,
   customClassNames,
+  isDryRun,
 }: EventTypePlatformWrapperProps) => {
   const { data: eventTypeQueryData } = useAtomsEventTypeById(id);
   const queryClient = useQueryClient();
@@ -339,6 +351,7 @@ export const EventTypePlatformWrapper = ({
       onDeleteError={onDeleteError}
       allowDelete={allowDelete}
       customClassNames={customClassNames}
+      isDryRun={isDryRun}
     />
   );
 };

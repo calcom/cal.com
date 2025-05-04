@@ -12,7 +12,7 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TUpdateInputSchema } from "./update.schema";
 
 type UpdateOptions = {
@@ -47,6 +47,10 @@ const updateOrganizationSettings = async ({
 
   if (input.hasOwnProperty("orgProfileRedirectsToVerifiedDomain")) {
     data.orgProfileRedirectsToVerifiedDomain = input.orgProfileRedirectsToVerifiedDomain;
+  }
+
+  if (input.hasOwnProperty("disablePhoneOnlySMSNotifications")) {
+    data.disablePhoneOnlySMSNotifications = input.disablePhoneOnlySMSNotifications;
   }
 
   // If no settings values have changed lets skip this update

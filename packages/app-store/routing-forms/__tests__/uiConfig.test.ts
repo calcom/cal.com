@@ -22,10 +22,6 @@ vi.mock("../components/react-awesome-query-builder/widgets", () => ({
   },
 }));
 
-vi.mock("@calcom/ui", () => ({
-  EmailField: vi.fn(),
-}));
-
 describe("uiConfig", () => {
   const mockConfig = {
     widgets: {

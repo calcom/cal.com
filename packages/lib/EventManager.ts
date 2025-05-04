@@ -36,6 +36,7 @@ import type {
 
 import { createEvent, updateEvent, deleteEvent } from "./CalendarManager";
 import CrmManager from "./crmManager/crmManager";
+import { isDelegationCredential } from "./delegationCredential/clientAndServer";
 import { createMeeting, updateMeeting, deleteMeeting } from "./videoClient";
 
 const log = logger.getSubLogger({ prefix: ["EventManager"] });
@@ -82,13 +83,13 @@ const getCredential = ({
   allCredentials,
 }: {
   id: {
-    domainWideDelegationCredentialId: string | null;
+    delegationCredentialId: string | null;
     credentialId: number | null;
   };
   allCredentials: CredentialForCalendarService[];
 }) => {
-  return id.domainWideDelegationCredentialId
-    ? allCredentials.find((c) => c.delegatedToId === id.domainWideDelegationCredentialId)
+  return id.delegationCredentialId
+    ? allCredentials.find((c) => c.delegatedToId === id.delegationCredentialId)
     : allCredentials.find((c) => c.id === id.credentialId);
 };
 
@@ -108,12 +109,12 @@ export const processLocation = (event: CalendarEvent): CalendarEvent => {
 };
 
 /**
- * Ensures invalid non-dwd credentialId isn't returned
+ * Ensures invalid non-delegationCredentialId isn't returned
  */
 function getCredentialPayload(result: EventResult<Exclude<Event, AdditionalInformation>>) {
   return {
     credentialId: result?.credentialId && result.credentialId > 0 ? result.credentialId : undefined,
-    domainWideDelegationCredentialId: result?.delegatedToId || undefined,
+    delegationCredentialId: result?.delegatedToId || undefined,
   };
 }
 
@@ -153,10 +154,9 @@ export default class EventManager {
       // see https://github.com/calcom/cal.com/issues/11671#issue-1923600672
       // This sorting is mostly applicable for fallback which happens when there is no explicity destinationCalendar set. That could be true for really old accounts but not for new
       .sort(latestCredentialFirst)
-      // TODO: Change it to delegatedCredentialFirst in a followup PR.
-      // We are keeping delegated credentials at the end so that there is no impact on existing users connections as we still use their existing credentials
-      // Soon after DWD is released and stable, we switch it. Could be an env variable also to toggle this.
-      .sort(delegatedCredentialLast);
+      // Keep Delegation Credentials first so because those credentials never expire and are preferred.
+      // Also, those credentials have consistent permission for all the members avoiding the scenario where user doesn't give all permissions
+      .sort(delegatedCredentialFirst);
 
     this.videoCredentials = appCredentials
       .filter((cred) => cred.type.endsWith("_video") || cred.type.endsWith("_conferencing"))
@@ -197,16 +197,26 @@ export default class EventManager {
       const calVideoKeys = calVideoKeysSchema.safeParse(calVideo?.keys);
 
       if (calVideo?.enabled && calVideoKeys.success) evt["location"] = "integrations:daily";
+      log.warn("Falling back to cal video as no location is set");
     }
 
-    // Fallback to Cal Video if Google Meet is selected w/o a Google Cal
-    // @NOTE: destinationCalendar it's an array now so as a fallback we will only check the first one
     const [mainHostDestinationCalendar] =
       (evt.destinationCalendar as [undefined | NonNullable<typeof evt.destinationCalendar>[number]]) ?? [];
+
+    // Fallback to Cal Video if Google Meet is selected w/o a Google Calendar connection
     if (evt.location === MeetLocationType && mainHostDestinationCalendar?.integration !== "google_calendar") {
-      log.warn("Falling back to Cal Video integration as Google Calendar is not set as destination calendar");
-      evt["location"] = "integrations:daily";
-      evt["conferenceCredentialId"] = undefined;
+      const [googleCalendarCredential] = this.calendarCredentials.filter(
+        (cred) => cred.type === "google_calendar"
+      );
+      // Delegation Credential case won't normally have DestinationCalendar set and thus fallback of using Google Calendar credential would be used. Identify that case.
+      // TODO: We could extend this logic to Regular Credentials also. Having a Google Calendar credential would cause fallback to use that credential to create calendar and thus we could have Google Meet link
+      if (!isDelegationCredential({ credentialId: googleCalendarCredential?.id })) {
+        log.warn(
+          "Falling back to Cal Video integration for Regular Credential as Google Calendar is not set as destination calendar"
+        );
+        evt["location"] = "integrations:daily";
+        evt["conferenceCredentialId"] = undefined;
+      }
     }
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
@@ -324,7 +334,7 @@ export default class EventManager {
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,
         externalCalendarId: result.externalId,
-        credentialId: result.credentialId ?? undefined,
+        ...(result.credentialId && result.credentialId > 0 ? { credentialId: result.credentialId } : {}),
       };
     });
 
@@ -364,7 +374,7 @@ export default class EventManager {
       credentialId,
       this.calendarCredentials,
       credentialType,
-      reference.domainWideDelegationCredentialId
+      reference.delegationCredentialId
     );
 
     if (calendarCredential) {
@@ -396,10 +406,10 @@ export default class EventManager {
     credentialId: number | null | undefined,
     credentials: CredentialForCalendarService[],
     type: string,
-    domainWideDelegationCredentialId?: string | null
+    delegationCredentialId?: string | null
   ) {
-    if (domainWideDelegationCredentialId) {
-      return this.calendarCredentials.find((cred) => cred.delegatedToId === domainWideDelegationCredentialId);
+    if (delegationCredentialId) {
+      return this.calendarCredentials.find((cred) => cred.delegatedToId === delegationCredentialId);
     }
     const credential = credentials.find((cred) => cred.id === credentialId);
     if (credential) {
@@ -439,7 +449,8 @@ export default class EventManager {
     rescheduleUid: string,
     newBookingId?: number,
     changedOrganizer?: boolean,
-    previousHostDestinationCalendar?: DestinationCalendar[] | null
+    previousHostDestinationCalendar?: DestinationCalendar[] | null,
+    isBookingRequestedReschedule?: boolean
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
     const evt = cloneDeep(originalEvt);
@@ -456,6 +467,7 @@ export default class EventManager {
         id: true,
         userId: true,
         attendees: true,
+        location: true,
         references: {
           where: {
             deleted: null,
@@ -489,7 +501,10 @@ export default class EventManager {
     }
 
     const results: Array<EventResult<Event>> = [];
-    const bookingReferenceChangedOrganizer: Array<PartialReference> = [];
+    const updatedBookingReferences: Array<PartialReference> = [];
+    const isLocationChanged = !!evt.location && !!booking.location && evt.location !== booking.location;
+    const shouldUpdateBookingReferences =
+      !!changedOrganizer || isLocationChanged || !!isBookingRequestedReschedule;
 
     if (evt.requiresConfirmation) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
@@ -510,31 +525,37 @@ export default class EventManager {
 
         const createdEvent = await this.create(originalEvt);
         results.push(...createdEvent.results);
-        bookingReferenceChangedOrganizer.push(...createdEvent.referencesToCreate);
+        updatedBookingReferences.push(...createdEvent.referencesToCreate);
       } else {
         // If the reschedule doesn't require confirmation, we can "update" the events and meetings to new time.
-        const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
-        // If and only if event type is a dedicated meeting, update the dedicated video meeting.
-        if (isDedicated) {
-          const result = await this.updateVideoEvent(evt, booking);
-          const [updatedEvent] = Array.isArray(result.updatedEvent)
-            ? result.updatedEvent
-            : [result.updatedEvent];
+        if (isLocationChanged || isBookingRequestedReschedule) {
+          const updatedLocation = await this.updateLocation(evt, booking);
+          results.push(...updatedLocation.results);
+          updatedBookingReferences.push(...updatedLocation.referencesToCreate);
+        } else {
+          const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
+          // If and only if event type is a dedicated meeting, update the dedicated video meeting.
+          if (isDedicated) {
+            const result = await this.updateVideoEvent(evt, booking);
+            const [updatedEvent] = Array.isArray(result.updatedEvent)
+              ? result.updatedEvent
+              : [result.updatedEvent];
 
-          if (updatedEvent) {
-            evt.videoCallData = updatedEvent;
-            evt.location = updatedEvent.url;
+            if (updatedEvent) {
+              evt.videoCallData = updatedEvent;
+              evt.location = updatedEvent.url;
+            }
+            results.push(result);
           }
-          results.push(result);
-        }
 
-        const bookingCalendarReference = booking.references.find((reference) =>
-          reference.type.includes("_calendar")
-        );
-        // There was a case that booking didn't had any reference and we don't want to throw error on function
-        if (bookingCalendarReference) {
-          // Update all calendar events.
-          results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
+          const bookingCalendarReference = booking.references.find((reference) =>
+            reference.type.includes("_calendar")
+          );
+          // There was a case that booking didn't had any reference and we don't want to throw error on function
+          if (bookingCalendarReference) {
+            // Update all calendar events.
+            results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
+          }
         }
 
         results.push(...(await this.updateAllCRMEvents(evt, booking)));
@@ -559,7 +580,7 @@ export default class EventManager {
 
     return {
       results,
-      referencesToCreate: changedOrganizer ? bookingReferenceChangedOrganizer : [...booking.references],
+      referencesToCreate: shouldUpdateBookingReferences ? updatedBookingReferences : [...booking.references],
     };
   }
 
@@ -587,6 +608,7 @@ export default class EventManager {
     bookingReferences: PartialReference[];
     isBookingInRecurringSeries?: boolean;
   }) {
+    const log = logger.getSubLogger({ prefix: [`[deleteEventsAndMeetings]: ${event?.uid}`] });
     const calendarReferences = [],
       videoReferences = [],
       crmReferences = [],
@@ -615,7 +637,7 @@ export default class EventManager {
 
       if (reference.type.includes("_crm") || reference.type.includes("other_calendar")) {
         crmReferences.push(reference);
-        allPromises.push(this.deleteCRMEvent({ reference }));
+        allPromises.push(this.deleteCRMEvent({ reference, event }));
       }
     }
 
@@ -662,12 +684,13 @@ export default class EventManager {
     let createdEvents: EventResult<NewCalendarEventType>[] = [];
 
     const fallbackToFirstCalendarInTheList = async () => {
-      /**
-       *  Not ideal but, if we don't find a destination calendar,
-       *  fallback to the first connected calendar - Shouldn't be a CRM calendar
-       */
       const [credential] = this.calendarCredentials.filter((cred) => !cred.type.endsWith("other_calendar"));
       if (credential) {
+        if (!isDelegationCredential({ credentialId: credential.id })) {
+          log.warn("Check the User setup, it isn't normal to fallback for regular credential.");
+        } else {
+          // It is completely normal to fallback for delegation credential as in that case by default no destination calendar would be set.
+        }
         const createdEvent = await createEvent(credential, event);
         log.silly("Created Calendar event using credential", safeStringify({ credential, createdEvent }));
         if (createdEvent) {
@@ -699,11 +722,11 @@ export default class EventManager {
       for (const destination of destinationCalendars) {
         if (eventCreated) break;
         log.silly("Creating Calendar event", JSON.stringify({ destination }));
-        if (destination.credentialId || destination.domainWideDelegationCredentialId) {
+        if (destination.credentialId || destination.delegationCredentialId) {
           let credential = getCredential({
             id: {
               credentialId: destination.credentialId,
-              domainWideDelegationCredentialId: destination.domainWideDelegationCredentialId,
+              delegationCredentialId: destination.delegationCredentialId,
             },
             allCredentials: this.calendarCredentials,
           });
@@ -726,16 +749,19 @@ export default class EventManager {
                   user: credentialFromDB.user,
                   delegatedToId: credentialFromDB.delegatedToId,
                   delegatedTo: credentialFromDB.delegatedTo,
+                  delegationCredentialId: credentialFromDB.delegationCredentialId,
                 };
               }
-            } else if (destination.domainWideDelegationCredentialId) {
-              log.warn("DWD: DWD seems to be disabled, falling back to first non-dwd credential");
-              // In case DWD is disabled, we land here where the destination calendar is connected to a DWD credential, but the credential isn't available(because DWD is disabled)
-              // In this case, we fallback to the first non-dwd credential. That would be there for all existing users before DWD was enabled
-              const firstNonDwdCalendarCredential = this.calendarCredentials.find(
+            } else if (destination.delegationCredentialId) {
+              log.warn(
+                "DelegationCredential: DelegationCredential seems to be disabled, falling back to first non-delegationCredential"
+              );
+              // In case DelegationCredential is disabled, we land here where the destination calendar is connected to a Delegation credential, but the credential isn't available(because DelegationCredential is disabled)
+              // In this case, we fallback to the first non-delegationCredential. That would be there for all existing users before DelegationCredential was enabled
+              const firstNonDelegatedCalendarCredential = this.calendarCredentials.find(
                 (cred) => !cred.type.endsWith("other_calendar") && !cred.delegatedToId
               );
-              credential = firstNonDwdCalendarCredential;
+              credential = firstNonDelegatedCalendarCredential;
             }
           }
           if (credential) {
@@ -924,6 +950,7 @@ export default class EventManager {
                 user: credentialFromDB.user,
                 delegatedToId: credentialFromDB.delegatedToId,
                 delegatedTo: credentialFromDB.delegatedTo,
+                delegationCredentialId: credentialFromDB.delegationCredentialId,
               };
             }
           }
@@ -1043,7 +1070,7 @@ export default class EventManager {
       const crm = new CrmManager(credential, currentAppOption);
 
       let success = true;
-      const createdEvent = await crm.createEvent(event, currentAppOption).catch((error) => {
+      const createdEvent = await crm.createEvent(event).catch((error) => {
         success = false;
         // We don't know the type of the error here, so for an Error instance we can read message but otherwise we stringify the error
         const errorMsg = error instanceof Error ? error.message : JSON.stringify(error);
@@ -1097,11 +1124,12 @@ export default class EventManager {
     return updatedEvents;
   }
 
-  private async deleteCRMEvent({ reference }: { reference: PartialReference }) {
+  private async deleteCRMEvent({ reference, event }: { reference: PartialReference; event: CalendarEvent }) {
     const credential = this.crmCredentials.find((cred) => cred.id === reference.credentialId);
     if (credential) {
-      const crm = new CrmManager(credential);
-      await crm.deleteEvent(reference.uid);
+      const currentAppOption = this.getAppOptionsFromEventMetadata(credential);
+      const crm = new CrmManager(credential, currentAppOption);
+      await crm.deleteEvent(reference.uid, event);
     }
   }
 

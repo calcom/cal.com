@@ -1,4 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { RefreshApiKeyInput } from "@/modules/api-keys/inputs/refresh-api-key.input";
 import { RefreshApiKeyOutput } from "@/modules/api-keys/outputs/refresh-api-key.output";
 import { ApiKeysService } from "@/modules/api-keys/services/api-keys.service";
@@ -23,12 +24,7 @@ export class ApiKeysController {
     summary: "Refresh API Key",
     description: `Generate a new API key and delete the current one. Provide API key to refresh as a Bearer token in the Authorization header (e.g. "Authorization: Bearer <apiKey>").`,
   })
-  @ApiHeader({
-    name: "Authorization",
-    description: "Bearer <apiKey>",
-    required: true,
-    schema: { type: "string" },
-  })
+  @ApiHeader(API_KEY_HEADER)
   @Post("/refresh")
   @HttpCode(HttpStatus.OK)
   async refresh(

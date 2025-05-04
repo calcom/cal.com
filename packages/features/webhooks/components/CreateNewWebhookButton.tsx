@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 
+import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { CreateButtonWithTeamsList } from "@calcom/ui";
 
 export const CreateNewWebhookButton = ({ isAdmin }: { isAdmin: boolean }) => {
   const router = useRouter();

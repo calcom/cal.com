@@ -1,5 +1,4 @@
 import type { InputLocation_2024_06_14, InputTeamLocation_2024_06_14 } from "@calcom/platform-types";
-import { type Integration_2024_06_14 } from "@calcom/platform-types";
 
 import type {
   AttendeeAddressLocation,
@@ -12,15 +11,38 @@ import type {
   OrganizerConferencingSchema,
 } from "../internal/locations";
 
-const apiToInternalintegrationsMapping: Record<
-  Integration_2024_06_14,
-  "integrations:daily" | "integrations:google:meet" | "integrations:office365_video" | "integrations:zoom"
-> = {
+export const apiToInternalintegrationsMapping = {
   "cal-video": "integrations:daily",
   "google-meet": "integrations:google:meet",
   "office365-video": "integrations:office365_video",
   zoom: "integrations:zoom",
-};
+  "whereby-video": "integrations:whereby_video",
+  "whatsapp-video": "integrations:whatsapp_video",
+  "webex-video": "integrations:webex_video",
+  "telegram-video": "integrations:telegram_video",
+  tandem: "integrations:tandem",
+  "sylaps-video": "integrations:sylaps_video",
+  "skype-video": "integrations:skype_video",
+  "sirius-video": "integrations:sirius_video_video",
+  "signal-video": "integrations:signal_video",
+  "shimmer-video": "integrations:shimmer_video",
+  "salesroom-video": "integrations:salesroom_video",
+  "roam-video": "integrations:roam_video",
+  "riverside-video": "integrations:riverside_video",
+  "ping-video": "integrations:ping_video",
+  "mirotalk-video": "integrations:mirotalk_video",
+  jitsi: "integrations:jitsi",
+  "jelly-video": "integrations:jelly_video",
+  "jelly-conferencing": "integrations:jelly_conferencing",
+  huddle: "integrations:huddle01",
+  "facetime-video": "integrations:facetime_video",
+  "element-call-video": "integrations:element-call_video",
+  "eightxeight-video": "integrations:eightxeight_video",
+  "discord-video": "integrations:discord_video",
+  "demodesk-video": "integrations:demodesk_video",
+  "campfire-video": "integrations:campfire_video",
+  "around-video": "integrations:around_video",
+} as const;
 
 function transformLocation<T extends InputLocation_2024_06_14>(location: T) {
   const { type } = location;

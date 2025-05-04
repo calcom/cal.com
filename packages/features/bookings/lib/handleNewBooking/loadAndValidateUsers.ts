@@ -1,9 +1,9 @@
 import type { Prisma } from "@prisma/client";
-import type { IncomingMessage } from "http";
 import type { Logger } from "tslog";
 
-import { findQualifiedHostsWithDwdCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDwdCredentials";
-import { enrichUsersWithDwdCredentials } from "@calcom/lib/domainWideDelegation/server";
+import { checkIfUsersAreBlocked } from "@calcom/features/watchlist/operations/check-if-users-are-blocked.controller";
+import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
+import { enrichUsersWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
@@ -16,8 +16,8 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
+import type { NewBookingEventType } from "./getEventTypesFromDB";
 import { loadUsers } from "./loadUsers";
-import type { NewBookingEventType } from "./types";
 
 type Users = (Awaited<ReturnType<typeof loadUsers>>[number] & {
   isFixed?: boolean;
@@ -25,7 +25,10 @@ type Users = (Awaited<ReturnType<typeof loadUsers>>[number] & {
   createdAt?: Date;
 })[];
 
-export type UsersWithDwdCredentials = (Omit<Awaited<ReturnType<typeof loadUsers>>[number], "credentials"> & {
+export type UsersWithDelegationCredentials = (Omit<
+  Awaited<ReturnType<typeof loadUsers>>[number],
+  "credentials"
+> & {
   isFixed?: boolean;
   metadata?: Prisma.JsonValue;
   createdAt?: Date;
@@ -50,7 +53,6 @@ type EventType = Pick<
 >;
 
 type InputProps = {
-  req: IncomingMessage;
   eventType: EventType;
   eventTypeId: number;
   dynamicUserList: string[];
@@ -59,10 +61,12 @@ type InputProps = {
   contactOwnerEmail: string | null;
   rescheduleUid: string | null;
   routingFormResponse: RoutingFormResponse | null;
+  isPlatform: boolean;
+  hostname: string | undefined;
+  forcedSlug: string | undefined;
 };
 
 export async function loadAndValidateUsers({
-  req,
   eventType,
   eventTypeId,
   dynamicUserList,
@@ -71,15 +75,20 @@ export async function loadAndValidateUsers({
   contactOwnerEmail,
   rescheduleUid,
   routingFormResponse,
+  isPlatform,
+  hostname,
+  forcedSlug,
 }: InputProps): Promise<{
-  qualifiedRRUsers: UsersWithDwdCredentials;
-  additionalFallbackRRUsers: UsersWithDwdCredentials;
-  fixedUsers: UsersWithDwdCredentials;
+  qualifiedRRUsers: UsersWithDelegationCredentials;
+  additionalFallbackRRUsers: UsersWithDelegationCredentials;
+  fixedUsers: UsersWithDelegationCredentials;
 }> {
   let users: Users = await loadUsers({
     eventType,
     dynamicUserList,
-    req,
+    hostname: hostname || "",
+    forcedSlug,
+    isPlatform,
     routedTeamMemberIds,
     contactOwnerEmail,
   });
@@ -117,6 +126,12 @@ export async function loadAndValidateUsers({
   }
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+
+  // Determine if users are locked
+  const containsBlockedUser = await checkIfUsersAreBlocked(users);
+
+  if (containsBlockedUser) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+
   // map fixed users
   users = users.map((user) => ({
     ...user,
@@ -125,13 +140,14 @@ export async function loadAndValidateUsers({
         ? false
         : user.isFixed || eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
   }));
-  const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } = await findQualifiedHostsWithDwdCredentials({
-    eventType,
-    routedTeamMemberIds: routedTeamMemberIds || [],
-    rescheduleUid,
-    contactOwnerEmail,
-    routingFormResponse,
-  });
+  const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } =
+    await findQualifiedHostsWithDelegationCredentials({
+      eventType,
+      routedTeamMemberIds: routedTeamMemberIds || [],
+      rescheduleUid,
+      contactOwnerEmail,
+      routingFormResponse,
+    });
   const allQualifiedHostsHashMap = [...qualifiedRRHosts, ...(allFallbackRRHosts ?? []), ...fixedHosts].reduce(
     (acc, host) => {
       if (host.user.id) {
@@ -141,14 +157,14 @@ export async function loadAndValidateUsers({
     },
     {} as {
       [key: number]: Awaited<
-        ReturnType<typeof findQualifiedHostsWithDwdCredentials>
+        ReturnType<typeof findQualifiedHostsWithDelegationCredentials>
       >["qualifiedRRHosts"][number];
     }
   );
 
-  let qualifiedRRUsers: UsersWithDwdCredentials = [];
-  let allFallbackRRUsers: UsersWithDwdCredentials = [];
-  let fixedUsers: UsersWithDwdCredentials = [];
+  let qualifiedRRUsers: UsersWithDelegationCredentials = [];
+  let allFallbackRRUsers: UsersWithDelegationCredentials = [];
+  let fixedUsers: UsersWithDelegationCredentials = [];
 
   if (qualifiedRRHosts.length) {
     // remove users that are not in the qualified hosts array
@@ -189,14 +205,14 @@ export async function loadAndValidateUsers({
       memberId: firstUser.id ?? null,
       teamId: eventType.teamId,
     });
-    const usersEnrichedWithDwd = await enrichUsersWithDwdCredentials({
+    const usersEnrichedWithDelegationCredential = await enrichUsersWithDelegationCredentials({
       orgId: firstUserOrgId ?? null,
       users,
     });
     return {
       qualifiedRRUsers,
       additionalFallbackRRUsers, // without qualified
-      fixedUsers: usersEnrichedWithDwd,
+      fixedUsers: usersEnrichedWithDelegationCredential,
     };
   }
 

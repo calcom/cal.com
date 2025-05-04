@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import type { ValidationArguments, ValidationOptions } from "class-validator";
 import {
@@ -17,36 +17,84 @@ import {
   Min,
   registerDecorator,
   Validate,
+  IsDefined,
 } from "class-validator";
 import { isValidPhoneNumber } from "libphonenumber-js";
 
 import type { BookingLanguageType } from "./language";
 import { BookingLanguage } from "./language";
+import type { BookingInputLocation_2024_08_13 } from "./location.input";
+import {
+  BookingInputAddressLocation_2024_08_13,
+  BookingInputAttendeeAddressLocation_2024_08_13,
+  BookingInputAttendeeDefinedLocation_2024_08_13,
+  BookingInputAttendeePhoneLocation_2024_08_13,
+  BookingInputIntegrationLocation_2024_08_13,
+  BookingInputLinkLocation_2024_08_13,
+  BookingInputPhoneLocation_2024_08_13,
+  BookingInputOrganizersDefaultAppLocation_2024_08_13,
+  ValidateBookingLocation_2024_08_13,
+} from "./location.input";
 import { ValidateMetadata } from "./validators/validate-metadata";
 
-function RequireEmailOrPhone(validationOptions?: ValidationOptions) {
-  return function (target: object, propertyName: string) {
-    registerDecorator({
-      name: "requireEmailOrPhone",
-      target: target.constructor,
-      propertyName: propertyName,
-      options: validationOptions,
-      validator: {
-        validate(value: any, args: ValidationArguments) {
-          const obj = args.object as Attendee;
+export const FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE =
+  "Either eventTypeId or eventTypeSlug + username or eventTypeSlug + teamSlug must be provided";
 
-          const hasPhoneNumber = !!obj.phoneNumber && obj.phoneNumber.trim().length > 0;
-          const hasEmail = !!obj.email && obj.email.trim().length > 0;
-          return hasPhoneNumber || hasEmail;
+function RequireEventTypeIdentification(validationOptions?: ValidationOptions) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return function (object: any) {
+    registerDecorator({
+      name: "requireEventTypeIdentification",
+      target: object,
+      propertyName: "eventTypeId or eventTypeSlug + username",
+      options: validationOptions,
+      constraints: [],
+      validator: {
+        validate(_: unknown, args: ValidationArguments) {
+          const obj = args.object as CreateBookingInput_2024_08_13;
+
+          const hasEventTypeId = !!obj?.eventTypeId;
+
+          const hasSlugAndUsername = !!obj?.eventTypeSlug && !!obj?.username;
+
+          const hasSlugAndTeamSlug = !!obj?.eventTypeSlug && !!obj?.teamSlug;
+
+          return hasEventTypeId || hasSlugAndUsername || hasSlugAndTeamSlug;
         },
         defaultMessage(): string {
-          return "At least one contact method (email or phone number) must be provided";
+          return FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE;
         },
       },
     });
   };
 }
 
+function RequireEmailOrPhone(validationOptions?: ValidationOptions) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return function (object: any) {
+    registerDecorator({
+      name: "requireEmailOrPhone",
+      target: object,
+      propertyName: "attendee email or phone",
+      options: validationOptions,
+      constraints: [],
+      validator: {
+        validate(_: unknown, args: ValidationArguments) {
+          const obj = args.object as Attendee;
+
+          const hasPhoneNumber = !!obj.phoneNumber;
+          const hasEmail = !!obj.email;
+          return hasPhoneNumber || hasEmail;
+        },
+        defaultMessage(): string {
+          return "Attendee must have at least one contact method (email or phone number)";
+        },
+      },
+    });
+  };
+}
+
+@RequireEmailOrPhone()
 class Attendee {
   @ApiProperty({
     type: String,
@@ -65,7 +113,6 @@ class Attendee {
   @Validate((value: string) => !value || isEmail(value), {
     message: "Invalid email format",
   })
-  @RequireEmailOrPhone()
   email?: string;
 
   @ApiProperty({
@@ -98,6 +145,18 @@ class Attendee {
   language?: BookingLanguageType;
 }
 
+@ApiExtraModels(
+  BookingInputAddressLocation_2024_08_13,
+  BookingInputAttendeeAddressLocation_2024_08_13,
+  BookingInputAttendeeDefinedLocation_2024_08_13,
+  BookingInputAttendeePhoneLocation_2024_08_13,
+  BookingInputIntegrationLocation_2024_08_13,
+  BookingInputLinkLocation_2024_08_13,
+  BookingInputPhoneLocation_2024_08_13,
+  BookingInputOrganizersDefaultAppLocation_2024_08_13,
+  ValidateBookingLocation_2024_08_13
+)
+@RequireEventTypeIdentification()
 export class CreateBookingInput_2024_08_13 {
   @ApiProperty({
     type: String,
@@ -107,31 +166,75 @@ export class CreateBookingInput_2024_08_13 {
   @IsDateString()
   start!: string;
 
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  @ApiPropertyOptional({
-    example: 30,
-    description: `If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.
-    If not provided then event type default length will be used for the booking.`,
-  })
-  lengthInMinutes?: number;
-
-  @ApiProperty({
-    type: Number,
-    description: "The ID of the event type that is booked.",
-    example: 123,
-  })
-  @IsInt()
-  eventTypeId!: number;
-
   @ApiProperty({
     type: Attendee,
     description: "The attendee's details.",
   })
+  @IsDefined()
   @ValidateNested()
   @Type(() => Attendee)
   attendee!: Attendee;
+
+  @ApiPropertyOptional({
+    type: Object,
+    description:
+      "Booking field responses consisting of an object with booking field slug as keys and user response as values for custom booking fields added by you.",
+    example: { customField: "customValue" },
+    required: false,
+  })
+  @IsObject()
+  @IsOptional()
+  bookingFieldsResponses?: Record<string, unknown>;
+
+  @ApiPropertyOptional({
+    type: Number,
+    description:
+      "The ID of the event type that is booked. Required unless eventTypeSlug and username are provided as an alternative to identifying the event type.",
+    example: 123,
+  })
+  @IsOptional()
+  @IsInt()
+  eventTypeId?: number;
+
+  @ApiPropertyOptional({
+    type: String,
+    description:
+      "The slug of the event type. Required along with username / teamSlug and optionally organizationSlug if eventTypeId is not provided.",
+    example: "my-event-type",
+  })
+  @IsOptional()
+  @IsString()
+  eventTypeSlug?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description:
+      "The username of the event owner. Required along with eventTypeSlug and optionally organizationSlug if eventTypeId is not provided.",
+    example: "john-doe",
+  })
+  @IsOptional()
+  @IsString()
+  username?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description:
+      "Team slug for team that owns event type for which slots are fetched. Required along with eventTypeSlug and optionally organizationSlug if the team is part of organization",
+    example: "john-doe",
+  })
+  @IsOptional()
+  @IsString()
+  teamSlug?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description:
+      "The organization slug. Optional, only used when booking with eventTypeSlug + username or eventTypeSlug + teamSlug.",
+    example: "acme-corp",
+  })
+  @IsOptional()
+  @IsString()
+  organizationSlug?: string;
 
   @ApiPropertyOptional({
     type: [String],
@@ -155,14 +258,25 @@ export class CreateBookingInput_2024_08_13 {
   @IsOptional()
   meetingUrl?: string;
 
-  @ApiPropertyOptional({
-    type: String,
-    description: "Location for this booking. Displayed in email and calendar event.",
-    example: "https://example.com/meeting",
-    required: false,
-  })
   @IsOptional()
-  location?: string;
+  @ValidateBookingLocation_2024_08_13()
+  @ApiPropertyOptional({
+    description:
+      "One of the event type locations. If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
+    oneOf: [
+      { $ref: getSchemaPath(BookingInputAddressLocation_2024_08_13) },
+      { $ref: getSchemaPath(BookingInputAttendeeAddressLocation_2024_08_13) },
+      { $ref: getSchemaPath(BookingInputAttendeeDefinedLocation_2024_08_13) },
+      { $ref: getSchemaPath(BookingInputAttendeePhoneLocation_2024_08_13) },
+      { $ref: getSchemaPath(BookingInputIntegrationLocation_2024_08_13) },
+      { $ref: getSchemaPath(BookingInputLinkLocation_2024_08_13) },
+      { $ref: getSchemaPath(BookingInputPhoneLocation_2024_08_13) },
+      { $ref: getSchemaPath(BookingInputOrganizersDefaultAppLocation_2024_08_13) },
+    ],
+  })
+  @Type(() => Object)
+  // note(Lauris): string is for backwards compatability
+  location?: BookingInputLocation_2024_08_13 | string;
 
   @ApiProperty({
     type: Object,
@@ -179,16 +293,15 @@ export class CreateBookingInput_2024_08_13 {
   })
   metadata?: Record<string, string>;
 
-  @ApiPropertyOptional({
-    type: Object,
-    description:
-      "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
-    example: { customField: "customValue" },
-    required: false,
-  })
-  @IsObject()
   @IsOptional()
-  bookingFieldsResponses?: Record<string, unknown>;
+  @IsInt()
+  @Min(1)
+  @ApiPropertyOptional({
+    example: 30,
+    description: `If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.
+    If not provided then event type default length will be used for the booking.`,
+  })
+  lengthInMinutes?: number;
 }
 
 export class CreateInstantBookingInput_2024_08_13 extends CreateBookingInput_2024_08_13 {

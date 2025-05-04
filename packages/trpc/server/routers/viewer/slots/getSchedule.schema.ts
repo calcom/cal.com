@@ -1,7 +1,3 @@
-import type { z } from "zod";
+import type { TGetScheduleInputSchema as TGetScheduleInput } from "./types";
 
-import { getScheduleSchema } from "./types";
-
-export const ZGetScheduleInputSchema = getScheduleSchema;
-
-export type TGetScheduleInputSchema = z.infer<typeof ZGetScheduleInputSchema>;
+export type TGetScheduleInputSchema = TGetScheduleInput;

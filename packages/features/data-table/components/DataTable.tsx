@@ -2,14 +2,17 @@
 
 import type { Row } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
-import type { Table as ReactTableType, Header } from "@tanstack/react-table";
-import { useVirtualizer, type Virtualizer } from "@tanstack/react-virtual";
+import type { Table as ReactTableType, Header, HeaderGroup } from "@tanstack/react-table";
+import { useVirtualizer, type Virtualizer, type VirtualItem } from "@tanstack/react-virtual";
 // eslint-disable-next-line no-restricted-imports
 import kebabCase from "lodash/kebabCase";
-import { usePathname } from "next/navigation";
-import { useEffect, useState, memo } from "react";
+import { useEffect, useState, memo, useMemo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
+import { Command, CommandList, CommandItem } from "@calcom/ui/components/command";
+import { Icon } from "@calcom/ui/components/icon";
+import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";
 import {
   TableNew,
   TableBody,
@@ -17,38 +20,35 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  Command,
-  CommandList,
-  CommandItem,
-  Icon,
-} from "@calcom/ui";
-import classNames from "@calcom/ui/classNames";
+} from "@calcom/ui/components/table";
 
 import { useColumnSizingVars } from "../hooks";
-import { usePersistentColumnResizing } from "../lib/resizing";
+import { useColumnResizing } from "../hooks/useColumnResizing";
 
-export type DataTableProps<TData, TValue> = {
+export type DataTablePropsFromWrapper<TData> = {
   table: ReactTableType<TData>;
   tableContainerRef: React.RefObject<HTMLDivElement>;
   isPending?: boolean;
-  onRowMouseclick?: (row: Row<TData>) => void;
-  onScroll?: (e: Pick<React.UIEvent<HTMLDivElement, UIEvent>, "target">) => void;
-  tableOverlay?: React.ReactNode;
   variant?: "default" | "compact";
   testId?: string;
   bodyTestId?: string;
-  hideHeader?: boolean;
   children?: React.ReactNode;
-  identifier?: string;
   enableColumnResizing?: boolean;
   className?: string;
   containerClassName?: string;
+  headerClassName?: string;
+  rowClassName?: string;
+  paginationMode?: "infinite" | "standard";
 };
 
-export function DataTable<TData, TValue>({
+export type DataTableProps<TData> = DataTablePropsFromWrapper<TData> & {
+  onRowMouseclick?: (row: Row<TData>) => void;
+  onScroll?: (e: Pick<React.UIEvent<HTMLDivElement, UIEvent>, "target">) => void;
+  tableOverlay?: React.ReactNode;
+  enableColumnResizing?: boolean;
+};
+
+export function DataTable<TData>({
   table,
   tableContainerRef,
   isPending,
@@ -56,26 +56,22 @@ export function DataTable<TData, TValue>({
   onRowMouseclick,
   onScroll,
   children,
-  hideHeader,
-  identifier: _identifier,
   enableColumnResizing,
   testId,
   bodyTestId,
   className,
   containerClassName,
+  headerClassName,
+  rowClassName,
+  paginationMode = "infinite",
   ...rest
-}: DataTableProps<TData, TValue> & React.ComponentPropsWithoutRef<"div">) {
-  const pathname = usePathname() as string | null;
-  const identifier = _identifier ?? pathname ?? undefined;
-
+}: DataTableProps<TData> & React.ComponentPropsWithoutRef<"div">) {
   const { rows } = table.getRowModel();
 
-  // https://stackblitz.com/github/tanstack/table/tree/main/examples/react/virtualized-infinite-scrolling
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     estimateSize: () => 100,
     getScrollElement: () => tableContainerRef.current,
-    // measure dynamic row height, except in firefox because it measures table border height incorrectly
     measureElement:
       typeof window !== "undefined" && navigator.userAgent.indexOf("Firefox") === -1
         ? (element) => element?.getBoundingClientRect().height
@@ -83,8 +79,10 @@ export function DataTable<TData, TValue>({
     overscan: 10,
   });
 
+  const virtualItemsCount = rowVirtualizer.getVirtualItems().length;
+
   useEffect(() => {
-    if (rowVirtualizer.getVirtualItems().length >= rows.length && tableContainerRef.current) {
+    if (paginationMode === "infinite" && virtualItemsCount >= rows.length && tableContainerRef.current) {
       const target = tableContainerRef.current;
       // Right after the last row is rendered, tableContainer's scrollHeight is
       // temporarily larger than the actual height of the table, so we need to
@@ -94,15 +92,14 @@ export function DataTable<TData, TValue>({
         onScroll?.({ target });
       }, 100);
     }
-  }, [rowVirtualizer.getVirtualItems().length, rows.length, tableContainerRef.current]);
+  }, [virtualItemsCount, rows.length, tableContainerRef.current, paginationMode, onScroll]);
 
   const columnSizingVars = useColumnSizingVars({ table });
 
-  usePersistentColumnResizing({
-    enabled: Boolean(enableColumnResizing && identifier),
+  useColumnResizing({
+    enabled: Boolean(enableColumnResizing),
     table,
     tableContainerRef,
-    identifier,
   });
 
   return (
@@ -131,8 +128,9 @@ export function DataTable<TData, TValue>({
         ref={tableContainerRef}
         onScroll={onScroll}
         className={classNames(
-          "relative h-[80dvh] overflow-auto", // Set a fixed height for the container
+          "relative overflow-auto",
           "scrollbar-thin border-subtle relative rounded-md border",
+          paginationMode === "infinite" && "h-[80dvh]", // Set a fixed height for the container
           containerClassName
         )}
         style={{ gridArea: "body" }}>
@@ -142,44 +140,42 @@ export function DataTable<TData, TValue>({
             ...columnSizingVars,
             ...(Boolean(enableColumnResizing) && { width: table.getTotalSize() }),
           }}>
-          {!hideHeader && (
-            <TableHeader className="sticky top-0 z-10">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id} className="hover:bg-subtle flex w-full">
-                  {headerGroup.headers.map((header) => {
-                    const { column } = header;
-                    return (
-                      <TableHead
-                        key={header.id}
-                        style={{
-                          ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
-                          ...(column.getIsPinned() === "right" && { right: `${column.getStart("right")}px` }),
-                          width: `var(--header-${kebabCase(header?.id)}-size)`,
-                        }}
-                        className={classNames(
-                          "relative flex shrink-0 items-center",
-                          "bg-subtle",
-                          column.getIsPinned() && "top-0 z-20 sm:sticky"
-                        )}>
-                        <TableHeadLabel header={header} />
-                        {Boolean(enableColumnResizing) && header.column.getCanResize() && (
-                          <div
-                            onMouseDown={header.getResizeHandler()}
-                            onTouchStart={header.getResizeHandler()}
-                            className={classNames(
-                              "group absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-[0.1] hover:opacity-50",
-                              header.column.getIsResizing() && "!opacity-75"
-                            )}>
-                            <div className="bg-inverted mx-auto h-full w-[1px]" />
-                          </div>
-                        )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-          )}
+          <TableHeader className={classNames("sticky top-0 z-10", headerClassName)}>
+            {table.getHeaderGroups().map((headerGroup: HeaderGroup<TData>) => (
+              <TableRow key={headerGroup.id} className="hover:bg-subtle flex w-full">
+                {headerGroup.headers.map((header: Header<TData, unknown>) => {
+                  const { column } = header;
+                  return (
+                    <TableHead
+                      key={header.id}
+                      style={{
+                        ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
+                        ...(column.getIsPinned() === "right" && { right: `${column.getStart("right")}px` }),
+                        width: `var(--header-${kebabCase(header?.id)}-size)`,
+                      }}
+                      className={classNames(
+                        "relative flex shrink-0 items-center",
+                        "bg-subtle",
+                        column.getIsPinned() && "top-0 z-20 sm:sticky"
+                      )}>
+                      <TableHeadLabel header={header} />
+                      {Boolean(enableColumnResizing) && header.column.getCanResize() && (
+                        <div
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          className={classNames(
+                            "group absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-[0.1] hover:opacity-50",
+                            header.column.getIsResizing() && "!opacity-75"
+                          )}>
+                          <div className="bg-inverted mx-auto h-full w-[1px]" />
+                        </div>
+                      )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
           {/* When resizing any column we will render this special memoized version of our table body */}
           {table.getState().columnSizingInfo.isResizingColumn ? (
             <MemoizedTableBody
@@ -190,6 +186,8 @@ export function DataTable<TData, TValue>({
               variant={variant}
               isPending={isPending}
               onRowMouseclick={onRowMouseclick}
+              paginationMode={paginationMode}
+              rowClassName={rowClassName}
             />
           ) : (
             <DataTableBody
@@ -200,6 +198,8 @@ export function DataTable<TData, TValue>({
               variant={variant}
               isPending={isPending}
               onRowMouseclick={onRowMouseclick}
+              paginationMode={paginationMode}
+              rowClassName={rowClassName}
             />
           )}
         </TableNew>
@@ -218,7 +218,9 @@ const MemoizedTableBody = memo(
     prev.testId === next.testId &&
     prev.variant === next.variant &&
     prev.isPending === next.isPending &&
-    prev.onRowMouseclick === next.onRowMouseclick
+    prev.onRowMouseclick === next.onRowMouseclick &&
+    prev.paginationMode === next.paginationMode &&
+    prev.rowClassName === next.rowClassName
 ) as typeof DataTableBody;
 
 type DataTableBodyProps<TData> = {
@@ -229,6 +231,13 @@ type DataTableBodyProps<TData> = {
   variant?: "default" | "compact";
   isPending?: boolean;
   onRowMouseclick?: (row: Row<TData>) => void;
+  paginationMode?: "infinite" | "standard";
+  rowClassName?: string;
+};
+
+type RowToRender<TData> = {
+  row: Row<TData>;
+  virtualItem?: VirtualItem;
 };
 
 function DataTableBody<TData>({
@@ -239,60 +248,76 @@ function DataTableBody<TData>({
   variant,
   isPending,
   onRowMouseclick,
-}: DataTableBodyProps<TData>) {
-  const virtualRows = rowVirtualizer.getVirtualItems();
-  return (
-    <TableBody
-      className="relative grid"
-      data-testid={testId}
-      style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
-      {virtualRows && !isPending ? (
-        virtualRows.map((virtualRow) => {
-          const row = rows[virtualRow.index] as Row<TData>;
-          return (
-            <TableRow
-              ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
-              key={row.id}
-              data-index={virtualRow.index} //needed for dynamic row height measurement
-              data-state={row.getIsSelected() && "selected"}
-              onClick={() => onRowMouseclick && onRowMouseclick(row)}
-              style={{
-                display: "flex",
-                position: "absolute",
-                transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
-                width: "100%",
-              }}
-              className={classNames(onRowMouseclick && "hover:cursor-pointer", "group")}>
-              {row.getVisibleCells().map((cell) => {
-                const column = cell.column;
-                return (
-                  <TableCell
-                    key={cell.id}
-                    style={{
-                      ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
-                      ...(column.getIsPinned() === "right" && { right: `${column.getStart("right")}px` }),
-                      width: `var(--col-${kebabCase(cell.column.id)}-size)`,
-                    }}
-                    className={classNames(
-                      "flex shrink-0 items-center overflow-hidden",
-                      variant === "compact" && "p-0",
-                      column.getIsPinned() &&
-                        "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle sm:sticky"
-                    )}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                );
-              })}
-            </TableRow>
-          );
-        })
-      ) : (
+  paginationMode,
+  rowClassName,
+}: DataTableBodyProps<TData> & { paginationMode?: "infinite" | "standard" }) {
+  const { t } = useLocale();
+  const virtualItems = rowVirtualizer.getVirtualItems();
+  const tableHeight = paginationMode === "infinite" ? rowVirtualizer.getTotalSize() : "auto";
+
+  const rowsToRender = useMemo<RowToRender<TData>[]>(
+    () =>
+      paginationMode === "infinite"
+        ? virtualItems.map((virtualItem) => ({
+            row: rows[virtualItem.index] as Row<TData>,
+            virtualItem,
+          }))
+        : rows.map((row) => ({ row })),
+    [paginationMode, virtualItems, rows]
+  );
+
+  if (!isPending && rowsToRender.length === 0) {
+    return (
+      <TableBody className="relative grid" data-testid={testId} style={{ height: tableHeight }}>
         <TableRow>
           <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
-            No results.
+            {t("no_results")}
           </TableCell>
         </TableRow>
-      )}
+      </TableBody>
+    );
+  }
+
+  return (
+    <TableBody className="relative grid" data-testid={testId} style={{ height: tableHeight }}>
+      {rowsToRender.map(({ row, virtualItem }) => (
+        <TableRow
+          ref={virtualItem ? (node) => rowVirtualizer.measureElement(node) : undefined}
+          key={row.id}
+          data-index={virtualItem?.index} //needed for dynamic row height measurement
+          data-state={row.getIsSelected() && "selected"}
+          onClick={() => onRowMouseclick && onRowMouseclick(row)}
+          style={{
+            display: "flex",
+            ...(virtualItem && {
+              position: "absolute",
+              transform: `translateY(${virtualItem.start}px)`,
+              width: "100%",
+            }),
+          }}
+          className={classNames(onRowMouseclick && "hover:cursor-pointer", "group", rowClassName)}>
+          {row.getVisibleCells().map((cell) => {
+            const column = cell.column;
+            return (
+              <TableCell
+                key={cell.id}
+                style={{
+                  ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
+                  ...(column.getIsPinned() === "right" && { right: `${column.getStart("right")}px` }),
+                  width: `var(--col-${kebabCase(cell.column.id)}-size)`,
+                }}
+                className={classNames(
+                  "flex shrink-0 items-center overflow-hidden",
+                  variant === "compact" && "p-0",
+                  column.getIsPinned() &&
+                    "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle sm:sticky"
+                )}>
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </TableCell>
+            );
+          })}
+        </TableRow>
+      ))}
     </TableBody>
   );
 }

@@ -1,7 +1,9 @@
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { DataTableSelectionBar } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { ConfirmationDialogContent, Dialog, DialogTrigger, showToast } from "@calcom/ui";
+import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { showToast } from "@calcom/ui/components/toast";
 
 import type { UserTableUser } from "../types";
 
@@ -15,22 +17,9 @@ export function DeleteBulkUsers({ users, onRemove }: Props) {
   const selectedRows = users; // Get selected rows from table
   const utils = trpc.useUtils();
   const deleteMutation = trpc.viewer.organizations.bulkDeleteUsers.useMutation({
-    onSuccess: (_, { userIds }) => {
+    onSuccess: () => {
       showToast("Deleted Users", "success");
-      utils.viewer.organizations.listMembers.setInfiniteData(
-        { limit: 10, searchTerm: "", expand: ["attributes"] },
-        // @ts-expect-error - infinite data types are not correct
-        (oldData) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            pages: oldData.pages.map((page) => ({
-              ...page,
-              rows: page.rows.filter((user) => !userIds.includes(user.id)),
-            })),
-          };
-        }
-      );
+      utils.viewer.organizations.listMembers.invalidate();
     },
     onError: (error) => {
       showToast(error.message, "error");

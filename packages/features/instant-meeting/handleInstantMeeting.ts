@@ -143,14 +143,8 @@ const triggerBrowserNotifications = async (args: {
       title: title,
       body: "User is waiting for you to join. Click to Connect",
       url: connectAndJoinUrl,
-      actions: [
-        {
-          action: "connect-action",
-          title: "Connect and join",
-          type: "button",
-          image: "https://cal.com/api/logo?type=icon",
-        },
-      ],
+      type: "INSTANT_MEETING",
+      requireInteraction: false,
     });
   });
 
@@ -183,7 +177,7 @@ async function handler(req: NextApiRequest) {
     bookingFields: eventType.bookingFields,
   });
   const reqBody = await getBookingData({
-    req,
+    reqBody: req.body,
     eventType,
     schema,
   });

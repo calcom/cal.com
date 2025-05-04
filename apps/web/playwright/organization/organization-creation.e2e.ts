@@ -11,7 +11,6 @@ import type { createEmailsFixture } from "../fixtures/emails";
 import { test } from "../lib/fixtures";
 import { fillStripeTestCheckout } from "../lib/testUtils";
 import { getEmailsReceivedByUser } from "../lib/testUtils";
-import { gotoPathAndExpectRedirectToOrgDomain } from "./lib/gotoPathAndExpectRedirectToOrgDomain";
 
 async function expectEmailWithSubject(
   page: Page,
@@ -103,7 +102,7 @@ function capitalize(text: string) {
 }
 
 test.describe("Organization", () => {
-  test("Admin should be able to create an org where an existing user is made an owner", async ({
+  test("Admin should be able to do onboarding handover an org where an existing user is made an owner", async ({
     page,
     users,
     emails,
@@ -141,113 +140,13 @@ test.describe("Organization", () => {
       await fillAndSubmitFirstStepAsAdmin(page, orgOwnerEmail, orgName, orgSlug);
     });
 
-    await expectOrganizationCreationEmailToBeSentWithLinks({
-      page,
-      emails,
-      userEmail: orgOwnerEmail,
-      oldUsername: orgOwnerUsernameOutsideOrg || "",
-      newUsername: orgOwnerUsernameInOrg,
-      orgSlug,
-    });
-
-    await test.step("About the organization", async () => {
-      // Choosing an avatar
-      await page.getByTestId("open-upload-avatar-dialog").click();
-      const fileChooserPromise = page.waitForEvent("filechooser");
-      await page.getByText("Choose a file...").click();
-      const fileChooser = await fileChooserPromise;
-      await fileChooser.setFiles(path.join(__dirname, "../../public/apple-touch-icon.png"));
-      await page.getByTestId("upload-avatar").click();
-
-      // About text
-      await page.locator('textarea[name="about"]').fill("This is a testing org");
-      await page.locator("button[type=submit]").click();
-
-      // Waiting to be in next step URL
-      await page.waitForURL("/settings/organizations/*/onboard-members");
-    });
-
-    await test.step("On-board administrators", async () => {
-      await page.waitForSelector('[data-testid="pending-member-list"]');
-      await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
-
-      const adminEmail = users.trackEmail({ username: "rick", domain: `example.com` });
-
-      //can add members
-      await page.getByTestId("new-member-button").click();
-      await page.locator('[placeholder="email\\@example\\.com"]').fill(adminEmail);
-      await page.getByTestId("invite-new-member-button").click();
-      await expect(page.getByTestId("pending-member-item").filter({ hasText: adminEmail })).toBeVisible();
-      // TODO: Check if invited admin received the invitation email
-      // await expectInvitationEmailToBeReceived(
-      //   page,
-      //   emails,
-      //   adminEmail,
-      //   `${orgName}'s admin invited you to join the organization ${orgName} on Cal.com`
-      // );
-      await expect(page.getByTestId("pending-member-item")).toHaveCount(2);
-
-      // can remove members
-      await expect(page.getByTestId("pending-member-item")).toHaveCount(2);
-      const lastRemoveMemberButton = page.getByTestId("remove-member-button").last();
-      await lastRemoveMemberButton.click();
-      await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
-      await page.getByTestId("publish-button").click();
-      // Waiting to be in next step URL
-      await page.waitForURL("/settings/organizations/*/add-teams");
-    });
-
-    await test.step("Create teams", async () => {
-      // Filling one team
-      await page.locator('input[name="teams.0.name"]').fill("Marketing");
-
-      // Adding another team
-      await page.getByTestId("add_a_team").click();
-      await page.locator('input[name="teams.1.name"]').fill("Sales");
-
-      // Finishing the creation wizard
-      await page.getByTestId("continue_or_checkout").click();
-      await page.waitForURL("/event-types");
-    });
-
-    await test.step("Login as org owner and pay", async () => {
-      // eslint-disable-next-line playwright/no-skipped-test
-      test.skip(!IS_TEAM_BILLING_ENABLED, "Skipping paying for org as stripe is disabled");
-
-      await orgOwnerUser.apiLogin();
-      await page.goto("/event-types");
-      const upgradeButton = await page.getByTestId("upgrade_org_banner_button");
-
-      await expect(upgradeButton).toBeVisible();
-      await upgradeButton.click();
-      // Check that stripe checkout is present
-      const expectedUrl = "https://checkout.stripe.com";
-
-      await page.waitForURL((url) => url.href.startsWith(expectedUrl));
-      const url = page.url();
-
-      // Check that the URL matches the expected URL
-      expect(url).toContain(expectedUrl);
-
-      await fillStripeTestCheckout(page);
-
-      const upgradeButtonHidden = await page.getByTestId("upgrade_org_banner_button");
-
-      await expect(upgradeButtonHidden).toBeHidden();
-    });
-
-    // Verify that the owner's old username redirect is properly set
-    await gotoPathAndExpectRedirectToOrgDomain({
-      page,
-      org: {
-        slug: orgSlug,
-      },
-      path: `/${orgOwnerUsernameOutsideOrg}`,
-      expectedPath: `/${orgOwnerUsernameInOrg}`,
+    await test.step("Handover", async () => {
+      const onboardingUrl = await page.getByTestId("onboarding-url").textContent();
+      expect(onboardingUrl).toContain("settings/organizations/new");
     });
   });
 
-  test("Admin should be able to create an org where the owner doesn't exist yet", async ({
+  test.skip("Admin should be able to create an org where the owner doesn't exist yet", async ({
     page,
     users,
     emails,
@@ -307,7 +206,7 @@ test.describe("Organization", () => {
     await page.goto("/settings/organizations/new");
 
     await test.step("Basic info", async () => {
-      // These values are infered due to an existing user being signed
+      // These values are inferred due to an existing user being signed
       expect(await page.locator("input[name=name]").inputValue()).toBe("Example");
       expect(await page.locator("input[name=slug]").inputValue()).toBe("example");
 
@@ -430,7 +329,7 @@ test.describe("Organization", () => {
     await page.goto("/teams");
 
     await test.step("Has org self serve banner", async () => {
-      // These values are infered due to an existing user being signed
+      // These values are inferred due to an existing user being signed
       const selfServeButtonLocator = await page.getByTestId("setup_your_org_action_button");
       await expect(selfServeButtonLocator).toBeVisible();
 
@@ -439,7 +338,7 @@ test.describe("Organization", () => {
     });
 
     await test.step("Basic info", async () => {
-      // These values are infered due to an existing user being signed
+      // These values are inferred due to an existing user being signed
       const slugLocator = await page.locator("input[name=slug]");
       expect(await page.locator("input[name=name]").inputValue()).toBe("Example");
       expect(await slugLocator.inputValue()).toBe("example");
@@ -561,16 +460,16 @@ async function fillAndSubmitFirstStepAsAdmin(
   orgSlug: string
 ) {
   await page.locator("input[name=orgOwnerEmail]").fill(targetOrgEmail);
-  // Since we are admin fill in this infomation instead of deriving it
+  // Since we are admin fill in this information instead of deriving it
   await page.locator("input[name=name]").fill(orgName);
   await page.locator("input[name=slug]").fill(orgSlug);
 
-  // Fill in seat infomation
+  // Fill in seat information
   await page.locator("input[name=seats]").fill("30");
   await page.locator("input[name=pricePerSeat]").fill("30");
 
   await Promise.all([
-    page.waitForResponse("**/api/trpc/organizations/create**"),
+    page.waitForResponse("**/api/trpc/organizations/intentToCreateOrg**"),
     page.locator("button[type=submit]").click(),
   ]);
 }

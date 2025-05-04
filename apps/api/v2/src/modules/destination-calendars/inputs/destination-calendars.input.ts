@@ -28,7 +28,7 @@ export class DestinationCalendarsInputBodyDto {
   @ApiProperty({
     example: "https://caldav.icloud.com/26962146906/calendars/1644422A-1945-4438-BBC0-4F0Q23A57R7S/",
     description:
-      "Unique identifier used to represent the specfic calendar, as returned by the /calendars endpoint",
+      "Unique identifier used to represent the specific calendar, as returned by the /calendars endpoint",
     type: "string",
     required: true,
   })
@@ -37,5 +37,5 @@ export class DestinationCalendarsInputBodyDto {
   @IsString()
   @IsOptional()
   @ApiPropertyOptional()
-  readonly domainWideDelegationCredentialId?: string;
+  readonly delegationCredentialId?: string;
 }

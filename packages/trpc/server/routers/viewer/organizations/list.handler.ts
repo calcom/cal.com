@@ -1,6 +1,6 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
@@ -27,15 +27,15 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
   }
 
   const featureRepo = new FeaturesRepository();
-  const hasDomainWideDelegation = await featureRepo.checkIfTeamHasFeature(
+  const hasDelegationCredential = await featureRepo.checkIfTeamHasFeature(
     organizationId,
-    "domain-wide-delegation"
+    "delegation-credential"
   );
 
   return {
     ...currentOrg,
     features: {
-      domainWideDelegation: hasDomainWideDelegation,
+      delegationCredential: hasDelegationCredential,
     },
   };
 };

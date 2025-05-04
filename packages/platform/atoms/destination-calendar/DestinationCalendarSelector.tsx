@@ -6,7 +6,8 @@ import { SingleValueComponent } from "@calcom/features/calendars/DestinationCale
 import { OptionComponent } from "@calcom/features/calendars/DestinationCalendarSelector";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
-import { Badge, Select } from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
+import { Select } from "@calcom/ui/components/form";
 import classNames from "@calcom/ui/classNames";
 
 import { getPlaceholderContent } from "../lib/getPlaceholderContent";
@@ -14,11 +15,7 @@ import { getPlaceholderContent } from "../lib/getPlaceholderContent";
 export type DestinationCalendarProps = {
   connectedCalendars: ConnectedDestinationCalendars["connectedCalendars"];
   destinationCalendar: ConnectedDestinationCalendars["destinationCalendar"];
-  onChange: (value: {
-    externalId: string;
-    integration: string;
-    domainWideDelegationCredentialId?: string;
-  }) => void;
+  onChange: (value: { externalId: string; integration: string; delegationCredentialId?: string }) => void;
   isPending?: boolean;
   hidePlaceholder?: boolean;
   value: string | undefined;
@@ -41,7 +38,7 @@ export const DestinationCalendarSelector = ({
     value: string;
     label: string;
     subtitle: string;
-    domainWideDelegationCredentialId?: string;
+    delegationCredentialId?: string;
   } | null>(null);
 
   useEffect(() => {
@@ -82,7 +79,7 @@ export const DestinationCalendarSelector = ({
               selectedCalendar?.primary?.name
             })`,
             value: `${cal.integration}:${cal.externalId}`,
-            domainWideDelegationCredentialId: cal.domainWideDelegationCredentialId || undefined,
+            delegationCredentialId: cal.delegationCredentialId || undefined,
           })),
       })) ?? []
     );
@@ -141,7 +138,7 @@ export const DestinationCalendarSelector = ({
           onChange({
             integration,
             externalId,
-            domainWideDelegationCredentialId: newValue.domainWideDelegationCredentialId,
+            delegationCredentialId: newValue.delegationCredentialId,
           });
         }}
         isLoading={isPending}

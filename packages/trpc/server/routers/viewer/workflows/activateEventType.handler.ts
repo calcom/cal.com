@@ -8,7 +8,7 @@ import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
@@ -205,6 +205,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
             select: {
               schedulingType: true,
               slug: true,
+              customReplyToEmail: true,
               hosts: {
                 select: {
                   user: {
@@ -219,6 +220,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
                   },
                 },
               },
+              hideOrganizerEmail: true,
             },
           },
           user: true,
@@ -253,12 +255,14 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
           endTime: booking.endTime.toISOString(),
           title: booking.title,
           language: { locale: booking?.user?.locale || defaultLocale },
+          hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
           eventType: {
             slug: booking.eventType?.slug || "",
             schedulingType: booking.eventType?.schedulingType,
             hosts: booking.eventType?.hosts,
           },
           metadata: booking.metadata,
+          customReplyToEmail: booking.eventType?.customReplyToEmail,
         };
         for (const step of eventTypeWorkflow.steps) {
           if (
@@ -309,6 +313,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               template: step.template,
               sender: step.sender,
               workflowStepId: step.id,
+              verifiedAt: step.verifiedAt,
             });
           } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
             await scheduleSMSReminder({
@@ -326,6 +331,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               sender: step.sender,
               userId: booking.userId,
               teamId: eventTypeWorkflow.teamId,
+              verifiedAt: step.verifiedAt,
             });
           } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
             await scheduleWhatsappReminder({
@@ -342,6 +348,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               template: step.template,
               userId: booking.userId,
               teamId: eventTypeWorkflow.teamId,
+              verifiedAt: step.verifiedAt,
             });
           }
         }

@@ -5,7 +5,7 @@ import { z } from "zod";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { prisma } from "@calcom/prisma";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 
 type CheckForGCalOptions = {
   ctx: {

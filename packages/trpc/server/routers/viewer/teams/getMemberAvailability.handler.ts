@@ -1,8 +1,8 @@
-import { enrichUserWithDwdCredentialsWithoutOrgId } from "@calcom/lib/domainWideDelegation/server";
+import { enrichUserWithDelegationCredentialsWithoutOrgId } from "@calcom/lib/delegationCredential/server";
 import { getUserAvailability } from "@calcom/lib/getUserAvailability";
 import { isTeamMember } from "@calcom/lib/server/queries/teams";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
@@ -27,7 +27,7 @@ export const getMemberAvailabilityHandler = async ({ ctx, input }: GetMemberAvai
   if (!member.user.username)
     throw new TRPCError({ code: "BAD_REQUEST", message: "Member doesn't have a username" });
   const username = member.user.username;
-  const user = await enrichUserWithDwdCredentialsWithoutOrgId({
+  const user = await enrichUserWithDelegationCredentialsWithoutOrgId({
     user: member.user,
   });
 

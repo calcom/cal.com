@@ -1,6 +1,6 @@
 import { useId } from "@radix-ui/react-id";
 import * as React from "react";
-import type { GroupBase, Props, SingleValue, MultiValue } from "react-select";
+import type { GroupBase, SingleValue, MultiValue } from "react-select";
 import ReactSelect from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -9,17 +9,7 @@ import cx from "@calcom/ui/classNames";
 import { Label } from "../inputs/Label";
 import { inputStyles } from "../inputs/TextField";
 import { getReactSelectProps } from "./selectTheme";
-
-export type SelectProps<
-  Option,
-  IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>
-> = Props<Option, IsMulti, Group> & {
-  variant?: "default" | "checkbox";
-  "data-testid"?: string;
-  size?: "sm" | "md";
-  grow?: boolean;
-};
+import type { SelectProps } from "./types";
 
 export const Select = <
   Option,
@@ -91,7 +81,7 @@ export const Select = <
               ? "h-7 px-2"
               : "h-9 px-3",
             props.isDisabled && "bg-subtle",
-            size === "sm" ? "rounded-md" : "rounded-[10px]",
+            "rounded-[10px]",
             "[&:focus-within]:border-emphasis [&:focus-within]:shadow-outline-gray-focused [&:focus-within]:ring-0 !flex",
             innerClassNames?.control
           ),

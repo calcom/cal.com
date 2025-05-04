@@ -6,11 +6,11 @@ import { expect } from "@playwright/test";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
+import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
 import { entries } from "@calcom/prisma/zod-utils";
-import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import { test } from "./lib/fixtures";
 import {
@@ -28,7 +28,7 @@ test.afterEach(async ({ users }) => {
 // used as a multiplier for duration limits
 const EVENT_LENGTH = 30;
 
-// limits used when testing each limit seperately
+// limits used when testing each limit separately
 const BOOKING_LIMITS_SINGLE = {
   PER_DAY: 2,
   PER_WEEK: 2,

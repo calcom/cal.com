@@ -9,7 +9,7 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { enrichUserWithDwdCredentialsWithoutOrgId } from "../domainWideDelegation/server";
+import { enrichUserWithDelegationCredentialsWithoutOrgId } from "../delegationCredential/server";
 import { getBookerBaseUrl } from "../getBookerUrl/server";
 
 async function getEventType(id: number) {
@@ -41,7 +41,9 @@ export async function getBooking(bookingId: number) {
           length: true,
           price: true,
           requiresConfirmation: true,
+          hideOrganizerEmail: true,
           metadata: true,
+          customReplyToEmail: true,
           title: true,
           teamId: true,
           parentId: true,
@@ -103,11 +105,11 @@ export async function getBooking(bookingId: number) {
 
   const eventType = { ...eventTypeRaw, metadata: EventTypeMetaDataSchema.parse(eventTypeRaw?.metadata) };
 
-  const { user: userWithoutDwdCredentials } = booking;
+  const { user: userWithoutDelegationCredentials } = booking;
 
-  if (!userWithoutDwdCredentials) throw new HttpCode({ statusCode: 204, message: "No user found" });
-  const user = await enrichUserWithDwdCredentialsWithoutOrgId({
-    user: userWithoutDwdCredentials,
+  if (!userWithoutDelegationCredentials) throw new HttpCode({ statusCode: 204, message: "No user found" });
+  const user = await enrichUserWithDelegationCredentialsWithoutOrgId({
+    user: userWithoutDelegationCredentials,
   });
 
   const t = await getTranslation(user.locale ?? "en", "common");
@@ -158,6 +160,7 @@ export async function getBooking(bookingId: number) {
       language: { translate: t, locale: user.locale ?? "en" },
       id: user.id,
     },
+    hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     team: !!booking.eventType?.team
       ? {
           name: booking.eventType.team.name,
@@ -170,6 +173,7 @@ export async function getBooking(bookingId: number) {
     uid: booking.uid,
     destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
     recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
+    customReplyToEmail: booking.eventType?.customReplyToEmail,
   };
 
   return {

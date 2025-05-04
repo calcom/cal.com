@@ -11,14 +11,11 @@ import type { CreationSource } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { TgetBookingDataSchema } from "../getBookingDataSchema";
-import type {
-  EventTypeId,
-  AwaitedBookingData,
-  NewBookingEventType,
-  PaymentAppData,
-  OriginalRescheduledBooking,
-  LoadedUsers,
-} from "./types";
+import type { AwaitedBookingData, EventTypeId } from "./getBookingData";
+import type { NewBookingEventType } from "./getEventTypesFromDB";
+import type { LoadedUsers } from "./loadUsers";
+import type { OriginalRescheduledBooking } from "./originalRescheduledBookingUtils";
+import type { PaymentAppData, Tracking } from "./types";
 
 type ReqBodyWithEnd = TgetBookingDataSchema & { end: string };
 
@@ -46,25 +43,23 @@ type CreateBookingParams = {
   input: {
     bookerEmail: AwaitedBookingData["email"];
     rescheduleReason: AwaitedBookingData["rescheduleReason"];
-    changedOrganizer: boolean;
     smsReminderNumber: AwaitedBookingData["smsReminderNumber"];
     responses: ReqBodyWithEnd["responses"] | null;
   };
   evt: CalendarEvent;
   originalRescheduledBooking: OriginalRescheduledBooking;
   creationSource?: CreationSource;
+  tracking?: Tracking;
 };
 
 function updateEventDetails(
   evt: CalendarEvent,
-  originalRescheduledBooking: OriginalRescheduledBooking | null,
-  changedOrganizer: boolean
+  originalRescheduledBooking: OriginalRescheduledBooking | null
 ) {
   if (originalRescheduledBooking) {
     evt.title = originalRescheduledBooking?.title || evt.title;
     evt.description = originalRescheduledBooking?.description || evt.description;
-    evt.location = originalRescheduledBooking?.location || evt.location;
-    evt.location = changedOrganizer ? evt.location : originalRescheduledBooking?.location || evt.location;
+    evt.location = evt.location || originalRescheduledBooking?.location;
   }
 }
 
@@ -88,8 +83,9 @@ export async function createBooking({
   reroutingFormResponses,
   rescheduledBy,
   creationSource,
+  tracking,
 }: CreateBookingParams & { rescheduledBy: string | undefined }) {
-  updateEventDetails(evt, originalRescheduledBooking, input.changedOrganizer);
+  updateEventDetails(evt, originalRescheduledBooking);
   const associatedBookingForFormResponse = routingFormResponseId
     ? await getAssociatedBookingForFormResponse(routingFormResponseId)
     : null;
@@ -105,6 +101,7 @@ export async function createBooking({
     evt,
     originalRescheduledBooking,
     creationSource,
+    tracking,
   });
 
   return await saveBooking(
@@ -216,6 +213,7 @@ function buildNewBookingData(params: CreateBookingParams) {
     reroutingFormResponses,
     rescheduledBy,
     creationSource,
+    tracking,
   } = params;
 
   const attendeesData = getAttendeesData(evt);
@@ -264,6 +262,7 @@ function buildNewBookingData(params: CreateBookingParams) {
       ? { connect: { id: routingFormResponseId } }
       : undefined,
     creationSource,
+    tracking: tracking ? { create: tracking } : undefined,
   };
 
   if (reqBody.recurringEventId) {

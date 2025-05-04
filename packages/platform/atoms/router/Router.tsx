@@ -2,7 +2,7 @@ import type { ReactElement } from "react";
 import React, { useState } from "react";
 
 import { BookerEmbed } from "../booker-embed";
-import type { BookerPlatformWrapperAtomPropsForTeam } from "../booker/BookerPlatformWrapper";
+import type { BookerPlatformWrapperAtomPropsForTeam } from "../booker/types";
 
 /**
  * Renders the Router component with predefined props.

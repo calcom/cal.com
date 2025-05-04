@@ -53,7 +53,6 @@ const integrationsValues = [
   "eightxeight-video",
   "discord-video",
   "demodesk-video",
-  "campsite-conferencing",
   "campfire-video",
   "around-video",
 ] as const;

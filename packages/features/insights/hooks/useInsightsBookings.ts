@@ -1,10 +1,4 @@
-import {
-  createColumnHelper,
-  useReactTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-} from "@tanstack/react-table";
+import { createColumnHelper, useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
 import { useMemo } from "react";
 
 import { ColumnFilterType } from "@calcom/features/data-table";
@@ -68,7 +62,6 @@ export const useInsightsBookings = () => {
     data: emptyData,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedUniqueValues: getInsightsFacetedUniqueValues,
   });

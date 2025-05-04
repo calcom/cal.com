@@ -7,7 +7,13 @@ import z from "zod";
 
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Button, EmailField, Form, PasswordField, SelectField, TextField } from "@calcom/ui";
+import { EmailField } from "@calcom/ui/components/form";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
+import { PasswordField } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { SelectField } from "@calcom/ui/components/form";
 
 import { ExchangeAuthentication, ExchangeVersion } from "../../enums";
 

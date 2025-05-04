@@ -15,7 +15,6 @@ import {
   getZoomAppCredential,
   getDefaultBookingFields,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
   // expectWorkflowToBeTriggered,
   expectSuccessfulBookingCreationEmails,
@@ -174,12 +173,9 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
             });
-
-            const createdBooking = await handleNewBooking(req);
 
             await expectBookingToBeInDatabase({
               description: "",
@@ -360,13 +356,10 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
-            });
-
             await expect(async () => {
-              await handleNewBooking(req);
+              await handleNewBooking({
+                bookingData: mockBookingData,
+              });
             }).rejects.toThrowError(ErrorCode.HostsUnavailableForBooking);
           },
           timeout
@@ -483,11 +476,9 @@ describe("handleNewBooking", () => {
                 },
               },
             });
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
             });
-            const createdBooking = await handleNewBooking(req);
             await expectBookingToBeInDatabase({
               description: "",
               location: BookingLocations.CalVideo,
@@ -713,12 +704,9 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
             });
-
-            const createdBooking = await handleNewBooking(req);
 
             await expectBookingToBeInDatabase({
               description: "",
@@ -951,12 +939,9 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
             });
-
-            const createdBooking = await handleNewBooking(req);
 
             await expectBookingToBeInDatabase({
               description: "",
@@ -1194,12 +1179,9 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
             });
-
-            const createdBooking = await handleNewBooking(req);
 
             await expectBookingToBeInDatabase({
               description: "",
@@ -1337,12 +1319,10 @@ describe("handleNewBooking", () => {
                 },
               },
             });
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
-            });
             await expect(async () => {
-              await handleNewBooking(req);
+              await handleNewBooking({
+                bookingData: mockBookingData,
+              });
             }).rejects.toThrowError(ErrorCode.NoAvailableUsersFound);
           },
           timeout
@@ -1450,11 +1430,9 @@ describe("handleNewBooking", () => {
               },
             },
           });
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
-          const createdBooking = await handleNewBooking(req);
           await expectBookingToBeInDatabase({
             description: "",
             location: BookingLocations.CalVideo,
@@ -1653,11 +1631,9 @@ describe("handleNewBooking", () => {
               },
             },
           });
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
-          const createdBooking = await handleNewBooking(req);
           await expectBookingToBeInDatabase({
             description: "",
             location: BookingLocations.ZoomVideo,
@@ -1861,11 +1837,9 @@ describe("handleNewBooking", () => {
               },
             },
           });
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
-          const createdBooking = await handleNewBooking(req);
           await expectBookingToBeInDatabase({
             description: "",
             location: BookingLocations.CalVideo,
@@ -2058,11 +2032,9 @@ describe("handleNewBooking", () => {
                 },
               },
             });
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
             });
-            const createdBooking = await handleNewBooking(req);
             await expectBookingToBeInDatabase({
               description: "",
               location: BookingLocations.CalVideo,
@@ -2227,21 +2199,15 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const { req: req1 } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData1,
+        const createdBooking1 = await handleNewBooking({
+          bookingData: mockBookingData1,
         });
-
-        const { req: req2 } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData2,
-        });
-
-        const createdBooking1 = await handleNewBooking(req1);
 
         expect(createdBooking1.userId).toBe(102);
 
-        const createdBooking2 = await handleNewBooking(req2);
+        const createdBooking2 = await handleNewBooking({
+          bookingData: mockBookingData2,
+        });
         expect(createdBooking2.userId).toBe(102);
       });
     });

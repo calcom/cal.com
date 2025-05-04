@@ -16,12 +16,15 @@ import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import {
   DataTable,
   DataTableProvider,
   DataTableToolbar,
   DataTableFilters,
   DataTableSelectionBar,
+  useDataTable,
   useFetchMoreOnBottomReached,
   useColumnFilters,
 } from "@calcom/features/data-table";
@@ -33,17 +36,17 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import {
-  Avatar,
-  Badge,
-  Button,
-  ButtonGroup,
-  Checkbox,
-  ConfirmationDialogContent,
-  Dialog,
-  DialogClose,
   DialogContent,
   DialogFooter,
+  DialogClose,
+  ConfirmationDialogContent,
+} from "@calcom/ui/components/dialog";
+import {
   Dropdown,
   DropdownItem,
   DropdownMenuPortal,
@@ -51,9 +54,10 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  showToast,
-  Tooltip,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { Checkbox } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";
@@ -169,13 +173,14 @@ function MemberListContent(props: Props) {
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
+  const { searchTerm } = useDataTable();
 
   const { data, isPending, hasNextPage, fetchNextPage, isFetching } =
     trpc.viewer.teams.listMembers.useInfiniteQuery(
       {
         limit: 10,
-        searchTerm: debouncedSearchTerm,
+        searchTerm,
         teamId: props.team.id,
         // TODO: send `columnFilters` to server for server side filtering
         // filters: columnFilters,
@@ -235,7 +240,7 @@ function MemberListContent(props: Props) {
       const previousValue = utils.viewer.teams.listMembers.getInfiniteData({
         limit: 10,
         teamId: teamIds[0],
-        searchTerm: debouncedSearchTerm,
+        searchTerm,
       });
 
       if (previousValue) {
@@ -243,7 +248,7 @@ function MemberListContent(props: Props) {
           utils,
           memberId: state.deleteMember.user?.id as number,
           teamId: teamIds[0],
-          searchTerm: debouncedSearchTerm,
+          searchTerm,
         });
       }
       return { previousValue };
@@ -275,9 +280,7 @@ function MemberListContent(props: Props) {
   //   return owners.length;
   // };
 
-  const isAdminOrOwner =
-    props.team.membership.role === MembershipRole.OWNER ||
-    props.team.membership.role === MembershipRole.ADMIN;
+  const isAdminOrOwner = checkAdminOrOwner(props.team.membership.role);
 
   const removeMember = () =>
     removeMemberMutation.mutate({
@@ -286,7 +289,7 @@ function MemberListContent(props: Props) {
       isOrg: checkIsOrg(props.team),
     });
 
-  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const totalRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
 
   const memorisedColumns = useMemo(() => {
     const cols: ColumnDef<User>[] = [
@@ -618,7 +621,7 @@ function MemberListContent(props: Props) {
     ];
 
     return cols;
-  }, [props.isOrgAdminOrOwner, dispatch, totalDBRowCount, session?.user.id]);
+  }, [props.isOrgAdminOrOwner, dispatch, totalRowCount, session?.user.id]);
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as User[];
 
@@ -666,7 +669,7 @@ function MemberListContent(props: Props) {
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
         <DataTableToolbar.Root>
           <div className="flex w-full gap-2">
-            <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
+            <DataTableToolbar.SearchBar />
             <DataTableFilters.AddFilterButton table={table} />
             <DataTableFilters.ColumnVisibilityButton table={table} />
             {isAdminOrOwner && (
@@ -686,12 +689,12 @@ function MemberListContent(props: Props) {
         </DataTableToolbar.Root>
 
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
-          <DataTableSelectionBar.Root className="!bottom-16 md:!bottom-20">
+          <DataTableSelectionBar.Root className="!bottom-[7.3rem] md:!bottom-32">
             <DynamicLink table={table} domain={domain} />
           </DataTableSelectionBar.Root>
         )}
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root className="justify-center">
+          <DataTableSelectionBar.Root className="!bottom-16 justify-center md:w-max">
             <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>

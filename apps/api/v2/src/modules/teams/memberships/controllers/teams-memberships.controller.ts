@@ -1,4 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
@@ -27,11 +28,11 @@ import {
   HttpStatus,
   Logger,
 } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries";
+import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries/event-types";
 import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
@@ -40,6 +41,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
 })
 @UseGuards(ApiAuthGuard, RolesGuard)
 @DocsTags("Teams / Memberships")
+@ApiHeader(API_KEY_HEADER)
 export class TeamsMembershipsController {
   private logger = new Logger("TeamsMembershipsController");
 

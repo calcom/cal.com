@@ -11,12 +11,18 @@ import { z } from "zod";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
 import type { DateOverride, WorkingHours } from "@calcom/lib/date-ranges";
 import { buildDateRanges, subtract } from "@calcom/lib/date-ranges";
+import { stringToDayjsZod } from "@calcom/lib/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
+import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
+import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
+import {
+  getBusyTimesFromLimits,
+  getBusyTimesFromTeamLimits,
+} from "@calcom/lib/intervalLimits/server/getBusyTimesFromLimits";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { findUsersForAvailabilityCheck } from "@calcom/lib/server/findUsersForAvailabilityCheck";
@@ -24,11 +30,10 @@ import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { EventTypeMetaDataSchema, stringToDayjsZod } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
 
-import { getBusyTimesFromLimits, getBusyTimesFromTeamLimits } from "./bookingLimits/getBusyTimesFromLimits";
 import { getBusyTimes } from "./getBusyTimes";
 import monitorCallbackAsync, { monitorCallbackSync } from "./sentryWrapper";
 

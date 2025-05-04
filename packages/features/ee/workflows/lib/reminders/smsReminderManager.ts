@@ -2,6 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { bulkShortenLinks } from "@calcom/ee/workflows/lib/reminders/utils";
 import { SENDER_ID, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
@@ -12,6 +13,8 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
 import { getSenderId } from "../alphanumericSenderIdSupport";
+import { WorkflowOptOutContactRepository } from "../repository/workflowOptOutContact";
+import { WorkflowOptOutService } from "../service/workflowOptOutService";
 import type { ScheduleReminderArgs } from "./emailReminderManager";
 import * as twilio from "./providers/twilioProvider";
 import type { VariablesType } from "./templates/customTemplate";
@@ -50,6 +53,7 @@ export type BookingInfo = {
   eventType?: {
     slug: string;
     recurringEvent?: RecurringEvent | null;
+    customReplyToEmail?: string | null;
   };
   startTime: string;
   endTime: string;
@@ -60,6 +64,7 @@ export type BookingInfo = {
   metadata?: Prisma.JsonValue;
   cancellationReason?: string | null;
   rescheduleReason?: string | null;
+  hideOrganizerEmail?: boolean;
 };
 
 export type ScheduleTextReminderAction = Extract<
@@ -74,6 +79,7 @@ export interface ScheduleTextReminderArgs extends ScheduleReminderArgs {
   teamId?: number | null;
   isVerificationPending?: boolean;
   prisma?: PrismaClient;
+  verifiedAt: Date | null;
 }
 
 export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
@@ -91,7 +97,21 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
     teamId,
     isVerificationPending = false,
     seatReferenceUid,
+    verifiedAt,
   } = args;
+
+  if (!verifiedAt) {
+    log.warn(`Workflow step ${workflowStepId} not yet verified`);
+    return;
+  }
+
+  if (reminderPhone && (await WorkflowOptOutContactRepository.isOptedOut(reminderPhone))) {
+    log.warn(
+      `Phone number opted out of SMS workflows`,
+      safeStringify({ workflowStep: workflowStepId, eventUid: evt.uid })
+    );
+    return;
+  }
 
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
@@ -199,6 +219,10 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
   log.debug(`Sending sms for trigger ${triggerEvent}`, smsMessage);
 
   if (smsMessage.length > 0 && reminderPhone && isNumberVerified) {
+    if (process.env.TWILIO_OPT_OUT_ENABLED === "true") {
+      smsMessage = await WorkflowOptOutService.addOptOutMessage(smsMessage, evt.organizer.language.locale);
+    }
+
     //send SMS when event is booked/cancelled/rescheduled
     if (
       triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||

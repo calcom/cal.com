@@ -7,7 +7,10 @@ import DisconnectIntegrationModal from "@calcom/features/apps/components/Disconn
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, EmptyScreen, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
 
 type ConferencingAppsViewWebWrapperProps = {
   title: string;
@@ -44,26 +47,26 @@ const InstalledConferencingApps = ({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
+  const { data: defaultConferencingApp } = trpc.viewer.apps.getUsersDefaultConferencingApp.useQuery();
 
-  const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation();
+  const updateDefaultAppMutation = trpc.viewer.apps.updateUserDefaultConferencingApp.useMutation();
 
   const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
 
   const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
     trpc.viewer.eventTypes.bulkEventFetch.useQuery();
 
-  const [result] = trpc.viewer.integrations.useSuspenseQuery({
+  const [result] = trpc.viewer.apps.integrations.useSuspenseQuery({
     variant: "conferencing",
     onlyInstalled: true,
   });
 
   const handleConnectDisconnectIntegrationMenuToggle = () => {
-    utils.viewer.integrations.invalidate();
+    utils.viewer.apps.integrations.invalidate();
   };
 
   const handleBulkEditDialogToggle = () => {
-    utils.viewer.getUsersDefaultConferencingApp.invalidate();
+    utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
   };
 
   const handleUpdateUserDefaultConferencingApp = ({
@@ -77,7 +80,7 @@ const InstalledConferencingApps = ({
       {
         onSuccess: () => {
           showToast("Default app updated successfully", "success");
-          utils.viewer.getUsersDefaultConferencingApp.invalidate();
+          utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
           onSuccessCallback();
         },
         onError: (error) => {
@@ -95,7 +98,7 @@ const InstalledConferencingApps = ({
       },
       {
         onSuccess: () => {
-          utils.viewer.getUsersDefaultConferencingApp.invalidate();
+          utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
           callback();
         },
       }
@@ -180,7 +183,7 @@ export const ConferencingAppsViewWebWrapper = ({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const deleteCredentialMutation = trpc.viewer.deleteCredential.useMutation();
+  const deleteCredentialMutation = trpc.viewer.credentials.delete.useMutation();
 
   const handleRemoveApp = ({ credentialId, teamId, callback }: RemoveAppParams) => {
     deleteCredentialMutation.mutate(
@@ -189,8 +192,8 @@ export const ConferencingAppsViewWebWrapper = ({
         onSuccess: () => {
           showToast(t("app_removed_successfully"), "success");
           callback();
-          utils.viewer.integrations.invalidate();
-          utils.viewer.connectedCalendars.invalidate();
+          utils.viewer.apps.integrations.invalidate();
+          utils.viewer.calendars.connectedCalendars.invalidate();
         },
         onError: () => {
           showToast(t("error_removing_app"), "error");

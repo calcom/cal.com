@@ -1,4 +1,4 @@
-FROM node:18-alpine as build
+FROM node:20-alpine AS build
 
 ARG DATABASE_DIRECT_URL
 ARG DATABASE_URL

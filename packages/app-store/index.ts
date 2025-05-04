@@ -3,7 +3,6 @@ const appStore = {
   applecalendar: createCachedImport(() => import("./applecalendar")),
   aroundvideo: createCachedImport(() => import("./around")),
   caldavcalendar: createCachedImport(() => import("./caldavcalendar")),
-  campsiteconferencing: createCachedImport(() => import("./campsite")),
   closecom: createCachedImport(() => import("./closecom")),
   dailyvideo: createCachedImport(() => import("./dailyvideo")),
   googlecalendar: createCachedImport(() => import("./googlecalendar")),

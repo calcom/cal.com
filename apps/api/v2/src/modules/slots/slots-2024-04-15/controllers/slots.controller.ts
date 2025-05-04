@@ -1,4 +1,5 @@
 import { SlotsOutputService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
+import type { RangeSlots, TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
 import { SlotsService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots.service";
 import { Query, Body, Controller, Get, Delete, Post, Req, Res } from "@nestjs/common";
 import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
@@ -12,8 +13,7 @@ import {
   VERSION_2024_06_11,
   VERSION_2024_08_13,
 } from "@calcom/platform-constants";
-import { getAvailableSlots } from "@calcom/platform-libraries";
-import type { AvailableSlotsType } from "@calcom/platform-libraries";
+import { getAvailableSlots } from "@calcom/platform-libraries/slots";
 import { RemoveSelectedSlotInput_2024_04_15, ReserveSlotInput_2024_04_15 } from "@calcom/platform-types";
 import { ApiResponse, GetAvailableSlotsInput_2024_04_15 } from "@calcom/platform-types";
 
@@ -156,7 +156,7 @@ export class SlotsController_2024_04_15 {
   async getAvailableSlots(
     @Query() query: GetAvailableSlotsInput_2024_04_15,
     @Req() req: ExpressRequest
-  ): Promise<ApiResponse<AvailableSlotsType>> {
+  ): Promise<ApiResponse<{ slots: TimeSlots["slots"] | RangeSlots["slots"] }>> {
     const isTeamEvent = await this.slotsService.checkIfIsTeamEvent(query.eventTypeId);
     const availableSlots = await getAvailableSlots({
       input: {

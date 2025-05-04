@@ -1,6 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Expose, Type } from "class-transformer";
+import { Expose, Transform, Type } from "class-transformer";
 import { IsBoolean, IsInt, IsObject, IsOptional, IsString, Length, ValidateNested } from "class-validator";
+
+import { Metadata } from "@calcom/platform-types";
 
 export class ManagedOrganizationOutput {
   @IsInt()
@@ -14,12 +16,26 @@ export class ManagedOrganizationOutput {
   @ApiProperty()
   readonly name!: string;
 
+  @IsString()
   @IsOptional()
-  @IsObject()
   @Expose()
-  @ApiPropertyOptional({ type: Object })
-  @Type(() => Object)
-  readonly metadata?: Record<string, unknown>;
+  @ApiPropertyOptional()
+  readonly slug?: string;
+
+  @ApiPropertyOptional({
+    type: Object,
+    example: { key: "value" },
+  })
+  @IsObject()
+  @IsOptional()
+  @Expose()
+  @Transform(
+    // note(Lauris): added this transform because without it metadata is removed for some reason
+    ({ obj }: { obj: { metadata: Metadata | null | undefined } }) => {
+      return obj.metadata || undefined;
+    }
+  )
+  metadata?: Metadata;
 }
 
 export class ManagedOrganizationWithApiKeyOutput extends ManagedOrganizationOutput {

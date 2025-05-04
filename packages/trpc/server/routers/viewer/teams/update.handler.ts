@@ -1,18 +1,18 @@
 import type { Prisma } from "@prisma/client";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
-import { validateIntervalLimitOrder } from "@calcom/lib";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
+import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import { uploadLogo } from "@calcom/lib/server/avatar";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TUpdateInputSchema } from "./update.schema";
 
 type UpdateOptions = {
@@ -60,11 +60,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     hideBranding: input.hideBranding,
     isPrivate: input.isPrivate,
     hideBookATeamMember: input.hideBookATeamMember,
+    hideTeamProfileLink: input.hideTeamProfileLink,
     brandColor: input.brandColor,
     darkBrandColor: input.darkBrandColor,
     theme: input.theme,
     bookingLimits: input.bookingLimits ?? undefined,
     includeManagedEventsInLimits: input.includeManagedEventsInLimits ?? undefined,
+    rrResetInterval: input.rrResetInterval,
   };
 
   if (input.logo && input.logo.startsWith("data:image/png;base64,")) {
@@ -145,6 +147,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     darkBrandColor: updatedTeam.darkBrandColor,
     bookingLimits: updatedTeam.bookingLimits as IntervalLimit,
     includeManagedEventsInLimits: updatedTeam.includeManagedEventsInLimits,
+    rrResetInterval: updatedTeam.rrResetInterval,
   };
 };
 

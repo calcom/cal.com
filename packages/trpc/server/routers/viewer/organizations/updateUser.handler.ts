@@ -1,13 +1,14 @@
 import type { Prisma, PrismaPromise, User, Membership, Profile } from "@prisma/client";
 
 import { ensureOrganizationIsReviewed } from "@calcom/ee/organizations/lib/ensureOrganizationIsReviewed";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkRegularUsername } from "@calcom/lib/server/checkRegularUsername";
 import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
@@ -86,6 +87,11 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
       user: {
         select: {
           username: true,
+          profiles: {
+            select: {
+              username: true,
+            },
+          },
         },
       },
     },
@@ -94,7 +100,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   if (!requestedMember)
     throw new TRPCError({ code: "UNAUTHORIZED", message: "User does not belong to your organization" });
 
-  const hasUsernameUpdated = input.username !== requestedMember.user.username;
+  const hasUsernameUpdated = input.username !== requestedMember.user.profiles[0]?.username;
 
   if (input.username && hasUsernameUpdated && user.profile.organization?.slug) {
     const checkRegularUsernameRes = await checkRegularUsername(
@@ -172,7 +178,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
     });
   }
 
-  if (input.role === MembershipRole.ADMIN || input.role === MembershipRole.OWNER) {
+  if (checkAdminOrOwner(input.role)) {
     const teamIds = requestedMember.team.children
       .map((sub_team) => sub_team.members.find((item) => item.userId === input.userId)?.teamId)
       .filter(Boolean) as number[]; //filter out undefined

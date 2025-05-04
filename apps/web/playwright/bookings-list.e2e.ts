@@ -69,7 +69,11 @@ test.describe("Bookings", () => {
     test("Cannot choose date range presets", async ({ page, users, bookings, webhooks }) => {
       const firstUser = await users.create();
       await firstUser.apiLogin();
+      const bookingsGetResponse = page.waitForResponse((response) =>
+        /\/api\/trpc\/bookings\/get.*/.test(response.url())
+      );
       await page.goto(`/bookings/upcoming`);
+      await bookingsGetResponse;
 
       await page.locator('[data-testid="add-filter-button"]').click();
       await page.locator('[data-testid="add-filter-item-dateRange"]').click();
@@ -232,7 +236,11 @@ test.describe("Bookings", () => {
     test("Can choose date range presets", async ({ page, users, bookings, webhooks }) => {
       const firstUser = await users.create();
       await firstUser.apiLogin();
+      const bookingsGetResponse = page.waitForResponse((response) =>
+        /\/api\/trpc\/bookings\/get.*/.test(response.url())
+      );
       await page.goto(`/bookings/past`);
+      await bookingsGetResponse;
 
       await page.locator('[data-testid="add-filter-button"]').click();
       await page.locator('[data-testid="add-filter-item-dateRange"]').click();
@@ -339,17 +347,24 @@ test.describe("Bookings", () => {
     //admin login
     //Select 'ThirdUser' in people filter
     await firstUser.apiLogin();
+    const bookingsGetResponse = page.waitForResponse((response) =>
+      /\/api\/trpc\/bookings\/get.*/.test(response.url())
+    );
     await page.goto(`/bookings/upcoming`);
+    await bookingsGetResponse;
 
     await page.locator('[data-testid="add-filter-button"]').click();
     await page.locator('[data-testid="add-filter-item-userId"]').click();
     await page.locator('[data-testid="filter-popover-trigger-userId"]').click();
 
+    const bookingsGetResponse2 = page.waitForResponse(
+      (response) => response.url().includes("/api/trpc/bookings/get?batch=1") && response.status() === 200
+    );
     await page
       .locator(`[data-testid="multi-select-options-userId"] [role="option"]:has-text("${thirdUser.name}")`)
       .click();
-
-    await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
+    await bookingsGetResponse2;
+    await expect(page.locator('text="Cancel event"').nth(0)).toBeVisible();
 
     //expect only 3 bookings (out of 4 total) to be shown in list.
     //where ThirdUser is either organizer or attendee
@@ -439,8 +454,11 @@ test.describe("Bookings", () => {
     const anotherUser = teamMatesObj.find((m) => m.name !== host.user.name)?.name;
 
     await owner.apiLogin();
+    const bookingsGetResponse1 = page.waitForResponse((response) =>
+      /\/api\/trpc\/bookings\/get.*/.test(response.url())
+    );
     await page.goto("/bookings/upcoming");
-    await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
+    await bookingsGetResponse1;
 
     await page.locator('[data-testid="add-filter-button"]').click();
     await page.locator('[data-testid="add-filter-item-userId"]').click();

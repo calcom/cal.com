@@ -6,15 +6,15 @@ import type {
   SelectedCalendar as _SelectedCalendar,
 } from "@prisma/client";
 import type { Dayjs } from "dayjs";
+import type { TFunction } from "i18next";
 import type { Time } from "ical.js";
-import type { TFunction } from "next-i18next";
+import type { Frequency } from "rrule";
 import type z from "zod";
 
 import type { bookingResponse } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { SchedulingType } from "@calcom/prisma/enums";
-import type { Frequency } from "@calcom/prisma/zod-utils";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import type { Ensure } from "./utils";
@@ -135,9 +135,7 @@ export interface RecurringEvent {
   tzid?: string | undefined;
 }
 
-export type IntervalLimitUnit = "day" | "week" | "month" | "year";
-
-export type IntervalLimit = Partial<Record<`PER_${Uppercase<IntervalLimitUnit>}`, number | undefined>>;
+export type { IntervalLimit, IntervalLimitUnit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 
 export type AppsStatus = {
   appName: string;
@@ -207,6 +205,7 @@ export interface CalendarEvent {
   schedulingType?: SchedulingType | null;
   iCalUID?: string | null;
   iCalSequence?: number | null;
+  hideOrganizerEmail?: boolean;
 
   // It has responses to all the fields(system + user)
   responses?: CalEventResponses | null;
@@ -218,7 +217,9 @@ export interface CalendarEvent {
   platformCancelUrl?: string | null;
   platformBookingUrl?: string | null;
   oneTimePassword?: string | null;
+  delegationCredentialId?: string | null;
   domainWideDelegationCredentialId?: string | null;
+  customReplyToEmail?: string | null;
 }
 
 export interface EntryPoint {
@@ -255,6 +256,7 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
 export type SelectedCalendarEventTypeIds = (number | null)[];
 
 export interface Calendar {
+  getCredentialId?(): number;
   createEvent(
     event: CalendarEvent,
     credentialId: number,
@@ -273,21 +275,23 @@ export interface Calendar {
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[],
-    shouldServeCache?: boolean
+    shouldServeCache?: boolean,
+    fallbackToPrimary?: boolean
   ): Promise<EventBusyDate[]>;
 
   // for OOO calibration (only google calendar for now)
   getAvailabilityWithTimeZones?(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    selectedCalendars: IntegrationCalendar[],
+    fallbackToPrimary?: boolean
   ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]>;
 
   fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown>;
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
 
-  testDomainWideDelegationSetup?(): Promise<boolean>;
+  testDelegationCredentialSetup?(): Promise<boolean>;
 
   watchCalendar?(options: {
     calendarId: string;

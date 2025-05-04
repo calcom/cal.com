@@ -44,7 +44,6 @@ function generateSignatureArray<T>(secret: string, vals: T) {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    debugger;
     if (req.method !== "POST") {
       throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
     }

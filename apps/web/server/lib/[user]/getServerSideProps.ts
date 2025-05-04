@@ -1,4 +1,3 @@
-import type { DehydratedState } from "@tanstack/react-query";
 import type { EmbedProps } from "app/WithEmbedSSR";
 import type { GetServerSideProps } from "next";
 import { encode } from "querystring";
@@ -20,11 +19,8 @@ import type { UserProfile } from "@calcom/types/UserProfile";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
-import { ssrInit } from "@server/lib/ssr";
-
 const log = logger.getSubLogger({ prefix: ["[[pages/[user]]]"] });
 type UserPageProps = {
-  trpcState: DehydratedState;
   profile: {
     name: string;
     image: string;
@@ -74,7 +70,6 @@ type UserPageProps = {
 } & EmbedProps;
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
-  const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
 
   const usernameList = getUsernameList(context.query.user as string);
@@ -97,10 +92,10 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     }
   }
 
-  const usersInOrgContext = await UserRepository.findUsersByUsername({
+  const usersInOrgContext = await getUsersInOrgContext(
     usernameList,
-    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
-  });
+    isValidOrgDomain ? currentOrgDomain : null
+  );
 
   const isDynamicGroup = usersInOrgContext.length > 1;
   log.debug(safeStringify({ usersInOrgContext, isValidOrgDomain, currentOrgDomain, isDynamicGroup }));
@@ -197,9 +192,27 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       profile,
       // Dynamic group has no theme preference right now. It uses system theme.
       themeBasis: user.username,
-      trpcState: ssr.dehydrate(),
       markdownStrippedBio,
       isOrgSEOIndexable: org?.organizationSettings?.allowSEOIndexing ?? false,
     },
   };
 };
+
+export async function getUsersInOrgContext(usernameList: string[], orgSlug: string | null) {
+  const usersInOrgContext = await UserRepository.findUsersByUsername({
+    usernameList,
+    orgSlug,
+  });
+
+  if (usersInOrgContext.length) {
+    return usersInOrgContext;
+  }
+
+  // note(Lauris): platform members (people who run platform) are part of platform organization while
+  // the platform organization does not have a domain. In this case there is no org domain but also platform member
+  // "User.organization" is not null so "UserRepository.findUsersByUsername" returns empty array and we do this as a last resort
+  // call to find platform member.
+  return await UserRepository.findPlatformMembersByUsernames({
+    usernameList,
+  });
+}

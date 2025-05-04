@@ -11,7 +11,6 @@ import slugify from "@calcom/lib/slugify";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
-import { ssrInit } from "@server/lib/ssr";
 
 const checkValidEmail = (email: string) => emailSchema.safeParse(email).success;
 
@@ -26,7 +25,7 @@ const querySchema = z.object({
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const emailVerificationEnabled = await getFeatureFlag(prisma, "email-verification");
-  await ssrInit(ctx);
+
   const signupDisabled = await getFeatureFlag(prisma, "disable-signup");
 
   const token = z.string().optional().parse(ctx.query.token);

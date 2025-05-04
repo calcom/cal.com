@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -82,7 +82,7 @@ export class SelectedCalendarRepository {
     // So, this unique constraint can't be used in upsert. Prisma doesn't allow that, So, we do create and update separately
     const credentialPayload = buildCredentialPayloadForPrisma({
       credentialId: data.credentialId,
-      domainWideDelegationCredentialId: data.domainWideDelegationCredentialId,
+      delegationCredentialId: data.delegationCredentialId,
     });
 
     const newData = {
@@ -201,7 +201,8 @@ export class SelectedCalendarRepository {
   }
 
   static async findMany({ where, select, orderBy }: FindManyArgs) {
-    return await prisma.selectedCalendar.findMany({ where, select, orderBy });
+    const args = Prisma.validator<Prisma.SelectedCalendarFindManyArgs>()({ where, select, orderBy });
+    return await prisma.selectedCalendar.findMany(args);
   }
 
   static async findUniqueOrThrow({ where }: { where: Prisma.SelectedCalendarWhereInput }) {

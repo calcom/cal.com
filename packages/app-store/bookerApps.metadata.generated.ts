@@ -4,7 +4,6 @@
 **/
 import around_config_json from "./around/config.json";
 import campfire_config_json from "./campfire/config.json";
-import campsite_config_json from "./campsite/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
 import demodesk_config_json from "./demodesk/config.json";
 import dialpad_config_json from "./dialpad/config.json";
@@ -51,7 +50,6 @@ import { metadata as zoomvideo__metadata_ts } from "./zoomvideo/_metadata";
 export const appStoreMetadata = {
   around: around_config_json,
   campfire: campfire_config_json,
-  campsite: campsite_config_json,
   dailyvideo: dailyvideo__metadata_ts,
   demodesk: demodesk_config_json,
   dialpad: dialpad_config_json,

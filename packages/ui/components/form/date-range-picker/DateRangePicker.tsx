@@ -17,6 +17,8 @@ type DatePickerWithRangeProps = {
   maxDate?: Date;
   withoutPopover?: boolean;
   "data-testid"?: string;
+  strictlyBottom?: boolean;
+  allowPastDates?: boolean;
 };
 
 export function DatePickerWithRange({
@@ -28,23 +30,53 @@ export function DatePickerWithRange({
   disabled,
   withoutPopover,
   "data-testid": testId,
+  strictlyBottom,
+  allowPastDates = false,
 }: React.HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
   function handleDayClick(date: Date) {
-    if (dates?.endDate) {
-      onDatesChange({ startDate: date, endDate: undefined });
+    if (allowPastDates) {
+      // for Out of Office (past dates allowed)
+      if (dates?.endDate) {
+        onDatesChange({ startDate: date, endDate: undefined });
+      } else {
+        const startDate = dates.startDate ? (date < dates.startDate ? date : dates.startDate) : date;
+        const endDate = dates.startDate ? (date < dates.startDate ? dates.startDate : date) : undefined;
+        onDatesChange({ startDate, endDate });
+      }
     } else {
-      const startDate = dates.startDate ? (date < dates.startDate ? date : dates.startDate) : date;
-      const endDate = dates.startDate ? (date < dates.startDate ? dates.startDate : date) : undefined;
-      onDatesChange({ startDate, endDate });
+      // for Limit Future Booking (no past dates)
+      if (!dates.startDate || !dates.endDate) {
+        onDatesChange({ startDate: date, endDate: date });
+      } else {
+        const startTime = dates.startDate.getTime();
+        const endTime = dates.endDate.getTime();
+        const clickedTime = date.getTime();
+
+        if (clickedTime === startTime || clickedTime === endTime) {
+          onDatesChange({ startDate: date, endDate: date });
+        } else if (clickedTime < startTime) {
+          onDatesChange({ startDate: date, endDate: dates.endDate });
+        } else if (clickedTime > endTime) {
+          onDatesChange({ startDate: dates.startDate, endDate: date });
+        } else {
+          const startDiff = clickedTime - startTime;
+          const endDiff = endTime - clickedTime;
+          if (startDiff < endDiff) {
+            onDatesChange({ startDate: date, endDate: dates.endDate });
+          } else {
+            onDatesChange({ startDate: dates.startDate, endDate: date });
+          }
+        }
+      }
     }
   }
-  const fromDate = minDate ?? new Date();
+
+  const fromDate = allowPastDates && minDate === null ? undefined : minDate ?? new Date();
 
   const calendar = (
     <Calendar
       initialFocus
-      //When explicitly null, we want past dates to be shown as well, otherwise show only dates passed or from current date
-      fromDate={minDate === null ? undefined : fromDate}
+      fromDate={fromDate}
       toDate={maxDate}
       mode="range"
       defaultMonth={dates?.startDate}
@@ -86,8 +118,8 @@ export function DatePickerWithRange({
           className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
           align="start"
           sideOffset={4}
-          side="bottom"
-          avoidCollisions={false}>
+          side={strictlyBottom ? "bottom" : undefined}
+          avoidCollisions={!strictlyBottom}>
           {calendar}
         </Popover.Content>
       </Popover.Root>

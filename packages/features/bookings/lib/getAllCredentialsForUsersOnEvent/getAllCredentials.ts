@@ -1,6 +1,6 @@
 import type z from "zod";
 
-import { enrichUserWithDwdCredentialsWithoutOrgId } from "@calcom/lib/domainWideDelegation/server";
+import { enrichUserWithDelegationCredentialsWithoutOrgId } from "@calcom/lib/delegationCredential/server";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -120,9 +120,9 @@ export const getAllCredentials = async (
     }
   });
 
-  const userWithDwdCredentials = await enrichUserWithDwdCredentialsWithoutOrgId({
+  const userWithDelegationCredentials = await enrichUserWithDelegationCredentialsWithoutOrgId({
     user: { ...user, credentials: allCredentials },
   });
 
-  return userWithDwdCredentials.credentials;
+  return userWithDelegationCredentials.credentials;
 };

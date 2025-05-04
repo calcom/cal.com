@@ -2,6 +2,7 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
+import type { DefaultEvent } from "@calcom/lib/defaultEvents";
 import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import prisma, { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -42,6 +43,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           parentId: true,
           bookingLimits: true,
           includeManagedEventsInLimits: true,
+          rrResetInterval: true,
         },
       },
       bookingFields: true,
@@ -68,6 +70,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       destinationCalendar: true,
       hideCalendarNotes: true,
       hideCalendarEventDetails: true,
+      hideOrganizerEmail: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
       seatsShowAttendees: true,
@@ -78,6 +81,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       assignAllTeamMembers: true,
       isRRWeightsEnabled: true,
       beforeEventBuffer: true,
+      customReplyToEmail: true,
       afterEventBuffer: true,
       parentId: true,
       parent: {
@@ -183,10 +187,12 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
     recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
     customInputs: customInputSchema.array().parse(eventType?.customInputs || []),
     locations: (eventType?.locations ?? []) as LocationObject[],
-    bookingFields: getBookingFieldsWithSystemFields({ ...restEventType, isOrgTeamEvent } || {}),
+    bookingFields: getBookingFieldsWithSystemFields({ ...restEventType, isOrgTeamEvent }),
     rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue) ?? null,
     isDynamic: false,
   };
 };
 
 export type getEventTypeResponse = Awaited<ReturnType<typeof getEventTypesFromDB>>;
+
+export type NewBookingEventType = DefaultEvent | getEventTypeResponse;

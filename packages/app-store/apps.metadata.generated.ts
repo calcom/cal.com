@@ -13,7 +13,6 @@ import basecamp3_config_json from "./basecamp3/config.json";
 import bolna_config_json from "./bolna/config.json";
 import { metadata as caldavcalendar__metadata_ts } from "./caldavcalendar/_metadata";
 import campfire_config_json from "./campfire/config.json";
-import campsite_config_json from "./campsite/config.json";
 import chatbase_config_json from "./chatbase/config.json";
 import clic_config_json from "./clic/config.json";
 import closecom_config_json from "./closecom/config.json";
@@ -37,6 +36,7 @@ import { metadata as giphy__metadata_ts } from "./giphy/_metadata";
 import { metadata as googlecalendar__metadata_ts } from "./googlecalendar/_metadata";
 import { metadata as googlevideo__metadata_ts } from "./googlevideo/_metadata";
 import granola_config_json from "./granola/config.json";
+import greetmate_ai_config_json from "./greetmate-ai/config.json";
 import gtm_config_json from "./gtm/config.json";
 import hitpay_config_json from "./hitpay/config.json";
 import horizon_workrooms_config_json from "./horizon-workrooms/config.json";
@@ -48,6 +48,7 @@ import intercom_config_json from "./intercom/config.json";
 import jelly_config_json from "./jelly/config.json";
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
 import { metadata as larkcalendar__metadata_ts } from "./larkcalendar/_metadata";
+import lindy_config_json from "./lindy/config.json";
 import linear_config_json from "./linear/config.json";
 import make_config_json from "./make/config.json";
 import matomo_config_json from "./matomo/config.json";
@@ -92,7 +93,6 @@ import event_type_location_video_static_config_json from "./templates/event-type
 import general_app_settings_config_json from "./templates/general-app-settings/config.json";
 import link_as_an_app_config_json from "./templates/link-as-an-app/config.json";
 import twipla_config_json from "./twipla/config.json";
-import typeform_config_json from "./typeform/config.json";
 import umami_config_json from "./umami/config.json";
 import vimcal_config_json from "./vimcal/config.json";
 import { metadata as vital__metadata_ts } from "./vital/_metadata";
@@ -120,7 +120,6 @@ export const appStoreMetadata = {
   bolna: bolna_config_json,
   caldavcalendar: caldavcalendar__metadata_ts,
   campfire: campfire_config_json,
-  campsite: campsite_config_json,
   chatbase: chatbase_config_json,
   clic: clic_config_json,
   closecom: closecom_config_json,
@@ -144,6 +143,7 @@ export const appStoreMetadata = {
   googlecalendar: googlecalendar__metadata_ts,
   googlevideo: googlevideo__metadata_ts,
   granola: granola_config_json,
+  "greetmate-ai": greetmate_ai_config_json,
   gtm: gtm_config_json,
   hitpay: hitpay_config_json,
   "horizon-workrooms": horizon_workrooms_config_json,
@@ -155,6 +155,7 @@ export const appStoreMetadata = {
   jelly: jelly_config_json,
   jitsivideo: jitsivideo__metadata_ts,
   larkcalendar: larkcalendar__metadata_ts,
+  lindy: lindy_config_json,
   linear: linear_config_json,
   make: make_config_json,
   matomo: matomo_config_json,
@@ -199,7 +200,6 @@ export const appStoreMetadata = {
   "general-app-settings": general_app_settings_config_json,
   "link-as-an-app": link_as_an_app_config_json,
   twipla: twipla_config_json,
-  typeform: typeform_config_json,
   umami: umami_config_json,
   vimcal: vimcal_config_json,
   vital: vital__metadata_ts,

@@ -13,14 +13,16 @@ import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import type { IOutOfOfficeData } from "@calcom/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
-import type { IGetAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
-import { Button, Icon, SkeletonText } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { useBookerTime } from "../Booker/components/hooks/useBookerTime";
 import { useBookerStore } from "../Booker/store";
 import { getQueryParam } from "../Booker/utils/query-param";
 import { useCheckOverlapWithOverlay } from "../lib/useCheckOverlapWithOverlay";
+import type { Slots } from "../types";
 import { SeatsAvailabilityText } from "./SeatsAvailabilityText";
 
 type TOnTimeSelect = (
@@ -43,7 +45,7 @@ type TOnTentativeTimeSelect = ({
 }) => void;
 
 export type AvailableTimesProps = {
-  slots: IGetAvailableSlots["slots"][string];
+  slots: Slots[string];
   showTimeFormatToggle?: boolean;
   className?: string;
   // It is called when a slot is selected, but it is not a confirmation and a confirm button will be shown besides it.
@@ -62,6 +64,9 @@ type SlotItemProps = {
     data?: Pick<BookerEvent, "length" | "bookingFields" | "price" | "currency" | "metadata"> | null;
   };
   customClassNames?: string;
+  confirmStepClassNames?: {
+    confirmButton?: string;
+  };
   loadingStates?: IUseBookingLoadingStates;
   isVerificationCodeSending?: boolean;
   renderConfirmNotVerifyEmailButtonCond?: boolean;
@@ -69,6 +74,7 @@ type SlotItemProps = {
   shouldRenderCaptcha?: boolean;
   watchedCfToken?: string;
   unavailableTimeSlots?: string[];
+  confirmButtonDisabled?: boolean;
   handleSlotClick?: (slot: Slot, isOverlapping: boolean) => void;
 };
 
@@ -89,6 +95,8 @@ const SlotItem = ({
   handleSlotClick,
   onTentativeTimeSelect,
   unavailableTimeSlots = [],
+  confirmButtonDisabled,
+  confirmStepClassNames,
 }: SlotItemProps) => {
   const { t } = useLocale();
 
@@ -200,6 +208,7 @@ const SlotItem = ({
                   variant={layout === "column_view" ? "icon" : "button"}
                   StartIcon={layout === "column_view" ? "chevron-right" : undefined}
                   type="button"
+                  className={confirmStepClassNames?.confirmButton}
                   onClick={() =>
                     onTimeSelect &&
                     onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)
@@ -211,7 +220,8 @@ const SlotItem = ({
                     loadingStates?.creatingBooking ||
                     loadingStates?.creatingRecurringBooking ||
                     isVerificationCodeSending ||
-                    loadingStates?.creatingInstantBooking
+                    loadingStates?.creatingInstantBooking ||
+                    confirmButtonDisabled
                   }
                   color="primary"
                   loading={
@@ -223,7 +233,7 @@ const SlotItem = ({
                   {(() => {
                     if (layout === "column_view") return "";
                     if (isTimeslotUnavailable) return t("timeslot_unavailable_short");
-                    if (!renderConfirmNotVerifyEmailButtonCond) return t("verify_email_email_button");
+                    if (!renderConfirmNotVerifyEmailButtonCond) return t("verify_email_button");
                     return isPaidEvent ? t("pay_and_book") : t("confirm");
                   })()}
                 </Button>

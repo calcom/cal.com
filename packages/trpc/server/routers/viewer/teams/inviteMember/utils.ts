@@ -1,8 +1,9 @@
 import { randomBytes } from "crypto";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendTeamInviteEmail } from "@calcom/emails";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
@@ -417,10 +418,7 @@ export async function createMemberships({
           teamId,
           userId: invitee.id,
           accepted,
-          role:
-            organizationRole === MembershipRole.ADMIN || organizationRole === MembershipRole.OWNER
-              ? organizationRole
-              : invitee.newRole,
+          role: checkAdminOrOwner(organizationRole) ? organizationRole : invitee.newRole,
         });
 
         // membership for the org
@@ -459,35 +457,46 @@ export async function sendSignupToOrganizationEmail({
   teamId: number;
   isOrg: boolean;
 }) {
-  const token: string = randomBytes(32).toString("hex");
+  try {
+    const token: string = randomBytes(32).toString("hex");
 
-  await prisma.verificationToken.create({
-    data: {
-      identifier: usernameOrEmail,
-      token,
-      expires: new Date(new Date().setHours(168)), // +1 week
-      team: {
-        connect: {
-          id: teamId,
+    await prisma.verificationToken.create({
+      data: {
+        identifier: usernameOrEmail,
+        token,
+        expires: new Date(new Date().setHours(168)), // +1 week
+        team: {
+          connect: {
+            id: teamId,
+          },
         },
       },
-    },
-  });
-  await sendTeamInviteEmail({
-    language: translation,
-    from: inviterName || `${team.name}'s admin`,
-    to: usernameOrEmail,
-    teamName: team.name,
-    joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`,
-    isCalcomMember: false,
-    isOrg: isOrg,
-    parentTeamName: team?.parent?.name,
-    isAutoJoin: false,
-    isExistingUserMovedToOrg: false,
-    // For a new user there is no prev and new links.
-    prevLink: null,
-    newLink: null,
-  });
+    });
+    await sendTeamInviteEmail({
+      language: translation,
+      from: inviterName || `${team.name}'s admin`,
+      to: usernameOrEmail,
+      teamName: team.name,
+      joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`,
+      isCalcomMember: false,
+      isOrg: isOrg,
+      parentTeamName: team?.parent?.name,
+      isAutoJoin: false,
+      isExistingUserMovedToOrg: false,
+      // For a new user there is no prev and new links.
+      prevLink: null,
+      newLink: null,
+    });
+  } catch (error) {
+    logger.error(
+      "Failed to send signup to organization email",
+      safeStringify({
+        usernameOrEmail,
+        orgId: teamId,
+      }),
+      error
+    );
+  }
 }
 
 type TeamAndOrganizationSettings = Team & {

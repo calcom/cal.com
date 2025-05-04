@@ -25,5 +25,5 @@ function Icon({
     </svg>
   );
 }
-export { IconName };
+export { IconName, Icon };
 export default Icon;
