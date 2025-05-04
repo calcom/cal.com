@@ -65,7 +65,8 @@ export const handleRescheduleEventManager = async ({
     rescheduleUid,
     newBookingId,
     changedOrganizer,
-    previousHostDestinationCalendar
+    previousHostDestinationCalendar,
+    true
   );
 
   const results = updateManager.results ?? [];
