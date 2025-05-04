@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
+import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
@@ -32,19 +33,27 @@ const Page = async ({ params, searchParams }: PageProps) => {
   }
 
   const t = await getTranslate();
-
-  const caller = await createRouterCaller(eventTypesRouter);
   const filters = getTeamsFiltersFromQuery(_searchParams);
-  const initialData = await caller.getUserEventGroups({ filters });
+
+  const [meCaller, eventTypesCaller] = await Promise.all([
+    createRouterCaller(meRouter),
+    createRouterCaller(eventTypesRouter),
+  ]);
+
+  const [me, userEventGroupsData] = await Promise.all([
+    meCaller.get(),
+    eventTypesCaller.getUserEventGroups({ filters }),
+  ]);
 
   return (
     <ShellMainAppDir
       heading={t("event_types_page_title")}
       subtitle={t("event_types_page_subtitle")}
-      CTA={<EventTypesCTA initialData={initialData} filters={filters} />}>
-      <EventTypes initialData={initialData} filters={filters} />
+      CTA={<EventTypesCTA userEventGroupsData={userEventGroupsData} />}>
+      <EventTypes userEventGroupsData={userEventGroupsData} user={me} />
     </ShellMainAppDir>
   );
 };
 
 export default Page;
+export const revalidate = 3600; // 1 hour in seconds

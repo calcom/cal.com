@@ -123,8 +123,8 @@ const ProfileView = () => {
 
   const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
-      await utils.viewer.teams.list.invalidate();
       revalidateTeamsList();
+      await utils.viewer.teams.list.invalidate();
       await utils.viewer.eventTypes.getUserEventGroups.invalidate();
       await utils.viewer.eventTypes.getByViewer.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");

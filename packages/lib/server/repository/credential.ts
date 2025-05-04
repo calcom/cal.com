@@ -9,6 +9,7 @@ type CredentialCreateInput = {
   key: any;
   userId: number;
   appId: string;
+  delegationCredentialId?: string | null;
 };
 
 export class CredentialRepository {
@@ -63,6 +64,14 @@ export class CredentialRepository {
     await prisma.credential.delete({ where: { id } });
   }
 
+  static async deleteAllByDelegationCredentialId({
+    delegationCredentialId,
+  }: {
+    delegationCredentialId: string;
+  }) {
+    return prisma.credential.deleteMany({ where: { delegationCredentialId } });
+  }
+
   static async findCredentialForCalendarServiceById({ id }: { id: number }) {
     const dbCredential = await prisma.credential.findUnique({
       where: { id },
@@ -74,5 +83,63 @@ export class CredentialRepository {
     }
 
     return buildNonDelegationCredential(dbCredential);
+  }
+
+  static async findByIdIncludeDelegationCredential({ id }: { id: number }) {
+    const dbCredential = await prisma.credential.findUnique({
+      where: { id },
+      select: { ...credentialForCalendarServiceSelect, delegationCredential: true },
+    });
+
+    return dbCredential;
+  }
+
+  static async findAllDelegationByUserIdsListAndDelegationCredentialIdAndType({
+    userIds,
+    delegationCredentialId,
+    type,
+  }: {
+    userIds: number[];
+    delegationCredentialId: string;
+    type: string;
+  }) {
+    return prisma.credential.findMany({
+      where: {
+        userId: {
+          in: userIds,
+        },
+        delegationCredentialId,
+        type,
+      },
+      select: {
+        userId: true,
+      },
+    });
+  }
+
+  static async findAllDelegationByTypeIncludeUserAndTake({ type, take }: { type: string; take: number }) {
+    const delegationUserCredentials = await prisma.credential.findMany({
+      where: {
+        delegationCredentialId: { not: null },
+        type,
+      },
+      include: {
+        user: {
+          select: {
+            email: true,
+            id: true,
+          },
+        },
+      },
+      take,
+    });
+    return delegationUserCredentials.map(({ delegationCredentialId, ...rest }) => {
+      return {
+        ...rest,
+        // We queried only those where delegationCredentialId is not null
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        delegationCredentialId: delegationCredentialId!,
+      };
+    });
   }
 }

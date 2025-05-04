@@ -268,6 +268,7 @@ export class OrganizationRepository {
         allowSEOIndexing: true,
         orgProfileRedirectsToVerifiedDomain: true,
         orgAutoAcceptEmail: true,
+        disablePhoneOnlySMSNotifications: true,
       },
     });
 
@@ -285,6 +286,7 @@ export class OrganizationRepository {
         allowSEOIndexing: organizationSettings?.allowSEOIndexing,
         orgProfileRedirectsToVerifiedDomain: organizationSettings?.orgProfileRedirectsToVerifiedDomain,
         orgAutoAcceptEmail: organizationSettings?.orgAutoAcceptEmail,
+        disablePhoneOnlySMSNotifications: organizationSettings?.disablePhoneOnlySMSNotifications,
       },
       user: {
         role: membership?.role,
