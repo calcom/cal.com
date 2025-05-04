@@ -1084,14 +1084,14 @@ model App_RoutingForms_FormResponse {
 }
 
 model RoutingFormResponseField {
-  id                              Int                              @id @default(autoincrement())
-  responseId                      Int
-  fieldId                         String
-  valueString                     String?
-  valueNumber                     Decimal?
-  valueStringArray                String[]
-  response                        App_RoutingForms_FormResponse    @relation(fields: [responseId], references: [id], onDelete: Cascade, map: "RoutingFormResponseField_responseId_fkey")
-  routingFormResponseDenormalized RoutingFormResponseDenormalized? @relation(fields: [responseId], references: [id], map: "RoutingFormResponseField_denormalized_fkey")
+  id               Int                              @id @default(autoincrement())
+  responseId       Int?
+  fieldId          String
+  valueString      String?
+  valueNumber      Decimal?
+  valueStringArray String[]
+  response         App_RoutingForms_FormResponse?   @relation(fields: [responseId], references: [id], map: "RoutingFormResponseField_response_fkey")
+  denormalized     RoutingFormResponseDenormalized? @relation("DenormalizedResponseToFields", fields: [responseId], references: [id])
 
   @@index([responseId])
   @@index([fieldId])
@@ -1157,7 +1157,7 @@ model RoutingFormResponseDenormalized {
   utm_term                String?
   utm_content             String?
   response                App_RoutingForms_FormResponse @relation(fields: [id], references: [id], onDelete: Cascade)
-  fields                  RoutingFormResponseField[]
+  fields                  RoutingFormResponseField[]    @relation("DenormalizedResponseToFields")
 
   @@index([formId])
   @@index([formTeamId])

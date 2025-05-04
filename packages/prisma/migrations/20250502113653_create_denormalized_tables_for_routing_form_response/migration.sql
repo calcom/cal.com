@@ -76,7 +76,7 @@ CREATE INDEX "RoutingFormResponseDenormalized_bookingUserId_idx" ON "RoutingForm
 CREATE INDEX "RoutingFormResponseDenormalized_eventTypeId_eventTypeParent_idx" ON "RoutingFormResponseDenormalized"("eventTypeId", "eventTypeParentId");
 
 -- AddForeignKey
-ALTER TABLE "RoutingFormResponseField" ADD CONSTRAINT "RoutingFormResponseField_responseId_fkey" FOREIGN KEY ("responseId") REFERENCES "App_RoutingForms_FormResponse"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "RoutingFormResponseField" ADD CONSTRAINT "RoutingFormResponseField_response_fkey" FOREIGN KEY ("responseId") REFERENCES "App_RoutingForms_FormResponse"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "RoutingFormResponseDenormalized" ADD CONSTRAINT "RoutingFormResponseDenormalized_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE SET NULL ON UPDATE CASCADE;
