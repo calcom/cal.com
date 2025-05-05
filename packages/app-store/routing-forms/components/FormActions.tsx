@@ -489,7 +489,9 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     },
     viewResponses: {
       href: `/insights/routing${activeFiltersSerializer({
-        activeFilters: [{ f: "formId", v: { type: ColumnFilterType.SINGLE_SELECT, data: routingForm?.id } }],
+        activeFilters: routingForm?.id
+          ? [{ f: "formId", v: { type: ColumnFilterType.SINGLE_SELECT, data: routingForm.id } }]
+          : [],
       })}`,
     },
     copyRedirectUrl: {

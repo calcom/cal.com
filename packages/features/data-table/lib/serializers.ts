@@ -5,5 +5,5 @@ import { createSerializer, parseAsArrayOf, parseAsJson } from "nuqs";
  * Used to generate URL query parameters for filtering data tables
  */
 export const activeFiltersSerializer = createSerializer({
-  activeFilters: parseAsArrayOf(parseAsJson),
+  activeFilters: parseAsArrayOf(parseAsJson()),
 });
