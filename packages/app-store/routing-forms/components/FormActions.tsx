@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { activeFiltersSerializer } from "@calcom/features/data-table/lib/serializers";
+import { dataTableQueryParamsSerializer } from "@calcom/features/data-table/lib/serializers";
 import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/features/embed/RoutingFormEmbed";
@@ -488,10 +488,10 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       onClick: () => setNewFormDialogState?.({ action: "new", target: "" }),
     },
     viewResponses: {
-      href: `/insights/routing${activeFiltersSerializer({
+      href: `/insights/routing${dataTableQueryParamsSerializer({
         activeFilters: routingForm?.id
           ? [{ f: "formId", v: { type: ColumnFilterType.SINGLE_SELECT, data: routingForm.id } }]
-          : undefined,
+          : null,
       })}`,
     },
     copyRedirectUrl: {
