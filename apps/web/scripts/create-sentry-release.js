@@ -3,7 +3,6 @@ const { execSync } = require("child_process");
 const CLIENT_FILES_PATH = ".next/static/chunks";
 
 try {
-  console.log("Uploading Sentry sourcemaps...");
   const release = execSync("git rev-parse HEAD").toString().trim();
 
   // Add release
