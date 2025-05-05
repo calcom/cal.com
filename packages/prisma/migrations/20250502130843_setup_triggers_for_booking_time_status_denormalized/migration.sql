@@ -13,7 +13,7 @@ BEGIN
     -- Delete existing entry if any
     DELETE FROM "BookingTimeStatusDenormalized" WHERE id = booking_id;
 
-    -- Insert non-team booking
+    -- Insert only if both EventType and user exist
     INSERT INTO "BookingTimeStatusDenormalized"
     SELECT
         "Booking".id,
@@ -41,8 +41,8 @@ BEGIN
         "Booking"."noShowHost",
         calculate_is_team_booking(et."teamId") as "isTeamBooking"
     FROM "Booking"
-    LEFT JOIN "EventType" et ON "Booking"."eventTypeId" = et.id
-    LEFT JOIN users u ON u.id = "Booking"."userId"
+    INNER JOIN "EventType" et ON "Booking"."eventTypeId" = et.id
+    INNER JOIN users u ON u.id = "Booking"."userId"
     WHERE "Booking".id = booking_id;
 END;
 $$ LANGUAGE plpgsql;
