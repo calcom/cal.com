@@ -7,6 +7,7 @@ import { OrganizationsRepository } from "@/modules/organizations/index/organizat
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { InjectQueue } from "@nestjs/bull";
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -310,6 +311,28 @@ export class BillingService implements OnModuleDestroy {
     if (job) {
       await job.remove();
       this.logger.log(`Removed increment job for cancelled booking ${bookingUid}`);
+    }
+  }
+
+  async cancelTeamSubscription(teamId: number) {
+    const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
+    const customerId = teamWithBilling?.platformBilling?.customerId;
+
+    if (!customerId) {
+      throw new NotFoundException("No customer id found for team in Stripe");
+    }
+
+    if (!teamWithBilling?.platformBilling || !teamWithBilling?.platformBilling.subscriptionId) {
+      throw new NotFoundException("Team plan not found");
+    }
+
+    try {
+      await this.stripeService
+        .getStripe()
+        .subscriptions.cancel(teamWithBilling?.platformBilling?.subscriptionId);
+    } catch (error) {
+      this.logger.log(error, "error while cancelling team subscription in stripe");
+      throw new BadRequestException("Failed to cancel team subscription");
     }
   }
 
