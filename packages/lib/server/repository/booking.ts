@@ -371,6 +371,11 @@ export class BookingRepository {
         uid: true,
         description: true,
         isRecorded: true,
+        eventType: {
+          select: {
+            hideOrganizerEmail: true,
+          },
+        },
         user: {
           select: {
             id: true,
@@ -390,6 +395,10 @@ export class BookingRepository {
           },
           where: {
             type: "daily_video",
+            deleted: null,
+          },
+          orderBy: {
+            id: "asc",
           },
         },
       },
