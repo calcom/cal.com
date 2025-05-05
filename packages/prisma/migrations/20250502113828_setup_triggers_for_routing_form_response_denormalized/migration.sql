@@ -88,10 +88,10 @@ BEGIN
         t.utm_term,
         t.utm_content
     FROM "App_RoutingForms_FormResponse" r
-    LEFT JOIN "App_RoutingForms_Form" f ON r."formId" = f.id
-    LEFT JOIN "Booking" b ON b.uid = r."routedToBookingUid"
-    LEFT JOIN "EventType" et ON b."eventTypeId" = et.id
-    LEFT JOIN "users" u ON b."userId" = u.id
+    INNER JOIN "App_RoutingForms_Form" f ON r."formId" = f.id
+    INNER JOIN "Booking" b ON b.uid = r."routedToBookingUid"
+    INNER JOIN "EventType" et ON b."eventTypeId" = et.id
+    INNER JOIN "users" u ON b."userId" = u.id
     LEFT JOIN "Tracking" t ON t."bookingId" = b.id
     WHERE r.id = response_id;
 END;
@@ -248,3 +248,40 @@ CREATE TRIGGER event_type_update_trigger_for_routing_form
     AFTER UPDATE OF "parentId", "schedulingType" ON "EventType"
     FOR EACH ROW
     EXECUTE FUNCTION trigger_refresh_routing_form_response_denormalized_event_type();
+
+-- Trigger function for form deletions
+CREATE OR REPLACE FUNCTION trigger_cleanup_routing_form_response_denormalized_form()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Delete all denormalized responses for this form
+    DELETE FROM "RoutingFormResponseDenormalized"
+    WHERE "formId" = OLD.id;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create DELETE trigger for App_RoutingForms_Form table
+CREATE TRIGGER routing_form_delete_trigger
+    AFTER DELETE ON "App_RoutingForms_Form"
+    FOR EACH ROW
+    EXECUTE FUNCTION trigger_cleanup_routing_form_response_denormalized_form();
+
+-- Trigger function for user deletions
+CREATE OR REPLACE FUNCTION trigger_cleanup_routing_form_response_denormalized_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Delete all responses where this user was the booking user
+    DELETE FROM "RoutingFormResponseDenormalized"
+    WHERE "bookingUserId" = OLD.id;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create DELETE trigger for users table
+CREATE TRIGGER user_delete_trigger_for_routing_form
+    AFTER DELETE ON users
+    FOR EACH ROW
+    EXECUTE FUNCTION trigger_cleanup_routing_form_response_denormalized_user();
+
+-- Note: Booking deletions are handled by foreign key constraint with ON DELETE CASCADE
+-- Note: EventType deletions are handled by foreign key constraint with ON DELETE CASCADE
