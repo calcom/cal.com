@@ -41,6 +41,7 @@ BEGIN
         "Booking"."startTime",
         "Booking"."endTime",
         "Booking"."createdAt",
+        "Booking"."updatedAt",
         "Booking".location,
         "Booking".paid,
         "Booking".status,
@@ -51,7 +52,8 @@ BEGIN
         calculate_time_status("Booking".rescheduled, "Booking".status, "Booking"."endTime") AS "timeStatus",
         et."parentId" AS "eventParentId",
         "u"."email" AS "userEmail",
-        "u"."username" AS "username",
+        "u"."name" AS "userName",
+        "u"."username" AS "userUsername",
         "Booking"."ratingFeedback",
         "Booking"."rating",
         "Booking"."noShowHost",
@@ -159,7 +161,8 @@ BEGIN
         UPDATE "BookingTimeStatusDenormalized" btsd
         SET
             "userEmail" = NEW.email,
-            "username" = NEW.username
+            "userName" = NEW.name,
+            "userUsername" = NEW.username
         WHERE btsd."userId" = NEW.id;
     EXCEPTION WHEN OTHERS THEN
         RAISE WARNING 'DENORM_ERROR: BookingTimeStatusDenormalized - Failed to update user changes for id %', NEW.id;
@@ -169,7 +172,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER user_update_trigger
-    AFTER UPDATE OF email, username ON users
+    AFTER UPDATE OF email, name, username ON users
     FOR EACH ROW
     EXECUTE FUNCTION trigger_refresh_booking_time_status_denormalized_user();
 

@@ -1468,6 +1468,7 @@ model BookingTimeStatusDenormalized {
   startTime      DateTime
   endTime        DateTime
   createdAt      DateTime
+  updatedAt      DateTime?
   location       String?
   paid           Boolean?
   status         BookingStatus
@@ -1478,7 +1479,8 @@ model BookingTimeStatusDenormalized {
   timeStatus     String?
   eventParentId  Int?
   userEmail      String?
-  username       String?
+  userName       String?
+  userUsername   String?
   ratingFeedback String?
   rating         Int?
   noShowHost     Boolean?
