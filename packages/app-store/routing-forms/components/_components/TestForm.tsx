@@ -291,10 +291,7 @@ export const TestForm = ({
                 <Button color="secondary" onClick={resetForm} variant="icon" StartIcon="refresh-cw">
                   {t("reset_form")}
                 </Button>
-                <TeamMembersMatchResult
-                  chosenRouteName={chosenRoute?.name}
-                  membersMatchResult={membersMatchResult}
-                />
+                <TeamMembersMatchResult membersMatchResult={membersMatchResult} />
               </>
             ) : (
               <Results
