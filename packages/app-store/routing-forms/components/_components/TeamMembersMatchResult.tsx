@@ -1,6 +1,4 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
-import { Alert } from "@calcom/ui/components/alert";
 
 export type MembersMatchResultType = {
   isUsingAttributeWeights: boolean;
@@ -20,53 +18,15 @@ export type MembersMatchResultType = {
 
 export const TeamMembersMatchResult = ({
   membersMatchResult,
-  chosenRouteName,
-  showAllData,
 }: {
   membersMatchResult: MembersMatchResultType;
-  chosenRouteName: string;
-  showAllData: boolean;
 }) => {
   const { t } = useLocale();
   if (!membersMatchResult) return null;
 
-  const hasMainWarnings = (membersMatchResult.mainWarnings?.length ?? 0) > 0;
-  const hasFallbackWarnings = (membersMatchResult.fallbackWarnings?.length ?? 0) > 0;
-
-  const renderFallbackLogicStatus = () => {
-    if (!membersMatchResult.checkedFallback) {
-      return t("fallback_not_needed");
-    } else if (
-      isNoLogicFound(membersMatchResult.teamMembersMatchingAttributeLogic) ||
-      membersMatchResult.teamMembersMatchingAttributeLogic.length > 0
-    ) {
-      return t("yes");
-    } else {
-      return t("no");
-    }
-  };
-
-  const renderMainLogicStatus = () => {
-    return !membersMatchResult.checkedFallback ? t("yes") : t("no");
-  };
-
   const renderQueue = () => {
     if (isNoLogicFound(membersMatchResult.teamMembersMatchingAttributeLogic)) {
-      if (!showAllData) return <div className="mt-4">{t("no_active_queues")}</div>;
-      if (membersMatchResult.checkedFallback) {
-        return (
-          <span className="font-semibold">
-            {t(
-              "all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules_to_fallback"
-            )}
-          </span>
-        );
-      }
-      return (
-        <span className="font-semibold">
-          {t("all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules")}
-        </span>
-      );
+      return <div className="mt-4">{t("no_active_queues")}</div>;
     }
 
     const matchingMembers = membersMatchResult.teamMembersMatchingAttributeLogic;
@@ -124,61 +84,16 @@ export const TeamMembersMatchResult = ({
 
   return (
     <div className="text-default mt-2 space-y-2">
-      {showAllData ? (
-        <>
-          <div data-testid="chosen-route">
-            {t("chosen_route")}: <span className="font-semibold">{chosenRouteName}</span>
-          </div>
-          <div data-testid="attribute-logic-matched" className={classNames(hasMainWarnings && "text-error")}>
-            {t("attribute_logic_matched")}: <span className="font-semibold">{renderMainLogicStatus()}</span>
-            {hasMainWarnings && (
-              <Alert
-                className="mt-2"
-                severity="warning"
-                title={membersMatchResult.mainWarnings?.join(", ")}
-              />
-            )}
-          </div>
-          <div
-            data-testid="attribute-logic-fallback-matched"
-            className={classNames(hasFallbackWarnings && "text-error")}>
-            {t("attribute_logic_fallback_matched")}:{" "}
-            <span className="font-semibold">{renderFallbackLogicStatus()}</span>
-            {hasFallbackWarnings && (
-              <Alert
-                className="mt-2"
-                severity="warning"
-                title={membersMatchResult.fallbackWarnings?.join(", ")}
-              />
-            )}
-          </div>
-        </>
-      ) : (
-        <></>
-      )}
       <div className="mt-4">
         {membersMatchResult.contactOwnerEmail ? (
           <div data-testid="contact-owner-email">
             {t("contact_owner")}:{" "}
             <span className="font-semibold">{membersMatchResult.contactOwnerEmail}</span>
           </div>
-        ) : showAllData ? (
-          <div data-testid="contact-owner-email">
-            {t("contact_owner")}: <span className="font-semibold">Not found</span>
-          </div>
         ) : (
           <></>
         )}
         <div className="mt-2" data-testid="matching-members">
-          {showAllData ? (
-            <>
-              {membersMatchResult.isUsingAttributeWeights
-                ? t("matching_members_queue_using_attribute_weights")
-                : t("matching_members_queue_using_event_assignee_weights")}
-            </>
-          ) : (
-            <></>
-          )}
           {renderQueue()}
         </div>
       </div>
