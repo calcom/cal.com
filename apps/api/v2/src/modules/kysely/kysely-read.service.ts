@@ -8,7 +8,7 @@ import type { DB } from "@calcom/kysely/types";
 
 @Injectable()
 export class KyselyReadService implements OnModuleDestroy {
-  private logger = new Logger("PrismaReadService");
+  private logger = new Logger("KyselyReadService");
 
   public kysely: Kysely<DB>;
 
