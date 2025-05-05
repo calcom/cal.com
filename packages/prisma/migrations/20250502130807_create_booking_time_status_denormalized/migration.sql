@@ -16,7 +16,6 @@ CREATE TABLE "BookingTimeStatusDenormalized" (
     "userId" INTEGER,
     "teamId" INTEGER,
     "eventLength" INTEGER,
-    "timeStatus" TEXT,
     "eventParentId" INTEGER,
     "userEmail" TEXT,
     "userName" TEXT,
@@ -40,9 +39,6 @@ CREATE INDEX "BookingTimeStatusDenormalized_eventTypeId_idx" ON "BookingTimeStat
 
 -- CreateIndex
 CREATE INDEX "BookingTimeStatusDenormalized_eventParentId_idx" ON "BookingTimeStatusDenormalized"("eventParentId");
-
--- CreateIndex
-CREATE INDEX "BookingTimeStatusDenormalized_timeStatus_idx" ON "BookingTimeStatusDenormalized"("timeStatus");
 
 -- CreateIndex
 CREATE INDEX "BookingTimeStatusDenormalized_teamId_idx" ON "BookingTimeStatusDenormalized"("teamId");
