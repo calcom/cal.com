@@ -11,10 +11,10 @@ CREATE OR REPLACE FUNCTION refresh_booking_time_status_denormalized(booking_id I
 RETURNS VOID AS $$
 BEGIN
     -- Delete existing entry if any
-    DELETE FROM "BookingTimeStatusDenormalized" WHERE id = booking_id;
+    DELETE FROM "BookingDenormalized" WHERE id = booking_id;
 
     -- Insert only if both EventType and user exist
-    INSERT INTO "BookingTimeStatusDenormalized"
+    INSERT INTO "BookingDenormalized"
     SELECT
         "Booking".id,
         "Booking".uid,
@@ -54,7 +54,7 @@ BEGIN
     BEGIN
         PERFORM refresh_booking_time_status_denormalized(NEW.id);
     EXCEPTION WHEN OTHERS THEN
-        RAISE WARNING 'DENORM_ERROR: BookingTimeStatusDenormalized - Failed to handle booking change for id %', NEW.id;
+        RAISE WARNING 'DENORM_ERROR: BookingDenormalized - Failed to handle booking change for id %', NEW.id;
     END;
     RETURN NEW;
 END;
@@ -65,9 +65,9 @@ CREATE OR REPLACE FUNCTION trigger_delete_booking_time_status_denormalized()
 RETURNS TRIGGER AS $$
 BEGIN
     BEGIN
-        DELETE FROM "BookingTimeStatusDenormalized" WHERE id = OLD.id;
+        DELETE FROM "BookingDenormalized" WHERE id = OLD.id;
     EXCEPTION WHEN OTHERS THEN
-        RAISE WARNING 'DENORM_ERROR: BookingTimeStatusDenormalized - Failed to delete denormalized booking id %', OLD.id;
+        RAISE WARNING 'DENORM_ERROR: BookingDenormalized - Failed to delete denormalized booking id %', OLD.id;
     END;
     RETURN OLD;
 END;
@@ -88,7 +88,7 @@ CREATE TRIGGER booking_delete_trigger
 CREATE OR REPLACE FUNCTION refresh_booking_time_status_team_id()
 RETURNS TRIGGER AS $$
 BEGIN
-    UPDATE "BookingTimeStatusDenormalized" btsd
+    UPDATE "BookingDenormalized" btsd
     SET
         "teamId" = NEW."teamId",
         "isTeamBooking" = calculate_is_team_booking(NEW."teamId")
@@ -101,7 +101,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION refresh_booking_time_status_length()
 RETURNS TRIGGER AS $$
 BEGIN
-    UPDATE "BookingTimeStatusDenormalized" btsd
+    UPDATE "BookingDenormalized" btsd
     SET "eventLength" = NEW.length
     WHERE btsd."eventTypeId" = NEW.id;
     RETURN NEW;
@@ -112,7 +112,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION refresh_booking_time_status_parent_id()
 RETURNS TRIGGER AS $$
 BEGIN
-    UPDATE "BookingTimeStatusDenormalized" btsd
+    UPDATE "BookingDenormalized" btsd
     SET "eventParentId" = NEW."parentId"
     WHERE btsd."eventTypeId" = NEW.id;
     RETURN NEW;
@@ -140,14 +140,14 @@ CREATE OR REPLACE FUNCTION trigger_refresh_booking_time_status_denormalized_user
 RETURNS TRIGGER AS $$
 BEGIN
     BEGIN
-        UPDATE "BookingTimeStatusDenormalized" btsd
+        UPDATE "BookingDenormalized" btsd
         SET
             "userEmail" = NEW.email,
             "userName" = NEW.name,
             "userUsername" = NEW.username
         WHERE btsd."userId" = NEW.id;
     EXCEPTION WHEN OTHERS THEN
-        RAISE WARNING 'DENORM_ERROR: BookingTimeStatusDenormalized - Failed to update user changes for id %', NEW.id;
+        RAISE WARNING 'DENORM_ERROR: BookingDenormalized - Failed to update user changes for id %', NEW.id;
     END;
     RETURN NEW;
 END;
@@ -162,7 +162,7 @@ CREATE TRIGGER user_update_trigger
 CREATE OR REPLACE FUNCTION trigger_delete_booking_time_status_event_type()
 RETURNS TRIGGER AS $$
 BEGIN
-    DELETE FROM "BookingTimeStatusDenormalized"
+    DELETE FROM "BookingDenormalized"
     WHERE "eventTypeId" = OLD.id;
     RETURN OLD;
 END;
@@ -178,7 +178,7 @@ CREATE TRIGGER event_type_delete_trigger
 CREATE OR REPLACE FUNCTION trigger_delete_booking_time_status_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    DELETE FROM "BookingTimeStatusDenormalized"
+    DELETE FROM "BookingDenormalized"
     WHERE "userId" = OLD.id;
     RETURN OLD;
 END;
@@ -191,6 +191,6 @@ CREATE TRIGGER user_delete_trigger
     EXECUTE FUNCTION trigger_delete_booking_time_status_user();
 
 -- Populate the table with initial data
--- DELETE FROM "BookingTimeStatusDenormalized";
--- INSERT INTO "BookingTimeStatusDenormalized"
+-- DELETE FROM "BookingDenormalized";
+-- INSERT INTO "BookingDenormalized"
 -- SELECT * FROM "BookingTimeStatus";
