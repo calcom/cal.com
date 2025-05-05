@@ -1,10 +1,11 @@
 import { useRouter } from "next/navigation";
-import { createSerializer, parseAsArrayOf, parseAsJson } from "nuqs";
 import { createContext, forwardRef, useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { activeFiltersSerializer } from "@calcom/features/data-table/lib/serializers";
+import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/features/embed/RoutingFormEmbed";
 import { EmbedDialogProvider } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
@@ -487,14 +488,9 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       onClick: () => setNewFormDialogState?.({ action: "new", target: "" }),
     },
     viewResponses: {
-      href: (() => {
-        const activeFiltersSerializer = createSerializer({
-          activeFilters: parseAsArrayOf(parseAsJson),
-        });
-        return `/insights/routing${activeFiltersSerializer({
-          activeFilters: [{ f: "formId", v: { type: "single_select", data: routingForm?.id } }],
-        })}`;
-      })(),
+      href: `/insights/routing${activeFiltersSerializer({
+        activeFilters: [{ f: "formId", v: { type: ColumnFilterType.SINGLE_SELECT, data: routingForm?.id } }],
+      })}`,
     },
     copyRedirectUrl: {
       onClick: () => {
