@@ -14703,6 +14703,117 @@ body {
 
 /*
   Desktop App specific CSS
+    https://docs.crabnebula.dev/taurify
+*/
+
+html.taurify-platform-win32 .taurify\:\!bg-transparent {
+  background: inherit !important;
+}
+
+/* disable user selection on buttons, links and images on desktop app */
+html.taurify button,
+html.taurify a,
+html.taurify img,
+html.taurify header {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  cursor: default !important;
+}
+
+html.taurify,
+html.taurify div {
+  cursor: default !important;
+}
+
+/* make header draggable on desktop app */
+html.taurify header {
+  -webkit-app-region: drag;
+}
+
+html.taurify header button,
+html.taurify header a {
+  -webkit-app-region: no-drag;
+}
+
+html.taurify-platform-darwin body,
+html.taurify-platform-darwin aside {
+  background: transparent !important;
+}
+
+html.taurify-platform-darwin.dark main.bg-default {
+  background: rgba(0, 0, 0, 0.6) !important;
+}
+
+html.taurify-platform-darwin.light main.bg-default {
+  background: rgba(255, 255, 255, 0.8) !important;
+}
+
+html.taurify.light {
+  --cal-bg-emphasis: hsla(0, 0%, 11%, 0.1);
+}
+
+html.taurify.dark {
+  --cal-bg-emphasis: hsla(220, 2%, 26%, 0.3);
+}
+
+html.taurify .taurify\:-mt-3 {
+  margin-top: calc(var(--cal-spacing-3) * -1);
+}
+
+html.taurify .taurify\:mt-10 {
+  margin-top: var(--cal-spacing-10);
+}
+
+html.taurify .taurify\:mt-4 {
+  margin-top: var(--cal-spacing-4);
+}
+
+html.taurify .taurify\:block {
+  display: block;
+}
+
+html.taurify .taurify\:hidden {
+  display: none;
+}
+
+html.taurify .taurify\:flex-col-reverse {
+  flex-direction: column-reverse;
+}
+
+html.taurify .taurify\:\!bg-transparent {
+  background-color: transparent !important;
+}
+
+html.taurify .taurify\:py-\[7px\] {
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+
+html.taurify .taurify\:\!text-blue-500 {
+  --tw-text-opacity: 1 !important;
+  color: rgb(59 130 246 / var(--tw-text-opacity)) !important;
+}
+
+html.taurify .taurify\:\[-webkit-app-region\:drag\] {
+  -webkit-app-region: drag;
+}
+
+html.taurify .taurify\:hover\:\!bg-transparent:hover {
+  background-color: transparent !important;
+}
+
+html.taurify .taurify\:hover\:bg-transparent:hover {
+  background-color: transparent;
+}
+
+html.taurify .taurify\:\[\&\[aria-current\=\'page\'\]\]\:bg-emphasis[aria-current='page'] {
+  background-color: var(--cal-bg-emphasis);
+}
+
+/*
+  Desktop App specific CSS
     https://docs.todesktop.com/
 */
 
@@ -14756,6 +14867,60 @@ html.todesktop.light {
 
 html.todesktop.dark {
   --cal-bg-emphasis: hsla(220, 2%, 26%, 0.3);
+}
+
+html.todesktop .todesktop\:-mt-3 {
+  margin-top: calc(var(--cal-spacing-3) * -1);
+}
+
+html.todesktop .todesktop\:mt-10 {
+  margin-top: var(--cal-spacing-10);
+}
+
+html.todesktop .todesktop\:mt-4 {
+  margin-top: var(--cal-spacing-4);
+}
+
+html.todesktop .todesktop\:block {
+  display: block;
+}
+
+html.todesktop .todesktop\:hidden {
+  display: none;
+}
+
+html.todesktop .todesktop\:flex-col-reverse {
+  flex-direction: column-reverse;
+}
+
+html.todesktop .todesktop\:\!bg-transparent {
+  background-color: transparent !important;
+}
+
+html.todesktop .todesktop\:py-\[7px\] {
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+
+html.todesktop .todesktop\:\!text-blue-500 {
+  --tw-text-opacity: 1 !important;
+  color: rgb(59 130 246 / var(--tw-text-opacity)) !important;
+}
+
+html.todesktop .todesktop\:\[-webkit-app-region\:drag\] {
+  -webkit-app-region: drag;
+}
+
+html.todesktop .todesktop\:hover\:\!bg-transparent:hover {
+  background-color: transparent !important;
+}
+
+html.todesktop .todesktop\:hover\:bg-transparent:hover {
+  background-color: transparent;
+}
+
+html.todesktop .todesktop\:\[\&\[aria-current\=\'page\'\]\]\:bg-emphasis[aria-current='page'] {
+  background-color: var(--cal-bg-emphasis);
 }
 
 /*
@@ -17091,48 +17256,6 @@ select:focus {
 
 .group[data-state=selected] .group-data-\[state\=selected\]\:bg-subtle {
   background-color: var(--cal-bg-subtle);
-}
-
-html.todesktop .todesktop\:-mt-3 {
-  margin-top: calc(var(--cal-spacing-3) * -1);
-}
-
-html.todesktop .todesktop\:mt-10 {
-  margin-top: var(--cal-spacing-10);
-}
-
-html.todesktop .todesktop\:mt-4 {
-  margin-top: var(--cal-spacing-4);
-}
-
-html.todesktop .todesktop\:block {
-  display: block;
-}
-
-html.todesktop .todesktop\:hidden {
-  display: none;
-}
-
-html.todesktop .todesktop\:flex-col-reverse {
-  flex-direction: column-reverse;
-}
-
-html.todesktop .todesktop\:\!bg-transparent {
-  background-color: transparent !important;
-}
-
-html.todesktop .todesktop\:py-\[7px\] {
-  padding-top: 7px;
-  padding-bottom: 7px;
-}
-
-html.todesktop .todesktop\:\!text-blue-500 {
-  --tw-text-opacity: 1 !important;
-  color: rgb(59 130 246 / var(--tw-text-opacity)) !important;
-}
-
-html.todesktop .todesktop\:\[-webkit-app-region\:drag\] {
-  -webkit-app-region: drag;
 }
 
 .prose-headings\:text-emphasis :is(:where(h1, h2, h3, h4, h5, h6, th):not(:where([class~="not-prose"] *))) {
@@ -21875,14 +21998,6 @@ html.todesktop .todesktop\:\[-webkit-app-region\:drag\] {
   color: rgb(254 242 242 / var(--tw-text-opacity));
 }
 
-html.todesktop .todesktop\:hover\:\!bg-transparent:hover {
-  background-color: transparent !important;
-}
-
-html.todesktop .todesktop\:hover\:bg-transparent:hover {
-  background-color: transparent;
-}
-
 .active\:scale-95:active {
   --tw-scale-x: .95;
   --tw-scale-y: .95;
@@ -25011,10 +25126,6 @@ html.todesktop .todesktop\:hover\:bg-transparent:hover {
 
 .\[\&\[aria-current\=\'page\'\]\]\:text-inherit[aria-current='page'] {
   color: inherit;
-}
-
-html.todesktop .todesktop\:\[\&\[aria-current\=\'page\'\]\]\:bg-emphasis[aria-current='page'] {
-  background-color: var(--cal-bg-emphasis);
 }
 
 :is([dir="ltr"] .ltr\:\[\&\[data-state\=\'checked\'\]\]\:translate-x-\[13px\][data-state='checked']) {

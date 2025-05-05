@@ -1,0 +1,60 @@
+{
+  "api": "https://cal.taurify.app",
+  "productName": "Cal",
+  "version": "0.1.0",
+  "identifier": "com.cal.app",
+  "cloudOrgSlug": "cal",
+  "cloudAppSlug": "cal-com",
+  "beforeBuildCommand": "echo noop",
+  "productionSrc": "https://app.cal.com",
+  "app": {
+    "icon": "public/cal-com-icon.svg",
+    "windows": [
+      {
+        "label": "main",
+        "width": 1200.0,
+        "height": 800.0,
+        "minWidth": 1000.0,
+        "minHeight": 800.0,
+        "hiddenTitle": true,
+        "titleBarStyle": "Overlay"
+      }
+    ],
+    "singleInstance": true,
+    "trays": [
+      {
+        "id": "main",
+        "icon": "public/android-chrome-256x256.png"
+      }
+    ],
+    "desktopDeepLinks": [
+      {
+        "schemes": ["cal"]
+      }
+    ]
+  },
+  "iOS": null,
+  "android": null,
+  "windows": {
+    "targets": [
+      {
+        "bundle": "nsis"
+      }
+    ]
+  },
+  "linux": {
+    "targets": [
+      {
+        "bundle": "appimage"
+      }
+    ]
+  },
+  "macOS": {
+    "targets": [
+      {
+        "bundle": "dmg"
+      }
+    ],
+    "arch": "arm64"
+  }
+}
