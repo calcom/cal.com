@@ -33,7 +33,7 @@ export const listHandler = async ({ ctx }: ListOptions) => {
     };
   }
 
-  let defaultScheduleId;
+  let defaultScheduleId: number | null;
   try {
     defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
 
