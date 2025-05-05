@@ -15,7 +15,7 @@
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "build": "next build",
-    "sentry:release": "NODE_OPTIONS='--max-old-space-size=6144' node scripts/create-sentry-release.js",
+    "sentry:release": "node scripts/create-sentry-release.js",
     "build:sentry": "yarn build && yarn sentry:release",
     "start": "next start",
     "lint": "eslint . --ignore-path .gitignore",
