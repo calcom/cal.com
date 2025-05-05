@@ -1,8 +1,8 @@
 /**/package.json @calcom/Foundation
 /apps/api/**/* @calcom/Platform @calcom/Foundation
-/apps/ui-playground/**/* @calcom/Consumer
-/apps/web/components/**/* @calcom/Consumer
-/apps/web/modules/**/* @calcom/Consumer
+/apps/ui-playground/**/* @calcom/Consumer @calcom/Foundation
+/apps/web/components/**/* @calcom/Consumer @calcom/Foundation
+/apps/web/modules/**/* @calcom/Consumer @calcom/Foundation
 /apps/web/**/layout.tsx @calcom/Foundation
 /apps/web/lib/**/* @calcom/Foundation
 /apps/web/middleware.ts @calcom/Foundation
@@ -27,4 +27,4 @@
 /packages/platform/**/* @calcom/Platform @calcom/Foundation
 /packages/prisma/**/* @calcom/Foundation
 /packages/trpc/server/routers/viewer/slots/**/* @calcom/Foundation
-/packages/ui/**/* @calcom/Consumer
+/packages/ui/**/* @calcom/Consumer @calcom/Foundation

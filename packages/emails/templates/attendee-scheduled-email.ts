@@ -2,7 +2,7 @@ import type { TFunction } from "i18next";
 import { default as cloneDeep } from "lodash/cloneDeep";
 
 import { getRichDescription } from "@calcom/lib/CalEventParser";
-import { getReplyToEmail } from "@calcom/lib/getReplyToEmail";
+import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -40,12 +40,10 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       }),
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
-      replyTo: [
-        ...this.calEvent.attendees
-          .filter(({ email }) => email !== this.attendee.email)
-          .map(({ email }) => email),
-        getReplyToEmail(this.calEvent),
-      ],
+      ...getReplyToHeader(
+        this.calEvent,
+        this.calEvent.attendees.filter(({ email }) => email !== this.attendee.email).map(({ email }) => email)
+      ),
       subject: `${this.calEvent.title}`,
       html: await this.getHtml(clonedCalEvent, this.attendee),
       text: this.getTextBody(),
