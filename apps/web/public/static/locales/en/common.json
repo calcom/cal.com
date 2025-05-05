@@ -3172,12 +3172,15 @@
   "skip_trial": "Skip trial period",
   "team_trials_skipped_successfully": "Team trials skipped successfully",
   "sms_workflow_consent": "By entering your phone number you consent to receive SMS messages for this event. SMS rates may apply.",
-  "routing_preview_more_info_found_insights": "More info can be found in Routing Insights",
+  "routing_preview_more_info_found_insights": "More info can be found in <0>Routing Insights</0>",
   "results": "Results",
   "view_form": "View Form",
   "sms_opt_out_message": "Text STOP to opt-out of SMS messages",
   "routing_form_next_in_queue": "{{count}} next in queue",
   "routing_form_select_members_to_email": "Send email responses to",
   "routing_incomplete_booking_tab": "Incomplete Bookings",
+  "matching": "Matching",
+  "event_redirect": "Event Redirect",
+  "reset_form": "Reset Form",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
