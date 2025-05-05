@@ -110,3 +110,4 @@ async function postHandler(req: NextRequest) {
 }
 
 export const POST = defaultResponderForAppDir(postHandler);
+export const dynamic = "force-dynamic";
