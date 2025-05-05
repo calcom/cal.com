@@ -1,7 +1,7 @@
 import { Kysely, ParseJSONResultsPlugin, PostgresDialect } from "kysely";
 import { Pool } from "pg";
 
-import type { DB, Booking } from "./types.ts";
+import type { DB, Booking } from "./types";
 
 export type { DB, Booking };
 
