@@ -7,7 +7,8 @@ import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallo
 import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
 import { usageTrackingExtention } from "./extensions/usage-tracking";
-import { bookingReferenceMiddleware, slowQueryDetectionMiddleware } from "./middleware";
+import bookingReferenceMiddleware from "./middleware/bookingReference";
+import slowQueryDetectionMiddleware from "./middleware/slowQueryDetection";
 
 const prismaOptions: Prisma.PrismaClientOptions = {};
 
@@ -75,13 +76,7 @@ export const readonlyPrisma = process.env.INSIGHTS_DATABASE_URL
     })
   : prisma;
 
-if (process.env.INSIGHTS_DATABASE_URL) {
-  try {
-    slowQueryDetectionMiddleware(readonlyPrisma as unknown as PrismaClient);
-  } catch (error) {
-    console.warn("Failed to apply slow query detection middleware to readonly client:", error);
-  }
-}
+slowQueryDetectionMiddleware(readonlyPrisma);
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prismaWithoutClientExtensions = prismaWithoutClientExtensions;

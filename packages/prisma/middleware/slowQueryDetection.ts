@@ -1,26 +1,24 @@
-import type { PrismaClient } from "@prisma/client";
 import { captureException } from "@sentry/nextjs";
 import { performance } from "perf_hooks";
 
 import logger from "@calcom/lib/logger";
 
 const DEFAULT_SLOW_QUERY_THRESHOLD_MS = 500;
-
 const RATE_LIMIT_PERIOD_MS = 60000; // 1 minute
 
-let lastReportTime = 0;
+type PrismaClientLike = {
+  $use?: (callback: any) => void;
+  $on?: any;
+};
 
-const queryMap = new Map<string, { sql: string; timestamp: number }>();
-
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, value] of queryMap.entries()) {
-    if (now - value.timestamp > 10000) {
-      // Remove entries older than 10 seconds
-      queryMap.delete(key);
-    }
+const clientState = new WeakMap<
+  object,
+  {
+    lastReportTime: number;
+    queryMap: Map<string, { sql: string; timestamp: number }>;
+    cleanupInterval: NodeJS.Timeout | null;
   }
-}, 30000); // Run cleanup every 30 seconds
+>();
 
 type PrismaMiddlewareParams = {
   model?: string;
@@ -30,24 +28,50 @@ type PrismaMiddlewareParams = {
 
 type PrismaMiddlewareNext = (params: PrismaMiddlewareParams) => Promise<unknown>;
 
-function middleware(prisma: PrismaClient | Record<string, unknown>) {
+function middleware(prisma: any) {
   if (typeof prisma.$use !== "function") {
     logger.warn("Slow query detection middleware not applied: client does not support $use method");
     return;
   }
 
-  if (typeof (prisma as PrismaClient).$on === "function") {
-    (prisma as PrismaClient).$on("query", (event) => {
-      const queryId = `${event.timestamp}-${Math.random()}`;
-      queryMap.set(queryId, {
-        sql: event.query,
-        timestamp: event.timestamp,
-      });
-
-      setTimeout(() => {
-        queryMap.delete(queryId);
-      }, 10000);
+  if (!clientState.has(prisma)) {
+    clientState.set(prisma, {
+      lastReportTime: 0,
+      queryMap: new Map<string, { sql: string; timestamp: number }>(),
+      cleanupInterval: null,
     });
+
+    const state = clientState.get(prisma)!;
+    state.cleanupInterval = setInterval(() => {
+      const now = Date.now();
+      Array.from(state.queryMap.entries()).forEach(([key, value]) => {
+        if (now - value.timestamp > 10000) {
+          state.queryMap.delete(key);
+        }
+      });
+    }, 30000); // Run cleanup every 30 seconds
+  }
+
+  const state = clientState.get(prisma)!;
+
+  if (typeof prisma.$on === "function") {
+    try {
+      prisma.$on("query", (event: any) => {
+        if (event && typeof event === "object") {
+          const queryId = `${event.timestamp || Date.now()}-${Math.random()}`;
+          state.queryMap.set(queryId, {
+            sql: event.query || "SQL not captured",
+            timestamp: event.timestamp || Date.now(),
+          });
+
+          setTimeout(() => {
+            state.queryMap.delete(queryId);
+          }, 10000);
+        }
+      });
+    } catch (error) {
+      logger.warn("Failed to register query event listener", { error });
+    }
   }
 
   /***********************************/
@@ -66,19 +90,19 @@ function middleware(prisma: PrismaClient | Record<string, unknown>) {
 
     if (duration > threshold) {
       const now = Date.now();
-      if (now - lastReportTime > RATE_LIMIT_PERIOD_MS) {
-        lastReportTime = now;
+      if (now - state.lastReportTime > RATE_LIMIT_PERIOD_MS) {
+        state.lastReportTime = now;
 
         let rawSql = "SQL not captured";
         let closestTimeDiff = Infinity;
 
-        for (const [_, queryData] of queryMap.entries()) {
+        Array.from(state.queryMap.entries()).forEach(([_, queryData]) => {
           const timeDiff = Math.abs(queryData.timestamp - executionTimestamp);
           if (timeDiff < closestTimeDiff) {
             closestTimeDiff = timeDiff;
             rawSql = queryData.sql;
           }
-        }
+        });
 
         const queryDetails = {
           model: params.model,
