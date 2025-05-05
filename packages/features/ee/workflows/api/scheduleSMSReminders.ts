@@ -18,6 +18,7 @@ import * as twilio from "../lib/reminders/providers/twilioProvider";
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
+import { WorkflowOptOutService } from "../lib/service/workflowOptOutService";
 
 export async function handler(req: NextRequest) {
   const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
@@ -173,6 +174,10 @@ export async function handler(req: NextRequest) {
       }
 
       if (message?.length && message?.length > 0 && sendTo) {
+        if (process.env.TWILIO_OPT_OUT_ENABLED === "true") {
+          message = await WorkflowOptOutService.addOptOutMessage(message, locale || "en");
+        }
+
         const scheduledSMS = await twilio.scheduleSMS(
           sendTo,
           message,

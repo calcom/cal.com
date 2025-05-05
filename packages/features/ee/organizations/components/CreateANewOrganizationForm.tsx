@@ -322,7 +322,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
                 <RadioArea.Item className={classNames("bg-default w-full text-sm")} value="ORGANIZATION">
                   <strong className="mb-1 block">{t("organization")}</strong>
                   {pricePerSeat && seats ? (
-                    <p>{`$${pricePerSeat} per user per month (${seats} seats minimum) ${
+                    <p>{`$${pricePerSeat} per user per month ${
                       billingPeriod === BillingPeriod.ANNUALLY ? "(billed annually)" : ""
                     }`}</p>
                   ) : (
