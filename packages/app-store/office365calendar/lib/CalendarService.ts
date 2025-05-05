@@ -765,7 +765,7 @@ export default class Office365CalendarService implements Calendar {
       body: JSON.stringify({
         changeType: "created,updated,deleted",
         notificationUrl: OUTLOOK_WEBHOOK_URL,
-        resource: `${await this.getUserEndpoint()}/events`,
+        resource: `${await this.getUserEndpoint()}/calendars/${calendarId}/events`,
         clientState: process.env.OUTLOOK_WEBHOOK_TOKEN,
         /**
          * Under 7 days
