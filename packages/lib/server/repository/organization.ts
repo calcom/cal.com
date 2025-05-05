@@ -57,6 +57,7 @@ export class OrganizationRepository {
 
     await prisma.membership.create({
       data: {
+        createdAt: new Date(),
         userId: owner.id,
         role: MembershipRole.OWNER,
         accepted: true,
@@ -102,6 +103,7 @@ export class OrganizationRepository {
 
     await prisma.membership.create({
       data: {
+        createdAt: new Date(),
         userId: ownerInDb.id,
         role: MembershipRole.OWNER,
         accepted: true,
@@ -268,6 +270,7 @@ export class OrganizationRepository {
         allowSEOIndexing: true,
         orgProfileRedirectsToVerifiedDomain: true,
         orgAutoAcceptEmail: true,
+        disablePhoneOnlySMSNotifications: true,
       },
     });
 
@@ -285,6 +288,7 @@ export class OrganizationRepository {
         allowSEOIndexing: organizationSettings?.allowSEOIndexing,
         orgProfileRedirectsToVerifiedDomain: organizationSettings?.orgProfileRedirectsToVerifiedDomain,
         orgAutoAcceptEmail: organizationSettings?.orgAutoAcceptEmail,
+        disablePhoneOnlySMSNotifications: organizationSettings?.disablePhoneOnlySMSNotifications,
       },
       user: {
         role: membership?.role,
