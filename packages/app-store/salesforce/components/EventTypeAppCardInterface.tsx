@@ -1,6 +1,5 @@
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import type z from "zod";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
@@ -16,13 +15,9 @@ import { Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
-import {
-  SalesforceRecordEnum,
-  WhenToWriteToRecord,
-  SalesforceFieldType,
-  DateFieldTypeData,
-} from "../lib/enums";
-import type { appDataSchema, writeToRecordEntrySchema } from "../zod";
+import { SalesforceRecordEnum } from "../lib/enums";
+import type { appDataSchema } from "../zod";
+import WriteToObjectSettings, { BookingActionEnum } from "./components/WriteToObjectSettings";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
   const pathname = usePathname();
@@ -48,6 +43,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const onBookingWriteToRecordFields = getAppData("onBookingWriteToRecordFields") ?? {};
   const ignoreGuests = getAppData("ignoreGuests") ?? false;
   const roundRobinSkipFallbackToLeadOwner = getAppData("roundRobinSkipFallbackToLeadOwner") ?? false;
+  const onCancelWriteToEventRecord = getAppData("onCancelWriteToEventRecord") ?? false;
+  const onCancelWriteToEventRecordFields = getAppData("onCancelWriteToEventRecordFields") ?? {};
 
   const { t } = useLocale();
 
@@ -59,49 +56,6 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const [createEventOnSelectedOption, setCreateEventOnSelectedOption] = useState(
     recordOptions.find((option) => option.value === createEventOn) ?? recordOptions[0]
   );
-
-  const fieldTypeOptions = [
-    { label: t("text"), value: SalesforceFieldType.TEXT },
-    { label: t("date"), value: SalesforceFieldType.DATE },
-    { label: t("phone").charAt(0).toUpperCase() + t("phone").slice(1), value: SalesforceFieldType.PHONE },
-    { label: t("checkbox"), value: SalesforceFieldType.CHECKBOX },
-    { label: t("picklist"), value: SalesforceFieldType.PICKLIST },
-    { label: t("custom"), value: SalesforceFieldType.CUSTOM },
-  ];
-
-  const [writeToPersonObjectFieldType, setWriteToPersonObjectFieldType] = useState(fieldTypeOptions[0]);
-
-  const whenToWriteToRecordOptions = [
-    { label: t("on_every_booking"), value: WhenToWriteToRecord.EVERY_BOOKING },
-    { label: t("only_if_field_is_empty"), value: WhenToWriteToRecord.FIELD_EMPTY },
-  ];
-
-  const [whenToWriteToPersonRecord, setWhenToWriteToPersonRecord] = useState(
-    whenToWriteToRecordOptions.find((option) => option.value === WhenToWriteToRecord.FIELD_EMPTY) ??
-      whenToWriteToRecordOptions[0]
-  );
-
-  const dateFieldValueOptions = [
-    { label: t("booking_start_date"), value: DateFieldTypeData.BOOKING_START_DATE },
-    { label: t("booking_created_date"), value: DateFieldTypeData.BOOKING_CREATED_DATE },
-  ];
-
-  const checkboxFieldValueOptions = [
-    { label: t("true"), value: true },
-    { label: t("false"), value: false },
-  ];
-
-  const [dateFieldValue, setDateValue] = useState(dateFieldValueOptions[0]);
-  const [checkboxFieldValue, setCheckboxFieldValue] = useState(checkboxFieldValueOptions[0]);
-
-  const [newOnBookingWriteToPersonObjectField, setNewOnBookingWriteToPersonObjectField] = useState<
-    z.infer<typeof writeToRecordEntrySchema>
-  >({
-    field: "",
-    fieldType: writeToPersonObjectFieldType.value,
-    value: "",
-    whenToWrite: WhenToWriteToRecord.FIELD_EMPTY,
-  });
 
   const checkOwnerOptions = [
     { label: t("contact"), value: SalesforceRecordEnum.CONTACT },
@@ -306,206 +260,16 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         </div>
 
         <div className="mt-4">
-          <Switch
-            label={t("salesforce_on_booking_write_to_record", { record: createEventOn })}
-            labelOnLeading
-            checked={onBookingWriteToRecord}
-            onCheckedChange={(checked) => {
+          <WriteToObjectSettings
+            bookingAction={BookingActionEnum.ON_BOOKING}
+            optionLabel={t("salesforce_on_booking_write_to_record", { record: createEventOn })}
+            optionEnabled={onBookingWriteToRecord}
+            writeToObjectData={onBookingWriteToRecordFields}
+            optionSwitchOnChange={(checked) => {
               setAppData("onBookingWriteToRecord", checked);
             }}
+            updateWriteToObjectData={(data) => setAppData("onBookingWriteToRecordFields", data)}
           />
-          {onBookingWriteToRecord ? (
-            <div className="ml-2 mt-2">
-              <div className="grid grid-cols-5 gap-4">
-                <div>{t("field_name")}</div>
-                <div>{t("field_type")}</div>
-                <div>{t("value")}</div>
-                <div>{t("when_to_write")}</div>
-              </div>
-              <div>
-                {Object.keys(onBookingWriteToRecordFields).map((key) => (
-                  <div className="mt-2 grid grid-cols-5 gap-4" key={key}>
-                    <div>
-                      <InputField value={key} readOnly />
-                    </div>
-                    <div>
-                      <Select
-                        value={fieldTypeOptions.find(
-                          (option) => option.value === onBookingWriteToRecordFields[key].fieldType
-                        )}
-                        isDisabled={true}
-                      />
-                    </div>
-                    <div>
-                      {onBookingWriteToRecordFields[key].fieldType === SalesforceFieldType.DATE ? (
-                        <Select
-                          value={dateFieldValueOptions.find(
-                            (option) => option.value === onBookingWriteToRecordFields[key].value
-                          )}
-                          isDisabled={true}
-                        />
-                      ) : onBookingWriteToRecordFields[key].fieldType === SalesforceFieldType.CHECKBOX ? (
-                        <Select
-                          value={checkboxFieldValueOptions.find(
-                            (option) => option.value === onBookingWriteToRecordFields[key].value
-                          )}
-                          isDisabled={true}
-                        />
-                      ) : (
-                        <InputField value={onBookingWriteToRecordFields[key].value as string} readOnly />
-                      )}
-                    </div>
-                    <div>
-                      <Select
-                        value={whenToWriteToRecordOptions.find(
-                          (option) => option.value === onBookingWriteToRecordFields[key].whenToWrite
-                        )}
-                        isDisabled={true}
-                      />
-                    </div>
-                    <div>
-                      <Button
-                        StartIcon="trash"
-                        variant="icon"
-                        color="destructive"
-                        onClick={() => {
-                          const newObject = onBookingWriteToRecordFields;
-                          delete onBookingWriteToRecordFields[key];
-                          setAppData("onBookingWriteToRecordFields", newObject);
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-                <div className="mt-2 grid grid-cols-5 gap-4">
-                  <div>
-                    <InputField
-                      value={newOnBookingWriteToPersonObjectField.field}
-                      onChange={(e) =>
-                        setNewOnBookingWriteToPersonObjectField({
-                          ...newOnBookingWriteToPersonObjectField,
-                          field: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Select
-                      options={fieldTypeOptions}
-                      value={writeToPersonObjectFieldType}
-                      onChange={(e) => {
-                        if (e) {
-                          setWriteToPersonObjectFieldType(e);
-                          setNewOnBookingWriteToPersonObjectField({
-                            ...newOnBookingWriteToPersonObjectField,
-                            fieldType: e.value,
-                            ...(e.value === SalesforceFieldType.DATE && { value: dateFieldValue.value }),
-                            ...(e.value === SalesforceFieldType.CHECKBOX && {
-                              value: checkboxFieldValue.value,
-                            }),
-                          });
-                        }
-                      }}
-                    />
-                  </div>
-                  <div>
-                    {writeToPersonObjectFieldType.value === SalesforceFieldType.DATE ? (
-                      <Select
-                        options={dateFieldValueOptions}
-                        value={dateFieldValue}
-                        onChange={(e) => {
-                          if (e) {
-                            setDateValue(e);
-                            setNewOnBookingWriteToPersonObjectField({
-                              ...newOnBookingWriteToPersonObjectField,
-                              value: e.value,
-                            });
-                          }
-                        }}
-                      />
-                    ) : writeToPersonObjectFieldType.value === SalesforceFieldType.CHECKBOX ? (
-                      <Select
-                        options={checkboxFieldValueOptions}
-                        value={checkboxFieldValue}
-                        onChange={(e) => {
-                          if (e) {
-                            setCheckboxFieldValue(e);
-                            setNewOnBookingWriteToPersonObjectField({
-                              ...newOnBookingWriteToPersonObjectField,
-                              value: e.value,
-                            });
-                          }
-                        }}
-                      />
-                    ) : (
-                      <InputField
-                        value={newOnBookingWriteToPersonObjectField.value as string}
-                        onChange={(e) =>
-                          setNewOnBookingWriteToPersonObjectField({
-                            ...newOnBookingWriteToPersonObjectField,
-                            value: e.target.value,
-                          })
-                        }
-                      />
-                    )}
-                  </div>
-                  <div>
-                    <Select
-                      options={whenToWriteToRecordOptions}
-                      value={whenToWriteToPersonRecord}
-                      onChange={(e) => {
-                        if (e) {
-                          setWhenToWriteToPersonRecord(e);
-                          setNewOnBookingWriteToPersonObjectField({
-                            ...newOnBookingWriteToPersonObjectField,
-                            whenToWrite: e.value,
-                          });
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-              <Button
-                className="mt-2"
-                size="sm"
-                disabled={
-                  !(
-                    newOnBookingWriteToPersonObjectField.field &&
-                    newOnBookingWriteToPersonObjectField.fieldType &&
-                    newOnBookingWriteToPersonObjectField.value !== "" &&
-                    newOnBookingWriteToPersonObjectField.whenToWrite
-                  )
-                }
-                onClick={() => {
-                  if (
-                    Object.keys(onBookingWriteToRecordFields).includes(
-                      newOnBookingWriteToEventObjectField.field.trim()
-                    )
-                  ) {
-                    showToast("Field already exists", "error");
-                    return;
-                  }
-
-                  setAppData("onBookingWriteToRecordFields", {
-                    ...onBookingWriteToRecordFields,
-                    [newOnBookingWriteToPersonObjectField.field.trim()]: {
-                      fieldType: newOnBookingWriteToPersonObjectField.fieldType,
-                      value: newOnBookingWriteToPersonObjectField.value,
-                      whenToWrite: newOnBookingWriteToPersonObjectField.whenToWrite,
-                    },
-                  });
-                  setNewOnBookingWriteToPersonObjectField({
-                    field: "",
-                    fieldType: writeToPersonObjectFieldType.value,
-                    value: "",
-                    whenToWrite: WhenToWriteToRecord.FIELD_EMPTY,
-                  });
-                }}>
-                {t("add_new_field")}
-              </Button>
-            </div>
-          ) : null}
         </div>
 
         <div className="mt-4">
@@ -587,6 +351,19 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             <Alert className="mt-2" severity="neutral" title={t("skip_rr_description")} />
           </div>
         ) : null}
+
+        <div className="mt-4">
+          <WriteToObjectSettings
+            bookingAction={BookingActionEnum.ON_CANCEL}
+            optionLabel={t("salesforce_on_cancel_write_to_event")}
+            optionEnabled={onCancelWriteToEventRecord}
+            writeToObjectData={onCancelWriteToEventRecordFields}
+            optionSwitchOnChange={(checked) => {
+              setAppData("onCancelWriteToEventRecord", checked);
+            }}
+            updateWriteToObjectData={(data) => setAppData("onCancelWriteToEventRecordFields", data)}
+          />
+        </div>
 
         <div className="ml-2 mt-4">
           <Switch

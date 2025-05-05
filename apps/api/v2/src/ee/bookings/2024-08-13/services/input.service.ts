@@ -1,4 +1,5 @@
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import { EventTypeWithOwnerAndTeam } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import {
   bookingResponsesSchema,
   seatedBookingDataSchema,
@@ -95,10 +96,15 @@ export class InputBookingsService_2024_08_13 {
 
   async createBookingRequest(
     request: Request,
-    body: CreateBookingInput_2024_08_13 | CreateInstantBookingInput_2024_08_13
+    body: CreateBookingInput_2024_08_13 | CreateInstantBookingInput_2024_08_13,
+    eventType: EventTypeWithOwnerAndTeam
   ): Promise<BookingRequest> {
-    const oAuthClientParams = await this.platformBookingsService.getOAuthClientParams(body.eventTypeId);
-    const bodyTransformed = await this.transformInputCreateBooking(body, oAuthClientParams?.platformClientId);
+    const oAuthClientParams = await this.platformBookingsService.getOAuthClientParamsForEventType(eventType);
+    const bodyTransformed = await this.transformInputCreateBooking(
+      body,
+      eventType,
+      oAuthClientParams?.platformClientId
+    );
 
     const newRequest = { ...request };
     const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
@@ -124,15 +130,11 @@ export class InputBookingsService_2024_08_13 {
     return newRequest as unknown as BookingRequest;
   }
 
-  async transformInputCreateBooking(inputBooking: CreateBookingInput_2024_08_13, platformClientId?: string) {
-    const eventType = await this.eventTypesRepository.getEventTypeByIdWithOwnerAndTeam(
-      inputBooking.eventTypeId
-    );
-
-    if (!eventType) {
-      throw new NotFoundException(`Event type with id=${inputBooking.eventTypeId} not found`);
-    }
-
+  async transformInputCreateBooking(
+    inputBooking: CreateBookingInput_2024_08_13,
+    eventType: EventTypeWithOwnerAndTeam,
+    platformClientId?: string
+  ) {
     this.validateBookingLengthInMinutes(inputBooking, eventType);
 
     const lengthInMinutes = inputBooking.lengthInMinutes ?? eventType.length;
@@ -199,12 +201,14 @@ export class InputBookingsService_2024_08_13 {
 
   async createRecurringBookingRequest(
     request: Request,
-    body: CreateRecurringBookingInput_2024_08_13
+    body: CreateRecurringBookingInput_2024_08_13,
+    eventType: EventTypeWithOwnerAndTeam
   ): Promise<BookingRequest> {
-    const oAuthClientParams = await this.platformBookingsService.getOAuthClientParams(body.eventTypeId);
+    const oAuthClientParams = await this.platformBookingsService.getOAuthClientParamsForEventType(eventType);
     // note(Lauris): update to this.transformInputCreate when rescheduling is implemented
     const bodyTransformed = await this.transformInputCreateRecurringBooking(
       body,
+      eventType,
       oAuthClientParams?.platformClientId
     );
 
@@ -375,14 +379,9 @@ export class InputBookingsService_2024_08_13 {
 
   async transformInputCreateRecurringBooking(
     inputBooking: CreateRecurringBookingInput_2024_08_13,
+    eventType: EventTypeWithOwnerAndTeam,
     platformClientId?: string
   ) {
-    const eventType = await this.eventTypesRepository.getEventTypeByIdWithOwnerAndTeam(
-      inputBooking.eventTypeId
-    );
-    if (!eventType) {
-      throw new NotFoundException(`Event type with id=${inputBooking.eventTypeId} not found`);
-    }
     if (!eventType.recurringEvent) {
       throw new NotFoundException(`Event type with id=${inputBooking.eventTypeId} is not a recurring event`);
     }

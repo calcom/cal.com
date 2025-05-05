@@ -391,6 +391,11 @@ const nextConfig = {
         source: "/icons/sprite.svg",
         destination: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/icons/sprite.svg`,
       },
+      // for @dub/analytics, @see: https://d.to/reverse-proxy
+      {
+        source: "/_proxy/dub/track/:path",
+        destination: "https://api.dub.co/track/:path",
+      },
 
       // When updating this also update pagesAndRewritePaths.js
       ...[
@@ -493,8 +498,15 @@ const nextConfig = {
           headers: [CORP_CROSS_ORIGIN_HEADER],
         },
         {
-          source: "/icons/sprite.svg",
-          headers: [CORP_CROSS_ORIGIN_HEADER, ACCESS_CONTROL_ALLOW_ORIGIN_HEADER],
+          source: "/icons/sprite.svg(\\?v=[0-9a-zA-Z\\-\\.]+)?",
+          headers: [
+            CORP_CROSS_ORIGIN_HEADER,
+            ACCESS_CONTROL_ALLOW_ORIGIN_HEADER,
+            {
+              key: "Cache-Control",
+              value: "public, max-age=31536000, immutable",
+            },
+          ],
         },
       ],
       ...(isOrganizationsEnabled

@@ -461,6 +461,7 @@ export class EventTypeRepository {
       email: true,
       locale: true,
       defaultScheduleId: true,
+      isPlatformManaged: true,
     });
 
     const CompleteEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
@@ -503,6 +504,8 @@ export class EventTypeRepository {
       hideCalendarNotes: true,
       hideCalendarEventDetails: true,
       disableGuests: true,
+      disableCancelling: true,
+      disableRescheduling: true,
       minimumBookingNotice: true,
       beforeEventBuffer: true,
       afterEventBuffer: true,
@@ -514,6 +517,7 @@ export class EventTypeRepository {
       durationLimits: true,
       assignAllTeamMembers: true,
       allowReschedulingPastBookings: true,
+      hideOrganizerEmail: true,
       assignRRMembersUsingSegment: true,
       rrSegmentQueryValue: true,
       isRRWeightsEnabled: true,
@@ -523,6 +527,7 @@ export class EventTypeRepository {
       currency: true,
       bookingFields: true,
       useEventTypeDestinationCalendarEmail: true,
+      customReplyToEmail: true,
       owner: {
         select: {
           id: true,
@@ -799,6 +804,7 @@ export class EventTypeRepository {
         periodEndDate: true,
         onlyShowFirstAvailableSlot: true,
         allowReschedulingPastBookings: true,
+        hideOrganizerEmail: true,
         periodCountCalendarDays: true,
         rescheduleWithSameRoundRobinHost: true,
         periodDays: true,

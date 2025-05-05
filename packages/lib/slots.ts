@@ -5,6 +5,7 @@ import type { IFromUser, IOutOfOfficeData, IToUser } from "@calcom/lib/getUserAv
 import { getWorkingHours } from "./availability";
 import { getTimeZone } from "./date-fns";
 import type { DateRange } from "./date-ranges";
+import { getTimeZone } from "./dayjs";
 
 interface SlotData {
   time: Dayjs;

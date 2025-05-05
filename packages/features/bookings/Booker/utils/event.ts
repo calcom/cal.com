@@ -18,7 +18,7 @@ export type useScheduleForEventReturnType = ReturnType<typeof useScheduleForEven
  * Using this hook means you only need to use one hook, instead
  * of combining multiple conditional hooks.
  */
-export const useEvent = (props?: { fromRedirectOfNonOrgLink?: boolean }) => {
+export const useEvent = (props?: { fromRedirectOfNonOrgLink?: boolean; disabled?: boolean }) => {
   const [username, eventSlug, isTeamEvent, org] = useBookerStore(
     (state) => [state.username, state.eventSlug, state.isTeamEvent, state.org],
     shallow
@@ -34,7 +34,7 @@ export const useEvent = (props?: { fromRedirectOfNonOrgLink?: boolean }) => {
     },
     {
       refetchOnWindowFocus: false,
-      enabled: Boolean(username) && Boolean(eventSlug),
+      enabled: !props?.disabled && Boolean(username) && Boolean(eventSlug),
     }
   );
 

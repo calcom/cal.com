@@ -20,6 +20,7 @@ export const GcalConnect: FC<Partial<OAuthConnectProps>> = ({
   tooltipSide,
   tooltip,
   isClickable,
+  isDryRun,
 }) => {
   const { t } = useLocale();
   return (
@@ -36,6 +37,7 @@ export const GcalConnect: FC<Partial<OAuthConnectProps>> = ({
       tooltipSide={tooltipSide}
       tooltip={tooltip}
       isClickable={isClickable}
+      isDryRun={isDryRun}
     />
   );
 };

@@ -66,9 +66,11 @@ export class OrganizationsUsersController {
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() query: GetOrganizationsUsersInput
   ): Promise<GetOrganizationUsersResponseDTO> {
+    const { emails, assignedOptionIds, attributeQueryOperator, teamIds } = query ?? {};
     const users = await this.organizationsUsersService.getUsers(
       orgId,
-      query.emails,
+      emails,
+      { assignedOptionIds, attributeQueryOperator, teamIds },
       query.skip ?? 0,
       query.take ?? 250
     );
@@ -90,7 +92,6 @@ export class OrganizationsUsersController {
   @PlatformPlan("ESSENTIALS")
   @ApiOperation({ summary: "Create a user" })
   async createOrganizationUser(
-    @Param("orgId", ParseIntPipe) orgId: number,
     @GetOrg() org: Team,
     @Body() input: CreateOrganizationUserInput,
     @GetUser() inviter: UserWithProfile
@@ -118,7 +119,6 @@ export class OrganizationsUsersController {
   async updateOrganizationUser(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("userId", ParseIntPipe) userId: number,
-    @GetOrg() org: Team,
     @Body() input: UpdateOrganizationUserInput
   ): Promise<GetOrganizationUserOutput> {
     const user = await this.organizationsUsersService.updateUser(orgId, userId, input);

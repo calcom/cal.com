@@ -108,13 +108,6 @@ export class InputOrganizationsEventTypesService {
     teamId: number,
     inputEventType: CreateTeamEventTypeInput_2024_06_14
   ) {
-    const hasHosts = !!inputEventType.hosts && !!inputEventType.hosts.length;
-    const hasAssignAllTeamMembers = inputEventType.assignAllTeamMembers === true;
-
-    if (!hasHosts && !hasAssignAllTeamMembers) {
-      throw new BadRequestException("Either hosts must be provided or assignAllTeamMembers must be true");
-    }
-
     const { hosts, assignAllTeamMembers, locations, ...rest } = inputEventType;
 
     const eventType = this.inputEventTypesService.transformInputCreateEventType(rest);

@@ -24,6 +24,7 @@ import {
   DataTableToolbar,
   DataTableFilters,
   DataTableSelectionBar,
+  useDataTable,
   useFetchMoreOnBottomReached,
   useColumnFilters,
 } from "@calcom/features/data-table";
@@ -172,13 +173,14 @@ function MemberListContent(props: Props) {
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
+  const { searchTerm } = useDataTable();
 
   const { data, isPending, hasNextPage, fetchNextPage, isFetching } =
     trpc.viewer.teams.listMembers.useInfiniteQuery(
       {
         limit: 10,
-        searchTerm: debouncedSearchTerm,
+        searchTerm,
         teamId: props.team.id,
         // TODO: send `columnFilters` to server for server side filtering
         // filters: columnFilters,
@@ -238,7 +240,7 @@ function MemberListContent(props: Props) {
       const previousValue = utils.viewer.teams.listMembers.getInfiniteData({
         limit: 10,
         teamId: teamIds[0],
-        searchTerm: debouncedSearchTerm,
+        searchTerm,
       });
 
       if (previousValue) {
@@ -246,7 +248,7 @@ function MemberListContent(props: Props) {
           utils,
           memberId: state.deleteMember.user?.id as number,
           teamId: teamIds[0],
-          searchTerm: debouncedSearchTerm,
+          searchTerm,
         });
       }
       return { previousValue };
@@ -667,7 +669,7 @@ function MemberListContent(props: Props) {
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
         <DataTableToolbar.Root>
           <div className="flex w-full gap-2">
-            <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
+            <DataTableToolbar.SearchBar />
             <DataTableFilters.AddFilterButton table={table} />
             <DataTableFilters.ColumnVisibilityButton table={table} />
             {isAdminOrOwner && (
