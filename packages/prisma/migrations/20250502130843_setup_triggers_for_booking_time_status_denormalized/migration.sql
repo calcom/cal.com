@@ -19,7 +19,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION calculate_is_team_booking(team_id INTEGER)
 RETURNS BOOLEAN AS $$
 BEGIN
-    RETURN CASE WHEN team_id IS NULL THEN false ELSE true END;
+    RETURN team_id IS NOT NULL;
 END;
 $$ LANGUAGE plpgsql;
 

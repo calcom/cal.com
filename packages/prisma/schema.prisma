@@ -1460,7 +1460,7 @@ view BookingTimeStatus {
 }
 
 model BookingTimeStatusDenormalized {
-  id             Int           @id
+  id             Int           @id @unique
   uid            String
   eventTypeId    Int?
   title          String?

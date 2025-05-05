@@ -59,3 +59,6 @@ CREATE INDEX "BookingTimeStatusDenormalized_teamId_isTeamBooking_idx" ON "Bookin
 
 -- CreateIndex
 CREATE INDEX "BookingTimeStatusDenormalized_userId_isTeamBooking_idx" ON "BookingTimeStatusDenormalized"("userId", "isTeamBooking");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "BookingTimeStatusDenormalized_id_key" ON "BookingTimeStatusDenormalized"("id");
