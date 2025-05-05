@@ -7,7 +7,7 @@ import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallo
 import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
 import { usageTrackingExtention } from "./extensions/usage-tracking";
-import { bookingReferenceMiddleware } from "./middleware";
+import { bookingReferenceMiddleware, slowQueryDetectionMiddleware } from "./middleware";
 
 const prismaOptions: Prisma.PrismaClientOptions = {};
 
@@ -53,6 +53,7 @@ export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
 // If any changed on middleware server restart is required
 // TODO: Migrate it to $extends
 bookingReferenceMiddleware(prismaWithoutClientExtensions);
+slowQueryDetectionMiddleware(prismaWithoutClientExtensions);
 
 // FIXME: Due to some reason, there are types failing in certain places due to the $extends. Fix it and then enable it
 // Specifically we get errors like `Type 'string | Date | null | undefined' is not assignable to type 'Exact<string | Date | null | undefined, string | Date | null | undefined>'`
@@ -73,6 +74,14 @@ export const readonlyPrisma = process.env.INSIGHTS_DATABASE_URL
       datasources: { db: { url: process.env.INSIGHTS_DATABASE_URL } },
     })
   : prisma;
+
+if (process.env.INSIGHTS_DATABASE_URL) {
+  try {
+    slowQueryDetectionMiddleware(readonlyPrisma as unknown as PrismaClient);
+  } catch (error) {
+    console.warn("Failed to apply slow query detection middleware to readonly client:", error);
+  }
+}
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prismaWithoutClientExtensions = prismaWithoutClientExtensions;
