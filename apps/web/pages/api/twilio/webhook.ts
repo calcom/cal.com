@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
-import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
+import { IS_SMS_CREDITS_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
