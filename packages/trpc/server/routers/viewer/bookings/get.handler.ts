@@ -1,4 +1,5 @@
 import type { Booking, Prisma as PrismaClientType } from "@prisma/client";
+import type { Kysely } from "kysely";
 import { DeduplicateJoinsPlugin, type SelectQueryBuilder } from "kysely";
 import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
 
@@ -44,6 +45,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     ctx: {
       user: { id: user.id, email: user.email, orgId: user?.profile?.organizationId },
       prisma: prisma,
+      kysely: kysely,
     },
     bookingListingByStatus: bookingListingByStatus,
     take,
@@ -67,6 +69,7 @@ type BookingsUnionQuery = SelectQueryBuilder<
 export async function getBookings({
   user,
   prisma,
+  kysely,
   bookingListingByStatus,
   sort,
   filters,
@@ -76,6 +79,7 @@ export async function getBookings({
   user: { id: number; email: string; orgId?: number | null };
   filters: TGetInputSchema["filters"];
   prisma: PrismaClient;
+  kysely: Kysely<DB>;
   bookingListingByStatus: InputByStatus[];
   sort?: {
     sortStart?: "asc" | "desc";
