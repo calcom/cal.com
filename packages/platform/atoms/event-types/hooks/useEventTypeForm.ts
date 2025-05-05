@@ -111,6 +111,7 @@ export const useEventTypeForm = ({
       autoTranslateDescriptionEnabled: eventType.autoTranslateDescriptionEnabled,
       rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
       assignAllTeamMembers: eventType.assignAllTeamMembers,
+      roundRobinHostsCount: eventType.roundRobinHostsCount,
       assignRRMembersUsingSegment: eventType.assignRRMembersUsingSegment,
       rrSegmentQueryValue: eventType.rrSegmentQueryValue,
       aiPhoneCallConfig: {

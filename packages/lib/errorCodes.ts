@@ -17,4 +17,5 @@ export enum ErrorCode {
   UpdatingOauthClientError = "updating_oauth_client_error",
   CreatingOauthClientError = "creating_oauth_client_error",
   BookingTimeOutOfBounds = "booking_time_out_of_bounds_error",
+  NotEnoughAvailableHosts = "not_enough_available_hosts_error",
 }
