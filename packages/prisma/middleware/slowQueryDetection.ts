@@ -10,6 +10,18 @@ const RATE_LIMIT_PERIOD_MS = 60000; // 1 minute
 
 let lastReportTime = 0;
 
+const queryMap = new Map<string, { sql: string; timestamp: number }>();
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of queryMap.entries()) {
+    if (now - value.timestamp > 10000) {
+      // Remove entries older than 10 seconds
+      queryMap.delete(key);
+    }
+  }
+}, 30000); // Run cleanup every 30 seconds
+
 type PrismaMiddlewareParams = {
   model?: string;
   action: string;
@@ -24,11 +36,26 @@ function middleware(prisma: PrismaClient | Record<string, unknown>) {
     return;
   }
 
+  if (typeof (prisma as PrismaClient).$on === "function") {
+    (prisma as PrismaClient).$on("query", (event) => {
+      const queryId = `${event.timestamp}-${Math.random()}`;
+      queryMap.set(queryId, {
+        sql: event.query,
+        timestamp: event.timestamp,
+      });
+
+      setTimeout(() => {
+        queryMap.delete(queryId);
+      }, 10000);
+    });
+  }
+
   /***********************************/
   /* SLOW QUERY DETECTION MIDDLEWARE */
   /***********************************/
   prisma.$use(async (params: PrismaMiddlewareParams, next: PrismaMiddlewareNext) => {
     const startTime = performance.now();
+    const executionTimestamp = Date.now();
 
     const result = await next(params);
 
@@ -42,11 +69,23 @@ function middleware(prisma: PrismaClient | Record<string, unknown>) {
       if (now - lastReportTime > RATE_LIMIT_PERIOD_MS) {
         lastReportTime = now;
 
+        let rawSql = "SQL not captured";
+        let closestTimeDiff = Infinity;
+
+        for (const [_, queryData] of queryMap.entries()) {
+          const timeDiff = Math.abs(queryData.timestamp - executionTimestamp);
+          if (timeDiff < closestTimeDiff) {
+            closestTimeDiff = timeDiff;
+            rawSql = queryData.sql;
+          }
+        }
+
         const queryDetails = {
           model: params.model,
           action: params.action,
           args: JSON.stringify(params.args),
           duration: Math.round(duration),
+          sql: rawSql,
           timestamp: new Date().toISOString(),
         };
 
