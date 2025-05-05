@@ -846,6 +846,7 @@
   "booking_redirect_uri": "URL of your booking page",
   "booking_cancel_redirect_uri": "URL of the page where your users can cancel their booking",
   "booking_reschedule_redirect_uri": "URL of the page where your users can reschedule their booking",
+  "booking_conflict_error": "This slot is no longer available. Please return to the previous page and select another time.",
   "open_invitations": "Open Invitations",
   "new_team": "New Team",
   "create_first_team_and_invite_others": "Create your first team and invite other users to work together.",
