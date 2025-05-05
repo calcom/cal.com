@@ -1,4 +1,4 @@
-import type { Booking, Prisma as PrismaClientType } from "@prisma/client";
+import type { Booking, Prisma, Prisma as PrismaClientType } from "@prisma/client";
 import type { Kysely } from "kysely";
 import { DeduplicateJoinsPlugin, type SelectQueryBuilder } from "kysely";
 import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
@@ -12,7 +12,8 @@ import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
-import { type BookingStatus } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -381,12 +382,7 @@ export async function getBookings({
 
   const bookingsFromUnion = (await kysely.executeQuery(getBookingsUnionCompiled)).rows;
 
-  log.debug(`Get bookings for user ${user.id} SQL:`, getBookingsUnionCompiled);
-  console.log(
-    getBookingsUnionCompiled.sql,
-    getBookingsUnionCompiled.parameters,
-    bookingsFromUnion.map((b) => b.id)
-  );
+  log.debug(`Get bookings for user ${user.id} SQL:`, getBookingsUnionCompiled.sql);
   const totalCount = Number(
     (
       await kysely
@@ -416,10 +412,34 @@ export async function getBookings({
           "Booking.endTime",
           "Booking.metadata",
           "Booking.uid",
-          "Booking.responses",
+
+          eb
+            .cast<Prisma.JsonValue>( // Target TypeScript type
+              eb.ref("Booking.responses"), // Source column
+              "jsonb" // Target SQL type
+            )
+            .as("responses"),
           "Booking.recurringEventId",
           "Booking.location",
-          "Booking.status",
+          eb
+            .cast<BookingStatus>(
+              eb
+                .case()
+                .when("Booking.status", "=", "cancelled")
+                .then(BookingStatus["CANCELLED"])
+                .when("Booking.status", "=", "accepted")
+                .then(BookingStatus["ACCEPTED"])
+                .when("Booking.status", "=", "rejected")
+                .then(BookingStatus["REJECTED"])
+                .when("Booking.status", "=", "pending")
+                .then(BookingStatus["PENDING"])
+                .when("Booking.status", "=", "awaiting_host")
+                .then(BookingStatus["AWAITING_HOST"])
+                .else(BookingStatus["PENDING"])
+                .end(), // End of CASE expression
+              "varchar"
+            )
+            .as("status"),
           "Booking.paid",
           "Booking.fromReschedule",
           "Booking.rescheduled",
@@ -451,7 +471,21 @@ export async function getBookings({
                 "EventType.hideOrganizerEmail",
                 "EventType.disableCancelling",
                 "EventType.disableRescheduling",
-                "EventType.schedulingType",
+                eb
+                  .cast<SchedulingType>(
+                    eb
+                      .case()
+                      .when("EventType.schedulingType", "=", "roundRobin")
+                      .then(SchedulingType["ROUND_ROBIN"])
+                      .when("EventType.schedulingType", "=", "collective")
+                      .then(SchedulingType["COLLECTIVE"])
+                      .when("EventType.schedulingType", "=", "managed")
+                      .then(SchedulingType["MANAGED"])
+                      .else(SchedulingType["ROUND_ROBIN"]) // Ensure ELSE provides a value within SchedulingTypeLiteral for cast safety
+                      .end(),
+                    "varchar" // Or 'text' - use the actual SQL data type
+                  )
+                  .as("schedulingType"),
                 "EventType.length",
                 jsonObjectFrom(
                   eb
