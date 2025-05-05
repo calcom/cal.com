@@ -1,4 +1,15 @@
-import { createSerializer, parseAsArrayOf, parseAsJson, parseAsInteger, parseAsString } from "nuqs";
+import { createSerializer } from "nuqs";
+
+import {
+  activeFiltersParser,
+  sortingParser,
+  columnVisibilityParser,
+  columnSizingParser,
+  segmentIdParser,
+  pageIndexParser,
+  pageSizeParser,
+  searchTermParser,
+} from "./parsers";
 
 /**
  * Serializer for data table query parameters
@@ -6,19 +17,19 @@ import { createSerializer, parseAsArrayOf, parseAsJson, parseAsInteger, parseAsS
  * Based on the parameters used in DataTableProvider
  */
 export const dataTableQueryParamsSerializer = createSerializer({
-  activeFilters: parseAsArrayOf(parseAsJson()),
-  sorting: parseAsArrayOf(parseAsJson()),
-  cols: parseAsJson(),
-  widths: parseAsJson(),
-  segment: parseAsInteger,
-  page: parseAsInteger,
-  size: parseAsInteger,
-  q: parseAsString,
+  activeFilters: activeFiltersParser,
+  sorting: sortingParser,
+  cols: columnVisibilityParser,
+  widths: columnSizingParser,
+  segment: segmentIdParser,
+  page: pageIndexParser,
+  size: pageSizeParser,
+  q: searchTermParser,
 });
 
 /**
  * @deprecated Use dataTableQueryParamsSerializer instead
  */
 export const activeFiltersSerializer = createSerializer({
-  activeFilters: parseAsArrayOf(parseAsJson()),
+  activeFilters: activeFiltersParser,
 });
