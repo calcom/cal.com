@@ -459,7 +459,13 @@ export async function getBookings({
               ])
               .whereRef("EventType.id", "=", "Booking.eventTypeId")
           ).as("eventType"),
-          jsonObjectFrom(
+          jsonArrayFrom(
+            eb
+              .selectFrom("BookingReference")
+              .select("id")
+              .whereRef("BookingReference.bookingId", "=", "Booking.id")
+          ).as("references"),
+          jsonArrayFrom(
             eb.selectFrom("Payment").select("id").whereRef("Payment.bookingId", "=", "Booking.id")
           ).as("payment"),
           jsonObjectFrom(
