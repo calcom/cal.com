@@ -2504,7 +2504,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.178"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.185"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -3553,13 +3553,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.178":
-  version: 0.0.178
-  resolution: "@calcom/platform-libraries@npm:0.0.178"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.185":
+  version: 0.0.185
+  resolution: "@calcom/platform-libraries@npm:0.0.185"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: c419a15e563a7b6ed2cce15d1028c8e634c01879d012b8ddf7ad5b4b3000e34b28d56815b2d42a1d4787c0e572bd0bd6620f5c57281a0186a0ededbca3ba2634
+  checksum: 189073285f8cd9f859366b80610cf90ef0aa912438105f99f7c5fa9eb28a99602805d2ae13e56f660440351508b29cdbb6783b94e5a1d09293030de7c7e48b38
   languageName: node
   linkType: hard
 
@@ -21879,7 +21879,7 @@ __metadata:
     prettier: ^2.8.6
     prismock: ^1.33.4
     resize-observer-polyfill: ^1.5.1
-    tsc-absolute: ^1.0.0
+    tsc-absolute: ^1.0.1
     turbo: ^1.10.1
     typescript: ^4.9.4
     vitest: ^2.1.1
@@ -44951,16 +44951,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsc-absolute@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "tsc-absolute@npm:1.0.0"
+"tsc-absolute@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "tsc-absolute@npm:1.0.1"
   dependencies:
     process-wrapper: ^1.0.0
   peerDependencies:
     typescript: ">=4.6"
   bin:
     tsc-absolute: dist/index.js
-  checksum: fe8308f7addddce83012bc1451f7009ae37771b08a9972370b7a46eb63e3dc919783ea3894c06101459335fdb275eda8de300498894e55d460408991f97f5409
+  checksum: b24eb01f93c36f72342b5634471df47b8e56bf566b75d0f22852803c8d79e2e6fc7bb14cc293d454df1ab572fc531626857073d6c83d8228b08cb7c7eb23f916
   languageName: node
   linkType: hard
 
