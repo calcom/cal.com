@@ -93,8 +93,8 @@ export const sendSMS = async ({
 
 const getStatusCallbackUrl = (userId?: number | null, teamId?: number | null, bookingUid?: string | null) => {
   const query = new URLSearchParams();
-  if (userId) query.append("userId", userId);
-  if (teamId) query.append("teamId", teamId);
+  if (userId) query.append("userId", String(userId));
+  if (teamId) query.append("teamId", String(teamId));
   if (bookingUid) query.append("bookingUid", bookingUid);
   return `${WEBAPP_URL}/api/twilio/webhook${query.toString() ? `?${query.toString()}` : ""}`;
 };
