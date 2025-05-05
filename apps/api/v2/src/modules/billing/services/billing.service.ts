@@ -300,8 +300,9 @@ export class BillingService implements OnModuleDestroy {
       invoiceEnd
     );
 
+    const activeHostEmails = activeManagedUserEmailsAsHost.map((email) => email.email);
     const notActiveHostEmails = managedUsersEmails
-      .filter((email) => !activeManagedUserEmailsAsHost.includes(email))
+      .filter((email) => !activeHostEmails.includes(email.email))
       .map((email) => email.email);
 
     if (notActiveHostEmails.length === 0) return activeManagedUserEmailsAsHost.length;
