@@ -488,11 +488,15 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       onClick: () => setNewFormDialogState?.({ action: "new", target: "" }),
     },
     viewResponses: {
-      href: `/insights/routing${dataTableQueryParamsSerializer({
-        activeFilters: routingForm?.id
-          ? [{ f: "formId", v: { type: ColumnFilterType.SINGLE_SELECT, data: routingForm.id } }]
-          : [],
-      })}`,
+      href: `/insights/routing${
+        routingForm?.id
+          ? dataTableQueryParamsSerializer({
+              activeFilters: [
+                { f: "formId", v: { type: ColumnFilterType.SINGLE_SELECT, data: routingForm.id } },
+              ],
+            })
+          : ""
+      }`,
     },
     copyRedirectUrl: {
       onClick: () => {
