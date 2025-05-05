@@ -400,6 +400,7 @@ type FormActionType =
   | "duplicate"
   | "download"
   | "copyRedirectUrl"
+  | "viewResponses"
   | "create";
 
 type FormActionProps<T> = {
@@ -483,6 +484,11 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     },
     create: {
       onClick: () => setNewFormDialogState?.({ action: "new", target: "" }),
+    },
+    viewResponses: {
+      href: `/insights/routing?activeFilters=${encodeURIComponent(
+        JSON.stringify([{ f: "formId", v: { type: "single_select", data: routingForm?.id } }])
+      )}`,
     },
     copyRedirectUrl: {
       onClick: () => {

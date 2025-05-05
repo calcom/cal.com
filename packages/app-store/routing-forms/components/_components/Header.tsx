@@ -142,6 +142,16 @@ const Actions = ({
               {t("download_responses")}
             </FormAction>
             <FormAction
+              action="viewResponses"
+              routingForm={form}
+              className="w-full"
+              color="minimal"
+              type="button"
+              data-testid="view-responses"
+              StartIcon="eye">
+              {t("view_responses")}
+            </FormAction>
+            <FormAction
               action="embed"
               routingForm={form}
               color="minimal"
