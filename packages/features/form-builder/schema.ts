@@ -403,6 +403,15 @@ export const fieldTypesSchemaMap: Partial<
       const value = response ?? "";
       const urlSchema = z.string().url();
 
+      // Check for malformed protocols (missing second slash test case)
+      if (value.match(/^https?:\/[^\/]/)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m("url_validation_error"),
+        });
+        return;
+      }
+
       // 1. Try validating the original value
       if (urlSchema.safeParse(value).success) {
         return;
