@@ -23,6 +23,7 @@ import type { RoutingForm, FormResponse, NonRouterRoute } from "../../types/type
 import FormInputFields from "../FormInputFields";
 import { ResultsView as Results } from "./ResultSection";
 import type { MembersMatchResultType } from "./TeamMembersMatchResult";
+import { TeamMembersMatchResult } from "./TeamMembersMatchResult";
 
 export type UptoDateForm = Brand<
   NonNullable<SingleFormComponentProps["enrichedWithUserProfileForm"]>,
@@ -76,17 +77,17 @@ const FormView = ({
 export const TestForm = ({
   form,
   supportsTeamMembersMatchingLogic,
-  showAllData = true,
   renderFooter,
   isDialog = false,
   onClose: onCloseProp,
+  showRRData = false,
 }: {
   form: UptoDateForm | RoutingForm;
   supportsTeamMembersMatchingLogic: boolean;
-  showAllData?: boolean;
   renderFooter?: (onClose: () => void, onSubmit: () => void, isValid: boolean) => React.ReactNode;
   isDialog?: boolean;
   onClose?: () => void;
+  showRRData?: boolean;
 }) => {
   const { t } = useLocale();
   const [response, setResponse] = useState<FormResponse>({});
@@ -201,7 +202,7 @@ export const TestForm = ({
           <>
             {isDialog ? (
               <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
-            ) : (
+            ) : !showRRData ? (
               <div className="mb-6 flex items-center justify-between">
                 <h3 className="text-emphasis text-xl font-semibold">{t("preview")}</h3>
                 <div className="flex items-center gap-1">
@@ -228,6 +229,8 @@ export const TestForm = ({
                   </Button>
                 </div>
               </div>
+            ) : (
+              <></>
             )}
             <FormView
               key={formKey}
@@ -247,7 +250,7 @@ export const TestForm = ({
           <>
             {isDialog ? (
               <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
-            ) : (
+            ) : !showRRData ? (
               <div className="mb-6 flex items-center justify-between">
                 <h3 className="text-emphasis text-xl font-semibold">{t("results")}</h3>
                 <div className="flex items-center gap-1">
@@ -279,13 +282,26 @@ export const TestForm = ({
                   </Button>
                 </div>
               </div>
+            ) : (
+              <></>
             )}
-            <Results
-              chosenRoute={chosenRoute}
-              supportsTeamMembersMatchingLogic={supportsTeamMembersMatchingLogic}
-              membersMatchResult={membersMatchResult}
-              isPending={findTeamMembersMatchingAttributeLogicMutation.isPending}
-            />
+
+            {showRRData ? (
+              <>
+                <Button color="secondary" onClick={resetForm} variant="icon" StartIcon="refresh-cw">
+                  {t("reset_form")}
+                </Button>
+                <TeamMembersMatchResult membersMatchResult={membersMatchResult} />
+              </>
+            ) : (
+              <Results
+                chosenRoute={chosenRoute}
+                supportsTeamMembersMatchingLogic={supportsTeamMembersMatchingLogic}
+                membersMatchResult={membersMatchResult}
+                isPending={findTeamMembersMatchingAttributeLogicMutation.isPending}
+              />
+            )}
+
             {isDialog && (
               <DialogFooter>
                 <Button onClick={onClose} color="secondary">
