@@ -1,7 +1,6 @@
 import { Prisma as PrismaClientType } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
-import { makeWhereClause } from "@calcom/features/data-table/lib/server";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
 import { parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
@@ -9,7 +8,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import { type BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -72,14 +71,11 @@ export async function getBookings({
   take: number;
   skip: number;
 }) {
+  // We'll keep track of the original booking select structure for reference
   const bookingSelect = {
     ...bookingMinimalSelect,
     uid: true,
     responses: true,
-    /**
-     * Who uses it -
-     * 1. We need to be able to decide which booking can have a 'Reroute' action
-     */
     routedFromRoutingFormReponse: {
       select: {
         id: true,
@@ -197,145 +193,356 @@ export async function getBookings({
   // If user is only team owner/admin, contain team members emails and ids (teams plan)
   const [userIdsWhereUserIsAdminOrOwner, userEmailsWhereUserIsAdminOrOwner] =
     userIdsAndEmailsWhereUserIsAdminOrOwner;
-  const orConditions = [];
 
-  // If userIds filter is provided
   if (!!filters?.userIds && filters.userIds.length > 0) {
     const areUserIdsWithinUserOrgOrTeam = filters.userIds.every((userId) =>
       userIdsWhereUserIsAdminOrOwner.includes(userId)
     );
 
-    //  Scope depends on `user.orgId`:
-    // - Throw an error if trying to filter by usersIds that are not within your ORG
-    // - Throw an error if trying to filter by usersIds that are not within your TEAM
     if (!areUserIdsWithinUserOrgOrTeam) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "You do not have permissions to fetch bookings for specified userIds",
       });
     }
+  }
 
-    // Filtered view: Booking must match one of the specified users or their attendees
-    const usersFilter = { in: [...filters.userIds] };
-    const attendeesEmailFilter = { in: attendeeEmailsFromUserIdsFilter };
+  const selectAndFromClause = `SELECT "public"."Booking"."id", "public"."Booking"."title", "public"."Booking"."userPrimaryEmail", 
+  "public"."Booking"."description", "public"."Booking"."customInputs", "public"."Booking"."startTime", 
+  "public"."Booking"."endTime", "public"."Booking"."metadata", "public"."Booking"."uid", 
+  "public"."Booking"."responses", "public"."Booking"."recurringEventId", "public"."Booking"."location", 
+  "public"."Booking"."eventTypeId", "public"."Booking"."status"::text as "status", "public"."Booking"."paid", 
+  "public"."Booking"."userId", "public"."Booking"."fromReschedule", "public"."Booking"."rescheduled", 
+  "public"."Booking"."isRecorded", "public"."Booking"."createdAt", "public"."Booking"."updatedAt"
+  FROM "public"."Booking"`;
 
-    // 1. Booking created by one of the filtered users
-    orConditions.push({ userId: usersFilter });
-    // 2. Attendee email matches one of the filtered users' emails
-    orConditions.push({ attendees: { some: { email: attendeesEmailFilter } } });
-    // 3. Seat reference attendee email matches one of the filtered users' emails
-    orConditions.push({ seatsReferences: { some: { attendee: { email: attendeesEmailFilter } } } });
+  const params: any[] = [];
+  let paramIndex = 1;
+
+  const addParam = (value: any) => {
+    params.push(value);
+    return `$${paramIndex++}`;
+  };
+
+  const sqlQueries: string[] = [];
+
+  // 1. User created bookings
+  if (!!filters?.userIds && filters.userIds.length > 0) {
+    // Filtered view: Booking must match one of the specified users
+    const userIdsParams = filters.userIds.map((id) => addParam(id)).join(", ");
+    sqlQueries.push(`
+      ${selectAndFromClause}
+      WHERE "public"."Booking"."userId" IN (${userIdsParams})
+    `);
   } else {
-    // Filter by emails for auth user.
-    const userEmailFilter = { equals: user.email };
-    // Auth user is ORG_OWNER/ADMIN or TEAM_OWNER/ADMIN, filter by emails of members of the organization or team
-    const userEmailsFilterWhereUserIsOrgAdminOrOwner = userEmailsWhereUserIsAdminOrOwner?.length
-      ? { in: userEmailsWhereUserIsAdminOrOwner }
-      : undefined;
+    // Regular view: Current user created bookings
+    sqlQueries.push(`
+     ${selectAndFromClause}
+      WHERE "public"."Booking"."userId" = ${addParam(user.id)}
+    `);
 
-    // 1. Current user created bookings
-    orConditions.push({ userId: { equals: user.id } });
-    // 2. Current user is an attendee
-    orConditions.push({ attendees: { some: { email: userEmailFilter } } });
-    // 3. Current user is an attendee via seats reference
-    orConditions.push({ seatsReferences: { some: { attendee: { email: userEmailFilter } } } });
-    // 4. Scope depends on `user.orgId`:
-    // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees
-    // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees
-    userEmailsFilterWhereUserIsOrgAdminOrOwner &&
-      orConditions.push({ attendees: { some: { email: userEmailsFilterWhereUserIsOrgAdminOrOwner } } });
-    // 5. Scope depends on `user.orgId`:
-    // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees via seatsReference
-    // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees via seatsReference
-    userEmailsFilterWhereUserIsOrgAdminOrOwner &&
-      orConditions.push({
-        seatsReferences: { some: { attendee: { email: userEmailsFilterWhereUserIsOrgAdminOrOwner } } },
-      });
-    // 6. Scope depends on `user.orgId`:
-    // - If Current user is ORG_OWNER/ADMIN, get booking created for an event type within the organization
-    // - If Current user is TEAM_OWNER/ADMIN, get bookings created for an event type within the team
-    eventTypeIdsWhereUserIsAdminOrOwner?.length &&
-      orConditions.push({ eventTypeId: { in: eventTypeIdsWhereUserIsAdminOrOwner } });
-    // 7. Scope depends on `user.orgId`:
-    // - If Current user is ORG_OWNER/ADMIN, get bookings created by users within the same organization
-    // - If Current user is TEAM_OWNER/ADMIN, get bookings created by users within the same organization
-    userIdsWhereUserIsAdminOrOwner?.length &&
-      orConditions.push({ userId: { in: userIdsWhereUserIsAdminOrOwner } });
+    // If user is admin/owner, add bookings created by users in their org/team
+    if (userIdsWhereUserIsAdminOrOwner?.length) {
+      const userIdsParams = userIdsWhereUserIsAdminOrOwner
+        .filter((id) => id !== user.id) // Exclude current user as it's already covered
+        .map((id) => addParam(id))
+        .join(", ");
+
+      if (userIdsParams) {
+        sqlQueries.push(`
+          ${selectAndFromClause}
+          WHERE "public"."Booking"."userId" IN (${userIdsParams})
+        `);
+      }
+    }
   }
 
-  const andConditions = [];
+  if (!!filters?.userIds && filters.userIds.length > 0 && attendeeEmailsFromUserIdsFilter) {
+    // Filtered view: Attendee email matches one of the filtered users' emails
+    const attendeeEmailsParams = attendeeEmailsFromUserIdsFilter.map((email) => addParam(email)).join(", ");
+    sqlQueries.push(`
+     ${selectAndFromClause}
+      INNER JOIN "public"."Attendee" ON "public"."Attendee"."bookingId" = "public"."Booking"."id"
+      WHERE "public"."Attendee"."email" IN (${attendeeEmailsParams})
+    `);
+  } else {
+    // Regular view: Current user is an attendee
+    sqlQueries.push(`
+      ${selectAndFromClause}
+      INNER JOIN "public"."Attendee" ON "public"."Attendee"."bookingId" = "public"."Booking"."id"
+      WHERE "public"."Attendee"."email" = ${addParam(user.email)}
+    `);
 
-  // 1. Apply mandatory status filter
-  andConditions.push(passedBookingsStatusFilter);
+    // If user is ORG_OWNER/ADMIN or TEAM_OWNER/ADMIN, add query for organization/team members
+    if (userEmailsWhereUserIsAdminOrOwner?.length) {
+      const orgMemberEmailsParams = userEmailsWhereUserIsAdminOrOwner
+        .filter((email) => email !== user.email) // Exclude current user as it's already covered
+        .map((email) => addParam(email))
+        .join(", ");
 
-  // 2. Filter by Event Type IDs derived from Team IDs (if provided)
+      if (orgMemberEmailsParams) {
+        sqlQueries.push(`
+          ${selectAndFromClause}
+          INNER JOIN "public"."Attendee" ON "public"."Attendee"."bookingId" = "public"."Booking"."id"
+          WHERE "public"."Attendee"."email" IN (${orgMemberEmailsParams})
+        `);
+      }
+    }
+  }
+
+  if (!!filters?.userIds && filters.userIds.length > 0 && attendeeEmailsFromUserIdsFilter) {
+    // Filtered view: Seat reference attendee email matches one of the filtered users' emails
+    const attendeeEmailsParams = attendeeEmailsFromUserIdsFilter.map((email) => addParam(email)).join(", ");
+
+    sqlQueries.push(`
+      ${selectAndFromClause}
+      INNER JOIN "public"."BookingSeat" ON "public"."BookingSeat"."bookingId" = "public"."Booking"."id"
+      INNER JOIN "public"."Attendee" ON "public"."Attendee"."id" = "public"."BookingSeat"."attendeeId"
+      WHERE "public"."Attendee"."email" IN (${attendeeEmailsParams})
+    `);
+  } else {
+    // Regular view: Current user is an attendee via seats reference
+    sqlQueries.push(`
+      ${selectAndFromClause}
+      INNER JOIN "public"."BookingSeat" ON "public"."BookingSeat"."bookingId" = "public"."Booking"."id"
+      INNER JOIN "public"."Attendee" ON "public"."Attendee"."id" = "public"."BookingSeat"."attendeeId"
+      WHERE "public"."Attendee"."email" = ${addParam(user.email)}
+    `);
+
+    // If user is ORG_OWNER/ADMIN or TEAM_OWNER/ADMIN, add query for organization/team members via BookingSeat
+    if (userEmailsWhereUserIsAdminOrOwner?.length) {
+      const orgMemberEmailsParams = userEmailsWhereUserIsAdminOrOwner
+        .filter((email) => email !== user.email) // Exclude current user as it's already covered
+        .map((email) => addParam(email))
+        .join(", ");
+
+      if (orgMemberEmailsParams) {
+        sqlQueries.push(`
+          ${selectAndFromClause}
+          INNER JOIN "public"."BookingSeat" ON "public"."BookingSeat"."bookingId" = "public"."Booking"."id"
+          INNER JOIN "public"."Attendee" ON "public"."Attendee"."id" = "public"."BookingSeat"."attendeeId"
+          WHERE "public"."Attendee"."email" IN (${orgMemberEmailsParams})
+        `);
+      }
+    }
+  }
+
+  if (!filters?.userIds && eventTypeIdsWhereUserIsAdminOrOwner?.length) {
+    const eventTypeIdsParams = eventTypeIdsWhereUserIsAdminOrOwner.map((id) => addParam(id)).join(", ");
+    sqlQueries.push(`
+      ${selectAndFromClause}
+      WHERE "public"."Booking"."eventTypeId" IN (${eventTypeIdsParams})
+    `);
+  }
+
+  const whereConditions: string[] = [];
+
+  if (passedBookingsStatusFilter.OR) {
+    const orConditions = passedBookingsStatusFilter.OR;
+    const statusConditions: string[] = [];
+
+    for (const condition of orConditions) {
+      const conditionParts: string[] = [];
+
+      if (condition.endTime && typeof condition.endTime === "object" && "gte" in condition.endTime) {
+        conditionParts.push(`data."endTime" >= ${addParam(condition.endTime.gte)}`);
+      }
+      if (condition.endTime && typeof condition.endTime === "object" && "lte" in condition.endTime) {
+        conditionParts.push(`data."endTime" <= ${addParam(condition.endTime.lte)}`);
+      }
+
+      if (condition.status && typeof condition.status === "object" && "equals" in condition.status) {
+        conditionParts.push(
+          `CAST(data."status" AS "public"."BookingStatus") = CAST(${addParam(
+            condition.status.equals
+          )} AS "public"."BookingStatus")`
+        );
+      }
+      if (
+        condition.status &&
+        typeof condition.status === "object" &&
+        "notIn" in condition.status &&
+        Array.isArray(condition.status.notIn)
+      ) {
+        const statusNotInConditions = condition.status.notIn.map(
+          (status: string) =>
+            `NOT CAST(data."status" AS "public"."BookingStatus") = CAST(${addParam(
+              status
+            )} AS "public"."BookingStatus")`
+        );
+        if (statusNotInConditions.length > 0) {
+          conditionParts.push(`(${statusNotInConditions.join(" AND ")})`);
+        }
+      }
+
+      if (
+        condition.recurringEventId &&
+        typeof condition.recurringEventId === "object" &&
+        "not" in condition.recurringEventId &&
+        condition.recurringEventId.not &&
+        typeof condition.recurringEventId.not === "object" &&
+        "equals" in condition.recurringEventId.not &&
+        condition.recurringEventId.not.equals === null
+      ) {
+        conditionParts.push(`data."recurringEventId" IS NOT NULL`);
+      }
+      if (
+        condition.recurringEventId &&
+        typeof condition.recurringEventId === "object" &&
+        "equals" in condition.recurringEventId &&
+        condition.recurringEventId.equals === null
+      ) {
+        conditionParts.push(`data."recurringEventId" IS NULL`);
+      }
+
+      if (conditionParts.length > 0) {
+        statusConditions.push(`(${conditionParts.join(" AND ")})`);
+      }
+    }
+
+    if (statusConditions.length > 0) {
+      whereConditions.push(`(${statusConditions.join(" OR ")})`);
+    }
+  }
+
+  const andConditions: string[] = [];
+
   if (eventTypeIdsFromTeamIdsFilter && eventTypeIdsFromTeamIdsFilter.length > 0) {
-    andConditions.push({ eventTypeId: { in: eventTypeIdsFromTeamIdsFilter } });
+    const eventTypeIdsParams = eventTypeIdsFromTeamIdsFilter.map((id) => addParam(id)).join(", ");
+    andConditions.push(`data."eventTypeId" IN (${eventTypeIdsParams})`);
   }
 
-  // 3. Filter by specific Event Type IDs (if provided)
-  // If both teamIds filter and eventTypeIds filter are provided, filter 2. ensures the event-types are within the teams
   if (eventTypeIdsFromEventTypeIdsFilter && eventTypeIdsFromEventTypeIdsFilter.length > 0) {
-    andConditions.push({ eventTypeId: { in: eventTypeIdsFromEventTypeIdsFilter } });
+    const eventTypeIdsParams = eventTypeIdsFromEventTypeIdsFilter.map((id) => addParam(id)).join(", ");
+    andConditions.push(`data."eventTypeId" IN (${eventTypeIdsParams})`);
   }
 
-  // 4. Filter by Attendee Email (if provided)
   if (filters?.attendeeEmail) {
     if (typeof filters.attendeeEmail === "string") {
       // Simple string match (exact)
-      andConditions.push({ attendees: { some: { email: filters.attendeeEmail.trim() } } });
+      andConditions.push(`data.id IN (
+        SELECT "bookingId" FROM "public"."Attendee" 
+        WHERE "email" = ${addParam(filters.attendeeEmail.trim())}
+      )`);
     } else if (isTextFilterValue(filters.attendeeEmail)) {
-      // Complex text filter (contains, startsWith, etc.) using makeWhereClause
-      andConditions.push({
-        attendees: {
-          some: makeWhereClause({
-            columnName: "email",
-            filterValue: filters.attendeeEmail,
-          }),
-        },
-      });
+      // Complex text filter (contains, startsWith, etc.)
+      if (
+        filters.attendeeEmail &&
+        typeof filters.attendeeEmail === "object" &&
+        "contains" in filters.attendeeEmail &&
+        filters.attendeeEmail.contains
+      ) {
+        andConditions.push(`data.id IN (
+          SELECT "bookingId" FROM "public"."Attendee" 
+          WHERE "email" ILIKE ${addParam(`%${filters.attendeeEmail.contains}%`)}
+        )`);
+      } else if (
+        filters.attendeeEmail &&
+        typeof filters.attendeeEmail === "object" &&
+        "startsWith" in filters.attendeeEmail &&
+        filters.attendeeEmail.startsWith
+      ) {
+        andConditions.push(`data.id IN (
+          SELECT "bookingId" FROM "public"."Attendee" 
+          WHERE "email" ILIKE ${addParam(`${filters.attendeeEmail.startsWith}%`)}
+        )`);
+      } else if (
+        filters.attendeeEmail &&
+        typeof filters.attendeeEmail === "object" &&
+        "endsWith" in filters.attendeeEmail &&
+        filters.attendeeEmail.endsWith
+      ) {
+        andConditions.push(`data.id IN (
+          SELECT "bookingId" FROM "public"."Attendee" 
+          WHERE "email" ILIKE ${addParam(`%${filters.attendeeEmail.endsWith}`)}
+        )`);
+      } else if (
+        filters.attendeeEmail &&
+        typeof filters.attendeeEmail === "object" &&
+        "equals" in filters.attendeeEmail &&
+        filters.attendeeEmail.equals
+      ) {
+        andConditions.push(`data.id IN (
+          SELECT "bookingId" FROM "public"."Attendee" 
+          WHERE "email" = ${addParam(filters.attendeeEmail.equals)}
+        )`);
+      }
     }
   }
 
-  // 5. Filter by Attendee Name (if provided)
   if (filters?.attendeeName) {
     if (typeof filters.attendeeName === "string") {
       // Simple string match (exact)
-      andConditions.push({ attendees: { some: { name: filters.attendeeName.trim() } } });
+      andConditions.push(`data.id IN (
+        SELECT "bookingId" FROM "public"."Attendee" 
+        WHERE "name" = ${addParam(filters.attendeeName.trim())}
+      )`);
     } else if (isTextFilterValue(filters.attendeeName)) {
-      // Complex text filter (contains, startsWith, etc.) using makeWhereClause
-      andConditions.push({
-        attendees: {
-          some: makeWhereClause({
-            columnName: "name",
-            filterValue: filters.attendeeName,
-          }),
-        },
-      });
+      // Complex text filter (contains, startsWith, etc.)
+      if (
+        filters.attendeeName &&
+        typeof filters.attendeeName === "object" &&
+        "contains" in filters.attendeeName &&
+        filters.attendeeName.contains
+      ) {
+        andConditions.push(`data.id IN (
+          SELECT "bookingId" FROM "public"."Attendee" 
+          WHERE "name" ILIKE ${addParam(`%${filters.attendeeName.contains}%`)}
+        )`);
+      } else if (
+        filters.attendeeName &&
+        typeof filters.attendeeName === "object" &&
+        "startsWith" in filters.attendeeName &&
+        filters.attendeeName.startsWith
+      ) {
+        andConditions.push(`data.id IN (
+          SELECT "bookingId" FROM "public"."Attendee" 
+          WHERE "name" ILIKE ${addParam(`${filters.attendeeName.startsWith}%`)}
+        )`);
+      } else if (
+        filters.attendeeName &&
+        typeof filters.attendeeName === "object" &&
+        "endsWith" in filters.attendeeName &&
+        filters.attendeeName.endsWith
+      ) {
+        andConditions.push(`data.id IN (
+          SELECT "bookingId" FROM "public"."Attendee" 
+          WHERE "name" ILIKE ${addParam(`%${filters.attendeeName.endsWith}`)}
+        )`);
+      } else if (
+        filters.attendeeName &&
+        typeof filters.attendeeName === "object" &&
+        "equals" in filters.attendeeName &&
+        filters.attendeeName.equals
+      ) {
+        andConditions.push(`data.id IN (
+          SELECT "bookingId" FROM "public"."Attendee" 
+          WHERE "name" = ${addParam(filters.attendeeName.equals)}
+        )`);
+      }
     }
   }
 
-  // 6. Date Range Filters
-  if (filters?.afterStartDate) {
-    andConditions.push({ startTime: { gte: dayjs.utc(filters.afterStartDate).toDate() } });
+  // Date Range Filters
+  if (filters && "afterStartDate" in filters && filters.afterStartDate) {
+    andConditions.push(`data."startTime" >= ${addParam(dayjs.utc(filters.afterStartDate).toDate())}`);
   }
-  if (filters?.beforeEndDate) {
-    andConditions.push({ endTime: { lte: dayjs.utc(filters.beforeEndDate).toDate() } });
+  if (filters && "beforeEndDate" in filters && filters.beforeEndDate) {
+    andConditions.push(`data."endTime" <= ${addParam(dayjs.utc(filters.beforeEndDate).toDate())}`);
   }
-  if (filters?.afterUpdatedDate) {
-    andConditions.push({ updatedAt: { gte: dayjs.utc(filters.afterUpdatedDate).toDate() } });
+  if (filters && "afterUpdatedDate" in filters && filters.afterUpdatedDate) {
+    andConditions.push(`data."updatedAt" >= ${addParam(dayjs.utc(filters.afterUpdatedDate).toDate())}`);
   }
-  if (filters?.beforeUpdatedDate) {
-    andConditions.push({ updatedAt: { lte: dayjs.utc(filters.beforeUpdatedDate).toDate() } });
+  if (filters && "beforeUpdatedDate" in filters && filters.beforeUpdatedDate) {
+    andConditions.push(`data."updatedAt" <= ${addParam(dayjs.utc(filters.beforeUpdatedDate).toDate())}`);
   }
-  if (filters?.afterCreatedDate) {
-    andConditions.push({ createdAt: { gte: dayjs.utc(filters.afterCreatedDate).toDate() } });
+  if (filters && "afterCreatedDate" in filters && filters.afterCreatedDate) {
+    andConditions.push(`data."createdAt" >= ${addParam(dayjs.utc(filters.afterCreatedDate).toDate())}`);
   }
-  if (filters?.beforeCreatedDate) {
-    andConditions.push({ createdAt: { lte: dayjs.utc(filters.beforeCreatedDate).toDate() } });
+  if (filters && "beforeCreatedDate" in filters && filters.beforeCreatedDate) {
+    andConditions.push(`data."createdAt" <= ${addParam(dayjs.utc(filters.beforeCreatedDate).toDate())}`);
   }
 
-  // All the possible date filter keys
   const dateFilterKeys = [
     "afterStartDate",
     "beforeEndDate",
@@ -343,105 +550,181 @@ export async function getBookings({
     "beforeUpdatedDate",
     "afterCreatedDate",
     "beforeCreatedDate",
-  ] as const;
+  ];
 
-  const hasAnyDateFilter = dateFilterKeys.some((key) => filters?.[key]);
+  const hasAnyDateFilter = dateFilterKeys.some(
+    (key) =>
+      filters && typeof filters === "object" && key in filters && !!filters[key as keyof typeof filters]
+  );
 
   if (!hasAnyDateFilter) {
-    // is ORG/TEAM admin/owner
     if (userIdsWhereUserIsAdminOrOwner?.length || userEmailsWhereUserIsAdminOrOwner?.length) {
       const oneMonthAgo = dayjs.utc().subtract(1, "month").startOf("day").toDate();
-      andConditions.push({ startTime: { gte: oneMonthAgo } });
+      andConditions.push(`data."startTime" >= ${addParam(oneMonthAgo)}`);
     }
   }
 
-  const whereClause = {
-    OR: orConditions,
-    AND: andConditions,
-  };
+  if (andConditions.length > 0) {
+    whereConditions.push(`(${andConditions.join(" AND ")})`);
+  }
 
-  log.info(`Get bookings where clause for user ${user.id}`, JSON.stringify(whereClause));
+  let orderByClause = "";
+  if (orderBy.startTime) {
+    orderByClause = `ORDER BY data."startTime" ${orderBy.startTime === "desc" ? "DESC" : "ASC"}`;
+  } else if (orderBy.endTime) {
+    orderByClause = `ORDER BY data."endTime" ${orderBy.endTime === "desc" ? "DESC" : "ASC"}`;
+  } else if (orderBy.createdAt) {
+    orderByClause = `ORDER BY data."createdAt" ${orderBy.createdAt === "desc" ? "DESC" : "ASC"}`;
+  } else if (orderBy.updatedAt) {
+    orderByClause = `ORDER BY data."updatedAt" ${orderBy.updatedAt === "desc" ? "DESC" : "ASC"}`;
+  } else {
+    orderByClause = `ORDER BY data."startTime" ASC`;
+  }
 
-  const [plainBookings, totalCount] = await Promise.all([
-    prisma.booking.findMany({
-      where: whereClause,
-      select: bookingSelect,
-      orderBy,
-      take,
-      skip,
-    }),
-    prisma.booking.count({
-      where: whereClause,
-    }),
-  ]);
+  // Ensure consistent ordering by adding id as a secondary sort
+  orderByClause += `, data."id" ASC`;
 
-  const [
-    recurringInfoBasic,
-    recurringInfoExtended,
-    // We need all promises to be successful, so we are not using Promise.allSettled
-  ] = await Promise.all([
-    prisma.booking.groupBy({
-      by: ["recurringEventId"],
-      _min: {
-        startTime: true,
-      },
-      _count: {
-        recurringEventId: true,
-      },
-      where: {
-        recurringEventId: {
-          not: { equals: null },
-        },
-        userId: user.id,
-      },
-    }),
-    prisma.booking.groupBy({
-      by: ["recurringEventId", "status", "startTime"],
-      _min: {
-        startTime: true,
-      },
-      where: {
-        recurringEventId: {
-          not: { equals: null },
-        },
-        userId: user.id,
-      },
-    }),
-  ]);
-
-  const recurringInfo = recurringInfoBasic.map(
-    (
-      info: (typeof recurringInfoBasic)[number]
-    ): {
-      recurringEventId: string | null;
-      count: number;
-      firstDate: Date | null;
-      bookings: {
-        [key: string]: Date[];
-      };
-    } => {
-      const bookings = recurringInfoExtended.reduce(
-        (prev, curr) => {
-          if (curr.recurringEventId === info.recurringEventId) {
-            prev[curr.status].push(curr.startTime);
-          }
-          return prev;
-        },
-        { ACCEPTED: [], CANCELLED: [], REJECTED: [], PENDING: [], AWAITING_HOST: [] } as {
-          [key in BookingStatus]: Date[];
-        }
-      );
-      return {
-        recurringEventId: info.recurringEventId,
-        count: info._count.recurringEventId,
-        firstDate: info._min.startTime,
-        bookings,
-      };
-    }
+  const numberedQueries = sqlQueries.map(
+    (query) => `
+    SELECT *, ROW_NUMBER() OVER (ORDER BY "startTime" ASC) as row_num FROM (
+      ${query}
+    ) as subquery
+  `
   );
 
-  // Now enrich bookings with relation data. We could have queried the relation data along with the bookings, but that would cause unnecessary queries to the database.
-  // Because Prisma is also going to query the select relation data sequentially, we are fine querying it separately here as it would be just 1 query instead of 4
+  const finalParams = [...params]; // Clone the params array
+  let finalParamIndex = params.length + 1; // Start from the next index after the last param
+
+  const addFinalParam = (value: any) => {
+    finalParams.push(value);
+    return `$${finalParamIndex++}`;
+  };
+
+  const finalQuery = `
+    SELECT * FROM (
+      ${numberedQueries.join("\nUNION ALL\n")}
+    ) data
+    ${whereConditions.length > 0 ? `WHERE ${whereConditions.join(" AND ")}` : ""}
+    ${orderByClause}
+    LIMIT ${addFinalParam(take)} OFFSET ${addFinalParam(skip)}
+  `;
+
+  const countParams = [...params]; // Clone the params array
+  let countParamIndex = params.length + 1; // Start from the next index after the last param
+
+  const addCountParam = (value: any) => {
+    countParams.push(value);
+    return `$${countParamIndex++}`;
+  };
+
+  const countQuery = `
+    SELECT COUNT(*) as "count" FROM (
+      ${numberedQueries.join("\nUNION ALL\n")}
+    ) data
+    ${whereConditions.length > 0 ? `WHERE ${whereConditions.join(" AND ")}` : ""}
+  `;
+
+  log.info(`Get bookings SQL query for user ${user.id}`, finalQuery);
+
+  type RawBookingResult = {
+    id: number;
+    title: string;
+    userPrimaryEmail: string | null;
+    description: string | null;
+    customInputs: Prisma.JsonValue;
+    startTime: Date;
+    endTime: Date;
+    metadata: Prisma.JsonValue;
+    uid: string;
+    responses: Prisma.JsonValue;
+    recurringEventId: string | null;
+    location: string | null;
+    eventTypeId: number | null;
+    status: string;
+    paid: boolean;
+    userId: number | null;
+    fromReschedule: string | null;
+    rescheduled: boolean;
+    isRecorded: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+
+  const [plainBookings, countResult] = await Promise.all([
+    prisma.$queryRaw<RawBookingResult[]>(Prisma.sql([finalQuery, ...finalParams])),
+    prisma.$queryRaw<[{ count: bigint }]>(Prisma.sql([countQuery, ...finalParams])),
+  ]);
+
+  const totalCount = Number(countResult[0].count);
+
+  const recurringInfoBasicParams: any[] = [];
+  let recurringInfoBasicParamIndex = 1;
+
+  const addRecurringInfoBasicParam = (value: any) => {
+    recurringInfoBasicParams.push(value);
+    return `$${recurringInfoBasicParamIndex++}`;
+  };
+
+  const recurringInfoExtendedParams: any[] = [];
+  let recurringInfoExtendedParamIndex = 1;
+
+  const addRecurringInfoExtendedParam = (value: any) => {
+    recurringInfoExtendedParams.push(value);
+    return `$${recurringInfoExtendedParamIndex++}`;
+  };
+
+  const recurringInfoBasicQuery = `
+    SELECT "recurringEventId",
+           MIN("startTime") as "minStartTime", 
+           COUNT("recurringEventId") as "countRecurringEventId"
+    FROM "public"."Booking"
+    WHERE "recurringEventId" IS NOT NULL
+    AND "userId" = ${addRecurringInfoBasicParam(user.id)}
+    GROUP BY "recurringEventId"
+  `;
+
+  const recurringInfoExtendedQuery = `
+    SELECT "recurringEventId", "status", "startTime"
+    FROM "public"."Booking"
+    WHERE "recurringEventId" IS NOT NULL
+    AND "userId" = ${addRecurringInfoExtendedParam(user.id)}
+    GROUP BY "recurringEventId", "status", "startTime"
+  `;
+
+  const [recurringInfoBasicResult, recurringInfoExtendedResult] = await Promise.all([
+    prisma.$queryRaw<{ recurringEventId: string; minStartTime: Date; countRecurringEventId: bigint }[]>(
+      Prisma.sql([recurringInfoBasicQuery, ...recurringInfoBasicParams])
+    ),
+    prisma.$queryRaw<{ recurringEventId: string; status: string; startTime: Date }[]>(
+      Prisma.sql([recurringInfoExtendedQuery, ...recurringInfoExtendedParams])
+    ),
+  ]);
+
+  const recurringInfo = recurringInfoBasicResult.map((info) => {
+    const bookings = recurringInfoExtendedResult.reduce(
+      (prev, curr) => {
+        if (curr.recurringEventId === info.recurringEventId) {
+          const status = curr.status as keyof typeof prev;
+          if (Object.prototype.hasOwnProperty.call(prev, status)) {
+            prev[status].push(curr.startTime);
+          }
+        }
+        return prev;
+      },
+      { ACCEPTED: [], CANCELLED: [], REJECTED: [], PENDING: [], AWAITING_HOST: [] } as {
+        [key in BookingStatus]: Date[];
+      }
+    );
+
+    // Ensure recurringEventId is always a string, never null
+    return {
+      recurringEventId: info.recurringEventId || "",
+      count: Number(info.countRecurringEventId),
+      firstDate: info.minStartTime,
+      bookings,
+    };
+  });
+
   log.info(
     `fetching all bookings for ${user.id}`,
     safeStringify({
@@ -453,44 +736,370 @@ export async function getBookings({
     })
   );
 
-  const bookings = await Promise.all(
-    plainBookings.map(async (booking) => {
-      // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
-      if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
-        booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
-      }
+  if (plainBookings.length === 0) {
+    return { bookings: [], recurringInfo, totalCount };
+  }
 
-      let rescheduler = null;
-      if (booking.fromReschedule) {
-        const rescheduledBooking = await prisma.booking.findUnique({
-          where: {
-            uid: booking.fromReschedule,
-          },
-          select: {
-            rescheduledBy: true,
-          },
-        });
-        if (rescheduledBooking) {
-          rescheduler = rescheduledBooking.rescheduledBy;
-        }
-      }
+  const bookingIds = plainBookings.map((booking) => booking.id);
 
-      return {
-        ...booking,
-        rescheduler,
-        eventType: {
-          ...booking.eventType,
-          recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
-          eventTypeColor: parseEventTypeColor(booking.eventType?.eventTypeColor),
-          price: booking.eventType?.price || 0,
-          currency: booking.eventType?.currency || "usd",
-          metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
-        },
-        startTime: booking.startTime.toISOString(),
-        endTime: booking.endTime.toISOString(),
-      };
-    })
+  const comprehensiveParams: any[] = [];
+  let comprehensiveParamIndex = 1;
+
+  const addComprehensiveParam = (value: any) => {
+    comprehensiveParams.push(value);
+    return `$${comprehensiveParamIndex++}`;
+  };
+
+  const bookingIdsParam = bookingIds.map((id) => addComprehensiveParam(id)).join(", ");
+
+  const comprehensiveQuery = `
+    WITH booking_base AS (
+      SELECT b.*
+      FROM "public"."Booking" b
+      WHERE b.id IN (${bookingIdsParam})
+      ORDER BY b."startTime" ASC, b.id ASC
+    ),
+    
+    attendees AS (
+      SELECT 
+        a.id, 
+        a.email, 
+        a.name, 
+        a."timeZone", 
+        a.locale,
+        a."noShow",
+        a."bookingId"
+      FROM "public"."Attendee" a
+      JOIN booking_base b ON a."bookingId" = b.id
+    ),
+    
+    seats_references AS (
+      SELECT 
+        bs."referenceUid", 
+        a.email as "attendeeEmail", 
+        bs."bookingId"
+      FROM "public"."BookingSeat" bs
+      JOIN "public"."Attendee" a ON bs."attendeeId" = a.id
+      JOIN booking_base b ON bs."bookingId" = b.id
+      WHERE a.email = ${addComprehensiveParam(user.email)}
+    ),
+    
+    event_types AS (
+      SELECT 
+        et.*,
+        t.id as "teamId", 
+        t.name as "teamName", 
+        t.slug as "teamSlug", 
+        b.id as "bookingId"
+      FROM "public"."EventType" et
+      LEFT JOIN "public"."Team" t ON et."teamId" = t.id
+      JOIN booking_base b ON et.id = b."eventTypeId"
+    ),
+    
+    payments AS (
+      SELECT 
+        p."paymentOption", 
+        p.amount, 
+        p.currency, 
+        p.success, 
+        p."bookingId"
+      FROM "public"."Payment" p
+      JOIN booking_base b ON p."bookingId" = b.id
+    ),
+    
+    booking_users AS (
+      SELECT 
+        u.id, 
+        u.name, 
+        u.email, 
+        b.id as "bookingId"
+      FROM "public"."User" u
+      JOIN booking_base b ON u.id = b."userId"
+    ),
+    
+    rescheduled_bookings AS (
+      SELECT 
+        b2.uid, 
+        b2."rescheduledBy", 
+        b1.id as "bookingId"
+      FROM booking_base b1
+      JOIN "public"."Booking" b2 ON b1."fromReschedule" = b2.uid
+      WHERE b1."fromReschedule" IS NOT NULL
+    ),
+    
+    assignment_reasons AS (
+      SELECT DISTINCT ON (ar."bookingId")
+        ar.id,
+        ar.reason,
+        ar."createdAt",
+        ar."bookingId"
+      FROM "public"."AssignmentReason" ar
+      JOIN booking_base b ON ar."bookingId" = b.id
+      ORDER BY ar."bookingId", ar."createdAt" DESC
+    ),
+    
+    booking_references AS (
+      SELECT 
+        br.id,
+        br.type,
+        br.uid,
+        br."bookingId"
+      FROM "public"."BookingReference" br
+      JOIN booking_base b ON br."bookingId" = b.id
+    ),
+    
+    routing_form_responses AS (
+      SELECT 
+        rfr.id, 
+        b.id as "bookingId"
+      FROM "public"."RoutingFormResponse" rfr
+      JOIN booking_base b ON rfr."bookingUid" = b.uid
+    )
+    
+    SELECT 
+      b.id,
+      b.title,
+      b.description,
+      b."userPrimaryEmail",
+      b."customInputs",
+      b."startTime",
+      b."endTime",
+      b.metadata,
+      b.uid,
+      b.responses,
+      b."recurringEventId",
+      b.location,
+      b."eventTypeId",
+      b.status::text as status,
+      b.paid,
+      b."userId",
+      b."fromReschedule",
+      b.rescheduled,
+      b."isRecorded",
+      b."createdAt",
+      b."updatedAt",
+      
+      -- Attendees as JSON array
+      COALESCE(
+        (SELECT json_agg(
+          json_build_object(
+            'id', a.id,
+            'email', a.email,
+            'name', a.name,
+            'timeZone', a."timeZone",
+            'locale', a.locale,
+            'bookingId', a."bookingId",
+            'noShow', a."noShow"
+          )
+        )
+        FROM attendees a
+        WHERE a."bookingId" = b.id), '[]'
+      ) as "attendeesJson",
+      
+      -- Seat references as JSON array
+      COALESCE(
+        (SELECT json_agg(
+          json_build_object(
+            'referenceUid', sr."referenceUid",
+            'attendee', json_build_object(
+              'email', sr."attendeeEmail"
+            )
+          )
+        )
+        FROM seats_references sr
+        WHERE sr."bookingId" = b.id), '[]'
+      ) as "seatsReferencesJson",
+      
+      -- Event Type as JSON object
+      (SELECT row_to_json(et)
+       FROM (
+         SELECT 
+           et.id,
+           et.slug,
+           et.title,
+           et."eventName",
+           et.price,
+           et."recurringEvent",
+           et.currency,
+           et.metadata,
+           et."disableGuests",
+           et."seatsShowAttendees",
+           et."seatsShowAvailabilityCount",
+           et."eventTypeColor",
+           et."customReplyToEmail",
+           et."allowReschedulingPastBookings",
+           et."hideOrganizerEmail",
+           et."disableCancelling",
+           et."disableRescheduling",
+           et."schedulingType",
+           et.length,
+           CASE WHEN et."teamId" IS NOT NULL THEN
+             json_build_object(
+               'id', et."teamId",
+               'name', et."teamName",
+               'slug', et."teamSlug"
+             )
+           ELSE NULL END as team
+         FROM event_types et
+         WHERE et."bookingId" = b.id
+         LIMIT 1
+       ) et
+      ) as "eventTypeJson",
+      
+      -- Payments as JSON array
+      COALESCE(
+        (SELECT json_agg(
+          json_build_object(
+            'paymentOption', p."paymentOption",
+            'amount', p.amount,
+            'currency', p.currency,
+            'success', p.success
+          )
+        )
+        FROM payments p
+        WHERE p."bookingId" = b.id), '[]'
+      ) as "paymentJson",
+      
+      -- User as JSON object
+      (SELECT row_to_json(u)
+       FROM (
+         SELECT 
+           bu.id,
+           bu.name,
+           bu.email
+         FROM booking_users bu
+         WHERE bu."bookingId" = b.id
+         LIMIT 1
+       ) u
+      ) as "userJson",
+      
+      -- Rescheduler
+      (SELECT rb."rescheduledBy"
+       FROM rescheduled_bookings rb
+       WHERE rb."bookingId" = b.id
+       LIMIT 1
+      ) as "rescheduler",
+      
+      -- Assignment reasons as JSON array
+      COALESCE(
+        (SELECT json_agg(
+          json_build_object(
+            'id', ar.id,
+            'reason', ar.reason,
+            'createdAt', ar."createdAt"
+          )
+        )
+        FROM assignment_reasons ar
+        WHERE ar."bookingId" = b.id), '[]'
+      ) as "assignmentReasonJson",
+      
+      -- References as JSON array
+      COALESCE(
+        (SELECT json_agg(
+          json_build_object(
+            'id', br.id,
+            'type', br.type,
+            'uid', br.uid
+          )
+        )
+        FROM booking_references br
+        WHERE br."bookingId" = b.id), '[]'
+      ) as "referencesJson",
+      
+      -- Routing form response as JSON object
+      (SELECT json_build_object(
+        'id', rfr.id
+      )
+      FROM routing_form_responses rfr
+      WHERE rfr."bookingId" = b.id
+      LIMIT 1) as "routingFormResponseJson"
+      
+    FROM booking_base b
+  `;
+
+  const comprehensiveResults = await prisma.$queryRaw<any[]>(
+    Prisma.sql([comprehensiveQuery, ...comprehensiveParams])
   );
+
+  const bookings = comprehensiveResults.map((result) => {
+    const attendees = JSON.parse(result.attendeesJson || "[]").map((attendee: any) => ({
+      ...attendee,
+      // Ensure noShow is properly typed as boolean
+      noShow: attendee.noShow === true,
+    }));
+    const seatsReferences = JSON.parse(result.seatsReferencesJson || "[]");
+    const eventTypeData = result.eventTypeJson;
+    const payment = JSON.parse(result.paymentJson || "[]");
+    const userData = result.userJson || { id: 0, name: "", email: "" };
+    const assignmentReason = JSON.parse(result.assignmentReasonJson || "[]");
+    const references = JSON.parse(result.referencesJson || "[]");
+    const routedFromRoutingFormReponse = result.routingFormResponseJson;
+
+    const eventType = eventTypeData
+      ? {
+          id: eventTypeData.id,
+          slug: eventTypeData.slug || "",
+          title: eventTypeData.title || "",
+          eventName: eventTypeData.eventName || "",
+          price: eventTypeData.price || 0,
+          recurringEvent: parseRecurringEvent(eventTypeData.recurringEvent),
+          currency: eventTypeData.currency || "usd",
+          metadata: EventTypeMetaDataSchema.parse(eventTypeData.metadata || {}),
+          disableGuests: eventTypeData.disableGuests || false,
+          seatsShowAttendees: eventTypeData.seatsShowAttendees || false,
+          seatsShowAvailabilityCount: eventTypeData.seatsShowAvailabilityCount || false,
+          eventTypeColor: parseEventTypeColor(eventTypeData.eventTypeColor),
+          customReplyToEmail: eventTypeData.customReplyToEmail,
+          allowReschedulingPastBookings: eventTypeData.allowReschedulingPastBookings || false,
+          hideOrganizerEmail: eventTypeData.hideOrganizerEmail || false,
+          disableCancelling: eventTypeData.disableCancelling || false,
+          disableRescheduling: eventTypeData.disableRescheduling || false,
+          schedulingType: eventTypeData.schedulingType,
+          length: eventTypeData.length || 0,
+          team: eventTypeData.team,
+        }
+      : null;
+
+    const filteredAttendees =
+      seatsReferences.length && eventType && !eventType.seatsShowAttendees
+        ? attendees.filter((attendee: { email: string }) => attendee.email === user.email)
+        : attendees;
+
+    return {
+      id: result.id,
+      title: result.title,
+      description: result.description,
+      userPrimaryEmail: result.userPrimaryEmail,
+      customInputs: result.customInputs,
+      startTime: new Date(result.startTime).toISOString(),
+      endTime: new Date(result.endTime).toISOString(),
+      metadata: result.metadata,
+      uid: result.uid,
+      responses: result.responses,
+      recurringEventId: result.recurringEventId,
+      location: result.location,
+      eventTypeId: result.eventTypeId,
+      status: result.status as BookingStatus,
+      paid: result.paid,
+      userId: result.userId,
+      fromReschedule: result.fromReschedule,
+      rescheduled: result.rescheduled,
+      isRecorded: result.isRecorded,
+      createdAt: result.createdAt,
+      updatedAt: result.updatedAt,
+
+      attendees: filteredAttendees,
+      seatsReferences: seatsReferences,
+      eventType: eventType,
+      payment: payment,
+      user: userData,
+      rescheduler: result.rescheduler,
+      references: references,
+      assignmentReason: assignmentReason,
+      routedFromRoutingFormReponse: routedFromRoutingFormReponse,
+    };
+  });
+
   return { bookings, recurringInfo, totalCount };
 }
 

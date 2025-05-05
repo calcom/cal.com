@@ -39,10 +39,10 @@ type BookingListingStatus = (typeof validStatuses)[number];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
 
 type RecurringInfo = {
-  recurringEventId: string | null;
+  recurringEventId: string;
   count: number;
-  firstDate: Date | null;
-  bookings: { [key: string]: Date[] };
+  firstDate: Date;
+  bookings: { CANCELLED: Date[]; ACCEPTED: Date[]; REJECTED: Date[]; PENDING: Date[]; AWAITING_HOST: Date[] };
 };
 
 const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
@@ -139,7 +139,7 @@ function BookingsContent({ status }: BookingsProps) {
     const columnHelper = createColumnHelper<RowData>();
 
     return [
-      columnHelper.accessor((row) => row.type === "data" && row.booking.eventType.id, {
+      columnHelper.accessor((row) => row.type === "data" && row.booking.eventType?.id, {
         id: "eventTypeId",
         header: t("event_type"),
         enableColumnFilter: true,
@@ -151,7 +151,7 @@ function BookingsContent({ status }: BookingsProps) {
           },
         },
       }),
-      columnHelper.accessor((row) => row.type === "data" && row.booking.eventType.team?.id, {
+      columnHelper.accessor((row) => row.type === "data" && row.booking.eventType?.team?.id, {
         id: "teamId",
         header: t("team"),
         enableColumnFilter: true,
