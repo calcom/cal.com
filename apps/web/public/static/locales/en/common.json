@@ -3179,5 +3179,8 @@
   "routing_form_next_in_queue": "{{count}} next in queue",
   "routing_form_select_members_to_email": "Send email responses to",
   "routing_incomplete_booking_tab": "Incomplete Bookings",
+  "enable_multi_rr_hosts": "Enable multiple Round Robin hosts",
+  "number_of_rr_hosts": "Number of Round Robin hosts",
+  "multi_rr_hosts_description": "Assign more than one Round Robin host to attend.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

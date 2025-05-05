@@ -54,6 +54,8 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   aiPhoneCallConfig: true,
   assignAllTeamMembers: true,
   isRRWeightsEnabled: true,
+  multipleRRHosts: true,
+  rrHostsPerMeeting: true,
   rescheduleWithSameRoundRobinHost: true,
   recurringEvent: true,
   locations: true,

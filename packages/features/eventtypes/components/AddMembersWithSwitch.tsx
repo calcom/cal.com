@@ -1,6 +1,5 @@
 import { useMemo, type ComponentProps, type Dispatch, type SetStateAction } from "react";
-import { useFormContext } from "react-hook-form";
-import { Controller } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
 import type { Options } from "react-select";
 
 import { AddMembersWithSwitchPlatformWrapper } from "@calcom/atoms/add-members-switch/AddMembersWithSwitchPlatformWrapper";
@@ -15,12 +14,11 @@ import type {
 } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
-import { Label } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { Label, SettingsToggle } from "@calcom/ui/components/form";
 
 import AssignAllTeamMembers from "./AssignAllTeamMembers";
-import CheckedTeamSelect from "./CheckedTeamSelect";
 import type { CheckedSelectOption, CheckedTeamSelectCustomClassNames } from "./CheckedTeamSelect";
+import CheckedTeamSelect from "./CheckedTeamSelect";
 
 interface IUserToValue {
   id: number | null;
@@ -341,7 +339,7 @@ const AddMembersWithSwitchWrapper = ({
   );
   return (
     <div className="rounded-md ">
-      <div className={`flex flex-col rounded-md pb-2 pt-6 ${containerClassName}`}>
+      <div className={`flex flex-col rounded-md pb-2 ${containerClassName}`}>
         <AddMembersWithSwitchWrapped {...props} />
       </div>
     </div>
