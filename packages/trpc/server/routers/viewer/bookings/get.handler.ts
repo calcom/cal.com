@@ -310,13 +310,12 @@ export async function getBookings({
       if (typeof filters.attendeeName === "string") {
         // Simple string match (exact)
         fullQuery = fullQuery
-          .withPlugin(new DeduplicateJoinsPlugin())
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
           .where("Attendee.name", "=", filters.attendeeName.trim());
       } else if (isTextFilterValue(filters.attendeeName)) {
         // TODO: write makeWhereClause equivalent for kysely
         fullQuery = addAdvancedAttendeeWhereClause(
-          fullQuery.withPlugin(new DeduplicateJoinsPlugin()),
+          fullQuery,
           "name",
           filters.attendeeName.data.operator,
           filters.attendeeName.data.operand
@@ -363,17 +362,17 @@ export async function getBookings({
   const getBookingsUnionCompiled = kysely
     .selectFrom(queryUnion.as("union_subquery"))
     .selectAll("union_subquery")
-    .$if(Boolean(filters.afterUpdatedDate), (eb) =>
+    .$if(Boolean(filters?.afterUpdatedDate), (eb) =>
       eb.where("union_subquery.updatedAt", ">=", dayjs.utc(filters.afterUpdatedDate).toDate())
     )
-    .$if(Boolean(filters.beforeUpdatedDate), (eb) =>
+    .$if(Boolean(filters?.beforeUpdatedDate), (eb) =>
       eb.where("union_subquery.updatedAt", "<=", dayjs.utc(filters.beforeUpdatedDate).toDate())
     )
-    .$if(Boolean(filters.afterCreatedDate), (eb) =>
+    .$if(Boolean(filters?.afterCreatedDate), (eb) =>
       eb.where("union_subquery.createdAt", ">=", dayjs.utc(filters.afterCreatedDate).toDate())
     )
-    .$if(Boolean(filters.beforeCreatedDate), (eb) =>
-      eb.where("union_subquery.createdAt", "<=", dayjs.utc(filters.afterCreatedDate).toDate())
+    .$if(Boolean(filters?.beforeCreatedDate), (eb) =>
+      eb.where("union_subquery.createdAt", "<=", dayjs.utc(filters.beforeCreatedDate).toDate())
     )
     .orderBy(orderBy.key, orderBy.order)
     .limit(take)
@@ -466,11 +465,14 @@ export async function getBookings({
           jsonArrayFrom(
             eb
               .selectFrom("BookingReference")
-              .select("id")
+              .selectAll()
               .whereRef("BookingReference.bookingId", "=", "Booking.id")
           ).as("references"),
           jsonArrayFrom(
-            eb.selectFrom("Payment").select("id").whereRef("Payment.bookingId", "=", "Booking.id")
+            eb
+              .selectFrom("Payment")
+              .select(["Payment.paymentOption", "Payment.amount", "Payment.currency", "Payment.success"])
+              .whereRef("Payment.bookingId", "=", "Booking.id")
           ).as("payment"),
           jsonObjectFrom(
             eb
@@ -855,7 +857,6 @@ function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputBySta
           if (status === "unconfirmed") {
             return and([eb("Booking.endTime", ">=", new Date()), eb("Booking.status", "=", "pending")]);
           }
-
           return and([]);
         })
       )

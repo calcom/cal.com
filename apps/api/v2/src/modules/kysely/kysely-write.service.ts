@@ -1,7 +1,7 @@
 import type { OnModuleDestroy } from "@nestjs/common";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Kysely, ParseJSONResultsPlugin, PostgresDialect } from "kysely";
+import { Kysely, ParseJSONResultsPlugin, PostgresDialect, DeduplicateJoinsPlugin } from "kysely";
 import { Pool } from "pg";
 
 import type { DB } from "@calcom/kysely/types";
@@ -22,7 +22,7 @@ export class KyselyWriteService implements OnModuleDestroy {
     });
     this.kysely = new Kysely<DB>({
       dialect,
-      plugins: [new ParseJSONResultsPlugin()],
+      plugins: [new ParseJSONResultsPlugin(), new DeduplicateJoinsPlugin()],
     });
   }
 

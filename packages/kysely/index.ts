@@ -1,4 +1,4 @@
-import { Kysely, ParseJSONResultsPlugin, PostgresDialect } from "kysely";
+import { Kysely, ParseJSONResultsPlugin, PostgresDialect, DeduplicateJoinsPlugin } from "kysely";
 import { Pool } from "pg";
 
 import type { DB, Booking } from "./types";
@@ -17,7 +17,7 @@ const dialect = new PostgresDialect({
 // 4. Create the Kysely instance as before
 const db = new Kysely<DB>({
   dialect,
-  plugins: [new ParseJSONResultsPlugin()],
+  plugins: [new ParseJSONResultsPlugin(), new DeduplicateJoinsPlugin()],
 });
 
 export default db;
