@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -7,10 +9,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeUnit } from "@calcom/prisma/enums";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
 import { TextArea } from "@calcom/ui/components/form";
 import { ToggleGroup } from "@calcom/ui/components/form";
-import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
@@ -322,7 +324,7 @@ const WebhookForm = (props: {
                       setUseCustomTemplate(true);
                     }
                   }}
-                  defaultValue={value ? "custom" : "default"}
+                  value={useCustomTemplate ? "custom" : "default"}
                   options={[
                     { value: "default", label: t("default") },
                     { value: "custom", label: t("custom") },

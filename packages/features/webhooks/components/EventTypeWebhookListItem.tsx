@@ -1,3 +1,5 @@
+"use client";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -15,6 +17,7 @@ import {
 import { Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
 type WebhookProps = {
   id: string;
@@ -39,6 +42,7 @@ export default function EventTypeWebhookListItem(props: {
 
   const deleteWebhook = trpc.viewer.webhook.delete.useMutation({
     async onSuccess() {
+      if (webhook.eventTypeId) revalidateEventTypeEditPage(webhook.eventTypeId);
       showToast(t("webhook_removed_successfully"), "success");
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
@@ -47,6 +51,7 @@ export default function EventTypeWebhookListItem(props: {
   });
   const toggleWebhook = trpc.viewer.webhook.edit.useMutation({
     async onSuccess(data) {
+      if (webhook.eventTypeId) revalidateEventTypeEditPage(webhook.eventTypeId);
       // TODO: Better success message
       showToast(t(data?.active ? "enabled" : "disabled"), "success");
       await utils.viewer.webhook.getByViewer.invalidate();

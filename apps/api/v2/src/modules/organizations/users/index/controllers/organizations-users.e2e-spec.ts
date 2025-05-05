@@ -1,6 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { EmailService } from "@/modules/email/email.service";
+import { GetOrganizationsUsersInput } from "@/modules/organizations/users/index/inputs/get-organization-users.input";
 import { GetOrgUsersWithProfileOutput } from "@/modules/organizations/users/index/outputs/get-organization-users.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
@@ -10,6 +11,7 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import * as request from "supertest";
+import { AttributeRepositoryFixture } from "test/fixtures/repository/attributes.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
@@ -20,7 +22,7 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { User, Team, EventType } from "@calcom/prisma/client";
+import { User, Team, EventType, AttributeOption } from "@calcom/prisma/client";
 
 describe("Organizations Users Endpoints", () => {
   const bio = "I am a bio";
@@ -113,8 +115,6 @@ describe("Organizations Users Endpoints", () => {
       // await membershipFixtures.delete(membership.id);
       await Promise.all([userRepositoryFixture.deleteByEmail(user.email)]);
       await organizationsRepositoryFixture.delete(org.id);
-      await app.close();
-
       await app.close();
     });
   });
@@ -249,11 +249,6 @@ describe("Organizations Users Endpoints", () => {
 
       expect(body.status).toBe(SUCCESS_STATUS);
       expect(userData.length).toBe(4);
-      console.log(
-        "profiles",
-        { userData },
-        userData.map((u) => u.profile)
-      );
       // Find and verify each member's data
       const member0 = userData.find((u) => u.profile.username === orgMembersData[0].username);
       const member1 = userData.find((u) => u.profile.username === orgMembersData[1].username);
@@ -543,7 +538,250 @@ describe("Organizations Users Endpoints", () => {
       await userRepositoryFixture.deleteByEmail(createdUser.email);
       await organizationsRepositoryFixture.delete(org.id);
       await app.close();
+    });
+  });
 
+  describe("Org Members with assigned attributes", () => {
+    let app: INestApplication;
+
+    let userRepositoryFixture: UserRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
+    let membershipFixtures: MembershipRepositoryFixture;
+    let teamsRepositoryFixtures: TeamRepositoryFixture;
+    let profileRepositoryFixture: ProfileRepositoryFixture;
+    let attributeRepositoryFixture: AttributeRepositoryFixture;
+
+    const authEmail = `organizations-users-auth-${randomString()}@api.com`;
+    const user2Email = `organizations-users2-auth-${randomString()}@api.com`;
+
+    let user: User;
+    let user2: User;
+
+    let org: Team;
+    let team: Team;
+    let assignedOption1: AttributeOption;
+    let assignedOption2: AttributeOption;
+
+    beforeAll(async () => {
+      const moduleRef = await withApiAuth(
+        authEmail,
+        Test.createTestingModule({
+          imports: [AppModule, PrismaModule, UsersModule, TokensModule],
+        })
+      ).compile();
+
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+      teamsRepositoryFixtures = new TeamRepositoryFixture(moduleRef);
+
+      membershipFixtures = new MembershipRepositoryFixture(moduleRef);
+      profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+
+      org = await organizationsRepositoryFixture.create({
+        name: `organizations-users-organization-${randomString()}`,
+        isOrganization: true,
+      });
+
+      team = await teamsRepositoryFixtures.create({ name: "org team", parent: { connect: { id: org.id } } });
+
+      user = await userRepositoryFixture.create({
+        email: authEmail,
+        username: authEmail,
+        organization: { connect: { id: org.id } },
+      });
+
+      await profileRepositoryFixture.create({
+        uid: `usr-${user.id}`,
+        username: authEmail,
+        organization: {
+          connect: {
+            id: org.id,
+          },
+        },
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+      });
+
+      const membership = await membershipFixtures.addUserToOrg(user, org, "ADMIN", true);
+
+      await membershipFixtures.create({
+        role: "MEMBER",
+        accepted: true,
+        team: { connect: { id: team.id } },
+        user: { connect: { id: user.id } },
+      });
+
+      user2 = await userRepositoryFixture.create({
+        email: user2Email,
+        username: user2Email,
+        organization: { connect: { id: org.id } },
+      });
+
+      await profileRepositoryFixture.create({
+        uid: `usr-${user2.id}`,
+        username: user2Email,
+        organization: {
+          connect: {
+            id: org.id,
+          },
+        },
+        user: {
+          connect: {
+            id: user2.id,
+          },
+        },
+      });
+
+      const membership2 = await membershipFixtures.addUserToOrg(user2, org, "ADMIN", true);
+
+      attributeRepositoryFixture = new AttributeRepositoryFixture(moduleRef);
+      const attribute = await attributeRepositoryFixture.create({
+        name: "Test Attribute",
+        team: { connect: { id: org.id } },
+        type: "TEXT",
+        slug: `test-attribute-${randomString()}`,
+      });
+
+      const attribute2 = await attributeRepositoryFixture.create({
+        name: "Test Attribute 2",
+        team: { connect: { id: org.id } },
+        type: "TEXT",
+        slug: `test-attribute-2-${randomString()}`,
+      });
+      const attributeId = attribute.id;
+
+      assignedOption1 = await attributeRepositoryFixture.createOption({
+        slug: "option1",
+        value: "option1",
+        attribute: { connect: { id: attribute.id } },
+        assignedUsers: {
+          create: {
+            memberId: membership.id,
+          },
+        },
+      });
+
+      assignedOption2 = await attributeRepositoryFixture.createOption({
+        slug: "optionA",
+        value: "optionA",
+        attribute: { connect: { id: attribute2.id } },
+        assignedUsers: { createMany: { data: [{ memberId: membership.id }, { memberId: membership2.id }] } },
+      });
+
+      app = moduleRef.createNestApplication();
+      bootstrap(app as NestExpressApplication);
+
+      await app.init();
+    });
+
+    it("should be defined", () => {
+      expect(userRepositoryFixture).toBeDefined();
+      expect(organizationsRepositoryFixture).toBeDefined();
+      expect(user).toBeDefined();
+      expect(org).toBeDefined();
+    });
+
+    it("should get users with all specified assigned attribute options", async () => {
+      const { body } = await request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/users`)
+        .query({
+          assignedOptionIds: [assignedOption1.id],
+          attributeQueryOperator: "AND",
+        } as GetOrganizationsUsersInput)
+        .set("Content-Type", "application/json")
+        .set("Accept", "application/json");
+
+      const userData = body.data;
+
+      expect(body.status).toBe(SUCCESS_STATUS);
+      expect(userData.length).toBe(1);
+
+      const userWithAssignedOptions = userData.find(
+        (u: GetOrgUsersWithProfileOutput) => u.email === user.email
+      );
+      expect(userWithAssignedOptions).toBeDefined();
+      expect(userWithAssignedOptions?.email).toBe(user.email);
+      expect(userWithAssignedOptions?.profile.username).toBe(user.username);
+    });
+
+    it("should get users with at least one of the specified assigned attribute options", async () => {
+      const { body } = await request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/users`)
+        .query({
+          assignedOptionIds: [assignedOption1.id, assignedOption2.id],
+          attributeQueryOperator: "OR",
+        } as GetOrganizationsUsersInput)
+        .set("Content-Type", "application/json")
+        .set("Accept", "application/json");
+
+      const userData = body.data;
+
+      expect(body.status).toBe(SUCCESS_STATUS);
+      expect(userData.length).toBe(2);
+
+      const userWithAssignedOptions = userData.find(
+        (u: GetOrgUsersWithProfileOutput) => u.email === user.email
+      );
+      expect(userWithAssignedOptions).toBeDefined();
+      expect(userWithAssignedOptions?.email).toBe(user.email);
+      expect(userWithAssignedOptions?.profile.username).toBe(user.username);
+
+      const userWithAssignedOptions2 = userData.find(
+        (u: GetOrgUsersWithProfileOutput) => u.email === user2.email
+      );
+      expect(userWithAssignedOptions2).toBeDefined();
+      expect(userWithAssignedOptions2?.email).toBe(user2.email);
+      expect(userWithAssignedOptions2?.profile.username).toBe(user2.username);
+    });
+
+    it("should get users with at least one of the specified assigned attribute options filtered by teams", async () => {
+      const { body } = await request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/users`)
+        .query({
+          assignedOptionIds: [assignedOption1.id, assignedOption2.id],
+          attributeQueryOperator: "OR",
+          teamIds: [team.id],
+        } as GetOrganizationsUsersInput)
+        .set("Content-Type", "application/json")
+        .set("Accept", "application/json");
+
+      const userData = body.data;
+
+      expect(body.status).toBe(SUCCESS_STATUS);
+      expect(userData.length).toBe(1);
+
+      const userWithAssignedOptions = userData.find(
+        (u: GetOrgUsersWithProfileOutput) => u.email === user.email
+      );
+      expect(userWithAssignedOptions).toBeDefined();
+      expect(userWithAssignedOptions?.email).toBe(user.email);
+      expect(userWithAssignedOptions?.profile.username).toBe(user.username);
+    });
+
+    it("should get users with none of the specified assigned attribute options", async () => {
+      const { body } = await request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/users`)
+        .query({
+          assignedOptionIds: [assignedOption1.id, assignedOption2.id],
+          attributeQueryOperator: "NONE",
+        } as GetOrganizationsUsersInput)
+        .set("Content-Type", "application/json")
+        .set("Accept", "application/json");
+
+      const userData = body.data;
+
+      expect(body.status).toBe(SUCCESS_STATUS);
+      expect(userData.length).toBe(0);
+    });
+
+    afterAll(async () => {
+      // await membershipFixtures.delete(membership.id);
+      await userRepositoryFixture.deleteByEmail(user.email);
+      await userRepositoryFixture.deleteByEmail(user2.email);
+      await organizationsRepositoryFixture.delete(org.id);
       await app.close();
     });
   });

@@ -66,9 +66,11 @@ export class OrganizationsUsersController {
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() query: GetOrganizationsUsersInput
   ): Promise<GetOrganizationUsersResponseDTO> {
+    const { emails, assignedOptionIds, attributeQueryOperator, teamIds } = query ?? {};
     const users = await this.organizationsUsersService.getUsers(
       orgId,
-      query.emails,
+      emails,
+      { assignedOptionIds, attributeQueryOperator, teamIds },
       query.skip ?? 0,
       query.take ?? 250
     );

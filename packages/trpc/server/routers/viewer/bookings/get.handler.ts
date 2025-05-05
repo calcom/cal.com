@@ -101,7 +101,9 @@ export async function getBookings({
         seatsShowAttendees: true,
         seatsShowAvailabilityCount: true,
         eventTypeColor: true,
+        customReplyToEmail: true,
         allowReschedulingPastBookings: true,
+        hideOrganizerEmail: true,
         disableCancelling: true,
         disableRescheduling: true,
         schedulingType: true,
@@ -132,6 +134,7 @@ export async function getBookings({
         email: true,
       },
     },
+    fromReschedule: true,
     rescheduled: true,
     references: true,
     isRecorded: true,
@@ -332,6 +335,26 @@ export async function getBookings({
     andConditions.push({ createdAt: { lte: dayjs.utc(filters.beforeCreatedDate).toDate() } });
   }
 
+  // All the possible date filter keys
+  const dateFilterKeys = [
+    "afterStartDate",
+    "beforeEndDate",
+    "afterUpdatedDate",
+    "beforeUpdatedDate",
+    "afterCreatedDate",
+    "beforeCreatedDate",
+  ] as const;
+
+  const hasAnyDateFilter = dateFilterKeys.some((key) => filters?.[key]);
+
+  if (!hasAnyDateFilter) {
+    // is ORG/TEAM admin/owner
+    if (userIdsWhereUserIsAdminOrOwner?.length || userEmailsWhereUserIsAdminOrOwner?.length) {
+      const oneMonthAgo = dayjs.utc().subtract(1, "month").startOf("day").toDate();
+      andConditions.push({ startTime: { gte: oneMonthAgo } });
+    }
+  }
+
   const whereClause = {
     OR: orConditions,
     AND: andConditions,
@@ -437,8 +460,24 @@ export async function getBookings({
         booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
       }
 
+      let rescheduler = null;
+      if (booking.fromReschedule) {
+        const rescheduledBooking = await prisma.booking.findUnique({
+          where: {
+            uid: booking.fromReschedule,
+          },
+          select: {
+            rescheduledBy: true,
+          },
+        });
+        if (rescheduledBooking) {
+          rescheduler = rescheduledBooking.rescheduledBy;
+        }
+      }
+
       return {
         ...booking,
+        rescheduler,
         eventType: {
           ...booking.eventType,
           recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),

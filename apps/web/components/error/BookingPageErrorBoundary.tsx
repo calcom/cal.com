@@ -7,8 +7,11 @@ import { ErrorPage } from "./error-page";
 export default function BookingPageErrorBoundary({ children }: { children: React.ReactNode }) {
   return (
     <ErrorBoundary
-      fallbackRender={({ error }) => <ErrorPage error={error} message={`${error}`} displayDebug={true} />}
+      fallbackRender={({ error, resetErrorBoundary }) => (
+        <ErrorPage reset={resetErrorBoundary} error={error} message={`${error}`} displayDebug={true} />
+      )}
       onError={(error, info) => {
+        console.error(error);
         captureReactException(error, info);
       }}>
       {children}
