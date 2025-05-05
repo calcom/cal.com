@@ -141,7 +141,7 @@ const Actions = ({
               StartIcon="download">
               {t("download_responses")}
             </FormAction>
-            {form?.id && form?.teamId && (
+            {form?.id && (
               <FormAction
                 action="viewResponses"
                 routingForm={form}
