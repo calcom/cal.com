@@ -97,7 +97,7 @@ export class CreditService {
 
     if (userId) {
       const team = await this.getTeamWithAvailableCredits(userId);
-      return !!team;
+      return team.availableCredits > 0;
     }
 
     return false;
@@ -271,7 +271,7 @@ export class CreditService {
             warningSentAt: null,
           },
         });
-        cancelScheduledMessagesAndScheduleEmails(teamId);
+        await cancelScheduledMessagesAndScheduleEmails(teamId);
         return;
       }
       if (
