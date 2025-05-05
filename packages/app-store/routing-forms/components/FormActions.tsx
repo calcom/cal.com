@@ -491,7 +491,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       href: `/insights/routing${dataTableQueryParamsSerializer({
         activeFilters: routingForm?.id
           ? [{ f: "formId", v: { type: ColumnFilterType.SINGLE_SELECT, data: routingForm.id } }]
-          : null,
+          : [],
       })}`,
     },
     copyRedirectUrl: {

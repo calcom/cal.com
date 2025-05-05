@@ -26,10 +26,3 @@ export const dataTableQueryParamsSerializer = createSerializer({
   size: pageSizeParser,
   q: searchTermParser,
 });
-
-/**
- * @deprecated Use dataTableQueryParamsSerializer instead
- */
-export const activeFiltersSerializer = createSerializer({
-  activeFilters: activeFiltersParser,
-});
