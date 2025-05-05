@@ -1,12 +1,8 @@
 "use client";
 
 import type { ChangeEventHandler } from "react";
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 
-import { AllApps } from "@calcom/features/apps/components/AllApps";
-import { AppStoreCategories } from "@calcom/features/apps/components/Categories";
-import { PopularAppsSlider } from "@calcom/features/apps/components/PopularAppsSlider";
-import { RecentAppsSlider } from "@calcom/features/apps/components/RecentAppsSlider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { AppFrontendPayload } from "@calcom/types/App";
@@ -17,6 +13,23 @@ import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 
 import AppsLayout from "@components/apps/layouts/AppsLayout";
+
+const AllApps = lazy(() =>
+  import("@calcom/features/apps/components/AllApps").then((mod) => ({ default: mod.AllApps }))
+);
+const AppStoreCategories = lazy(() =>
+  import("@calcom/features/apps/components/Categories").then((mod) => ({ default: mod.AppStoreCategories }))
+);
+const PopularAppsSlider = lazy(() =>
+  import("@calcom/features/apps/components/PopularAppsSlider").then((mod) => ({
+    default: mod.PopularAppsSlider,
+  }))
+);
+const RecentAppsSlider = lazy(() =>
+  import("@calcom/features/apps/components/RecentAppsSlider").then((mod) => ({
+    default: mod.RecentAppsSlider,
+  }))
+);
 
 const tabs: HorizontalTabItemProps[] = [
   {
@@ -84,18 +97,22 @@ export default function Apps({ isAdmin, categories, appStore, userAdminTeams }: 
       emptyStore={!appStore.length}>
       <div className="flex flex-col gap-y-8">
         {!searchText && (
-          <>
-            <AppStoreCategories categories={categories} />
-            <PopularAppsSlider items={appStore} />
-            <RecentAppsSlider items={appStore} />
-          </>
+          <Suspense fallback={<div className="bg-subtle h-24 animate-pulse rounded-md" />}>
+            <>
+              <AppStoreCategories categories={categories} />
+              <PopularAppsSlider items={appStore} />
+              <RecentAppsSlider items={appStore} />
+            </>
+          </Suspense>
         )}
-        <AllApps
-          apps={appStore}
-          searchText={searchText}
-          categories={categories.map((category) => category.name)}
-          userAdminTeams={userAdminTeams}
-        />
+        <Suspense fallback={<div className="bg-subtle h-96 animate-pulse rounded-md" />}>
+          <AllApps
+            apps={appStore}
+            searchText={searchText}
+            categories={categories.map((category) => category.name)}
+            userAdminTeams={userAdminTeams}
+          />
+        </Suspense>
       </div>
     </AppsLayout>
   );

@@ -1,6 +1,7 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
+import { getCache, setCache } from "@calcom/lib/cache";
 import { getAllDelegationCredentialsForUser } from "@calcom/lib/delegationCredential/server";
 import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
@@ -38,6 +39,10 @@ export async function getAppWithMetadata(app: { dirName: string } | { slug: stri
 
 /** Mainly to use in listings for the frontend, use in getStaticProps or getServerSideProps */
 export async function getAppRegistry() {
+  const cacheKey = "app-registry";
+  const cachedApps = getCache<App[]>(cacheKey);
+  if (cachedApps) return cachedApps;
+
   const dbApps = await prisma.app.findMany({
     where: { enabled: true },
     select: { dirName: true, slug: true, categories: true, enabled: true, createdAt: true },
@@ -59,10 +64,16 @@ export async function getAppRegistry() {
       installCount: installCountPerApp[dbapp.slug] || 0,
     });
   }
+
+  setCache(cacheKey, apps, 5 * 60); // Cache for 5 minutes
   return apps;
 }
 
 export async function getAppRegistryWithCredentials(userId: number, userAdminTeams: UserAdminTeams = []) {
+  const cacheKey = `app-registry-creds-${userId}-${userAdminTeams.join(",")}`;
+  const cachedApps = getCache(cacheKey);
+  if (cachedApps) return cachedApps;
+
   // Get teamIds to grab existing credentials
 
   const dbApps = await prisma.app.findMany({
@@ -137,5 +148,6 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
     });
   }
 
+  setCache(cacheKey, apps, 5 * 60); // Cache for 5 minutes
   return apps;
 }

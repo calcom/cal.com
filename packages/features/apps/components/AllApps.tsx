@@ -3,7 +3,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { AppCategories } from "@prisma/client";
 import type { UIEvent } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
@@ -13,7 +13,7 @@ import classNames from "@calcom/ui/classNames";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { AppCard } from "./AppCard";
+import { MemoizedAppCard } from "./MemoizedAppCard";
 
 export function useShouldShowArrows() {
   const ref = useRef<HTMLUListElement>(null);
@@ -150,20 +150,22 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
     setSelectedCategory(validCategory);
   };
 
-  const filteredApps = apps
-    .filter((app) =>
-      selectedCategory !== null
-        ? app.categories
-          ? app.categories.includes(selectedCategory as AppCategories)
-          : app.category === selectedCategory
-        : true
-    )
-    .filter((app) => (searchText ? app.name.toLowerCase().includes(searchText.toLowerCase()) : true))
-    .sort(function (a, b) {
-      if (a.name < b.name) return -1;
-      else if (a.name > b.name) return 1;
-      return 0;
-    });
+  const filteredApps = useMemo(() => {
+    return apps
+      .filter((app) =>
+        selectedCategory !== null
+          ? app.categories
+            ? app.categories.includes(selectedCategory as AppCategories)
+            : app.category === selectedCategory
+          : true
+      )
+      .filter((app) => (searchText ? app.name.toLowerCase().includes(searchText.toLowerCase()) : true))
+      .sort(function (a, b) {
+        if (a.name < b.name) return -1;
+        else if (a.name > b.name) return 1;
+        return 0;
+      });
+  }, [apps, selectedCategory, searchText]);
 
   return (
     <div>
@@ -178,7 +180,7 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
           className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:500px)]:grid-cols-1 [@media(max-width:730px)]:grid-cols-1"
           ref={appsContainerRef}>
           {filteredApps.map((app) => (
-            <AppCard
+            <MemoizedAppCard
               key={app.name}
               app={app}
               searchText={searchText}

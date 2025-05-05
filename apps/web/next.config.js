@@ -189,7 +189,7 @@ const nextConfig = {
   ],
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
-    optimizePackageImports: ["@calcom/ui"],
+    optimizePackageImports: ["@calcom/ui", "@calcom/features", "date-fns", "@calcom/lib"],
     turbo: {},
   },
   productionBrowserSourceMaps: process.env.SENTRY_DISABLE_CLIENT_SOURCE_MAPS === "0",
