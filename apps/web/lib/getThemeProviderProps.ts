@@ -105,6 +105,8 @@ export function getThemeProviderProps({
   const forcedTheme = themeSupport === ThemeSupport.None || isWrongThemeValue ? "light" : undefined;
   if (forcedTheme) {
     return {
+      key: "forcedThemeKey",
+      storageKey: "forcedThemeKey",
       forcedTheme,
       attribute: "class",
       nonce: props.nonce,
