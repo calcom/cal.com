@@ -1,20 +1,3 @@
--- Function to calculate timeStatus
-CREATE OR REPLACE FUNCTION calculate_time_status(
-    rescheduled BOOLEAN,
-    status "BookingStatus",
-    end_time TIMESTAMP
-) RETURNS TEXT AS $$
-BEGIN
-    RETURN CASE
-        WHEN rescheduled IS TRUE THEN 'rescheduled'
-        WHEN status = 'cancelled' AND rescheduled IS NULL THEN 'cancelled'
-        WHEN end_time < now() THEN 'completed'
-        WHEN end_time > now() THEN 'uncompleted'
-        ELSE NULL
-    END;
-END;
-$$ LANGUAGE plpgsql;
-
 -- Function to calculate isTeamBooking
 CREATE OR REPLACE FUNCTION calculate_is_team_booking(team_id INTEGER)
 RETURNS BOOLEAN AS $$
@@ -49,7 +32,6 @@ BEGIN
         "Booking"."userId",
         et."teamId",
         et.length AS "eventLength",
-        calculate_time_status("Booking".rescheduled, "Booking".status, "Booking"."endTime") AS "timeStatus",
         et."parentId" AS "eventParentId",
         "u"."email" AS "userEmail",
         "u"."name" AS "userName",
@@ -176,6 +158,37 @@ CREATE TRIGGER user_update_trigger
     FOR EACH ROW
     EXECUTE FUNCTION trigger_refresh_booking_time_status_denormalized_user();
 
+-- Create DELETE trigger function for EventType
+CREATE OR REPLACE FUNCTION trigger_delete_booking_time_status_event_type()
+RETURNS TRIGGER AS $$
+BEGIN
+    DELETE FROM "BookingTimeStatusDenormalized"
+    WHERE "eventTypeId" = OLD.id;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create DELETE trigger for EventType
+CREATE TRIGGER event_type_delete_trigger
+    AFTER DELETE ON "EventType"
+    FOR EACH ROW
+    EXECUTE FUNCTION trigger_delete_booking_time_status_event_type();
+
+-- Create DELETE trigger function for users
+CREATE OR REPLACE FUNCTION trigger_delete_booking_time_status_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    DELETE FROM "BookingTimeStatusDenormalized"
+    WHERE "userId" = OLD.id;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create DELETE trigger for users
+CREATE TRIGGER user_delete_trigger
+    AFTER DELETE ON users
+    FOR EACH ROW
+    EXECUTE FUNCTION trigger_delete_booking_time_status_user();
 
 -- Populate the table with initial data
 -- DELETE FROM "BookingTimeStatusDenormalized";
