@@ -14,7 +14,7 @@ try {
   });
 
   // Inject Debug IDs
-  execSync(`sentry-cli sourcemaps inject ${CLIENT_FILES_PATH}`);
+  execSync(`sentry-cli sourcemaps inject ${CLIENT_FILES_PATH}`, { stdio: "inherit" });
 
   // Upload with release flag
   execSync(
@@ -28,6 +28,6 @@ try {
   // Finalize the release
   execSync(`sentry-cli releases finalize ${release}`, { stdio: "inherit" });
 } catch (err) {
-  console.error("Sentry sourcemap upload failed:", err);
+  console.error("Sentry cli execution failed:", err);
   process.exit(1);
 }
