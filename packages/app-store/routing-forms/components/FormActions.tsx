@@ -1,4 +1,5 @@
 import { useRouter } from "next/navigation";
+import { createSerializer, parseAsArrayOf, parseAsJson } from "nuqs";
 import { createContext, forwardRef, useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
@@ -486,9 +487,14 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       onClick: () => setNewFormDialogState?.({ action: "new", target: "" }),
     },
     viewResponses: {
-      href: `/insights/routing?activeFilters=${encodeURIComponent(
-        JSON.stringify([{ f: "formId", v: { type: "single_select", data: routingForm?.id } }])
-      )}`,
+      href: (() => {
+        const activeFiltersSerializer = createSerializer({
+          activeFilters: parseAsArrayOf(parseAsJson),
+        });
+        return `/insights/routing${activeFiltersSerializer({
+          activeFilters: [{ f: "formId", v: { type: "single_select", data: routingForm?.id } }],
+        })}`;
+      })(),
     },
     copyRedirectUrl: {
       onClick: () => {
