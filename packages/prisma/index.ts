@@ -76,10 +76,6 @@ export const readonlyPrisma = process.env.INSIGHTS_DATABASE_URL
     })
   : prisma;
 
-if (!process.env.INSIGHTS_DATABASE_URL) {
-  slowQueryDetectionMiddleware(readonlyPrisma);
-}
-
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prismaWithoutClientExtensions = prismaWithoutClientExtensions;
   globalForPrisma.prismaWithClientExtensions = prisma;
