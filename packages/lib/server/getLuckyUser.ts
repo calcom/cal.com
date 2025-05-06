@@ -438,12 +438,12 @@ async function getBookingsOfInterval({
   });
 }
 
-export async function getLuckyUser<
+export async function* luckyUserGenerator<
   T extends PartialUser & {
     priority?: number | null;
     weight?: number | null;
   }
->(getLuckyUserParams: GetLuckyUserParams<T>) {
+>(getLuckyUserParams: GetLuckyUserParams<T>, fetchedData?: FetchedData): AsyncGenerator<T, void, unknown> {
   const {
     bookingsOfAvailableUsersOfInterval,
     bookingsOfNotAvailableUsersOfInterval,
@@ -453,20 +453,60 @@ export async function getLuckyUser<
     attributeWeights,
     virtualQueuesData,
     oooData,
-  } = await fetchAllDataNeededForCalculations(getLuckyUserParams);
+  } = fetchedData ?? (await fetchAllDataNeededForCalculations(getLuckyUserParams));
 
-  const { luckyUser } = getLuckyUser_requiresDataToBePreFetched({
-    ...getLuckyUserParams,
-    bookingsOfAvailableUsersOfInterval,
-    bookingsOfNotAvailableUsersOfInterval,
-    allRRHostsBookingsOfInterval,
-    allRRHostsCreatedInInterval,
-    organizersWithLastCreated,
-    attributeWeights,
-    virtualQueuesData,
-    oooData,
-  });
+  let remainingUsers = [...getLuckyUserParams.availableUsers] as [T, ...T[]];
+  let bookingsOfRemainingUsers = [...bookingsOfAvailableUsersOfInterval];
 
+  const { eventType } = getLuckyUserParams;
+
+  const seen = new Set<number>();
+
+  while (remainingUsers.length > 0) {
+    const { luckyUser } = getLuckyUser_requiresDataToBePreFetched({
+      ...getLuckyUserParams,
+      eventType,
+      availableUsers: remainingUsers,
+      bookingsOfAvailableUsersOfInterval: bookingsOfRemainingUsers,
+      bookingsOfNotAvailableUsersOfInterval,
+      allRRHostsBookingsOfInterval,
+      allRRHostsCreatedInInterval,
+      organizersWithLastCreated,
+      attributeWeights,
+      virtualQueuesData,
+      oooData,
+    });
+
+    if (seen.has(luckyUser.id)) {
+      throw new Error(`Infinite loop: user ${luckyUser.email} already yielded.`);
+    }
+
+    yield luckyUser;
+
+    seen.add(luckyUser.id);
+
+    const nextUsers = remainingUsers.filter((u) => u.id !== luckyUser.id);
+    if (nextUsers.length === 0) {
+      break;
+    }
+    // ✅ TS knows this is non-empty now
+    remainingUsers = nextUsers as [T, ...T[]];
+
+    bookingsOfRemainingUsers = bookingsOfRemainingUsers.filter((b) =>
+      remainingUsers.some((u) => u.id === b.userId)
+    );
+  }
+}
+
+// deprecated: use generator directly
+export async function getLuckyUser<
+  T extends PartialUser & {
+    priority?: number | null;
+    weight?: number | null;
+  }
+>(getLuckyUserParams: GetLuckyUserParams<T>) {
+  const generator = luckyUserGenerator(getLuckyUserParams);
+  const { value: luckyUser } = await generator.next();
   return luckyUser;
 }
 
@@ -779,89 +819,27 @@ type AvailableUserBase = PartialUser & {
   weight: number | null;
 };
 
-export async function getOrderedListOfLuckyUsers<AvailableUser extends AvailableUserBase>(
-  getLuckyUserParams: GetLuckyUserParams<AvailableUser>
+export async function getOrderedListOfLuckyUsers<T extends AvailableUserBase>(
+  getLuckyUserParams: GetLuckyUserParams<T>
 ) {
-  const { availableUsers, eventType } = getLuckyUserParams;
+  const fetchedData = await fetchAllDataNeededForCalculations(getLuckyUserParams);
+  const generator = luckyUserGenerator(getLuckyUserParams, fetchedData);
+  const users: T[] = [];
+  const bookingsCount: Record<number, number> = {};
 
-  const {
-    bookingsOfAvailableUsersOfInterval,
-    bookingsOfNotAvailableUsersOfInterval,
-    allRRHostsBookingsOfInterval,
-    allRRHostsCreatedInInterval,
-    organizersWithLastCreated,
-    attributeWeights,
-    virtualQueuesData,
-    oooData,
-  } = await fetchAllDataNeededForCalculations(getLuckyUserParams);
-
-  log.info(
-    "getOrderedListOfLuckyUsers",
-    safeStringify({
-      availableUsers: availableUsers.map((user) => {
-        return { id: user.id, email: user.email, priority: user.priority, weight: user.weight };
-      }),
-      bookingsOfAvailableUsersOfInterval,
-      bookingsOfNotAvailableUsersOfInterval,
-      allRRHostsBookingsOfInterval,
-      allRRHostsCreatedInInterval,
-      organizersWithLastCreated,
-    })
-  );
-
-  let remainingAvailableUsers = [...availableUsers];
-  let bookingsOfRemainingAvailableUsersOfInterval = [...bookingsOfAvailableUsersOfInterval];
-  const orderedUsersSet = new Set<AvailableUser>();
-  const perUserBookingsCount: Record<number, number> = {};
-
-  const startTime = performance.now();
-  let usersAndTheirBookingShortfalls: {
-    id: number;
-    bookingShortfall: number;
-    calibration: number;
-    weight: number;
-  }[] = [];
-  // Keep getting lucky users until none remain
-  while (remainingAvailableUsers.length > 0) {
-    const { luckyUser, usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls } =
-      getLuckyUser_requiresDataToBePreFetched({
-        ...getLuckyUserParams,
-        eventType,
-        availableUsers: remainingAvailableUsers as [AvailableUser, ...AvailableUser[]],
-        bookingsOfAvailableUsersOfInterval: bookingsOfRemainingAvailableUsersOfInterval,
-        bookingsOfNotAvailableUsersOfInterval,
-        allRRHostsBookingsOfInterval,
-        allRRHostsCreatedInInterval,
-        organizersWithLastCreated,
-        attributeWeights,
-        virtualQueuesData,
-        oooData,
-      });
-
-    if (!usersAndTheirBookingShortfalls.length) {
-      usersAndTheirBookingShortfalls = _usersAndTheirBookingShortfalls;
-    }
-
-    if (orderedUsersSet.has(luckyUser)) {
-      // It is helpful in breaking the loop as same user is returned again and again.
-      // Also, it tells a bug in the code.
-      throw new Error(
-        `Error building ordered list of lucky users. The lucky user ${luckyUser.email} is already in the set.`
-      );
-    }
-
-    orderedUsersSet.add(luckyUser);
-    perUserBookingsCount[luckyUser.id] = bookingsOfAvailableUsersOfInterval.filter(
-      (booking) => booking.userId === luckyUser.id
+  for await (const user of generator) {
+    users.push(user);
+    bookingsCount[user.id] = fetchedData.bookingsOfAvailableUsersOfInterval.filter(
+      (b) => b.userId === user.id
     ).length;
-    remainingAvailableUsers = remainingAvailableUsers.filter((user) => user.id !== luckyUser.id);
-    bookingsOfRemainingAvailableUsersOfInterval = bookingsOfRemainingAvailableUsersOfInterval.filter(
-      (booking) => remainingAvailableUsers.map((user) => user.id).includes(booking.userId ?? 0)
-    );
   }
 
-  const endTime = performance.now();
-  log.info(`getOrderedListOfLuckyUsers took ${endTime - startTime}ms`);
+  // Optionally collect shortfall info once at the end (or just expose from generator)
+  const { usersAndTheirBookingShortfalls } = getLuckyUser_requiresDataToBePreFetched({
+    ...getLuckyUserParams,
+    ...fetchedData,
+    availableUsers: users as [T, ...T[]],
+  });
 
   const bookingShortfalls: Record<number, number> = {};
   const calibrations: Record<number, number> = {};
@@ -874,13 +852,13 @@ export async function getOrderedListOfLuckyUsers<AvailableUser extends Available
   });
 
   return {
-    users: Array.from(orderedUsersSet),
-    isUsingAttributeWeights: !!attributeWeights && !!virtualQueuesData,
+    users,
+    isUsingAttributeWeights: !!fetchedData.attributeWeights && !!fetchedData.virtualQueuesData,
     perUserData: {
-      bookingsCount: perUserBookingsCount,
-      bookingShortfalls: eventType.isRRWeightsEnabled ? bookingShortfalls : null,
-      calibrations: eventType.isRRWeightsEnabled ? calibrations : null,
-      weights: eventType.isRRWeightsEnabled ? weights : null,
+      bookingsCount,
+      bookingShortfalls: getLuckyUserParams.eventType.isRRWeightsEnabled ? bookingShortfalls : null,
+      calibrations: getLuckyUserParams.eventType.isRRWeightsEnabled ? calibrations : null,
+      weights: getLuckyUserParams.eventType.isRRWeightsEnabled ? weights : null,
     },
   };
 }

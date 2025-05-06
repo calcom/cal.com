@@ -310,12 +310,12 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        user: { id: users[0].id, email: users[0].email, credentials: [], userLevelSelectedCalendars: [] },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        user: { id: users[1].id, email: users[1].email, credentials: [], userLevelSelectedCalendars: [] },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
@@ -337,6 +337,7 @@ describe("maximize availability and weights", () => {
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
 
     // Today: 2021-06-20T11:59:59Z, monthly interval
+    // @ts-expect-error mock calls inferred as {}
     expect(queryArgs.where?.createdAt).toEqual(
       expect.objectContaining({
         gte: new Date("2021-06-01T00:00:00Z"),
@@ -418,12 +419,12 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        user: { id: users[0].id, email: users[0].email, credentials: [], userLevelSelectedCalendars: [] },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        user: { id: users[1].id, email: users[1].email, credentials: [], userLevelSelectedCalendars: [] },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
@@ -445,6 +446,7 @@ describe("maximize availability and weights", () => {
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
 
     // Today: 2021-06-20T11:59:59Z, daily interval
+    // @ts-expect-error mock calls inferred as {}
     expect(queryArgs.where?.createdAt).toEqual(
       expect.objectContaining({
         gte: new Date("2021-06-20T00:00:00Z"),
@@ -526,12 +528,12 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        user: { id: users[0].id, email: users[0].email, credentials: [], userLevelSelectedCalendars: [] },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        user: { id: users[1].id, email: users[1].email, credentials: [], userLevelSelectedCalendars: [] },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
@@ -553,6 +555,7 @@ describe("maximize availability and weights", () => {
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
 
     // Today: 2021-06-20T11:59:59Z, daily interval
+    // @ts-expect-error mock calls inferred as {}
     expect(queryArgs.where?.createdAt).toEqual(
       expect.objectContaining({
         gte: new Date("2021-06-20T00:00:00Z"),
@@ -581,12 +584,12 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        user: { id: users[0].id, email: users[0].email, credentials: [], userLevelSelectedCalendars: [] },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        user: { id: users[1].id, email: users[1].email, credentials: [], userLevelSelectedCalendars: [] },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
@@ -648,6 +651,7 @@ describe("maximize availability and weights", () => {
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
 
     // Today: 2021-06-20T11:59:59Z, monthly interval
+    // @ts-expect-error mock calls inferred as {}
     expect(queryArgs.where?.createdAt).toEqual(
       expect.objectContaining({
         gte: new Date("2021-06-01T00:00:00Z"),
@@ -687,12 +691,12 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        user: { id: users[0].id, email: users[0].email, credentials: [], userLevelSelectedCalendars: [] },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        user: { id: users[1].id, email: users[1].email, credentials: [], userLevelSelectedCalendars: [] },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
@@ -755,6 +759,7 @@ describe("maximize availability and weights", () => {
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
 
     // Today: 2021-06-20T11:59:59Z, monthly interval
+    // @ts-expect-error mock calls inferred as {}
     expect(queryArgs.where?.createdAt).toEqual(
       expect.objectContaining({
         gte: new Date("2021-06-01T00:00:00Z"),
@@ -798,12 +803,13 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        user: { id: users[0].id, email: users[0].email, credentials: [], userLevelSelectedCalendars: [] },
         weight: users[0].weight,
         createdAt: middleOfMonth,
+        userLevelSelectedCalendars: [],
       },
       {
-        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        user: { id: users[1].id, email: users[1].email, credentials: [], userLevelSelectedCalendars: [] },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
@@ -875,6 +881,7 @@ describe("maximize availability and weights", () => {
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
 
     // Today: 2021-06-20T11:59:59Z, monthly interval
+    // @ts-expect-error mock calls inferred as {}
     expect(queryArgs.where?.createdAt).toEqual(
       expect.objectContaining({
         gte: new Date("2021-06-01T00:00:00Z"),
@@ -1021,7 +1028,7 @@ describe("attribute weights and virtual queues", () => {
             id: 1,
             email: "test1@example.com",
             credentials: [],
-            selectedCalendars: [],
+            userLevelSelectedCalendars: [],
           },
           createdAt: new Date(),
           weight: 10,
@@ -1031,7 +1038,7 @@ describe("attribute weights and virtual queues", () => {
             id: 2,
             email: "test2@example.com",
             credentials: [],
-            selectedCalendars: [],
+            userLevelSelectedCalendars: [],
           },
           createdAt: new Date(),
           weight: 150,
@@ -1160,7 +1167,7 @@ describe("attribute weights and virtual queues", () => {
             id: 1,
             email: "test1@example.com",
             credentials: [],
-            selectedCalendars: [],
+            userLevelSelectedCalendars: [],
           },
           createdAt: new Date(),
           weight: 10,
@@ -1170,7 +1177,7 @@ describe("attribute weights and virtual queues", () => {
             id: 2,
             email: "test2@example.com",
             credentials: [],
-            selectedCalendars: [],
+            userLevelSelectedCalendars: [],
           },
           createdAt: new Date(),
           weight: 150,
@@ -1366,12 +1373,12 @@ describe("attribute weights and virtual queues", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        user: { id: users[0].id, email: users[0].email, credentials: [], userLevelSelectedCalendars: [] },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        user: { id: users[1].id, email: users[1].email, credentials: [], userLevelSelectedCalendars: [] },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
@@ -1393,6 +1400,7 @@ describe("attribute weights and virtual queues", () => {
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
 
     // Today: 2021-06-20T11:59:59Z, daily interval
+    // @ts-expect-error mock calls inferred as {}
     expect(queryArgs.where?.createdAt).toEqual(
       expect.objectContaining({
         gte: new Date("2021-06-20T00:00:00Z"),
