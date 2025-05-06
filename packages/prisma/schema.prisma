@@ -500,7 +500,7 @@ model Team {
   bookingLimits                Json?
   includeManagedEventsInLimits Boolean                 @default(false)
   internalNotePresets          InternalNotePreset[]
-  credits                      CreditBalance?
+  creditBalance                CreditBalance?
   organizationOnboarding       OrganizationOnboarding?
 
   // note(Lauris): if a Team has parentId it is a team, if parentId is null it is an organization, but if parentId is null and managedOrganization is set,
