@@ -5,7 +5,13 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
-import { GOOGLE_CALENDAR_SCOPES, SCOPE_USERINFO_PROFILE } from "@calcom/lib/constants";
+import {
+  GOOGLE_CALENDAR_SCOPES,
+  SCOPE_USERINFO_PROFILE,
+  WEBAPP_URL,
+  WEBAPP_URL_FOR_OAUTH,
+} from "@calcom/lib/constants";
+import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
@@ -16,16 +22,17 @@ import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
 
-const WEBAPP_URL_FOR_OAUTH = "http://localhost:3000";
-const WEBAPP_URL = "http://localhost:3000";
-
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
   const state = decodeOAuthState(req);
 
   if (typeof code !== "string") {
     if (state?.onErrorReturnTo || state?.returnTo) {
-      res.redirect(state.onErrorReturnTo ?? state?.returnTo ?? `${WEBAPP_URL}/apps/installed`);
+      res.redirect(
+        getSafeRedirectUrl(state.onErrorReturnTo) ??
+          getSafeRedirectUrl(state?.returnTo) ??
+          `${WEBAPP_URL}/apps/installed`
+      );
       return;
     }
     throw new HttpError({ statusCode: 400, message: "`code` must be a string" });
@@ -54,7 +61,11 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
           message: "You must grant all permissions to use this integration",
         });
       }
-      res.redirect(state.onErrorReturnTo ?? state?.returnTo ?? `${WEBAPP_URL}/apps/installed`);
+      res.redirect(
+        getSafeRedirectUrl(state.onErrorReturnTo) ??
+          getSafeRedirectUrl(state?.returnTo) ??
+          `${WEBAPP_URL}/apps/installed`
+      );
       return;
     }
 
@@ -82,7 +93,10 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     // If we still don't have a primary calendar skip creating the selected calendar.
     // It can be toggled on later.
     if (!primaryCal?.id) {
-      res.redirect(state?.returnTo ?? getInstalledAppPath({ variant: "calendar", slug: "google-calendar" }));
+      res.redirect(
+        getSafeRedirectUrl(state?.returnTo) ??
+          getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
+      );
       return;
     }
 
@@ -112,7 +126,8 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         // we want to recover by connecting the existing selectedCalendar to the new Credential.
         if (await renewSelectedCalendarCredentialId(selectedCalendarWhereUnique, gcalCredential.id)) {
           res.redirect(
-            state?.returnTo ?? getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
+            getSafeRedirectUrl(state?.returnTo) ??
+              getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
           );
           return;
         }
@@ -122,7 +137,8 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       await CredentialRepository.deleteById({ id: gcalCredential.id });
       res.redirect(
         `${
-          state?.onErrorReturnTo ?? getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
+          getSafeRedirectUrl(state?.onErrorReturnTo) ??
+          getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
         }?error=${errorMessage}`
       );
       return;
@@ -131,7 +147,10 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   // No need to install? Redirect to the returnTo URL
   if (!state?.installGoogleVideo) {
-    res.redirect(state?.returnTo ?? getInstalledAppPath({ variant: "calendar", slug: "google-calendar" }));
+    res.redirect(
+      getSafeRedirectUrl(state?.returnTo) ??
+        getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
+    );
     return;
   }
 
@@ -143,7 +162,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   // If the user already has a google meet credential, there's nothing to do in here
   if (existingGoogleMeetCredential) {
     res.redirect(
-      `${WEBAPP_URL}/pps/installed/conferencing?hl=google-meet` ??
+      getSafeRedirectUrl(`${WEBAPP_URL}/apps/installed/conferencing?hl=google-meet`) ??
         getInstalledAppPath({ variant: "conferencing", slug: "google-meet" })
     );
     return;
@@ -157,7 +176,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     appId: "google-meet",
   });
   res.redirect(
-    `${WEBAPP_URL}/pps/installed/conferencing?hl=google-meet` ??
+    getSafeRedirectUrl(`${WEBAPP_URL}/apps/installed/conferencing?hl=google-meet`) ??
       getInstalledAppPath({ variant: "conferencing", slug: "google-meet" })
   );
 }

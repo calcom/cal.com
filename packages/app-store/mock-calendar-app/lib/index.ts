@@ -1,1 +1,1 @@
-export { CalendarService } from "./CalendarService";
+export { default as CalendarService } from "./CalendarService";

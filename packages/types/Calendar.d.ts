@@ -81,6 +81,7 @@ export type NewCalendarEventType = {
   hangoutLink?: string | null;
   conferenceData?: ConferenceData;
   delegatedToId?: string | null;
+  // We keep it optional to avoid making changes to all CalendarServices unncessarily
   calendarEventId?: string | null;
 };
 
@@ -255,6 +256,12 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
  * null is to refer to user-level SelectedCalendar
  */
 export type SelectedCalendarEventTypeIds = (number | null)[];
+export type CalendarEventsToSync = {
+  id: string;
+  status: string;
+  startTime: string;
+  endTime: string;
+}[];
 
 export interface Calendar {
   getCredentialId?(): number;
@@ -299,16 +306,29 @@ export interface Calendar {
     eventTypeIds: SelectedCalendarEventTypeIds;
   }): Promise<unknown>;
 
-  onWatchedCalendarChange?(
-    calendarId: string,
-    resourceId: string,
-    resourceState?: string,
-    calendarType?: "selected" | "destination"
-  ): Promise<unknown>;
+  onWatchedCalendarChange?(options: {
+    calendarId: string;
+    syncActions: ("availability-cache" | "events-sync")[];
+  }): Promise<{
+    eventsToSync: CalendarEventsToSync;
+  }>;
 
   unwatchCalendar?(options: {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
+  }): Promise<void>;
+
+  subscribeToCalendar?(options: { calendarId: string }): Promise<{
+    subscriptionId: string | null;
+    subscriptionKind: string | null;
+    resourceId: string | null;
+    resourceUri: string | null;
+    expiration: string | null;
+  }>;
+
+  unsubscribeFromCalendar?(options: {
+    providerSubscriptionId: string;
+    providerResourceId: string;
   }): Promise<void>;
 }
 

@@ -6,7 +6,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
-import type { Subscription } from "@calcom/prisma/client";
+import type { CalendarSubscription } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["[cron/subscription-cron]"] });
 const BATCH_SIZE = 100; // Process up to 100 records per run
@@ -34,9 +34,9 @@ export const GET = async (req: Request) => {
   try {
     // Fetch ONE batch of PENDING Subscriptions
     const pendingSubscriptions: Pick<
-      Subscription,
+      CalendarSubscription,
       "id" | "credentialId" | "externalCalendarId" | "providerType"
-    >[] = await prisma.subscription.findMany({
+    >[] = await prisma.calendarSubscription.findMany({
       take: BATCH_SIZE,
       where: {
         status: "PENDING",
@@ -77,49 +77,62 @@ export const GET = async (req: Request) => {
             credentialId: sub.credentialId,
           });
 
-          log.debug(`Attempting to CREATE provider subscription for Subscription ${sub.id}`);
+          log.debug(`Attempting to CREATE provider subscription for CalendarSubscription ${sub.id}`);
 
           // Create the actual subscription with the provider (e.g., Google Calendar watch)
           const calendarService = await getCalendar(credentialForCalendarCache);
-          const watchResponse = await calendarService.watchCalendarCore({
+          if (!calendarService) {
+            log.error(
+              `Calendar service not found for CalendarSubscription ${sub.id} (credential ${sub.credentialId}, externalId ${sub.externalCalendarId})`
+            );
+            throw new Error("CalendarService couldn't be initialized");
+          }
+
+          if (!calendarService.subscribeToCalendar) {
+            log.error(
+              `subscribeToCalendar is not implemented for CalendarSubscription ${sub.id} (credential ${sub.credentialId}, externalId ${sub.externalCalendarId})`
+            );
+            throw new Error("subscribeToCalendar is not implemented");
+          }
+
+          const thirdPartySubscriptionResponse = await calendarService.subscribeToCalendar({
             calendarId: sub.externalCalendarId,
           });
 
-          if (!watchResponse || !watchResponse.id) {
+          if (!thirdPartySubscriptionResponse || !thirdPartySubscriptionResponse.subscriptionId) {
             // Handle cases where watch creation didn't return expected data
             log.warn(
-              `watchCalendarCore did not return a valid response or ID for Subscription ${sub.id}. Response:`,
-              safeStringify(watchResponse)
+              `subscribeToCalendar did not return a valid response or ID for CalendarSubscription ${sub.id}. Response:`,
+              safeStringify(thirdPartySubscriptionResponse)
             );
             throw new Error(
-              `Failed to create provider subscription for Subscription ${sub.id}: Invalid response from provider.`
+              `Failed to create provider subscription for CalendarSubscription ${sub.id}: Invalid response from provider.`
             );
           }
 
-          // Update the Subscription record to ACTIVE and store provider details
-          await prisma.subscription.update({
+          // Update the CalendarSubscription record to ACTIVE and store provider details
+          await prisma.calendarSubscription.update({
             where: { id: sub.id },
             data: {
               // Keep credentialId, externalCalendarId, providerType as they are
-              providerSubscriptionId: watchResponse.id,
-              providerSubscriptionKind: watchResponse.kind,
-              providerResourceId: watchResponse.resourceId,
-              providerResourceUri: watchResponse.resourceUri,
-              providerExpiration: watchResponse.expiration
-                ? new Date(Number(watchResponse.expiration))
+              providerSubscriptionId: thirdPartySubscriptionResponse.subscriptionId,
+              providerSubscriptionKind: thirdPartySubscriptionResponse.subscriptionKind,
+              providerResourceId: thirdPartySubscriptionResponse.resourceId,
+              providerResourceUri: thirdPartySubscriptionResponse.resourceUri,
+              providerExpiration: thirdPartySubscriptionResponse.expiration
+                ? new Date(Number(thirdPartySubscriptionResponse.expiration))
                 : null,
-              providerSyncToken: watchResponse.syncToken,
               status: "ACTIVE",
             },
           });
 
           log.debug(
             // Changed to debug to reduce noise for successful operations
-            `Successfully ACTIVATED Subscription ${sub.id} (Provider ID: ${watchResponse.id})`
+            `Successfully ACTIVATED CalendarSubscription ${sub.id} (Provider ID: ${thirdPartySubscriptionResponse.subscriptionId})`
           );
         } catch (error) {
           log.error(
-            `Error processing Subscription record ID ${sub.id} (credential ${sub.credentialId}, externalId ${sub.externalCalendarId}):`,
+            `Error processing CalendarSubscription record ID ${sub.id} (credential ${sub.credentialId}, externalId ${sub.externalCalendarId}):`,
             safeStringify(error)
           );
           // Let the status remain PENDING for retry on next run
@@ -158,7 +171,7 @@ export const GET = async (req: Request) => {
 
   return new Response(
     JSON.stringify({
-      message: "Subscription activation batch finished",
+      message: "CalendarSubscription activation batch finished",
       executedAt: new Date().toISOString(),
       success: batchSuccess,
       failures: batchFailures,

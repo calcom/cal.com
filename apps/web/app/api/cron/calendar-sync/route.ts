@@ -87,7 +87,7 @@ export const GET = async (req: Request) => {
 
         try {
           // Directly create a PENDING subscription
-          const newSubscription = await prisma.subscription.create({
+          const newSubscription = await prisma.calendarSubscription.create({
             data: {
               credentialId: syncedCal.credentialId,
               externalCalendarId: syncedCal.externalCalendarId,
@@ -105,7 +105,7 @@ export const GET = async (req: Request) => {
 
           log.debug(
             // Changed to debug to reduce noise for successful operations
-            `Created PENDING Subscription ${newSubscription.id} and linked to SyncedCalendar ${syncedCal.id}`
+            `Created PENDING CalendarSubscription ${newSubscription.id} and linked to SyncedCalendar ${syncedCal.id}`
           );
         } catch (error) {
           log.error(

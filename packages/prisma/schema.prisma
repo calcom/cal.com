@@ -213,7 +213,7 @@ model Credential {
   delegationCredentialId String?
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   calendarSyncs      CalendarSync[]
-  subscriptions          Subscription[]
+  subscriptions          CalendarSubscription[]
 
   @@index([userId])
   @@index([appId])
@@ -608,10 +608,10 @@ model BookingReference {
   externalCalendarId         String?
   deleted                    Boolean?
   calendarEventId            String?
-  calendarSync           CalendarSync? @relation(fields: [calendarSyncId], references: [id])
-  calendarSyncId         String?
-  credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: SetNull)
-  credentialId                     Int?
+  calendarSync               CalendarSync? @relation(fields: [calendarSyncId], references: [id])
+  calendarSyncId             String?
+  credential                 Credential?   @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+  credentialId               Int?
   delegationCredential             DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: SetNull)
   delegationCredentialId           String?
   domainWideDelegation             DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: SetNull)
@@ -712,8 +712,6 @@ model Booking {
   internalNote                 BookingInternalNote[]
   creationSource               CreationSource?
   tracking                     Tracking?
-  calendarSync             CalendarSync? @relation(fields: [calendarSyncId], references: [id])
-  calendarSyncId           String?
 
   @@index([eventTypeId])
   @@index([userId])
@@ -2115,7 +2113,7 @@ enum SubscriptionStatus {
   PENDING  // e.g. Waiting to create subscription in provider
 }
 
-model Subscription {
+model CalendarSubscription {
   id String @id @default(uuid()) // Unique ID for the subscription itself
 
   credential   Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
@@ -2132,8 +2130,9 @@ model Subscription {
   providerResourceUri      String? // e.g., Google's resource URI
   providerExpiration       DateTime? // e.g., Google's channel expiration time
 
-  status      SubscriptionStatus @default(ACTIVE) // ACTIVE, INACTIVE, ERROR, PENDING\
-  lastSyncAt  DateTime? // When the last successful update received from the provider
+  status      SubscriptionStatus @default(ACTIVE) // ACTIVE, INACTIVE, ERROR, PENDING
+  // Updated whenever a push notification is received from the provider
+  lastSyncAt  DateTime?
   lastError   String? // Last error message caused during attempted subscription
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -2162,28 +2161,26 @@ enum Direction {
 model CalendarSync {
   id String @id @default(uuid()) // Unique ID for the subscription itself
 
+  // Required to create the subscription, it is kept updated to the last used credential that worked
+  credentialId       Int
   externalCalendarId String // ID of the calendar in the external provider (e.g., Google Calendar ID would be john@gmail.com)
   integration        String // e.g., "google_calendar"
-  // Required to create the subscription
-  credentialId       Int
   userId             Int
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   credential         Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  subscription       Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  subscription       CalendarSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
   subscriptionId     String? @unique
   lastSyncedUpAt     DateTime?
   lastSyncedDownAt   DateTime?
   lastSyncDirection  Direction
-  
+
   // All bookings that were synced to this calendar
-  bookings           Booking[]
-  // All booking references that were synced to this calendar
-  bookingReferences  BookingReference[]
+  bookingReferences BookingReference[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([credentialId, externalCalendarId])
+  @@unique([userId, externalCalendarId, integration])
   @@index([externalCalendarId])
   @@index([subscriptionId])
 }

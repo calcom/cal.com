@@ -920,7 +920,7 @@ describe("Watching and unwatching calendar", () => {
     });
 
     expectGoogleSubscriptionToNotHaveOccurredAndClearMock();
-    // Google Subscription didn't occur but still the eventTypeLevelCalendar has the same googleChannelProps
+    // Google CalendarSubscription didn't occur but still the eventTypeLevelCalendar has the same googleChannelProps
     await expectSelectedCalendarToHaveGoogleChannelProps(eventTypeLevelCalendar.id, {
       googleChannelId: "mock-channel-id",
       googleChannelKind: "api#channel",
@@ -976,7 +976,7 @@ describe("Watching and unwatching calendar", () => {
       calendarId: eventTypeLevelCalendar.externalId,
     });
 
-    // Google Subscription didn't occur but still the eventTypeLevelCalendar has the same googleChannelProps
+    // Google CalendarSubscription didn't occur but still the eventTypeLevelCalendar has the same googleChannelProps
     await expectSelectedCalendarToHaveGoogleChannelProps(eventTypeLevelCalendar.id, {
       googleChannelId: "mock-channel-id",
       googleChannelKind: "api#channel",

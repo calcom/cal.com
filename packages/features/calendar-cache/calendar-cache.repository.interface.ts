@@ -5,7 +5,6 @@ import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 export type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
 
 export interface ICalendarCacheRepository {
-  watchCalendarCore(args: { calendarId: string }): Promise<any>;
   watchCalendar(args: { calendarId: string; eventTypeIds: SelectedCalendarEventTypeIds }): Promise<any>;
   unwatchCalendar(args: { calendarId: string; eventTypeIds: SelectedCalendarEventTypeIds }): Promise<any>;
   upsertCachedAvailability({

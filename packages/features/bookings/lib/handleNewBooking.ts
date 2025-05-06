@@ -1,4 +1,4 @@
-import type { DestinationCalendar, CalendarSync } from "@prisma/client";
+import type { DestinationCalendar } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import short, { uuid } from "short-uuid";
@@ -87,6 +87,10 @@ import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCred
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
+import {
+  createCalendarSync,
+  getReferencesToCreateSupportingCalendarSync,
+} from "./handleNewBooking/calendarSync";
 import { checkBookingAndDurationLimits } from "./handleNewBooking/checkBookingAndDurationLimits";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
 import { createBooking } from "./handleNewBooking/createBooking";
@@ -332,47 +336,6 @@ export type BookingHandlerInput = {
   hostname?: string;
   forcedSlug?: string;
 } & PlatformParams;
-
-/**
- *
- * TODO: Make it return null if organization doesn't have bi-directional-sync feature enabled
- * Extracts data required to create CalendarSync records from EventManager results.
- * It uses the credentialId assumed to be present on successful calendar integration results.
- *
- * @param results - The results array from EventManager operations (create/reschedule), potentially containing credentialId.
- * @param bookingId - The ID of the booking for logging purposes.
- * @returns An array of data objects suitable for `prisma.calendarSync.createMany.data`.
- */
-const getCalendarSyncData = (
-  // Assuming EventResult might contain credentialId for successful calendar ops
-  {
-    results,
-    organizerUserId,
-  }: {
-    results: EventResult<AdditionalInformation & { url?: string; iCalUID?: string; credentialId?: number }>[];
-    organizerUserId: number;
-  }
-): // Adjust Omit based on actual required fields for CalendarSync creation, excluding relational keys like bookingId
-Omit<CalendarSync, "id" | "bookingId" | "createdAt" | "updatedAt"> => {
-  console.log("results in getCalendarSyncData", JSON.stringify(results, null, 2));
-  for (const result of results) {
-    // Check if it's a successful calendar integration result AND has a numeric credentialId
-    if (result.success && result.type.includes("_calendar")) {
-      // Structure based on CalendarSync schema fields needed for creation (excluding bookingId)
-      // Assuming 'integration' and 'subscriptionId' are optional or have defaults for now
-      return {
-        externalCalendarId: result.externalId,
-        credentialId: result.credentialId,
-        integration: result.type,
-        userId: organizerUserId,
-        lastSyncedUpAt: new Date(),
-        lastSyncDirection: "UPSTREAM",
-      };
-    }
-  }
-
-  return null;
-};
 
 async function handler(
   input: BookingHandlerInput,
@@ -2092,9 +2055,17 @@ async function handler(
 
   try {
     if (!isDryRun) {
-      // Prepare data for CalendarSync creation before the update call
-      const calendarSyncData = getCalendarSyncData({ results, organizerUserId: organizerUser.id });
-      console.log("calendarSyncData", calendarSyncData);
+      const { calendarSync, calendarEventId } = await createCalendarSync({
+        results,
+        organizerUserId: organizerUser.id,
+      });
+
+      const referencesToCreateSupportingCalendarSync = getReferencesToCreateSupportingCalendarSync({
+        referencesToCreate,
+        calendarSyncId: calendarSync?.id ?? null,
+        calendarEventId,
+      });
+
       await prisma.booking.update({
         where: {
           uid: booking.uid,
@@ -2104,18 +2075,9 @@ async function handler(
           metadata: { ...(typeof booking.metadata === "object" && booking.metadata), ...metadata },
           references: {
             createMany: {
-              data: referencesToCreate,
+              data: referencesToCreateSupportingCalendarSync,
             },
           },
-          // Conditionally create CalendarSync records
-          ...(calendarSyncData && {
-            calendarSync: {
-              // This should be quite quick, so it is fine to be a sync operation here instead of doing it in Tasker
-              // TODO: switch to upsert
-              // update lastUsedAt field during creation and updation
-              create: calendarSyncData,
-            },
-          }),
         },
       });
     }

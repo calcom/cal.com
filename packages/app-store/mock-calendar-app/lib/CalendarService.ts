@@ -74,12 +74,17 @@ export default class MockCalendarService implements Calendar {
   async listCalendars(): Promise<IntegrationCalendar[]> {
     return [];
   }
-  async onWatchedCalendarChange(
-    calendarId: string,
-    resourceId: string,
-    resourceState?: string,
-    calendarType?: "selected" | "destination"
-  ) {}
+  async onWatchedCalendarChange({
+    calendarId: _calendarId,
+    syncActions: _syncActions,
+  }: {
+    calendarId: string;
+    syncActions: ("availability-cache" | "events-sync")[];
+  }) {
+    return {
+      eventsToSync: [],
+    };
+  }
   /**
    * It doesn't check if the subscription has expired or not.
    * It just creates a new subscription.

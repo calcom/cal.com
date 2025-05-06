@@ -2,18 +2,14 @@ import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
+import type { CalendarEventsToSync } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSync"] });
 async function processUpdatedEvent({
   calendarEvent,
   app,
 }: {
-  calendarEvent: {
-    id: string;
-    status: "cancelled";
-    startTime: string;
-    endTime: string;
-  };
+  calendarEvent: CalendarEventsToSync[number];
   app: {
     type: "google_calendar";
     name: "Google Calendar";
@@ -108,12 +104,7 @@ export async function syncEvents({
   calendarEvents,
   app,
 }: {
-  calendarEvents: {
-    id: string;
-    status: "cancelled";
-    startTime: string;
-    endTime: string;
-  }[];
+  calendarEvents: CalendarEventsToSync;
   app: {
     type: "google_calendar";
     name: "Google Calendar";

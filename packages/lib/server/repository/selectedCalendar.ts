@@ -213,28 +213,18 @@ export class SelectedCalendarRepository {
     return calendars[0];
   }
 
-  static async findFirstByGoogleChannelId(googleChannelId: string) {
+  static async findFirstByGoogleChannelIdAndResourceId(
+    googleChannelId: string,
+    googleChannelResourceId: string
+  ) {
     return await prisma.selectedCalendar.findFirst({
       where: {
         googleChannelId,
-      },
-      select: {
-        externalId: true,
-        credential: {
-          select: credentialForCalendarServiceSelect,
-        },
-      },
-    });
-  }
-
-  static async findFirstByGoogleChannelIdAndResourceId(googleChannelId: string, googleResourceId: string) {
-    return await prisma.selectedCalendar.findFirst({
-      where: {
-        googleChannelId,
-        googleChannelResourceId: googleResourceId,
+        googleChannelResourceId,
       },
       select: {
         id: true,
+        credentialId: true,
         externalId: true,
         credential: {
           select: credentialForCalendarServiceSelect,
@@ -258,8 +248,6 @@ export class SelectedCalendarRepository {
     });
     return credential.selectedCalendars;
   }
-
-  static async onWatchedCalendarChange(calendarId: string, eventId: string) {}
 
   static async findFirst({ where }: { where: Prisma.SelectedCalendarWhereInput }) {
     return await prisma.selectedCalendar.findFirst({

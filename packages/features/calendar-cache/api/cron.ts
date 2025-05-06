@@ -5,7 +5,6 @@ import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
-import prisma from "@calcom/prisma";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import { CalendarCache } from "../calendar-cache";
@@ -129,93 +128,11 @@ const handleCalendarsToWatch = async () => {
   return result;
 };
 
-const handleSyncedCalendarSubscription = async () => {
-  log.info("handleSyncedCalendarSubscriptiond");
-  // Step 1: Identify ALL potential candidates from CalendarSync for supported integrations
-  const tobeWatched = await prisma.calendarSync.findMany({
-    where: {
-      subscription: null,
-    },
-  });
-
-  log.info("tobeWatched", JSON.stringify(tobeWatched, null, 2));
-
-  if (!tobeWatched.length) {
-    log.info("No CalendarSync records found needing subscription management.");
-    return [];
-  }
-
-  log.info("tobeWatched", JSON.stringify(tobeWatched, null, 2));
-
-  const results = await Promise.allSettled(
-    tobeWatched.map(async (calendar) => {
-      const { id: syncedCalendarId, externalCalendarId, integration, credentialId } = calendar;
-
-      // Ensure credentialId is valid (TypeScript check, already filtered by Prisma)
-      if (!credentialId) {
-        log.error(`CalendarSync record ${syncedCalendarId} missing credentialId despite query filter.`);
-        return; // Should not happen
-      }
-
-      try {
-        const cc = await CalendarCache.initFromCredentialId(credentialId);
-
-        // --- Case 1: CREATE Subscription --- -> TODO: Remove the error that prevents this from running
-        log.info(`Attempting to CREATE subscription for SyncedCalendar ${syncedCalendarId}`);
-
-        const watchResponse = await cc.watchCalendarCore({ calendarId: externalCalendarId });
-
-        if (!watchResponse) {
-          return;
-        }
-
-        // Create the Subscription record
-        const newSubscription = await prisma.subscription.create({
-          data: {
-            credentialId: credentialId,
-            externalCalendarId: externalCalendarId,
-            providerType: "google_calendar",
-            providerSubscriptionId: watchResponse.id,
-            providerSubscriptionKind: watchResponse.kind,
-            providerResourceId: watchResponse.resourceId,
-            providerResourceUri: watchResponse.resourceUri,
-            providerExpiration: watchResponse.expiration ? new Date(Number(watchResponse.expiration)) : null,
-            providerSyncToken: watchResponse.syncToken,
-            status: "ACTIVE", // Start as ACTIVE
-            lastSyncAt: new Date(),
-            // TODO: Remove this field from DB and here
-            webhookUrl: "",
-          },
-        });
-
-        // Link it back to the CalendarSync record
-        await prisma.calendarSync.update({
-          where: { id: syncedCalendarId },
-          data: { subscriptionId: newSubscription.id },
-        });
-
-        log.info(
-          `Successfully CREATED subscription ${newSubscription.id} and linked to SyncedCalendar ${syncedCalendarId}`
-        );
-      } catch (error) {
-        log.error(`Error managing subscription for SyncedCalendar ${syncedCalendarId}`, { error });
-      }
-    })
-  );
-
-  results.forEach(logRejected);
-  return results;
-};
-
 // This cron is used to activate and renew calendar subscriptions
 const handler = defaultResponder(async (request: NextApiRequest) => {
   validateRequest(request);
   // Removed handleDestinationCalendarsToWatch - its logic is merged into handleSyncedCalendarSubscription
-  await Promise.all([
-    // handleCalendarsToWatch(),
-    // handleCalendarsToUnwatch(),
-    handleSyncedCalendarSubscription(),
-  ]);
+  await Promise.all([handleCalendarsToWatch(), handleCalendarsToUnwatch()]);
 
   // TODO: Credentials can be installed on a whole team, check for selected calendars on the team
   return {

@@ -61,7 +61,7 @@ Flow:
 - `CRON:bi-directional-calendar-sync` runs every few minutes and it does the following.
    - Creates a subscription record for each of CalendarSync records that doesn't have a subscription record yet. The subscription record doesn't have channel related fields yet, it would just have credentialId, providerType, externalCalendarId, status=PENDING.
 - `CRON:subscription-cron` runs every few minutes and it does the following. We keep this cron separate as it could be used by both SelectedCalendar and CalendarSync.
-   - For each of the status=PENDING records in Subscription table, it creates a subscription in provider using the credential and updates the subscription record with the channel related fields, moving the status to ACTIVE.
+   - For each of the status=PENDING records in CalendarSubscription table, it creates a subscription in provider using the credential and updates the subscription record with the channel related fields, moving the status to ACTIVE.
 - When both the above Crons have run atleast once, we consider the sync to be established for all the required calendars for bi-directional sync.
 - Now, lets say a booking is created in Cal.com, it would be added to Google Calendar as well. At this moment, BookingReference table holds calendarEventId that refers to the eventId in third party calendar(in this case Google Calendar).
 - Now let's say that the booking's time changes, we will receive a webhook event that will be handled by webhook.handle.ts.
@@ -80,6 +80,7 @@ TODO:
 - [ ] Stopping channel subscript requires passing both channelId and resourceId, does that mean channelId is shared across resources. Should we use resourceId as well in webhook.handler.ts to filter out relevant records.
 - [ ] Ensure that a subscription record is never deleted, unless it has been expired by Cal.com itself, then it is safe to be deleted. This is important because otherwise we wouldn't be able to stop subscription on that if needed and such channels could cause increased push notification delay. They can be obtained from logs though, received when there is change in calendar.
 - [ ] unusubscribe from channel,resourceId which are not connected to any CalendarSync record.
+- [ ] Review indices carefully on DB. Maybe use explain analyze to check if they are being used.
  
 Follow up:
 - [ ] Delegation Credential support

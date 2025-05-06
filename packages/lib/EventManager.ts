@@ -56,8 +56,18 @@ const delegatedCredentialFirst = <T extends { delegatedToId?: string | null }>(a
   return (b.delegatedToId ? 1 : 0) - (a.delegatedToId ? 1 : 0);
 };
 
-const delegatedCredentialLast = <T extends { delegatedToId?: string | null }>(a: T, b: T) => {
-  return (a.delegatedToId ? 1 : 0) - (b.delegatedToId ? 1 : 0);
+// It contrasts with isCalendarResult because it is true for some legacy CRM results which have type "other_calendar"
+const isCalendarLikeResult = (
+  result: EventResult<Exclude<Event, AdditionalInformation>>
+): result is EventResult<NewCalendarEventType> => {
+  return result.type.includes("_calendar");
+};
+
+// It contrasts with isCalendarLikeResult because it is true only for dedicated calendar results and excludes CRM results
+export const isCalendarResult = <T extends { type: string }>(
+  result: T
+): result is T & { calendarEventId?: string | null } => {
+  return result.type.includes("_calendar") && !result.type.includes("other_calendar");
 };
 
 export const getLocationRequestFromIntegration = (location: string) => {
@@ -250,14 +260,6 @@ export default class EventManager {
     // Create the calendar event with the proper video call data
     results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
 
-    // Since the result can be a new calendar event or video event, we have to create a type guard
-    // https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
-    const isCalendarResult = (
-      result: (typeof results)[number]
-    ): result is EventResult<NewCalendarEventType> => {
-      return result.type.includes("_calendar");
-    };
-
     const createdCRMEvents = await this.createAllCRMEvents(clonedCalEvent);
 
     results.push(...createdCRMEvents);
@@ -269,7 +271,7 @@ export default class EventManager {
       if (typeof result?.createdEvent === "string") {
         createdEventObj = createdEventSchema.parse(JSON.parse(result.createdEvent));
       }
-      const isCalendarType = isCalendarResult(result);
+      const isCalendarType = isCalendarLikeResult(result);
       if (isCalendarType) {
         evt.iCalUID = result.iCalUID || event.iCalUID || undefined;
         thirdPartyRecurringEventId = result.createdEvent?.thirdPartyRecurringEventId;
@@ -331,7 +333,8 @@ export default class EventManager {
     }
 
     const referencesToCreate = results.map((result) => {
-      const isCalendarType = result.type.includes("_calendar");
+      const isCalendarType = isCalendarLikeResult(result);
+
       return {
         type: result.type,
         uid: result.createdEvent?.id?.toString() ?? "",
@@ -340,9 +343,7 @@ export default class EventManager {
         meetingUrl: result.createdEvent?.url,
         externalCalendarId: result.externalId,
         // Add calendarEventId for calendar events - this will be used for bi-directional sync
-        calendarEventId: isCalendarType
-          ? result.createdEvent?.calendarEventId || result.createdEvent?.id?.toString()
-          : undefined,
+        calendarEventId: isCalendarType ? result.createdEvent?.calendarEventId ?? null : undefined,
         ...(result.credentialId && result.credentialId > 0 ? { credentialId: result.credentialId } : {}),
       };
     });
