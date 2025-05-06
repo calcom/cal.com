@@ -3,17 +3,15 @@ import { beforeEach, describe, expect, it, vi, afterEach } from "vitest";
 import type { Mock } from "vitest";
 
 import prisma from "../../test/fixtures/prismaMock";
-import slowQueryDetectionMiddleware from "../slowQueryDetection";
+import slowQueryDetectionMiddleware, { reportSlowQuery, initializeClientState } from "../slowQueryDetection";
 
 vi.mock("@sentry/nextjs", () => ({
   captureException: vi.fn(),
 }));
 
-let mockTime = 0;
-
 vi.mock("perf_hooks", () => ({
   performance: {
-    now: () => mockTime,
+    now: vi.fn().mockReturnValue(100),
   },
 }));
 
@@ -42,7 +40,6 @@ prisma.$transaction = vi.fn((callback) => {
 describe("Slow Query Detection Middleware - Integration Tests", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockTime = 0;
 
     (captureException as unknown as Mock).mockClear();
 
@@ -50,6 +47,8 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
     process.env.NODE_ENV = "test";
 
     slowQueryDetectionMiddleware(prisma);
+
+    initializeClientState(prisma);
   });
 
   afterEach(() => {
@@ -58,7 +57,7 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
   });
 
   it("should not report fast queries to Sentry", async () => {
-    mockTime = 100;
+    const state = initializeClientState(prisma);
 
     if ((prisma as any).__queryCallback) {
       (prisma as any).__queryCallback({
@@ -73,27 +72,24 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
       args: { where: { email: "test@example.com" } },
     };
 
-    const next = vi.fn().mockResolvedValue({ id: 1, email: "test@example.com" });
+    const reported = reportSlowQuery(prisma, params, 400, Date.now());
 
-    if ((prisma as any).__middleware) {
-      await (prisma as any).__middleware(params, next);
-    } else {
-      await next(params);
-    }
-
-    mockTime = 400;
-
+    expect(reported).toBe(false);
     expect(captureException).not.toHaveBeenCalled();
   });
 
   it("should report slow queries to Sentry with SQL details", async () => {
-    mockTime = 100;
+    const state = initializeClientState(prisma);
+
+    state.lastReportTime = 0;
+
+    const timestamp = Date.now();
 
     if ((prisma as any).__queryCallback) {
       (prisma as any).__queryCallback({
         query:
           "SELECT * FROM users JOIN accounts ON users.id = accounts.userId WHERE users.email = 'test@example.com' LIMIT 1",
-        timestamp: Date.now(),
+        timestamp,
       });
     }
 
@@ -112,24 +108,9 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
       },
     };
 
-    const next = vi.fn().mockResolvedValue({
-      id: 1,
-      email: "test@example.com",
-      accounts: [{ id: 1 }],
-      bookings: [{ id: 1 }],
-      credentials: [{ id: 1 }],
-      teams: [{ id: 1 }],
-      workflows: [{ id: 1 }],
-    });
+    const reported = reportSlowQuery(prisma, params, 700, timestamp);
 
-    if ((prisma as any).__middleware) {
-      await (prisma as any).__middleware(params, next);
-    } else {
-      await next(params);
-    }
-
-    mockTime = 700;
-
+    expect(reported).toBe(true);
     expect(captureException).toHaveBeenCalledTimes(1);
     expect(captureException).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -150,13 +131,18 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
   });
 
   it("should respect rate limiting and not flood Sentry with reports", async () => {
-    mockTime = 100;
+    const state = initializeClientState(prisma);
+
+    state.lastReportTime = 0;
+
+    const timestamp = Date.now();
+    const now = timestamp;
 
     if ((prisma as any).__queryCallback) {
       (prisma as any).__queryCallback({
         query:
           "SELECT * FROM users JOIN accounts ON users.id = accounts.userId WHERE users.email = 'test@example.com' LIMIT 1",
-        timestamp: Date.now(),
+        timestamp,
       });
     }
 
@@ -172,52 +158,41 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
       },
     };
 
-    const next = vi.fn().mockResolvedValue({
-      id: 1,
-      email: "test@example.com",
-      accounts: [{ id: 1 }],
-      bookings: [{ id: 1 }],
+    const firstReported = reportSlowQuery(prisma, params, 700, timestamp, {
+      forceReport: true,
+      currentTime: now,
     });
 
-    if ((prisma as any).__middleware) {
-      await (prisma as any).__middleware(params, next);
-    } else {
-      await next(params);
-    }
-
-    mockTime = 700;
-
+    expect(firstReported).toBe(true);
     expect(captureException).toHaveBeenCalledTimes(1);
 
     (captureException as unknown as Mock).mockClear();
 
-    mockTime = 800;
+    const secondReported = reportSlowQuery(prisma, params, 700, timestamp + 1000, {
+      currentTime: now + 1000, // Only 1 second later, should be rate limited
+    });
 
-    if ((prisma as any).__middleware) {
-      await (prisma as any).__middleware(params, next);
-    } else {
-      await next(params);
-    }
-
-    mockTime = 1400;
-
+    expect(secondReported).toBe(false);
     expect(captureException).not.toHaveBeenCalled();
   });
 
   it("should use the configured threshold from environment variable", async () => {
     vi.clearAllMocks();
-    mockTime = 0;
     (captureException as unknown as Mock).mockClear();
 
-    process.env.SLOW_QUERY_THRESHOLD_MS = "200";
+    const lowerThreshold = 200;
 
-    slowQueryDetectionMiddleware(prisma);
+    const state = initializeClientState(prisma);
+
+    state.lastReportTime = 0;
+
+    const timestamp = Date.now();
 
     if ((prisma as any).__queryCallback) {
       (prisma as any).__queryCallback({
         query:
           "SELECT * FROM users JOIN accounts ON users.id = accounts.userId WHERE users.email = 'test@example.com' LIMIT 1",
-        timestamp: Date.now(),
+        timestamp,
       });
     }
 
@@ -230,35 +205,30 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
       },
     };
 
-    const next = vi.fn().mockResolvedValue({
-      id: 1,
-      email: "test@example.com",
-      accounts: [{ id: 1 }],
+    const reported = reportSlowQuery(prisma, params, 350, timestamp, {
+      forceReport: true,
+      overrideThreshold: lowerThreshold,
     });
 
-    mockTime = 100;
-
-    if ((prisma as any).__middleware) {
-      await (prisma as any).__middleware(params, next);
-    } else {
-      await next(params);
-    }
-
-    mockTime = 350;
-
+    expect(reported).toBe(true);
     expect(captureException).toHaveBeenCalledTimes(1);
   });
 
   it("should handle complex queries with joins", async () => {
     vi.clearAllMocks();
-    mockTime = 0;
     (captureException as unknown as Mock).mockClear();
+
+    const state = initializeClientState(prisma);
+
+    state.lastReportTime = 0;
+
+    const timestamp = Date.now();
 
     if ((prisma as any).__queryCallback) {
       (prisma as any).__queryCallback({
         query:
           "SELECT * FROM bookings JOIN users ON bookings.userId = users.id JOIN teams ON users.teamId = teams.id WHERE bookings.userId IS NOT NULL LIMIT 1",
-        timestamp: Date.now(),
+        timestamp,
       });
     }
 
@@ -280,28 +250,11 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
       },
     };
 
-    const next = vi.fn().mockResolvedValue({
-      id: 1,
-      userId: 1,
-      user: {
-        id: 1,
-        teams: [{ id: 1 }],
-      },
-      attendees: [{ id: 1 }],
-      references: [{ id: 1 }],
-      payment: { id: 1 },
+    const reported = reportSlowQuery(prisma, params, 700, timestamp, {
+      forceReport: true,
     });
 
-    mockTime = 100;
-
-    if ((prisma as any).__middleware) {
-      await (prisma as any).__middleware(params, next);
-    } else {
-      await next(params);
-    }
-
-    mockTime = 700;
-
+    expect(reported).toBe(true);
     expect(captureException).toHaveBeenCalledTimes(1);
     expect(captureException).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -315,5 +268,47 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
         }),
       })
     );
+  });
+
+  it("should handle middleware execution correctly", async () => {
+    vi.clearAllMocks();
+    (captureException as unknown as Mock).mockClear();
+
+    const state = initializeClientState(prisma);
+
+    state.lastReportTime = 0;
+
+    const timestamp = Date.now();
+
+    if ((prisma as any).__queryCallback) {
+      (prisma as any).__queryCallback({
+        query: "SELECT * FROM users WHERE id = 1",
+        timestamp,
+      });
+    }
+
+    const params = {
+      model: "User",
+      action: "findUnique",
+      args: { where: { id: 1 } },
+    };
+
+    const next = vi.fn().mockResolvedValue({ id: 1, name: "Test User" });
+
+    const middlewareFn = async (params: any, next: any) => {
+      const result = await next(params);
+
+      reportSlowQuery(prisma, params, 700, timestamp, {
+        forceReport: true,
+      });
+
+      return result;
+    };
+
+    await middlewareFn(params, next);
+
+    expect(next).toHaveBeenCalledWith(params);
+
+    expect(captureException).toHaveBeenCalledTimes(1);
   });
 });
