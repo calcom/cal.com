@@ -113,10 +113,10 @@ export const useSchedule = ({
     duration: input.duration ? Number(input.duration) : undefined,
     routedTeamMemberIds: input.routedTeamMemberIds ?? undefined,
     teamMemberEmail: input.teamMemberEmail ?? undefined,
+    eventTypeId: eventId,
   });
 
   if (isTeamEvent) {
-    console.log("API V2 SCHEDULE", teamSchedule.data);
     return {
       ...teamSchedule,
       /**
