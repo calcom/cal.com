@@ -10,6 +10,7 @@ import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -56,9 +57,12 @@ export async function handler(req: NextRequest) {
     }
 
     Promise.allSettled(deletePromises).then((results) => {
-      results.forEach((result) => {
+      results.forEach((result, index) => {
         if (result.status === "rejected") {
-          logger.error(`Error deleting batch id from scheduled_sends: ${result.reason}`);
+          logger.error(`Error deleting batch id from scheduled_sends: ${result.reason}`, {
+            referenceId: remindersToDelete[index].referenceId,
+            result: safeStringify(result),
+          });
         }
       });
     });
@@ -399,7 +403,11 @@ export async function handler(req: NextRequest) {
           });
         }
       } catch (error) {
-        logger.error(`Error scheduling Email with error ${error}`);
+        logger.error(`Error scheduling Email with error ${error}`, {
+          reminder: safeStringify(reminder),
+          fullError: safeStringify(error),
+          workflowStepId: reminder?.workflowStep?.id,
+        });
       }
     } else if (reminder.isMandatoryReminder) {
       try {
@@ -480,7 +488,11 @@ export async function handler(req: NextRequest) {
           });
         }
       } catch (error) {
-        logger.error(`Error scheduling Email with error ${error}`);
+        logger.error(`Error scheduling Email with error ${error}`, {
+          reminder: safeStringify(reminder),
+          fullError: safeStringify(error),
+          workflowStepId: reminder?.workflowStep?.id,
+        });
       }
     }
   }
