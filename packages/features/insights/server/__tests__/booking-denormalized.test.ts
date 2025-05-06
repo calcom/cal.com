@@ -47,15 +47,21 @@ describe("BookingDenormalized", () => {
 
   afterEach(async () => {
     // Clean up test data in reverse order of creation to avoid foreign key constraints
-    await prisma.booking.deleteMany({
-      where: { id: bookingId },
-    });
-    await prisma.eventType.deleteMany({
-      where: { id: eventTypeId },
-    });
-    await prisma.user.deleteMany({
-      where: { id: userId },
-    });
+    if (bookingId) {
+      await prisma.booking.deleteMany({
+        where: { id: bookingId },
+      });
+    }
+    if (eventTypeId) {
+      await prisma.eventType.deleteMany({
+        where: { id: eventTypeId },
+      });
+    }
+    if (userId) {
+      await prisma.user.deleteMany({
+        where: { id: userId },
+      });
+    }
   });
 
   it("should create denormalized entry when booking is created", async () => {
