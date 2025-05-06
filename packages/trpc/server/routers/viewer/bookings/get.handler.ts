@@ -1,6 +1,6 @@
 import type { Booking, Prisma, Prisma as PrismaClientType } from "@prisma/client";
 import type { Kysely } from "kysely";
-import { DeduplicateJoinsPlugin, type SelectQueryBuilder } from "kysely";
+import { type SelectQueryBuilder } from "kysely";
 import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
 
 import dayjs from "@calcom/dayjs";
@@ -125,7 +125,7 @@ export async function getBookings({
     getUserIdsAndEmailsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner, user.orgId),
   ]);
 
-  const bookingQueries: BookingsUnionQuery[] = [];
+  const bookingQueries: { query: BookingsUnionQuery; tables: (keyof DB)[] }[] = [];
 
   // If user is organization owner/admin, contains organization members emails and ids (organization plan)
   // If user is only team owner/admin, contain team members emails and ids (teams plan)
@@ -149,21 +149,22 @@ export async function getBookings({
     }
 
     // 1. Booking created by one of the filtered users
-    bookingQueries.push(
-      kysely
+    bookingQueries.push({
+      query: kysely
         .selectFrom("Booking")
         .select("Booking.id")
         .select("Booking.startTime")
         .select("Booking.endTime")
         .select("Booking.createdAt")
         .select("Booking.updatedAt")
-        .where("userId", "in", filters.userIds)
-    );
+        .where("userId", "in", filters.userIds),
+      tables: ["Booking"],
+    });
 
     // 2. Attendee email matches one of the filtered users' emails
     if (attendeeEmailsFromUserIdsFilter?.length) {
-      bookingQueries.push(
-        kysely
+      bookingQueries.push({
+        query: kysely
           .selectFrom("Booking")
           .select("Booking.id")
           .select("Booking.startTime")
@@ -171,14 +172,15 @@ export async function getBookings({
           .select("Booking.createdAt")
           .select("Booking.updatedAt")
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter)
-      );
+          .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter),
+        tables: ["Booking", "Attendee"],
+      });
     }
 
     // 3. Seat reference attendee email matches one of the filtered users' emails
     if (attendeeEmailsFromUserIdsFilter?.length) {
-      bookingQueries.push(
-        kysely
+      bookingQueries.push({
+        query: kysely
           .selectFrom("Booking")
           .select("Booking.id")
           .select("Booking.startTime")
@@ -187,24 +189,26 @@ export async function getBookings({
           .select("Booking.updatedAt")
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
           .innerJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
-          .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter)
-      );
+          .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter),
+        tables: ["Booking", "Attendee", "BookingSeat"],
+      });
     }
   } else {
     // 1. Current user created bookings
-    bookingQueries.push(
-      kysely
+    bookingQueries.push({
+      query: kysely
         .selectFrom("Booking")
         .select("Booking.id")
         .select("Booking.startTime")
         .select("Booking.endTime")
         .select("Booking.createdAt")
         .select("Booking.updatedAt")
-        .where("Booking.userId", "=", user.id)
-    );
+        .where("Booking.userId", "=", user.id),
+      tables: ["Booking"],
+    });
     // 2. Current user is an attendee
-    bookingQueries.push(
-      kysely
+    bookingQueries.push({
+      query: kysely
         .selectFrom("Booking")
         .select("Booking.id")
         .select("Booking.startTime")
@@ -212,11 +216,12 @@ export async function getBookings({
         .select("Booking.createdAt")
         .select("Booking.updatedAt")
         .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-        .where("Attendee.email", "=", user.email)
-    );
+        .where("Attendee.email", "=", user.email),
+      tables: ["Booking", "Attendee"],
+    });
     // 3. Current user is an attendee via seats reference
-    bookingQueries.push(
-      kysely
+    bookingQueries.push({
+      query: kysely
         .selectFrom("Booking")
         .select("Booking.id")
         .select("Booking.startTime")
@@ -225,14 +230,15 @@ export async function getBookings({
         .select("Booking.updatedAt")
         .innerJoin("BookingSeat", "BookingSeat.bookingId", "Booking.id")
         .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-        .where("Attendee.email", "=", user.email)
-    );
+        .where("Attendee.email", "=", user.email),
+      tables: ["Booking", "Attendee", "BookingSeat"],
+    });
     // 4. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees
     // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees
     userEmailsWhereUserIsAdminOrOwner?.length &&
-      bookingQueries.push(
-        kysely
+      bookingQueries.push({
+        query: kysely
           .selectFrom("Booking")
           .select("Booking.id")
           .select("Booking.startTime")
@@ -240,14 +246,15 @@ export async function getBookings({
           .select("Booking.createdAt")
           .select("Booking.updatedAt")
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner)
-      );
+          .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner),
+        tables: ["Booking", "Attendee"],
+      });
     // 5. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees via seatsReference
     // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees via seatsReference
     userEmailsWhereUserIsAdminOrOwner?.length &&
-      bookingQueries.push(
-        kysely
+      bookingQueries.push({
+        query: kysely
           .selectFrom("Booking")
           .select("Booking.id")
           .select("Booking.startTime")
@@ -256,15 +263,16 @@ export async function getBookings({
           .select("Booking.updatedAt")
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
           .innerJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
-          .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner)
-      );
+          .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner),
+        tables: ["Booking", "Attendee", "BookingSeat"],
+      });
 
     // 6. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN, get booking created for an event type within the organization
     // - If Current user is TEAM_OWNER/ADMIN, get bookings created for an event type within the team
     eventTypeIdsWhereUserIsAdminOrOwner?.length &&
-      bookingQueries.push(
-        kysely
+      bookingQueries.push({
+        query: kysely
           .selectFrom("Booking")
           .select("Booking.id")
           .select("Booking.startTime")
@@ -272,26 +280,28 @@ export async function getBookings({
           .select("Booking.createdAt")
           .select("Booking.updatedAt")
           .innerJoin("EventType", "EventType.id", "Booking.eventTypeId")
-          .where("Booking.eventTypeId", "in", eventTypeIdsWhereUserIsAdminOrOwner)
-      );
+          .where("Booking.eventTypeId", "in", eventTypeIdsWhereUserIsAdminOrOwner),
+        tables: ["Booking", "EventType"],
+      });
 
     // 7. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN, get bookings created by users within the same organization
     // - If Current user is TEAM_OWNER/ADMIN, get bookings created by users within the same organization
     userIdsWhereUserIsAdminOrOwner?.length &&
-      bookingQueries.push(
-        kysely
+      bookingQueries.push({
+        query: kysely
           .selectFrom("Booking")
           .select("Booking.id")
           .select("Booking.startTime")
           .select("Booking.endTime")
           .select("Booking.createdAt")
           .select("Booking.updatedAt")
-          .where("Booking.userId", "in", userIdsWhereUserIsAdminOrOwner)
-      );
+          .where("Booking.userId", "in", userIdsWhereUserIsAdminOrOwner),
+        tables: ["Booking"],
+      });
   }
 
-  const queriesWithFilters = bookingQueries.map((query) => {
+  const queriesWithFilters = bookingQueries.map(({ query, tables }) => {
     // 1. Apply mandatory status filter
     let fullQuery = addStatusesQueryFilters(query, bookingListingByStatus);
 
@@ -319,7 +329,8 @@ export async function getBookings({
           fullQuery,
           "name",
           filters.attendeeName.data.operator,
-          filters.attendeeName.data.operand
+          filters.attendeeName.data.operand,
+          tables.includes("Attendee")
         );
       }
     }
@@ -329,16 +340,16 @@ export async function getBookings({
       if (typeof filters.attendeeEmail === "string") {
         // Simple string match (exact)
         fullQuery = fullQuery
-          .withPlugin(new DeduplicateJoinsPlugin())
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
           .where("Attendee.email", "=", filters.attendeeEmail.trim());
       } else if (isTextFilterValue(filters.attendeeEmail)) {
         // TODO: write makeWhereClause equivalent for kysely
         fullQuery = addAdvancedAttendeeWhereClause(
-          fullQuery.withPlugin(new DeduplicateJoinsPlugin()),
+          fullQuery,
           "email",
           filters.attendeeEmail.data.operator,
-          filters.attendeeEmail.data.operand
+          filters.attendeeEmail.data.operand,
+          tables.includes("Attendee")
         );
       }
     }
@@ -383,6 +394,11 @@ export async function getBookings({
   const bookingsFromUnion = (await kysely.executeQuery(getBookingsUnionCompiled)).rows;
 
   log.debug(`Get bookings for user ${user.id} SQL:`, getBookingsUnionCompiled.sql);
+  console.log(
+    `Get bookings for user ${user.id} SQL:`,
+    getBookingsUnionCompiled.sql,
+    getBookingsUnionCompiled.parameters
+  );
   const totalCount = Number(
     (
       await kysely
@@ -912,53 +928,55 @@ function addAdvancedAttendeeWhereClause(
     | "notContains"
     | "isEmpty"
     | "isNotEmpty",
-  operand: string
+  operand: string,
+  isAttendeeTableJoined: boolean
 ) {
+  let fullQuery = query.$if(!isAttendeeTableJoined, (eb) =>
+    eb.innerJoin("Attendee", "Attendee.id", "Booking.id")
+  ) as SelectQueryBuilder<
+    DB,
+    "Booking" | "Attendee",
+    Pick<Booking, "id" | "createdAt" | "updatedAt" | "startTime" | "endTime">
+  >;
+
   switch (operator) {
     case "endsWith":
-      query
-        .innerJoin("Attendee", "Attendee.id", "Booking.id")
-        .where(`Attendee.${key}`, "like", `%${operand}`);
+      fullQuery = fullQuery.where(`Attendee.${key}`, "like", `%${operand}`);
       break;
+
     case "startsWith":
-      query
-        .innerJoin("Attendee", "Attendee.id", "Booking.id")
-        .where(`Attendee.${key}`, "like", `${operand}%`);
+      fullQuery = fullQuery.where(`Attendee.${key}`, "like", `${operand}%`);
       break;
 
     case "equals":
-      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where(`Attendee.${key}`, "=", `${operand}`);
+      fullQuery = fullQuery.where(`Attendee.${key}`, "=", `${operand}`);
       break;
 
     case "notEquals":
-      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where(`Attendee.${key}`, "!=", `${operand}`);
+      fullQuery = fullQuery.where(`Attendee.${key}`, "!=", `${operand}`);
       break;
 
     case "contains":
-      query
-        .innerJoin("Attendee", "Attendee.id", "Booking.id")
-        .where(`Attendee.${key}`, "like", `%${operand}%`);
+      fullQuery = fullQuery.where(`Attendee.${key}`, "like", `%${operand}%`);
       break;
 
     case "notContains":
-      query
-        .innerJoin("Attendee", "Attendee.id", "Booking.id")
-        .where(`Attendee.${key}`, "not like", `%${operand}%`);
+      fullQuery = fullQuery.where(`Attendee.${key}`, "not like", `%${operand}%`);
       break;
 
     case "isEmpty":
-      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where(`Attendee.${key}`, "=", "");
+      fullQuery = fullQuery.where(`Attendee.${key}`, "=", "");
       break;
 
     case "isNotEmpty":
-      query.innerJoin("Attendee", "Attendee.id", "Booking.id").where(`Attendee.${key}`, "!=", "");
+      fullQuery = fullQuery.where(`Attendee.${key}`, "!=", "");
       break;
 
     default:
       break;
   }
 
-  return query;
+  return fullQuery;
 }
 
 function getOrderBy(
