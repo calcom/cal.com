@@ -207,7 +207,7 @@ describe("GET /api/bookings", async () => {
       console.log("bookings=>", responseData.bookings);
       responseData.bookings.forEach((booking) => {
         if (booking.id === 31) expect(booking.eventType?.team?.slug).toBe("team1");
-        if (booking.id === 19) expect(booking.eventType?.team).toBeUndefined();
+        if (booking.id === 19) expect(booking.eventType?.team).toBeNull();
       });
     });
   });
