@@ -120,7 +120,7 @@ test.describe("Office365Calendar", () => {
         timeMax: new Date(Date.UTC(now.getFullYear(), now.getMonth() + 2, 1, 0, 0, 0)).toISOString(),
         items: [{ id: outlookCalendarExternalId }],
       });
-      // Mock Busy time - 1st, 2nd, 3rd Days of next month 9AM - 2PM (UTC:0)
+      // Mock Busy time - 1st, 2nd, 3rd Days of next month 9AM - 1PM (UTC:0)
       // start - "2025-06-01T09:00:00.000Z"
       // end - "2025-06-01T15:00:00.000Z"
       const cacheValue = [
