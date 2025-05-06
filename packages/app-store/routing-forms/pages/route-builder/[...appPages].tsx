@@ -558,6 +558,7 @@ const Route = ({
     : null;
 
   const attributesQueryBuilder =
+    // team member attributes are only available for organization teams
     route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm && isOrganization ? (
       <div className="mt-4">
         {/* TODO: */}
