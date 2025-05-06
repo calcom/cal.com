@@ -898,8 +898,7 @@ const getBusyTimesFromLimitsForUsers = async (
         let totalBookings = 0;
 
         for (const booking of busyTimesFromLimitsBookings) {
-          const bookingStart = dayjs(booking.start).tz(timeZone);
-          if (!bookingStart.isBetween(periodStart, periodEnd)) {
+          if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
             continue;
           }
           totalBookings++;
@@ -917,9 +916,22 @@ const getBusyTimesFromLimitsForUsers = async (
     const limitManager = new LimitManager();
 
     for (const busyTime of globalLimitManager.getBusyTimes()) {
-      if (busyTime.source) {
-        limitManager.addBusyTime(dayjs(busyTime.start), busyTime.source.split("-")[0] as any);
+      const start = dayjs(busyTime.start);
+      const end = dayjs(busyTime.end);
+
+      let unit: "year" | "month" | "week" | "day";
+
+      if (end.diff(start, "year") >= 1) {
+        unit = "year";
+      } else if (end.diff(start, "month") >= 1) {
+        unit = "month";
+      } else if (end.diff(start, "week") >= 1) {
+        unit = "week";
+      } else {
+        unit = "day";
       }
+
+      limitManager.addBusyTime(start, unit);
     }
 
     await monitorCallbackAsync(async () => {
@@ -958,8 +970,7 @@ const getBusyTimesFromLimitsForUsers = async (
             let totalBookings = 0;
 
             for (const booking of userBookings) {
-              const bookingStart = dayjs(booking.start).tz(timeZone);
-              if (!bookingStart.isBetween(periodStart, periodEnd)) {
+              if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
                 continue;
               }
               totalBookings++;
@@ -1010,8 +1021,7 @@ const getBusyTimesFromLimitsForUsers = async (
             let totalDuration = selectedDuration;
 
             for (const booking of userBookings) {
-              const bookingStart = dayjs(booking.start).tz(timeZone);
-              if (!bookingStart.isBetween(periodStart, periodEnd)) {
+              if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
                 continue;
               }
               totalDuration += dayjs(booking.end).diff(dayjs(booking.start), "minute");
@@ -1067,11 +1077,58 @@ const getBusyTimesFromTeamLimitsForUsers = async (
     userId,
   }));
 
+  const globalLimitManager = new LimitManager();
+
+  for (const key of descendingLimitKeys) {
+    const limit = bookingLimits?.[key];
+    if (!limit) continue;
+
+    const unit = intervalLimitKeyToUnit(key);
+    const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
+
+    for (const periodStart of periodStartDates) {
+      if (globalLimitManager.isAlreadyBusy(periodStart, unit)) continue;
+
+      const periodEnd = periodStart.endOf(unit);
+      let totalBookings = 0;
+
+      for (const booking of busyTimes) {
+        if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
+          continue;
+        }
+        totalBookings++;
+        if (totalBookings >= limit) {
+          globalLimitManager.addBusyTime(periodStart, unit);
+          break;
+        }
+      }
+    }
+  }
+
   const userBusyTimesMap = new Map();
 
   for (const user of users) {
     const userBusyTimes = busyTimes.filter((busyTime) => busyTime.userId === user.id);
     const limitManager = new LimitManager();
+
+    for (const busyTime of globalLimitManager.getBusyTimes()) {
+      const start = dayjs(busyTime.start);
+      const end = dayjs(busyTime.end);
+
+      let unit: "year" | "month" | "week" | "day";
+
+      if (end.diff(start, "year") >= 1) {
+        unit = "year";
+      } else if (end.diff(start, "month") >= 1) {
+        unit = "month";
+      } else if (end.diff(start, "week") >= 1) {
+        unit = "week";
+      } else {
+        unit = "day";
+      }
+
+      limitManager.addBusyTime(start, unit);
+    }
 
     await monitorCallbackAsync(async () => {
       const bookingLimitsParams = {
@@ -1122,8 +1179,7 @@ const getBusyTimesFromTeamLimitsForUsers = async (
           let totalBookings = 0;
 
           for (const booking of userBusyTimes) {
-            const bookingStart = dayjs(booking.start).tz(timeZone);
-            if (!bookingStart.isBetween(periodStart, periodEnd)) {
+            if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
               continue;
             }
             totalBookings++;
