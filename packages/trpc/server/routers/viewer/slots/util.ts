@@ -898,7 +898,8 @@ const getBusyTimesFromLimitsForUsers = async (
         let totalBookings = 0;
 
         for (const booking of busyTimesFromLimitsBookings) {
-          if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
+          const bookingStart = dayjs(booking.start).tz(timeZone);
+          if (!bookingStart.isBetween(periodStart, periodEnd)) {
             continue;
           }
           totalBookings++;
@@ -1119,7 +1120,8 @@ const getBusyTimesFromTeamLimitsForUsers = async (
           let totalBookings = 0;
 
           for (const booking of userBusyTimes) {
-            if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
+            const bookingStart = dayjs(booking.start).tz(timeZone);
+            if (!bookingStart.isBetween(periodStart, periodEnd)) {
               continue;
             }
             totalBookings++;
