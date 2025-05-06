@@ -6,6 +6,7 @@ import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
+import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
@@ -85,7 +86,8 @@ export class BookingsController_2024_08_13 {
 
   constructor(
     private readonly bookingsService: BookingsService_2024_08_13,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly bookingReferencesService: BookingReferencesService_2024_08_13
   ) {}
 
   @Post("/")
@@ -403,7 +405,7 @@ export class BookingsController_2024_08_13 {
     @Param("bookingUid") bookingUid: string,
     @GetUser("id") userId: number
   ): Promise<BookingReferencesOutput_2024_08_13> {
-    const bookingReferences = await this.bookingsService.getBookingReferences(bookingUid, userId);
+    const bookingReferences = await this.bookingReferencesService.getBookingReferences(bookingUid, userId);
 
     return {
       status: SUCCESS_STATUS,

@@ -3178,7 +3178,7 @@
             }
           },
           {
-            "name": " ",
+            "name": "bookingUid",
             "required": true,
             "in": "path",
             "schema": {

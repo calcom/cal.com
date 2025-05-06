@@ -1,4 +1,7 @@
+import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/booking-references.repository";
 import { BookingsModule_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.module";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsTeamsBookingsController } from "@/modules/organizations/teams/bookings/organizations-teams-bookings.controller";
@@ -10,7 +13,13 @@ import { Module } from "@nestjs/common";
 
 @Module({
   imports: [BookingsModule_2024_08_13, PrismaModule, StripeModule, RedisModule, MembershipsModule],
-  providers: [OrganizationsRepository, OrganizationsTeamsRepository],
+  providers: [
+    OrganizationsRepository,
+    OrganizationsTeamsRepository,
+    BookingReferencesService_2024_08_13,
+    BookingReferencesRepository_2024_08_13,
+    BookingsRepository_2024_08_13,
+  ],
   controllers: [OrganizationsTeamsBookingsController],
 })
 export class OrganizationsTeamsBookingsModule {}

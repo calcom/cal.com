@@ -1,5 +1,7 @@
+import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/booking-references.repository";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { BookingsController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/bookings.controller";
+import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { ErrorsBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/errors.service";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
@@ -71,6 +73,8 @@ import { Module } from "@nestjs/common";
     OrganizationsTeamsRepository,
     OrganizationsRepository,
     ErrorsBookingsService_2024_08_13,
+    BookingReferencesService_2024_08_13,
+    BookingReferencesRepository_2024_08_13,
   ],
   controllers: [BookingsController_2024_08_13],
   exports: [InputBookingsService_2024_08_13, OutputBookingsService_2024_08_13, BookingsService_2024_08_13],

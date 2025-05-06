@@ -169,17 +169,4 @@ export class BookingsRepository_2024_08_13 {
       },
     });
   }
-
-  async getBookingReferences(bookingId: number) {
-    return this.dbRead.prisma.bookingReference.findMany({
-      where: {
-        bookingId,
-      },
-      select: {
-        type: true,
-        uid: true,
-        id: true,
-      },
-    });
-  }
 }
