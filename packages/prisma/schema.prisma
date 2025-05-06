@@ -1469,22 +1469,22 @@ view BookingTimeStatus {
 model BookingDenormalized {
   id             Int           @id @unique
   uid            String
-  eventTypeId    Int
-  title          String?
+  eventTypeId    Int?
+  title          String
   description    String?
   startTime      DateTime
   endTime        DateTime
   createdAt      DateTime
   updatedAt      DateTime?
   location       String?
-  paid           Boolean?
+  paid           Boolean
   status         BookingStatus
   rescheduled    Boolean?
-  userId         Int
+  userId         Int?
   teamId         Int?
-  eventLength    Int
+  eventLength    Int?
   eventParentId  Int?
-  userEmail      String
+  userEmail      String?
   userName       String?
   userUsername   String?
   ratingFeedback String?
@@ -1507,22 +1507,22 @@ model BookingDenormalized {
 view BookingTimeStatusDenormalized {
   id             Int           @id @unique
   uid            String
-  eventTypeId    Int
-  title          String?
+  eventTypeId    Int?
+  title          String
   description    String?
   startTime      DateTime
   endTime        DateTime
   createdAt      DateTime
   updatedAt      DateTime?
   location       String?
-  paid           Boolean?
+  paid           Boolean
   status         BookingStatus
   rescheduled    Boolean?
-  userId         Int
+  userId         Int?
   teamId         Int?
-  eventLength    Int
+  eventLength    Int?
   eventParentId  Int?
-  userEmail      String
+  userEmail      String?
   userName       String?
   userUsername   String?
   ratingFeedback String?

@@ -41,8 +41,8 @@ BEGIN
         "Booking"."noShowHost",
         calculate_is_team_booking(et."teamId") as "isTeamBooking"
     FROM "Booking"
-    INNER JOIN "EventType" et ON "Booking"."eventTypeId" = et.id
-    INNER JOIN users u ON u.id = "Booking"."userId"
+    LEFT JOIN "EventType" et ON "Booking"."eventTypeId" = et.id
+    LEFT JOIN users u ON u.id = "Booking"."userId"
     WHERE "Booking".id = booking_id;
 END;
 $$ LANGUAGE plpgsql;
@@ -157,38 +157,6 @@ CREATE TRIGGER user_update_trigger
     AFTER UPDATE OF email, name, username ON users
     FOR EACH ROW
     EXECUTE FUNCTION trigger_refresh_booking_time_status_denormalized_user();
-
--- Create DELETE trigger function for EventType
-CREATE OR REPLACE FUNCTION trigger_delete_booking_time_status_event_type()
-RETURNS TRIGGER AS $$
-BEGIN
-    DELETE FROM "BookingDenormalized"
-    WHERE "eventTypeId" = OLD.id;
-    RETURN OLD;
-END;
-$$ LANGUAGE plpgsql;
-
--- Create DELETE trigger for EventType
-CREATE TRIGGER event_type_delete_trigger
-    AFTER DELETE ON "EventType"
-    FOR EACH ROW
-    EXECUTE FUNCTION trigger_delete_booking_time_status_event_type();
-
--- Create DELETE trigger function for users
-CREATE OR REPLACE FUNCTION trigger_delete_booking_time_status_user()
-RETURNS TRIGGER AS $$
-BEGIN
-    DELETE FROM "BookingDenormalized"
-    WHERE "userId" = OLD.id;
-    RETURN OLD;
-END;
-$$ LANGUAGE plpgsql;
-
--- Create DELETE trigger for users
-CREATE TRIGGER user_delete_trigger
-    AFTER DELETE ON users
-    FOR EACH ROW
-    EXECUTE FUNCTION trigger_delete_booking_time_status_user();
 
 -- Populate the table with initial data
 -- DELETE FROM "BookingDenormalized";
