@@ -19,6 +19,12 @@ generator zod {
   relationModel = "default"
 }
 
+generator kysely {
+  provider = "prisma-kysely"
+  output   = "../kysely"
+  fileName = "types.ts"
+}
+
 generator enums {
   provider = "ts-node --transpile-only ./enum-generator"
 }
@@ -549,6 +555,8 @@ model Membership {
   user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   disableImpersonation Boolean           @default(false)
   AttributeToUser      AttributeToUser[]
+  createdAt            DateTime?
+  updatedAt            DateTime?         @updatedAt
 
   @@unique([userId, teamId])
   @@index([teamId])
@@ -1462,6 +1470,72 @@ view BookingTimeStatus {
   rating         Int?
   noShowHost     Boolean?
   isTeamBooking  Boolean
+}
+
+model BookingDenormalized {
+  id             Int           @id @unique
+  uid            String
+  eventTypeId    Int?
+  title          String
+  description    String?
+  startTime      DateTime
+  endTime        DateTime
+  createdAt      DateTime
+  updatedAt      DateTime?
+  location       String?
+  paid           Boolean
+  status         BookingStatus
+  rescheduled    Boolean?
+  userId         Int?
+  teamId         Int?
+  eventLength    Int?
+  eventParentId  Int?
+  userEmail      String?
+  userName       String?
+  userUsername   String?
+  ratingFeedback String?
+  rating         Int?
+  noShowHost     Boolean?
+  isTeamBooking  Boolean
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([eventTypeId])
+  @@index([eventParentId])
+  @@index([teamId])
+  @@index([startTime])
+  @@index([endTime])
+  @@index([status])
+  @@index([teamId, isTeamBooking])
+  @@index([userId, isTeamBooking])
+}
+
+view BookingTimeStatusDenormalized {
+  id             Int           @id @unique
+  uid            String
+  eventTypeId    Int?
+  title          String
+  description    String?
+  startTime      DateTime
+  endTime        DateTime
+  createdAt      DateTime
+  updatedAt      DateTime?
+  location       String?
+  paid           Boolean
+  status         BookingStatus
+  rescheduled    Boolean?
+  userId         Int?
+  teamId         Int?
+  eventLength    Int?
+  eventParentId  Int?
+  userEmail      String?
+  userName       String?
+  userUsername   String?
+  ratingFeedback String?
+  rating         Int?
+  noShowHost     Boolean?
+  isTeamBooking  Boolean
+  timeStatus     String? // this is the addition on top of BookingDenormalized
 }
 
 model CalendarCache {

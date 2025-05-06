@@ -14,31 +14,32 @@ export default class LimitManager {
   /**
    * Creates a busy map key
    */
-  private static createKey(start: Dayjs, unit: IntervalLimitUnit): BusyMapKey {
-    return `${unit}-${start.startOf(unit).toISOString()}`;
+  private static createKey(start: Dayjs, unit: IntervalLimitUnit, timeZone?: string): BusyMapKey {
+    const tzStart = timeZone ? start.tz(timeZone) : start;
+    return `${unit}-${tzStart.startOf(unit).toISOString()}`;
   }
 
   /**
    * Checks if already marked busy by ancestors or siblings
    */
-  isAlreadyBusy(start: Dayjs, unit: IntervalLimitUnit) {
-    if (this.busyMap.has(LimitManager.createKey(start, "year"))) return true;
+  isAlreadyBusy(start: Dayjs, unit: IntervalLimitUnit, timeZone?: string) {
+    if (this.busyMap.has(LimitManager.createKey(start, "year", timeZone))) return true;
 
-    if (unit === "month" && this.busyMap.has(LimitManager.createKey(start, "month"))) {
+    if (unit === "month" && this.busyMap.has(LimitManager.createKey(start, "month", timeZone))) {
       return true;
     } else if (
       unit === "week" &&
       // weeks can be part of two months
-      ((this.busyMap.has(LimitManager.createKey(start, "month")) &&
-        this.busyMap.has(LimitManager.createKey(start.endOf("week"), "month"))) ||
-        this.busyMap.has(LimitManager.createKey(start, "week")))
+      ((this.busyMap.has(LimitManager.createKey(start, "month", timeZone)) &&
+        this.busyMap.has(LimitManager.createKey(start.endOf("week"), "month", timeZone))) ||
+        this.busyMap.has(LimitManager.createKey(start, "week", timeZone)))
     ) {
       return true;
     } else if (
       unit === "day" &&
-      (this.busyMap.has(LimitManager.createKey(start, "month")) ||
-        this.busyMap.has(LimitManager.createKey(start, "week")) ||
-        this.busyMap.has(LimitManager.createKey(start, "day")))
+      (this.busyMap.has(LimitManager.createKey(start, "month", timeZone)) ||
+        this.busyMap.has(LimitManager.createKey(start, "week", timeZone)) ||
+        this.busyMap.has(LimitManager.createKey(start, "day", timeZone)))
     ) {
       return true;
     } else {
@@ -49,10 +50,11 @@ export default class LimitManager {
   /**
    * Adds a new busy time
    */
-  addBusyTime(start: Dayjs, unit: IntervalLimitUnit) {
-    this.busyMap.set(`${unit}-${start.toISOString()}`, {
-      start: start.toISOString(),
-      end: start.endOf(unit).toISOString(),
+  addBusyTime(start: Dayjs, unit: IntervalLimitUnit, timeZone?: string) {
+    const tzStart = timeZone ? start.tz(timeZone) : start;
+    this.busyMap.set(`${unit}-${tzStart.toISOString()}`, {
+      start: tzStart.toISOString(),
+      end: tzStart.endOf(unit).toISOString(),
     });
   }
 
