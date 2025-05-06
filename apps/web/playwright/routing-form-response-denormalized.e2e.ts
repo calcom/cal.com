@@ -1,22 +1,27 @@
+import { expect } from "@playwright/test";
 import { Prisma } from "@prisma/client";
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
 
-import { prisma } from "@calcom/prisma";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 
-describe("RoutingFormResponseDenormalized", () => {
+import { test } from "./lib/fixtures";
+
+test.describe.configure({ mode: "parallel" });
+
+test.describe("RoutingFormResponseDenormalized", () => {
   let userId: number;
   let formId: string;
   let eventTypeId: number;
   let bookingId: number;
   let responseId: number;
+  const randomId = Math.floor(Math.random() * 1000000);
+  const email = `booking-denorm-${randomId}@example.com`;
 
-  beforeEach(async () => {
+  test.beforeEach(async ({ prisma }) => {
     // Create test user
     const user = await prisma.user.create({
       data: {
-        email: "test@example.com",
-        username: "testuser",
+        email,
+        username: `booking-denorm-testuser-${randomId}`,
         name: "Test User",
       },
     });
@@ -93,13 +98,13 @@ describe("RoutingFormResponseDenormalized", () => {
     // Create test booking
     const booking = await prisma.booking.create({
       data: {
-        uid: "test-booking",
+        uid: `booking-denorm-${randomId}`,
         title: "Test Booking",
         startTime: new Date(),
         endTime: new Date(Date.now() + 60 * 60 * 1000),
         userId: user.id,
         eventTypeId: eventType.id,
-        status: BookingStatus.ACCEPTED,
+        status: BookingStatus.PENDING,
       },
     });
     bookingId = booking.id;
@@ -137,7 +142,7 @@ describe("RoutingFormResponseDenormalized", () => {
     responseId = formResponse.id;
   });
 
-  afterEach(async () => {
+  test.afterEach(async ({ prisma }) => {
     // Clean up test data in reverse order of creation
     if (bookingId) {
       await prisma.booking.deleteMany({
@@ -166,8 +171,8 @@ describe("RoutingFormResponseDenormalized", () => {
     }
   });
 
-  describe("Creation and Updates", () => {
-    it("should create denormalized entry when form response is created", async () => {
+  test.describe("Creation and Updates", () => {
+    test("should create denormalized entry when form response is created", async ({ prisma }) => {
       const denormalizedResponse = await prisma.routingFormResponseDenormalized.findUniqueOrThrow({
         where: { id: responseId },
       });
@@ -194,11 +199,11 @@ describe("RoutingFormResponseDenormalized", () => {
       expect(denormalizedResponse.bookingId).toBe(bookingId);
       expect(denormalizedResponse.bookingUserId).toBe(userId);
       expect(denormalizedResponse.bookingUserName).toBe("Test User");
-      expect(denormalizedResponse.bookingUserEmail).toBe("test@example.com");
+      expect(denormalizedResponse.bookingUserEmail).toBe(email);
       expect(denormalizedResponse.eventTypeId).toBe(eventTypeId);
     });
 
-    it("should update denormalized entry when form response is updated", async () => {
+    test("should update denormalized entry when form response is updated", async ({ prisma }) => {
       await prisma.app_RoutingForms_FormResponse.update({
         where: { id: responseId },
         data: {
@@ -242,7 +247,7 @@ describe("RoutingFormResponseDenormalized", () => {
       expect(formResponse.response).toEqual(denormalizedResponse.response.response);
     });
 
-    it("should update denormalized entry when user is updated", async () => {
+    test("should update denormalized entry when user is updated", async ({ prisma }) => {
       await prisma.user.update({
         where: { id: userId },
         data: {
@@ -259,7 +264,7 @@ describe("RoutingFormResponseDenormalized", () => {
       expect(denormalizedResponse.bookingUserEmail).toBe("updated@example.com");
     });
 
-    it("should update denormalized entry when booking is updated", async () => {
+    test("should update denormalized entry when booking is updated", async ({ prisma }) => {
       await prisma.booking.update({
         where: { id: bookingId },
         data: {
@@ -274,7 +279,7 @@ describe("RoutingFormResponseDenormalized", () => {
       expect(denormalizedResponse.bookingStatus).toBe(BookingStatus.CANCELLED);
     });
 
-    it("should update denormalized entry when event type is updated", async () => {
+    test("should update denormalized entry when event type is updated", async ({ prisma }) => {
       // Create a parent event type
       const parentEventType = await prisma.eventType.create({
         data: {
@@ -308,8 +313,8 @@ describe("RoutingFormResponseDenormalized", () => {
     });
   });
 
-  describe("Deletion Scenarios", () => {
-    it("should delete denormalized entry when form response is deleted", async () => {
+  test.describe("Deletion Scenarios", () => {
+    test("should delete denormalized entry when form response is deleted", async ({ prisma }) => {
       await prisma.app_RoutingForms_FormResponse.delete({
         where: { id: responseId },
       });
@@ -321,7 +326,9 @@ describe("RoutingFormResponseDenormalized", () => {
       expect(denormalizedResponse).toBeNull();
     });
 
-    it("should not delete denormalized entry but nullify booking data when booking is deleted", async () => {
+    test("should not delete denormalized entry but nullify booking data when booking is deleted", async ({
+      prisma,
+    }) => {
       // Check if denormalized entry exists before deletion
       const beforeDelete = await prisma.routingFormResponseDenormalized.findUnique({
         where: { id: responseId },
@@ -342,7 +349,7 @@ describe("RoutingFormResponseDenormalized", () => {
       expect(denormalizedResponse.bookingEndTime).toBeNull();
     });
 
-    it("should cascade delete denormalized entries when form is deleted", async () => {
+    test("should cascade delete denormalized entries when form is deleted", async ({ prisma }) => {
       await prisma.app_RoutingForms_Form.delete({
         where: { id: formId },
       });
@@ -354,7 +361,7 @@ describe("RoutingFormResponseDenormalized", () => {
       expect(denormalizedResponse).toBeNull();
     });
 
-    it("should cascade delete denormalized entries when user is deleted", async () => {
+    test("should cascade delete denormalized entries when user is deleted", async ({ prisma }) => {
       await prisma.user.delete({
         where: { id: userId },
       });
@@ -366,7 +373,7 @@ describe("RoutingFormResponseDenormalized", () => {
       expect(denormalizedResponse).toBeNull();
     });
 
-    it("should not delete but nullify event type data when event type is deleted", async () => {
+    test("should not delete but nullify event type data when event type is deleted", async ({ prisma }) => {
       await prisma.eventType.delete({
         where: { id: eventTypeId },
       });
@@ -381,8 +388,8 @@ describe("RoutingFormResponseDenormalized", () => {
     });
   });
 
-  describe("Multiple Records Scenarios", () => {
-    it("should handle multiple form responses for the same form", async () => {
+  test.describe("Multiple Records Scenarios", () => {
+    test("should handle multiple form responses for the same form", async ({ prisma }) => {
       const response2 = await prisma.app_RoutingForms_FormResponse.create({
         data: {
           formFillerId: "test-filler-2",
@@ -406,8 +413,8 @@ describe("RoutingFormResponseDenormalized", () => {
     });
   });
 
-  describe("Edge Cases", () => {
-    it("should handle null values in optional fields", async () => {
+  test.describe("Edge Cases", () => {
+    test("should handle null values in optional fields", async ({ prisma }) => {
       const responseWithNulls = await prisma.app_RoutingForms_FormResponse.create({
         data: {
           formFillerId: "test-filler-nulls",
@@ -434,7 +441,7 @@ describe("RoutingFormResponseDenormalized", () => {
       expect(denormalizedResponse.eventTypeId).toBeNull();
     });
 
-    it("should handle special characters in text fields", async () => {
+    test("should handle special characters in text fields", async ({ prisma }) => {
       const specialChars = "Test 'quotes' and \"double quotes\" and \\ backslashes";
       await prisma.app_RoutingForms_Form.update({
         where: { id: formId },
@@ -451,8 +458,8 @@ describe("RoutingFormResponseDenormalized", () => {
     });
   });
 
-  describe("Data Integrity", () => {
-    it("should maintain correct relationships across all tables", async () => {
+  test.describe("Data Integrity", () => {
+    test("should maintain correct relationships across all tables", async ({ prisma }) => {
       const denormalizedResponse = await prisma.routingFormResponseDenormalized.findUniqueOrThrow({
         where: { id: responseId },
         include: {
@@ -468,8 +475,8 @@ describe("RoutingFormResponseDenormalized", () => {
     });
   });
 
-  describe("Field Filtering and Relationships", () => {
-    it("should allow filtering by field values including arrays", async () => {
+  test.describe("Field Filtering and Relationships", () => {
+    test("should allow filtering by field values including arrays", async ({ prisma }) => {
       // Create a response with specific field values for testing
       const formResponse = await prisma.app_RoutingForms_FormResponse.create({
         data: {
@@ -534,7 +541,7 @@ describe("RoutingFormResponseDenormalized", () => {
       });
     });
 
-    it("should allow filtering by string and number field values", async () => {
+    test("should allow filtering by string and number field values", async ({ prisma }) => {
       // Create a response with specific field values for testing
       const formResponse = await prisma.app_RoutingForms_FormResponse.create({
         data: {
@@ -625,17 +632,17 @@ describe("RoutingFormResponseDenormalized", () => {
       });
     });
 
-    it("should allow filtering by attendee email", async () => {
+    test("should allow filtering by attendee email", async ({ prisma }) => {
       // Create a booking with attendees
       const booking = await prisma.booking.create({
         data: {
-          uid: "test-booking-attendees",
+          uid: `booking-denorm-${Math.floor(Math.random() * 1000000)}`,
           title: "Test Booking",
           startTime: new Date(),
           endTime: new Date(Date.now() + 60 * 60 * 1000),
           userId: userId,
           eventTypeId: eventTypeId,
-          status: BookingStatus.ACCEPTED,
+          status: BookingStatus.PENDING,
           attendees: {
             create: [
               {
