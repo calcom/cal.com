@@ -1,11 +1,5 @@
 import { ManagedOrganizationsRepository } from "@/modules/organizations/organizations/managed-organizations.repository";
-import {
-  Injectable,
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-  NotFoundException,
-} from "@nestjs/common";
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Request } from "express";
 
 import { Team } from "@calcom/prisma/client";
@@ -20,11 +14,11 @@ export class IsManagedOrgInManagerOrg implements CanActivate {
     const managerOrgId: string = request.params.orgId;
 
     if (!managerOrgId) {
-      throw new ForbiddenException("No manager org id found in request params.");
+      throw new ForbiddenException("IsManagedOrgInManagerOrg - No manager org id found in request params.");
     }
 
     if (!managedOrgId) {
-      throw new ForbiddenException("No managed org id found in request params.");
+      throw new ForbiddenException("IsManagedOrgInManagerOrg - No managed org id found in request params.");
     }
 
     const managedOrganization = await this.managedOrganizationsRepository.getByManagerManagedIds(
@@ -33,8 +27,8 @@ export class IsManagedOrgInManagerOrg implements CanActivate {
     );
 
     if (!managedOrganization) {
-      throw new NotFoundException(
-        `Managed organization with id=${managedOrgId} within manager organization with id=${managerOrgId} not found.`
+      throw new ForbiddenException(
+        `IsManagedOrgInManagerOrg - Managed organization with id=${managedOrgId} is not owned by manager organization with id=${managerOrgId}.`
       );
     }
 

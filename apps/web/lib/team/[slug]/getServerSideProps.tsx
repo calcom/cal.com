@@ -5,7 +5,7 @@ import {
   getOrganizationSettings,
   getVerifiedDomain,
 } from "@calcom/features/ee/organizations/lib/orgSettings";
-import { getFeatureFlag } from "@calcom/features/flags/server/utils";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
@@ -71,7 +71,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   // Provided by Rewrite from next.config.js
   const isOrgProfile = context.query?.isOrgProfile === "1";
-  const organizationsEnabled = await getFeatureFlag(prisma, "organizations");
+  const featuresRepository = new FeaturesRepository();
+  const organizationsEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("organizations");
 
   log.debug("getServerSideProps", {
     isOrgProfile,

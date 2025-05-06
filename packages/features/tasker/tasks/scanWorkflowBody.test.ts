@@ -172,4 +172,23 @@ describe("scanWorkflowBody", () => {
 
     expect(scheduleWorkflowNotifications).not.toHaveBeenCalled();
   });
+
+  it("should handle whitelisted user being flagged as spam", async () => {
+    const payload = JSON.stringify({
+      userId: 1,
+      workflowStepIds: [1],
+    });
+
+    prismaMock.workflowStep.findMany.mockResolvedValue([
+      { ...mockWorkflowStep, workflow: { user: { whitelistWorkflows: true } } },
+    ]);
+    prismaMock.workflow.findFirst.mockResolvedValue(mockWorkflow);
+    mockAkismetCheckSpam.mockResolvedValue(true);
+
+    await scanWorkflowBody(payload);
+
+    expect(mockAkismetCheckSpam).toHaveBeenCalled();
+    expect(prismaMock.workflowStep.update).not.toHaveBeenCalled();
+    expect(lockUser).not.toHaveBeenCalled();
+  });
 });

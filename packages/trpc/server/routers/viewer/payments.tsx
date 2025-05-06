@@ -91,6 +91,7 @@ export const paymentsRouter = router({
           currency: payment.currency,
           paymentOption: payment.paymentOption,
         },
+        customReplyToEmail: booking.eventType?.customReplyToEmail,
       };
 
       const paymentCredential = await prisma.credential.findFirst({
