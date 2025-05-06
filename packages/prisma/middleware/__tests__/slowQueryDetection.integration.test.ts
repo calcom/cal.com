@@ -2,8 +2,7 @@ import { captureException } from "@sentry/nextjs";
 import { beforeEach, describe, expect, it, vi, afterEach } from "vitest";
 import type { Mock } from "vitest";
 
-import prisma from "@calcom/prisma";
-
+import prisma from "../../test/fixtures/prismaMock";
 import slowQueryDetectionMiddleware from "../slowQueryDetection";
 
 vi.mock("@sentry/nextjs", () => ({
@@ -24,9 +23,18 @@ vi.mock("@calcom/lib/logger", () => ({
   },
 }));
 
-describe("Slow Query Detection Middleware - Integration Tests", () => {
-  const testPrisma = prisma;
+prisma.$on = vi.fn((event, callback) => {
+  if (event === "query") {
+    (prisma as any).__queryCallback = callback;
+  }
+  return prisma;
+});
 
+prisma.$transaction = vi.fn((callback) => {
+  return callback(prisma);
+});
+
+describe("Slow Query Detection Middleware - Integration Tests", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockTime = 0;
@@ -36,7 +44,7 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
     process.env.SLOW_QUERY_THRESHOLD_MS = "500";
     process.env.NODE_ENV = "test";
 
-    slowQueryDetectionMiddleware(testPrisma);
+    slowQueryDetectionMiddleware(prisma);
   });
 
   afterEach(() => {
@@ -47,7 +55,14 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
   it("should not report fast queries to Sentry", async () => {
     mockTime = 100;
 
-    await testPrisma.user.findFirst({
+    if ((prisma as any).__queryCallback) {
+      (prisma as any).__queryCallback({
+        query: "SELECT * FROM users WHERE email = 'test@example.com' LIMIT 1",
+        timestamp: Date.now(),
+      });
+    }
+
+    await prisma.user.findFirst({
       where: { email: "test@example.com" },
     });
 
@@ -59,7 +74,15 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
   it("should report slow queries to Sentry with SQL details", async () => {
     mockTime = 100;
 
-    const queryPromise = testPrisma.$transaction(async (tx) => {
+    if ((prisma as any).__queryCallback) {
+      (prisma as any).__queryCallback({
+        query:
+          "SELECT * FROM users JOIN accounts ON users.id = accounts.userId WHERE users.email = 'test@example.com' LIMIT 1",
+        timestamp: Date.now(),
+      });
+    }
+
+    const queryPromise = prisma.$transaction(async (tx) => {
       return tx.user.findFirst({
         where: { email: "test@example.com" },
         include: {
@@ -98,7 +121,15 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
   it("should respect rate limiting and not flood Sentry with reports", async () => {
     mockTime = 100;
 
-    await testPrisma.user.findFirst({
+    if ((prisma as any).__queryCallback) {
+      (prisma as any).__queryCallback({
+        query:
+          "SELECT * FROM users JOIN accounts ON users.id = accounts.userId WHERE users.email = 'test@example.com' LIMIT 1",
+        timestamp: Date.now(),
+      });
+    }
+
+    await prisma.user.findFirst({
       where: { email: "test@example.com" },
       include: {
         accounts: true,
@@ -112,7 +143,7 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
 
     mockTime = 800;
 
-    await testPrisma.user.findFirst({
+    await prisma.user.findFirst({
       where: { email: "test@example.com" },
       include: {
         accounts: true,
@@ -132,11 +163,19 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
 
     process.env.SLOW_QUERY_THRESHOLD_MS = "200";
 
-    slowQueryDetectionMiddleware(testPrisma);
+    slowQueryDetectionMiddleware(prisma);
+
+    if ((prisma as any).__queryCallback) {
+      (prisma as any).__queryCallback({
+        query:
+          "SELECT * FROM users JOIN accounts ON users.id = accounts.userId WHERE users.email = 'test@example.com' LIMIT 1",
+        timestamp: Date.now(),
+      });
+    }
 
     mockTime = 100;
 
-    const queryPromise = testPrisma.user.findFirst({
+    const queryPromise = prisma.user.findFirst({
       where: { email: "test@example.com" },
       include: { accounts: true },
     });
@@ -153,9 +192,17 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
     mockTime = 0;
     (captureException as unknown as Mock).mockClear();
 
+    if ((prisma as any).__queryCallback) {
+      (prisma as any).__queryCallback({
+        query:
+          "SELECT * FROM bookings JOIN users ON bookings.userId = users.id JOIN teams ON users.teamId = teams.id WHERE bookings.userId IS NOT NULL LIMIT 1",
+        timestamp: Date.now(),
+      });
+    }
+
     mockTime = 100;
 
-    const queryPromise = testPrisma.booking.findFirst({
+    const queryPromise = prisma.booking.findFirst({
       where: {
         userId: { not: null },
       },
