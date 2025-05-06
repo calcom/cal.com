@@ -4,8 +4,8 @@ import { parseAsArrayOf, parseAsJson, parseAsInteger, parseAsString } from "nuqs
 import { ZActiveFilter, ZSorting, ZColumnVisibility, ZColumnSizing } from "./types";
 import type { ActiveFilters } from "./types";
 
-const DEFAULT_ACTIVE_FILTERS: ActiveFilters = [];
-const DEFAULT_SORTING: SortingState = [];
+const DEFAULT_ACTIVE_FILTERS: ActiveFilters = [] as ActiveFilters;
+const DEFAULT_SORTING: SortingState = [] as SortingState;
 const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {};
 const DEFAULT_COLUMN_SIZING: ColumnSizingState = {};
 export const DEFAULT_PAGE_SIZE = 10;
