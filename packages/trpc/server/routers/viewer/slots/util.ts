@@ -881,10 +881,43 @@ const getBusyTimesFromLimitsForUsers = async (
     durationLimits,
   });
 
+  const globalLimitManager = new LimitManager();
+
+  if (bookingLimits) {
+    for (const key of descendingLimitKeys) {
+      const limit = bookingLimits?.[key];
+      if (!limit) continue;
+
+      const unit = intervalLimitKeyToUnit(key);
+      const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
+
+      for (const periodStart of periodStartDates) {
+        if (globalLimitManager.isAlreadyBusy(periodStart, unit)) continue;
+
+        const periodEnd = periodStart.endOf(unit);
+        let totalBookings = 0;
+
+        for (const booking of busyTimesFromLimitsBookings) {
+          if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
+            continue;
+          }
+          totalBookings++;
+          if (totalBookings >= limit) {
+            globalLimitManager.addBusyTime(periodStart, unit);
+            break;
+          }
+        }
+      }
+    }
+  }
+
   for (const user of users) {
     const userBookings = busyTimesFromLimitsBookings.filter((booking) => booking.userId === user.id);
-
     const limitManager = new LimitManager();
+
+    for (const busyTime of globalLimitManager.getBusyTimes()) {
+      limitManager.addBusyTime(dayjs(busyTime.start), busyTime.source.split("-")[0] as any);
+    }
 
     await monitorCallbackAsync(async () => {
       if (bookingLimits) {
@@ -918,19 +951,7 @@ const getBusyTimesFromLimitsForUsers = async (
               continue;
             }
 
-            const periodEnd = periodStart.endOf(unit);
-            let totalBookings = 0;
-
-            for (const booking of userBookings) {
-              if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
-                continue;
-              }
-              totalBookings++;
-              if (totalBookings >= limit) {
-                limitManager.addBusyTime(periodStart, unit);
-                break;
-              }
-            }
+            if (key !== "PER_YEAR") continue;
           }
         }
       }
