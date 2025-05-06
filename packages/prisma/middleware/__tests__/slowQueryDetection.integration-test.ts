@@ -299,4 +299,43 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
     expect(next).toHaveBeenCalledWith(params);
     expect(captureException).toHaveBeenCalledTimes(1);
   });
+
+  it("should capture and snapshot raw SQL queries", async () => {
+    vi.clearAllMocks();
+    (captureException as unknown as Mock).mockClear();
+
+    // Reset the last report time to ensure we're not rate limited
+    const state = initializeClientState(prisma);
+    state.lastReportTime = 0;
+    state.queryMap.clear();
+
+    const mockSql = 'SELECT * FROM "User" WHERE "id" IS NOT NULL LIMIT 1';
+    const timestamp = Date.now();
+
+    state.queryMap.set("test-query", {
+      sql: mockSql,
+      timestamp: timestamp,
+    });
+
+    const params = {
+      model: "User",
+      action: "findFirst",
+      args: { where: { id: { not: null } }, take: 1 },
+    };
+
+    const reported = reportSlowQuery(prisma, params, 700, timestamp, {
+      forceReport: true,
+    });
+
+    expect(reported).toBe(true);
+    expect(captureException).toHaveBeenCalledTimes(1);
+
+    const captureExceptionCall = (captureException as unknown as Mock).mock.calls[0];
+    const capturedQuery = captureExceptionCall[1].extra.query;
+
+    expect(capturedQuery.sql).toBeDefined();
+    expect(capturedQuery.sql).not.toBe("SQL not captured");
+
+    expect(capturedQuery.sql).toMatchSnapshot();
+  });
 });
