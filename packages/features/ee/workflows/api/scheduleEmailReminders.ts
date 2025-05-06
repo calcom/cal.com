@@ -13,15 +13,13 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
-import { SchedulingType, WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
+import { SchedulingType, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
 import {
   getAllRemindersToCancel,
   getAllRemindersToDelete,
   getAllUnscheduledReminders,
-  select,
 } from "../lib/getWorkflowReminders";
 import { sendOrScheduleWorkflowEmails } from "../lib/reminders/providers/emailProvider";
 import {
@@ -63,15 +61,6 @@ export async function handler(req: NextRequest) {
       });
     });
   }
-  //delete workflow reminders with past scheduled date
-  await prisma.workflowReminder.deleteMany({
-    where: {
-      method: WorkflowMethods.EMAIL,
-      scheduledDate: {
-        lte: dayjs().toISOString(),
-      },
-    },
-  });
 
   if (isSendgridEnabled) {
     //cancel reminders for cancelled/rescheduled bookings that are scheduled within the next hour
@@ -106,20 +95,7 @@ export async function handler(req: NextRequest) {
   // schedule all unscheduled reminders within the next 72 hours
   const sendEmailPromises: Promise<any>[] = [];
 
-  let unscheduledReminders: PartialWorkflowReminder[] = [];
-
-  if (isSendgridEnabled) {
-    unscheduledReminders = await getAllUnscheduledReminders();
-  } else {
-    unscheduledReminders = (await prisma.workflowReminder.findMany({
-      where: {
-        method: WorkflowMethods.EMAIL,
-        scheduled: false,
-        OR: [{ cancelled: false }, { cancelled: null }],
-      },
-      select,
-    })) as PartialWorkflowReminder[];
-  }
+  const unscheduledReminders = await getAllUnscheduledReminders();
 
   if (!unscheduledReminders.length) {
     return NextResponse.json({ message: "No Emails to schedule" }, { status: 200 });
