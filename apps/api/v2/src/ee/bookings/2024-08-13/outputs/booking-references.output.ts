@@ -5,6 +5,9 @@ import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
 export class BookingReference {
   @IsString()
+  @ApiProperty({
+    description: "The type of the booking reference",
+  })
   type!: string;
 
   @IsString()
@@ -14,6 +17,9 @@ export class BookingReference {
   externalUid!: string;
 
   @IsNumber()
+  @ApiProperty({
+    description: "The id of the booking reference",
+  })
   id!: number;
 }
 

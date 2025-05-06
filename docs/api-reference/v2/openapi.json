@@ -22235,18 +22235,20 @@
       "BookingReference": {
         "type": "object",
         "properties": {
+          "type": {
+            "type": "string",
+            "description": "The type of the booking reference"
+          },
           "externalUid": {
             "type": "string",
             "description": "The external uid of the booking reference"
           },
-          "type": {
-            "type": "string"
-          },
           "id": {
-            "type": "number"
+            "type": "number",
+            "description": "The id of the booking reference"
           }
         },
-        "required": ["externalUid", "type", "id"]
+        "required": ["type", "externalUid", "id"]
       },
       "BookingReferencesOutput_2024_08_13": {
         "type": "object",
