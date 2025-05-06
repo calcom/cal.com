@@ -1,6 +1,6 @@
 import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/booking-references.repository";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
-import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
+import { OutputBookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output-booking-references.service";
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 
 @Injectable()
@@ -8,7 +8,7 @@ export class BookingReferencesService_2024_08_13 {
   constructor(
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
     private readonly bookingReferencesRepository: BookingReferencesRepository_2024_08_13,
-    private readonly outputService: OutputBookingsService_2024_08_13
+    private readonly outputBookingReferencesService: OutputBookingReferencesService_2024_08_13
   ) {}
 
   async getBookingReferences(bookingUid: string, userId: number) {
@@ -24,7 +24,7 @@ export class BookingReferencesService_2024_08_13 {
 
     const bookingReferences = await this.bookingReferencesRepository.getBookingReferences(booking.id);
 
-    return this.outputService.getOutputBookingReferences(bookingReferences);
+    return this.outputBookingReferencesService.getOutputBookingReferences(bookingReferences);
   }
 
   async getOrgBookingReferences(bookingUid: string) {
@@ -36,6 +36,6 @@ export class BookingReferencesService_2024_08_13 {
 
     const bookingReferences = await this.bookingReferencesRepository.getBookingReferences(booking.id);
 
-    return this.outputService.getOutputBookingReferences(bookingReferences);
+    return this.outputBookingReferencesService.getOutputBookingReferences(bookingReferences);
   }
 }

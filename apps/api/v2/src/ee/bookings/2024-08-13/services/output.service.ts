@@ -444,13 +444,4 @@ export class OutputBookingsService_2024_08_13 {
       },
     };
   }
-  getOutputBookingReferences(bookingReferences: Array<{ type: string; uid: string; id: number }>) {
-    return bookingReferences.map((bookingReference) => {
-      return {
-        type: bookingReference.type,
-        externalUid: bookingReference.uid,
-        id: bookingReference.id,
-      };
-    });
-  }
 }
