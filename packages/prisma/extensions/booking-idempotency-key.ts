@@ -12,7 +12,9 @@ export function bookingIdempotencyKeyExtension() {
             const idempotencyKey = uuidv5(
               `${
                 args.data.eventType?.connect?.id
-              }.${args.data.startTime.valueOf()}.${args.data.endTime.valueOf()}.${args.data?.userId}`,
+              }.${args.data.startTime.valueOf()}.${args.data.endTime.valueOf()}.${
+                args.data?.user?.connect?.id
+              }`,
               uuidv5.URL
             );
             args.data.idempotencyKey = idempotencyKey;

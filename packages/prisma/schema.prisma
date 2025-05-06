@@ -19,6 +19,12 @@ generator zod {
   relationModel = "default"
 }
 
+generator kysely {
+  provider = "prisma-kysely"
+  output   = "../kysely"
+  fileName = "types.ts"
+}
+
 generator enums {
   provider = "ts-node --transpile-only ./enum-generator"
 }
@@ -549,6 +555,8 @@ model Membership {
   user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   disableImpersonation Boolean           @default(false)
   AttributeToUser      AttributeToUser[]
+  createdAt            DateTime?
+  updatedAt            DateTime?         @updatedAt
 
   @@unique([userId, teamId])
   @@index([teamId])
