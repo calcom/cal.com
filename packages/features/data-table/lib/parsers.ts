@@ -2,11 +2,11 @@ import { parseAsArrayOf, parseAsJson, parseAsInteger, parseAsString } from "nuqs
 
 import { ZActiveFilter, ZSorting, ZColumnVisibility, ZColumnSizing } from "./types";
 
-export const DEFAULT_ACTIVE_FILTERS = [];
-export const DEFAULT_SORTING = [];
-export const DEFAULT_COLUMN_VISIBILITY = {};
-export const DEFAULT_COLUMN_SIZING = {};
-export const DEFAULT_PAGE_SIZE = 10;
+const DEFAULT_ACTIVE_FILTERS = [];
+const DEFAULT_SORTING = [];
+const DEFAULT_COLUMN_VISIBILITY = {};
+const DEFAULT_COLUMN_SIZING = {};
+const DEFAULT_PAGE_SIZE = 10;
 
 export const activeFiltersParser = parseAsArrayOf(parseAsJson(ZActiveFilter.parse)).withDefault(
   DEFAULT_ACTIVE_FILTERS
