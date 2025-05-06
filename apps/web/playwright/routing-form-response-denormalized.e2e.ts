@@ -334,11 +334,6 @@ test.describe("RoutingFormResponseDenormalized", () => {
     test("should not delete denormalized entry but nullify booking data when booking is deleted", async ({
       prisma,
     }) => {
-      // Check if denormalized entry exists before deletion
-      const beforeDelete = await prisma.routingFormResponseDenormalized.findUnique({
-        where: { id: responseId },
-      });
-
       await prisma.booking.delete({
         where: { id: bookingId },
       });
@@ -399,7 +394,7 @@ test.describe("RoutingFormResponseDenormalized", () => {
         data: {
           formFillerId: "test-filler-2",
           formId: formId,
-          response: { test: "response 2" },
+          response: {},
         },
       });
 
@@ -407,6 +402,11 @@ test.describe("RoutingFormResponseDenormalized", () => {
         where: { id: responseId },
       });
       const denormalizedResponse2 = await prisma.routingFormResponseDenormalized.findUniqueOrThrow({
+        where: { id: response2.id },
+      });
+
+      // clean up
+      await prisma.app_RoutingForms_FormResponse.delete({
         where: { id: response2.id },
       });
 
