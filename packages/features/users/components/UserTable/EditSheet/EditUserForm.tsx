@@ -6,6 +6,7 @@ import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -58,7 +59,7 @@ const editSchema = z.object({
   avatar: z.string(),
   bio: z.string(),
   role: z.enum([MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER]),
-  timeZone: z.string(),
+  timeZone: timeZoneSchema,
   // schedules: z.array(z.string()),
   // teams: z.array(z.string()),
   attributes: z.array(attributeSchema).optional(),
