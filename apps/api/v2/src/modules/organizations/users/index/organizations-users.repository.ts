@@ -141,7 +141,11 @@ export class OrganizationsUsersRepository {
     return await this.dbWrite.prisma.user.delete({
       where: {
         id: userId,
-        organizationId: orgId,
+        profiles: {
+          some: {
+            organizationId: orgId,
+          },
+        },
       },
       include: {
         profiles: {

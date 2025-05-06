@@ -1,3 +1,4 @@
+import { Locales } from "@/lib/enums/locales";
 import { EmailService } from "@/modules/email/email.service";
 import { CreateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/create-organization-user.input";
 import { UpdateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/update-organization-user.input";
@@ -89,6 +90,7 @@ export class OrganizationsUsersService {
           autoAccept: userCreateBody.autoAccept,
         },
       },
+      language: userCreateBody.locale ?? Locales.EN,
     });
 
     const createdUser = createdUserCall[0];
