@@ -507,8 +507,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
     });
 
     describe("overlapping slot reservations", () => {
-      it("user-event-type-slots-overlap-starts-during-${randomString()}", async () => {
-        // Try to reserve 10:15-10:45 when 10:00-10:30 is taken
+      it("start of request slot overlaps already existing reserved slot", async () => {
+        // Try to reserve 10:15-11:15 when 10:00-11:00 is taken (60 min event)
         const newSlotStart = DateTime.fromISO(reservedSlot.slotStart).plus({ minutes: 15 }).toISO();
 
         await request(app.getHttpServer())
@@ -526,8 +526,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
           });
       });
 
-      it("user-event-type-slots-overlap-ends-during-${randomString()}", async () => {
-        // Try to reserve 9:45-10:15 when 10:00-10:30 is taken
+      it("end of request slot overlaps already existing reserved slot", async () => {
+        // Try to reserve 9:45-10:45 when 10:00-11:00 is taken (60 min event)
         const newSlotStart = DateTime.fromISO(reservedSlot.slotStart).minus({ minutes: 15 }).toISO();
 
         await request(app.getHttpServer())
@@ -545,8 +545,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
           });
       });
 
-      it("user-event-type-slots-overlap-inside-${randomString()}", async () => {
-        // Try to reserve 10:10-10:20 when 10:00-10:30 is taken
+      it("request slot is inside already existing reserved slot", async () => {
+        // Try to reserve 10:10-11:10 when 10:00-11:00 is taken (60 min event)
         const newSlotStart = DateTime.fromISO(reservedSlot.slotStart).plus({ minutes: 10 }).toISO();
 
         await request(app.getHttpServer())
@@ -1410,8 +1410,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
         clear();
       });
 
-      it("user-event-type-slots-overlap-contains-${randomString()}", async () => {
-        // Try to reserve 9:45-12:45 when 10:00-10:30 is taken
+      it("request slot contains already existing reserved slot", async () => {
+        // Try to reserve 9:45-12:45 when 10:00-11:00 is taken
         const newSlotStart = DateTime.fromISO(responseReservedVariableSlot.slotStart)
           .minus({ minutes: 15 })
           .toISO();
