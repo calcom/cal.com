@@ -1141,17 +1141,17 @@ model RoutingFormResponseDenormalized {
   formName                String
   formTeamId              Int?
   formUserId              Int
-  bookingUid              String
-  bookingId               Int
-  booking                 Booking                       @relation(fields: [bookingId], references: [id])
-  bookingStatus           BookingStatus
-  bookingStatusOrder      Int
-  bookingCreatedAt        DateTime                      @db.Timestamp(3)
-  bookingStartTime        DateTime                      @db.Timestamp(3)
-  bookingEndTime          DateTime                      @db.Timestamp(3)
+  booking                 Booking?                      @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  bookingUid              String?
+  bookingId               Int?
+  bookingStatus           BookingStatus?
+  bookingStatusOrder      Int?
+  bookingCreatedAt        DateTime?                     @db.Timestamp(3)
+  bookingStartTime        DateTime?                     @db.Timestamp(3)
+  bookingEndTime          DateTime?                     @db.Timestamp(3)
   bookingUserId           Int?
   bookingUserName         String?
-  bookingUserEmail        String
+  bookingUserEmail        String?
   bookingUserAvatarUrl    String?
   bookingAssignmentReason String?
   eventTypeId             Int?

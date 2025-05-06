@@ -89,9 +89,9 @@ BEGIN
         t.utm_content
     FROM "App_RoutingForms_FormResponse" r
     INNER JOIN "App_RoutingForms_Form" f ON r."formId" = f.id
-    INNER JOIN "Booking" b ON b.uid = r."routedToBookingUid"
-    INNER JOIN "EventType" et ON b."eventTypeId" = et.id
-    INNER JOIN "users" u ON b."userId" = u.id
+    INNER JOIN "users" u ON f."userId" = u.id
+    LEFT JOIN "Booking" b ON b.uid = r."routedToBookingUid"
+    LEFT JOIN "EventType" et ON b."eventTypeId" = et.id
     LEFT JOIN "Tracking" t ON t."bookingId" = b.id
     WHERE r.id = response_id;
 END;
@@ -284,4 +284,23 @@ CREATE TRIGGER user_delete_trigger_for_routing_form
     EXECUTE FUNCTION trigger_cleanup_routing_form_response_denormalized_user();
 
 -- Note: Booking deletions are handled by foreign key constraint with ON DELETE CASCADE
--- Note: EventType deletions are handled by foreign key constraint with ON DELETE CASCADE
+
+-- Function to nullify event type data in denormalized table when event type is deleted
+CREATE OR REPLACE FUNCTION trigger_nullify_routing_form_response_denormalized_event_type()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE "RoutingFormResponseDenormalized"
+  SET
+    "eventTypeId" = NULL,
+    "eventTypeParentId" = NULL,
+    "eventTypeSchedulingType" = NULL
+  WHERE "eventTypeId" = OLD.id;
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to nullify event type data before event type deletion
+CREATE TRIGGER trigger_nullify_routing_form_response_denormalized_event_type
+BEFORE DELETE ON "EventType"
+FOR EACH ROW
+EXECUTE FUNCTION trigger_nullify_routing_form_response_denormalized_event_type();

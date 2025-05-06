@@ -17,16 +17,16 @@ CREATE TABLE "RoutingFormResponseDenormalized" (
     "formName" TEXT NOT NULL,
     "formTeamId" INTEGER,
     "formUserId" INTEGER NOT NULL,
-    "bookingUid" TEXT NOT NULL,
-    "bookingId" INTEGER NOT NULL,
-    "bookingStatus" "BookingStatus" NOT NULL,
-    "bookingStatusOrder" INTEGER NOT NULL,
-    "bookingCreatedAt" TIMESTAMP(3) NOT NULL,
-    "bookingStartTime" TIMESTAMP(3) NOT NULL,
-    "bookingEndTime" TIMESTAMP(3) NOT NULL,
+    "bookingUid" TEXT,
+    "bookingId" INTEGER,
+    "bookingStatus" "BookingStatus",
+    "bookingStatusOrder" INTEGER,
+    "bookingCreatedAt" TIMESTAMP(3),
+    "bookingStartTime" TIMESTAMP(3),
+    "bookingEndTime" TIMESTAMP(3),
     "bookingUserId" INTEGER,
     "bookingUserName" TEXT,
-    "bookingUserEmail" TEXT NOT NULL,
+    "bookingUserEmail" TEXT,
     "bookingUserAvatarUrl" TEXT,
     "bookingAssignmentReason" TEXT,
     "eventTypeId" INTEGER,
@@ -78,7 +78,7 @@ CREATE INDEX "RoutingFormResponseDenormalized_eventTypeId_eventTypeParent_idx" O
 ALTER TABLE "RoutingFormResponseField" ADD CONSTRAINT "RoutingFormResponseField_response_fkey" FOREIGN KEY ("responseId") REFERENCES "App_RoutingForms_FormResponse"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "RoutingFormResponseDenormalized" ADD CONSTRAINT "RoutingFormResponseDenormalized_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "RoutingFormResponseDenormalized" ADD CONSTRAINT "RoutingFormResponseDenormalized_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "RoutingFormResponseDenormalized" ADD CONSTRAINT "RoutingFormResponseDenormalized_id_fkey" FOREIGN KEY ("id") REFERENCES "App_RoutingForms_FormResponse"("id") ON DELETE CASCADE ON UPDATE CASCADE;
