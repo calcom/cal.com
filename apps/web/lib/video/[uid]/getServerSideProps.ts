@@ -160,7 +160,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       hasTeamPlan: !!hasTeamPlan,
       calVideoLogo,
       displayLogInOverlay,
-      sessionUserId,
+      loggedInUserName: sessionUserId ? session?.user?.name : undefined,
     },
   };
 }

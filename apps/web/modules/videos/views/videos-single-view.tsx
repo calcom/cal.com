@@ -32,7 +32,7 @@ export default function JoinCall(props: PageProps) {
     hasTeamPlan,
     calVideoLogo,
     displayLogInOverlay,
-    sessionUserId,
+    loggedInUserName,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
 
@@ -61,6 +61,7 @@ export default function JoinCall(props: PageProps) {
           height: "100%",
         },
         url: meetingUrl,
+        userName: loggedInUserName ? loggedInUserName ?? undefined : undefined,
         ...(typeof meetingPassword === "string" && { token: meetingPassword }),
         ...(hasTeamPlan && {
           customTrayButtons: {
@@ -123,7 +124,7 @@ export default function JoinCall(props: PageProps) {
           />
         )}
       </div>
-      {displayLogInOverlay && <LogInOverlay sessionUserId={sessionUserId} bookingUid={booking.uid} />}
+      {displayLogInOverlay && <LogInOverlay isLoggedIn={!!loggedInUserName} bookingUid={booking.uid} />}
 
       <VideoMeetingInfo booking={booking} />
     </DailyProvider>
@@ -201,14 +202,14 @@ function ProgressBar(props: ProgressBarProps) {
 }
 
 interface LogInOverlayProps {
-  sessionUserId: number | undefined;
+  isLoggedIn: boolean;
   bookingUid: string;
 }
 
 export function LogInOverlay(props: LogInOverlayProps) {
   const { t } = useLocale();
-  const { sessionUserId, bookingUid } = props;
-  const [open, setOpen] = useState(!sessionUserId);
+  const { isLoggedIn, bookingUid } = props;
+  const [open, setOpen] = useState(!isLoggedIn);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
