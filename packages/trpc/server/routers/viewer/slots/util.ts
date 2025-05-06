@@ -916,7 +916,9 @@ const getBusyTimesFromLimitsForUsers = async (
     const limitManager = new LimitManager();
 
     for (const busyTime of globalLimitManager.getBusyTimes()) {
-      limitManager.addBusyTime(dayjs(busyTime.start), busyTime.source.split("-")[0] as any);
+      if (busyTime.source) {
+        limitManager.addBusyTime(dayjs(busyTime.start), busyTime.source.split("-")[0] as any);
+      }
     }
 
     await monitorCallbackAsync(async () => {
