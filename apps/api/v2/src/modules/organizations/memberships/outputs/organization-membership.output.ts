@@ -24,12 +24,12 @@ export class TextAttribute extends BaseAttribute {
   @IsString()
   @Expose()
   @ApiProperty()
-  value!: string;
+  option!: string;
 
   @IsString()
   @Expose()
   @ApiProperty()
-  valueId!: string;
+  optionId!: string;
 }
 
 export class NumberAttribute extends BaseAttribute {
@@ -41,12 +41,12 @@ export class NumberAttribute extends BaseAttribute {
   @IsNumber()
   @Expose()
   @ApiProperty()
-  value!: number;
+  option!: number;
 
   @IsString()
   @Expose()
   @ApiProperty()
-  valueId!: string;
+  optionId!: string;
 }
 
 export class SingleSelectAttribute extends BaseAttribute {
@@ -59,24 +59,24 @@ export class SingleSelectAttribute extends BaseAttribute {
   @IsString()
   @Expose()
   @ApiProperty()
-  value!: string;
+  option!: string;
 
   @IsString()
   @Expose()
   @ApiProperty()
-  valueId!: string;
+  optionId!: string;
 }
 
-class MultiSelectAttributeValue {
+class MultiSelectAttributeOption {
   @IsString()
   @Expose()
   @ApiProperty()
-  valueId!: string;
+  optionId!: string;
 
   @IsString()
   @Expose()
   @ApiProperty()
-  value!: string;
+  option!: string;
 }
 
 export class MultiSelectAttribute extends BaseAttribute {
@@ -89,7 +89,7 @@ export class MultiSelectAttribute extends BaseAttribute {
   @ValidateNested({ each: true })
   @Expose()
   @ApiProperty()
-  values!: MultiSelectAttributeValue[];
+  options!: MultiSelectAttributeOption[];
 }
 
 export type OrgUserAttribute = TextAttribute | NumberAttribute | SingleSelectAttribute | MultiSelectAttribute;

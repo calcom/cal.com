@@ -49,8 +49,8 @@ export class OrganizationsMembershipOutputService {
     return {
       id: attribute.id,
       name: attribute.name,
-      valueId: attribute.options[0].id,
-      value: attribute.options[0].value,
+      optionId: attribute.options[0].id,
+      option: attribute.options[0].value,
       type: "text",
     };
   }
@@ -59,8 +59,8 @@ export class OrganizationsMembershipOutputService {
     return {
       id: attribute.id,
       name: attribute.name,
-      valueId: attribute.options[0].id,
-      value: +attribute.options[0].value,
+      optionId: attribute.options[0].id,
+      option: +attribute.options[0].value,
       type: "number",
     };
   }
@@ -69,8 +69,8 @@ export class OrganizationsMembershipOutputService {
     return {
       id: attribute.id,
       name: attribute.name,
-      valueId: attribute.options[0].id,
-      value: attribute.options[0].value,
+      optionId: attribute.options[0].id,
+      option: attribute.options[0].value,
       type: "singleSelect",
     };
   }
@@ -79,9 +79,9 @@ export class OrganizationsMembershipOutputService {
     return {
       id: attribute.id,
       name: attribute.name,
-      values: attribute.options.map((option: GroupedAttribute["options"][number]) => ({
-        valueId: option.id,
-        value: option.value,
+      options: attribute.options.map((option: GroupedAttribute["options"][number]) => ({
+        optionId: option.id,
+        option: option.value,
       })),
       type: "multiSelect",
     };

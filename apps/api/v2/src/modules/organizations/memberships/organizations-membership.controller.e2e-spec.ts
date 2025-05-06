@@ -272,28 +272,28 @@ describe("Organizations Memberships Endpoints", () => {
       expect(responseNumberAttribute).toEqual({
         id: numberAttribute.id,
         name: numberAttribute.name,
-        valueId: numberAttributeOption.id,
-        value: +numberAttributeOption.value,
+        optionId: numberAttributeOption.id,
+        option: +numberAttributeOption.value,
         type: "number",
       });
       expect(responseSingleSelectAttribute).toEqual({
         id: singleSelectAttribute.id,
         name: singleSelectAttribute.name,
-        valueId: singleSelectAttributeOption.id,
-        value: singleSelectAttributeOption.value,
+        optionId: singleSelectAttributeOption.id,
+        option: singleSelectAttributeOption.value,
         type: "singleSelect",
       });
       expect(responseMultiSelectAttribute).toEqual({
         id: multiSelectAttribute.id,
         name: multiSelectAttribute.name,
-        values: [
+        options: [
           {
-            valueId: multiSelectAttributeOption2.id,
-            value: multiSelectAttributeOption2.value,
+            optionId: multiSelectAttributeOption2.id,
+            option: multiSelectAttributeOption2.value,
           },
           {
-            valueId: multiSelectAttributeOption.id,
-            value: multiSelectAttributeOption.value,
+            optionId: multiSelectAttributeOption.id,
+            option: multiSelectAttributeOption.value,
           },
         ],
         type: "multiSelect",
@@ -301,8 +301,8 @@ describe("Organizations Memberships Endpoints", () => {
       expect(responseTextAttribute).toEqual({
         id: textAttribute.id,
         name: textAttribute.name,
-        valueId: textAttributeOption.id,
-        value: textAttributeOption.value,
+        optionId: textAttributeOption.id,
+        option: textAttributeOption.value,
         type: "text",
       });
     }
