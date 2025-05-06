@@ -1,6 +1,6 @@
 ## Using `handleSlotSelect` for Custom Slot Selection Flows
 
-If you want to trigger a custom action immediately when a user selects a timeslot (before the booking form appears), you can use the `handleSlotSelect` prop. This prop allows you to intercept the slot selection event, enabling you to run custom logic—such as opening a modal, redirecting to a payment page, or tracking analytics—before proceeding with the booking flow.
+If you want to trigger a custom action immediately when a user selects a timeslot (before the booking form appears), you can use the `handleSlotSelect` prop. This prop allows you to intercept the slot selection event, enabling you to run custom logic—such as calling the reserve slot api's etc.
 
 **Example usage:**
 
@@ -9,7 +9,7 @@ If you want to trigger a custom action immediately when a user selects a timeslo
   handleSlotSelect={(timeslot) => {
     // Your custom logic here
     console.log("User selected timeslot:", timeslot);
-    // For example, call the reserve slot api's  
+    // For example, call the reserve slot api's etc. 
   }}
   // ...other props
 />
