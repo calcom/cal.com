@@ -947,7 +947,7 @@ const getBusyTimesFromLimitsForUsers = async (
           if (!limit) continue;
 
           const unit = intervalLimitKeyToUnit(key);
-          const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
+          const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
 
           for (const periodStart of periodStartDates) {
             if (limitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
@@ -1003,7 +1003,7 @@ const getBusyTimesFromLimitsForUsers = async (
           if (!limit) continue;
 
           const unit = intervalLimitKeyToUnit(key);
-          const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
+          const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
 
           for (const periodStart of periodStartDates) {
             if (limitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
@@ -1109,7 +1109,7 @@ const getBusyTimesFromTeamLimitsForUsers = async (
     const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
 
     for (const periodStart of periodStartDates) {
-      if (globalLimitManager.isAlreadyBusy(periodStart, unit)) continue;
+      if (globalLimitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
 
       const periodEnd = periodStart.endOf(unit);
       let totalBookings = 0;
@@ -1180,7 +1180,7 @@ const getBusyTimesFromTeamLimitsForUsers = async (
         const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
 
         for (const periodStart of periodStartDates) {
-          if (limitManager.isAlreadyBusy(periodStart, unit)) continue;
+          if (limitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
 
           if (unit === "year") {
             try {
