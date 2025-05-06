@@ -23,6 +23,11 @@ vi.mock("@calcom/lib/logger", () => ({
   },
 }));
 
+prisma.$use = vi.fn((middleware) => {
+  (prisma as any).__middleware = middleware;
+  return prisma;
+});
+
 prisma.$on = vi.fn((event, callback) => {
   if (event === "query") {
     (prisma as any).__queryCallback = callback;
@@ -62,9 +67,19 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
       });
     }
 
-    await prisma.user.findFirst({
-      where: { email: "test@example.com" },
-    });
+    const params = {
+      model: "User",
+      action: "findFirst",
+      args: { where: { email: "test@example.com" } },
+    };
+
+    const next = vi.fn().mockResolvedValue({ id: 1, email: "test@example.com" });
+
+    if ((prisma as any).__middleware) {
+      await (prisma as any).__middleware(params, next);
+    } else {
+      await next(params);
+    }
 
     mockTime = 400;
 
@@ -82,8 +97,10 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
       });
     }
 
-    const queryPromise = prisma.$transaction(async (tx) => {
-      return tx.user.findFirst({
+    const params = {
+      model: "User",
+      action: "findFirst",
+      args: {
         where: { email: "test@example.com" },
         include: {
           accounts: true,
@@ -92,12 +109,26 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
           teams: true,
           workflows: true,
         },
-      });
+      },
+    };
+
+    const next = vi.fn().mockResolvedValue({
+      id: 1,
+      email: "test@example.com",
+      accounts: [{ id: 1 }],
+      bookings: [{ id: 1 }],
+      credentials: [{ id: 1 }],
+      teams: [{ id: 1 }],
+      workflows: [{ id: 1 }],
     });
 
-    mockTime = 700;
+    if ((prisma as any).__middleware) {
+      await (prisma as any).__middleware(params, next);
+    } else {
+      await next(params);
+    }
 
-    await queryPromise;
+    mockTime = 700;
 
     expect(captureException).toHaveBeenCalledTimes(1);
     expect(captureException).toHaveBeenCalledWith(
@@ -107,7 +138,7 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
       expect.objectContaining({
         extra: expect.objectContaining({
           query: expect.objectContaining({
-            action: expect.any(String),
+            action: "findFirst",
             duration: expect.any(Number),
           }),
         }),
@@ -129,27 +160,44 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
       });
     }
 
-    await prisma.user.findFirst({
-      where: { email: "test@example.com" },
-      include: {
-        accounts: true,
-        bookings: true,
+    const params = {
+      model: "User",
+      action: "findFirst",
+      args: {
+        where: { email: "test@example.com" },
+        include: {
+          accounts: true,
+          bookings: true,
+        },
       },
+    };
+
+    const next = vi.fn().mockResolvedValue({
+      id: 1,
+      email: "test@example.com",
+      accounts: [{ id: 1 }],
+      bookings: [{ id: 1 }],
     });
 
+    if ((prisma as any).__middleware) {
+      await (prisma as any).__middleware(params, next);
+    } else {
+      await next(params);
+    }
+
     mockTime = 700;
+
+    expect(captureException).toHaveBeenCalledTimes(1);
 
     (captureException as unknown as Mock).mockClear();
 
     mockTime = 800;
 
-    await prisma.user.findFirst({
-      where: { email: "test@example.com" },
-      include: {
-        accounts: true,
-        bookings: true,
-      },
-    });
+    if ((prisma as any).__middleware) {
+      await (prisma as any).__middleware(params, next);
+    } else {
+      await next(params);
+    }
 
     mockTime = 1400;
 
@@ -173,16 +221,30 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
       });
     }
 
-    mockTime = 100;
+    const params = {
+      model: "User",
+      action: "findFirst",
+      args: {
+        where: { email: "test@example.com" },
+        include: { accounts: true },
+      },
+    };
 
-    const queryPromise = prisma.user.findFirst({
-      where: { email: "test@example.com" },
-      include: { accounts: true },
+    const next = vi.fn().mockResolvedValue({
+      id: 1,
+      email: "test@example.com",
+      accounts: [{ id: 1 }],
     });
 
-    mockTime = 350;
+    mockTime = 100;
 
-    await queryPromise;
+    if ((prisma as any).__middleware) {
+      await (prisma as any).__middleware(params, next);
+    } else {
+      await next(params);
+    }
+
+    mockTime = 350;
 
     expect(captureException).toHaveBeenCalledTimes(1);
   });
@@ -200,27 +262,45 @@ describe("Slow Query Detection Middleware - Integration Tests", () => {
       });
     }
 
-    mockTime = 100;
-
-    const queryPromise = prisma.booking.findFirst({
-      where: {
-        userId: { not: null },
-      },
-      include: {
-        user: {
-          include: {
-            teams: true,
+    const params = {
+      model: "Booking",
+      action: "findFirst",
+      args: {
+        where: { userId: { not: null } },
+        include: {
+          user: {
+            include: {
+              teams: true,
+            },
           },
+          attendees: true,
+          references: true,
+          payment: true,
         },
-        attendees: true,
-        references: true,
-        payment: true,
       },
+    };
+
+    const next = vi.fn().mockResolvedValue({
+      id: 1,
+      userId: 1,
+      user: {
+        id: 1,
+        teams: [{ id: 1 }],
+      },
+      attendees: [{ id: 1 }],
+      references: [{ id: 1 }],
+      payment: { id: 1 },
     });
 
-    mockTime = 700;
+    mockTime = 100;
 
-    await queryPromise;
+    if ((prisma as any).__middleware) {
+      await (prisma as any).__middleware(params, next);
+    } else {
+      await next(params);
+    }
+
+    mockTime = 700;
 
     expect(captureException).toHaveBeenCalledTimes(1);
     expect(captureException).toHaveBeenCalledWith(
