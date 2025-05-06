@@ -394,11 +394,7 @@ export async function getBookings({
   const bookingsFromUnion = (await kysely.executeQuery(getBookingsUnionCompiled)).rows;
 
   log.debug(`Get bookings for user ${user.id} SQL:`, getBookingsUnionCompiled.sql);
-  console.log(
-    `Get bookings for user ${user.id} SQL:`,
-    getBookingsUnionCompiled.sql,
-    getBookingsUnionCompiled.parameters
-  );
+
   const totalCount = Number(
     (
       await kysely
