@@ -53,7 +53,7 @@ import {
 } from "@calcom/lib/delegationCredential/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { getEventName } from "@calcom/lib/event";
+import { getEventName, updateHostInEventName } from "@calcom/lib/event";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -1258,6 +1258,19 @@ async function handler(
     !!originalRescheduledBooking.rescheduled &&
     originalRescheduledBooking.status === BookingStatus.CANCELLED;
 
+  if (
+    changedOrganizer &&
+    originalRescheduledBooking &&
+    originalRescheduledBooking?.user?.name &&
+    organizerUser?.name
+  ) {
+    evt.title = updateHostInEventName(
+      originalRescheduledBooking.title,
+      originalRescheduledBooking.user.name,
+      organizerUser.name
+    );
+  }
+
   let results: EventResult<AdditionalInformation & { url?: string; iCalUID?: string }>[] = [];
   let referencesToCreate: PartialReference[] = [];
 
@@ -1398,7 +1411,7 @@ async function handler(
       err.message
     );
     if (err.code === "P2002") {
-      throw new HttpError({ statusCode: 409, message: "booking_conflict" });
+      throw new HttpError({ statusCode: 409, message: ErrorCode.BookingConflict });
     }
     throw err;
   }
@@ -1426,7 +1439,6 @@ async function handler(
       : [];
 
     if (changedOrganizer) {
-      evt.title = getEventName(eventNameObject);
       // location might changed and will be new created in eventManager.create (organizer default location)
       evt.videoCallData = undefined;
       // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
