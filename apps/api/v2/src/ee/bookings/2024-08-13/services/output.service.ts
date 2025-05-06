@@ -22,7 +22,7 @@ import {
   RecurringBookingOutput_2024_08_13,
   SeatedAttendee,
 } from "@calcom/platform-types";
-import { Booking, BookingSeat } from "@calcom/prisma/client";
+import { Booking, BookingReference, BookingSeat } from "@calcom/prisma/client";
 
 export const bookingResponsesSchema = z
   .object({
@@ -443,5 +443,14 @@ export class OutputBookingsService_2024_08_13 {
         email: databaseBooking?.user?.email || "unknown",
       },
     };
+  }
+  getOutputBookingReferences(bookingReferences: Array<{ type: string; uid: string; id: number }>) {
+    return bookingReferences.map((bookingReference) => {
+      return {
+        type: bookingReference.type,
+        externalUid: bookingReference.uid,
+        id: bookingReference.id,
+      };
+    });
   }
 }

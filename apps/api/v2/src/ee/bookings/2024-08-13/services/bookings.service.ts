@@ -1,4 +1,5 @@
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import { BookingReference } from "@/ee/bookings/2024-08-13/outputs/booking-references.output";
 import { CalendarLink } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
 import { ErrorsBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/errors.service";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
@@ -804,5 +805,33 @@ export class BookingsService_2024_08_13 {
       // It can be made customizable through the API endpoint later.
       t: await getTranslation("en", "common"),
     });
+  }
+
+  async getBookingReferences(bookingUid: string, userId: number) {
+    const booking = await this.bookingsRepository.getByUidWithUser(bookingUid);
+
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid ${bookingUid} not found`);
+    }
+
+    if (booking.user?.id !== userId) {
+      throw new BadRequestException(`Booking with uid ${bookingUid} does not belong to user`);
+    }
+
+    const bookingReferences = await this.bookingsRepository.getBookingReferences(booking.id);
+
+    return this.outputService.getOutputBookingReferences(bookingReferences);
+  }
+
+  async getOrgBookingReferences(bookingUid: string) {
+    const booking = await this.bookingsRepository.getByUidWithUser(bookingUid);
+
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid ${bookingUid} not found`);
+    }
+
+    const bookingReferences = await this.bookingsRepository.getBookingReferences(booking.id);
+
+    return this.outputService.getOutputBookingReferences(bookingReferences);
   }
 }

@@ -3282,6 +3282,64 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/bookings/{bookingUid}/references": {
+      "get": {
+        "operationId": "OrganizationsTeamsBookingsController_getBookingReferences",
+        "summary": "Get 'Booking References' for a booking",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": " ",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingReferencesOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Bookings"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/connect": {
       "post": {
         "operationId": "OrganizationsConferencingController_connectTeamApp",
@@ -7448,6 +7506,56 @@
         ]
       }
     },
+    "/v2/bookings/{bookingUid}/references": {
+      "get": {
+        "operationId": "BookingsController_2024_08_13_getBookingReferences",
+        "summary": "Get 'Booking References' for a booking",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-08-13"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingReferencesOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
     "/v2/calendars/ics-feed/save": {
       "post": {
         "operationId": "CalendarsController_createIcsFeed",
@@ -11506,7 +11614,7 @@
       },
       "patch": {
         "operationId": "TeamsMembershipsController_updateTeamMembership",
-        "summary": "Create a membership",
+        "summary": "Update membership",
         "parameters": [
           {
             "name": "Authorization",
@@ -24136,6 +24244,47 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CalendarLink"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "BookingReference": {
+        "type": "object",
+        "properties": {
+          "externalUid": {
+            "type": "string",
+            "description": "The external uid of the booking reference"
+          },
+          "type": {
+            "type": "string"
+          },
+          "id": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "externalUid",
+          "type",
+          "id"
+        ]
+      },
+      "BookingReferencesOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "object",
+            "description": "The status of the request, always 'success' for successful responses",
+            "example": "success"
+          },
+          "data": {
+            "description": "Booking References",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingReference"
             }
           }
         },
