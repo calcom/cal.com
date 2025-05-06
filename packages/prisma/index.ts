@@ -7,7 +7,7 @@ import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallo
 import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
 import { usageTrackingExtention } from "./extensions/usage-tracking";
-import bookingReferenceMiddleware from "./middleware/bookingReference";
+import { bookingReferenceMiddleware } from "./middleware";
 import slowQueryDetectionMiddleware from "./middleware/slowQueryDetection";
 
 const prismaOptions: Prisma.PrismaClientOptions = {};
