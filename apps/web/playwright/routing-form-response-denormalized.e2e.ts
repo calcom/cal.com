@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 import { Prisma } from "@prisma/client";
 
+import type { Field as FormField } from "@calcom/app-store/routing-forms/types/types";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
@@ -182,15 +183,19 @@ test.describe("RoutingFormResponseDenormalized", () => {
         where: { id: formId },
       });
 
-      expect(formWithFields.fields).not.toBeNull();
-      expect(formWithFields.fields!).toHaveLength(5);
-      expect(formWithFields.fields![0]).toEqual({
+      const fields = formWithFields.fields as FormField[];
+      if (!fields) {
+        throw new Error("Form fields are required for this test");
+      }
+
+      expect(fields).toHaveLength(5);
+      expect(fields[0]).toEqual({
         id: "57734f65-8bbb-4065-9e71-fb7f0b7485f8",
         type: "text",
         label: "Manager",
         required: true,
       });
-      expect(formWithFields.fields![2].options).toHaveLength(2); // Verify multiselect options
+      expect(fields[2].options).toHaveLength(2); // Verify multiselect options
 
       // Verify the rest of the denormalized data
       expect(denormalizedResponse.formId).toBe(formId);
