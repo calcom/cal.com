@@ -9110,7 +9110,7 @@
         "tags": ["Organization Team Verified Resources"]
       }
     },
-    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phone-numbers": {
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones": {
       "get": {
         "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedPhoneNumbers",
         "summary": "Get list of verified phone numbers of an org team.",
@@ -9214,7 +9214,7 @@
         "tags": ["Organization Team Verified Resources"]
       }
     },
-    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phone-numbers/{id}": {
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/{id}": {
       "get": {
         "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedPhoneById",
         "summary": "Get verified phone number of an org team by id.",
@@ -11311,7 +11311,7 @@
         "tags": ["Teams Verified Resources"]
       }
     },
-    "/v2/teams/{teamId}/verified-resources/phone-numbers": {
+    "/v2/teams/{teamId}/verified-resources/phones": {
       "get": {
         "operationId": "TeamsVerifiedResourcesController_getVerifiedPhoneNumbers",
         "summary": "Get list of verified phone numbers of a team.",
@@ -11415,7 +11415,7 @@
         "tags": ["Teams Verified Resources"]
       }
     },
-    "/v2/teams/{teamId}/verified-resources/phone-numbers/{id}": {
+    "/v2/teams/{teamId}/verified-resources/phones/{id}": {
       "get": {
         "operationId": "TeamsVerifiedResourcesController_getVerifiedPhoneById",
         "summary": "Get verified phone number of a team by id.",
@@ -11675,7 +11675,7 @@
         "tags": ["Verified Resources"]
       }
     },
-    "/v2/verified-resources/phone-numbers": {
+    "/v2/verified-resources/phones": {
       "get": {
         "operationId": "UserVerifiedResourcesController_getVerifiedPhoneNumbers",
         "summary": "Get list of verified phone numbers.",
@@ -11763,7 +11763,7 @@
         "tags": ["Verified Resources"]
       }
     },
-    "/v2/verified-resources/phone-numbers/{id}": {
+    "/v2/verified-resources/phones/{id}": {
       "get": {
         "operationId": "UserVerifiedResourcesController_getVerifiedPhoneById",
         "summary": "Get verified phone number by id.",

@@ -19,6 +19,12 @@ generator zod {
   relationModel = "default"
 }
 
+generator kysely {
+  provider = "prisma-kysely"
+  output   = "../kysely"
+  fileName = "types.ts"
+}
+
 generator enums {
   provider = "ts-node --transpile-only ./enum-generator"
 }
