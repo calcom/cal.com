@@ -34,6 +34,7 @@ export const ZUpdateInputSchema = z.object({
   adminGetsNoSlotsNotification: z.boolean().optional(),
   allowSEOIndexing: z.boolean().optional(),
   orgProfileRedirectsToVerifiedDomain: z.boolean().optional(),
+  disablePhoneOnlySMSNotifications: z.boolean().optional(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;

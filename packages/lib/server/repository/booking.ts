@@ -395,6 +395,10 @@ export class BookingRepository {
           },
           where: {
             type: "daily_video",
+            deleted: null,
+          },
+          orderBy: {
+            id: "asc",
           },
         },
       },
