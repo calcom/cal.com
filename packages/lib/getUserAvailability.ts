@@ -619,10 +619,15 @@ export const getPeriodStartDatesBetween = (
   return monitorCallbackSync(_getPeriodStartDatesBetween, ...args);
 };
 
-const _getPeriodStartDatesBetween = (dateFrom: Dayjs, dateTo: Dayjs, period: IntervalLimitUnit) => {
+const _getPeriodStartDatesBetween = (
+  dateFrom: Dayjs,
+  dateTo: Dayjs,
+  period: IntervalLimitUnit,
+  timeZone?: string
+) => {
   const dates = [];
-  let startDate = dayjs(dateFrom).startOf(period);
-  const endDate = dayjs(dateTo).endOf(period);
+  let startDate = timeZone ? dayjs(dateFrom).tz(timeZone).startOf(period) : dayjs(dateFrom).startOf(period);
+  const endDate = timeZone ? dayjs(dateTo).tz(timeZone).endOf(period) : dayjs(dateTo).endOf(period);
 
   while (startDate.isBefore(endDate)) {
     dates.push(startDate);

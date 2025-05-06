@@ -889,22 +889,27 @@ const getBusyTimesFromLimitsForUsers = async (
       if (!limit) continue;
 
       const unit = intervalLimitKeyToUnit(key);
-      const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
+      const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
 
       for (const periodStart of periodStartDates) {
-        if (globalLimitManager.isAlreadyBusy(periodStart, unit)) continue;
+        if (globalLimitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
 
         const periodEnd = periodStart.endOf(unit);
         let totalBookings = 0;
 
         for (const booking of busyTimesFromLimitsBookings) {
-          const bookingStart = dayjs(booking.start);
-          if (!bookingStart.isBetween(periodStart, periodEnd, null, "[]")) {
+          const bookingStart = dayjs(booking.start).tz(timeZone);
+          const bookingDay = bookingStart.format("YYYY-MM-DD");
+          const periodStartDay = periodStart.format("YYYY-MM-DD");
+          const periodEndDay = periodEnd.format("YYYY-MM-DD");
+
+          if (bookingDay < periodStartDay || bookingDay > periodEndDay) {
             continue;
           }
+
           totalBookings++;
           if (totalBookings >= limit) {
-            globalLimitManager.addBusyTime(periodStart, unit);
+            globalLimitManager.addBusyTime(periodStart, unit, timeZone);
             break;
           }
         }
@@ -932,7 +937,7 @@ const getBusyTimesFromLimitsForUsers = async (
         unit = "day";
       }
 
-      limitManager.addBusyTime(start, unit);
+      limitManager.addBusyTime(start, unit, timeZone);
     }
 
     await monitorCallbackAsync(async () => {
@@ -945,7 +950,7 @@ const getBusyTimesFromLimitsForUsers = async (
           const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
 
           for (const periodStart of periodStartDates) {
-            if (limitManager.isAlreadyBusy(periodStart, unit)) continue;
+            if (limitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
 
             if (unit === "year") {
               try {
@@ -959,8 +964,10 @@ const getBusyTimesFromLimitsForUsers = async (
                   timeZone,
                 });
               } catch (_) {
-                limitManager.addBusyTime(periodStart, unit);
-                if (periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit))) {
+                limitManager.addBusyTime(periodStart, unit, timeZone);
+                if (
+                  periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
+                ) {
                   break;
                 }
               }
@@ -971,13 +978,18 @@ const getBusyTimesFromLimitsForUsers = async (
             let totalBookings = 0;
 
             for (const booking of userBookings) {
-              const bookingStart = dayjs(booking.start);
-              if (!bookingStart.isBetween(periodStart, periodEnd, null, "[]")) {
+              const bookingStart = dayjs(booking.start).tz(timeZone);
+              const bookingDay = bookingStart.format("YYYY-MM-DD");
+              const periodStartDay = periodStart.format("YYYY-MM-DD");
+              const periodEndDay = periodEnd.format("YYYY-MM-DD");
+
+              if (bookingDay < periodStartDay || bookingDay > periodEndDay) {
                 continue;
               }
+
               totalBookings++;
               if (totalBookings >= limit) {
-                limitManager.addBusyTime(periodStart, unit);
+                limitManager.addBusyTime(periodStart, unit, timeZone);
                 break;
               }
             }
@@ -994,12 +1006,12 @@ const getBusyTimesFromLimitsForUsers = async (
           const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
 
           for (const periodStart of periodStartDates) {
-            if (limitManager.isAlreadyBusy(periodStart, unit)) continue;
+            if (limitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
 
             const selectedDuration = (duration || eventType.length) ?? 0;
 
             if (selectedDuration > limit) {
-              limitManager.addBusyTime(periodStart, unit);
+              limitManager.addBusyTime(periodStart, unit, timeZone);
               continue;
             }
 
@@ -1011,8 +1023,10 @@ const getBusyTimesFromLimitsForUsers = async (
                 rescheduleUid,
               });
               if (totalYearlyDuration + selectedDuration > limit) {
-                limitManager.addBusyTime(periodStart, unit);
-                if (periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit))) {
+                limitManager.addBusyTime(periodStart, unit, timeZone);
+                if (
+                  periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
+                ) {
                   break;
                 }
               }
@@ -1023,13 +1037,18 @@ const getBusyTimesFromLimitsForUsers = async (
             let totalDuration = selectedDuration;
 
             for (const booking of userBookings) {
-              const bookingStart = dayjs(booking.start);
-              if (!bookingStart.isBetween(periodStart, periodEnd, null, "[]")) {
+              const bookingStart = dayjs(booking.start).tz(timeZone);
+              const bookingDay = bookingStart.format("YYYY-MM-DD");
+              const periodStartDay = periodStart.format("YYYY-MM-DD");
+              const periodEndDay = periodEnd.format("YYYY-MM-DD");
+
+              if (bookingDay < periodStartDay || bookingDay > periodEndDay) {
                 continue;
               }
+
               totalDuration += dayjs(booking.end).diff(dayjs(booking.start), "minute");
               if (totalDuration > limit) {
-                limitManager.addBusyTime(periodStart, unit);
+                limitManager.addBusyTime(periodStart, unit, timeZone);
                 break;
               }
             }
@@ -1087,7 +1106,7 @@ const getBusyTimesFromTeamLimitsForUsers = async (
     if (!limit) continue;
 
     const unit = intervalLimitKeyToUnit(key);
-    const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
+    const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
 
     for (const periodStart of periodStartDates) {
       if (globalLimitManager.isAlreadyBusy(periodStart, unit)) continue;
@@ -1096,13 +1115,18 @@ const getBusyTimesFromTeamLimitsForUsers = async (
       let totalBookings = 0;
 
       for (const booking of busyTimes) {
-        const bookingStart = dayjs(booking.start);
-        if (!bookingStart.isBetween(periodStart, periodEnd, null, "[]")) {
+        const bookingStart = dayjs(booking.start).tz(timeZone);
+        const bookingDay = bookingStart.format("YYYY-MM-DD");
+        const periodStartDay = periodStart.format("YYYY-MM-DD");
+        const periodEndDay = periodEnd.format("YYYY-MM-DD");
+
+        if (bookingDay < periodStartDay || bookingDay > periodEndDay) {
           continue;
         }
+
         totalBookings++;
         if (totalBookings >= limit) {
-          globalLimitManager.addBusyTime(periodStart, unit);
+          globalLimitManager.addBusyTime(periodStart, unit, timeZone);
           break;
         }
       }
@@ -1131,7 +1155,7 @@ const getBusyTimesFromTeamLimitsForUsers = async (
         unit = "day";
       }
 
-      limitManager.addBusyTime(start, unit);
+      limitManager.addBusyTime(start, unit, timeZone);
     }
 
     await monitorCallbackAsync(async () => {
@@ -1153,7 +1177,7 @@ const getBusyTimesFromTeamLimitsForUsers = async (
         if (!limit) continue;
 
         const unit = intervalLimitKeyToUnit(key);
-        const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
+        const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
 
         for (const periodStart of periodStartDates) {
           if (limitManager.isAlreadyBusy(periodStart, unit)) continue;
@@ -1171,8 +1195,10 @@ const getBusyTimesFromTeamLimitsForUsers = async (
                 timeZone,
               });
             } catch (_) {
-              limitManager.addBusyTime(periodStart, unit);
-              if (periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit))) {
+              limitManager.addBusyTime(periodStart, unit, timeZone);
+              if (
+                periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
+              ) {
                 return;
               }
             }
@@ -1183,13 +1209,18 @@ const getBusyTimesFromTeamLimitsForUsers = async (
           let totalBookings = 0;
 
           for (const booking of userBusyTimes) {
-            const bookingStart = dayjs(booking.start);
-            if (!bookingStart.isBetween(periodStart, periodEnd, null, "[]")) {
+            const bookingStart = dayjs(booking.start).tz(timeZone);
+            const bookingDay = bookingStart.format("YYYY-MM-DD");
+            const periodStartDay = periodStart.format("YYYY-MM-DD");
+            const periodEndDay = periodEnd.format("YYYY-MM-DD");
+
+            if (bookingDay < periodStartDay || bookingDay > periodEndDay) {
               continue;
             }
+
             totalBookings++;
             if (totalBookings >= limit) {
-              limitManager.addBusyTime(periodStart, unit);
+              limitManager.addBusyTime(periodStart, unit, timeZone);
               break;
             }
           }
