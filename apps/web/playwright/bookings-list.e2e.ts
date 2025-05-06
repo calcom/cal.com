@@ -1,4 +1,5 @@
 import { expect } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
@@ -469,6 +470,102 @@ test.describe("Bookings", () => {
     await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
 
     await expect(page.locator('[data-testid="booking-item"]')).toHaveCount(0);
+  });
+
+  test.describe("Filter Dropdown Item Search", () => {
+    const filterItemsConfig = [
+      { key: "eventTypeId", name: "Event Type", testId: "add-filter-item-eventTypeId" },
+      { key: "teamId", name: "Team", testId: "add-filter-item-teamId" },
+      { key: "userId", name: "Member", testId: "add-filter-item-userId" },
+      { key: "attendeeName", name: "Attendees Name", testId: "add-filter-item-attendeeName" },
+      { key: "attendeeEmail", name: "Attendee Email", testId: "add-filter-item-attendeeEmail" },
+      { key: "dateRange", name: "Date Range", testId: "add-filter-item-dateRange" },
+    ];
+    const searchInputSelector = "[cmdk-input]";
+
+    const getFilterItemLocator = (page: Page, testId: string) => page.locator(`[data-testid="${testId}"]`);
+
+    test.beforeEach(async ({ page, users }) => {
+      const user = await users.create();
+      await user.apiLogin();
+      const bookingsGetResponse = page.waitForResponse((response) =>
+        /\/api\/trpc\/bookings\/get.*/.test(response.url())
+      );
+      await page.goto(`/bookings/upcoming`);
+      await bookingsGetResponse;
+      await page.locator('[data-testid="add-filter-button"]').click();
+      // Ensure the search input within the filter type dropdown is visible
+      await expect(page.locator(searchInputSelector)).toBeVisible();
+    });
+
+    test("should show all filter items initially and after clearing search", async ({ page }) => {
+      const searchInput = page.locator(searchInputSelector);
+
+      // Initial check: all defined filter items should be visible
+      for (const item of filterItemsConfig) {
+        await expect(
+          getFilterItemLocator(page, item.testId),
+          `Item ${item.name} should be visible initially`
+        ).toBeVisible();
+      }
+
+      // Type something and then clear the search
+      await searchInput.fill("Some text");
+      await searchInput.clear(); // Or await searchInput.fill("");
+
+      // After clearing: all defined filter items should be visible again
+      for (const item of filterItemsConfig) {
+        await expect(
+          getFilterItemLocator(page, item.testId),
+          `Item ${item.name} should be visible after clearing search`
+        ).toBeVisible();
+      }
+    });
+
+    test("should filter items based on search term (exact and partial)", async ({ page }) => {
+      const searchInput = page.locator(searchInputSelector);
+
+      // Search for "Event Type" (exact match for one item)
+      await searchInput.fill("Event Type");
+      await expect(getFilterItemLocator(page, "add-filter-item-eventTypeId")).toBeVisible();
+      await expect(getFilterItemLocator(page, "add-filter-item-teamId")).toBeHidden();
+      await expect(getFilterItemLocator(page, "add-filter-item-userId")).toBeHidden();
+      await expect(getFilterItemLocator(page, "add-filter-item-attendeeName")).toBeHidden();
+      await expect(getFilterItemLocator(page, "add-filter-item-attendeeEmail")).toBeHidden();
+      await expect(getFilterItemLocator(page, "add-filter-item-dateRange")).toBeHidden();
+
+      // Search for "Att" (partial match for "Attendees Name" and "Attendee Email")
+      await searchInput.fill("Att");
+      await expect(getFilterItemLocator(page, "add-filter-item-attendeeName")).toBeVisible();
+      await expect(getFilterItemLocator(page, "add-filter-item-attendeeEmail")).toBeVisible();
+      await expect(getFilterItemLocator(page, "add-filter-item-eventTypeId")).toBeHidden();
+      await expect(getFilterItemLocator(page, "add-filter-item-teamId")).toBeHidden();
+      await expect(getFilterItemLocator(page, "add-filter-item-userId")).toBeHidden();
+      await expect(getFilterItemLocator(page, "add-filter-item-dateRange")).toBeHidden();
+    });
+
+    test("search should be case-insensitive", async ({ page }) => {
+      const searchInput = page.locator(searchInputSelector);
+
+      // Search for "member" (lowercase)
+      await searchInput.fill("member");
+      await expect(getFilterItemLocator(page, "add-filter-item-userId")).toBeVisible(); // For "Member"
+      await expect(getFilterItemLocator(page, "add-filter-item-eventTypeId")).toBeHidden();
+      await expect(getFilterItemLocator(page, "add-filter-item-teamId")).toBeHidden();
+    });
+
+    test("should show no items for a non-matching search term", async ({ page }) => {
+      const searchInput = page.locator(searchInputSelector);
+      const nonExistentTerm = "NonExistentFilterXYZ123";
+      await searchInput.fill(nonExistentTerm);
+
+      for (const item of filterItemsConfig) {
+        await expect(
+          getFilterItemLocator(page, item.testId),
+          `Item ${item.name} should be hidden for non-matching term '${nonExistentTerm}'`
+        ).toBeHidden();
+      }
+    });
   });
 });
 
