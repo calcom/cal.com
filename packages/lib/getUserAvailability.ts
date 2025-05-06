@@ -182,6 +182,12 @@ export type GetUserAvailabilityInitialData = {
     reason: Pick<OutOfOfficeReason, "id" | "emoji" | "reason"> | null;
   })[];
   busyTimesFromLimitsBookings: EventBusyDetails[];
+  busyTimesFromLimits?: Map<number, EventBusyDetails[]>;
+  eventTypeForLimits?: {
+    id: number;
+    bookingLimits?: unknown;
+    durationLimits?: unknown;
+  } | null;
   teamBookingLimits?: Map<number, EventBusyDetails[]>;
   teamForBookingLimits?: {
     id: number;
@@ -358,20 +364,24 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
 
-  const busyTimesFromLimits =
-    eventType && (bookingLimits || durationLimits)
-      ? await getBusyTimesFromLimits(
-          bookingLimits,
-          durationLimits,
-          dateFrom.tz(timeZone),
-          dateTo.tz(timeZone),
-          duration,
-          eventType,
-          initialData?.busyTimesFromLimitsBookings ?? [],
-          timeZone,
-          initialData?.rescheduleUid ?? undefined
-        )
-      : [];
+  let busyTimesFromLimits: EventBusyDetails[] = [];
+
+  if (initialData?.busyTimesFromLimits && initialData?.eventTypeForLimits) {
+    busyTimesFromLimits = initialData.busyTimesFromLimits.get(user.id) || [];
+  } else if (eventType && (bookingLimits || durationLimits)) {
+    // Fall back to individual query if not available in initialData
+    busyTimesFromLimits = await getBusyTimesFromLimits(
+      bookingLimits,
+      durationLimits,
+      dateFrom.tz(timeZone),
+      dateTo.tz(timeZone),
+      duration,
+      eventType,
+      initialData?.busyTimesFromLimitsBookings ?? [],
+      timeZone,
+      initialData?.rescheduleUid ?? undefined
+    );
+  }
 
   const teamForBookingLimits =
     initialData?.teamForBookingLimits ??

@@ -16,7 +16,13 @@ import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks, getStartEndDateforLimitCheck } from "@calcom/lib/getBusyTimes";
-import type { CurrentSeats, GetAvailabilityUser, IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
+import type {
+  CurrentSeats,
+  GetAvailabilityUser,
+  IFromUser,
+  IToUser,
+  EventType,
+} from "@calcom/lib/getUserAvailability";
 import { getUsersAvailability, getPeriodStartDatesBetween } from "@calcom/lib/getUserAvailability";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
@@ -32,6 +38,7 @@ import {
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import monitorCallbackAsync, { monitorCallbackSync } from "@calcom/lib/sentryWrapper";
+import { getTotalBookingDuration } from "@calcom/lib/server/queries";
 import { BookingRepository as BookingRepo } from "@calcom/lib/server/repository/booking";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
@@ -839,6 +846,154 @@ export function getAllDatesWithBookabilityStatus(availableDates: string[]) {
 }
 
 /**
+ * Gets busy times from limits for multiple users
+ */
+const getBusyTimesFromLimitsForUsers = async (
+  users: { id: number; email: string }[],
+  bookingLimits: IntervalLimit | null,
+  durationLimits: IntervalLimit | null,
+  dateFrom: Dayjs,
+  dateTo: Dayjs,
+  duration: number | undefined,
+  eventType: NonNullable<EventType>,
+  timeZone: string,
+  rescheduleUid?: string
+) => {
+  const userBusyTimesMap = new Map<number, EventBusyDetails[]>();
+
+  if (!bookingLimits && !durationLimits) {
+    return userBusyTimesMap;
+  }
+
+  const { limitDateFrom, limitDateTo } = getStartEndDateforLimitCheck(
+    dateFrom.toISOString(),
+    dateTo.toISOString(),
+    bookingLimits || durationLimits
+  );
+
+  const busyTimesFromLimitsBookings = await getBusyTimesForLimitChecks({
+    userIds: users.map((user) => user.id),
+    eventTypeId: eventType.id,
+    startDate: limitDateFrom.format(),
+    endDate: limitDateTo.format(),
+    rescheduleUid,
+    bookingLimits,
+    durationLimits,
+  });
+
+  for (const user of users) {
+    const userBookings = busyTimesFromLimitsBookings.filter((booking) => booking.userId === user.id);
+
+    const limitManager = new LimitManager();
+
+    await monitorCallbackAsync(async () => {
+      if (bookingLimits) {
+        for (const key of descendingLimitKeys) {
+          const limit = bookingLimits?.[key];
+          if (!limit) continue;
+
+          const unit = intervalLimitKeyToUnit(key);
+          const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
+
+          for (const periodStart of periodStartDates) {
+            if (limitManager.isAlreadyBusy(periodStart, unit)) continue;
+
+            if (unit === "year") {
+              try {
+                await checkBookingLimit({
+                  eventStartDate: periodStart.toDate(),
+                  limitingNumber: limit,
+                  eventId: eventType.id,
+                  key,
+                  user,
+                  rescheduleUid,
+                  timeZone,
+                });
+              } catch (_) {
+                limitManager.addBusyTime(periodStart, unit);
+                if (periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit))) {
+                  break;
+                }
+              }
+              continue;
+            }
+
+            const periodEnd = periodStart.endOf(unit);
+            let totalBookings = 0;
+
+            for (const booking of userBookings) {
+              if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
+                continue;
+              }
+              totalBookings++;
+              if (totalBookings >= limit) {
+                limitManager.addBusyTime(periodStart, unit);
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      if (durationLimits) {
+        for (const key of descendingLimitKeys) {
+          const limit = durationLimits?.[key];
+          if (!limit) continue;
+
+          const unit = intervalLimitKeyToUnit(key);
+          const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
+
+          for (const periodStart of periodStartDates) {
+            if (limitManager.isAlreadyBusy(periodStart, unit)) continue;
+
+            const selectedDuration = (duration || eventType.length) ?? 0;
+
+            if (selectedDuration > limit) {
+              limitManager.addBusyTime(periodStart, unit);
+              continue;
+            }
+
+            if (unit === "year") {
+              const totalYearlyDuration = await getTotalBookingDuration({
+                eventId: eventType.id,
+                startDate: periodStart.toDate(),
+                endDate: periodStart.endOf(unit).toDate(),
+                rescheduleUid,
+              });
+              if (totalYearlyDuration + selectedDuration > limit) {
+                limitManager.addBusyTime(periodStart, unit);
+                if (periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit))) {
+                  break;
+                }
+              }
+              continue;
+            }
+
+            const periodEnd = periodStart.endOf(unit);
+            let totalDuration = selectedDuration;
+
+            for (const booking of userBookings) {
+              if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
+                continue;
+              }
+              totalDuration += dayjs(booking.end).diff(dayjs(booking.start), "minute");
+              if (totalDuration > limit) {
+                limitManager.addBusyTime(periodStart, unit);
+                break;
+              }
+            }
+          }
+        }
+      }
+    });
+
+    userBusyTimesMap.set(user.id, limitManager.getBusyTimes());
+  }
+
+  return userBusyTimesMap;
+};
+
+/**
  * Gets busy times from team booking limits for multiple users
  */
 const getBusyTimesFromTeamLimitsForUsers = async (
@@ -1019,6 +1174,22 @@ const calculateHostsAndAvailabilities = async ({
     });
   }
 
+  let busyTimesFromLimitsMap: Map<number, EventBusyDetails[]> | undefined = undefined;
+  if (eventType && (bookingLimits || durationLimits)) {
+    const usersForLimits = usersWithCredentials.map((user) => ({ id: user.id, email: user.email }));
+    busyTimesFromLimitsMap = await getBusyTimesFromLimitsForUsers(
+      usersForLimits,
+      bookingLimits,
+      durationLimits,
+      startTime,
+      endTime,
+      typeof input.duration === "number" ? input.duration : undefined,
+      eventType,
+      usersWithCredentials[0]?.timeZone || "UTC",
+      input.rescheduleUid || undefined
+    );
+  }
+
   const teamForBookingLimits =
     eventType?.team ??
     (eventType?.parent?.team?.includeManagedEventsInLimits ? eventType?.parent?.team : null);
@@ -1075,6 +1246,8 @@ const calculateHostsAndAvailabilities = async ({
       currentSeats,
       rescheduleUid: input.rescheduleUid,
       busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
+      busyTimesFromLimits: busyTimesFromLimitsMap,
+      eventTypeForLimits: eventType && (bookingLimits || durationLimits) ? eventType : null,
       teamBookingLimits: teamBookingLimitsMap,
       teamForBookingLimits: teamForBookingLimits,
     },
