@@ -6,7 +6,6 @@ import "vitest-fetch-mock";
 
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
-import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import logger from "@calcom/lib/logger";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
@@ -31,7 +30,11 @@ import { getOfficeAppKeys } from "./getOfficeAppKeys";
 
 // Mock dependencies
 vi.mock("../../_utils/oauth/getTokenObjectFromCredential");
-vi.mock("@calcom/features/flags/server/utils");
+vi.mock("@calcom/features/flags/features.repository", () => ({
+  FeaturesRepository: vi.fn().mockImplementation(() => ({
+    checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(true),
+  })),
+}));
 vi.mock("./getOfficeAppKeys");
 
 const log = logger.getSubLogger({ prefix: ["Office365CalendarService.test"] });
@@ -48,11 +51,9 @@ beforeEach(() => {
     client_id: "mock_client_id",
     client_secret: "mock_client_secret",
   });
-  vi.mocked(getFeatureFlag).mockResolvedValue(true);
 });
 
 afterEach(() => {
-  vi.restoreAllMocks();
   vi.useRealTimers();
 });
 
