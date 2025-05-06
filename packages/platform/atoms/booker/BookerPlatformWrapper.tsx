@@ -60,6 +60,7 @@ export const BookerPlatformWrapper = (
     allowUpdatingUrlParams = false,
     confirmButtonDisabled,
     isBookingDryRun,
+    handleSlotSelect,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -400,6 +401,7 @@ export const BookerPlatformWrapper = (
     onDeleteSlotSuccess: props.onDeleteSlotSuccess,
     onDeleteSlotError: props.onDeleteSlotError,
     isBookingDryRun: routingParams?.isBookingDryRun,
+    handleSlotSelect,
   });
 
   const { data: connectedCalendars, isPending: fetchingConnectedCalendars } = useConnectedCalendars({
