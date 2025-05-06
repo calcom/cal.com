@@ -9110,7 +9110,7 @@
         "tags": ["Organization Team Verified Resources"]
       }
     },
-    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phone-numbers": {
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones": {
       "get": {
         "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedPhoneNumbers",
         "summary": "Get list of verified phone numbers of an org team.",
@@ -9214,7 +9214,7 @@
         "tags": ["Organization Team Verified Resources"]
       }
     },
-    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phone-numbers/{id}": {
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/{id}": {
       "get": {
         "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedPhoneById",
         "summary": "Get verified phone number of an org team by id.",
@@ -11311,7 +11311,7 @@
         "tags": ["Teams Verified Resources"]
       }
     },
-    "/v2/teams/{teamId}/verified-resources/phone-numbers": {
+    "/v2/teams/{teamId}/verified-resources/phones": {
       "get": {
         "operationId": "TeamsVerifiedResourcesController_getVerifiedPhoneNumbers",
         "summary": "Get list of verified phone numbers of a team.",
@@ -11415,7 +11415,7 @@
         "tags": ["Teams Verified Resources"]
       }
     },
-    "/v2/teams/{teamId}/verified-resources/phone-numbers/{id}": {
+    "/v2/teams/{teamId}/verified-resources/phones/{id}": {
       "get": {
         "operationId": "TeamsVerifiedResourcesController_getVerifiedPhoneById",
         "summary": "Get verified phone number of a team by id.",
@@ -11675,7 +11675,7 @@
         "tags": ["Verified Resources"]
       }
     },
-    "/v2/verified-resources/phone-numbers": {
+    "/v2/verified-resources/phones": {
       "get": {
         "operationId": "UserVerifiedResourcesController_getVerifiedPhoneNumbers",
         "summary": "Get list of verified phone numbers.",
@@ -11763,7 +11763,7 @@
         "tags": ["Verified Resources"]
       }
     },
-    "/v2/verified-resources/phone-numbers/{id}": {
+    "/v2/verified-resources/phones/{id}": {
       "get": {
         "operationId": "UserVerifiedResourcesController_getVerifiedPhoneById",
         "summary": "Get verified phone number by id.",
@@ -16823,6 +16823,114 @@
         "type": "object",
         "properties": {}
       },
+      "BaseAttribute": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "name"]
+      },
+      "TextAttribute": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "valueId": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "name", "type", "value", "valueId"]
+      },
+      "NumberAttribute": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "value": {
+            "type": "number"
+          },
+          "valueId": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "name", "type", "value", "valueId"]
+      },
+      "SingleSelectAttribute": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "valueId": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "name", "type", "value", "valueId"]
+      },
+      "MultiSelectAttributeValue": {
+        "type": "object",
+        "properties": {
+          "valueId": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": ["valueId", "value"]
+      },
+      "MultiSelectAttribute": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MultiSelectAttributeValue"
+            }
+          }
+        },
+        "required": ["id", "name", "type", "values"]
+      },
       "MembershipUserOutputDto": {
         "type": "object",
         "properties": {
@@ -16850,7 +16958,7 @@
         },
         "required": ["email"]
       },
-      "TeamMembershipOutput": {
+      "OrganizationMembershipOutput": {
         "type": "object",
         "properties": {
           "id": {
@@ -16874,9 +16982,28 @@
           },
           "user": {
             "$ref": "#/components/schemas/MembershipUserOutputDto"
+          },
+          "attributes": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/TextAttribute"
+                },
+                {
+                  "$ref": "#/components/schemas/NumberAttribute"
+                },
+                {
+                  "$ref": "#/components/schemas/SingleSelectAttribute"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiSelectAttribute"
+                }
+              ]
+            }
           }
         },
-        "required": ["id", "userId", "teamId", "accepted", "role", "user"]
+        "required": ["id", "userId", "teamId", "accepted", "role", "user", "attributes"]
       },
       "GetAllOrgMemberships": {
         "type": "object",
@@ -16887,7 +17014,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/TeamMembershipOutput"
+            "$ref": "#/components/schemas/OrganizationMembershipOutput"
           }
         },
         "required": ["status", "data"]
@@ -16924,7 +17051,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/TeamMembershipOutput"
+            "$ref": "#/components/schemas/OrganizationMembershipOutput"
           }
         },
         "required": ["status", "data"]
@@ -16938,7 +17065,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/TeamMembershipOutput"
+            "$ref": "#/components/schemas/OrganizationMembershipOutput"
           }
         },
         "required": ["status", "data"]
@@ -16952,7 +17079,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/TeamMembershipOutput"
+            "$ref": "#/components/schemas/OrganizationMembershipOutput"
           }
         },
         "required": ["status", "data"]
@@ -16981,7 +17108,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/TeamMembershipOutput"
+            "$ref": "#/components/schemas/OrganizationMembershipOutput"
           }
         },
         "required": ["status", "data"]
@@ -18109,6 +18236,34 @@
           }
         },
         "required": ["status", "data"]
+      },
+      "TeamMembershipOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "userId": {
+            "type": "number"
+          },
+          "teamId": {
+            "type": "number"
+          },
+          "accepted": {
+            "type": "boolean"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["MEMBER", "OWNER", "ADMIN"]
+          },
+          "disableImpersonation": {
+            "type": "boolean"
+          },
+          "user": {
+            "$ref": "#/components/schemas/MembershipUserOutputDto"
+          }
+        },
+        "required": ["id", "userId", "teamId", "accepted", "role", "user"]
       },
       "OrgTeamMembershipsOutputResponseDto": {
         "type": "object",
