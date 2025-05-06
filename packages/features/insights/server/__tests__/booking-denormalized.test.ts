@@ -9,11 +9,13 @@ describe("BookingDenormalized", () => {
   let bookingId: number;
 
   beforeEach(async () => {
+    const randomId = Math.floor(Math.random() * 1000000);
+
     // Create test user
     const user = await prisma.user.create({
       data: {
-        email: `booking-denorm-${Math.floor(Math.random() * 1000)}@example.com`,
-        username: "testuser",
+        email: `booking-denorm-${randomId}@example.com`,
+        username: `booking-denorm-testuser-${randomId}`,
         name: "Test User",
       },
     });
@@ -33,13 +35,13 @@ describe("BookingDenormalized", () => {
     // Create test booking
     const booking = await prisma.booking.create({
       data: {
-        uid: "test-booking",
+        uid: `booking-denorm-${randomId}`,
         title: "Test Booking",
         startTime: new Date(),
         endTime: new Date(Date.now() + 60 * 60 * 1000), // 1 hour later
         userId: user.id,
         eventTypeId: eventType.id,
-        status: BookingStatus.ACCEPTED,
+        status: BookingStatus.PENDING,
       },
     });
     bookingId = booking.id;
