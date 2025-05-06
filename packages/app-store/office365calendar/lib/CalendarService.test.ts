@@ -133,8 +133,10 @@ const testSelectedCalendar = {
   externalId: "example@cal.com",
 };
 
-vi.mock("@calcom/features/flags/server/utils", () => ({
-  getFeatureFlag: vi.fn().mockReturnValue(true),
+vi.mock("@calcom/features/flags/features.repository", () => ({
+  FeaturesRepository: vi.fn().mockImplementation(() => ({
+    checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(true),
+  })),
 }));
 
 let requestRawSpyInstance: Mock;
