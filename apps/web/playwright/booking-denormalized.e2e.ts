@@ -1,18 +1,23 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { expect } from "@playwright/test";
 
-import { prisma } from "@calcom/prisma";
+import type { User, EventType } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-describe("BookingDenormalized", () => {
+import { test } from "./lib/fixtures";
+
+test.describe.configure({ mode: "parallel" });
+
+test.describe("BookingDenormalized", () => {
   let userId: number;
   let eventTypeId: number;
   let bookingId: number;
+  let user: User;
+  let eventType: EventType;
 
-  beforeEach(async () => {
+  test.beforeEach(async ({ prisma }) => {
+    // Create test user with random email to avoid conflicts
     const randomId = Math.floor(Math.random() * 1000000);
-
-    // Create test user
-    const user = await prisma.user.create({
+    user = await prisma.user.create({
       data: {
         email: `booking-denorm-${randomId}@example.com`,
         username: `booking-denorm-testuser-${randomId}`,
@@ -22,7 +27,7 @@ describe("BookingDenormalized", () => {
     userId = user.id;
 
     // Create test event type
-    const eventType = await prisma.eventType.create({
+    eventType = await prisma.eventType.create({
       data: {
         title: "Test Event",
         slug: "test-event",
@@ -32,7 +37,7 @@ describe("BookingDenormalized", () => {
     });
     eventTypeId = eventType.id;
 
-    // Create test booking
+    // Create test booking with PENDING status (no idempotencyKey needed)
     const booking = await prisma.booking.create({
       data: {
         uid: `booking-denorm-${randomId}`,
@@ -47,7 +52,7 @@ describe("BookingDenormalized", () => {
     bookingId = booking.id;
   });
 
-  afterEach(async () => {
+  test.afterEach(async ({ prisma }) => {
     // Clean up test data in reverse order of creation to avoid foreign key constraints
     if (bookingId) {
       await prisma.booking.deleteMany({
@@ -66,7 +71,7 @@ describe("BookingDenormalized", () => {
     }
   });
 
-  it("should create denormalized entry when booking is created", async () => {
+  test("should create denormalized entry when booking is created", async ({ prisma }) => {
     const denormalizedBooking = await prisma.bookingDenormalized.findUniqueOrThrow({
       where: { id: bookingId },
     });
@@ -78,8 +83,7 @@ describe("BookingDenormalized", () => {
     expect(denormalizedBooking.userName).toBe("Test User");
   });
 
-  it("should update denormalized entry when booking is updated", async () => {
-    // Update booking
+  test("should update denormalized entry when booking is updated", async ({ prisma }) => {
     await prisma.booking.update({
       where: { id: bookingId },
       data: {
@@ -88,16 +92,15 @@ describe("BookingDenormalized", () => {
       },
     });
 
-    const denormalizedBooking = await prisma.bookingDenormalized.findUniqueOrThrow({
+    const updatedDenormalizedBooking = await prisma.bookingDenormalized.findUniqueOrThrow({
       where: { id: bookingId },
     });
 
-    expect(denormalizedBooking.title).toBe("Updated Booking");
-    expect(denormalizedBooking.status).toBe(BookingStatus.CANCELLED);
+    expect(updatedDenormalizedBooking.title).toBe("Updated Booking");
+    expect(updatedDenormalizedBooking.status).toBe(BookingStatus.CANCELLED);
   });
 
-  it("should update denormalized entry when user is updated", async () => {
-    // Update user
+  test("should update denormalized entry when user is updated", async ({ prisma }) => {
     await prisma.user.update({
       where: { id: userId },
       data: {
@@ -106,16 +109,15 @@ describe("BookingDenormalized", () => {
       },
     });
 
-    const denormalizedBooking = await prisma.bookingDenormalized.findUniqueOrThrow({
+    const userUpdatedDenormalizedBooking = await prisma.bookingDenormalized.findUniqueOrThrow({
       where: { id: bookingId },
     });
 
-    expect(denormalizedBooking.userName).toBe("Updated User");
-    expect(denormalizedBooking.userEmail).toBe("updated@example.com");
+    expect(userUpdatedDenormalizedBooking.userName).toBe("Updated User");
+    expect(userUpdatedDenormalizedBooking.userEmail).toBe("updated@example.com");
   });
 
-  it("should update denormalized entry when event type is updated", async () => {
-    // Update event type
+  test("should update denormalized entry when event type is updated", async ({ prisma }) => {
     await prisma.eventType.update({
       where: { id: eventTypeId },
       data: {
@@ -123,88 +125,77 @@ describe("BookingDenormalized", () => {
       },
     });
 
-    const denormalizedBooking = await prisma.bookingDenormalized.findUniqueOrThrow({
+    const eventTypeUpdatedDenormalizedBooking = await prisma.bookingDenormalized.findUniqueOrThrow({
       where: { id: bookingId },
     });
 
-    expect(denormalizedBooking.eventLength).toBe(30);
+    expect(eventTypeUpdatedDenormalizedBooking.eventLength).toBe(30);
   });
 
-  it("should delete denormalized entry when booking is deleted", async () => {
-    // Delete booking
+  test("should delete denormalized entry when booking is deleted", async ({ prisma }) => {
     await prisma.booking.delete({
       where: { id: bookingId },
     });
 
-    const denormalizedBooking = await prisma.bookingDenormalized.findUnique({
+    const deletedDenormalizedBooking = await prisma.bookingDenormalized.findUnique({
       where: { id: bookingId },
     });
 
-    expect(denormalizedBooking).toBeNull();
+    expect(deletedDenormalizedBooking).toBeNull();
   });
 
-  it("should delete denormalized entries when user is deleted", async () => {
-    // Create another booking for the same user
+  test("should update denormalized entries when event type is deleted", async ({ prisma }) => {
+    // Create an additional booking for this test
     const booking2 = await prisma.booking.create({
       data: {
-        uid: "test-booking-2",
+        uid: `test-booking-${Math.floor(Math.random() * 1000000)}`,
         title: "Test Booking 2",
         startTime: new Date(),
         endTime: new Date(Date.now() + 60 * 60 * 1000),
         userId: userId,
         eventTypeId: eventTypeId,
-        status: BookingStatus.ACCEPTED,
+        status: BookingStatus.PENDING,
       },
     });
 
-    // Delete user
-    await prisma.user.delete({
-      where: { id: userId },
-    });
-
-    // Check both denormalized bookings
-    const denormalizedBooking1 = await prisma.bookingDenormalized.findUnique({
-      where: { id: bookingId },
-    });
-    const denormalizedBooking2 = await prisma.bookingDenormalized.findUnique({
-      where: { id: booking2.id },
-    });
-
-    expect(denormalizedBooking1).toBeNull();
-    expect(denormalizedBooking2).toBeNull();
-  });
-
-  it("should update denormalized entries when event type is deleted", async () => {
-    // Create another booking for the same event type
-    const booking2 = await prisma.booking.create({
-      data: {
-        uid: "test-booking-2",
-        title: "Test Booking 2",
-        startTime: new Date(),
-        endTime: new Date(Date.now() + 60 * 60 * 1000),
-        userId: userId,
-        eventTypeId: eventTypeId,
-        status: BookingStatus.ACCEPTED,
-      },
-    });
-
-    // Delete event type
     await prisma.eventType.delete({
       where: { id: eventTypeId },
     });
 
-    // Check both denormalized bookings
-    const denormalizedBooking1 = await prisma.bookingDenormalized.findUniqueOrThrow({
-      where: { id: bookingId },
-    });
-    const denormalizedBooking2 = await prisma.bookingDenormalized.findUniqueOrThrow({
+    const eventTypeDeletedDenormalizedBooking = await prisma.bookingDenormalized.findUniqueOrThrow({
       where: { id: booking2.id },
     });
 
-    expect(denormalizedBooking1.eventTypeId).toBeNull();
-    expect(denormalizedBooking1.eventLength).toBeNull();
+    expect(eventTypeDeletedDenormalizedBooking.eventTypeId).toBeNull();
+    expect(eventTypeDeletedDenormalizedBooking.eventLength).toBeNull();
+  });
 
-    expect(denormalizedBooking2.eventTypeId).toBeNull();
-    expect(denormalizedBooking2.eventLength).toBeNull();
+  test("should delete denormalized entries when user is deleted", async ({ prisma }) => {
+    // Create an additional booking for this test
+    const booking2 = await prisma.booking.create({
+      data: {
+        uid: `test-booking-${Math.floor(Math.random() * 1000000)}`,
+        title: "Test Booking 2",
+        startTime: new Date(),
+        endTime: new Date(Date.now() + 60 * 60 * 1000),
+        userId: userId,
+        eventTypeId: eventTypeId,
+        status: BookingStatus.PENDING,
+      },
+    });
+
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+
+    const userDeletedDenormalizedBooking1 = await prisma.bookingDenormalized.findUnique({
+      where: { id: bookingId },
+    });
+    const userDeletedDenormalizedBooking2 = await prisma.bookingDenormalized.findUnique({
+      where: { id: booking2.id },
+    });
+
+    expect(userDeletedDenormalizedBooking1).toBeNull();
+    expect(userDeletedDenormalizedBooking2).toBeNull();
   });
 });
