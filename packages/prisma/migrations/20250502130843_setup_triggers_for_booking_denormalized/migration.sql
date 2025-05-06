@@ -13,8 +13,33 @@ BEGIN
     -- Delete existing entry if any
     DELETE FROM "BookingDenormalized" WHERE id = booking_id;
 
-    -- Insert only if both EventType and user exist
-    INSERT INTO "BookingDenormalized"
+    -- Insert a denormalized booking joined with EventType and user
+    INSERT INTO "BookingDenormalized" (
+        id,
+        uid,
+        "eventTypeId",
+        title,
+        description,
+        "startTime",
+        "endTime",
+        "createdAt",
+        "updatedAt",
+        location,
+        paid,
+        status,
+        rescheduled,
+        "userId",
+        "teamId",
+        "eventLength",
+        "eventParentId",
+        "userEmail",
+        "userName",
+        "userUsername",
+        "ratingFeedback",
+        "rating",
+        "noShowHost",
+        "isTeamBooking"
+    )
     SELECT
         "Booking".id,
         "Booking".uid,
