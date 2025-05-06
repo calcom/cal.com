@@ -12,7 +12,7 @@ describe("BookingDenormalized", () => {
     // Create test user
     const user = await prisma.user.create({
       data: {
-        email: "booking-denorm-test@example.com",
+        email: `booking-denorm-${Math.floor(Math.random() * 1000)}@example.com`,
         username: "testuser",
         name: "Test User",
       },
