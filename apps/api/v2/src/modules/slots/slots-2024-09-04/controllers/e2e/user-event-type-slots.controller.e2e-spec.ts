@@ -454,9 +454,6 @@ describe("Slots 2024-09-04 Endpoints", () => {
       expect(responseReservedSlot.eventTypeId).toEqual(eventTypeId);
       expect(responseReservedSlot.slotStart).toEqual(slotStartTime);
       expect(responseReservedSlot.slotDuration).toEqual(eventTypeLength);
-      console.log("asap responseReservedSlot.slotStart", responseReservedSlot.slotStart);
-      console.log("asap responseReservedSlot.slotDuration", responseReservedSlot.slotDuration);
-      console.log("asap responseReservedSlot.slotEnd", responseReservedSlot.slotEnd);
       expect(responseReservedSlot.slotEnd).toEqual(
         DateTime.fromISO(slotStartTime, { zone: "UTC" }).plus({ minutes: eventTypeLength }).toISO()
       );
