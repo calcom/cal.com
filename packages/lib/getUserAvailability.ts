@@ -182,6 +182,12 @@ export type GetUserAvailabilityInitialData = {
     reason: Pick<OutOfOfficeReason, "id" | "emoji" | "reason"> | null;
   })[];
   busyTimesFromLimitsBookings: EventBusyDetails[];
+  teamBookingLimits?: Map<number, EventBusyDetails[]>;
+  teamForBookingLimits?: {
+    id: number;
+    bookingLimits?: unknown;
+    includeManagedEventsInLimits: boolean;
+  } | null;
 };
 
 export type GetAvailabilityUser = NonNullable<GetUserAvailabilityInitialData["user"]>;
@@ -368,24 +374,29 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       : [];
 
   const teamForBookingLimits =
+    initialData?.teamForBookingLimits ??
     eventType?.team ??
     (eventType?.parent?.team?.includeManagedEventsInLimits ? eventType?.parent?.team : null);
 
   const teamBookingLimits = parseBookingLimit(teamForBookingLimits?.bookingLimits);
 
-  const busyTimesFromTeamLimits =
-    teamForBookingLimits && teamBookingLimits
-      ? await getBusyTimesFromTeamLimits(
-          user,
-          teamBookingLimits,
-          dateFrom.tz(timeZone),
-          dateTo.tz(timeZone),
-          teamForBookingLimits.id,
-          teamForBookingLimits.includeManagedEventsInLimits,
-          timeZone,
-          initialData?.rescheduleUid ?? undefined
-        )
-      : [];
+  let busyTimesFromTeamLimits: EventBusyDetails[] = [];
+
+  if (initialData?.teamBookingLimits && teamForBookingLimits) {
+    busyTimesFromTeamLimits = initialData.teamBookingLimits.get(user.id) || [];
+  } else if (teamForBookingLimits && teamBookingLimits) {
+    // Fall back to individual query if not available in initialData
+    busyTimesFromTeamLimits = await getBusyTimesFromTeamLimits(
+      user,
+      teamBookingLimits,
+      dateFrom.tz(timeZone),
+      dateTo.tz(timeZone),
+      teamForBookingLimits.id,
+      teamForBookingLimits.includeManagedEventsInLimits,
+      timeZone,
+      initialData?.rescheduleUid ?? undefined
+    );
+  }
 
   // TODO: only query what we need after applying limits (shrink date range)
   const getBusyTimesStart = dateFrom.toISOString();
