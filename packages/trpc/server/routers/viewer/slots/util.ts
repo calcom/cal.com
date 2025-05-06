@@ -953,7 +953,19 @@ const getBusyTimesFromLimitsForUsers = async (
               continue;
             }
 
-            if (key !== "PER_YEAR") continue;
+            const periodEnd = periodStart.endOf(unit);
+            let totalBookings = 0;
+
+            for (const booking of userBookings) {
+              if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
+                continue;
+              }
+              totalBookings++;
+              if (totalBookings >= limit) {
+                limitManager.addBusyTime(periodStart, unit);
+                break;
+              }
+            }
           }
         }
       }
