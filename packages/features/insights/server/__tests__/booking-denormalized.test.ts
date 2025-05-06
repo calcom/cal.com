@@ -12,7 +12,7 @@ describe("BookingDenormalized", () => {
     // Create test user
     const user = await prisma.user.create({
       data: {
-        email: "test@example.com",
+        email: "booking-denorm-test@example.com",
         username: "testuser",
         name: "Test User",
       },
@@ -47,36 +47,15 @@ describe("BookingDenormalized", () => {
 
   afterEach(async () => {
     // Clean up test data in reverse order of creation to avoid foreign key constraints
-    if (bookingId) {
-      try {
-        await prisma.booking.delete({
-          where: { id: bookingId },
-        });
-      } catch (error) {
-        // Ignore if booking was already deleted by cascade
-        if (error.code !== "P2025") throw error;
-      }
-    }
-    if (eventTypeId) {
-      try {
-        await prisma.eventType.delete({
-          where: { id: eventTypeId },
-        });
-      } catch (error) {
-        // Ignore if event type was already deleted
-        if (error.code !== "P2025") throw error;
-      }
-    }
-    if (userId) {
-      try {
-        await prisma.user.delete({
-          where: { id: userId },
-        });
-      } catch (error) {
-        // Ignore if user was already deleted
-        if (error.code !== "P2025") throw error;
-      }
-    }
+    await prisma.booking.deleteMany({
+      where: { id: bookingId },
+    });
+    await prisma.eventType.deleteMany({
+      where: { id: eventTypeId },
+    });
+    await prisma.user.deleteMany({
+      where: { id: userId },
+    });
   });
 
   it("should create denormalized entry when booking is created", async () => {
