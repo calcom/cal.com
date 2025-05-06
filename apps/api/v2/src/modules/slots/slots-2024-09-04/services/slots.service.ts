@@ -124,6 +124,18 @@ export class SlotsService_2024_09_04 {
 
     const reservationDuration = input.reservationDuration ?? DEFAULT_RESERVATION_DURATION;
 
+    const overlappingReservation = await this.slotsRepository.getOverlappingSlotReservation(
+      input.eventTypeId,
+      startDate.toISO(),
+      endDate.toISO()
+    );
+
+    if (overlappingReservation) {
+      throw new UnprocessableEntityException(
+        `This time slot is already reserved by another user. Please choose a different time.`
+      );
+    }
+
     if (eventType.userId) {
       const slot = await this.slotsRepository.createSlot(
         eventType.userId,

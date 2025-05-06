@@ -506,6 +506,85 @@ describe("Slots 2024-09-04 Endpoints", () => {
       expect(reserveResponseBody.data).toEqual(rest);
     });
 
+    describe("overlapping slot reservations", () => {
+      it("user-event-type-slots-overlap-starts-during-${randomString()}", async () => {
+        // Try to reserve 10:15-10:45 when 10:00-10:30 is taken
+        const newSlotStart = DateTime.fromISO(reservedSlot.slotStart).plus({ minutes: 15 }).toISO();
+
+        await request(app.getHttpServer())
+          .post(`/v2/slots/reservations`)
+          .send({
+            eventTypeId,
+            slotStart: newSlotStart,
+          })
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+          .expect(422)
+          .then((response) => {
+            expect(response.body.message).toEqual(
+              "This time slot is already reserved by another user. Please choose a different time."
+            );
+          });
+      });
+
+      it("user-event-type-slots-overlap-ends-during-${randomString()}", async () => {
+        // Try to reserve 9:45-10:15 when 10:00-10:30 is taken
+        const newSlotStart = DateTime.fromISO(reservedSlot.slotStart).minus({ minutes: 15 }).toISO();
+
+        await request(app.getHttpServer())
+          .post(`/v2/slots/reservations`)
+          .send({
+            eventTypeId,
+            slotStart: newSlotStart,
+          })
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+          .expect(422)
+          .then((response) => {
+            expect(response.body.message).toEqual(
+              "This time slot is already reserved by another user. Please choose a different time."
+            );
+          });
+      });
+
+      it("user-event-type-slots-overlap-inside-${randomString()}", async () => {
+        // Try to reserve 10:10-10:20 when 10:00-10:30 is taken
+        const newSlotStart = DateTime.fromISO(reservedSlot.slotStart).plus({ minutes: 10 }).toISO();
+
+        await request(app.getHttpServer())
+          .post(`/v2/slots/reservations`)
+          .send({
+            eventTypeId,
+            slotStart: newSlotStart,
+          })
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+          .expect(422)
+          .then((response) => {
+            expect(response.body.message).toEqual(
+              "This time slot is already reserved by another user. Please choose a different time."
+            );
+          });
+      });
+
+      it("user-event-type-slots-overlap-contains-${randomString()}", async () => {
+        // Try to reserve 9:45-10:45 when 10:00-10:30 is taken
+        const newSlotStart = DateTime.fromISO(reservedSlot.slotStart).minus({ minutes: 15 }).toISO();
+
+        await request(app.getHttpServer())
+          .post(`/v2/slots/reservations`)
+          .send({
+            eventTypeId,
+            slotStart: newSlotStart,
+            slotDuration: 60, // Make it 1 hour to ensure it overlaps completely
+          })
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+          .expect(422)
+          .then((response) => {
+            expect(response.body.message).toEqual(
+              "This time slot is already reserved by another user. Please choose a different time."
+            );
+          });
+      });
+    });
+
     it("should update a reserved slot and it should not appear in available slots", async () => {
       // note(Lauris): mock current date to test slots release time
       const now = "2049-09-05T14:00:00.000Z";

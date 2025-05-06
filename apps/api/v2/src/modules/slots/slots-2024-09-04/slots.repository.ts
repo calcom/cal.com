@@ -19,6 +19,30 @@ export class SlotsRepository_2024_09_04 {
     });
   }
 
+  async getOverlappingSlotReservation(eventTypeId: number, startDate: string, endDate: string) {
+    return this.dbRead.prisma.selectedSlots.findFirst({
+      where: {
+        eventTypeId,
+        AND: [
+          {
+            OR: [
+              // Case 1: New slot starts during an existing slot
+              { slotUtcStartDate: { lte: startDate }, slotUtcEndDate: { gt: startDate } },
+              // Case 2: New slot ends during an existing slot
+              { slotUtcStartDate: { lt: endDate }, slotUtcEndDate: { gte: endDate } },
+              // Case 3: New slot is completely inside an existing slot
+              { slotUtcStartDate: { lte: startDate }, slotUtcEndDate: { gte: endDate } },
+              // Case 4: New slot completely overlaps an existing slot
+              { slotUtcStartDate: { gte: startDate }, slotUtcEndDate: { lte: endDate } },
+            ],
+          },
+          // Only consider non-expired reservations
+          { releaseAt: { gt: new Date() } },
+        ],
+      },
+    });
+  }
+
   async createSlot(
     userId: number,
     eventTypeId: number,
