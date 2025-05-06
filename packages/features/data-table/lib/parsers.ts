@@ -1,11 +1,13 @@
+import type { SortingState } from "@tanstack/react-table";
 import { parseAsArrayOf, parseAsJson, parseAsInteger, parseAsString } from "nuqs";
 
 import { ZActiveFilter, ZSorting, ZColumnVisibility, ZColumnSizing } from "./types";
+import type { ActiveFilters, VisibilityState, ColumnSizingState } from "./types";
 
-const DEFAULT_ACTIVE_FILTERS = [];
-const DEFAULT_SORTING = [];
-const DEFAULT_COLUMN_VISIBILITY = {};
-const DEFAULT_COLUMN_SIZING = {};
+const DEFAULT_ACTIVE_FILTERS: ActiveFilters = [];
+const DEFAULT_SORTING: SortingState = [];
+const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {};
+const DEFAULT_COLUMN_SIZING: ColumnSizingState = {};
 const DEFAULT_PAGE_SIZE = 10;
 
 export const activeFiltersParser = parseAsArrayOf(parseAsJson(ZActiveFilter.parse)).withDefault(
