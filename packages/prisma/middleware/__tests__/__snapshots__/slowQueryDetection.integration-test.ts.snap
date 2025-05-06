@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`should capture and snapshot raw SQL queries 1`] = `"SELECT * FROM \\"User\\" WHERE \\"id\\" IS NOT NULL LIMIT 1"`;
