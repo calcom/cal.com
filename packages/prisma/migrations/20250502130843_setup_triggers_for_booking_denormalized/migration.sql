@@ -74,12 +74,12 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Create triggers for Booking table
-CREATE TRIGGER booking_insert_update_trigger
+CREATE TRIGGER booking_denorm_booking_insert_update_trigger
     AFTER INSERT OR UPDATE ON "Booking"
     FOR EACH ROW
     EXECUTE FUNCTION trigger_refresh_booking_time_status_denormalized();
 
-CREATE TRIGGER booking_delete_trigger
+CREATE TRIGGER booking_denorm_booking_delete_trigger
     AFTER DELETE ON "Booking"
     FOR EACH ROW
     EXECUTE FUNCTION trigger_delete_booking_time_status_denormalized();
@@ -120,17 +120,17 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Create separate triggers for each property on EventType
-CREATE TRIGGER event_type_team_id_update_trigger
+CREATE TRIGGER booking_denorm_event_type_team_id_update_trigger
     AFTER UPDATE OF "teamId" ON "EventType"
     FOR EACH ROW
     EXECUTE FUNCTION refresh_booking_time_status_team_id();
 
-CREATE TRIGGER event_type_length_update_trigger
+CREATE TRIGGER booking_denorm_event_type_length_update_trigger
     AFTER UPDATE OF length ON "EventType"
     FOR EACH ROW
     EXECUTE FUNCTION refresh_booking_time_status_length();
 
-CREATE TRIGGER event_type_parent_id_update_trigger
+CREATE TRIGGER booking_denorm_event_type_parent_id_update_trigger
     AFTER UPDATE OF "parentId" ON "EventType"
     FOR EACH ROW
     EXECUTE FUNCTION refresh_booking_time_status_parent_id();
@@ -153,7 +153,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER user_update_trigger
+CREATE TRIGGER booking_denorm_user_update_trigger
     AFTER UPDATE OF email, name, username ON users
     FOR EACH ROW
     EXECUTE FUNCTION trigger_refresh_booking_time_status_denormalized_user();
