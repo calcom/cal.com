@@ -7,6 +7,7 @@ import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
+import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
@@ -78,6 +79,7 @@ export class BookingsService_2024_08_13 {
     private readonly bookingSeatRepository: BookingSeatRepository,
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
     private readonly prismaReadService: PrismaReadService,
+    private readonly kyselyReadService: KyselyReadService,
     private readonly billingService: BillingService,
     private readonly usersService: UsersService,
     private readonly usersRepository: UsersRepository,
@@ -385,6 +387,7 @@ export class BookingsService_2024_08_13 {
       ctx: {
         user,
         prisma: this.prismaReadService.prisma as unknown as PrismaClient,
+        kysely: this.kyselyReadService.kysely,
       },
       sort: this.inputService.transformGetBookingsSort(queryParams),
     });
