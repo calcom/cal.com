@@ -43,23 +43,28 @@ export async function handler(req: NextRequest) {
   const isSendgridEnabled = process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL;
 
   if (isSendgridEnabled) {
-    // delete batch_ids with already past scheduled date from scheduled_sends
-    const remindersToDelete: { referenceId: string | null }[] = await getAllRemindersToDelete();
+    const remindersToDelete: { referenceId: string | null; id: number }[] = await getAllRemindersToDelete();
 
-    const deletePromises: Promise<any>[] = [];
-
-    for (const reminder of remindersToDelete) {
-      const deletePromise = deleteScheduledSend(reminder.referenceId);
-      deletePromises.push(deletePromise);
-    }
-
-    Promise.allSettled(deletePromises).then((results) => {
-      results.forEach((result) => {
-        if (result.status === "rejected") {
-          logger.error(`Error deleting batch id from scheduled_sends: ${result.reason}`);
+    const handlePastCancelledReminders = remindersToDelete.map(async (reminder) => {
+      try {
+        if (reminder.referenceId) {
+          await deleteScheduledSend(reminder.referenceId);
         }
-      });
+      } catch (err) {
+        logger.error(`Error deleting scheduled send (ref: ${reminder.referenceId}): ${err}`);
+      }
+
+      try {
+        await prisma.workflowReminder.update({
+          where: { id: reminder.id },
+          data: { referenceId: null },
+        });
+      } catch (err) {
+        logger.error(`Error updating reminder (id: ${reminder.id}): ${err}`);
+      }
     });
+
+    await Promise.allSettled(handlePastCancelledReminders);
   }
 
   if (isSendgridEnabled) {
