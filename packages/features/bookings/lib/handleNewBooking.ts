@@ -165,7 +165,7 @@ type BookingDataSchemaGetter =
 
 type CreatedBooking = Booking & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number };
 type ReturnTypeCreateBooking = Awaited<ReturnType<typeof createBooking>>;
-const buildDryRunBooking = ({
+export const buildDryRunBooking = ({
   eventTypeId,
   organizerUser,
   eventName,
