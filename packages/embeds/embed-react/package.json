@@ -11,7 +11,7 @@
   },
   "scripts": {
     "dev": "vite --port=3101 --open",
-    "build": "rm -rf dist && vite build && cp ./dist/Cal.es.js ./dist/Cal.es.mjs && tsc --emitDeclarationOnly --declarationDir dist",
+    "build": "NODE_OPTIONS='--max-old-space-size=6144' rm -rf dist && vite build && cp ./dist/Cal.es.js ./dist/Cal.es.mjs && tsc --emitDeclarationOnly --declarationDir dist",
     "preview": "vite preview",
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
