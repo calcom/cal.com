@@ -898,7 +898,8 @@ const getBusyTimesFromLimitsForUsers = async (
         let totalBookings = 0;
 
         for (const booking of busyTimesFromLimitsBookings) {
-          if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
+          const bookingStart = dayjs(booking.start);
+          if (!bookingStart.isBetween(periodStart, periodEnd, null, "[]")) {
             continue;
           }
           totalBookings++;
@@ -970,7 +971,8 @@ const getBusyTimesFromLimitsForUsers = async (
             let totalBookings = 0;
 
             for (const booking of userBookings) {
-              if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
+              const bookingStart = dayjs(booking.start);
+              if (!bookingStart.isBetween(periodStart, periodEnd, null, "[]")) {
                 continue;
               }
               totalBookings++;
@@ -1021,7 +1023,8 @@ const getBusyTimesFromLimitsForUsers = async (
             let totalDuration = selectedDuration;
 
             for (const booking of userBookings) {
-              if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
+              const bookingStart = dayjs(booking.start);
+              if (!bookingStart.isBetween(periodStart, periodEnd, null, "[]")) {
                 continue;
               }
               totalDuration += dayjs(booking.end).diff(dayjs(booking.start), "minute");
@@ -1093,7 +1096,8 @@ const getBusyTimesFromTeamLimitsForUsers = async (
       let totalBookings = 0;
 
       for (const booking of busyTimes) {
-        if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
+        const bookingStart = dayjs(booking.start);
+        if (!bookingStart.isBetween(periodStart, periodEnd, null, "[]")) {
           continue;
         }
         totalBookings++;
@@ -1179,7 +1183,8 @@ const getBusyTimesFromTeamLimitsForUsers = async (
           let totalBookings = 0;
 
           for (const booking of userBusyTimes) {
-            if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
+            const bookingStart = dayjs(booking.start);
+            if (!bookingStart.isBetween(periodStart, periodEnd, null, "[]")) {
               continue;
             }
             totalBookings++;
