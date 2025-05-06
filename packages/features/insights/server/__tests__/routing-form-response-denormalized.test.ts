@@ -139,21 +139,31 @@ describe("RoutingFormResponseDenormalized", () => {
 
   afterEach(async () => {
     // Clean up test data in reverse order of creation
-    await prisma.booking.deleteMany({
-      where: { id: bookingId },
-    });
-    await prisma.app_RoutingForms_FormResponse.deleteMany({
-      where: { id: responseId },
-    });
-    await prisma.app_RoutingForms_Form.deleteMany({
-      where: { id: formId },
-    });
-    await prisma.eventType.deleteMany({
-      where: { id: eventTypeId },
-    });
-    await prisma.user.deleteMany({
-      where: { id: userId },
-    });
+    if (bookingId) {
+      await prisma.booking.deleteMany({
+        where: { id: bookingId },
+      });
+    }
+    if (responseId) {
+      await prisma.app_RoutingForms_FormResponse.deleteMany({
+        where: { id: responseId },
+      });
+    }
+    if (formId) {
+      await prisma.app_RoutingForms_Form.deleteMany({
+        where: { id: formId },
+      });
+    }
+    if (eventTypeId) {
+      await prisma.eventType.deleteMany({
+        where: { id: eventTypeId },
+      });
+    }
+    if (userId) {
+      await prisma.user.deleteMany({
+        where: { id: userId },
+      });
+    }
   });
 
   describe("Creation and Updates", () => {
