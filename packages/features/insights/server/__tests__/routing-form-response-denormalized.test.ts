@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
 
 import { prisma } from "@calcom/prisma";
@@ -315,7 +316,6 @@ describe("RoutingFormResponseDenormalized", () => {
       const beforeDelete = await prisma.routingFormResponseDenormalized.findUnique({
         where: { id: responseId },
       });
-      console.log("Before delete:", beforeDelete);
 
       await prisma.booking.delete({
         where: { id: bookingId },
@@ -455,6 +455,259 @@ describe("RoutingFormResponseDenormalized", () => {
       expect(denormalizedResponse.bookingId).toBe(bookingId);
       expect(denormalizedResponse.response.formId).toBe(formId);
       expect(denormalizedResponse.booking?.id).toBe(bookingId);
+    });
+  });
+
+  describe("Field Filtering and Relationships", () => {
+    it("should allow filtering by field values including arrays", async () => {
+      // Create a response with specific field values for testing
+      const formResponse = await prisma.app_RoutingForms_FormResponse.create({
+        data: {
+          formFillerId: "test-filler-fields",
+          formId: formId,
+          response: {
+            "83316968-45bf-4c9d-b5d4-5368a8d2d2a8": {
+              label: "skills",
+              value: ["644e7f80-b76b-4a3c-94f7-bf0efa65d3d6", "34c50dca-9eed-4ade-89d4-9b2ccda52acc"],
+            },
+          },
+        },
+      });
+
+      // First verify the denormalized records were created
+      const denormalizedResponse = await prisma.routingFormResponseDenormalized.findUnique({
+        where: { id: formResponse.id },
+        include: { fields: true },
+      });
+
+      expect(denormalizedResponse).not.toBeNull();
+      expect(denormalizedResponse?.fields).toBeDefined();
+      expect(denormalizedResponse?.fields).toHaveLength(1);
+
+      // Test filtering by string array (skills)
+      const arrayFilterResult = await prisma.routingFormResponseDenormalized.findMany({
+        where: {
+          fields: {
+            some: {
+              fieldId: "83316968-45bf-4c9d-b5d4-5368a8d2d2a8",
+              valueStringArray: {
+                has: "644e7f80-b76b-4a3c-94f7-bf0efa65d3d6",
+              },
+            },
+          },
+        },
+        include: {
+          fields: true,
+        },
+      });
+
+      expect(arrayFilterResult).toHaveLength(1);
+      expect(arrayFilterResult[0].fields).toBeDefined();
+      expect(arrayFilterResult[0].fields).toHaveLength(1);
+      expect(
+        arrayFilterResult[0].fields.some(
+          (field) =>
+            field.fieldId === "83316968-45bf-4c9d-b5d4-5368a8d2d2a8" &&
+            field.valueStringArray?.includes("644e7f80-b76b-4a3c-94f7-bf0efa65d3d6")
+        )
+      ).toBe(true);
+
+      // Clean up
+      await prisma.routingFormResponseField.deleteMany({
+        where: { responseId: formResponse.id },
+      });
+      await prisma.routingFormResponseDenormalized.deleteMany({
+        where: { id: formResponse.id },
+      });
+      await prisma.app_RoutingForms_FormResponse.delete({
+        where: { id: formResponse.id },
+      });
+    });
+
+    it("should allow filtering by string and number field values", async () => {
+      // Create a response with specific field values for testing
+      const formResponse = await prisma.app_RoutingForms_FormResponse.create({
+        data: {
+          formFillerId: "test-filler-fields-2",
+          formId: formId,
+          response: {
+            "57734f65-8bbb-4065-9e71-fb7f0b7485f8": {
+              label: "Manager",
+              value: "John Smith",
+            },
+            "f4e9fa6c-5c5d-4d8e-b15c-7f37e9d0c729": {
+              label: "Rating",
+              value: 5,
+            },
+          },
+        },
+      });
+
+      // First verify the denormalized records were created
+      const denormalizedResponse = await prisma.routingFormResponseDenormalized.findUnique({
+        where: { id: formResponse.id },
+        include: { fields: true },
+      });
+
+      expect(denormalizedResponse).not.toBeNull();
+      expect(denormalizedResponse?.fields).toBeDefined();
+      expect(denormalizedResponse?.fields).toHaveLength(2);
+
+      // Test filtering by string value
+      const stringFilterResult = await prisma.routingFormResponseDenormalized.findMany({
+        where: {
+          fields: {
+            some: {
+              fieldId: "57734f65-8bbb-4065-9e71-fb7f0b7485f8",
+              valueString: "John Smith",
+            },
+          },
+        },
+        include: {
+          fields: true,
+        },
+      });
+
+      expect(stringFilterResult).toHaveLength(1);
+      expect(stringFilterResult[0].fields).toBeDefined();
+      expect(
+        stringFilterResult[0].fields.some(
+          (field) =>
+            field.fieldId === "57734f65-8bbb-4065-9e71-fb7f0b7485f8" && field.valueString === "John Smith"
+        )
+      ).toBe(true);
+
+      // Test filtering by number value
+      const numberFilterResult = await prisma.routingFormResponseDenormalized.findMany({
+        where: {
+          formId,
+          fields: {
+            some: {
+              fieldId: "f4e9fa6c-5c5d-4d8e-b15c-7f37e9d0c729",
+              valueNumber: 5,
+            },
+          },
+        },
+        include: {
+          fields: true,
+        },
+      });
+
+      expect(numberFilterResult).toHaveLength(1);
+      expect(numberFilterResult[0].fields).toBeDefined();
+      expect(
+        numberFilterResult[0].fields.some(
+          (field) =>
+            field.fieldId === "f4e9fa6c-5c5d-4d8e-b15c-7f37e9d0c729" &&
+            field.valueNumber?.equals(new Prisma.Decimal(5))
+        )
+      ).toBe(true);
+
+      // Clean up
+      await prisma.routingFormResponseField.deleteMany({
+        where: { responseId: formResponse.id },
+      });
+      await prisma.routingFormResponseDenormalized.deleteMany({
+        where: { id: formResponse.id },
+      });
+      await prisma.app_RoutingForms_FormResponse.delete({
+        where: { id: formResponse.id },
+      });
+    });
+
+    it("should allow filtering by attendee email", async () => {
+      // Create a booking with attendees
+      const booking = await prisma.booking.create({
+        data: {
+          uid: "test-booking-attendees",
+          title: "Test Booking",
+          startTime: new Date(),
+          endTime: new Date(Date.now() + 60 * 60 * 1000),
+          userId: userId,
+          eventTypeId: eventTypeId,
+          status: BookingStatus.ACCEPTED,
+          attendees: {
+            create: [
+              {
+                email: "attendee1@example.com",
+                name: "Attendee One",
+                timeZone: "UTC",
+              },
+              {
+                email: "attendee2@example.com",
+                name: "Attendee Two",
+                timeZone: "UTC",
+              },
+            ],
+          },
+        },
+        include: {
+          attendees: true,
+        },
+      });
+
+      // Create a form response linked to the booking
+      const formResponse = await prisma.app_RoutingForms_FormResponse.create({
+        data: {
+          formFillerId: "test-filler-attendees",
+          formId: formId,
+          response: {
+            "dd28ffcf-7029-401e-bddb-ce2e7496a1c1": {
+              label: "Email",
+              value: "attendee1@example.com",
+            },
+          },
+          routedToBookingUid: booking.uid,
+        },
+      });
+
+      // First verify the denormalized records were created
+      const denormalizedResponse = await prisma.routingFormResponseDenormalized.findUnique({
+        where: { id: formResponse.id },
+        include: { fields: true },
+      });
+
+      expect(denormalizedResponse).not.toBeNull();
+      expect(denormalizedResponse?.bookingId).toBe(booking.id);
+
+      // Test filtering by attendee email
+      const attendeeFilterResult = await prisma.routingFormResponseDenormalized.findMany({
+        where: {
+          booking: {
+            attendees: {
+              some: {
+                email: {
+                  startsWith: "attendee1@",
+                },
+              },
+            },
+          },
+        },
+        include: {
+          fields: true,
+          booking: {
+            include: {
+              attendees: true,
+            },
+          },
+        },
+      });
+
+      expect(attendeeFilterResult).toHaveLength(1);
+      expect(attendeeFilterResult[0].booking?.attendees).toBeDefined();
+      expect(
+        attendeeFilterResult[0].booking?.attendees.some(
+          (attendee) => attendee.email === "attendee1@example.com"
+        )
+      ).toBe(true);
+
+      // Clean up
+      await prisma.booking.delete({
+        where: { id: booking.id },
+      });
+      await prisma.app_RoutingForms_FormResponse.delete({
+        where: { id: formResponse.id },
+      });
     });
   });
 });

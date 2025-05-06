@@ -10,15 +10,17 @@ DECLARE
     response_field jsonb;
     field_type text;
     response_data jsonb;
+    form_id text;
 BEGIN
     -- For INSERT trigger on RoutingFormResponseDenormalized, we need to get the response data from App_RoutingForms_FormResponse
     -- For UPDATE trigger on App_RoutingForms_FormResponse, we can use NEW.response directly
     IF TG_TABLE_NAME = 'RoutingFormResponseDenormalized' THEN
-        SELECT response INTO response_data
+        SELECT response, "formId" INTO response_data, form_id
         FROM "App_RoutingForms_FormResponse"
         WHERE id = NEW.id;
     ELSE
         response_data := NEW.response::jsonb;
+        form_id := NEW."formId";
     END IF;
 
     -- Validate response_data exists and is a valid JSON object
@@ -30,7 +32,7 @@ BEGIN
     -- Get the fields from App_RoutingForms_Form
     SELECT fields::jsonb INTO form_fields
     FROM "App_RoutingForms_Form"
-    WHERE id = NEW."formId";
+    WHERE id = form_id;
 
     -- Delete existing entries for this response
     DELETE FROM "RoutingFormResponseField"
@@ -38,7 +40,7 @@ BEGIN
 
     -- Exit early if form_fields is NULL or not an array
     IF form_fields IS NULL OR jsonb_typeof(form_fields) != 'array' THEN
-        RAISE WARNING 'form_fields is NULL or not an array for formId %, skipping processing', NEW."formId";
+        RAISE WARNING 'form_fields is NULL or not an array for formId %, skipping processing', form_id;
         RETURN NEW;
     END IF;
 
