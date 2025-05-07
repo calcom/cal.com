@@ -169,8 +169,23 @@ class RoutingEventsInsights {
       isAll,
       organizationId,
     });
+
+    const shouldIncludeNullTeamId = teamId !== undefined || (isAll && organizationId !== undefined);
+
+    const modifiedWhereCondition = shouldIncludeNullTeamId
+      ? {
+          OR: [
+            formsWhereCondition,
+            {
+              userId,
+              teamId: null,
+            },
+          ],
+        }
+      : formsWhereCondition;
+
     return await prisma.app_RoutingForms_Form.findMany({
-      where: formsWhereCondition,
+      where: modifiedWhereCondition,
       select: {
         id: true,
         name: true,
