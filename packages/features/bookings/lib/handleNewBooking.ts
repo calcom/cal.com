@@ -68,7 +68,6 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import monitorCallbackAsync from "@calcom/lib/sentryWrapper";
 import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -669,7 +668,9 @@ async function handler(
 
     if (!input.bookingData.allRecurringDates || input.bookingData.isFirstRecurringSlot) {
       const userIds = [...qualifiedRRUsers, ...fixedUsers].map((user) => user.id);
-      const selectedCalendarRepository = new SelectedCalendarRepository();
+      const selectedCalendarRepository = new (
+        await import("@calcom/lib/server/repository/selectedCalendar")
+      ).SelectedCalendarRepository();
       const allSelectedCalendars = await selectedCalendarRepository.findAllSelectedCalendarsForUsers(
         userIds,
         eventTypeWithUsers.id

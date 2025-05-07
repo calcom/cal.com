@@ -5,7 +5,7 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeSelectedCalendar, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
-import type { EventBusyDate, SelectedCalendar } from "@calcom/types/Calendar";
+import type { EventBusyDate, IntegrationCalendar, SelectedCalendar } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
@@ -24,7 +24,29 @@ export const getCalendarsEventsWithTimezones = async (
 
   const calendarAndCredentialPairs = await Promise.all(
     calendarCredentials.map(async (credential) => {
-      const calendar = shouldServeCache ? await getCachedCalendar(credential) : await getCalendar(credential);
+      const credentialSelectedCalendars = selectedCalendars.filter(
+        (selected) => selected.integration === credential.type && selected.credentialId === credential.id
+      );
+
+      const userId =
+        credentialSelectedCalendars.length > 0 ? credentialSelectedCalendars[0].userId : undefined;
+
+      const integrationCalendars: IntegrationCalendar[] = credentialSelectedCalendars.map((e) => ({
+        ...e,
+        externalId: e.externalId,
+        integration: e.integration,
+        credentialId: e.credentialId,
+      }));
+
+      const calendar =
+        shouldServeCache ?? false
+          ? await getCachedCalendar(credential, userId, integrationCalendars, dateFrom, dateTo)
+          : await getCalendar(credential);
+
+      if (!calendar) {
+        throw new Error(`Failed to get calendar for credential type: ${credential.type}`);
+      }
+
       return [calendar, credential] as const;
     })
   );
@@ -90,7 +112,29 @@ const getCalendarsEvents = async (
 
   const calendarAndCredentialPairs = await Promise.all(
     calendarCredentials.map(async (credential) => {
-      const calendar = shouldServeCache ? await getCachedCalendar(credential) : await getCalendar(credential);
+      const credentialSelectedCalendars = selectedCalendars.filter(
+        (selected) => selected.integration === credential.type && selected.credentialId === credential.id
+      );
+
+      const userId =
+        credentialSelectedCalendars.length > 0 ? credentialSelectedCalendars[0].userId : undefined;
+
+      const integrationCalendars: IntegrationCalendar[] = credentialSelectedCalendars.map((e) => ({
+        ...e,
+        externalId: e.externalId,
+        integration: e.integration,
+        credentialId: e.credentialId,
+      }));
+
+      const calendar =
+        shouldServeCache ?? false
+          ? await getCachedCalendar(credential, userId, integrationCalendars, dateFrom, dateTo)
+          : await getCalendar(credential);
+
+      if (!calendar) {
+        throw new Error(`Failed to get calendar for credential type: ${credential.type}`);
+      }
+
       return [calendar, credential] as const;
     })
   );
@@ -143,7 +187,7 @@ const getCalendarsEvents = async (
       dateFrom,
       dateTo,
       passedSelectedCalendars,
-      shouldServeCache,
+      shouldServeCache ?? false,
       allowFallbackToPrimary
     );
     performance.mark("eventBusyDatesEnd");

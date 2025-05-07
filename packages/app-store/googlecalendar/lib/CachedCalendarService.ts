@@ -1,4 +1,3 @@
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { calendarCacheStore } from "@calcom/features/calendar-cache/calendar-cache-store";
 import logger from "@calcom/lib/logger";
 import type {
@@ -12,147 +11,136 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 const log = logger.getSubLogger({ prefix: ["CachedCalendarService"] });
 
+/**
+ * CachedCalendarService implements the Calendar interface but only serves cached data.
+ * It does not use the original calendar service internally.
+ * This service should only be used when we have 100% cache hits for a user.
+ */
 export default class CachedCalendarService implements Calendar {
-  private originalCalendarService: Calendar;
+  credential: CredentialForCalendarService;
 
   constructor(credential: CredentialForCalendarService) {
-    this.originalCalendarService = {} as Calendar;
-
-    (async () => {
-      const calendar = await getCalendar(credential);
-      if (!calendar) {
-        throw new Error(`Failed to get calendar for credential type: ${credential.type}`);
-      }
-      this.originalCalendarService = calendar;
-    })();
+    this.credential = credential;
   }
 
-  async getAvailability(
+  getCredentialId(): number {
+    return this.credential.id;
+  }
+
+  getAvailability(
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[],
     shouldServeCache = true,
     fallbackToPrimary = false
   ): Promise<EventBusyDate[]> {
-    if (!shouldServeCache) {
-      return this.originalCalendarService.getAvailability(
-        dateFrom,
-        dateTo,
-        selectedCalendars,
-        shouldServeCache,
-        fallbackToPrimary
-      );
-    }
-
-    const userId = selectedCalendars.length > 0 ? selectedCalendars[0].userId : null;
+    // Ensure userId is either a number or null, not undefined
+    const userId: number | null =
+      selectedCalendars.length > 0 && typeof selectedCalendars[0].userId === "number"
+        ? selectedCalendars[0].userId
+        : null;
     const credentialId = selectedCalendars.length > 0 ? selectedCalendars[0].credentialId || 0 : 0;
 
     if (!credentialId) {
-      return this.originalCalendarService.getAvailability(
-        dateFrom,
-        dateTo,
-        selectedCalendars,
-        shouldServeCache,
-        fallbackToPrimary
-      );
+      throw new Error("No credential ID found for calendar");
     }
 
     const items = selectedCalendars.map((cal) => ({ id: cal.externalId }));
 
-    const cachedEntry = calendarCacheStore.get(credentialId, userId || null, dateFrom, dateTo, items);
+    if (userId === undefined) {
+      return Promise.resolve([]);
+    }
+
+    // Ensure userId is not undefined when passed to calendarCacheStore.get
+    const cachedEntry = calendarCacheStore.get(credentialId, userId, dateFrom, dateTo, items);
 
     if (cachedEntry) {
       log.debug(`Cache hit for getAvailability [userId=${userId}, credentialId=${credentialId}]`);
-      return cachedEntry.busyTimes;
+      return Promise.resolve(cachedEntry.busyTimes);
     }
 
-    log.debug(`Cache miss for getAvailability [userId=${userId}, credentialId=${credentialId}]`);
-    const busyTimes = await this.originalCalendarService.getAvailability(
-      dateFrom,
-      dateTo,
-      selectedCalendars,
-      shouldServeCache,
-      fallbackToPrimary
-    );
-
-    calendarCacheStore.set({
-      userId: userId || 0,
-      credentialId,
-      timeMin: dateFrom,
-      timeMax: dateTo,
-      items,
-      busyTimes,
-    });
-
-    return busyTimes;
+    log.error(`Cache miss in CachedCalendarService [userId=${userId}, credentialId=${credentialId}]`);
+    return Promise.resolve([]);
   }
 
-  async createEvent(
+  createEvent(
     event: CalendarEvent,
     credentialId: number,
     externalCalendarId?: string
   ): Promise<NewCalendarEventType> {
-    return this.originalCalendarService.createEvent(event, credentialId, externalCalendarId);
+    throw new Error("CachedCalendarService does not support creating events");
   }
 
-  async updateEvent(
+  updateEvent(
     uid: string,
     event: CalendarEvent,
     externalCalendarId?: string | null
   ): Promise<NewCalendarEventType | NewCalendarEventType[]> {
-    return this.originalCalendarService.updateEvent(uid, event, externalCalendarId);
+    throw new Error("CachedCalendarService does not support updating events");
   }
 
-  async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<unknown> {
-    return this.originalCalendarService.deleteEvent(uid, event, externalCalendarId);
+  deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<unknown> {
+    throw new Error("CachedCalendarService does not support deleting events");
   }
 
-  async listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]> {
-    return this.originalCalendarService.listCalendars(event);
+  listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]> {
+    throw new Error("CachedCalendarService does not support listing calendars");
   }
 
-  async getAvailabilityWithTimeZones?(
+  getAvailabilityWithTimeZones(
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[],
     fallbackToPrimary?: boolean
-  ) {
-    if (this.originalCalendarService.getAvailabilityWithTimeZones) {
-      return this.originalCalendarService.getAvailabilityWithTimeZones(
-        dateFrom,
-        dateTo,
-        selectedCalendars,
-        fallbackToPrimary
-      );
+  ): Promise<(EventBusyDate & { timeZone: string })[]> {
+    // Ensure userId is either a number or null, not undefined
+    const userId: number | null =
+      selectedCalendars.length > 0 && typeof selectedCalendars[0].userId === "number"
+        ? selectedCalendars[0].userId
+        : null;
+    const credentialId = selectedCalendars.length > 0 ? selectedCalendars[0].credentialId || 0 : 0;
+
+    if (!credentialId) {
+      throw new Error("No credential ID found for calendar");
     }
+
+    const items = selectedCalendars.map((cal) => ({ id: cal.externalId }));
+
+    if (userId === undefined) {
+      return Promise.resolve([]);
+    }
+
+    // Ensure userId is not undefined when passed to calendarCacheStore.get
+    const cachedEntry = calendarCacheStore.get(credentialId, userId, dateFrom, dateTo, items);
+
+    if (cachedEntry) {
+      log.debug(
+        `Cache hit for getAvailabilityWithTimeZones [userId=${userId}, credentialId=${credentialId}]`
+      );
+      const busyTimes = cachedEntry.busyTimes.map((busyTime) => ({
+        ...busyTime,
+        timeZone: busyTime.timeZone || "UTC",
+      }));
+      return Promise.resolve(busyTimes);
+    }
+
+    log.error(`Cache miss in CachedCalendarService [userId=${userId}, credentialId=${credentialId}]`);
     return Promise.resolve([]);
   }
 
-  async testDelegationCredentialSetup?() {
-    if (this.originalCalendarService.testDelegationCredentialSetup) {
-      return this.originalCalendarService.testDelegationCredentialSetup();
-    }
+  testDelegationCredentialSetup?(): Promise<boolean> {
     return Promise.resolve(false);
   }
 
-  async fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]) {
-    if (this.originalCalendarService.fetchAvailabilityAndSetCache) {
-      return this.originalCalendarService.fetchAvailabilityAndSetCache(selectedCalendars);
-    }
+  fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<void> {
     return Promise.resolve();
   }
 
-  async watchCalendar?(options: { calendarId: string; eventTypeIds: (number | null)[] }) {
-    if (this.originalCalendarService.watchCalendar) {
-      return this.originalCalendarService.watchCalendar(options);
-    }
+  watchCalendar?(options: { calendarId: string; eventTypeIds: (number | null)[] }): Promise<void> {
     return Promise.resolve();
   }
 
-  async unwatchCalendar?(options: { calendarId: string; eventTypeIds: (number | null)[] }) {
-    if (this.originalCalendarService.unwatchCalendar) {
-      return this.originalCalendarService.unwatchCalendar(options);
-    }
+  unwatchCalendar?(options: { calendarId: string; eventTypeIds: (number | null)[] }): Promise<void> {
     return Promise.resolve();
   }
 }
