@@ -6,6 +6,13 @@ Sentry.init({
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
   sendDefaultPii: true,
   tracesSampleRate: 1.0,
+  beforeSend(event) {
+    event.tags = {
+      ...event.tags,
+      errorSource: "frontend",
+    };
+    return event;
+  },
 });
 
 // This export will instrument router navigations, and is only relevant if you enable tracing.
