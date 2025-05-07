@@ -151,7 +151,7 @@ describe("buildBaseWhereCondition", () => {
       });
     });
 
-    it("should not build team-specific where condition when eventTypeId is provided", async () => {
+    it("should prioritize eventTypeId condition when both teamId and eventTypeId are provided", async () => {
       const ctx = createMockContext();
 
       const result = await buildBaseWhereCondition({
@@ -193,9 +193,10 @@ describe("buildBaseWhereCondition", () => {
       });
 
       expect(result.whereCondition).toEqual({});
+      expect(result.isEmptyResponse).toBeUndefined();
     });
 
-    it("should handle null teamId", async () => {
+    it("should handle null teamId with empty where condition", async () => {
       const ctx = createMockContext();
 
       const result = await buildBaseWhereCondition({
@@ -204,6 +205,7 @@ describe("buildBaseWhereCondition", () => {
       });
 
       expect(result.whereCondition).toEqual({});
+      expect(result.isEmptyResponse).toBeUndefined();
     });
 
     it("should handle empty team members", async () => {
@@ -233,8 +235,13 @@ describe("buildBaseWhereCondition", () => {
       });
     });
 
-    it("should handle rejected team membership", async () => {
-      mockMembershipFindMany.mockResolvedValue([]);
+    it("should handle team membership query with accepted=true parameter", async () => {
+      mockMembershipFindMany.mockImplementation((params) => {
+        if (params?.where?.accepted === true) {
+          return Promise.resolve([{ userId: 501 }]);
+        }
+        return Promise.resolve([]);
+      });
 
       const ctx = createMockContext();
 
@@ -244,6 +251,7 @@ describe("buildBaseWhereCondition", () => {
         ctx,
       });
 
+      // The function only includes accepted members
       expect(result.whereCondition).toEqual({
         OR: [
           {
@@ -252,7 +260,7 @@ describe("buildBaseWhereCondition", () => {
           },
           {
             userId: {
-              in: [],
+              in: [501], // Only accepted members
             },
             isTeamBooking: false,
           },
