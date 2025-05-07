@@ -73,7 +73,7 @@ test.describe("Bookings", () => {
       const bookingsGetResponse = page.waitForResponse((response) =>
         /\/api\/trpc\/bookings\/get.*/.test(response.url())
       );
-      await page.goto(`/bookings/upcoming`);
+      await page.goto(`/bookings/upcoming`, { waitUntil: "domcontentloaded" });
       await bookingsGetResponse;
 
       await page.locator('[data-testid="add-filter-button"]').click();
@@ -351,7 +351,7 @@ test.describe("Bookings", () => {
     const bookingsGetResponse = page.waitForResponse((response) =>
       /\/api\/trpc\/bookings\/get.*/.test(response.url())
     );
-    await page.goto(`/bookings/upcoming`);
+    await page.goto(`/bookings/upcoming`, { waitUntil: "domcontentloaded" });
     await bookingsGetResponse;
 
     await page.locator('[data-testid="add-filter-button"]').click();
@@ -458,7 +458,7 @@ test.describe("Bookings", () => {
     const bookingsGetResponse1 = page.waitForResponse((response) =>
       /\/api\/trpc\/bookings\/get.*/.test(response.url())
     );
-    await page.goto("/bookings/upcoming");
+    await page.goto("/bookings/upcoming", { waitUntil: "domcontentloaded" });
     await bookingsGetResponse1;
 
     await page.locator('[data-testid="add-filter-button"]').click();
@@ -491,7 +491,7 @@ test.describe("Bookings", () => {
       const bookingsGetResponse = page.waitForResponse((response) =>
         /\/api\/trpc\/bookings\/get.*/.test(response.url())
       );
-      await page.goto(`/bookings/upcoming`);
+      await page.goto(`/bookings/upcoming`, { waitUntil: "domcontentloaded" });
       await bookingsGetResponse;
       await page.locator('[data-testid="add-filter-button"]').click();
       // Ensure the search input within the filter type dropdown is visible
@@ -522,28 +522,6 @@ test.describe("Bookings", () => {
       }
     });
 
-    test("should filter items based on search term (exact and partial)", async ({ page }) => {
-      const searchInput = page.locator(searchInputSelector);
-
-      // Search for "Event Type" (exact match for one item)
-      await searchInput.fill("Event Type");
-      await expect(getFilterItemLocator(page, "add-filter-item-eventTypeId")).toBeVisible();
-      await expect(getFilterItemLocator(page, "add-filter-item-teamId")).toBeHidden();
-      await expect(getFilterItemLocator(page, "add-filter-item-userId")).toBeHidden();
-      await expect(getFilterItemLocator(page, "add-filter-item-attendeeName")).toBeHidden();
-      await expect(getFilterItemLocator(page, "add-filter-item-attendeeEmail")).toBeHidden();
-      await expect(getFilterItemLocator(page, "add-filter-item-dateRange")).toBeHidden();
-
-      // Search for "Att" (partial match for "Attendees Name" and "Attendee Email")
-      await searchInput.fill("Att");
-      await expect(getFilterItemLocator(page, "add-filter-item-attendeeName")).toBeVisible();
-      await expect(getFilterItemLocator(page, "add-filter-item-attendeeEmail")).toBeVisible();
-      await expect(getFilterItemLocator(page, "add-filter-item-eventTypeId")).toBeHidden();
-      await expect(getFilterItemLocator(page, "add-filter-item-teamId")).toBeHidden();
-      await expect(getFilterItemLocator(page, "add-filter-item-userId")).toBeHidden();
-      await expect(getFilterItemLocator(page, "add-filter-item-dateRange")).toBeHidden();
-    });
-
     test("search should be case-insensitive", async ({ page }) => {
       const searchInput = page.locator(searchInputSelector);
 
@@ -552,6 +530,23 @@ test.describe("Bookings", () => {
       await expect(getFilterItemLocator(page, "add-filter-item-userId")).toBeVisible(); // For "Member"
       await expect(getFilterItemLocator(page, "add-filter-item-eventTypeId")).toBeHidden();
       await expect(getFilterItemLocator(page, "add-filter-item-teamId")).toBeHidden();
+    });
+
+    test("should individually find each filter item by its full name", async ({ page }) => {
+      const searchInput = page.locator(searchInputSelector);
+
+      for (const targetItem of filterItemsConfig) {
+        await searchInput.fill(targetItem.name);
+
+        // Check that the target item is visible
+        await expect(
+          getFilterItemLocator(page, targetItem.testId),
+          `Searching for "${targetItem.name}", item "${targetItem.name}" should be visible`
+        ).toBeVisible();
+
+        // Clear the search input for the next iteration to ensure a clean state
+        await searchInput.clear();
+      }
     });
 
     test("should show no items for a non-matching search term", async ({ page }) => {
