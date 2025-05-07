@@ -41,7 +41,7 @@ interface BuildBaseWhereConditionType {
 
 const bookingStatusSchema = z.enum(["NO_BOOKING", ...Object.values(BookingStatus)]).optional();
 
-const buildBaseWhereCondition = async ({
+export const buildBaseWhereCondition = async ({
   teamId,
   eventTypeId,
   memberUserId,
