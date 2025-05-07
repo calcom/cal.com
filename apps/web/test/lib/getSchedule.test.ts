@@ -1542,7 +1542,7 @@ describe("getSchedule", () => {
           {
             id: 1,
             slotInterval: 45,
-            schedulingType: "COLLECTIVE",
+            schedulingType: SchedulingType.COLLECTIVE,
             hosts: [
               {
                 userId: 101,
@@ -2084,7 +2084,7 @@ describe("getSchedule", () => {
               id: 1,
               durationLimits: { PER_DAY: 120 }, // 2 hours per day
             },
-            schedulingType: "COLLECTIVE",
+            schedulingType: SchedulingType.COLLECTIVE,
             users: [
               {
                 id: 101,
@@ -2103,7 +2103,7 @@ describe("getSchedule", () => {
               id: 1,
               durationLimits: { PER_DAY: 120 }, // 2 hours per day
             },
-            schedulingType: "COLLECTIVE",
+            schedulingType: SchedulingType.COLLECTIVE,
             users: [
               {
                 id: 101,
@@ -2908,7 +2908,7 @@ describe("getSchedule", () => {
           {
             id: 1,
             slotInterval: 45,
-            schedulingType: "COLLECTIVE",
+            schedulingType: SchedulingType.COLLECTIVE,
             length: 45,
             users: [
               {
