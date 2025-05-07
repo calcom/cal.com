@@ -51,6 +51,22 @@ export function calculatePeriodLimits({
   bookerUtcOffset: number;
   _skipRollingWindowCheck?: boolean;
 }): PeriodLimits {
+  const cache = calculatePeriodLimits.cache || (calculatePeriodLimits.cache = new Map());
+  const cacheKey = JSON.stringify({
+    periodType,
+    periodDays,
+    periodCountCalendarDays,
+    periodStartDate,
+    periodEndDate,
+    eventUtcOffset,
+    bookerUtcOffset,
+    _skipRollingWindowCheck,
+  });
+
+  if (!allDatesWithBookabilityStatusInBookerTz && cache.has(cacheKey)) {
+    return cache.get(cacheKey);
+  }
+
   const currentTime = dayjs();
   const currentTimeInEventTz = currentTime.utcOffset(eventUtcOffset);
   const currentTimeInBookerTz = currentTime.utcOffset(bookerUtcOffset);
@@ -67,6 +83,8 @@ export function calculatePeriodLimits({
     })
   );
 
+  let result: PeriodLimits;
+
   switch (periodType) {
     case PeriodType.ROLLING: {
       // We use booker's timezone to calculate the end of the rolling period(for both ROLLING and ROLLING_WINDOW). This is because we want earliest possible timeslot to be available to be booked which could be on an earlier day(compared to event timezone) as per booker's timezone.
@@ -75,20 +93,22 @@ export function calculatePeriodLimits({
         ? currentTimeInBookerTz.add(periodDays, "days")
         : currentTimeInBookerTz.businessDaysAdd(periodDays);
       // The future limit talks in terms of days so we take the end of the day here to consider the entire day
-      return {
+      result = {
         endOfRollingPeriodEndDayInBookerTz: rollingEndDay.endOf("day"),
         startOfRangeStartDayInEventTz: null,
         endOfRangeEndDayInEventTz: null,
       };
+      break;
     }
 
     case PeriodType.ROLLING_WINDOW: {
       if (_skipRollingWindowCheck) {
-        return {
+        result = {
           endOfRollingPeriodEndDayInBookerTz: null,
           startOfRangeStartDayInEventTz: null,
           endOfRangeEndDayInEventTz: null,
         };
+        break;
       }
 
       if (!allDatesWithBookabilityStatusInBookerTz) {
@@ -102,11 +122,12 @@ export function calculatePeriodLimits({
         countNonBusinessDays: periodCountCalendarDays,
       });
 
-      return {
+      result = {
         endOfRollingPeriodEndDayInBookerTz,
         startOfRangeStartDayInEventTz: null,
         endOfRangeEndDayInEventTz: null,
       };
+      break;
     }
 
     case PeriodType.RANGE: {
@@ -116,20 +137,30 @@ export function calculatePeriodLimits({
       const startOfRangeStartDayInEventTz = dayjs(periodStartDate).utcOffset(eventUtcOffset).startOf("day");
       const endOfRangeEndDayInEventTz = dayjs(periodEndDate).utcOffset(eventUtcOffset).endOf("day");
 
-      return {
+      result = {
         endOfRollingPeriodEndDayInBookerTz: null,
         startOfRangeStartDayInEventTz,
         endOfRangeEndDayInEventTz,
       };
+      break;
     }
+
+    default:
+      result = {
+        endOfRollingPeriodEndDayInBookerTz: null,
+        startOfRangeStartDayInEventTz: null,
+        endOfRangeEndDayInEventTz: null,
+      };
   }
 
-  return {
-    endOfRollingPeriodEndDayInBookerTz: null,
-    startOfRangeStartDayInEventTz: null,
-    endOfRangeEndDayInEventTz: null,
-  };
+  if (!allDatesWithBookabilityStatusInBookerTz) {
+    cache.set(cacheKey, result);
+  }
+
+  return result;
 }
+
+calculatePeriodLimits.cache = new Map();
 
 export function getRollingWindowEndDate({
   startDateInBookerTz,

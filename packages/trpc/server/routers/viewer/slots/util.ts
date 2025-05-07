@@ -397,24 +397,48 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
 
   const hasFallbackRRHosts = allFallbackRRHosts && allFallbackRRHosts.length > qualifiedRRHosts.length;
 
-  let { allUsersAvailability, usersWithCredentials, currentSeats } = await calculateHostsAndAvailabilities({
-    input,
-    eventType,
-    hosts: allHosts,
-    loggerWithEventDetails,
-    // adjust start time so we can check for available slots in the first two weeks
-    startTime:
-      hasFallbackRRHosts && startTime.isBefore(twoWeeksFromNow)
-        ? getStartTime(dayjs().format(), input.timeZone, eventType.minimumBookingNotice)
-        : startTime,
-    // adjust end time so we can check for available slots in the first two weeks
-    endTime:
-      hasFallbackRRHosts && endTime.isBefore(twoWeeksFromNow)
-        ? getStartTime(twoWeeksFromNow.format(), input.timeZone, eventType.minimumBookingNotice)
-        : endTime,
-    bypassBusyCalendarTimes,
-    shouldServeCache,
-  });
+  const memoizedCalculateHostsAndAvailabilities = (() => {
+    const cache = new Map();
+
+    return (params) => {
+      const cacheKey = JSON.stringify({
+        eventTypeId: eventType.id,
+        hosts: allHosts.map((h) => h.user.id),
+        startTime: startTime.format(),
+        endTime: endTime.format(),
+        bypassBusyCalendarTimes,
+        shouldServeCache,
+      });
+
+      if (cache.has(cacheKey)) {
+        return cache.get(cacheKey);
+      }
+
+      const result = calculateHostsAndAvailabilities(params);
+      cache.set(cacheKey, result);
+      return result;
+    };
+  })();
+
+  let { allUsersAvailability, usersWithCredentials, currentSeats } =
+    await memoizedCalculateHostsAndAvailabilities({
+      input,
+      eventType,
+      hosts: allHosts,
+      loggerWithEventDetails,
+      // adjust start time so we can check for available slots in the first two weeks
+      startTime:
+        hasFallbackRRHosts && startTime.isBefore(twoWeeksFromNow)
+          ? getStartTime(dayjs().format(), input.timeZone, eventType.minimumBookingNotice)
+          : startTime,
+      // adjust end time so we can check for available slots in the first two weeks
+      endTime:
+        hasFallbackRRHosts && endTime.isBefore(twoWeeksFromNow)
+          ? getStartTime(twoWeeksFromNow.format(), input.timeZone, eventType.minimumBookingNotice)
+          : endTime,
+      bypassBusyCalendarTimes,
+      shouldServeCache,
+    });
 
   let aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
 
@@ -481,7 +505,9 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
     allUsersAvailability.length > 1;
 
-  const timeSlots = monitorCallbackSync(getSlots, {
+  const getSlotsFn = process.env.NODE_ENV === "production" ? monitorCallbackSync(getSlots) : getSlots;
+
+  const timeSlots = getSlotsFn({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
     offsetStart: eventType.offsetStart,
@@ -585,6 +611,8 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   });
 
   const slotsMappedToDate = monitorCallbackSync(function mapSlotsToDate() {
+    const checkedSlotTimes = new Map();
+
     return availableTimeSlots.reduce(
       (
         r: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
@@ -600,20 +628,33 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
         if (eventType.onlyShowFirstAvailableSlot && r[dateString].length > 0) {
           return r;
         }
+
+        const timeISOString = time.toISOString();
+
+        let attendeesAndBooking = {};
+        if (currentSeats) {
+          if (!checkedSlotTimes.has(timeISOString)) {
+            const matchingBookingIndex = currentSeats.findIndex(
+              (booking) => booking.startTime.toISOString() === timeISOString
+            );
+
+            if (matchingBookingIndex >= 0) {
+              attendeesAndBooking = {
+                attendees: currentSeats[matchingBookingIndex]._count.attendees,
+                bookingUid: currentSeats[matchingBookingIndex].uid,
+              };
+            }
+
+            checkedSlotTimes.set(timeISOString, attendeesAndBooking);
+          } else {
+            attendeesAndBooking = checkedSlotTimes.get(timeISOString) || {};
+          }
+        }
+
         r[dateString].push({
           ...passThroughProps,
-          time: time.toISOString(),
-          // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
-          ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
-            attendees:
-              currentSeats[
-                currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-              ]._count.attendees,
-            bookingUid:
-              currentSeats[
-                currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-              ].uid,
-          }),
+          time: timeISOString,
+          ...attendeesAndBooking,
         });
         return r;
       },
@@ -647,24 +688,45 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   });
   let foundAFutureLimitViolation = false;
   const withinBoundsSlotsMappedToDate = monitorCallbackSync(function mapWithinBoundsSlotsToDate() {
+    const timeValidationCache = new Map();
+
     return Object.entries(slotsMappedToDate).reduce((withinBoundsSlotsMappedToDate, [date, slots]) => {
       // Computation Optimization: If a future limit violation has been found, we just consider all slots to be out of bounds beyond that slot.
       // We can't do the same for periodType=RANGE because it can start from a day other than today and today will hit the violation then.
       if (foundAFutureLimitViolation && doesRangeStartFromToday(eventType.periodType)) {
         return withinBoundsSlotsMappedToDate;
       }
+
       const filteredSlots = slots.filter((slot) => {
+        if (timeValidationCache.has(slot.time)) {
+          const cachedResult = timeValidationCache.get(slot.time);
+          if (cachedResult.isFutureLimitViolation) foundAFutureLimitViolation = true;
+          return !cachedResult.isFutureLimitViolation && !cachedResult.isOutOfBounds;
+        }
+
         const isFutureLimitViolationForTheSlot = isTimeViolatingFutureLimit({
           time: slot.time,
           periodLimits,
         });
+
+        const isOutOfBounds = isTimeOutOfBounds({
+          time: slot.time,
+          minimumBookingNotice: eventType.minimumBookingNotice,
+        });
+
+        timeValidationCache.set(slot.time, {
+          isFutureLimitViolation: isFutureLimitViolationForTheSlot,
+          isOutOfBounds,
+        });
+
         if (isFutureLimitViolationForTheSlot) {
           foundAFutureLimitViolation = true;
         }
+
         return (
           !isFutureLimitViolationForTheSlot &&
           // TODO: Perf Optimization: Slots calculation logic already seems to consider the minimum booking notice and past booking time and thus there shouldn't be need to filter out slots here.
-          !isTimeOutOfBounds({ time: slot.time, minimumBookingNotice: eventType.minimumBookingNotice })
+          !isOutOfBounds
         );
       });
 
