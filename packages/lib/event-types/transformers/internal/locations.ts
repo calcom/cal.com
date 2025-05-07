@@ -36,7 +36,6 @@ const integrationsApiUnavailable = {
   "discord-video": z.literal("integrations:discord_video"),
   "demodesk-video": z.literal("integrations:demodesk_video"),
   "campfire-video": z.literal("integrations:campfire_video"),
-  "around-video": z.literal("integrations:around_video"),
 };
 
 export const integrationsApiToInternalMappingSchema = {
