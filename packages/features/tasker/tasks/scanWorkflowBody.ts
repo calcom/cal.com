@@ -17,8 +17,8 @@ export const scanWorkflowBodySchema = z.object({
 const log = logger.getSubLogger({ prefix: ["[tasker] scanWorkflowBody"] });
 
 export async function scanWorkflowBody(payload: string) {
-  if (!process.env.IFFY_API_KEY) {
-    log.info("IFFY_API_KEY not set, skipping scan");
+  if (!process.env.IFFY_API_KEY || !process.env.IFFY_CLIENT_NAME) {
+    log.info("IFFY_API_KEY or IFFY_CLIENT_NAME not set, skipping scan");
     return;
   }
 
@@ -44,8 +44,6 @@ export async function scanWorkflowBody(payload: string) {
       },
     },
   });
-
-  // const client = new AkismetClient({ key: process.env.AKISMET_API_KEY, blog: WEBAPP_URL });
 
   for (const workflowStep of workflowSteps) {
     if (!workflowStep.reminderBody) {
