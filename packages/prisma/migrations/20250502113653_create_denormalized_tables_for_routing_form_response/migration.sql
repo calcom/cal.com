@@ -10,9 +10,6 @@ CREATE TABLE "RoutingFormResponseField" (
     CONSTRAINT "RoutingFormResponseField_pkey" PRIMARY KEY ("id")
 );
 
--- Add index for valueString (lowercase)
-CREATE INDEX "RoutingFormResponseField_valueString_idx" ON "RoutingFormResponseField" (LOWER("valueString"));
-
 -- CreateTable
 CREATE TABLE "RoutingFormResponseDenormalized" (
     "id" INTEGER NOT NULL,
@@ -44,6 +41,12 @@ CREATE TABLE "RoutingFormResponseDenormalized" (
     PRIMARY KEY ("id")
 );
 
+-- AddForeignKey
+ALTER TABLE "RoutingFormResponseField" ADD CONSTRAINT "RoutingFormResponseField_response_fkey" FOREIGN KEY ("responseId") REFERENCES "App_RoutingForms_FormResponse"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- Add index for valueString (lowercase)
+CREATE INDEX "RoutingFormResponseField_valueString_idx" ON "RoutingFormResponseField" (LOWER("valueString"));
+
 -- CreateIndex
 CREATE INDEX "RoutingFormResponseField_responseId_idx" ON "RoutingFormResponseField"("responseId");
 
@@ -55,6 +58,9 @@ CREATE INDEX "RoutingFormResponseField_valueNumber_idx" ON "RoutingFormResponseF
 
 -- CreateIndex
 CREATE INDEX "RoutingFormResponseField_valueStringArray_idx" ON "RoutingFormResponseField" USING GIN ("valueStringArray");
+
+-- Add index for bookingAssignmentReason (lowercase)
+CREATE INDEX "RoutingFormResponseDenormalized_bookingAssignmentReason_idx" ON "RoutingFormResponseDenormalized" (LOWER("bookingAssignmentReason"));
 
 -- CreateIndex
 CREATE INDEX "RoutingFormResponseDenormalized_formId_idx" ON "RoutingFormResponseDenormalized"("formId");
@@ -76,9 +82,6 @@ CREATE INDEX "RoutingFormResponseDenormalized_bookingUserId_idx" ON "RoutingForm
 
 -- CreateIndex
 CREATE INDEX "RoutingFormResponseDenormalized_eventTypeId_eventTypeParent_idx" ON "RoutingFormResponseDenormalized"("eventTypeId", "eventTypeParentId");
-
--- AddForeignKey
-ALTER TABLE "RoutingFormResponseField" ADD CONSTRAINT "RoutingFormResponseField_response_fkey" FOREIGN KEY ("responseId") REFERENCES "App_RoutingForms_FormResponse"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "RoutingFormResponseDenormalized" ADD CONSTRAINT "RoutingFormResponseDenormalized_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE SET NULL ON UPDATE CASCADE;

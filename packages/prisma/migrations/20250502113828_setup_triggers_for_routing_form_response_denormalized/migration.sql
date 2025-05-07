@@ -1,6 +1,3 @@
--- Add index for bookingAssignmentReason (lowercase)
-CREATE INDEX "RoutingFormResponseDenormalized_bookingAssignmentReason_idx" ON "RoutingFormResponseDenormalized" (LOWER("bookingAssignmentReason"));
-
 -- Function to calculate bookingStatusOrder
 CREATE OR REPLACE FUNCTION calculate_booking_status_order(status TEXT)
 RETURNS INTEGER AS $$
