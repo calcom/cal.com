@@ -37,7 +37,7 @@ export class SlotsRepository_2024_09_04 {
             ],
           },
           // Only consider non-expired reservations
-          { releaseAt: { gt: new Date() } },
+          { releaseAt: { gt: DateTime.utc().toJSDate() } },
         ],
       },
     });
