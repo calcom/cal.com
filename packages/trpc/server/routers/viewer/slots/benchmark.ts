@@ -12,8 +12,9 @@ import { getAvailableSlots } from "./util";
 
 const prisma = new PrismaClient();
 
+// Create a proper mock of IncomingMessage with cookies
 class MockIncomingMessage extends IncomingMessage {
-  cookies: Partial<{ [key: string]: string }>;
+  cookies: Record<string, string>;
 
   constructor() {
     super(new Socket());
