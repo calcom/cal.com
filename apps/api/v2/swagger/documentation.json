@@ -15064,7 +15064,6 @@
               "discord-video",
               "demodesk-video",
               "campfire-video",
-              "around-video"
             ],
             "example": "cal-video"
           },
@@ -22298,7 +22297,6 @@
               "discord-video",
               "demodesk-video",
               "campfire-video",
-              "around-video"
             ]
           }
         },
