@@ -273,22 +273,70 @@ export async function handler(req: NextApiRequest) {
 
   if (!filterByAttendeeEmails && userEmailsToFilterBy.length > 0) {
     const queryOne = prisma.booking.findMany(args);
-    const queryTwo = prisma.booking.findMany({
-      where: {
-        attendees: {
-          some: {
-            email: { in: userEmailsToFilterBy },
-          },
+
+    const whereClauseForQueryTwo: Prisma.BookingWhereInput = {
+      attendees: {
+        some: {
+          email: { in: userEmailsToFilterBy },
         },
       },
-    });
+    };
+
+    if (dateFrom) {
+      whereClauseForQueryTwo.startTime = { gte: dateFrom };
+    }
+    if (dateTo) {
+      whereClauseForQueryTwo.endTime = { lte: dateTo };
+    }
+    if (status === "upcoming") {
+      whereClauseForQueryTwo.startTime = { gte: new Date().toISOString() };
+    }
+
+    const argsForQueryTwo: Prisma.BookingFindManyArgs = {
+      ...args,
+      where: whereClauseForQueryTwo,
+    };
+
+    const queryTwo = prisma.booking.findMany(argsForQueryTwo);
 
     const [resultOne, resultTwo] = await Promise.all([queryOne, queryTwo]);
+
     const bookingMap = new Map();
     [...resultOne, ...resultTwo].forEach((booking) => {
       bookingMap.set(booking.id, booking);
     });
-    data = Array.from(bookingMap.values());
+
+    const dedupedResults = Array.from(bookingMap.values());
+
+    if (args.orderBy) {
+      let sortField: keyof Booking;
+      let sortDirection: "asc" | "desc" = "asc";
+
+      if (typeof args.orderBy === "object" && !Array.isArray(args.orderBy)) {
+        const orderByKey = Object.keys(args.orderBy)[0] as keyof typeof args.orderBy;
+        sortField = orderByKey as keyof Booking;
+        sortDirection = args.orderBy[orderByKey] as "asc" | "desc";
+      } else {
+        sortField = "id";
+      }
+
+      const sortOrder = sortDirection === "desc" ? -1 : 1;
+
+      dedupedResults.sort((a, b) => {
+        const aValue = a[sortField];
+        const bValue = b[sortField];
+
+        if (aValue < bValue) return -1 * sortOrder;
+        if (aValue > bValue) return 1 * sortOrder;
+        return 0;
+      });
+    }
+
+    if (args.take !== undefined && args.skip !== undefined) {
+      data = dedupedResults.slice(args.skip, args.skip + args.take);
+    } else {
+      data = dedupedResults;
+    }
   } else {
     data = await prisma.booking.findMany(args);
   }
