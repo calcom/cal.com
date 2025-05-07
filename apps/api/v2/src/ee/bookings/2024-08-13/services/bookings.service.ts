@@ -432,8 +432,8 @@ export class BookingsService_2024_08_13 {
       }
     }
 
-    const skip = queryParams?.skip ?? 0;
-    const take = queryParams?.take ?? 10; // Use a sensible default if take isn't specified
+    const skip = Math.abs(queryParams?.skip ?? 0);
+    const take = Math.abs(queryParams?.take === 0 ? 1 : queryParams?.take ?? 100);
     const itemsPerPage = take;
     const totalPages = Math.ceil(fetchedBookings.totalCount / itemsPerPage);
     const currentPage = Math.floor(skip / itemsPerPage) + 1;
@@ -443,7 +443,11 @@ export class BookingsService_2024_08_13 {
       bookings: formattedBookings,
       pagination: {
         totalItems: fetchedBookings.totalCount,
-        remainingItems: fetchedBookings.totalCount - (skip + take),
+        // clamp remainingItems between 0 and totalCount
+        remainingItems: Math.min(
+          Math.max(fetchedBookings.totalCount - (skip + take), 0),
+          fetchedBookings.totalCount
+        ),
         itemsPerPage: itemsPerPage,
         currentPage: currentPage,
         totalPages: totalPages,
