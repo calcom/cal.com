@@ -376,7 +376,7 @@ export class BookingsService_2024_08_13 {
       queryParams.attendeeEmail = await this.getAttendeeEmail(queryParams.attendeeEmail, user);
     }
 
-    const fetchedBookings: { bookings: { id: number }[] } = await getAllUserBookings({
+    const fetchedBookings: { bookings: { id: number }[]; totalCount: number } = await getAllUserBookings({
       bookingListingByStatus: queryParams.status || [],
       skip: queryParams.skip ?? 0,
       take: queryParams.take ?? 100,
@@ -432,7 +432,25 @@ export class BookingsService_2024_08_13 {
       }
     }
 
-    return formattedBookings;
+    const skip = queryParams?.skip ?? 0;
+    const take = queryParams?.take ?? 10; // Use a sensible default if take isn't specified
+    const itemsPerPage = take;
+    const totalPages = Math.ceil(fetchedBookings.totalCount / itemsPerPage);
+    const currentPage = Math.floor(skip / itemsPerPage) + 1;
+    const hasNextPage = skip + itemsPerPage < fetchedBookings.totalCount;
+    const hasPreviousPage = skip > 0;
+    return {
+      bookings: formattedBookings,
+      pagination: {
+        totalItems: fetchedBookings.totalCount,
+        remainingItems: fetchedBookings.totalCount - (skip + take),
+        itemsPerPage: itemsPerPage,
+        currentPage: currentPage,
+        totalPages: totalPages,
+        hasNextPage: hasNextPage,
+        hasPreviousPage: hasPreviousPage,
+      },
+    };
   }
 
   async getAttendeeEmail(queryParamsAttendeeEmail: string, user: { id: number }) {

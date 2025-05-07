@@ -181,7 +181,7 @@ export class BookingsController_2024_08_13 {
   ): Promise<GetBookingsOutput_2024_08_13> {
     const profile = this.usersService.getUserMainProfile(user);
 
-    const bookings = await this.bookingsService.getBookings(queryParams, {
+    const { bookings, pagination } = await this.bookingsService.getBookings(queryParams, {
       email: user.email,
       id: user.id,
       orgId: profile?.organizationId,
@@ -190,6 +190,7 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: bookings,
+      pagination,
     };
   }
 

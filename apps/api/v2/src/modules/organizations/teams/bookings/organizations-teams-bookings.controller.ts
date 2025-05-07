@@ -53,7 +53,7 @@ export class OrganizationsTeamsBookingsController {
     @Param("orgId", ParseIntPipe) orgId: number,
     @GetUser() user: UserWithProfile
   ): Promise<GetBookingsOutput_2024_08_13> {
-    const bookings = await this.bookingsService.getBookings(
+    const { bookings, pagination } = await this.bookingsService.getBookings(
       { ...queryParams, teamId },
       { email: user.email, id: user.id, orgId }
     );
@@ -61,6 +61,7 @@ export class OrganizationsTeamsBookingsController {
     return {
       status: SUCCESS_STATUS,
       data: bookings,
+      pagination,
     };
   }
 

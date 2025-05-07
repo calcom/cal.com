@@ -1689,6 +1689,7 @@
             "description": "The number of items to return",
             "example": 10,
             "schema": {
+              "default": 100,
               "type": "number"
             }
           },
@@ -1699,6 +1700,7 @@
             "description": "The number of items to skip",
             "example": 0,
             "schema": {
+              "default": 0,
               "type": "number"
             }
           },
@@ -5585,6 +5587,7 @@
             "description": "The number of items to return",
             "example": 10,
             "schema": {
+              "default": 100,
               "type": "number"
             }
           },
@@ -5595,6 +5598,7 @@
             "description": "The number of items to skip",
             "example": 0,
             "schema": {
+              "default": 0,
               "type": "number"
             }
           }
@@ -6960,6 +6964,7 @@
             "description": "The number of items to return",
             "example": 10,
             "schema": {
+              "default": 100,
               "type": "number"
             }
           },
@@ -6970,6 +6975,7 @@
             "description": "The number of items to skip",
             "example": 0,
             "schema": {
+              "default": 0,
               "type": "number"
             }
           },
@@ -15063,7 +15069,7 @@
               "eightxeight-video",
               "discord-video",
               "demodesk-video",
-              "campfire-video",
+              "campfire-video"
             ],
             "example": "cal-video"
           },
@@ -21743,7 +21749,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "number"
           },
           "formId": {
             "type": "string"
@@ -22296,7 +22302,7 @@
               "eightxeight-video",
               "discord-video",
               "demodesk-video",
-              "campfire-video",
+              "campfire-video"
             ]
           }
         },
@@ -23905,6 +23911,60 @@
           "data"
         ]
       },
+      "PaginationMetaDto": {
+        "type": "object",
+        "properties": {
+          "totalItems": {
+            "type": "number",
+            "minimum": 0,
+            "description": "The total number of items available across all pages, matching the query criteria.",
+            "example": 123
+          },
+          "remainingItems": {
+            "type": "number",
+            "minimum": 0,
+            "description": "The number of items remaining to be fetched *after* the current page. Calculated as: `totalItems - (skip + itemsPerPage)`.",
+            "example": 103
+          },
+          "itemsPerPage": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The maximum number of items requested per page.",
+            "example": 10
+          },
+          "currentPage": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The current page number being returned.",
+            "example": 2
+          },
+          "totalPages": {
+            "type": "number",
+            "minimum": 0,
+            "description": "The total number of pages available.",
+            "example": 13
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a subsequent page available after the current one.",
+            "example": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a preceding page available before the current one.",
+            "example": true
+          }
+        },
+        "required": [
+          "totalItems",
+          "remainingItems",
+          "itemsPerPage",
+          "currentPage",
+          "totalPages",
+          "hasNextPage",
+          "hasPreviousPage"
+        ]
+      },
       "GetBookingsOutput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -23938,11 +23998,15 @@
           },
           "error": {
             "type": "object"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetaDto"
           }
         },
         "required": [
           "status",
-          "data"
+          "data",
+          "pagination"
         ]
       },
       "RescheduleBookingInput_2024_08_13": {
