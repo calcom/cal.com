@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 
-import { MembershipRole } from "@calcom/prisma/client";
+import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { test } from "../../lib/fixtures";
 import { applyFilter, createFilterSegment, selectSegment, deleteSegment } from "./filter-segment-helpers";
@@ -8,9 +9,8 @@ import { applyFilter, createFilterSegment, selectSegment, deleteSegment } from "
 test.describe.configure({ mode: "parallel" });
 test.use({ headless: true });
 
-test.afterEach(async ({ users, orgs }) => {
+test.afterEach(async ({ users }) => {
   await users.deleteAll();
-  await orgs.deleteAll();
 });
 
 test.describe("Filter Segment Functionality", () => {
@@ -18,25 +18,29 @@ test.describe("Filter Segment Functionality", () => {
     page,
     users,
   }) => {
-    const orgOwner = await users.create(undefined, {
-      hasTeam: true,
-      isOrg: true,
-      role: MembershipRole.OWNER,
-      overrideDefaultEventTypes: true,
+    const org = await prisma.team.create({
+      data: {
+        name: "TestOrg",
+        slug: `org-${Math.random().toString(36).substring(7)}`,
+        isOrganization: true,
+      },
     });
-    const { team: org } = await orgOwner.getOrgMembership();
+
+    const orgOwner = await users.create({
+      organizationId: org.id,
+      roleInOrganization: MembershipRole.OWNER,
+    });
 
     await users.create({
-      role: MembershipRole.MEMBER,
       organizationId: org.id,
+      roleInOrganization: MembershipRole.MEMBER,
       username: "member-user",
-      overrideDefaultEventTypes: true,
     });
+
     await users.create({
-      role: MembershipRole.ADMIN,
       organizationId: org.id,
+      roleInOrganization: MembershipRole.ADMIN,
       username: "admin-user",
-      overrideDefaultEventTypes: true,
     });
 
     await orgOwner.apiLogin();
@@ -75,25 +79,29 @@ test.describe("Filter Segment Functionality", () => {
   });
 
   test("Filter segments persist across page reloads", async ({ page, users }) => {
-    const orgOwner = await users.create(undefined, {
-      hasTeam: true,
-      isOrg: true,
-      role: MembershipRole.OWNER,
-      overrideDefaultEventTypes: true,
+    const org = await prisma.team.create({
+      data: {
+        name: "TestOrg2",
+        slug: `org-${Math.random().toString(36).substring(7)}`,
+        isOrganization: true,
+      },
     });
-    const { team: org } = await orgOwner.getOrgMembership();
+
+    const orgOwner = await users.create({
+      organizationId: org.id,
+      roleInOrganization: MembershipRole.OWNER,
+    });
 
     await users.create({
-      role: MembershipRole.MEMBER,
       organizationId: org.id,
+      roleInOrganization: MembershipRole.MEMBER,
       username: "member-user",
-      overrideDefaultEventTypes: true,
     });
+
     await users.create({
-      role: MembershipRole.ADMIN,
       organizationId: org.id,
+      roleInOrganization: MembershipRole.ADMIN,
       username: "admin-user",
-      overrideDefaultEventTypes: true,
     });
 
     await orgOwner.apiLogin();
@@ -119,27 +127,40 @@ test.describe("Filter Segment Functionality", () => {
   });
 
   test("Admin can create and use team scope filter segments", async ({ page, users }) => {
-    const orgOwner = await users.create(undefined, {
-      hasTeam: true,
-      isOrg: true,
-      hasSubteam: true,
-      role: MembershipRole.OWNER,
-      overrideDefaultEventTypes: true,
+    const org = await prisma.team.create({
+      data: {
+        name: "TestOrg3",
+        slug: `org-${Math.random().toString(36).substring(7)}`,
+        isOrganization: true,
+      },
     });
-    const { team: org } = await orgOwner.getOrgMembership();
-    const { team: subTeam } = await orgOwner.getFirstTeamMembership();
+
+    const orgOwner = await users.create({
+      organizationId: org.id,
+      roleInOrganization: MembershipRole.OWNER,
+    });
+
+    const subTeam = await prisma.team.create({
+      data: {
+        name: "SubTeam",
+        parent: {
+          connect: {
+            id: org.id,
+          },
+        },
+      },
+    });
 
     await users.create({
-      role: MembershipRole.MEMBER,
       organizationId: org.id,
+      roleInOrganization: MembershipRole.MEMBER,
       username: "org-member",
-      overrideDefaultEventTypes: true,
     });
+
     await users.create({
-      role: MembershipRole.ADMIN,
       organizationId: org.id,
+      roleInOrganization: MembershipRole.ADMIN,
       username: "org-admin",
-      overrideDefaultEventTypes: true,
     });
 
     await orgOwner.apiLogin();
@@ -167,10 +188,9 @@ test.describe("Filter Segment Functionality", () => {
 
     await test.step("Regular member can see but not modify team segments", async () => {
       const regularMember = await users.create({
-        role: MembershipRole.MEMBER,
         organizationId: org.id,
+        roleInOrganization: MembershipRole.MEMBER,
         username: "regular-member",
-        overrideDefaultEventTypes: true,
       });
 
       await regularMember.apiLogin();
