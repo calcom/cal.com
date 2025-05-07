@@ -72,7 +72,7 @@ vi.mock("@calcom/lib/constants", () => {
   };
 });
 
-vi.mock("@calcom/lib/date-fns", () => {
+vi.mock("@calcom/lib/dayjs", () => {
   return {};
 });
 

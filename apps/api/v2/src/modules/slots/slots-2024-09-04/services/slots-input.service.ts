@@ -1,12 +1,23 @@
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
+import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { DateTime } from "luxon";
 
 import { dynamicEvent } from "@calcom/platform-libraries";
-import { GetSlotsInput_2024_09_04 } from "@calcom/platform-types";
+import {
+  ById_2024_09_04,
+  ByUsernameAndEventTypeSlug_2024_09_04,
+  ByTeamSlugAndEventTypeSlug_2024_09_04,
+  GetSlotsInput_2024_09_04,
+  ById_2024_09_04_type,
+  ByUsernameAndEventTypeSlug_2024_09_04_type,
+  ByTeamSlugAndEventTypeSlug_2024_09_04_type,
+} from "@calcom/platform-types";
 
 @Injectable()
 export class SlotsInputService_2024_09_04 {
@@ -14,7 +25,10 @@ export class SlotsInputService_2024_09_04 {
     private readonly eventTypeRepository: EventTypesRepository_2024_06_14,
     private readonly usersRepository: UsersRepository,
     private readonly organizationsUsersRepository: OrganizationsUsersRepository,
-    private readonly organizationsRepository: OrganizationsRepository
+    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
+    private readonly organizationsRepository: OrganizationsRepository,
+    private readonly teamsRepository: TeamsRepository,
+    private readonly teamsEventTypesRepository: TeamsEventTypesRepository
   ) {}
 
   async transformGetSlotsQuery(query: GetSlotsInput_2024_09_04) {
@@ -47,11 +61,11 @@ export class SlotsInputService_2024_09_04 {
   }
 
   private async getEventType(input: GetSlotsInput_2024_09_04) {
-    if ("eventTypeId" in input) {
+    if (input.type === ById_2024_09_04_type) {
       return this.eventTypeRepository.getEventTypeById(input.eventTypeId);
     }
 
-    if ("eventTypeSlug" in input) {
+    if (input.type === ByUsernameAndEventTypeSlug_2024_09_04_type) {
       const user = await this.getEventTypeUser(input);
       if (!user) {
         throw new NotFoundException(`User with username ${input.username} not found`);
@@ -59,27 +73,48 @@ export class SlotsInputService_2024_09_04 {
       return this.eventTypeRepository.getUserEventTypeBySlug(user.id, input.eventTypeSlug);
     }
 
+    if (input.type === ByTeamSlugAndEventTypeSlug_2024_09_04_type) {
+      const team = await this.getEventTypeTeam(input);
+      if (!team) {
+        throw new NotFoundException(`Team with slug ${input.teamSlug} not found`);
+      }
+      return this.teamsEventTypesRepository.getEventTypeByTeamIdAndSlug(team.id, input.eventTypeSlug);
+    }
+
     return input.duration ? { ...dynamicEvent, length: input.duration } : dynamicEvent;
   }
 
-  private async getEventTypeUser(input: GetSlotsInput_2024_09_04) {
-    if ("eventTypeSlug" in input) {
-      if ("organizationSlug" in input && input.organizationSlug) {
-        const organization = await this.organizationsRepository.findOrgBySlug(input.organizationSlug);
-        if (!organization) {
-          throw new NotFoundException(
-            `slots-input.service.ts: Organization with slug ${input.organizationSlug} not found`
-          );
-        }
-
-        return await this.organizationsUsersRepository.getOrganizationUserByUsername(
-          organization.id,
-          input.username
-        );
-      }
-
+  private async getEventTypeUser(input: ByUsernameAndEventTypeSlug_2024_09_04) {
+    if (!input.organizationSlug) {
       return await this.usersRepository.findByUsername(input.username);
     }
+
+    const organization = await this.organizationsRepository.findOrgBySlug(input.organizationSlug);
+    if (!organization) {
+      throw new NotFoundException(
+        `slots-input.service.ts: Organization with slug ${input.organizationSlug} not found`
+      );
+    }
+
+    return await this.organizationsUsersRepository.getOrganizationUserByUsername(
+      organization.id,
+      input.username
+    );
+  }
+
+  private async getEventTypeTeam(input: ByTeamSlugAndEventTypeSlug_2024_09_04) {
+    if (!input.organizationSlug) {
+      return await this.teamsRepository.findTeamBySlug(input.teamSlug);
+    }
+
+    const organization = await this.organizationsRepository.findOrgBySlug(input.organizationSlug);
+    if (!organization) {
+      throw new NotFoundException(
+        `slots-input.service.ts: Organization with slug ${input.organizationSlug} not found`
+      );
+    }
+
+    return await this.organizationsTeamsRepository.findOrgTeamBySlug(organization.id, input.teamSlug);
   }
 
   private adjustStartTime(startTime: string) {

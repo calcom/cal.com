@@ -9,7 +9,6 @@ import {
   ForbiddenException,
   NotFoundException,
 } from "@nestjs/common";
-import { Request } from "express";
 
 @Injectable()
 export class OAuthClientGuard implements CanActivate {
@@ -35,7 +34,13 @@ export class OAuthClientGuard implements CanActivate {
       throw new NotFoundException("OAuthClientGuard - OAuth client not found.");
     }
 
-    return Boolean(user.isSystemAdmin || oAuthClient.organizationId === organizationId);
+    const allowed = Boolean(user.isSystemAdmin || oAuthClient.organizationId === organizationId);
+    if (!allowed) {
+      throw new ForbiddenException(
+        `OAuthClientGuard - forbidden. oAuth client with id=${oAuthClientId} does not belong to the organization with id=${organizationId}.`
+      );
+    }
+    return true;
   }
 
   getOrganizationId(context: ExecutionContext) {

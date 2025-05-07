@@ -1,4 +1,5 @@
 import type { ReadonlyURLSearchParams } from "next/navigation";
+import { z } from "zod";
 
 import { EmbedTheme } from "@calcom/features/embed/lib/constants";
 
@@ -16,6 +17,11 @@ const enum ThemeSupport {
  * The theme stays same for same identifier.
  */
 export function getUniqueIdentifierForBookingPage({ pathname }: { pathname: string }) {
+  if (pathname === "/") {
+    // For Org domains, we could have a booking page at root path too, so we use '/' as identifier
+    // As localStorage isn't shared for different org domains, it's safe to use '/' as identifier
+    return "/";
+  }
   const pathTokens = pathname.split("/").slice(1);
 
   // If it is a booking page then it could be one of the following:
@@ -87,12 +93,27 @@ export function getThemeProviderProps({
   searchParams: ReadonlyURLSearchParams | null;
 }) {
   const isBookingPage = props.isBookingPage;
-
   const themeSupport = isBookingPage
     ? ThemeSupport.Booking
     : props.isThemeSupported === false
     ? ThemeSupport.None
     : ThemeSupport.App;
+
+  const themeQueryParam = searchParams?.get("theme") ?? "";
+  const themeParsed = z.enum(["light", "dark", "system", "auto"]).safeParse(themeQueryParam);
+  const isWrongThemeValue = themeQueryParam.length > 0 && !themeParsed.success;
+  const forcedTheme = themeSupport === ThemeSupport.None || isWrongThemeValue ? "light" : undefined;
+  if (forcedTheme) {
+    return {
+      key: "forcedThemeKey",
+      storageKey: "forcedThemeKey",
+      forcedTheme,
+      attribute: "class",
+      nonce: props.nonce,
+      enableColorScheme: false,
+      enableSystem: themeSupport !== ThemeSupport.None,
+    };
+  }
 
   const isBookingPageThemeSupportRequired = themeSupport === ThemeSupport.Booking;
   const themeBasis = pathname ? getUniqueIdentifierForBookingPage({ pathname }) : null;
@@ -104,8 +125,6 @@ export function getThemeProviderProps({
   }
 
   const appearanceIdSuffix = themeBasis ? `:${themeBasis}` : "";
-  const forcedTheme = themeSupport === ThemeSupport.None ? "light" : undefined;
-  const themeQueryParam = searchParams?.get("theme");
   const embedExplicitlySetThemeSuffix =
     isEmbedMode && themeQueryParam && themeQueryParam !== EmbedTheme.auto ? `:${themeQueryParam}` : "";
 
@@ -121,8 +140,6 @@ export function getThemeProviderProps({
 
   const themeProviderProps = {
     storageKey,
-    // Can force a theme through this, no matter what system preference is or storage value is
-    forcedTheme,
     nonce: props.nonce,
     enableColorScheme: false,
     // Enables theme switching based on system preference if true

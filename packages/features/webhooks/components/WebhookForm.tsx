@@ -324,7 +324,7 @@ const WebhookForm = (props: {
                       setUseCustomTemplate(true);
                     }
                   }}
-                  defaultValue={value ? "custom" : "default"}
+                  value={useCustomTemplate ? "custom" : "default"}
                   options={[
                     { value: "default", label: t("default") },
                     { value: "custom", label: t("custom") },

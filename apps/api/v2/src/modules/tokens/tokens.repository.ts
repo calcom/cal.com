@@ -149,7 +149,7 @@ export class TokensRepository {
       this.dbWrite.prisma.refreshToken.create({
         data: {
           // note(Lauris): I am leaving userId because it was before adding ownerId to standardize payload like in the createOAuthTokens function for
-          // backwards compatability.
+          // backwards compatibility.
           secret: this.jwtService.signRefreshToken({
             clientId,
             ownerId: tokenUserId,

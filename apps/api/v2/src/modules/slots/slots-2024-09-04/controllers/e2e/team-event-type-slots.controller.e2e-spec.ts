@@ -54,10 +54,12 @@ describe("Slots 2024-09-04 Endpoints", () => {
     let outsider: User;
     let outsiderApiKeyString: string;
 
+    const teamSlug = `slots-2024-09-04-team-${randomString()}`;
     let team: Team;
     let teammateOne: User;
     let teammateTwo: User;
     let collectiveEventTypeId: number;
+    let collectiveEventTypeSlug: string;
     let collectiveEventTypeWithoutHostsId: number;
     let roundRobinEventTypeId: number;
     let collectiveBookingId: number;
@@ -121,7 +123,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
       outsiderApiKeyString = unrelatedUserKeyString;
 
       team = await teamRepositoryFixture.create({
-        name: `slots-2024-09-04-team-${randomString()}`,
+        name: teamSlug,
+        slug: teamSlug,
         isOrganization: false,
       });
 
@@ -167,6 +170,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         },
       });
       collectiveEventTypeId = collectiveEventType.id;
+      collectiveEventTypeSlug = collectiveEventType.slug;
 
       const collectiveEventTypeWithoutHosts = await eventTypesRepositoryFixture.createTeamEventType({
         schedulingType: "COLLECTIVE",
@@ -232,6 +236,25 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should get collective team event slots in UTC", async () => {
       return request(app.getHttpServer())
         .get(`/v2/slots?eventTypeId=${collectiveEventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          const slots = responseBody.data;
+
+          expect(slots).toBeDefined();
+          const days = Object.keys(slots);
+          expect(days.length).toEqual(5);
+          expect(slots).toEqual(expectedSlotsUTC);
+        });
+    });
+
+    it("should get collective team event slots in UTC using teamSlug and eventTypeSlug", async () => {
+      return request(app.getHttpServer())
+        .get(
+          `/v2/slots?teamSlug=${teamSlug}&eventTypeSlug=${collectiveEventTypeSlug}&start=2050-09-05&end=2050-09-09`
+        )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
         .then(async (response) => {

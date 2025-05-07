@@ -1,5 +1,6 @@
 import { getEnv } from "@/env";
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
+import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis";
 import { Inject, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
@@ -22,7 +23,7 @@ const rateLimitSchema = z.object({
   ttl: z.number(),
   blockDuration: z.number(),
 });
-type RateLimitType = z.infer<typeof rateLimitSchema>;
+export type RateLimitType = z.infer<typeof rateLimitSchema>;
 const rateLimitsSchema = z.array(rateLimitSchema);
 
 const sixtySecondsMs = 60 * 1000;
@@ -52,7 +53,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
 
   protected async handleRequest(requestProps: ThrottlerRequest): Promise<boolean> {
     const { context } = requestProps;
-
+    const throttleOptions = this.reflector.get(Throttle, context.getHandler());
     const request = context.switchToHttp().getRequest<Request>();
     const IP = request?.headers?.["cf-connecting-ip"] ?? request?.headers?.["CF-Connecting-IP"] ?? request.ip;
     const response = context.switchToHttp().getResponse<Response>();
@@ -63,11 +64,24 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
       )}", OAuth client ID "${request.get(X_CAL_CLIENT_ID)}" and IP "${IP}"`
     );
 
+    if (throttleOptions) {
+      return this.handleApiEndpointThrottle(tracker, throttleOptions, response);
+    }
+
     if (tracker.startsWith("api_key_")) {
       return this.handleApiKeyRequest(tracker, response);
     } else {
       return this.handleNonApiKeyRequest(tracker, response);
     }
+  }
+
+  private async handleApiEndpointThrottle(tracker: string, options: RateLimitType, response: Response) {
+    const { isBlocked } = await this.incrementRateLimit(`${tracker}_${options.name}`, options, response);
+    if (isBlocked) {
+      throw new ThrottlerException("CustomThrottlerGuard - Too many requests. Please try again later.");
+    }
+
+    return true;
   }
 
   private async handleApiKeyRequest(tracker: string, response: Response): Promise<boolean> {
@@ -82,7 +96,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     }
 
     if (allLimitsBlocked) {
-      throw new ThrottlerException("Too many requests. Please try again later.");
+      throw new ThrottlerException("CustomThrottlerGuard - Too many requests. Please try again later.");
     }
 
     return true;
@@ -96,7 +110,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
 
     const { isBlocked } = await this.incrementRateLimit(tracker, rateLimit, response);
     if (isBlocked) {
-      throw new ThrottlerException("Too many requests. Please try again later.");
+      throw new ThrottlerException("CustomThrottlerGuard - Too many requests. Please try again later.");
     }
 
     return true;
@@ -150,7 +164,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     });
 
     if (!apiKeyRecord) {
-      throw new UnauthorizedException("Invalid API Key");
+      throw new UnauthorizedException("CustomThrottlerGuard - Invalid API Key");
     }
 
     rateLimits = await this.dbRead.prisma.rateLimit.findMany({

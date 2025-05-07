@@ -1,10 +1,14 @@
 import { vi } from "vitest";
 
 const setCredentialsMock = vi.fn();
-
+const freebusyQueryMock = vi.fn();
+const calendarListMock = vi.fn();
 const calendarMockImplementation = {
   channels: {
     stop: vi.fn().mockResolvedValue(undefined),
+  },
+  calendarList: {
+    list: calendarListMock,
   },
   events: {
     watch: vi.fn().mockResolvedValue({
@@ -16,6 +20,9 @@ const calendarMockImplementation = {
         expiration: "1111111111",
       },
     }),
+  },
+  freebusy: {
+    query: freebusyQueryMock,
   },
 };
 
@@ -30,4 +37,4 @@ const adminMock = {
   },
 };
 
-export { calendarMock, adminMock, setCredentialsMock };
+export { calendarMock, adminMock, setCredentialsMock, freebusyQueryMock, calendarListMock };

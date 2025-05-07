@@ -195,6 +195,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     type: event && event.slug ? event.slug : bookingToReschedule.title,
     startTime: bookingToReschedule.startTime.toISOString(),
     endTime: bookingToReschedule.endTime.toISOString(),
+    hideOrganizerEmail: eventType?.hideOrganizerEmail,
     attendees: usersToPeopleType(
       // username field doesn't exists on attendee but could be in the future
       bookingToReschedule.attendees as unknown as PersonAttendeeCommonFields[],
@@ -202,6 +203,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     ),
     organizer,
     iCalUID: bookingToReschedule.iCalUID,
+    customReplyToEmail: bookingToReschedule.eventType?.customReplyToEmail,
     team: !!bookingToReschedule.eventType?.team
       ? {
           name: bookingToReschedule.eventType.team.name,

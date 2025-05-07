@@ -57,6 +57,7 @@ export class OrganizationRepository {
 
     await prisma.membership.create({
       data: {
+        createdAt: new Date(),
         userId: owner.id,
         role: MembershipRole.OWNER,
         accepted: true,
@@ -102,6 +103,7 @@ export class OrganizationRepository {
 
     await prisma.membership.create({
       data: {
+        createdAt: new Date(),
         userId: ownerInDb.id,
         role: MembershipRole.OWNER,
         accepted: true,
@@ -268,6 +270,7 @@ export class OrganizationRepository {
         allowSEOIndexing: true,
         orgProfileRedirectsToVerifiedDomain: true,
         orgAutoAcceptEmail: true,
+        disablePhoneOnlySMSNotifications: true,
       },
     });
 
@@ -285,6 +288,7 @@ export class OrganizationRepository {
         allowSEOIndexing: organizationSettings?.allowSEOIndexing,
         orgProfileRedirectsToVerifiedDomain: organizationSettings?.orgProfileRedirectsToVerifiedDomain,
         orgAutoAcceptEmail: organizationSettings?.orgAutoAcceptEmail,
+        disablePhoneOnlySMSNotifications: organizationSettings?.disablePhoneOnlySMSNotifications,
       },
       user: {
         role: membership?.role,
@@ -304,6 +308,13 @@ export class OrganizationRepository {
             userId,
           },
         },
+      },
+      select: {
+        parentId: true,
+        id: true,
+        name: true,
+        logoUrl: true,
+        slug: true,
       },
     });
 
@@ -448,5 +459,19 @@ export class OrganizationRepository {
         },
       },
     });
+  }
+
+  static async checkIfPrivate({ orgId }: { orgId: number }) {
+    const team = await prisma.team.findUnique({
+      where: {
+        id: orgId,
+        isOrganization: true,
+      },
+      select: {
+        isPrivate: true,
+      },
+    });
+
+    return team?.isPrivate ?? false;
   }
 }

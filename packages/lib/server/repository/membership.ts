@@ -15,6 +15,7 @@ type IMembership = {
   userId: number;
   accepted: boolean;
   role: MembershipRole;
+  createdAt?: Date;
 };
 
 const membershipSelect = Prisma.validator<Prisma.MembershipSelect>()({
@@ -71,13 +72,19 @@ const getWhereForfindAllByUpId = async (upId: string, where?: Prisma.MembershipW
 export class MembershipRepository {
   static async create(data: IMembership) {
     return await prisma.membership.create({
-      data,
+      data: {
+        createdAt: new Date(),
+        ...data,
+      },
     });
   }
 
   static async createMany(data: IMembership[]) {
     return await prisma.membership.createMany({
-      data,
+      data: data.map((item) => ({
+        createdAt: new Date(),
+        ...item,
+      })),
     });
   }
 

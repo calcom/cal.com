@@ -255,6 +255,7 @@ export async function createTeamAndAddUsers(
     const { role = MembershipRole.OWNER, id, username } = user;
     await prisma.membership.create({
       data: {
+        createdAt: new Date(),
         teamId: team.id,
         userId: id,
         role: role,

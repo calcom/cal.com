@@ -133,7 +133,6 @@ export class UserRepository {
       orgSlug,
       usernameList,
     });
-    log.info("findUsersByUsername", safeStringify({ where, profiles }));
 
     return (
       await prisma.user.findMany({
@@ -141,7 +140,6 @@ export class UserRepository {
         where,
       })
     ).map((user) => {
-      log.info("findUsersByUsername", safeStringify({ user }));
       // User isn't part of any organization
       if (!profiles) {
         return {
@@ -159,6 +157,32 @@ export class UserRepository {
       return {
         ...user,
         profile: profileWithoutUser,
+      };
+    });
+  }
+
+  static async findPlatformMembersByUsernames({ usernameList }: { usernameList: string[] }) {
+    return (
+      await prisma.user.findMany({
+        select: userSelect,
+        where: {
+          username: {
+            in: usernameList,
+          },
+          isPlatformManaged: false,
+          profiles: {
+            some: {
+              organization: {
+                isPlatform: true,
+              },
+            },
+          },
+        },
+      })
+    ).map((user) => {
+      return {
+        ...user,
+        profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
       };
     });
   }
@@ -338,7 +362,6 @@ export class UserRepository {
     user: T;
     upId: UpId;
   }) {
-    log.debug("enrichUserWithTheProfile", safeStringify({ user, upId }));
     const profile = await ProfileRepository.findByUpId(upId);
     if (!profile) {
       return {
@@ -925,6 +948,19 @@ export class UserRepository {
     return prisma.user.update({
       where: { id },
       data: { metadata: { ...existingMetadata, stripeCustomerId } },
+    });
+  }
+
+  static async updateWhitelistWorkflows({
+    id,
+    whitelistWorkflows,
+  }: {
+    id: number;
+    whitelistWorkflows: boolean;
+  }) {
+    return prisma.user.update({
+      where: { id },
+      data: { whitelistWorkflows },
     });
   }
 }

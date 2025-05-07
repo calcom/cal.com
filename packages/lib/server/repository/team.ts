@@ -250,6 +250,7 @@ export class TeamRepository {
     try {
       await prisma.membership.create({
         data: {
+          createdAt: new Date(),
           teamId: verificationToken.teamId,
           userId: userId,
           role: MembershipRole.MEMBER,

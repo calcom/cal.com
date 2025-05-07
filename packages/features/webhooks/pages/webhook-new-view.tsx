@@ -3,10 +3,12 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
 
@@ -14,18 +16,12 @@ import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";
 import { subscriberUrlReserved } from "../lib/subscriberUrlReserved";
 
-export const SkeletonLoader = () => {
-  return (
-    <SkeletonContainer>
-      <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
-        <SkeletonText className="h-8 w-full" />
-        <SkeletonText className="h-8 w-full" />
-      </div>
-    </SkeletonContainer>
-  );
+type Props = {
+  webhooks: RouterOutputs["viewer"]["webhook"]["list"];
+  installedApps: RouterOutputs["viewer"]["apps"]["integrations"];
 };
 
-export const NewWebhookView = () => {
+export const NewWebhookView = ({ webhooks, installedApps }: Props) => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -34,18 +30,6 @@ export const NewWebhookView = () => {
 
   const teamId = searchParams?.get("teamId") ? Number(searchParams.get("teamId")) : undefined;
   const platform = searchParams?.get("platform") ? Boolean(searchParams.get("platform")) : false;
-
-  const { data: installedApps, isPending } = trpc.viewer.apps.integrations.useQuery(
-    { variant: "other", onlyInstalled: true },
-    {
-      suspense: true,
-      enabled: session.status === "authenticated",
-    }
-  );
-  const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
-    suspense: true,
-    enabled: session.status === "authenticated",
-  });
 
   const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
     async onSuccess() {
@@ -91,14 +75,18 @@ export const NewWebhookView = () => {
     });
   };
 
-  if (isPending) return null;
-
   return (
-    <WebhookForm
-      noRoutingFormTriggers={false}
-      onSubmit={onCreateWebhook}
-      apps={installedApps?.items.map((app) => app.slug)}
-    />
+    <SettingsHeader
+      title={t("add_webhook")}
+      description={t("add_webhook_description", { appName: APP_NAME })}
+      borderInShellHeader={true}
+      backButton={true}>
+      <WebhookForm
+        noRoutingFormTriggers={false}
+        onSubmit={onCreateWebhook}
+        apps={installedApps?.items.map((app) => app.slug)}
+      />
+    </SettingsHeader>
   );
 };
 

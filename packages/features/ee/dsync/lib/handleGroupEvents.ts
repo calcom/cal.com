@@ -126,6 +126,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
       });
       await prisma.membership.createMany({
         data: newUsers.map((user) => ({
+          createdAt: new Date(),
           userId: user.id,
           teamId: group.teamId,
           role: MembershipRole.MEMBER,
@@ -163,12 +164,14 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
           .map((user) => {
             return [
               {
+                createdAt: new Date(),
                 userId: user.id,
                 teamId: group.teamId,
                 role: MembershipRole.MEMBER,
                 accepted: true,
               },
               {
+                createdAt: new Date(),
                 userId: user.id,
                 teamId: organizationId,
                 role: MembershipRole.MEMBER,

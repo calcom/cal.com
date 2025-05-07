@@ -11,6 +11,7 @@ import { OrganizationsUsersBookingsModule } from "@/modules/organizations/users/
 import { RouterModule } from "@/modules/router/router.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
 import { TimezoneModule } from "@/modules/timezones/timezones.module";
+import { VerifiedResourcesModule } from "@/modules/verified-resources/verified-resources.module";
 import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { Module } from "@nestjs/common";
 
@@ -33,6 +34,7 @@ import { WebhooksModule } from "./webhooks/webhooks.module";
     OrganizationsUsersBookingsModule,
     OrganizationsBookingsModule,
     OrganizationsRoutingFormsModule,
+    VerifiedResourcesModule,
     RouterModule,
   ],
 })

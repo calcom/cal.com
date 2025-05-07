@@ -6,7 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { getAvailableDatesInMonth } from "@calcom/features/calendars/lib/getAvailableDatesInMonth";
-import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
+import { daysInMonth, yyyymmdd } from "@calcom/lib/dayjs";
 import type { IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";

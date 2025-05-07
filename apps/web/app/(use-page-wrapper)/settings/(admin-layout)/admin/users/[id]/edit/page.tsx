@@ -1,6 +1,5 @@
 import { type Params } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
-import { notFound } from "next/navigation";
 import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -15,7 +14,10 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
   if (!input.success) {
     return await _generateMetadata(
       (t) => t("editing_user"),
-      (t) => t("admin_users_edit_description")
+      (t) => t("admin_users_edit_description"),
+      undefined,
+      undefined,
+      "/settings/admin/users/edit"
     );
   }
 
@@ -23,31 +25,28 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
 
   return await _generateMetadata(
     (t) => `${t("editing_user")}: ${user.username}`,
-    (t) => t("admin_users_edit_description")
+    (t) => t("admin_users_edit_description"),
+    undefined,
+    undefined,
+    `/settings/admin/users/${input.data.id}/edit`
   );
 };
 
 const Page = async ({ params }: { params: Params }) => {
   const input = userIdSchema.safeParse(await params);
 
-  if (!input.success) {
-    notFound();
-  }
+  if (!input.success) throw new Error("Invalid access");
 
-  try {
-    const user = await UserRepository.adminFindById(input.data.id);
-    const t = await getTranslate();
+  const user = await UserRepository.adminFindById(input.data.id);
+  const t = await getTranslate();
 
-    return (
-      <SettingsHeader title={t("editing_user")} description={t("admin_users_edit_description")}>
-        <LicenseRequired>
-          <UsersEditView user={user} />
-        </LicenseRequired>
-      </SettingsHeader>
-    );
-  } catch {
-    notFound();
-  }
+  return (
+    <SettingsHeader title={t("editing_user")} description={t("admin_users_edit_description")}>
+      <LicenseRequired>
+        <UsersEditView user={user} />
+      </LicenseRequired>
+    </SettingsHeader>
+  );
 };
 
 export default Page;

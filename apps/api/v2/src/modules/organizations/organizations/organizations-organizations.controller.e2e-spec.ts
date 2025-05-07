@@ -46,6 +46,7 @@ import {
   X_CAL_SECRET_KEY,
 } from "@calcom/platform-constants";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { slugify } from "@calcom/platform-libraries";
 import { ApiSuccessResponse, CreateOAuthClientInput } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
 
@@ -176,6 +177,7 @@ describe("Organizations Organizations Endpoints", () => {
         managedOrg = responseBody.data;
         expect(managedOrg?.id).toBeDefined();
         expect(managedOrg?.name).toEqual(body.name);
+        expect(managedOrg?.slug).toEqual(slugify(body.name));
         expect(managedOrg?.metadata).toEqual(body.metadata);
         expect(managedOrg?.apiKey).toBeDefined();
 

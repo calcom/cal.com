@@ -1,3 +1,4 @@
+import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
@@ -14,7 +15,7 @@ export default class AttendeeCancelledEmail extends AttendeeScheduledEmail {
       }),
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
-      replyTo: this.calEvent.organizer.email,
+      ...getReplyToHeader(this.calEvent),
       subject: `${this.t("event_cancelled_subject", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),

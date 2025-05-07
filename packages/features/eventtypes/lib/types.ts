@@ -90,6 +90,7 @@ export type FormValues = {
   hideCalendarNotes: boolean;
   multiplePrivateLinks: string[] | undefined;
   eventTypeColor: z.infer<typeof eventTypeColor>;
+  customReplyToEmail: string | null;
   locations: EventLocation[];
   aiPhoneCallConfig: PhoneCallConfig;
   customInputs: CustomInputParsed[];

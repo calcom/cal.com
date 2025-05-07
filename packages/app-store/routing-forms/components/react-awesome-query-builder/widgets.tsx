@@ -91,6 +91,7 @@ const TextAreaWidget = (props: TextLikeComponentPropsRAQB) => {
     <TextArea
       value={textValue}
       placeholder={placeholder}
+      className="mb-2"
       disabled={readOnly}
       onChange={onChange}
       maxLength={maxLength}
@@ -118,7 +119,8 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
   const textValue = value || "";
   return (
     <TextField
-      containerClassName="w-full"
+      size="sm"
+      containerClassName="w-full mb-2"
       type={type}
       value={textValue}
       noLabel={noLabel}
@@ -134,10 +136,11 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
 function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
   return (
     <TextField
+      size="sm"
       type="number"
       labelSrOnly={remainingProps.noLabel}
       containerClassName="w-full"
-      className="bg-default border-default disabled:bg-emphasis focus:ring-brand-default dark:focus:border-emphasis focus:border-subtle block w-full rounded-md text-sm disabled:hover:cursor-not-allowed"
+      className="mb-2"
       value={value}
       onChange={(e) => {
         setValue(e.target.value);
@@ -175,6 +178,7 @@ const MultiSelectWidget = ({
 
   return (
     <Select
+      size="sm"
       aria-label="multi-select-dropdown"
       className="mb-2"
       onChange={(items) => {
@@ -210,6 +214,7 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
 
   return (
     <Select
+      size="sm"
       aria-label="select-dropdown"
       className="data-testid-select mb-2"
       onChange={(item) => {
@@ -245,10 +250,11 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   }
   return (
     <CalButton
+      size="sm"
       StartIcon="plus"
       data-testid={dataTestId}
       type="button"
-      color="secondary"
+      color="minimal"
       disabled={readonly}
       onClick={onClick}>
       {label}
@@ -266,11 +272,7 @@ function ButtonGroup({ children }: ButtonGroupProps) {
         if (!button) {
           return null;
         }
-        return (
-          <div key={key} className="mb-2">
-            {button}
-          </div>
-        );
+        return <div key={key}>{button}</div>;
       })}
     </>
   );
@@ -303,12 +305,13 @@ function Conjs({ not, setNot, config, conjunctionOptions, setConjunction, disabl
       value = value == "any" ? "none" : "all";
     }
     const selectValue = options.find((option) => option.value === value);
-    const summary = !config.operators.__calReporting ? "where" : "Query where";
+    const summary = !config.operators.__calReporting ? "If booker selects" : "Query where";
     return (
-      <div className="flex items-center text-sm">
+      <div className="mb-[1px] flex items-center text-sm">
         <span>{summary}</span>
         <Select
           className="flex px-2"
+          size="sm"
           defaultValue={selectValue}
           options={options}
           onChange={(option) => {
@@ -325,7 +328,7 @@ function Conjs({ not, setNot, config, conjunctionOptions, setConjunction, disabl
             }
           }}
         />
-        <span>match</span>
+        {/* <span>match</span> */}
       </div>
     );
   };
@@ -348,6 +351,7 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
 
   return (
     <Select
+      size="sm"
       className="data-testid-field-select  mb-2"
       menuPosition="fixed"
       onChange={(item) => {

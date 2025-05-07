@@ -5,10 +5,13 @@ import LegacyPage, {
 } from "@calcom/features/ee/organizations/pages/settings/other-team-members-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
-export const generateMetadata = async () =>
+export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>
   await _generateMetadata(
     (t) => t("team_members"),
-    (t) => t("members_team_description")
+    (t) => t("members_team_description"),
+    undefined,
+    undefined,
+    `/settings/organizations/teams/other/${(await params).id}/members`
   );
 
 const Page = async () => {

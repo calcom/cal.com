@@ -1,13 +1,13 @@
 import type { Prisma } from "@prisma/client";
 
 import { uniqueBy } from "@calcom/lib/array";
+import { isInMemoryDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { Calendar, SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import type { ICalendarCacheRepository } from "./calendar-cache.repository.interface";
-import { getTimeMax, getTimeMin } from "./lib/datesForCache";
 
 const log = logger.getSubLogger({ prefix: ["CalendarCacheRepository"] });
 
@@ -19,8 +19,8 @@ function parseKeyForCache(args: FreeBusyArgs): string {
   // Ensure that calendarIds are unique
   const uniqueItems = uniqueBy(args.items, ["id"]);
   const key = JSON.stringify({
-    timeMin: getTimeMin(args.timeMin),
-    timeMax: getTimeMax(args.timeMax),
+    timeMin: args.timeMin,
+    timeMax: args.timeMax,
     items: uniqueItems,
   });
   return key;
@@ -28,12 +28,33 @@ function parseKeyForCache(args: FreeBusyArgs): string {
 
 type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
 
+/**
+ * It means that caller can only work with DB Credentials
+ * In-memory delegation credentials aren't supported here. Delegation User Credentials, that are in DB and have credential.delegationCredential relation can be used though
+ */
+function assertCalendarHasDbCredential(calendar: Calendar | null) {
+  if (!calendar?.getCredentialId) {
+    return;
+  }
+  const credentialId = calendar.getCredentialId();
+  if (credentialId < 0) {
+    throw new Error(`Received invalid credentialId ${credentialId}`);
+  }
+}
+/**
+ * It means that caller can work with in-memory credential
+ */
+function declareCanWorkWithInMemoryCredential() {
+  // No assertion required here, it is for readability who reads the caller's code
+}
+
 export class CalendarCacheRepository implements ICalendarCacheRepository {
   calendar: Calendar | null;
   constructor(calendar: Calendar | null = null) {
     this.calendar = calendar;
   }
   async watchCalendar(args: { calendarId: string; eventTypeIds: SelectedCalendarEventTypeIds }) {
+    assertCalendarHasDbCredential(this.calendar);
     const { calendarId, eventTypeIds } = args;
     if (typeof this.calendar?.watchCalendar !== "function") {
       log.info(
@@ -45,6 +66,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
   }
 
   async unwatchCalendar(args: { calendarId: string; eventTypeIds: SelectedCalendarEventTypeIds }) {
+    assertCalendarHasDbCredential(this.calendar);
     const { calendarId, eventTypeIds } = args;
     if (typeof this.calendar?.unwatchCalendar !== "function") {
       log.info(
@@ -56,25 +78,64 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     return response;
   }
 
-  async getCachedAvailability(credentialId: number, args: FreeBusyArgs) {
+  async getCachedAvailability({
+    credentialId,
+    userId,
+    args,
+  }: {
+    credentialId: number;
+    userId: number | null;
+    args: FreeBusyArgs;
+  }) {
+    declareCanWorkWithInMemoryCredential();
+    log.debug("Getting cached availability", safeStringify({ credentialId, userId, args }));
     const key = parseKeyForCache(args);
-    const cached = await prisma.calendarCache.findUnique({
-      where: {
-        credentialId_key: {
-          credentialId,
+    let cached;
+    if (isInMemoryDelegationCredential({ credentialId })) {
+      if (!userId) {
+        log.warn("userId is not available when querying cache for in-memory delegation credential");
+        return null;
+      }
+      // We don't have credentialId available when querying the cache, as we use in-memory delegation credentials for this which don't have valid credentialId
+      // Also, we would prefer to reuse the existing calendar-cache(connected to regular credentials) when enabling delegation credentials, for which we can't use credentialId in querying as that is not in DB
+      // Security/Privacy wise, it is fine to query solely based on userId as userId and key(which has external email Ids in there) together can be used to uniquely identify the cache
+      // A user could have multiple third party calendars connected, but they key would still be different for each case in calendar-cache because of the presence of emails in there.
+      // Sample key: {"timeMin":"2025-04-01T00:00:00.000Z","timeMax":"2025-08-01T00:00:00.000Z","items":[{"id":"owner@example.com"}]} <- Notice it has emailId in there for which busytimes are fetched, we could assume that these emailIds would be unique across different calendars like Google/Outlook
+      cached = await prisma.calendarCache.findFirst({
+        // We have index on userId and key, so this should be fast
+        // TODO: Should we consider index on all three - userId, key and expiresAt?
+        where: {
+          userId,
           key,
+          expiresAt: { gte: new Date(Date.now()) },
         },
-        expiresAt: { gte: new Date(Date.now()) },
-      },
-    });
+      });
+    } else {
+      cached = await prisma.calendarCache.findUnique({
+        where: {
+          credentialId_key: {
+            credentialId,
+            key,
+          },
+          expiresAt: { gte: new Date(Date.now()) },
+        },
+      });
+    }
     log.info("Got cached availability", safeStringify({ key, cached }));
     return cached;
   }
-  async upsertCachedAvailability(
-    credentialId: number,
-    args: FreeBusyArgs,
-    value: Prisma.JsonNullValueInput | Prisma.InputJsonValue
-  ) {
+  async upsertCachedAvailability({
+    credentialId,
+    userId,
+    args,
+    value,
+  }: {
+    credentialId: number;
+    userId: number | null;
+    args: FreeBusyArgs;
+    value: Prisma.JsonNullValueInput | Prisma.InputJsonValue;
+  }) {
+    assertCalendarHasDbCredential(this.calendar);
     const key = parseKeyForCache(args);
     await prisma.calendarCache.upsert({
       where: {
@@ -90,6 +151,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
       create: {
         value,
         credentialId,
+        userId,
         key,
         expiresAt: new Date(Date.now() + CACHING_TIME),
       },

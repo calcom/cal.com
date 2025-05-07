@@ -1,9 +1,11 @@
 import { z } from "zod";
 
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
+
 export const ZGetMemberAvailabilityInputSchema = z.object({
   teamId: z.number(),
   memberId: z.number(),
-  timezone: z.string(),
+  timezone: timeZoneSchema,
   dateFrom: z.string(),
   dateTo: z.string(),
 });

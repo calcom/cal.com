@@ -110,6 +110,23 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
   return dynamicEventName;
 }
 
+export function updateHostInEventName(eventName: string, oldHost: string, newHost: string) {
+  const oldHostFirstName = oldHost.split(" ")[0];
+  const newHostFirstName = newHost.split(" ")[0];
+
+  if (!eventName.includes(oldHost) && !eventName.includes(oldHostFirstName)) {
+    return eventName;
+  }
+
+  let updatedEventName = eventName;
+
+  updatedEventName = updatedEventName.replace(oldHost, newHost);
+
+  updatedEventName = updatedEventName.replace(oldHostFirstName, newHostFirstName);
+
+  return updatedEventName;
+}
+
 export const validateCustomEventName = (value: string, bookingFields?: Prisma.JsonObject | null) => {
   let customInputVariables: string[] = [];
   if (bookingFields) {

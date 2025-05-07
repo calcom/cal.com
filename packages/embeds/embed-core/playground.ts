@@ -10,7 +10,8 @@ const callback = function (e: any) {
   console.log("Event: ", e.type, detail);
 };
 
-const origin = `${new URL(document.URL).protocol}localhost:3000`;
+// @ts-expect-error  window.calOrigin is set in index.html
+const origin = `${new URL(document.URL).protocol}//${window.calOrigin.split("//")[1]}`;
 document.addEventListener("click", (e) => {
   const target = e.target as HTMLElement;
   if ("href" in target && typeof target.href === "string") {
@@ -629,3 +630,78 @@ Cal("on", {
   action: "bookingSuccessfulV2",
   callback: bookingSuccessfulV2Callback,
 });
+
+if (only === "all" || only === "ns:skeletonDemo") {
+  Cal("init", "skeletonDemo", {
+    debug: true,
+    origin: origin,
+  });
+
+  // Example showing booking page skeleton
+  Cal.ns.skeletonDemo("inline", {
+    elementOrSelector: "#cal-booking-place-skeletonDemo .place",
+    calLink: "pro/30min",
+    config: {
+      theme: "auto",
+      iframeAttrs: {
+        id: "cal-booking-place-skeletonDemo-iframe",
+      },
+      "flag.coep": "true",
+      "cal.embed.pageType": "user.event.booking.slots",
+    },
+  });
+
+  Cal.ns.skeletonDemo("on", {
+    action: "*",
+    callback,
+  });
+}
+
+if (only === "all" || only === "ns:skeletonDemoElementClick") {
+  Cal("init", "skeletonDemoElementClick", {
+    debug: true,
+    origin: origin,
+  });
+
+  Cal.ns.skeletonDemoElementClick("on", {
+    action: "*",
+    callback,
+  });
+}
+
+// Keep it at the bottom as it works on the API defined above for various cases
+(function ensureScrolledToCorrectIframe() {
+  // Reset the hash so that we can scroll to correct iframe
+  // Also, even if we need to scroll to the same iframe, we need to still reset it otherwise hashchange event will not fire
+  location.hash = "";
+  let api: typeof Cal | (typeof Cal)["ns"][string] | null = null;
+
+  const getNamespace = () => {
+    const url = new URL(document.URL);
+    const only = url.searchParams.get("only") || "";
+    return only !== "all" ? only.replace("ns:", "") : null;
+  };
+
+  const updateApiOnNamespaceChange = () => {
+    const namespace = getNamespace();
+    api = namespace && namespace !== "default" ? Cal.ns[namespace] : Cal;
+    api?.("on", {
+      action: "*",
+      callback: (e) => {
+        function scrollToIframeInPlayground() {
+          const namespace = getNamespace();
+          if (namespace) {
+            location.hash = `#cal-booking-place-${namespace}-iframe`;
+          }
+        }
+        scrollToIframeInPlayground();
+      },
+    });
+  };
+
+  // Initial namespace setup
+  updateApiOnNamespaceChange();
+
+  // Update namespace on hash change
+  window.addEventListener("hashchange", updateApiOnNamespaceChange);
+})();

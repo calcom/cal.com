@@ -12,6 +12,7 @@ import type { EventBusyDetails } from "@calcom/types/Calendar";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "../intervalLimit";
 import type { IntervalLimit } from "../intervalLimitSchema";
 import LimitManager from "../limitManager";
+import { isBookingWithinPeriod } from "../utils";
 import { checkBookingLimit } from "./checkBookingLimits";
 
 export const getBusyTimesFromLimits = async (
@@ -64,6 +65,7 @@ const _getBusyTimesFromLimits = async (
       duration,
       eventType,
       limitManager,
+      timeZone,
       rescheduleUid
     );
     performance.mark("durationLimitsEnd");
@@ -147,7 +149,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
 
       for (const booking of bookings) {
         // consider booking part of period independent of end date
-        if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
+        if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone || "UTC")) {
           continue;
         }
         totalBookings++;
@@ -174,6 +176,7 @@ const _getBusyTimesFromDurationLimits = async (
   duration: number | undefined,
   eventType: NonNullable<EventType>,
   limitManager: LimitManager,
+  timeZone: string,
   rescheduleUid?: string
 ) => {
   for (const key of descendingLimitKeys) {
@@ -215,7 +218,7 @@ const _getBusyTimesFromDurationLimits = async (
 
       for (const booking of bookings) {
         // consider booking part of period independent of end date
-        if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
+        if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone || "UTC")) {
           continue;
         }
         totalDuration += dayjs(booking.end).diff(dayjs(booking.start), "minute");

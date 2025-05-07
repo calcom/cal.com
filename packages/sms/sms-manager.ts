@@ -8,7 +8,7 @@ import { TimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-const handleSendingSMS = ({
+const handleSendingSMS = async ({
   reminderPhone,
   smsMessage,
   senderID,
@@ -19,30 +19,38 @@ const handleSendingSMS = ({
   senderID: string;
   teamId: number;
 }) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const team = await prisma.team.findUnique({
-        where: {
-          id: teamId,
-        },
+  const team = await prisma.team.findUnique({
+    where: { id: teamId },
+    select: {
+      parent: {
         select: {
-          parent: {
+          isOrganization: true,
+          organizationSettings: {
             select: {
-              isOrganization: true,
+              disablePhoneOnlySMSNotifications: true,
             },
           },
         },
-      });
-
-      if (!team?.parent?.isOrganization) return;
-
-      await checkSMSRateLimit({ identifier: `handleSendingSMS:team:${teamId}`, rateLimitingType: "sms" });
-      const sms = twilio.sendSMS(reminderPhone, smsMessage, senderID, teamId);
-      resolve(sms);
-    } catch (e) {
-      reject(console.error(`twilio.sendSMS failed`, e));
-    }
+      },
+    },
   });
+
+  if (!team?.parent?.isOrganization || team?.parent?.organizationSettings?.disablePhoneOnlySMSNotifications) {
+    return; // resolves implicitly (as undefined)
+  }
+
+  try {
+    await checkSMSRateLimit({
+      identifier: `handleSendingSMS:team:${teamId}`,
+      rateLimitingType: "sms",
+    });
+
+    const sms = await twilio.sendSMS(reminderPhone, smsMessage, senderID, teamId);
+    return sms;
+  } catch (e) {
+    console.error("twilio.sendSMS failed", e);
+    throw e; // propagate the error
+  }
 };
 
 export default abstract class SMSManager {

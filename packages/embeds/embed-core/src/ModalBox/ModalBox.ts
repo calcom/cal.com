@@ -1,23 +1,15 @@
+import { EmbedElement } from "../EmbedElement";
 import loaderCss from "../loader.css";
 import { getErrorString } from "../utils";
-import modalBoxHtml from "./ModalBoxHtml";
+import modalBoxHtml, { getSkeletonData } from "./ModalBoxHtml";
 
-type ShadowRootWithStyle = ShadowRoot & {
-  host: HTMLElement & { style: CSSStyleDeclaration };
-};
-
-export class ModalBox extends HTMLElement {
+export class ModalBox extends EmbedElement {
   static htmlOverflow: string;
+
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   static get observedAttributes() {
     return ["state"];
-  }
-
-  assertHasShadowRoot(): asserts this is HTMLElement & { shadowRoot: ShadowRootWithStyle } {
-    if (!this.shadowRoot) {
-      throw new Error("No shadow root");
-    }
   }
 
   show(show: boolean) {
@@ -68,18 +60,7 @@ export class ModalBox extends HTMLElement {
     }
   }
 
-  getLoaderElement() {
-    this.assertHasShadowRoot();
-    const loaderEl = this.shadowRoot.querySelector<HTMLElement>(".loader");
-
-    if (!loaderEl) {
-      throw new Error("No loader element");
-    }
-
-    return loaderEl;
-  }
-
-  getErrorElement() {
+  getErrorElement(): HTMLElement {
     this.assertHasShadowRoot();
     const element = this.shadowRoot.querySelector<HTMLElement>("#error");
 
@@ -98,15 +79,16 @@ export class ModalBox extends HTMLElement {
     if (newValue === "loading") {
       this.open();
       this.hideIframe();
-      this.getLoaderElement().style.display = "block";
+      this.toggleLoader(true);
     } else if (newValue == "loaded" || newValue === "reopening") {
       this.open();
       this.showIframe();
-      this.getLoaderElement().style.display = "none";
+      this.toggleLoader(false);
     } else if (newValue == "closed") {
       this.explicitClose();
     } else if (newValue === "failed") {
       this.getLoaderElement().style.display = "none";
+      this.getSkeletonElement().style.display = "none";
       this.getErrorElement().style.display = "inline-block";
       const errorString = getErrorString(this.dataset.errorCode);
       this.getErrorElement().innerText = errorString;
@@ -116,6 +98,7 @@ export class ModalBox extends HTMLElement {
   }
 
   connectedCallback() {
+    super.connectedCallback();
     this.assertHasShadowRoot();
     const closeEl = this.shadowRoot.querySelector<HTMLElement>(".close");
     document.addEventListener(
@@ -144,8 +127,11 @@ export class ModalBox extends HTMLElement {
   }
 
   constructor() {
-    super();
-    const modalHtml = `<style>${window.Cal.__css}</style><style>${loaderCss}</style>${modalBoxHtml}`;
+    super({ isModal: true, getSkeletonData });
+    const modalHtml = `<style>${window.Cal.__css}</style><style>${loaderCss}</style>${modalBoxHtml({
+      layout: this.getLayout(),
+      pageType: this.getPageType() ?? null,
+    })}`;
     this.attachShadow({ mode: "open" });
     ModalBox.htmlOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";

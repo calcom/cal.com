@@ -3,7 +3,7 @@ import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
-import { isSupportedTimeZone } from "@calcom/lib/date-fns";
+import { isSupportedTimeZone } from "@calcom/lib/dayjs";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { createContext } from "@calcom/trpc/server/createContext";

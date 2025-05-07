@@ -10,6 +10,8 @@ import { ManagedOrganizationsOutputService } from "@/modules/organizations/organ
 import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
+import { slugify } from "@calcom/platform-libraries";
+
 @Injectable()
 export class ManagedOrganizationsService {
   constructor(
@@ -35,6 +37,10 @@ export class ManagedOrganizationsService {
     }
 
     const { apiKeyDaysValid, apiKeyNeverExpires, ...organizationData } = organizationInput;
+
+    if (!organizationData.slug) {
+      organizationData.slug = slugify(organizationData.name);
+    }
 
     const organization = await this.managedOrganizationsRepository.createManagedOrganization(
       managerOrganizationId,

@@ -29,7 +29,7 @@ export default function Apps({ apps, category }: CategoryDataProps) {
             </Link>
             {category && (
               <span className="text-default gap-1">
-                <span>{t("slash_separator")}</span>
+                <span>&nbsp;/&nbsp;</span>
                 {t("category_apps", { category: category[0].toUpperCase() + category?.slice(1) })}
               </span>
             )}

@@ -6,7 +6,6 @@ import { Toaster } from "sonner";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { CheckboxField } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -21,7 +20,6 @@ export default function ICSFeedSetup() {
   const [urls, setUrls] = useState<string[]>([""]);
   const [errorMessage, setErrorMessage] = useState("");
   const [errorActionUrl, setErrorActionUrl] = useState("");
-  const [skipWriting, setSkipWriting] = useState(false); // track if user opts out of writing to any calendar
 
   return (
     <div className="bg-emphasis flex h-screen">
@@ -45,7 +43,7 @@ export default function ICSFeedSetup() {
                   setErrorMessage("");
                   const res = await fetch("/api/integrations/ics-feedcalendar/add", {
                     method: "POST",
-                    body: JSON.stringify({ urls, skipWriting }),
+                    body: JSON.stringify({ urls }),
                     headers: {
                       "Content-Type": "application/json",
                     },
@@ -95,23 +93,6 @@ export default function ICSFeedSetup() {
                   }}>
                   {t("add")} <Icon className="inline" name="plus" size={16} />
                 </button>
-
-                <div className="mt-3 flex items-center">
-                  <CheckboxField
-                    id="skipWriting"
-                    checked={skipWriting}
-                    onChange={(e) => setSkipWriting(e.target.checked)}
-                    className="mr-2"
-                    description={t("skip_writing_to_calendar")}
-                  />
-                </div>
-
-                <Alert
-                  className="mt-3"
-                  severity="info"
-                  title={t("notes")}
-                  message={t("skip_writing_to_calendar_note")}
-                />
 
                 {errorMessage && (
                   <Alert

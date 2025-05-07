@@ -5,7 +5,10 @@ import PlatformMembersView from "@calcom/features/ee/platform/pages/settings/mem
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("platform_members"),
-    (t) => t("platform_members_description")
+    (t) => t("platform_members_description"),
+    undefined,
+    undefined,
+    "/settings/platform/members"
   );
 
 const ServerPageWrapper = () => {

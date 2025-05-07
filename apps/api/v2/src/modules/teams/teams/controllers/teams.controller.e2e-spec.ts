@@ -20,6 +20,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { slugify } from "@calcom/platform-libraries";
 import { TeamOutputDto } from "@calcom/platform-types";
 
 describe("Teams endpoint", () => {
@@ -75,7 +76,7 @@ describe("Teams endpoint", () => {
   describe("User has membership in created team", () => {
     it("should create first team", async () => {
       const body: CreateTeamInput = {
-        name: `teams-dog-${randomString()}`,
+        name: `teams dog ${randomString()}`,
         metadata: {
           teamKey: "teamValue",
         },
@@ -93,6 +94,7 @@ describe("Teams endpoint", () => {
           expect(responseData).toBeDefined();
           expect(responseData.id).toBeDefined();
           expect(responseData.name).toEqual(body.name);
+          expect(responseData.slug).toEqual(slugify(body.name));
           expect(responseData.metadata).toEqual(body.metadata);
           team1 = responseData;
         });

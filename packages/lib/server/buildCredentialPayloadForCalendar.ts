@@ -1,5 +1,3 @@
-import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
-
 export function buildCredentialPayloadForPrisma({
   credentialId,
   delegationCredentialId,
@@ -7,22 +5,17 @@ export function buildCredentialPayloadForPrisma({
   credentialId: number | null | undefined;
   delegationCredentialId: string | null | undefined;
 }) {
-  if (credentialId === undefined) {
-    return {
-      credentialId,
-      delegationCredentialId,
-    };
-  }
-
-  if (isDelegationCredential({ credentialId })) {
+  if (credentialId && credentialId < 0) {
+    // Avoid crashing the query by not passing negative credentialId
     return {
       credentialId: null,
       delegationCredentialId,
     };
-  } else {
-    return {
-      credentialId,
-      delegationCredentialId: null,
-    };
   }
+  // It is possible for both credentialId and delegationCredentialId to be present on a SelectedCalendar. So, we allow both to be
+  // This is because a Delegation User Credential can also exist in DB(as created through credentials/cron.ts) and thus could have credentialId as well.
+  return {
+    credentialId,
+    delegationCredentialId,
+  };
 }

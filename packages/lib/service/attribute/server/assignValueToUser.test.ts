@@ -54,6 +54,7 @@ async function createMockUserWithMembership({ orgId }: { orgId: number }) {
   });
   const membership = await prismock.membership.create({
     data: {
+      createdAt: new Date(),
       role: MembershipRole.MEMBER,
       disableImpersonation: false,
       accepted: true,

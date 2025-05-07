@@ -251,7 +251,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     return {
       subject: emailContent.emailSubject,
       html: emailContent.emailBody,
-      replyTo: evt.organizer.email,
+      ...(!evt.hideOrganizerEmail && { replyTo: evt?.eventType?.customReplyToEmail || evt.organizer.email }),
       attachments,
       sender,
     };
@@ -289,8 +289,6 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   /**
    * @deprecated only needed for SendGrid, use SMTP with tasker instead
    */
-  const sendgridBatchId = await getBatchId();
-
   if (
     triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
     triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ||
@@ -316,8 +314,15 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       !scheduledDate.isAfter(currentDate.add(2, "hour"))
     ) {
       try {
+        const sendgridBatchId = await getBatchId();
+
         // If sendEmail failed then workflowReminer will not be created, failing E2E tests
-        await sendSendgridMail({ ...mailData, to: sendTo, sendAt: scheduledDate.unix() });
+        await sendSendgridMail({
+          ...mailData,
+          to: sendTo,
+          sendAt: scheduledDate.unix(),
+          batchId: sendgridBatchId,
+        });
 
         if (!isMandatoryReminder) {
           await prisma.workflowReminder.create({
@@ -389,24 +394,21 @@ export const deleteScheduledEmailReminder = async (reminderId: number) => {
   }
 
   const { uuid, referenceId } = workflowReminder;
+  if (uuid) {
+    try {
+      const taskId = await tasker.cancelWithReference(uuid, "sendWorkflowEmails");
+      if (taskId) {
+        await prisma.workflowReminder.delete({
+          where: {
+            id: reminderId,
+          },
+        });
 
-  const task = await prisma.task.findFirst({
-    where: {
-      type: "sendWorkflowEmails",
-      referenceUid: uuid,
-    },
-  });
-
-  if (task) {
-    await tasker.cancel(task.id);
-
-    await prisma.workflowReminder.delete({
-      where: {
-        id: reminderId,
-      },
-    });
-
-    return;
+        return;
+      }
+    } catch (error) {
+      log.error(`Error canceling/deleting reminder with tasker. Error: ${error}`);
+    }
   }
 
   /**

@@ -52,7 +52,7 @@ export const useSchedule = ({
     : null;
   const skipContactOwner = searchParams ? searchParams.get("cal.skipContactOwner") === "true" : false;
   const _cacheParam = searchParams?.get("cal.cache");
-  const shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
+  const _shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
   const utils = trpc.useUtils();
   const routingFormResponseIdParam = searchParams?.get("cal.routingFormResponseId");
   const email = searchParams?.get("email");
@@ -80,7 +80,7 @@ export const useSchedule = ({
     teamMemberEmail,
     routedTeamMemberIds,
     skipContactOwner,
-    shouldServeCache,
+    _shouldServeCache,
     routingFormResponseId,
     email,
   };

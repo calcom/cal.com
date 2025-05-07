@@ -117,7 +117,13 @@ const operators: Operators = {
     cardinality: 2,
     valueLabels: ["Value from", "Value to"],
     reversedOp: "not_between",
-    jsonLogic: "<=",
+    jsonLogic: (field: any, op: any, vals: [any, any]) => {
+      const min = parseInt(vals[0], 10);
+      const max = parseInt(vals[1], 10);
+      return {
+        and: [{ ">=": [field, min] }, { "<=": [field, max] }],
+      };
+    },
   },
   not_between: {
     isNotOp: true,
@@ -126,6 +132,13 @@ const operators: Operators = {
     cardinality: 2,
     valueLabels: ["Value from", "Value to"],
     reversedOp: "between",
+    jsonLogic: (field: any, op: any, vals: [any, any]) => {
+      const min = parseInt(vals[0], 10);
+      const max = parseInt(vals[1], 10);
+      return {
+        or: [{ "<": [field, min] }, { ">": [field, max] }],
+      };
+    },
   },
   is_empty: {
     label: "Is empty",
