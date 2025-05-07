@@ -19,11 +19,50 @@ async function runBenchmark() {
     timeZone: "UTC",
     usernameList: ["pro"], // Replace with a valid username
     debug: true,
+    isTeamEvent: false, // Required field
   };
 
   const ctx = {
     prisma,
-    req: { cookies: { uid: "test-uid" } },
+    req: {
+      cookies: { uid: "test-uid" },
+      aborted: false,
+      httpVersion: "1.1",
+      httpVersionMajor: 1,
+      httpVersionMinor: 1,
+      complete: true,
+      headers: {},
+      rawHeaders: [],
+      trailers: {},
+      rawTrailers: [],
+      socket: null as any,
+      statusCode: 200,
+      statusMessage: "OK",
+      url: "",
+      method: "GET",
+      destroy: () => true,
+      setTimeout: () => ({} as any),
+      on: () => ({} as any),
+      once: () => ({} as any),
+      removeListener: () => ({} as any),
+      off: () => ({} as any),
+      removeAllListeners: () => ({} as any),
+      resume: () => ({} as any),
+      pause: () => ({} as any),
+      unpipe: () => ({} as any),
+      wrap: () => ({} as any),
+      setEncoding: () => ({} as any),
+      setMaxListeners: () => ({} as any),
+      getMaxListeners: () => 0,
+      emit: () => false,
+      addListener: () => ({} as any),
+      prependListener: () => ({} as any),
+      prependOnceListener: () => ({} as any),
+      listeners: () => [],
+      rawListeners: () => [],
+      listenerCount: () => 0,
+      eventNames: () => [],
+    },
   };
 
   try {

@@ -398,9 +398,9 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   const hasFallbackRRHosts = allFallbackRRHosts && allFallbackRRHosts.length > qualifiedRRHosts.length;
 
   const memoizedCalculateHostsAndAvailabilities = (() => {
-    const cache = new Map();
+    const cache = new Map<string, ReturnType<typeof calculateHostsAndAvailabilities>>();
 
-    return (params) => {
+    return (params: Parameters<typeof calculateHostsAndAvailabilities>[0]) => {
       const cacheKey = JSON.stringify({
         eventTypeId: eventType.id,
         hosts: allHosts.map((h) => h.user.id),
@@ -411,7 +411,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       });
 
       if (cache.has(cacheKey)) {
-        return cache.get(cacheKey);
+        return cache.get(cacheKey)!;
       }
 
       const result = calculateHostsAndAvailabilities(params);
@@ -505,9 +505,10 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
     allUsersAvailability.length > 1;
 
-  const getSlotsFn = process.env.NODE_ENV === "production" ? monitorCallbackSync(getSlots) : getSlots;
+  const getSlotsFn =
+    process.env.NODE_ENV === "production" ? monitorCallbackSync(getSlots, "getSlots") : getSlots;
 
-  const timeSlots = getSlotsFn({
+  const timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
     offsetStart: eventType.offsetStart,
