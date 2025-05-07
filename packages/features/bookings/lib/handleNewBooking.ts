@@ -28,6 +28,7 @@ import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import { calendarCacheStore } from "@calcom/features/calendar-cache/calendar-cache-store";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
@@ -67,6 +68,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import monitorCallbackAsync from "@calcom/lib/sentryWrapper";
 import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -466,6 +468,8 @@ async function handler(
     }
   }
 
+  calendarCacheStore.clear();
+
   const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
 
   const isTeamEventType =
@@ -664,6 +668,21 @@ async function handler(
     }
 
     if (!input.bookingData.allRecurringDates || input.bookingData.isFirstRecurringSlot) {
+      const userIds = [...qualifiedRRUsers, ...fixedUsers].map((user) => user.id);
+      const selectedCalendarRepository = new SelectedCalendarRepository();
+      const allSelectedCalendars = await selectedCalendarRepository.findAllSelectedCalendarsForUsers(
+        userIds,
+        eventTypeWithUsers.id
+      );
+
+      loggerWithEventDetails.debug(
+        "Fetched all selected calendars",
+        safeStringify({
+          userCount: userIds.length,
+          selectedCalendarCount: allSelectedCalendars.length,
+        })
+      );
+
       let availableUsers: IsFixedAwareUser[] = [];
       try {
         availableUsers = await ensureAvailableUsers(
