@@ -26,21 +26,21 @@ A service account is needed to act on behalf of users
  2. Create a New Service Account:
     - Click on Create Service Account
     - Give your service account a name and description
-    - Click Create and Continue
+    - Click Create and Continue(Optional steps can be skipped)
 
 Step 3: To Be taken by Cal.com instance admin:
 
 - Create a Workspace Platform with slug="google". Slug has to be exactly this. This is how we know we need to use Google Calendar and Google Meet.
 
 Last Step (To Be Taken By Cal.com organization Owner/Admin): Assign Specific API Permissions via OAuth Scopes:
-    - Create Delegation Credential with workspace platform "google"
-      - User must be a member of the Google Workspace to be able to enable Delegation Credential as there is a validation if the user's calendar can be accessed through the service account
-    - Get the Client ID from there
-    - Go to your Google Admin Console (admin-google-com)
-    - Navigate to Security → Access and Data Controls -> API controls -> Manage Domain-Wide Delegation
-    - Here, you'll authorize the Client ID(Unique ID) to access the Google Calendar API
-    - Add the necessary API scopes for Google Calendar(Full access to Google Calendar)
-        <https://www.googleapis.com/auth/calendar>
+- Create Delegation Credential with workspace platform "google"
+  - User must be a member of the Google Workspace to be able to enable Delegation Credential as there is a validation if the user's calendar can be accessed through the service account
+  - Get the Client ID from there
+  - Go to your Google Admin Console (admin-google-com)
+  - Navigate to Security → Access and Data Controls -> API controls -> Manage Domain-Wide Delegation
+  - Here, you'll authorize the Client ID(Unique ID) to access the Google Calendar API
+  - Add the following API scope for Google Calendar(Full access to Google Calendar)
+    - `https://www.googleapis.com/auth/calendar`
 
 ## Onboarding Improvements
 

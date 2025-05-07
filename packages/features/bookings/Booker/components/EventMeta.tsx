@@ -13,6 +13,7 @@ import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
 import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
@@ -56,7 +57,6 @@ export const EventMeta = ({
   event?: Pick<
     BookerEvent,
     | "lockTimeZoneToggleOnBookingPage"
-    | "lockedTimeZone"
     | "schedule"
     | "seatsPerTimeSlot"
     | "subsetOfUsers"
@@ -109,9 +109,9 @@ export const EventMeta = ({
   );
 
   useEffect(() => {
-    //In case the event has lockTimeZone enabled ,set the timezone to event's locked timezone
-    if (event && event?.lockTimeZoneToggleOnBookingPage && event?.lockedTimeZone) {
-      setTimezone(event?.lockedTimeZone);
+    //In case the event has lockTimeZone enabled ,set the timezone to event's attached availability timezone
+    if (event && event?.lockTimeZoneToggleOnBookingPage && event?.schedule?.timeZone) {
+      setTimezone(event.schedule?.timeZone);
     }
   }, [event, setTimezone]);
 
@@ -225,7 +225,7 @@ export const EventMeta = ({
                       indicatorsContainer: () => "ml-auto",
                       container: () => "max-w-full",
                     }}
-                    value={event.lockTimeZoneToggleOnBookingPage ? event.lockedTimeZone : timezone}
+                    value={event.lockTimeZoneToggleOnBookingPage ? CURRENT_TIMEZONE : timezone}
                     onChange={({ value }) => {
                       setTimezone(value);
                       setBookerStoreTimezone(value);
