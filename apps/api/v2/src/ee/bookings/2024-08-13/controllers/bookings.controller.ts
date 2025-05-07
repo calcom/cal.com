@@ -1,15 +1,19 @@
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
+import { BookingReferencesOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/booking-references.output";
 import { CalendarLinksOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
+import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
+import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UsersService } from "@/modules/users/services/users.service";
@@ -82,7 +86,8 @@ export class BookingsController_2024_08_13 {
 
   constructor(
     private readonly bookingsService: BookingsService_2024_08_13,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly bookingReferencesService: BookingReferencesService_2024_08_13
   ) {}
 
   @Post("/")
@@ -384,6 +389,27 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: calendarLinks,
+    };
+  }
+
+  @Get("/:bookingUid/references")
+  @PlatformPlan("SCALE")
+  @UseGuards(ApiAuthGuard, BookingUidGuard)
+  @Permissions([BOOKING_READ])
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Get 'Booking References' for a booking",
+  })
+  @HttpCode(HttpStatus.OK)
+  async getBookingReferences(
+    @Param("bookingUid") bookingUid: string,
+    @GetUser("id") userId: number
+  ): Promise<BookingReferencesOutput_2024_08_13> {
+    const bookingReferences = await this.bookingReferencesService.getBookingReferences(bookingUid, userId);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: bookingReferences,
     };
   }
 }
