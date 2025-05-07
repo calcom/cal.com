@@ -361,7 +361,7 @@ const TableHeadLabel = ({ header }: { header: Header<any, any> }) => {
             open && "bg-muted"
           )}>
           <div
-            className="truncate"
+            className="text-default truncate text-sm leading-none"
             title={
               typeof header.column.columnDef.header === "string" ? header.column.columnDef.header : undefined
             }>
