@@ -681,6 +681,16 @@ function MemberListContent(props: Props) {
         ToolbarRight={
           <>
             <DataTableFilters.ClearFiltersButton />
+            {isAdminOrOwner && (
+              <DataTableToolbar.CTA
+                type="button"
+                color="primary"
+                StartIcon="plus"
+                onClick={() => props.setShowMemberInvitationModal(true)}
+                data-testid="new-member-button">
+                {t("add")}
+              </DataTableToolbar.CTA>
+            )}
           </>
         }>
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (

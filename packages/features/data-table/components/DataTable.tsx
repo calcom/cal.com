@@ -39,6 +39,7 @@ export type DataTablePropsFromWrapper<TData> = {
   headerClassName?: string;
   rowClassName?: string;
   paginationMode?: "infinite" | "standard";
+  hasWrapperContext?: boolean;
 };
 
 export type DataTableProps<TData> = DataTablePropsFromWrapper<TData> & {
@@ -64,6 +65,7 @@ export function DataTable<TData>({
   headerClassName,
   rowClassName,
   paginationMode = "infinite",
+  hasWrapperContext = false,
   ...rest
 }: DataTableProps<TData> & React.ComponentPropsWithoutRef<"div">) {
   const { rows } = table.getRowModel();
@@ -104,7 +106,10 @@ export function DataTable<TData>({
 
   return (
     <div
-      className={classNames("bg-muted grid rounded-xl px-0.5 pb-0.5", className)}
+      className={classNames(
+        !hasWrapperContext ? "grid" : "bg-muted grid rounded-xl px-0.5 pb-0.5",
+        className
+      )}
       style={{
         gridTemplateRows: "auto 1fr auto",
         gridTemplateAreas: "'header' 'body' 'footer'",
@@ -135,7 +140,10 @@ export function DataTable<TData>({
         )}
         style={{ gridArea: "body" }}>
         <TableNew
-          className="data-table grid border-0"
+          className={classNames(
+            "data-table grid border-0",
+            !hasWrapperContext && "bg-muted rounded-xl px-0.5 pb-0.5"
+          )}
           style={{
             ...columnSizingVars,
             ...(Boolean(enableColumnResizing) && { width: table.getTotalSize() }),
