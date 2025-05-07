@@ -44,7 +44,7 @@ type PartialBooking =
 
 export type PartialWorkflowReminder = Pick<
   WorkflowReminder,
-  "id" | "isMandatoryReminder" | "scheduledDate"
+  "id" | "isMandatoryReminder" | "scheduledDate" | "uuid"
 > & {
   booking: PartialBooking | null;
 } & { workflowStep: PartialWorkflowStep };
@@ -78,12 +78,15 @@ async function getWorkflowReminders<T extends Prisma.WorkflowReminderSelect>(
   return filteredWorkflowReminders;
 }
 
-type RemindersToDeleteType = { referenceId: string | null };
+type RemindersToDeleteType = { referenceId: string | null; id: number };
 
 export async function getAllRemindersToDelete(): Promise<RemindersToDeleteType[]> {
   const whereFilter: Prisma.WorkflowReminderWhereInput = {
     method: WorkflowMethods.EMAIL,
     cancelled: true,
+    referenceId: {
+      not: null,
+    },
     scheduledDate: {
       lt: dayjs().toISOString(),
     },
@@ -91,6 +94,7 @@ export async function getAllRemindersToDelete(): Promise<RemindersToDeleteType[]
 
   const select = Prisma.validator<Prisma.WorkflowReminderSelect>()({
     referenceId: true,
+    id: true,
   });
 
   const remindersToDelete = await getWorkflowReminders(whereFilter, select);
@@ -123,6 +127,7 @@ export const select = Prisma.validator<Prisma.WorkflowReminderSelect>()({
   id: true,
   scheduledDate: true,
   isMandatoryReminder: true,
+  uuid: true,
   workflowStep: {
     select: {
       action: true,
@@ -190,6 +195,7 @@ export const select = Prisma.validator<Prisma.WorkflowReminderSelect>()({
               hideBranding: true,
             },
           },
+          customReplyToEmail: true,
         },
       },
     },

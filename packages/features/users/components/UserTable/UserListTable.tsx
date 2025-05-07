@@ -20,6 +20,7 @@ import {
   convertFacetedValuesToMap,
   useDataTable,
 } from "@calcom/features/data-table";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import {
@@ -73,6 +74,8 @@ const initalColumnVisibility = {
   member: true,
   role: true,
   teams: true,
+  createdAt: false,
+  updatedAt: false,
   actions: true,
 };
 
@@ -104,7 +107,7 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 
 export function UserListTable() {
   return (
-    <DataTableProvider defaultPageSize={25}>
+    <DataTableProvider useSegments={useSegments} defaultPageSize={25}>
       <UserListTableContent />
     </DataTableProvider>
   );
@@ -365,8 +368,51 @@ function UserListTableContent() {
       ...generateAttributeColumns(),
       {
         id: "lastActiveAt",
-        header: "Last Active",
+        accessorKey: "lastActiveAt",
+        header: t("last_active"),
+        enableSorting: false,
+        enableColumnFilter: true,
+        meta: {
+          filter: {
+            type: ColumnFilterType.DATE_RANGE,
+            dateRangeOptions: {
+              endOfDay: true,
+            },
+          },
+        },
         cell: ({ row }) => <div>{row.original.lastActiveAt}</div>,
+      },
+      {
+        id: "createdAt",
+        accessorKey: "createdAt",
+        header: t("member_since"),
+        enableSorting: false,
+        enableColumnFilter: true,
+        meta: {
+          filter: {
+            type: ColumnFilterType.DATE_RANGE,
+            dateRangeOptions: {
+              endOfDay: true,
+            },
+          },
+        },
+        cell: ({ row }) => <div>{row.original.createdAt || ""}</div>,
+      },
+      {
+        id: "updatedAt",
+        accessorKey: "updatedAt",
+        header: t("last_updated"),
+        enableSorting: false,
+        enableColumnFilter: true,
+        meta: {
+          filter: {
+            type: ColumnFilterType.DATE_RANGE,
+            dateRangeOptions: {
+              endOfDay: true,
+            },
+          },
+        },
+        cell: ({ row }) => <div>{row.original.updatedAt || ""}</div>,
       },
       {
         id: "actions",

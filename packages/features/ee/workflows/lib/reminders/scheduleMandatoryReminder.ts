@@ -57,7 +57,7 @@ export async function scheduleMandatoryReminder({
             time: 1,
             timeUnit: TimeUnit.HOUR,
           },
-          sendTo: filteredAttendees,
+          sendTo: filteredAttendees.map((attendee) => attendee.email),
           template: WorkflowTemplates.REMINDER,
           hideBranding,
           seatReferenceUid,
