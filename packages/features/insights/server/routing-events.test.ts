@@ -34,8 +34,8 @@ describe("RoutingEventsInsights", () => {
 
   describe("getWhereForTeamOrAllTeams", () => {
     it("should return correct where condition when isAll is true with organizationId", async () => {
-      vi.mocked(readonlyPrisma.team.findMany).mockResolvedValue([{ id: 20 }, { id: 30 }]);
-      vi.mocked(readonlyPrisma.membership.findMany).mockResolvedValue([{ teamId: 10 }, { teamId: 20 }]);
+      vi.mocked(readonlyPrisma.team.findMany).mockResolvedValue([{ id: 1 }, { id: 2 }]);
+      vi.mocked(readonlyPrisma.membership.findMany).mockResolvedValue([{ teamId: 3 }, { teamId: 4 }]);
 
       const result = await TestRoutingEventsInsights.testGetWhereForTeamOrAllTeams({
         userId: 1,
@@ -45,7 +45,7 @@ describe("RoutingEventsInsights", () => {
 
       expect(result).toEqual({
         teamId: {
-          in: [10, 20],
+          in: [3, 4],
         },
       });
     });
@@ -158,8 +158,8 @@ describe("RoutingEventsInsights", () => {
     });
 
     it("should handle when both teamId and organizationId are provided with isAll true", async () => {
-      vi.mocked(readonlyPrisma.team.findMany).mockResolvedValue([{ id: 20 }, { id: 30 }]);
-      vi.mocked(readonlyPrisma.membership.findMany).mockResolvedValue([{ teamId: 10 }, { teamId: 20 }]);
+      vi.mocked(readonlyPrisma.team.findMany).mockResolvedValue([{ id: 1 }, { id: 2 }]);
+      vi.mocked(readonlyPrisma.membership.findMany).mockResolvedValue([{ teamId: 3 }, { teamId: 4 }]);
 
       const result = await TestRoutingEventsInsights.testGetWhereForTeamOrAllTeams({
         userId: 1,
@@ -170,7 +170,7 @@ describe("RoutingEventsInsights", () => {
 
       expect(result).toEqual({
         teamId: {
-          in: [10, 20],
+          in: [3, 4],
         },
       });
     });
