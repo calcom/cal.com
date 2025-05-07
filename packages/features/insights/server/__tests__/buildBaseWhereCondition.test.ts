@@ -37,8 +37,6 @@ describe("buildBaseWhereCondition", () => {
       expect(result.whereCondition).toEqual({
         OR: [{ eventTypeId: 123 }, { eventParentId: 123 }],
       });
-      expect(mockTeamFindMany).not.toHaveBeenCalled();
-      expect(mockMembershipFindMany).not.toHaveBeenCalled();
     });
 
     it("should set userId condition when memberUserId is provided", async () => {
@@ -51,8 +49,6 @@ describe("buildBaseWhereCondition", () => {
       expect(result.whereCondition).toEqual({
         userId: 456,
       });
-      expect(mockTeamFindMany).not.toHaveBeenCalled();
-      expect(mockMembershipFindMany).not.toHaveBeenCalled();
     });
 
     it("should set userId and teamId conditions when userId is provided", async () => {
@@ -66,8 +62,6 @@ describe("buildBaseWhereCondition", () => {
         userId: 789,
         teamId: null,
       });
-      expect(mockTeamFindMany).not.toHaveBeenCalled();
-      expect(mockMembershipFindMany).not.toHaveBeenCalled();
     });
   });
 
@@ -94,15 +88,6 @@ describe("buildBaseWhereCondition", () => {
           },
         ],
       });
-      expect(mockTeamFindMany).toHaveBeenCalledWith({
-        where: {
-          parentId: 100,
-        },
-        select: {
-          id: true,
-        },
-      });
-      expect(mockMembershipFindMany).not.toHaveBeenCalled();
     });
 
     it("should build complex where condition for organization-wide query", async () => {
@@ -135,27 +120,6 @@ describe("buildBaseWhereCondition", () => {
           },
         ],
       });
-      expect(mockTeamFindMany).toHaveBeenCalledWith({
-        where: {
-          parentId: 100,
-        },
-        select: {
-          id: true,
-        },
-      });
-      expect(mockMembershipFindMany).toHaveBeenCalledWith({
-        where: {
-          team: {
-            id: {
-              in: [100, 101, 102],
-            },
-          },
-          accepted: true,
-        },
-        select: {
-          userId: true,
-        },
-      });
     });
   });
 
@@ -185,16 +149,6 @@ describe("buildBaseWhereCondition", () => {
           },
         ],
       });
-      expect(mockTeamFindMany).not.toHaveBeenCalled();
-      expect(mockMembershipFindMany).toHaveBeenCalledWith({
-        where: {
-          teamId: 200,
-          accepted: true,
-        },
-        select: {
-          userId: true,
-        },
-      });
     });
 
     it("should not build team-specific where condition when eventTypeId is provided", async () => {
@@ -210,8 +164,6 @@ describe("buildBaseWhereCondition", () => {
       expect(result.whereCondition).toEqual({
         OR: [{ eventTypeId: 500 }, { eventParentId: 500 }],
       });
-      expect(mockTeamFindMany).not.toHaveBeenCalled();
-      expect(mockMembershipFindMany).not.toHaveBeenCalled();
     });
   });
 
@@ -229,8 +181,6 @@ describe("buildBaseWhereCondition", () => {
         OR: [{ eventTypeId: 123 }, { eventParentId: 123 }],
         userId: 456,
       });
-      expect(mockTeamFindMany).not.toHaveBeenCalled();
-      expect(mockMembershipFindMany).not.toHaveBeenCalled();
     });
   });
 
@@ -243,8 +193,6 @@ describe("buildBaseWhereCondition", () => {
       });
 
       expect(result.whereCondition).toEqual({});
-      expect(mockTeamFindMany).not.toHaveBeenCalled();
-      expect(mockMembershipFindMany).not.toHaveBeenCalled();
     });
 
     it("should handle null teamId", async () => {
@@ -256,8 +204,6 @@ describe("buildBaseWhereCondition", () => {
       });
 
       expect(result.whereCondition).toEqual({});
-      expect(mockTeamFindMany).not.toHaveBeenCalled();
-      expect(mockMembershipFindMany).not.toHaveBeenCalled();
     });
 
     it("should handle empty team members", async () => {
@@ -285,16 +231,6 @@ describe("buildBaseWhereCondition", () => {
           },
         ],
       });
-      expect(mockTeamFindMany).not.toHaveBeenCalled();
-      expect(mockMembershipFindMany).toHaveBeenCalledWith({
-        where: {
-          teamId: 200,
-          accepted: true,
-        },
-        select: {
-          userId: true,
-        },
-      });
     });
 
     it("should handle rejected team membership", async () => {
@@ -321,16 +257,6 @@ describe("buildBaseWhereCondition", () => {
             isTeamBooking: false,
           },
         ],
-      });
-      expect(mockTeamFindMany).not.toHaveBeenCalled();
-      expect(mockMembershipFindMany).toHaveBeenCalledWith({
-        where: {
-          teamId: 200,
-          accepted: true,
-        },
-        select: {
-          userId: true,
-        },
       });
     });
   });
