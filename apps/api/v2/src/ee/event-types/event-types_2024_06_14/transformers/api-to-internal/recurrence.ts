@@ -1,4 +1,4 @@
-import { Frequency } from "@calcom/platform-enums/monorepo";
+import { Frequency } from "@calcom/platform-enums";
 import type { Recurrence_2024_06_14 } from "@calcom/platform-types";
 import { type TransformRecurringEventSchema_2024_06_14 } from "@calcom/platform-types";
 

@@ -1,4 +1,4 @@
-import { ConfirmationPolicyEnum } from "@calcom/platform-enums/monorepo";
+import { ConfirmationPolicyEnum } from "@calcom/platform-enums";
 import type {
   ConfirmationPolicyTransformedSchema,
   NoticeThresholdTransformedSchema,
