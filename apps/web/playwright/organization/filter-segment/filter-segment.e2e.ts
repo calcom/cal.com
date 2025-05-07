@@ -18,7 +18,11 @@ test.describe("Filter Segment Functionality", () => {
     page,
     users,
   }) => {
-    const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true });
+    const orgOwner = await users.create(undefined, {
+      hasTeam: true,
+      isOrg: true,
+      role: MembershipRole.OWNER,
+    });
     const { team: org } = await orgOwner.getOrgMembership();
 
     await users.create({
@@ -68,7 +72,11 @@ test.describe("Filter Segment Functionality", () => {
   });
 
   test("Filter segments persist across page reloads", async ({ page, users }) => {
-    const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true });
+    const orgOwner = await users.create(undefined, {
+      hasTeam: true,
+      isOrg: true,
+      role: MembershipRole.OWNER,
+    });
     const { team: org } = await orgOwner.getOrgMembership();
 
     await users.create({
@@ -109,6 +117,7 @@ test.describe("Filter Segment Functionality", () => {
       hasTeam: true,
       isOrg: true,
       hasSubteam: true,
+      role: MembershipRole.OWNER,
     });
     const { team: org } = await orgOwner.getOrgMembership();
     const { team: subTeam } = await orgOwner.getFirstTeamMembership();
