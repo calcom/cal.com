@@ -22020,11 +22020,11 @@
             },
             "description": "Array of booking data, which can contain either BookingOutput objects or RecurringBookingOutput objects"
           },
-          "error": {
-            "type": "object"
-          },
           "pagination": {
             "$ref": "#/components/schemas/PaginationMetaDto"
+          },
+          "error": {
+            "type": "object"
           }
         },
         "required": ["status", "data", "pagination"]
