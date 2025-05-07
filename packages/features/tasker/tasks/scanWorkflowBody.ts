@@ -90,17 +90,7 @@ export async function scanWorkflowBody(payload: string) {
       continue;
     }
 
-    // const comment: Comment = {
-    //   user_ip: "127.0.0.1",
-    //   content: workflowStep.reminderBody,
-    // };
-
-    // const isSpam = await client.checkSpam(comment);
-
-    const response = await iffyScanBody(workflowStep.reminderBody, workflowStep.id);
-    console.log("🚀 ~ file: scanWorkflowBody.ts:101 ~ scanWorkflowBody ~ response:", response);
-
-    const isSpam = false;
+    const isSpam = await iffyScanBody(workflowStep.reminderBody, workflowStep.id);
 
     if (isSpam) {
       if (workflowStep.workflow.user?.whitelistWorkflows) {
@@ -179,8 +169,9 @@ const iffyScanBody = async (body: string, workflowStepId: number) => {
         passthrough: true,
       }),
     });
-    console.log("🚀 ~ file: scanWorkflowBody.ts:177 ~ iffyScanBody ~ response:", response);
-    // return await response.json();
+
+    const data = await response.json();
+    return data.flagged;
   } catch (error) {
     log.error(`Error scanning workflow body for workflow step ${workflowStepId}:`, error);
   }
