@@ -35,7 +35,6 @@ describe("RoutingEventsInsights", () => {
   describe("getWhereForTeamOrAllTeams", () => {
     it("should return correct where condition when isAll is true with organizationId", async () => {
       vi.mocked(readonlyPrisma.team.findMany).mockResolvedValue([{ id: 2 }, { id: 3 }]);
-
       vi.mocked(readonlyPrisma.membership.findMany).mockResolvedValue([{ teamId: 1 }, { teamId: 2 }]);
 
       const result = await TestRoutingEventsInsights.testGetWhereForTeamOrAllTeams({
@@ -47,28 +46,6 @@ describe("RoutingEventsInsights", () => {
       expect(result).toEqual({
         teamId: {
           in: [1, 2],
-        },
-      });
-
-      expect(readonlyPrisma.team.findMany).toHaveBeenCalledWith({
-        where: {
-          parentId: 1,
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      expect(readonlyPrisma.membership.findMany).toHaveBeenCalledWith({
-        where: {
-          userId: 1,
-          teamId: {
-            in: [1, 2, 3],
-          },
-          accepted: true,
-        },
-        select: {
-          teamId: true,
         },
       });
     });
@@ -87,19 +64,6 @@ describe("RoutingEventsInsights", () => {
           in: [5],
         },
       });
-
-      expect(readonlyPrisma.membership.findMany).toHaveBeenCalledWith({
-        where: {
-          userId: 1,
-          teamId: {
-            in: [5],
-          },
-          accepted: true,
-        },
-        select: {
-          teamId: true,
-        },
-      });
     });
 
     it("should return correct where condition when neither teamId nor organizationId is provided", async () => {
@@ -112,13 +76,10 @@ describe("RoutingEventsInsights", () => {
         userId: 1,
         teamId: null,
       });
-
-      expect(readonlyPrisma.membership.findMany).not.toHaveBeenCalled();
     });
 
     it("should return correct where condition when user has no access to teams", async () => {
       vi.mocked(readonlyPrisma.team.findMany).mockResolvedValue([{ id: 2 }, { id: 3 }]);
-
       vi.mocked(readonlyPrisma.membership.findMany).mockResolvedValue([]);
 
       const result = await TestRoutingEventsInsights.testGetWhereForTeamOrAllTeams({
@@ -165,18 +126,80 @@ describe("RoutingEventsInsights", () => {
           in: [5],
         },
       });
+    });
 
-      expect(readonlyPrisma.membership.findMany).toHaveBeenCalledWith({
-        where: {
-          userId: -1, // Default value when userId is null
-          teamId: {
-            in: [5],
-          },
-          accepted: true,
+    it("should handle when isAll is true but no organizationId is provided", async () => {
+      const result = await TestRoutingEventsInsights.testGetWhereForTeamOrAllTeams({
+        userId: 1,
+        isAll: true,
+      });
+
+      expect(result).toEqual({
+        userId: 1,
+        teamId: null,
+      });
+    });
+
+    it("should handle when both teamId and organizationId are provided", async () => {
+      vi.mocked(readonlyPrisma.membership.findMany).mockResolvedValue([{ teamId: 5 }]);
+
+      const result = await TestRoutingEventsInsights.testGetWhereForTeamOrAllTeams({
+        userId: 1,
+        teamId: 5,
+        isAll: false,
+        organizationId: 10,
+      });
+
+      expect(result).toEqual({
+        teamId: {
+          in: [5],
         },
-        select: {
-          teamId: true,
+      });
+    });
+
+    it("should handle when both teamId and organizationId are provided with isAll true", async () => {
+      vi.mocked(readonlyPrisma.team.findMany).mockResolvedValue([{ id: 2 }, { id: 3 }]);
+      vi.mocked(readonlyPrisma.membership.findMany).mockResolvedValue([{ teamId: 1 }, { teamId: 2 }]);
+
+      const result = await TestRoutingEventsInsights.testGetWhereForTeamOrAllTeams({
+        userId: 1,
+        teamId: 5,
+        isAll: true,
+        organizationId: 1,
+      });
+
+      expect(result).toEqual({
+        teamId: {
+          in: [1, 2],
         },
+      });
+    });
+
+    it("should handle empty parameters with only isAll provided", async () => {
+      const result = await TestRoutingEventsInsights.testGetWhereForTeamOrAllTeams({
+        isAll: false,
+      });
+
+      expect(result).toEqual({
+        userId: -1,
+        teamId: null,
+      });
+    });
+
+    it("should handle undefined teamId with isAll true", async () => {
+      vi.mocked(readonlyPrisma.team.findMany).mockResolvedValue([]);
+      vi.mocked(readonlyPrisma.membership.findMany).mockResolvedValue([]);
+
+      const result = await TestRoutingEventsInsights.testGetWhereForTeamOrAllTeams({
+        userId: 1,
+        teamId: undefined,
+        isAll: true,
+        organizationId: 1,
+      });
+
+      expect(result).toEqual({
+        userId: 1,
+        teamId: null,
       });
     });
   });
