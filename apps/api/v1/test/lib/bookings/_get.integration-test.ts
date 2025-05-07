@@ -310,4 +310,52 @@ describe("GET /api/bookings", async () => {
       await expect(handler(req)).rejects.toThrow(ZodError);
     });
   });
+
+  describe("Result merging", () => {
+    it("does not return duplicate bookings when merging results from multiple queries", async () => {
+      const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
+
+      const testUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
+
+      const testUserBooking = await prisma.booking.findFirstOrThrow({
+        where: { userId: testUser.id },
+        include: { attendees: true },
+      });
+
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "GET",
+        query: {
+          userId: testUser.id, // This will make userEmailsToFilterBy contain the test user's email
+        },
+        pagination: {
+          take: 100,
+          skip: 0,
+        },
+      });
+
+      req.isSystemWideAdmin = true;
+      req.userId = adminUser.id;
+
+      const responseData = await handler(req);
+
+      const bookingIds = responseData.bookings.map((booking) => booking.id);
+
+      const uniqueBookingIds = new Set(bookingIds);
+
+      expect(uniqueBookingIds.size).toBe(bookingIds.length);
+
+      if (uniqueBookingIds.size !== bookingIds.length) {
+        const counts = bookingIds.reduce((acc, id) => {
+          acc[id] = (acc[id] || 0) + 1;
+          return acc;
+        }, {} as Record<number, number>);
+
+        const duplicates = Object.entries(counts)
+          .filter(([_, count]) => count > 1)
+          .map(([id]) => id);
+
+        console.log(`Found duplicate booking IDs: ${duplicates.join(", ")}`);
+      }
+    });
+  });
 });
