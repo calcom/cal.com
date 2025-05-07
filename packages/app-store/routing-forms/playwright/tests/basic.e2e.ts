@@ -58,6 +58,13 @@ async function selectFirstValueForAttributeValue({
   });
 }
 
+async function selectOperatorOption({ fromLocator, option }: { fromLocator: Locator; option: number }) {
+  await selectOptionUsingLocator({
+    locator: fromLocator,
+    option,
+  });
+}
+
 async function addAttributeRoutingRule(page: Page) {
   // TODO: Use a better selector maybe?
   await page.locator('text="Add rule"').nth(1).click();
@@ -73,6 +80,25 @@ async function addAttributeRoutingRule(page: Page) {
     // Select 'Value of Field Short Text' option
     option: 1,
   });
+}
+
+async function addAttributeRoutingRuleWithOperator(page: Page, valueFrom: string, valueTo: string) {
+  await page.locator('text="Add rule"').nth(1).click();
+  const attributeQueryBuilder = page.locator(".group-container").nth(1);
+  const attributeSelectorFirstRule = attributeQueryBuilder.locator(".rule--field").nth(0);
+  await selectFirstAttributeOption({
+    fromLocator: attributeSelectorFirstRule,
+  });
+
+  const attributeOperatorSelector = attributeQueryBuilder.locator(".rule--operator").nth(0);
+  await selectOperatorOption({
+    fromLocator: attributeOperatorSelector,
+    option: 7,
+  });
+
+  const attributeValueSelector = attributeQueryBuilder.locator(".rule--value").nth(0);
+  await attributeValueSelector.locator("input").nth(0).fill(valueFrom);
+  await attributeValueSelector.locator("input").nth(1).fill(valueTo);
 }
 
 async function selectFirstEventRedirectOption(page: Page) {
@@ -689,6 +715,171 @@ test.describe("Routing Forms", () => {
         await page.click('[data-testid="submit-button"]');
         await expect(page.locator('[data-testid="attribute-logic-matched"]')).toHaveText("No");
         await expect(page.locator('[data-testid="attribute-logic-fallback-matched"]')).toHaveText("Yes");
+        await page.click('[data-testid="close-results-button"]');
+      })();
+    });
+  });
+
+  test.describe("Form with Attribute Routing with Between operator - Not Matching - Team Form", () => {
+    test.beforeEach(async ({ page, users }) => {
+      const userFixture = await users.create(
+        { username: "routing-forms" },
+        {
+          hasTeam: true,
+          isOrg: true,
+          hasSubteam: true,
+          schedulingType: SchedulingType.ROUND_ROBIN,
+        }
+      );
+
+      const orgMembership = await userFixture.getOrgMembership();
+
+      const createdAttribute = await prisma.attribute.create({
+        data: {
+          teamId: orgMembership.teamId,
+          type: AttributeType.NUMBER,
+          name: "Company Size",
+          slug: `company-size-orgId-${orgMembership.teamId}`,
+          options: {
+            create: [
+              {
+                slug: "10",
+                value: "10",
+              },
+            ],
+          },
+        },
+        include: {
+          options: true,
+        },
+      });
+
+      await prisma.attributeToUser.create({
+        data: {
+          member: {
+            connect: {
+              userId_teamId: {
+                userId: userFixture.id,
+                teamId: orgMembership.teamId,
+              },
+            },
+          },
+          attributeOption: {
+            connect: {
+              id: createdAttribute.options[0].id,
+            },
+          },
+        },
+      });
+      await userFixture.apiLogin();
+    });
+
+    test.afterEach(async ({ users }) => {
+      // This also delete forms on cascade
+      await users.deleteAll();
+    });
+
+    test("should not match any member if between operator values are input such that", async ({ page }) => {
+      await addForm(page, {
+        forTeam: true,
+      });
+
+      await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
+      await page.waitForURL("/routing/route-builder/**");
+      await addNewRoute(page);
+      // This would select Round Robin event that we created above
+      await selectFirstEventRedirectOption(page);
+      await addAttributeRoutingRuleWithOperator(page, "1", "5");
+      await saveCurrentForm(page);
+
+      // asserting there is no match as attribute value for the member is 10, while input is between 1 and 5
+      await (async function testPreviewWhereThereIsNoMatch() {
+        await page.click('[data-testid="preview-button"]');
+        await page.click('[data-testid="submit-button"]');
+        await expect(page.locator('[data-testid="attribute-logic-matched"]')).toHaveText("No");
+        await expect(page.locator('[data-testid="attribute-logic-fallback-matched"]')).toHaveText("Yes");
+        await page.click('[data-testid="close-results-button"]');
+      })();
+    });
+  });
+
+  test.describe("Form with Attribute Routing with Between operator - Matching - Team Form", () => {
+    test.beforeEach(async ({ page, users }) => {
+      const userFixture = await users.create(
+        { username: "routing-forms" },
+        {
+          hasTeam: true,
+          isOrg: true,
+          hasSubteam: true,
+          schedulingType: SchedulingType.ROUND_ROBIN,
+        }
+      );
+
+      const orgMembership = await userFixture.getOrgMembership();
+
+      const createdAttribute = await prisma.attribute.create({
+        data: {
+          teamId: orgMembership.teamId,
+          type: AttributeType.NUMBER,
+          name: "Company Size",
+          slug: `company-size-orgId-${orgMembership.teamId}`,
+          options: {
+            create: [
+              {
+                slug: "3",
+                value: "3",
+              },
+            ],
+          },
+        },
+        include: {
+          options: true,
+        },
+      });
+
+      await prisma.attributeToUser.create({
+        data: {
+          member: {
+            connect: {
+              userId_teamId: {
+                userId: userFixture.id,
+                teamId: orgMembership.teamId,
+              },
+            },
+          },
+          attributeOption: {
+            connect: {
+              id: createdAttribute.options[0].id,
+            },
+          },
+        },
+      });
+      await userFixture.apiLogin();
+    });
+
+    test.afterEach(async ({ users }) => {
+      // This also delete forms on cascade
+      await users.deleteAll();
+    });
+
+    test("should match the member if between operator values are input such that", async ({ page }) => {
+      await addForm(page, {
+        forTeam: true,
+      });
+
+      await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
+      await page.waitForURL("/routing/route-builder/**");
+      await addNewRoute(page);
+      // This would select Round Robin event that we created above
+      await selectFirstEventRedirectOption(page);
+      await addAttributeRoutingRuleWithOperator(page, "1", "5");
+      await saveCurrentForm(page);
+
+      // asserting there is a match as attribute value for the member is 3 that is between 1 and 5
+      await (async function testPreviewWhereThereIsMatch() {
+        await page.click('[data-testid="preview-button"]');
+        await page.click('[data-testid="submit-button"]');
+        await page.waitForSelector("text=@example.com");
         await page.click('[data-testid="close-results-button"]');
       })();
     });
