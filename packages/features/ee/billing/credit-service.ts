@@ -225,52 +225,76 @@ export class CreditService {
   */
   async handleLowCreditBalance({
     teamId,
-    remainingCredits = 0,
+    userId,
+    remainingCredits,
   }: {
-    teamId: number;
-    remainingCredits?: number;
+    teamId?: number;
+    userId?: number;
+    remainingCredits: number;
   }) {
-    const { totalMonthlyCredits } = await this.getAllCreditsForTeam(teamId);
-    const warningLimit = totalMonthlyCredits * 0.2;
+    let warningLimit = 0;
+    if (teamId) {
+      const { totalMonthlyCredits } = await this.getAllCreditsForTeam(teamId);
+      warningLimit = totalMonthlyCredits * 0.2;
+    } else if (userId) {
+      const billingService = new StripeBillingService();
+      const teamMonthlyPrice = await billingService.getPrice(process.env.STRIPE_TEAM_MONTHLY_PRICE_ID || "");
+      const pricePerSeat = teamMonthlyPrice.unit_amount ?? 0;
+      warningLimit = pricePerSeat * 0.2;
+    }
+
     if (remainingCredits < warningLimit) {
-      const creditBalance = await CreditsRepository.findCreditBalance({ teamId });
+      const creditBalance = await CreditsRepository.findCreditBalanceWithTeamOrUser({ teamId, userId });
 
       if (
         creditBalance?.limitReachedAt &&
         dayjs(creditBalance?.limitReachedAt).isAfter(dayjs().startOf("month"))
       ) {
-        return; // team has already reached limit this month
+        return; // team/user has already reached limit this month
       }
 
-      const team = await TeamRepository.findTeamWithAdmins(teamId);
+      const teamWithAdmins = creditBalance?.team
+        ? {
+            ...creditBalance.team,
+            adminAndOwners: await Promise.all(
+              creditBalance.team.members.map(async (member) => ({
+                id: member.user.id,
+                name: member.user.name,
+                email: member.user.email,
+                t: await getTranslation(member.user.locale ?? "en", "common"),
+              }))
+            ),
+          }
+        : undefined;
 
-      if (!team) {
-        log.error("Team not found to send warning email");
+      const user = creditBalance?.user
+        ? {
+            ...creditBalance.user,
+            t: await getTranslation(creditBalance.user.locale ?? "en", "common"),
+          }
+        : undefined;
+
+      if ((!teamWithAdmins || !teamWithAdmins.adminAndOwners?.length) && !user) {
+        log.error("Team or user not found to send warning email");
         return;
       }
 
       if (remainingCredits <= 0) {
         await sendCreditBalanceLimitReachedEmails({
-          team: {
-            id: teamId,
-            name: team.name,
-            adminAndOwners: await Promise.all(
-              team.members.map(async (member) => ({
-                name: member.user.name ?? "",
-                email: member.user.email,
-                t: await getTranslation(member.user.locale ?? "en", "common"),
-              }))
-            ),
-          },
+          team: teamWithAdmins,
+          user,
         });
 
         await CreditsRepository.updateCreditBalance({
           teamId,
+          userId,
           data: {
             limitReachedAt: new Date(),
             warningSentAt: null,
           },
         });
+
+        //todo: add userId to function
         await cancelScheduledMessagesAndScheduleEmails(teamId);
         return;
       }
@@ -278,27 +302,19 @@ export class CreditService {
         creditBalance?.warningSentAt &&
         dayjs(creditBalance?.warningSentAt).isAfter(dayjs().startOf("month"))
       ) {
-        return; // team has already sent warning email this month
+        return; // team/user has already sent warning email this month
       }
 
       // team balance below 20% of total monthly credits
       await sendCreditBalanceLowWarningEmails({
         balance: remainingCredits,
-        team: {
-          id: teamId,
-          name: team.name,
-          adminAndOwners: await Promise.all(
-            team.members.map(async (member) => ({
-              name: member.user.name ?? "",
-              email: member.user.email,
-              t: await getTranslation(member.user.locale ?? "en", "common"),
-            }))
-          ),
-        },
+        team: teamWithAdmins,
+        user,
       });
 
       await CreditsRepository.updateCreditBalance({
         teamId,
+        userId,
         data: {
           warningSentAt: new Date(),
         },
@@ -308,6 +324,7 @@ export class CreditService {
 
     await CreditsRepository.updateCreditBalance({
       teamId,
+      userId,
       data: {
         warningSentAt: null,
         limitReachedAt: null,
@@ -345,6 +362,28 @@ export class CreditService {
     const priceWithMarkUp = twilioPrice * 1.8;
     const credits = Math.ceil(priceWithMarkUp * 100);
     return credits || null;
+  }
+
+  async getAllCredits({ userId, teamId }: { userId?: number; teamId?: number }) {
+    if (teamId) {
+      return this.getAllCreditsForTeam(teamId);
+    }
+
+    if (userId) {
+      const creditBalance = await CreditsRepository.findCreditBalance({ userId });
+
+      return {
+        totalMonthlyCredits: 0,
+        totalRemainingMonthlyCredits: 0,
+        additionalCredits: creditBalance?.additionalCredits ?? 0,
+      };
+    }
+
+    return {
+      totalMonthlyCredits: 0,
+      totalRemainingMonthlyCredits: 0,
+      additionalCredits: 0,
+    };
   }
 
   async getAllCreditsForTeam(teamId: number) {

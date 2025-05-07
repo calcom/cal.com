@@ -254,26 +254,36 @@ export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) =
   }
 };
 
-export async function cancelScheduledMessagesAndScheduleEmails(teamId: number) {
-  const teamMembers = await prisma.membership.findMany({
-    where: {
-      teamId,
-      accepted: true,
-    },
-  });
+export async function cancelScheduledMessagesAndScheduleEmails({
+  teamId,
+  userId,
+}: {
+  teamId?: number;
+  userId?: number;
+}) {
+  let userIdsWithNoCredits: number[] = userId ? [userId] : [];
 
-  const creditService = new CreditService();
+  if (teamId) {
+    const teamMembers = await prisma.membership.findMany({
+      where: {
+        teamId,
+        accepted: true,
+      },
+    });
 
-  const membersWithNoCredits = (
-    await Promise.all(
-      teamMembers.map(async (member) => {
-        const hasCredits = await creditService.hasAvailableCredits({ userId: member.userId });
-        return { member, hasCredits };
-      })
+    const creditService = new CreditService();
+
+    userIdsWithNoCredits = (
+      await Promise.all(
+        teamMembers.map(async (member) => {
+          const hasCredits = await creditService.hasAvailableCredits({ userId: member.userId });
+          return { userId: member.userId, hasCredits };
+        })
+      )
     )
-  )
-    .filter(({ hasCredits }) => !hasCredits)
-    .map(({ member }) => member);
+      .filter(({ hasCredits }) => !hasCredits)
+      .map(({ userId }) => userId);
+  }
 
   const scheduledMessages = await prisma.workflowReminder.findMany({
     where: {
@@ -282,12 +292,10 @@ export async function cancelScheduledMessagesAndScheduleEmails(teamId: number) {
           OR: [
             {
               userId: {
-                in: membersWithNoCredits.map((member) => member.userId),
+                in: userIdsWithNoCredits,
               },
             },
-            {
-              teamId,
-            },
+            ...(teamId ? [{ teamId }] : []),
           ],
         },
       },

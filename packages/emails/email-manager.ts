@@ -745,47 +745,75 @@ export const sendBookingRedirectNotification = async (bookingRedirect: IBookingR
 };
 
 export const sendCreditBalanceLowWarningEmails = async (input: {
-  team: {
-    name: string;
+  team?: {
+    name: string | null;
     id: number;
     adminAndOwners: {
-      name: string;
+      id: number;
+      name: string | null;
       email: string;
       t: TFunction;
     }[];
   };
+  user?: {
+    id: number;
+    name: string | null;
+    email: string;
+    t: TFunction;
+  };
   balance: number;
 }) => {
-  const { team, balance } = input;
-  if (!team.adminAndOwners.length) return;
-  const emailsToSend: Promise<unknown>[] = [];
+  const { team, balance, user } = input;
+  if ((!team || !team.adminAndOwners.length) && !user) return;
 
-  for (const admin of team.adminAndOwners) {
-    emailsToSend.push(sendEmail(() => new CreditBalanceLowWarningEmail(admin, balance, team)));
+  if (team) {
+    const emailsToSend: Promise<unknown>[] = [];
+
+    for (const admin of team.adminAndOwners) {
+      emailsToSend.push(sendEmail(() => new CreditBalanceLowWarningEmail({ user: admin, balance, team })));
+    }
+
+    await Promise.all(emailsToSend);
   }
 
-  await Promise.all(emailsToSend);
+  if (user) {
+    await sendEmail(() => new CreditBalanceLowWarningEmail({ user, balance }));
+  }
 };
 
 export const sendCreditBalanceLimitReachedEmails = async ({
   team,
+  user,
 }: {
-  team: {
+  team?: {
     name: string;
     id: number;
     adminAndOwners: {
-      name: string;
+      id: number;
+      name: string | null;
       email: string;
       t: TFunction;
     }[];
   };
+  user?: {
+    id: number;
+    name: string | null;
+    email: string;
+    t: TFunction;
+  };
 }) => {
-  if (!team.adminAndOwners.length) return;
-  const emailsToSend: Promise<unknown>[] = [];
+  if ((!team || !team.adminAndOwners.length) && !user) return;
 
-  for (const admin of team.adminAndOwners) {
-    emailsToSend.push(sendEmail(() => new CreditBalanceLimitReachedEmail(admin, team)));
+  if (team) {
+    const emailsToSend: Promise<unknown>[] = [];
+
+    for (const admin of team.adminAndOwners) {
+      emailsToSend.push(sendEmail(() => new CreditBalanceLimitReachedEmail({ user: admin, team })));
+    }
+    await Promise.all(emailsToSend);
   }
 
-  await Promise.all(emailsToSend);
+  if (user) {
+    await sendEmail(() => new CreditBalanceLimitReachedEmail({ user }));
+  }
 };
