@@ -1,18 +1,17 @@
 import type { CalendarSync } from "@prisma/client";
 
+import { featureName } from "@calcom/features/calendar-sync/feature";
 // eslint-disable-next-line no-restricted-imports
-import { isCalendarResult } from "@calcom/lib/EventManager";
+import { isCalendarLikeResult } from "@calcom/lib/EventManager";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CalendarSyncRepository } from "@calcom/lib/server/repository/calendarSync";
 import type { AdditionalInformation } from "@calcom/types/Calendar";
 import type { EventResult } from "@calcom/types/EventManager";
+import type { Ensure } from "@calcom/types/utils";
 
-const log = logger.getSubLogger({ prefix: ["getCalendarSyncData"] });
+const log = logger.getSubLogger({ prefix: [featureName, "calendarSync"] });
 /**
- *
- * TODO:
- * 1. Make it return null if organization doesn't have bi-directional-sync feature enabled
  * Extracts data required to create CalendarSync records from EventManager results.
  * It uses the credentialId assumed to be present on successful calendar integration results.
  *
@@ -23,22 +22,35 @@ const log = logger.getSubLogger({ prefix: ["getCalendarSyncData"] });
 export const getCalendarSyncData = (
   // Assuming EventResult might contain credentialId for successful calendar ops
   {
-    results,
-    organizerUserId,
+    calendarResults,
+    organizer,
   }: {
-    results: EventResult<AdditionalInformation & { url?: string; iCalUID?: string; credentialId?: number }>[];
-    organizerUserId: number;
+    calendarResults: EventResult<
+      AdditionalInformation & {
+        id?: string | null;
+        url?: string;
+        iCalUID?: string;
+        credentialId?: number;
+        calendarEventId?: string | null;
+      }
+    >[];
+    organizer: {
+      id: number;
+      organizationId: number | null;
+    };
   }
-): // Adjust Omit based on actual required fields for CalendarSync creation, excluding relational keys like bookingId
-{
+): {
   calendarEventId: string | null;
-  data: Omit<
-    CalendarSync,
-    "id" | "bookingId" | "createdAt" | "updatedAt" | "subscriptionId" | "lastSyncedDownAt"
+  data: Ensure<
+    Omit<
+      CalendarSync,
+      "id" | "bookingId" | "createdAt" | "updatedAt" | "subscriptionId" | "lastSyncedDownAt"
+    >,
+    "lastSyncDirection"
   > | null;
 } => {
-  type Result = (typeof results)[number];
-  const validCalendarResult = results.find(
+  type Result = (typeof calendarResults)[number];
+  const validCalendarResult = calendarResults.find(
     (
       result
     ): result is {
@@ -46,17 +58,16 @@ export const getCalendarSyncData = (
       credentialId: number;
       calendarEventId: string | null;
     } & Result => {
-      if (!isCalendarResult(result)) {
-        return false;
-      }
       if (!result.success) {
         log.warn("Ignoring calendar sync due to failure in creating calendar event", safeStringify(result));
         return false;
       }
 
       if (!result.externalId || !result.credentialId) {
+        // Could cause issues syncing calendar events downstream
+        // We don't want to fail the booking
         log.error(
-          "Ignoring calendar sync due to missing externalCalendarId or credentialId",
+          "Calendar sync setup failure due to missing externalId or credentialId in result from EventManager",
           safeStringify({
             externalId: result.externalId,
             credentialId: result.credentialId,
@@ -76,33 +87,55 @@ export const getCalendarSyncData = (
     };
   }
 
+  const event =
+    (validCalendarResult.updatedEvent instanceof Array
+      ? validCalendarResult.updatedEvent[0]
+      : validCalendarResult.updatedEvent) ?? validCalendarResult.createdEvent;
+
   return {
-    calendarEventId: validCalendarResult.calendarEventId,
+    calendarEventId: event?.id ?? null,
     data: {
       externalCalendarId: validCalendarResult.externalId,
       credentialId: validCalendarResult.credentialId,
       integration: validCalendarResult.type,
-      userId: organizerUserId,
+      userId: organizer.id,
       lastSyncedUpAt: new Date(),
       lastSyncDirection: "UPSTREAM",
     },
   };
 };
 
+/**
+ * TODO: It needs to have feature flag support for bi-directional sync. Till then we make this fn no--op
+ * That requires teamFeatures table to be queried
+ */
 export const createCalendarSync = async ({
   results,
-  organizerUserId,
+  organizer,
 }: {
   results: EventResult<AdditionalInformation & { url?: string; iCalUID?: string; credentialId?: number }>[];
-  organizerUserId: number;
+  organizer: {
+    id: number;
+    organizationId: number | null;
+  };
 }) => {
+  // TODO: Remove this once we have feature flag support for bi-directional sync - Regular feature flag check could be costly in booking flow
+  // return null;
+  const calendarResults = results.filter((result) => isCalendarLikeResult(result));
+  if (calendarResults.length === 0) {
+    // No calendars are connected it seems, so there is no need for calendar sync
+    return {
+      calendarSync: null,
+      calendarEventId: null,
+    };
+  }
   const defaultReturnValue = {
     calendarSync: null,
     calendarEventId: null,
   };
   const { data: calendarSyncData, calendarEventId } = getCalendarSyncData({
-    results,
-    organizerUserId,
+    calendarResults,
+    organizer,
   });
 
   if (!calendarSyncData) {
@@ -112,9 +145,10 @@ export const createCalendarSync = async ({
   let calendarSync: CalendarSync | null = null;
 
   if (calendarSyncData) {
+    log.debug("Creating calendarSync", safeStringify(calendarSyncData));
     try {
       calendarSync = await CalendarSyncRepository.upsertByUserIdAndExternalCalendarIdAndIntegration({
-        userId: organizerUserId,
+        userId: organizer.id,
         externalCalendarId: calendarSyncData.externalCalendarId,
         integration: calendarSyncData.integration,
         createData: calendarSyncData,
@@ -129,12 +163,14 @@ export const createCalendarSync = async ({
       log.error("Error while upserting calendarSync", safeStringify(error));
       return defaultReturnValue;
     }
+  } else {
+    log.debug("No calendarSyncData found");
   }
 
   return { calendarSync, calendarEventId };
 };
 
-export const getReferencesToCreateSupportingCalendarSync = <T extends { calendarEventId?: string | null }>({
+export const getReferencesToCreateSupportingCalendarSync = <T extends { uid?: string | null }>({
   referencesToCreate,
   calendarSyncId,
   calendarEventId,
@@ -143,16 +179,33 @@ export const getReferencesToCreateSupportingCalendarSync = <T extends { calendar
   calendarSyncId: string | null;
   calendarEventId: string | null;
 }) => {
-  if (!calendarSyncId || !calendarEventId) {
+  if (!calendarSyncId) {
+    // No calendarSyncId means that no calendar sync was created for whatever reason, which would have been logged earlier
     return referencesToCreate;
   }
 
-  return referencesToCreate.map((referenceToCreate) => {
-    const applicableCalendarSyncId =
-      referenceToCreate.calendarEventId === calendarEventId ? calendarSyncId : null;
+  if (!calendarEventId) {
+    // We don't want to fail the booking - but this shouldn't happen because calendarSync creation means that a successful calendar event was created earlier and we must have calendarEventId for it.
+    log.warn(
+      "Issue while linking BookingReference to CalendarSync as calendarSyncId is set but calendarEventId is not available",
+      safeStringify({ calendarSyncId, calendarEventId })
+    );
+    return referencesToCreate;
+  }
+
+  const newReferencesToCreate = referencesToCreate.map((referenceToCreate) => {
+    const applicableCalendarSyncId = referenceToCreate.uid === calendarEventId ? calendarSyncId : null;
+    console.log("applicableCalendarSyncId", applicableCalendarSyncId, {
+      referenceToCreate,
+      calendarEventId,
+    });
     return {
       ...referenceToCreate,
       calendarSyncId: applicableCalendarSyncId,
     };
   });
+
+  log.debug("New referencesToCreate after linking to CalendarSync", safeStringify(newReferencesToCreate));
+
+  return newReferencesToCreate;
 };

@@ -11,7 +11,6 @@ export interface PartialReference {
   externalCalendarId?: string | null;
   credentialId?: number | null;
   delegationCredentialId?: string | null;
-  calendarEventId?: string | null;
 }
 
 export interface EventResult<T> {

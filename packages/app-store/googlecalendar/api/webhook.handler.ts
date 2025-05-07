@@ -9,7 +9,7 @@ import { CalendarSyncRepository } from "@calcom/lib/server/repository/calendarSy
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import prisma from "@calcom/prisma";
 
-import { syncEvents } from "../../_calendarSync/calendarSync";
+import { syncEvents } from "../../_utils/calendars/calendarSync";
 import { getCalendar } from "../../_utils/getCalendar";
 
 const log = logger.getSubLogger({ prefix: ["GoogleCalendarWebhook"] });
@@ -52,6 +52,14 @@ function getActionsToTake({
 
   let externalCalendarId: string | null = null;
   let credentialId: number | null = null;
+
+  if (!selectedCalendar && !calendarSync) {
+    // The channel isn't registered with us
+    throw new HttpError({
+      statusCode: 404,
+      message: "No selectedCalendar or calendarSync found for push notification",
+    });
+  }
 
   if (selectedCalendar) {
     syncActions.push("events-sync");
@@ -107,8 +115,11 @@ function getActionsToTake({
   }
 
   if (!syncActions.length || !credentialId || !externalCalendarId) {
+    const error =
+      "Either no syncActions, or no credentialId or no externalCalendarId found for push notification";
+
     log.warn(
-      "Either no syncActions, or no credentialId or no externalCalendarId found for push notification",
+      error,
       safeStringify({
         channelId,
         resourceId,
@@ -119,7 +130,7 @@ function getActionsToTake({
     );
     throw new HttpError({
       statusCode: 500,
-      message: `Internal error: Could not determine calendar types (Channel: ${channelId}, Resource: ${resourceId}).`,
+      message: error,
     });
   }
 
@@ -185,8 +196,6 @@ async function getCalendarFromChannelId({
 export async function postHandler(req: NextApiRequest) {
   let channelId: string | undefined;
   let resourceId: string | undefined;
-  const subscriptionId: string | null = null; // Initialize subscriptionId
-
   try {
     const parsedHeaders = googleHeadersSchema.parse(req.headers);
     channelId = parsedHeaders["x-goog-channel-id"];
@@ -201,11 +210,6 @@ export async function postHandler(req: NextApiRequest) {
 
     if (channelToken !== process.env.GOOGLE_WEBHOOK_TOKEN) {
       throw new HttpError({ statusCode: 403, message: "Invalid API key" });
-    }
-    // channelId and resourceId are validated by schema parsing now
-    if (channelId !== "4fae4c6f-dfc6-4a2a-bbbe-4ed82bc79ace") {
-      // prevent spam while testing
-      return { message: "ok" };
     }
 
     const subscription = await prisma.calendarSubscription.findFirst({
@@ -234,7 +238,6 @@ export async function postHandler(req: NextApiRequest) {
         resourceId,
         subscription,
       });
-    log.info("calendarInfo", safeStringify({ calendarService, syncActions, externalCalendarId }));
 
     if (!calendarService?.onWatchedCalendarChange) {
       // Log error with more context
@@ -261,11 +264,11 @@ export async function postHandler(req: NextApiRequest) {
       });
     }
 
-    if (subscriptionId !== null) {
+    if (subscription?.id) {
       try {
         await Promise.all([
           prisma.calendarSubscription.update({
-            where: { id: subscriptionId },
+            where: { id: subscription.id },
             data: { lastSyncAt: new Date() }, // Update last sync time
           }),
           calendarSyncId &&
@@ -276,13 +279,13 @@ export async function postHandler(req: NextApiRequest) {
         ]);
         log.debug(
           "Updated lastSyncAt for subscription",
-          safeStringify({ subscriptionId, resourceId, channelId })
+          safeStringify({ subscriptionId: subscription.id, resourceId, channelId })
         );
       } catch (error) {
         log.error(
           "Failed to update lastSyncAt for subscription",
           safeStringify(error),
-          safeStringify({ subscriptionId, resourceId, channelId })
+          safeStringify({ subscriptionId: subscription.id, resourceId, channelId })
         );
         // Decide if this failure should impact the overall response (e.g., return 500?)
         // For now, log the error but return "ok" as the primary webhook logic succeeded.
@@ -303,13 +306,13 @@ export async function postHandler(req: NextApiRequest) {
         externalCalendarId,
         resourceId,
         channelId,
-        subscriptionId,
+        subscriptionId: subscription?.id,
       })
     );
     return { message: "ok" };
   } catch (error) {
     // Log with context if available
-    const context = { channelId, resourceId, subscriptionId };
+    const context = { channelId, resourceId };
     if (error instanceof z.ZodError) {
       log.error(
         "Invalid webhook headers",

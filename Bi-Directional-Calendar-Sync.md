@@ -63,12 +63,12 @@ Flow:
 - `CRON:subscription-cron` runs every few minutes and it does the following. We keep this cron separate as it could be used by both SelectedCalendar and CalendarSync.
    - For each of the status=PENDING records in CalendarSubscription table, it creates a subscription in provider using the credential and updates the subscription record with the channel related fields, moving the status to ACTIVE.
 - When both the above Crons have run atleast once, we consider the sync to be established for all the required calendars for bi-directional sync.
-- Now, lets say a booking is created in Cal.com, it would be added to Google Calendar as well. At this moment, BookingReference table holds calendarEventId that refers to the eventId in third party calendar(in this case Google Calendar).
+- Now, lets say a booking is created in Cal.com, it would be added to Google Calendar as well. At this moment, BookingReference table holds uid that refers to the eventId in third party calendar(in this case Google Calendar).
 - Now let's say that the booking's time changes, we will receive a webhook event that will be handled by webhook.handle.ts.
    - It identifies that for the particular channel, if there is associated CalendarSync, if yes it means that there might be something to sync from the third party calendar events to Cal.com bookings.
    - We delegate the work to CalendarService#onWatchedCalendarChange method, which will do the following:
       - It fetches latest updated few events from the third party calendar.
-      - For every such third party calendar event, that has corresponding BookingReference.calendarEventId, it updates the corresponding Booking record in Cal.com with the new details from the third party calendar event.
+      - For every such third party calendar event, that has corresponding BookingReference.uid, it updates the corresponding Booking record in Cal.com with the new details from the third party calendar event.
 
 Notes:
 - We could use lastUsedAt field in CalendarSync table, which is update every time a booking uses that calendar as the destination. We could start updating that as well in a follow up as we avoid the need to make the changes in handleNewBooking flow.
@@ -81,7 +81,14 @@ TODO:
 - [ ] Ensure that a subscription record is never deleted, unless it has been expired by Cal.com itself, then it is safe to be deleted. This is important because otherwise we wouldn't be able to stop subscription on that if needed and such channels could cause increased push notification delay. They can be obtained from logs though, received when there is change in calendar.
 - [ ] unusubscribe from channel,resourceId which are not connected to any CalendarSync record.
 - [ ] Review indices carefully on DB. Maybe use explain analyze to check if they are being used.
- 
+- [ ] Test woth different timezone of Google Calendar and Cal.com accoutn and machine's timezone.
+- [ ] Integration test handleNewBooking
+- [ ] When does updateEvent return an array of NewCalendarEventType?
+- [ ] Make sure that in handleNewBooking flow, calendarSync creation failure or linking failure with BookingReference is logged as an error in only those cases where there was a successful calendar event creation - There might be calendar connected or failure to create vent in calendar, those should beignored
+- [ ] Existing bookings in the system that are re-scheduled, will they be synced back from the third party calendar?
+- [ ] Consider merging the PR without calling createCalendarSync  or calling it only for the organization that has the feature enabled.
+
 Follow up:
+- [ ] Support where the organizer itself declines the calendar-event
 - [ ] Delegation Credential support
 - [ ] Test and support recurring events

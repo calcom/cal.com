@@ -605,6 +605,10 @@ model BookingReference {
   id                         Int      @id @default(autoincrement())
   /// @zod.min(1)
   type                       String
+  // A Google Calendar event can be found in multiple BookingReference records because a reschedule would create a new Booking and thus a new BookingReference, but same Calendar Event will be updated.
+  // This is why we can't make it unique.
+  // This causes problems down the line where we can't uniquely identify a booking from a uid and thus we need to filter out rescheduled ones.
+  // But that is how BookingReferences are and they store historical records of booking reschedules and we probably don't want to change that.
   /// @zod.min(1)
   uid                        String
   meetingId                  String?
@@ -615,7 +619,6 @@ model BookingReference {
   bookingId                  Int?
   externalCalendarId         String?
   deleted                    Boolean?
-  calendarEventId            String?
   calendarSync               CalendarSync? @relation(fields: [calendarSyncId], references: [id])
   calendarSyncId             String?
   credential                 Credential?   @relation(fields: [credentialId], references: [id], onDelete: SetNull)
@@ -629,7 +632,6 @@ model BookingReference {
   @@index([bookingId])
   @@index([type])
   @@index([uid])
-  @@index([calendarEventId])
 }
 
 model Attendee {
@@ -2246,7 +2248,7 @@ model CalendarSync {
   subscriptionId     String? @unique
   lastSyncedUpAt     DateTime?
   lastSyncedDownAt   DateTime?
-  lastSyncDirection  Direction
+  lastSyncDirection  Direction?
 
   // All bookings that were synced to this calendar
   bookingReferences BookingReference[]

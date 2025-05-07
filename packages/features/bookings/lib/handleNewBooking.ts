@@ -2065,7 +2065,10 @@ async function handler(
     if (!isDryRun) {
       const { calendarSync, calendarEventId } = await createCalendarSync({
         results,
-        organizerUserId: organizerUser.id,
+        organizer: {
+          id: organizerUser.id,
+          organizationId: organizerOrganizationId ?? null,
+        },
       });
 
       const referencesToCreateSupportingCalendarSync = getReferencesToCreateSupportingCalendarSync({

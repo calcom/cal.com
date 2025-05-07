@@ -24,8 +24,14 @@ import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
+import type {
+  AdditionalInformation,
+  CalendarEvent,
+  NewCalendarEventType,
+  VideoCallData,
+} from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
+import type { CrmData } from "@calcom/types/CrmService";
 import type { Event } from "@calcom/types/Event";
 import type {
   CreateUpdateResult,
@@ -57,17 +63,16 @@ const delegatedCredentialFirst = <T extends { delegatedToId?: string | null }>(a
 };
 
 // It contrasts with isCalendarResult because it is true for some legacy CRM results which have type "other_calendar"
-const isCalendarLikeResult = (
-  result: EventResult<Exclude<Event, AdditionalInformation>>
+export const isCalendarLikeResult = <
+  T extends
+    | EventResult<AdditionalInformation>
+    | EventResult<VideoCallData>
+    | EventResult<CrmData>
+    | EventResult<NewCalendarEventType>
+>(
+  result: T
 ): result is EventResult<NewCalendarEventType> => {
   return result.type.includes("_calendar");
-};
-
-// It contrasts with isCalendarLikeResult because it is true only for dedicated calendar results and excludes CRM results
-export const isCalendarResult = <T extends { type: string }>(
-  result: T
-): result is T & { calendarEventId?: string | null } => {
-  return result.type.includes("_calendar") && !result.type.includes("other_calendar");
 };
 
 export const getLocationRequestFromIntegration = (location: string) => {
@@ -285,10 +290,6 @@ export default class EventManager {
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
         meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
         externalCalendarId: isCalendarType ? result.externalId : undefined,
-        // Add calendarEventId for calendar events - this will be used for bi-directional sync
-        calendarEventId: isCalendarType
-          ? result.createdEvent?.calendarEventId || result.createdEvent?.id?.toString()
-          : undefined,
         ...getCredentialPayload(result),
       };
     });
@@ -333,8 +334,6 @@ export default class EventManager {
     }
 
     const referencesToCreate = results.map((result) => {
-      const isCalendarType = isCalendarLikeResult(result);
-
       return {
         type: result.type,
         uid: result.createdEvent?.id?.toString() ?? "",
@@ -342,12 +341,11 @@ export default class EventManager {
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,
         externalCalendarId: result.externalId,
-        // Add calendarEventId for calendar events - this will be used for bi-directional sync
-        calendarEventId: isCalendarType ? result.createdEvent?.calendarEventId ?? null : undefined,
         ...(result.credentialId && result.credentialId > 0 ? { credentialId: result.credentialId } : {}),
       };
     });
 
+    log.debug("updateLocation", safeStringify({ referencesToCreate, results }));
     return {
       results,
       referencesToCreate,
@@ -537,6 +535,7 @@ export default class EventManager {
         results.push(...createdEvent.results);
         updatedBookingReferences.push(...createdEvent.referencesToCreate);
       } else {
+        log.debug("Organizer didn't change: Updating existing events and meetings");
         // If the reschedule doesn't require confirmation, we can "update" the events and meetings to new time.
         if (isLocationChanged || isBookingRequestedReschedule) {
           const updatedLocation = await this.updateLocation(evt, booking);
@@ -588,9 +587,30 @@ export default class EventManager {
       });
     }
 
+    const referencesToCreate = (
+      shouldUpdateBookingReferences
+        ? updatedBookingReferences
+        : [...booking.references].map((reference) => ({
+            ...reference,
+          }))
+    ).map((reference) => {
+      const thirdPartyAppResultForTheReference = results.find((result) => {
+        if (isCalendarLikeResult(result)) {
+          return result.updatedEvent?.id === reference.uid;
+        }
+        return false;
+      });
+      return {
+        ...reference,
+        // Ensure that externalCalendarId is set from the latest updatedEven
+        externalCalendarId: thirdPartyAppResultForTheReference?.externalId || reference.externalCalendarId,
+      };
+    });
+
+    log.debug("Rescheduled booking", safeStringify({ results, referencesToCreate }));
     return {
       results,
-      referencesToCreate: shouldUpdateBookingReferences ? updatedBookingReferences : [...booking.references],
+      referencesToCreate,
     };
   }
 
@@ -923,6 +943,7 @@ export default class EventManager {
         });
       }
 
+      // BookingReference from the original Booking itself
       calendarReference = newBooking?.references.length
         ? newBooking.references.filter((reference) => reference.type.includes("_calendar"))
         : booking.references.filter((reference) => reference.type.includes("_calendar"));
@@ -930,6 +951,7 @@ export default class EventManager {
       if (calendarReference.length === 0) {
         return [];
       }
+      log.debug("updateAllCalendarEvents - Found calendar references", safeStringify({ calendarReference }));
       // process all calendar references
       let result = [];
       for (const reference of calendarReference) {

@@ -81,8 +81,7 @@ export type NewCalendarEventType = {
   hangoutLink?: string | null;
   conferenceData?: ConferenceData;
   delegatedToId?: string | null;
-  // We keep it optional to avoid making changes to all CalendarServices unncessarily
-  calendarEventId?: string | null;
+  usedExternalCalendarId?: string | null;
 };
 
 export type CalendarEventType = {
@@ -259,8 +258,8 @@ export type SelectedCalendarEventTypeIds = (number | null)[];
 export type CalendarEventsToSync = {
   id: string;
   status: string;
-  startTime: string;
-  endTime: string;
+  startTime: Dayjs;
+  endTime: Dayjs;
 }[];
 
 export interface Calendar {

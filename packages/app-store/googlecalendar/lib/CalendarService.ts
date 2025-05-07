@@ -72,6 +72,15 @@ type GoogleChannelProps = {
   expiration?: string | null;
 };
 
+export function buildDayjsObject(time: { dateTime?: string | null; timeZone?: string | null } | undefined) {
+  if (!time) return time;
+  if (!time.dateTime) return null;
+  // If timeZone is provided, then the time is in that timeZone
+  if (time.timeZone) return dayjs.tz(time.dateTime, time.timeZone);
+  // If timeZone is not provided, then dateTime itself has timezone offset
+  return dayjs(time.dateTime);
+}
+
 export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
   private auth: ReturnType<typeof this.initGoogleAuth>;
@@ -413,11 +422,18 @@ export default class GoogleCalendarService implements Calendar {
     }
     const calendar = await this.authedCalendar();
     // Find in formattedCalEvent.destinationCalendar the one with the same credentialId
-
-    const selectedCalendar =
+    const chosenDestinationCalendar =
       externalCalendarId ??
-      (formattedCalEvent.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId ||
-        "primary");
+      formattedCalEvent.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId;
+
+    if (!chosenDestinationCalendar) {
+      logger.info(
+        `No destination calendar found for event - Using "primary" calendar as fallback`,
+        safeStringify({ externalCalendarId, credentialId })
+      );
+    }
+    // "primary" is not an actualy calendarId, but it is accepted by Google Calendar API
+    const calendarId = chosenDestinationCalendar || "primary";
 
     try {
       let event: calendar_v3.Schema$Event | undefined;
@@ -425,7 +441,7 @@ export default class GoogleCalendarService implements Calendar {
       if (formattedCalEvent.existingRecurringEvent) {
         recurringEventId = formattedCalEvent.existingRecurringEvent.recurringEventId;
         const recurringEventInstances = await calendar.events.instances({
-          calendarId: selectedCalendar,
+          calendarId,
           eventId: formattedCalEvent.existingRecurringEvent.recurringEventId,
         });
         if (recurringEventInstances.data.items) {
@@ -448,11 +464,11 @@ export default class GoogleCalendarService implements Calendar {
             event = recurringEventInstances.data.items[0];
             this.log.error(
               "Unable to find matching event amongst recurring event instances",
-              safeStringify({ selectedCalendar, credentialId })
+              safeStringify({ selectedCalendar: chosenDestinationCalendar, credentialId })
             );
           }
           await calendar.events.patch({
-            calendarId: selectedCalendar,
+            calendarId,
             eventId: event.id || "",
             requestBody: {
               location: getLocation(formattedCalEvent),
@@ -464,7 +480,7 @@ export default class GoogleCalendarService implements Calendar {
         }
       } else {
         const eventResponse = await calendar.events.insert({
-          calendarId: selectedCalendar,
+          calendarId,
           requestBody: payload,
           conferenceDataVersion: 1,
           sendUpdates: "none",
@@ -473,7 +489,7 @@ export default class GoogleCalendarService implements Calendar {
         if (event.recurrence) {
           if (event.recurrence.length > 0) {
             recurringEventId = event.id;
-            event = await this.getFirstEventInRecurrence(recurringEventId, selectedCalendar, calendar);
+            event = await this.getFirstEventInRecurrence(recurringEventId, calendarId, calendar);
           }
         }
       }
@@ -481,7 +497,7 @@ export default class GoogleCalendarService implements Calendar {
       if (event && event.id && event.hangoutLink) {
         await calendar.events.patch({
           // Update the same event but this time we know the hangout link
-          calendarId: selectedCalendar,
+          calendarId,
           eventId: event.id || "",
           requestBody: {
             description: getRichDescription({
@@ -504,7 +520,7 @@ export default class GoogleCalendarService implements Calendar {
         password: "",
         url: "",
         iCalUID: event?.iCalUID,
-        calendarEventId: event?.id ?? null,
+        usedExternalCalendarId: chosenDestinationCalendar,
       };
     } catch (error) {
       if (isGaxiosResponse(error)) {
@@ -514,7 +530,7 @@ export default class GoogleCalendarService implements Calendar {
       }
       this.log.error(
         "There was an error creating event in google calendar: ",
-        safeStringify({ error, selectedCalendar, credentialId })
+        safeStringify({ error, selectedCalendar: chosenDestinationCalendar, credentialId })
       );
       throw error;
     }
@@ -568,16 +584,21 @@ export default class GoogleCalendarService implements Calendar {
     }
 
     const calendar = await this.authedCalendar();
-
-    const selectedCalendar =
-      (externalCalendarId
-        ? formattedCalEvent.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)
-            ?.externalId
-        : undefined) || "primary";
+    const chosenDestinationCalendar = externalCalendarId
+      ? formattedCalEvent.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)
+          ?.externalId
+      : undefined;
+    if (!chosenDestinationCalendar) {
+      logger.info(
+        `No destination calendar found for event - Using "primary" calendar as fallback`,
+        safeStringify({ externalCalendarId })
+      );
+    }
+    const calendarId = chosenDestinationCalendar || "primary";
 
     try {
       const evt = await calendar.events.update({
-        calendarId: selectedCalendar,
+        calendarId,
         eventId: uid,
         sendNotifications: true,
         sendUpdates: "none",
@@ -593,7 +614,7 @@ export default class GoogleCalendarService implements Calendar {
       if (evt && evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
         calendar.events.patch({
           // Update the same event but this time we know the hangout link
-          calendarId: selectedCalendar,
+          calendarId,
           eventId: evt.data.id || "",
           requestBody: {
             description: getRichDescription({
@@ -613,9 +634,17 @@ export default class GoogleCalendarService implements Calendar {
           password: "",
           url: "",
           iCalUID: evt.data.iCalUID,
+          usedExternalCalendarId: chosenDestinationCalendar,
         };
       }
-      return evt?.data;
+      if (!evt?.data) {
+        return evt?.data;
+      }
+
+      return {
+        ...evt.data,
+        usedExternalCalendarId: chosenDestinationCalendar,
+      };
     } catch (error) {
       this.log.error(
         "There was an error updating event in google calendar: ",
@@ -1044,8 +1073,9 @@ export default class GoogleCalendarService implements Calendar {
       return {
         id: event.id,
         status: event.status,
-        startTime: event.start?.dateTime,
-        endTime: event.end?.dateTime,
+        // TODO: Check if it is set for all day events too?
+        startTime: buildDayjsObject(event.start),
+        endTime: buildDayjsObject(event.end),
       };
     });
 
