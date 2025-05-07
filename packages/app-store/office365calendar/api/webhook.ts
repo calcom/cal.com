@@ -73,54 +73,60 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
 
   // Fetch SelectedCalendars for all subscriptionIds
   // FindMany avoids pinging prisma (db) each time inside the below for loop
-  const selectedCalendars = await SelectedCalendarRepository.findManyByOutlookSubscriptionIds(
+  const allSelectedCalendars = await SelectedCalendarRepository.findManyByOutlookSubscriptionIds(
     validNotifications.map((n) => n.subscriptionId)
   );
 
-  // Process each notification
-  for (const notification of validNotifications) {
-    const selectedCalendar = selectedCalendars.find(
-      (cal) => cal.outlookSubscriptionId === notification.subscriptionId
-    );
-    if (!selectedCalendar) {
-      log.warn("No SelectedCalendar found for subscription", { subscriptionId: notification.subscriptionId });
-      results.skipped++;
-      results.errors.push(`No SelectedCalendar found for subscription ${notification.subscriptionId}`);
-      continue;
-    }
+  // Process notifications in parallel
+  await Promise.all(
+    validNotifications.map(async (notification) => {
+      const selectedCalendar = allSelectedCalendars.find(
+        (cal) => cal.outlookSubscriptionId === notification.subscriptionId
+      );
+      if (!selectedCalendar) {
+        log.warn("No SelectedCalendar found for subscription", {
+          subscriptionId: notification.subscriptionId,
+        });
+        results.skipped++;
+        results.errors.push(`No SelectedCalendar found for subscription ${notification.subscriptionId}`);
+        return;
+      }
 
-    const { credential } = selectedCalendar;
-    if (!credential) {
-      log.warn("No credential found for SelectedCalendar", { subscriptionId: notification.subscriptionId });
-      results.skipped++;
-      results.errors.push(`No credential found for subscription ${notification.subscriptionId}`);
-      continue;
-    }
+      const { credential } = selectedCalendar;
+      if (!credential) {
+        log.warn("No credential found for SelectedCalendar", { subscriptionId: notification.subscriptionId });
+        results.skipped++;
+        results.errors.push(`No credential found for subscription ${notification.subscriptionId}`);
+        return;
+      }
 
-    // Process cache update
-    try {
-      const { selectedCalendars } = credential;
-      const credentialForCalendarCache = await getCredentialForCalendarCache({
-        credentialId: credential.id,
-      });
-      const calendarService = await getCalendar(credentialForCalendarCache);
+      // Process cache update
+      try {
+        const { selectedCalendars } = credential;
+        const credentialForCalendarCache = await getCredentialForCalendarCache({
+          credentialId: credential.id,
+        });
+        const calendarService = await getCalendar(credentialForCalendarCache);
 
-      await calendarService?.fetchAvailabilityAndSetCache?.(selectedCalendars);
-      results.processed++;
-      log.debug("Updated cache for credential", {
-        credentialId: credential.id,
-        calendar: selectedCalendar.id,
-      });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      log.error("Failed to update cache for credential", {
-        credentialId: credential.id,
-        error: errorMessage,
-      });
-      results.failed++;
-      results.errors.push(`Failed to update cache for credential ${credential.id}: ${errorMessage}`);
-    }
-  }
+        await calendarService?.fetchAvailabilityAndSetCache?.(selectedCalendars);
+        results.processed++;
+        log.debug("Updated cache for credential", {
+          credentialId: credential.id,
+          calendarId: selectedCalendar.id,
+          subscriptionId: notification.subscriptionId,
+        });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        log.error("Failed to update cache for credential", {
+          credentialId: credential.id,
+          subscriptionId: notification.subscriptionId,
+          error: errorMessage,
+        });
+        results.failed++;
+        results.errors.push(`Failed to update cache for credential ${credential.id}: ${errorMessage}`);
+      }
+    })
+  );
 
   log.info("Completed processing notifications", results);
   return { message: "ok", ...results };
