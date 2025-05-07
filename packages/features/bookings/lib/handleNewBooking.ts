@@ -53,7 +53,7 @@ import {
 } from "@calcom/lib/delegationCredential/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { getEventName } from "@calcom/lib/event";
+import { getEventName, updateHostInEventName } from "@calcom/lib/event";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -168,8 +168,8 @@ type BookingDataSchemaGetter =
   | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
 
 type CreatedBooking = Booking & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number };
-
-const buildDryRunBooking = ({
+type ReturnTypeCreateBooking = Awaited<ReturnType<typeof createBooking>>;
+export const buildDryRunBooking = ({
   eventTypeId,
   organizerUser,
   eventName,
@@ -197,8 +197,11 @@ const buildDryRunBooking = ({
   isManagedEventType: boolean;
 }) => {
   const sanitizedOrganizerUser = {
-    ...organizerUser,
-    credentials: undefined,
+    id: organizerUser.id,
+    name: organizerUser.name,
+    username: organizerUser.username,
+    email: organizerUser.email,
+    timeZone: organizerUser.timeZone,
   };
   const booking = {
     id: -101,
@@ -214,8 +217,6 @@ const buildDryRunBooking = ({
     createdAt: new Date(),
     updatedAt: new Date(),
     attendees: [],
-    references: [],
-    payment: [],
     oneTimePassword: null,
     smsReminderNumber: null,
     metadata: {},
@@ -226,25 +227,18 @@ const buildDryRunBooking = ({
     responses: null,
     location: null,
     paid: false,
-    destinationCalendar: null,
     cancellationReason: null,
     rejectionReason: null,
     dynamicEventSlugRef: null,
     dynamicGroupSlugRef: null,
-    rescheduledFrom: null,
     fromReschedule: null,
     recurringEventId: null,
-    seatsReferences: [],
-    workflowReminders: [],
     scheduledJobs: [],
-    rescheduledTo: null,
     rescheduledBy: null,
     destinationCalendarId: null,
     reassignReason: null,
     reassignById: null,
     rescheduled: false,
-    confirmed: false,
-    isRecurringEvent: false,
     isRecorded: false,
     iCalSequence: 0,
     rating: null,
@@ -252,7 +246,9 @@ const buildDryRunBooking = ({
     noShowHost: null,
     cancelledBy: null,
     creationSource: CreationSource.WEBAPP,
-  } as CreatedBooking;
+    references: [],
+    payment: [],
+  } satisfies ReturnTypeCreateBooking;
 
   /**
    * Troubleshooting data
@@ -1266,6 +1262,19 @@ async function handler(
     !!originalRescheduledBooking.rescheduled &&
     originalRescheduledBooking.status === BookingStatus.CANCELLED;
 
+  if (
+    changedOrganizer &&
+    originalRescheduledBooking &&
+    originalRescheduledBooking?.user?.name &&
+    organizerUser?.name
+  ) {
+    evt.title = updateHostInEventName(
+      originalRescheduledBooking.title,
+      originalRescheduledBooking.user.name,
+      organizerUser.name
+    );
+  }
+
   let results: EventResult<AdditionalInformation & { url?: string; iCalUID?: string }>[] = [];
   let referencesToCreate: PartialReference[] = [];
 
@@ -1406,7 +1415,7 @@ async function handler(
       err.message
     );
     if (err.code === "P2002") {
-      throw new HttpError({ statusCode: 409, message: "booking_conflict" });
+      throw new HttpError({ statusCode: 409, message: ErrorCode.BookingConflict });
     }
     throw err;
   }
@@ -1434,7 +1443,6 @@ async function handler(
       : [];
 
     if (changedOrganizer) {
-      evt.title = getEventName(eventNameObject);
       // location might changed and will be new created in eventManager.create (organizer default location)
       evt.videoCallData = undefined;
       // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
