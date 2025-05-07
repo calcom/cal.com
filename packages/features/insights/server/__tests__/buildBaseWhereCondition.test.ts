@@ -151,7 +151,7 @@ describe("buildBaseWhereCondition", () => {
       });
     });
 
-    it("should prioritize eventTypeId condition when both teamId and eventTypeId are provided", async () => {
+    it("should apply both team and eventTypeId conditions when both are provided", async () => {
       mockMembershipFindMany.mockResolvedValue([{ userId: 301 }, { userId: 302 }]);
 
       const ctx = createMockContext();
@@ -164,7 +164,25 @@ describe("buildBaseWhereCondition", () => {
       });
 
       expect(result.whereCondition).toEqual({
-        OR: [{ eventTypeId: 500 }, { eventParentId: 500 }],
+        AND: [
+          {
+            OR: [{ eventTypeId: 500 }, { eventParentId: 500 }],
+          },
+          {
+            OR: [
+              {
+                teamId: 200,
+                isTeamBooking: true,
+              },
+              {
+                userId: {
+                  in: [301, 302],
+                },
+                isTeamBooking: false,
+              },
+            ],
+          },
+        ],
       });
     });
   });
@@ -187,18 +205,18 @@ describe("buildBaseWhereCondition", () => {
   });
 
   describe("Invalid parameters", () => {
-    it("should handle missing parameters and return empty where condition", async () => {
+    it("should handle missing parameters and return restrictive where condition", async () => {
       const ctx = createMockContext();
 
       const result = await buildBaseWhereCondition({
         ctx,
       });
 
-      expect(result.whereCondition).toEqual({});
+      expect(result.whereCondition).toEqual({ id: -1 });
       expect(result.isEmptyResponse).toBeUndefined();
     });
 
-    it("should handle null teamId with empty where condition", async () => {
+    it("should handle null teamId with restrictive where condition", async () => {
       const ctx = createMockContext();
 
       const result = await buildBaseWhereCondition({
@@ -206,7 +224,7 @@ describe("buildBaseWhereCondition", () => {
         ctx,
       });
 
-      expect(result.whereCondition).toEqual({});
+      expect(result.whereCondition).toEqual({ id: -1 });
       expect(result.isEmptyResponse).toBeUndefined();
     });
 
