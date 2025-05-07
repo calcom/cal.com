@@ -424,7 +424,6 @@ export async function getBookings({
           "Booking.endTime",
           "Booking.metadata",
           "Booking.uid",
-
           eb
             .cast<Prisma.JsonValue>( // Target TypeScript type
               eb.ref("Booking.responses"), // Source column
@@ -928,7 +927,7 @@ function addAdvancedAttendeeWhereClause(
   isAttendeeTableJoined: boolean
 ) {
   let fullQuery = query.$if(!isAttendeeTableJoined, (eb) =>
-    eb.innerJoin("Attendee", "Attendee.id", "Booking.id")
+    eb.innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
   ) as SelectQueryBuilder<
     DB,
     "Booking" | "Attendee",
