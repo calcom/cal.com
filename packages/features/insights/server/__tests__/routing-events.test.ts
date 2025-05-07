@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { readonlyPrisma } from "@calcom/prisma";
 
-import { RoutingEventsInsights } from "./routing-events";
+import { RoutingEventsInsights } from "../routing-events";
 
 vi.mock("@calcom/prisma", () => ({
   readonlyPrisma: {
