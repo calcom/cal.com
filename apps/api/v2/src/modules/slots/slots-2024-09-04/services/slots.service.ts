@@ -124,17 +124,7 @@ export class SlotsService_2024_09_04 {
 
     const reservationDuration = input.reservationDuration ?? DEFAULT_RESERVATION_DURATION;
 
-    const overlappingReservation = await this.slotsRepository.getOverlappingSlotReservation(
-      input.eventTypeId,
-      startDate.toISO(),
-      endDate.toISO()
-    );
-
-    if (overlappingReservation) {
-      throw new UnprocessableEntityException(
-        `This time slot is already reserved by another user. Please choose a different time.`
-      );
-    }
+    await this.checkSlotOverlap(input.eventTypeId, startDate.toISO(), endDate.toISO());
 
     if (eventType.userId) {
       const slot = await this.slotsRepository.createSlot(
@@ -163,6 +153,20 @@ export class SlotsService_2024_09_04 {
     );
 
     return this.slotsOutputService.getReservationSlotCreated(slot, reservationDuration);
+  }
+
+  private async checkSlotOverlap(eventTypeId: number, startDate: string, endDate: string) {
+    const overlappingReservation = await this.slotsRepository.getOverlappingSlotReservation(
+      eventTypeId,
+      startDate,
+      endDate
+    );
+
+    if (overlappingReservation) {
+      throw new UnprocessableEntityException(
+        `This time slot is already reserved by another user. Please choose a different time.`
+      );
+    }
   }
 
   validateSlotDuration(eventType: EventType, inputSlotDuration: number) {
@@ -268,6 +272,8 @@ export class SlotsService_2024_09_04 {
     }
 
     const reservationDuration = input.reservationDuration ?? DEFAULT_RESERVATION_DURATION;
+
+    await this.checkSlotOverlap(input.eventTypeId, startDate.toISO(), endDate.toISO());
 
     const slot = await this.slotsRepository.updateSlot(
       eventType.id,
