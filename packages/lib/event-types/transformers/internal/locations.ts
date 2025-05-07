@@ -74,7 +74,6 @@ const OrganizerIntegrationSchema = z.object({
     integrationsApiToInternalMappingSchema["discord-video"],
     integrationsApiToInternalMappingSchema["demodesk-video"],
     integrationsApiToInternalMappingSchema["campfire-video"],
-    integrationsApiToInternalMappingSchema["around-video"],
   ]),
   link: z.string().url().optional(),
   credentialId: z.number().optional(),
