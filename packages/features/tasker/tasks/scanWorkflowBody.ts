@@ -164,7 +164,7 @@ const iffyScanBody = async (body: string, workflowStepId: number) => {
       body: JSON.stringify({
         clientId: process.env.IFFY_CLIENT_NAME,
         name: "Workflow",
-        entity: "Body",
+        entity: "WorkflowBody",
         content: body,
         passthrough: true,
       }),
