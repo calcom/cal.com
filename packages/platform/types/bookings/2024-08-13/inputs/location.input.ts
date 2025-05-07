@@ -63,7 +63,6 @@ export const supportedIntegrations = [
   "discord-video",
   "demodesk-video",
   "campfire-video",
-  "around-video",
 ] as const;
 export type Integration_2024_08_13 = (typeof supportedIntegrations)[number];
 
