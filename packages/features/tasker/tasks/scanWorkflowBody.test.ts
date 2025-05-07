@@ -209,7 +209,7 @@ describe("scanWorkflowBody", () => {
         Authorization: `Bearer test-key`,
       },
       body: JSON.stringify({
-        clientId: "test-client",
+        clientId: "Workflow step - 1",
         name: "Workflow",
         entity: "WorkflowBody",
         content: "Test reminder body",
