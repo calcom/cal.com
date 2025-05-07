@@ -10,6 +10,9 @@ CREATE TABLE "RoutingFormResponseField" (
     CONSTRAINT "RoutingFormResponseField_pkey" PRIMARY KEY ("id")
 );
 
+-- Add index for valueString (lowercase)
+CREATE INDEX "RoutingFormResponseField_valueString_idx" ON "RoutingFormResponseField" (LOWER("valueString"));
+
 -- CreateTable
 CREATE TABLE "RoutingFormResponseDenormalized" (
     "id" INTEGER NOT NULL,

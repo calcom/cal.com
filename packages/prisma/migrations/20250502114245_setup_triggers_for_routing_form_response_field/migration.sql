@@ -1,6 +1,3 @@
--- Add index for valueString (lowercase)
-CREATE INDEX "RoutingFormResponseField_valueString_idx" ON "RoutingFormResponseField" (LOWER("valueString"));
-
 -- Create function to handle form response field denormalization
 CREATE OR REPLACE FUNCTION handle_routing_form_response_fields()
 RETURNS TRIGGER AS $$
