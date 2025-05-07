@@ -284,7 +284,11 @@ export async function handler(req: NextApiRequest) {
     });
 
     const [resultOne, resultTwo] = await Promise.all([queryOne, queryTwo]);
-    data = [...resultOne, ...resultTwo];
+    const bookingMap = new Map();
+    [...resultOne, ...resultTwo].forEach((booking) => {
+      bookingMap.set(booking.id, booking);
+    });
+    data = Array.from(bookingMap.values());
   } else {
     data = await prisma.booking.findMany(args);
   }
