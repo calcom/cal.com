@@ -52,15 +52,40 @@ export const buildBaseWhereCondition = async ({
   whereCondition: Prisma.BookingTimeStatusWhereInput;
   isEmptyResponse?: boolean;
 }> => {
-  let whereCondition: Prisma.BookingTimeStatusWhereInput = {};
+  let whereCondition: Prisma.BookingTimeStatusWhereInput = {
+    id: -1, // Restrictive fallback - will be overridden if valid parameters are provided
+  };
+
+  let hasValidParameters = false;
+
   // EventType Filter
-  if (eventTypeId) whereCondition.OR = [{ eventTypeId }, { eventParentId: eventTypeId }];
-  // User/Member filter
-  if (memberUserId) whereCondition.userId = memberUserId;
-  if (userId) {
-    whereCondition.teamId = null;
-    whereCondition.userId = userId;
+  if (eventTypeId) {
+    whereCondition = {
+      OR: [{ eventTypeId }, { eventParentId: eventTypeId }],
+    };
+    hasValidParameters = true;
   }
+
+  // User/Member filter
+  if (memberUserId) {
+    whereCondition = {
+      ...whereCondition,
+      userId: memberUserId,
+    };
+    delete whereCondition.id; // Remove restrictive fallback
+    hasValidParameters = true;
+  }
+
+  if (userId) {
+    whereCondition = {
+      ...whereCondition,
+      teamId: null,
+      userId: userId,
+    };
+    delete whereCondition.id; // Remove restrictive fallback
+    hasValidParameters = true;
+  }
+
   // organization-wide queries condition
   if (isAll && ctx.userIsOwnerAdminOfParentTeam && ctx.userOrganizationId) {
     const teamsFromOrg = await ctx.insightsDb.team.findMany({
@@ -73,11 +98,10 @@ export const buildBaseWhereCondition = async ({
     });
 
     if (teamsFromOrg.length === 0) {
+      // For empty teams, return only the OR condition without the restrictive fallback
       return {
         whereCondition: {
-          ...whereCondition,
           OR: [
-            ...(whereCondition.OR ?? []),
             {
               teamId: ctx.userOrganizationId,
               isTeamBooking: true,
@@ -120,9 +144,11 @@ export const buildBaseWhereCondition = async ({
         },
       ],
     };
+    delete whereCondition.id; // Remove restrictive fallback
+    hasValidParameters = true;
   }
 
-  if (teamId && !isAll && !eventTypeId) {
+  if (teamId && !isAll) {
     const usersFromTeam = await ctx.insightsDb.membership.findMany({
       where: {
         teamId: teamId,
@@ -133,22 +159,54 @@ export const buildBaseWhereCondition = async ({
       },
     });
     const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
-    whereCondition = {
-      ...whereCondition,
-      OR: [
-        {
-          teamId,
-          isTeamBooking: true,
-        },
-        {
-          userId: {
-            in: userIdsFromTeam,
+
+    if (eventTypeId) {
+      whereCondition = {
+        AND: [
+          {
+            OR: [{ eventTypeId }, { eventParentId: eventTypeId }],
           },
-          isTeamBooking: false,
-        },
-      ],
-    };
+          {
+            OR: [
+              {
+                teamId,
+                isTeamBooking: true,
+              },
+              {
+                userId: {
+                  in: userIdsFromTeam,
+                },
+                isTeamBooking: false,
+              },
+            ],
+          },
+        ],
+      };
+    } else {
+      whereCondition = {
+        ...whereCondition,
+        OR: [
+          {
+            teamId,
+            isTeamBooking: true,
+          },
+          {
+            userId: {
+              in: userIdsFromTeam,
+            },
+            isTeamBooking: false,
+          },
+        ],
+      };
+    }
+    delete whereCondition.id; // Remove restrictive fallback
+    hasValidParameters = true;
   }
+
+  if (!hasValidParameters) {
+    whereCondition = { id: -1 }; // Ensure no data is returned for invalid parameters
+  }
+
   return { whereCondition };
 };
 
