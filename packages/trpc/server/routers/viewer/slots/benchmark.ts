@@ -1,3 +1,5 @@
+import { IncomingMessage } from "http";
+import { Socket } from "net";
 import { performance } from "perf_hooks";
 
 import dayjs from "@calcom/dayjs";
@@ -5,9 +7,19 @@ import { PrismaClient } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
+import type { ContextForGetSchedule } from "./types";
 import { getAvailableSlots } from "./util";
 
 const prisma = new PrismaClient();
+
+class MockIncomingMessage extends IncomingMessage {
+  cookies: Partial<{ [key: string]: string }>;
+
+  constructor() {
+    super(new Socket());
+    this.cookies = { uid: "test-uid" };
+  }
+}
 
 async function runBenchmark() {
   console.log("Starting benchmark for getAvailableSlots function");
@@ -22,47 +34,9 @@ async function runBenchmark() {
     isTeamEvent: false, // Required field
   };
 
-  const ctx = {
+  const ctx: ContextForGetSchedule = {
     prisma,
-    req: {
-      cookies: { uid: "test-uid" },
-      aborted: false,
-      httpVersion: "1.1",
-      httpVersionMajor: 1,
-      httpVersionMinor: 1,
-      complete: true,
-      headers: {},
-      rawHeaders: [],
-      trailers: {},
-      rawTrailers: [],
-      socket: null as any,
-      statusCode: 200,
-      statusMessage: "OK",
-      url: "",
-      method: "GET",
-      destroy: () => true,
-      setTimeout: () => ({} as any),
-      on: () => ({} as any),
-      once: () => ({} as any),
-      removeListener: () => ({} as any),
-      off: () => ({} as any),
-      removeAllListeners: () => ({} as any),
-      resume: () => ({} as any),
-      pause: () => ({} as any),
-      unpipe: () => ({} as any),
-      wrap: () => ({} as any),
-      setEncoding: () => ({} as any),
-      setMaxListeners: () => ({} as any),
-      getMaxListeners: () => 0,
-      emit: () => false,
-      addListener: () => ({} as any),
-      prependListener: () => ({} as any),
-      prependOnceListener: () => ({} as any),
-      listeners: () => [],
-      rawListeners: () => [],
-      listenerCount: () => 0,
-      eventNames: () => [],
-    },
+    req: new MockIncomingMessage(),
   };
 
   try {
