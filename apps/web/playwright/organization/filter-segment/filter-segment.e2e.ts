@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 import { MembershipRole } from "@calcom/prisma/client";
 
 import { test } from "../../lib/fixtures";
-import { applyFilter, createFilterSegment, selectSegment, deleteSegment } from "./helpers";
+import { applyFilter, createFilterSegment, selectSegment, deleteSegment } from "./filter-segment-helpers";
 
 test.describe.configure({ mode: "parallel" });
 
