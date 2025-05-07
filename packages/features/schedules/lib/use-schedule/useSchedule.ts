@@ -60,6 +60,8 @@ export const useSchedule = ({
   const utils = trpc.useUtils();
   const routingFormResponseIdParam = searchParams?.get("cal.routingFormResponseId");
   const email = searchParams?.get("email");
+  // We allow skipping the schedule fetch as a requirement for prerendering in iframe through embed as when the pre-rendered iframe is connected, then we would fetch the availability, which would be upto-date
+  // Also, a reuse through Headless Router could completely change the availability as different team members are selected and thus it is unnecessary to fetch the schedule
   const skipGetSchedule = searchParams?.get("cal.skipSlotsFetch") === "true";
   const routingFormResponseId = routingFormResponseIdParam
     ? parseInt(routingFormResponseIdParam, 10)
@@ -83,7 +85,6 @@ export const useSchedule = ({
     orgSlug,
     teamMemberEmail,
     routedTeamMemberIds,
-    skipGetSchedule,
     skipContactOwner,
     _shouldServeCache,
     routingFormResponseId,
