@@ -45,14 +45,12 @@ describe("scanWorkflowBody", () => {
     vi.resetAllMocks();
     vi.stubGlobal("fetch", mockFetch);
     process.env.IFFY_API_KEY = "test-key";
-    process.env.IFFY_CLIENT_NAME = "test-client";
     prismaMock.workflowStep.findMany.mockResolvedValue([mockWorkflowStep]);
     prismaMock.workflow.findFirst.mockResolvedValue(mockWorkflow);
   });
 
-  it("should skip scan if IFFY_API_KEY or IFFY_CLIENT_NAME is not set", async () => {
+  it("should skip scan if IFFY_API_KEY is not set", async () => {
     process.env.IFFY_API_KEY = "";
-    process.env.IFFY_CLIENT_NAME = "";
     const payload = JSON.stringify({
       userId: 1,
       workflowStepIds: [1],
@@ -101,7 +99,7 @@ describe("scanWorkflowBody", () => {
         Authorization: `Bearer test-key`,
       },
       body: JSON.stringify({
-        clientId: "test-client",
+        clientId: "Workflow step - 1",
         name: "Workflow",
         entity: "WorkflowBody",
         content: "Test reminder body",
@@ -134,7 +132,7 @@ describe("scanWorkflowBody", () => {
         Authorization: `Bearer test-key`,
       },
       body: JSON.stringify({
-        clientId: "test-client",
+        clientId: "Workflow step - 1",
         name: "Workflow",
         entity: "WorkflowBody",
         content: "Test reminder body",

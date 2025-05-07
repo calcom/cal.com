@@ -17,8 +17,8 @@ export const scanWorkflowBodySchema = z.object({
 const log = logger.getSubLogger({ prefix: ["[tasker] scanWorkflowBody"] });
 
 export async function scanWorkflowBody(payload: string) {
-  if (!process.env.IFFY_API_KEY || !process.env.IFFY_CLIENT_NAME) {
-    log.info("IFFY_API_KEY or IFFY_CLIENT_NAME not set, skipping scan");
+  if (!process.env.IFFY_API_KEY) {
+    log.info("IFFY_API_KEY not set, skipping scan");
     return;
   }
 
@@ -160,7 +160,7 @@ const iffyScanBody = async (body: string, workflowStepId: number) => {
         Authorization: `Bearer ${process.env.IFFY_API_KEY}`,
       },
       body: JSON.stringify({
-        clientId: process.env.IFFY_CLIENT_NAME,
+        clientId: `Workflow step - ${workflowStepId}`,
         name: "Workflow",
         entity: "WorkflowBody",
         content: body,
