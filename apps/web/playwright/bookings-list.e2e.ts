@@ -494,7 +494,6 @@ test.describe("Bookings", () => {
       await page.goto(`/bookings/upcoming`, { waitUntil: "domcontentloaded" });
       await bookingsGetResponse;
       await page.locator('[data-testid="add-filter-button"]').click();
-      // Ensure the search input within the filter type dropdown is visible
       await expect(page.locator(searchInputSelector)).toBeVisible();
     });
 
@@ -511,7 +510,7 @@ test.describe("Bookings", () => {
 
       // Type something and then clear the search
       await searchInput.fill("Some text");
-      await searchInput.clear(); // Or await searchInput.fill("");
+      await searchInput.clear();
 
       // After clearing: all defined filter items should be visible again
       for (const item of filterItemsConfig) {
@@ -527,7 +526,7 @@ test.describe("Bookings", () => {
 
       // Search for "member" (lowercase)
       await searchInput.fill("member");
-      await expect(getFilterItemLocator(page, "add-filter-item-userId")).toBeVisible(); // For "Member"
+      await expect(getFilterItemLocator(page, "add-filter-item-userId")).toBeVisible();
       await expect(getFilterItemLocator(page, "add-filter-item-eventTypeId")).toBeHidden();
       await expect(getFilterItemLocator(page, "add-filter-item-teamId")).toBeHidden();
     });
@@ -544,7 +543,6 @@ test.describe("Bookings", () => {
           `Searching for "${targetItem.name}", item "${targetItem.name}" should be visible`
         ).toBeVisible();
 
-        // Clear the search input for the next iteration to ensure a clean state
         await searchInput.clear();
       }
     });
