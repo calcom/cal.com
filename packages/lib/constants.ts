@@ -161,7 +161,7 @@ export const URL_PROTOCOL_REGEX = /(^\w+:|^)\/\//;
 export const IS_VISUAL_REGRESSION_TESTING = Boolean(globalThis.window?.Meticulous?.isRunningAsTest);
 
 export const BOOKER_NUMBER_OF_DAYS_TO_LOAD = parseInt(
-  process.env.NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD ?? "0",
+  process.env.NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD ?? "7",
   0
 );
 

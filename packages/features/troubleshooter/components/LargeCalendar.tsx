@@ -54,7 +54,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
     if (!schedule?.slots) return availableTimeslots;
 
     for (const day in schedule.slots) {
-      availableTimeslots[day] = schedule.slots[day].map((slot) => ({
+      availableTimeslots[day] = schedule.slots[day].map((slot: any) => ({
         start: dayjs(slot.time).toDate(),
         end: dayjs(slot.time)
           .add(event?.duration ?? 30, "minutes")

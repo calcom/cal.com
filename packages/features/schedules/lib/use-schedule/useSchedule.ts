@@ -1,4 +1,5 @@
 import { useSearchParams } from "next/navigation";
+import { useCallback, useState, useEffect } from "react";
 
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
@@ -39,13 +40,19 @@ export const useSchedule = ({
   orgSlug,
   teamMemberEmail,
 }: UseScheduleWithCacheArgs) => {
-  const [startTime, endTime] = useTimesForSchedule({
+  const [combinedSchedule, setCombinedSchedule] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const timeRanges = useTimesForSchedule({
     month,
     monthCount,
     dayCount,
     prefetchNextMonth,
     selectedDate,
   });
+
+  const [startTime, endTime] = timeRanges;
+
   const searchParams = useSearchParams();
   const routedTeamMemberIds = searchParams
     ? getRoutedTeamMemberIdsFromSearchParams(new URLSearchParams(searchParams.toString()))
@@ -61,18 +68,12 @@ export const useSchedule = ({
     ? parseInt(routingFormResponseIdParam, 10)
     : undefined;
 
-  const input = {
+  const firstWeekInput = {
     isTeamEvent,
     usernameList: getUsernameList(username ?? ""),
-    // Prioritize slug over id, since slug is the first value we get available.
-    // If we have a slug, we don't need to fetch the id.
-    // TODO: are queries using eventTypeId faster? Even tho we lost time fetching the id with the slug.
     ...(eventSlug ? { eventTypeSlug: eventSlug } : { eventTypeId: eventId ?? 0 }),
-    // @TODO: Old code fetched 2 days ago if we were fetching the current month.
-    // Do we want / need to keep that behavior?
-    startTime,
-    // if `prefetchNextMonth` is true, two months are fetched at once.
-    endTime,
+    startTime: timeRanges.firstWeekStartTime,
+    endTime: timeRanges.firstWeekEndTime,
     timeZone: timezone!,
     duration: duration ? `${duration}` : undefined,
     rescheduleUid,
@@ -85,39 +86,84 @@ export const useSchedule = ({
     email,
   };
 
+  const remainingWeeksInput = {
+    ...firstWeekInput,
+    startTime: timeRanges.firstWeekEndTime,
+    endTime: timeRanges.fullPeriodEndTime,
+  };
+
   const options = {
     trpc: {
       context: {
         skipBatch: true,
       },
     },
-    // It allows people who might not have the tab in focus earlier, to get latest available slots
-    // It might not work correctly in iframes, so we have refetchInterval to take care of that.
-    // But where it works, it should give user latest availability even if they come back to tab before refetchInterval.
     refetchOnWindowFocus: true,
-    // It allows long sitting users to get latest available slots
     refetchInterval: PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS * 1000,
     enabled:
       Boolean(username) &&
       Boolean(month) &&
       Boolean(timezone) &&
-      // Should only wait for one or the other, not both.
       (Boolean(eventSlug) || Boolean(eventId) || eventId === 0),
   };
 
-  let schedule;
-  if (isTeamEvent) {
-    schedule = trpc.viewer.highPerf.getTeamSchedule.useQuery(input, options);
-  } else {
-    schedule = trpc.viewer.slots.getSchedule.useQuery(input, options);
-  }
+  const firstWeekSchedule = isTeamEvent
+    ? trpc.viewer.highPerf.getTeamSchedule.useQuery(firstWeekInput, options)
+    : trpc.viewer.slots.getSchedule.useQuery(firstWeekInput, options);
+
+  const remainingWeeksSchedule = isTeamEvent
+    ? trpc.viewer.highPerf.getTeamSchedule.useQuery(remainingWeeksInput, {
+        ...options,
+        enabled: !!firstWeekSchedule.data && options.enabled, // Only fetch after first week data is available
+      })
+    : trpc.viewer.slots.getSchedule.useQuery(remainingWeeksInput, {
+        ...options,
+        enabled: !!firstWeekSchedule.data && options.enabled, // Only fetch after first week data is available
+      });
+
+  useEffect(() => {
+    if (firstWeekSchedule.data) {
+      setIsLoading(false);
+
+      if (!remainingWeeksSchedule.data) {
+        setCombinedSchedule(firstWeekSchedule.data);
+      }
+      // If we have both first week and remaining weeks data
+      else {
+        const combinedSlots = {
+          ...firstWeekSchedule.data.slots,
+          ...remainingWeeksSchedule.data.slots,
+        };
+
+        setCombinedSchedule({
+          ...firstWeekSchedule.data,
+          slots: combinedSlots,
+        });
+      }
+    }
+  }, [firstWeekSchedule.data, remainingWeeksSchedule.data]);
+
+  const invalidate = useCallback(() => {
+    utils.viewer.slots.getSchedule.invalidate(firstWeekInput);
+    utils.viewer.slots.getSchedule.invalidate(remainingWeeksInput);
+    if (isTeamEvent) {
+      utils.viewer.highPerf.getTeamSchedule.invalidate(firstWeekInput);
+      utils.viewer.highPerf.getTeamSchedule.invalidate(remainingWeeksInput);
+    }
+  }, [
+    firstWeekInput,
+    remainingWeeksInput,
+    isTeamEvent,
+    utils.viewer.slots.getSchedule,
+    utils.viewer.highPerf?.getTeamSchedule,
+  ]);
+
   return {
-    ...schedule,
-    /**
-     * Invalidates the request and resends it regardless of any other configuration including staleTime
-     */
-    invalidate: () => {
-      return utils.viewer.slots.getSchedule.invalidate(input);
-    },
+    data: combinedSchedule,
+    isPending: isLoading,
+    isError: firstWeekSchedule.isError,
+    isSuccess: !!combinedSchedule,
+    isLoading,
+    invalidate,
   };
 };
