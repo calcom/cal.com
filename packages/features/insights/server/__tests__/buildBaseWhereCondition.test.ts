@@ -151,7 +151,9 @@ describe("buildBaseWhereCondition", () => {
       });
     });
 
-    it("should prioritize eventTypeId condition when both teamId and eventTypeId are provided", async () => {
+    it("should apply team conditions when both teamId and eventTypeId are provided", async () => {
+      mockMembershipFindMany.mockResolvedValue([{ userId: 301 }, { userId: 302 }]);
+
       const ctx = createMockContext();
 
       const result = await buildBaseWhereCondition({
@@ -163,6 +165,20 @@ describe("buildBaseWhereCondition", () => {
 
       expect(result.whereCondition).toEqual({
         OR: [{ eventTypeId: 500 }, { eventParentId: 500 }],
+        AND: {
+          OR: [
+            {
+              teamId: 200,
+              isTeamBooking: true,
+            },
+            {
+              userId: {
+                in: [301, 302],
+              },
+              isTeamBooking: false,
+            },
+          ],
+        },
       });
     });
   });
@@ -185,18 +201,20 @@ describe("buildBaseWhereCondition", () => {
   });
 
   describe("Invalid parameters", () => {
-    it("should handle missing parameters and return empty where condition", async () => {
+    it("should handle missing parameters and return restrictive where condition", async () => {
       const ctx = createMockContext();
 
       const result = await buildBaseWhereCondition({
         ctx,
       });
 
-      expect(result.whereCondition).toEqual({});
-      expect(result.isEmptyResponse).toBeUndefined();
+      expect(result.whereCondition).toEqual({
+        id: -1, // Non-existent ID to prevent data leaks
+      });
+      expect(result.isEmptyResponse).toBe(true);
     });
 
-    it("should handle null teamId with empty where condition", async () => {
+    it("should handle null teamId with restrictive where condition", async () => {
       const ctx = createMockContext();
 
       const result = await buildBaseWhereCondition({
@@ -204,11 +222,13 @@ describe("buildBaseWhereCondition", () => {
         ctx,
       });
 
-      expect(result.whereCondition).toEqual({});
-      expect(result.isEmptyResponse).toBeUndefined();
+      expect(result.whereCondition).toEqual({
+        id: -1, // Non-existent ID to prevent data leaks
+      });
+      expect(result.isEmptyResponse).toBe(true);
     });
 
-    it("should handle empty team members", async () => {
+    it("should handle empty team members with proper team condition", async () => {
       mockMembershipFindMany.mockResolvedValue([]);
 
       const ctx = createMockContext();
@@ -235,12 +255,13 @@ describe("buildBaseWhereCondition", () => {
       });
     });
 
-    it("should handle team membership query with accepted=true parameter", async () => {
+    it("should handle rejected team membership differently from empty team", async () => {
       mockMembershipFindMany.mockImplementation((params) => {
         if (params?.where?.accepted === true) {
-          return Promise.resolve([{ userId: 501 }]);
+          // No accepted members
+          return Promise.resolve([]);
         }
-        return Promise.resolve([]);
+        return Promise.resolve([{ userId: 601 }, { userId: 602 }]);
       });
 
       const ctx = createMockContext();
@@ -251,7 +272,7 @@ describe("buildBaseWhereCondition", () => {
         ctx,
       });
 
-      // The function only includes accepted members
+      // Should only include team bookings since there are no accepted members
       expect(result.whereCondition).toEqual({
         OR: [
           {
@@ -260,7 +281,7 @@ describe("buildBaseWhereCondition", () => {
           },
           {
             userId: {
-              in: [501], // Only accepted members
+              in: [], // Empty because no accepted members
             },
             isTeamBooking: false,
           },
