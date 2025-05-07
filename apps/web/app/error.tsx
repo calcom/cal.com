@@ -1,6 +1,6 @@
 "use client";
 
-import { captureException, captureReactException } from "@sentry/nextjs";
+import { captureException } from "@sentry/nextjs";
 import React from "react";
 
 import { getErrorFromUnknown } from "@calcom/lib/errors";
