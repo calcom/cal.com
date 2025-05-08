@@ -25,7 +25,7 @@ export const BookerEmbed = (
         hostsLimit?: BookerPlatformWrapperAtomPropsForTeam["hostsLimit"];
         metadata?: BookerPlatformWrapperAtomPropsForTeam["metadata"];
         handleCreateBooking?: BookerPlatformWrapperAtomPropsForTeam["handleCreateBooking"];
-        handleSlotSelect?: BookerPlatformWrapperAtomPropsForTeam["handleSlotSelect"];
+        handleSlotReservation?: BookerPlatformWrapperAtomPropsForTeam["handleSlotReservation"];
         preventEventTypeRedirect?: BookerPlatformWrapperAtomPropsForTeam["preventEventTypeRedirect"];
       }
     | (BookerPlatformWrapperAtomPropsForIndividual & {

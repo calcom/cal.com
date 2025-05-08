@@ -66,7 +66,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   onDeleteSlotSuccess?: (data: ApiSuccessResponseWithoutData) => void;
   onDeleteSlotError?: (data: ApiErrorResponse) => void;
   onBookerStateChange?: (state: BookerStoreValues) => void;
-  handleSlotSelect?: (timeslot: string) => void;
+  handleSlotReservation?: (timeslot: string) => void;
   locationUrl?: string;
   view?: VIEW_TYPE;
   metadata?: Record<string, string>;

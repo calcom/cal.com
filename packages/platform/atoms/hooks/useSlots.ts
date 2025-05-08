@@ -20,7 +20,7 @@ type UseSlotsCallbacks = {
   onReserveSlotError?: (err: ApiErrorResponse) => void;
   onDeleteSlotSuccess?: (data: ApiSuccessResponseWithoutData) => void;
   onDeleteSlotError?: (err: ApiErrorResponse) => void;
-  handleSlotSelect?: (timeslot: string) => void;
+  handleSlotReservation?: (timeslot: string) => void;
 };
 
 export type UseSlotsReturnType = ReturnType<typeof useSlots>;
@@ -33,7 +33,7 @@ export const useSlots = (
     onDeleteSlotSuccess,
     onDeleteSlotError,
     isBookingDryRun,
-    handleSlotSelect,
+    handleSlotReservation,
   }: UseSlotsCallbacks & { isBookingDryRun?: boolean } = {}
 ) => {
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
@@ -65,8 +65,8 @@ export const useSlots = (
 
   const handleReserveSlot = () => {
     if (event?.data?.id && selectedTimeslot && (selectedDuration || event?.data?.length)) {
-      if (handleSlotSelect) {
-        handleSlotSelect(selectedTimeslot);
+      if (handleSlotReservation) {
+        handleSlotReservation(selectedTimeslot);
         return;
       }
 
