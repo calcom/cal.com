@@ -257,7 +257,6 @@ function UserListTableContent() {
             checked={table.getIsAllPageRowsSelected()}
             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
             aria-label="Select all"
-            className="translate-y-[2px]"
           />
         ),
         cell: ({ row }) => (

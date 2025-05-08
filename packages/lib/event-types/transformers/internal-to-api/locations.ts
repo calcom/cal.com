@@ -43,7 +43,6 @@ const internalToApiIntegrationsMapping: Record<string, OutputIntegration_2024_06
   "integrations:discord_video": "discord-video",
   "integrations:demodesk_video": "demodesk-video",
   "integrations:campfire_video": "campfire-video",
-  "integrations:around_video": "around-video",
 };
 
 export function transformLocationsInternalToApi(internalLocations: InternalLocation[] | undefined) {
