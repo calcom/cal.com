@@ -565,6 +565,9 @@ async function getBookings(activeOn: number[], isOrg: boolean, alreadyScheduledA
         },
       },
       select: bookingSelect,
+      orderBy: {
+        startTime: "asc",
+      },
     });
     return bookingsForReminders;
   } else {
@@ -586,6 +589,9 @@ async function getBookings(activeOn: number[], isOrg: boolean, alreadyScheduledA
         },
       },
       select: bookingSelect,
+      orderBy: {
+        startTime: "asc",
+      },
     });
     return bookingsForReminders;
   }
@@ -698,6 +704,8 @@ export async function scheduleBookingReminders(
           sender: step.sender,
           workflowStepId: step.id,
           verifiedAt: step?.verifiedAt ?? null,
+          userId,
+          teamId,
         });
       } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
         await scheduleSMSReminder({

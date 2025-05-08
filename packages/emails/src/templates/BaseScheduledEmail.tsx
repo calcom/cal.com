@@ -68,6 +68,11 @@ export const BaseScheduledEmail = (
           : props.callToAction || <ManageLink attendee={props.attendee} calEvent={props.calEvent} />
       }
       subtitle={props.subtitle || <>{t("emailed_you_and_any_other_attendees")}</>}>
+      {props.calEvent.rejectionReason && (
+        <>
+          <Info label={t("rejection_reason")} description={props.calEvent.rejectionReason} withSpacer />
+        </>
+      )}
       {props.calEvent.cancellationReason && (
         <Info
           label={t(
