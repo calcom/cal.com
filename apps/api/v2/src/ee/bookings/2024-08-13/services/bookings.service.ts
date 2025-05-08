@@ -65,7 +65,7 @@ const eventTypeBookingFieldSchema = z.object({
   editable: z.string(),
 });
 
-const eventTypeBookingFieldsSchema = z.array(eventTypeBookingFieldSchema);
+export const eventTypeBookingFieldsSchema = z.array(eventTypeBookingFieldSchema);
 
 export type EventTypeWithOwnerAndTeam = EventType & { owner: User | null; team: Team | null };
 
@@ -171,25 +171,30 @@ export class BookingsService_2024_08_13 {
   }
 
   async hasRequiredBookingFieldsResponses(body: CreateBookingInput, eventType: EventType | null) {
-    const bookingFields = { ...body.bookingFieldsResponses, attendeePhoneNumber: body.attendee.phoneNumber };
+    const bookingFields: Record<string, unknown> = {
+      ...body.bookingFieldsResponses,
+      attendeePhoneNumber: body.attendee.phoneNumber,
+      smsReminderNumber: body.attendee.phoneNumber,
+    };
     if (!eventType?.bookingFields) {
       return true;
     }
 
-    // note(Lauris): we filter out system fields, because some of them are set by default and name and email are passed in the body.attendee
+    // note(Lauris): we filter out system fields, because some of them are set by default and name and email are passed in the body.attendee. Only exception
+    // is smsReminderNumber, because if it is required and not passed sms workflow won't work.
     const eventTypeBookingFields = eventTypeBookingFieldsSchema
       .parse(eventType.bookingFields)
-      .filter((field) => !field.editable.startsWith("system"));
+      .filter((field) => !field.editable.startsWith("system") || field.name === "smsReminderNumber");
 
     if (!eventTypeBookingFields.length) {
       return true;
     }
 
     for (const field of eventTypeBookingFields) {
-      if (field.required && !(field.name in bookingFields)) {
-        if (field.name === "attendeePhoneNumber") {
+      if (field.required && !bookingFields[field.name]) {
+        if (field.name === "attendeePhoneNumber" || field.name === "smsReminderNumber") {
           throw new BadRequestException(
-            `Missing attendee phone number - it is required by the event type. Pass it as "attendee.phoneNumber" in the request.`
+            `Missing attendee phone number - it is required by the event type. Pass it as "attendee.phoneNumber" string in the request.`
           );
         }
         throw new BadRequestException(
