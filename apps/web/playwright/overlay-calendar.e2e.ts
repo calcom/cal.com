@@ -14,6 +14,7 @@ test.describe("User can overlay their calendar", async () => {
     });
     await test.step("toggles overlay without a session", async () => {
       await page.goto("/overflow-user-test-1/30-min");
+      await page.waitForLoadState("networkidle");
       const switchLocator = page.locator(`[data-testid=overlay-calendar-switch]`);
       await switchLocator.click();
       const continueWithCalCom = page.locator(`[data-testid=overlay-calendar-continue-button]`);
