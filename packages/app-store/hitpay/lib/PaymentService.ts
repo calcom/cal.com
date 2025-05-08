@@ -41,7 +41,6 @@ export class PaymentService implements IAbstractPaymentService {
     bookerEmail: string
   ) {
     try {
-      debugger;
       const booking: PaidBooking | null = await prisma.booking.findFirst({
         where: {
           id: bookingId,
