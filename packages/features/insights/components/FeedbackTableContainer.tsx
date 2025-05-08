@@ -36,8 +36,8 @@ const FeedbackTableContent = ({
 }: {
   isAll?: boolean;
   teamId?: number;
-  startDate: Date;
-  endDate: Date;
+  startDate: string;
+  endDate: string;
   eventTypeId?: number;
 }) => {
   const { t } = useLocale();

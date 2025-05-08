@@ -33,7 +33,7 @@ export const FeedbackTable = ({
         id: "user",
         accessorFn: (row: FeedbackData) => row.user.name,
         header: t("user"),
-        cell: ({ row }) => {
+        cell: ({ row }: { row: any }) => {
           const item = row.original;
           return (
             <div className="flex flex-row">
@@ -55,7 +55,7 @@ export const FeedbackTable = ({
         id: "rating",
         accessorFn: (row: FeedbackData) => row.rating,
         header: t("rating"),
-        cell: ({ row }) => {
+        cell: ({ row }: { row: any }) => {
           const item = row.original;
           return (
             <div className="text-default">
@@ -68,7 +68,7 @@ export const FeedbackTable = ({
         id: "feedback",
         accessorFn: (row: FeedbackData) => row.feedback,
         header: t("feedback"),
-        cell: ({ row }) => {
+        cell: ({ row }: { row: any }) => {
           const item = row.original;
           return (
             <div className="text-default">
