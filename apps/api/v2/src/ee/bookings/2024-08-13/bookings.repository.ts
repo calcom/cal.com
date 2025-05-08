@@ -3,6 +3,8 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import type { Prisma } from "@prisma/client";
 
+import { UpdateBookingInput_2024_08_13 } from "@calcom/platform-types";
+
 @Injectable()
 export class BookingsRepository_2024_08_13 {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
@@ -166,6 +168,17 @@ export class BookingsRepository_2024_08_13 {
       include: {
         attendees: true,
         user: true,
+      },
+    });
+  }
+
+  async updateBooking(bookingUid: string, body: UpdateBookingInput_2024_08_13) {
+    return this.dbWrite.prisma.booking.update({
+      where: {
+        uid: bookingUid,
+      },
+      data: {
+        location: body.location as string,
       },
     });
   }

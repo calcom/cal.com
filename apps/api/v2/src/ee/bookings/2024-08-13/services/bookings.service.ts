@@ -49,9 +49,11 @@ import {
   GetRecurringSeatedBookingOutput_2024_08_13,
   RescheduleBookingInput,
   CancelBookingInput,
+  UpdateBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 import { EventType, User, Team } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -804,5 +806,31 @@ export class BookingsService_2024_08_13 {
       // It can be made customizable through the API endpoint later.
       t: await getTranslation("en", "common"),
     });
+  }
+
+  async updateBooking(bookingUid: string, body: UpdateBookingInput_2024_08_13) {
+    const booking = await this.bookingsRepository.getByUid(bookingUid);
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    const updatedBooking = await this.bookingsRepository.getByUid(bookingUid);
+
+    if (!updatedBooking) {
+      throw new NotFoundException(`Failed to update booking with uid=${bookingUid}`);
+    }
+
+    return {
+      id: updatedBooking.id,
+      uid: updatedBooking.uid,
+      title: updatedBooking.title,
+      description: updatedBooking.description,
+      // status: updatedBooking.status as unknown as "cancelled" | "accepted" | "rejected" | "pending",
+      status: updatedBooking.status as unknown as BookingStatus,
+      location: updatedBooking.location,
+      createdAt: updatedBooking.createdAt.toISOString(),
+      updatedAt: updatedBooking.updatedAt?.toISOString(),
+      metadata: updatedBooking.metadata,
+    };
   }
 }
