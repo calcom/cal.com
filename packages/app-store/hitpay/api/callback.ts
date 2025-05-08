@@ -13,7 +13,6 @@ const PaymentDataSchema = z.object({
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  debugger;
   const { reference, status } = req.query;
   if (!reference) {
     throw new HttpCode({ statusCode: 204, message: "Reference not found" });
