@@ -1,5 +1,7 @@
 import { Title } from "@tremor/react";
 
+import { DataTableProvider } from "@calcom/features/data-table";
+import { useDataTable } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
@@ -8,9 +10,38 @@ import { CardInsights } from "./Card";
 import { FeedbackTable } from "./FeedbackTable";
 import { LoadingInsight } from "./LoadingInsights";
 
-export const RecentFeedbackTable = () => {
+export const FeedbackTableContainer = () => {
   const { t } = useLocale();
   const { isAll, teamId, startDate, endDate, eventTypeId } = useInsightsParameters();
+
+  return (
+    <DataTableProvider defaultPageSize={10}>
+      <FeedbackTableContent
+        isAll={isAll}
+        teamId={teamId}
+        startDate={startDate}
+        endDate={endDate}
+        eventTypeId={eventTypeId}
+      />
+    </DataTableProvider>
+  );
+};
+
+const FeedbackTableContent = ({
+  isAll,
+  teamId,
+  startDate,
+  endDate,
+  eventTypeId,
+}: {
+  isAll?: boolean;
+  teamId?: number;
+  startDate: Date;
+  endDate: Date;
+  eventTypeId?: number;
+}) => {
+  const { t } = useLocale();
+  const { limit, offset } = useDataTable();
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.recentRatings.useQuery(
     {
@@ -19,6 +50,8 @@ export const RecentFeedbackTable = () => {
       teamId,
       eventTypeId,
       isAll,
+      limit,
+      offset,
     },
     {
       staleTime: 30000,
@@ -34,8 +67,8 @@ export const RecentFeedbackTable = () => {
 
   return (
     <CardInsights>
-      <Title className="text-emphasis">{t("recent_ratings")}</Title>
-      <FeedbackTable data={data} />
+      <Title className="text-emphasis">{t("all_ratings")}</Title>
+      <FeedbackTable data={data.rows} totalRowCount={data.meta.totalRowCount} />
     </CardInsights>
   );
 };
