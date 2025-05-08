@@ -7,4 +7,11 @@ Sentry.init({
   _experiments: {
     maxSpans: parseInt(process.env.SENTRY_MAX_SPANS ?? "1000") || 1000,
   },
+  beforeSend(event) {
+    event.tags = {
+      ...event.tags,
+      errorSource: "server",
+    };
+    return event;
+  },
 });
