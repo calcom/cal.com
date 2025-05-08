@@ -47,15 +47,16 @@ class CalendarCacheStoreImpl implements CalendarCacheStore {
 
   get(
     credentialId: number,
-    userId: number | null,
+    userId: number | null | undefined,
     timeMin: string,
     timeMax: string,
     items: { id: string }[]
   ): CalendarCacheStoreEntry | undefined {
+    const normalizedUserId = userId ?? null;
     return this.entries.find(
       (entry) =>
         entry.credentialId === credentialId &&
-        entry.userId === userId &&
+        entry.userId === normalizedUserId &&
         entry.timeMin === timeMin &&
         entry.timeMax === timeMax &&
         JSON.stringify(entry.items) === JSON.stringify(items)

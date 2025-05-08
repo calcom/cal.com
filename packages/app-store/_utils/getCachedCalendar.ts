@@ -61,11 +61,14 @@ export const hasCompleteCacheHits = (
  */
 export const getCachedCalendar = async (
   credential: CredentialForCalendarService,
-  userId?: number,
-  selectedCalendars?: IntegrationCalendar[],
-  dateFrom?: string,
-  dateTo?: string
+  userId: number | undefined,
+  selectedCalendars: IntegrationCalendar[] | undefined,
+  dateFrom: string | undefined,
+  dateTo: string | undefined
 ): Promise<Calendar> => {
+  if (!credential || !credential.key) {
+    throw new Error("No valid credential provided for calendar service");
+  }
   if (
     credential.type === "google_calendar" &&
     userId !== undefined &&
@@ -80,27 +83,28 @@ export const getCachedCalendar = async (
     if (hasCacheHits) {
       log.debug(`Using CachedCalendarService for user ${userId} with credential ${credential.id}`);
       try {
-        const { default: CachedCalendarService } = await import(
-          "@calcom/app-store/googlecalendar/lib/CachedCalendarService"
-        );
+        const { CachedCalendarService } = await import("@calcom/app-store/googlecalendar");
 
         // Create and return the cached calendar service
-        return new CachedCalendarService(credential);
+        const cachedCalendarService = new CachedCalendarService(credential);
+        return cachedCalendarService;
       } catch (error) {
         log.error(`Error loading CachedCalendarService: ${error}`);
-        const regularCalendar = await getCalendar(credential);
-        if (!regularCalendar) {
-          throw new Error(`Failed to get calendar for credential type: ${credential.type}`);
+        // getCalendar might return null, but we need to return a Calendar
+        const calendar = await getCalendar(credential);
+        if (!calendar) {
+          throw new Error(`Failed to create calendar service for credential ${credential.id}`);
         }
-        return regularCalendar;
+        return calendar as Calendar;
       }
     }
   }
 
   // Get the regular calendar service
-  const regularCalendar = await getCalendar(credential);
-  if (!regularCalendar) {
-    throw new Error(`Failed to get calendar for credential type: ${credential.type}`);
+  // getCalendar might return null, but we need to return a Calendar
+  const calendar = await getCalendar(credential);
+  if (!calendar) {
+    throw new Error(`Failed to create calendar service for credential ${credential.id}`);
   }
-  return regularCalendar as Calendar;
+  return calendar as Calendar;
 };

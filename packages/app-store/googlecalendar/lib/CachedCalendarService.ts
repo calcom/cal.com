@@ -15,12 +15,15 @@ const log = logger.getSubLogger({ prefix: ["CachedCalendarService"] });
  * CachedCalendarService implements the Calendar interface but only serves cached data.
  * It does not use the original calendar service internally.
  * This service should only be used when we have 100% cache hits for a user.
+ * @implements {Calendar}
  */
-export default class CachedCalendarService implements Calendar {
+export class CachedCalendarService implements Calendar {
   credential: CredentialForCalendarService;
+  id: number;
 
   constructor(credential: CredentialForCalendarService) {
     this.credential = credential;
+    this.id = credential.id;
   }
 
   getCredentialId(): number {
@@ -34,12 +37,19 @@ export default class CachedCalendarService implements Calendar {
     shouldServeCache = true,
     fallbackToPrimary = false
   ): Promise<EventBusyDate[]> {
-    // Ensure userId is either a number or null, not undefined
+    // Ensure userId is always a number or null, never undefined
     const userId: number | null =
-      selectedCalendars.length > 0 && typeof selectedCalendars[0].userId === "number"
+      selectedCalendars.length > 0 &&
+      selectedCalendars[0].userId !== undefined &&
+      selectedCalendars[0].userId !== null
         ? selectedCalendars[0].userId
         : null;
-    const credentialId = selectedCalendars.length > 0 ? selectedCalendars[0].credentialId || 0 : 0;
+    const credentialId: number = this.credential.id;
+
+    // Ensure we have a valid credentialId
+    if (credentialId === 0 || credentialId === undefined) {
+      throw new Error("No valid credential ID found for calendar");
+    }
 
     if (!credentialId) {
       throw new Error("No credential ID found for calendar");
@@ -47,11 +57,8 @@ export default class CachedCalendarService implements Calendar {
 
     const items = selectedCalendars.map((cal) => ({ id: cal.externalId }));
 
-    if (userId === undefined) {
-      return Promise.resolve([]);
-    }
-
-    // Ensure userId is not undefined when passed to calendarCacheStore.get
+    // Ensure userId is never undefined when passed to calendarCacheStore.get
+    // Ensure userId is always a number or null before passing to calendarCacheStore.get
     const cachedEntry = calendarCacheStore.get(credentialId, userId, dateFrom, dateTo, items);
 
     if (cachedEntry) {
@@ -91,14 +98,21 @@ export default class CachedCalendarService implements Calendar {
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[],
-    fallbackToPrimary?: boolean
+    fallbackToPrimary = false
   ): Promise<(EventBusyDate & { timeZone: string })[]> {
-    // Ensure userId is either a number or null, not undefined
+    // Ensure userId is always a number or null, never undefined
     const userId: number | null =
-      selectedCalendars.length > 0 && typeof selectedCalendars[0].userId === "number"
+      selectedCalendars.length > 0 &&
+      selectedCalendars[0].userId !== undefined &&
+      selectedCalendars[0].userId !== null
         ? selectedCalendars[0].userId
         : null;
-    const credentialId = selectedCalendars.length > 0 ? selectedCalendars[0].credentialId || 0 : 0;
+    const credentialId: number = this.credential.id;
+
+    // Ensure we have a valid credentialId
+    if (credentialId === 0 || credentialId === undefined) {
+      throw new Error("No valid credential ID found for calendar");
+    }
 
     if (!credentialId) {
       throw new Error("No credential ID found for calendar");
@@ -106,11 +120,8 @@ export default class CachedCalendarService implements Calendar {
 
     const items = selectedCalendars.map((cal) => ({ id: cal.externalId }));
 
-    if (userId === undefined) {
-      return Promise.resolve([]);
-    }
-
-    // Ensure userId is not undefined when passed to calendarCacheStore.get
+    // Ensure userId is never undefined when passed to calendarCacheStore.get
+    // Ensure userId is always a number or null before passing to calendarCacheStore.get
     const cachedEntry = calendarCacheStore.get(credentialId, userId, dateFrom, dateTo, items);
 
     if (cachedEntry) {

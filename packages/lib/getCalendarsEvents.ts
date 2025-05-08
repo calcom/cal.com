@@ -38,13 +38,12 @@ export const getCalendarsEventsWithTimezones = async (
         credentialId: e.credentialId,
       }));
 
-      const calendar =
-        shouldServeCache ?? false
-          ? await getCachedCalendar(credential, userId, integrationCalendars, dateFrom, dateTo)
-          : await getCalendar(credential);
+      const calendar = shouldServeCache
+        ? await getCachedCalendar(credential, userId, integrationCalendars, dateFrom, dateTo)
+        : await getCalendar(credential);
 
       if (!calendar) {
-        throw new Error(`Failed to get calendar for credential type: ${credential.type}`);
+        throw new Error(`Failed to create calendar service for credential ${credential.id}`);
       }
 
       return [calendar, credential] as const;
@@ -126,13 +125,12 @@ const getCalendarsEvents = async (
         credentialId: e.credentialId,
       }));
 
-      const calendar =
-        shouldServeCache ?? false
-          ? await getCachedCalendar(credential, userId, integrationCalendars, dateFrom, dateTo)
-          : await getCalendar(credential);
+      const calendar = shouldServeCache
+        ? await getCachedCalendar(credential, userId, integrationCalendars, dateFrom, dateTo)
+        : await getCalendar(credential);
 
       if (!calendar) {
-        throw new Error(`Failed to get calendar for credential type: ${credential.type}`);
+        throw new Error(`Failed to create calendar service for credential ${credential.id}`);
       }
 
       return [calendar, credential] as const;
