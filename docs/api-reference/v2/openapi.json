@@ -7624,6 +7624,55 @@
         "tags": ["Calendars"]
       }
     },
+    "/v2/calendars/{calendar}/event-details/{eventId}": {
+      "get": {
+        "operationId": "CalendarsController_getMeetingDetails",
+        "summary": "Get detailed metrics for a specific meeting",
+        "description": "Returns detailed information about a meeting including attendance metrics and reschedule history",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": ["google"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "description": "The Google Calendar event ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Calendars"]
+      }
+    },
     "/v2/conferencing/{app}/connect": {
       "post": {
         "operationId": "ConferencingController_connect",

@@ -199,4 +199,47 @@ export class GoogleCalendarService implements OAuthCalendarApp {
 
     return { url: redir || origin };
   }
+
+  /**
+   * Gets detailed metrics for a specific meeting
+   * @param userId The user ID to get meeting details for
+   * @param eventId The Google Calendar event ID
+   * @returns Detailed meeting information including attendance metrics and reschedule history
+   */
+  async getMeetingDetails(userId: number, eventId: string) {
+    await this.checkIfCalendarConnected(userId);
+
+    const credentials = await this.credentialRepository.findCredentialByTypeAndUserId(
+      "google_calendar",
+      userId
+    );
+
+    if (!credentials || credentials.invalid) {
+      throw new UnauthorizedException("Invalid Google Calendar credentials");
+    }
+
+    const oAuth2Client = await this.getOAuthClient(this.redirectUri);
+    oAuth2Client.setCredentials(credentials.key as any);
+
+    const calendar = new calendar_v3.Calendar({ auth: oAuth2Client });
+
+    const event = await calendar.events.get({
+      calendarId: "primary",
+      eventId: eventId,
+    });
+
+    if (!event.data) {
+      throw new NotFoundException("Meeting not found");
+    }
+
+    return {
+      eventDetails: event.data,
+      rescheduleHistory: event.data.originalStartTime
+        ? {
+            originalStart: event.data.originalStartTime,
+            currentStart: event.data.start,
+          }
+        : null,
+    };
+  }
 }

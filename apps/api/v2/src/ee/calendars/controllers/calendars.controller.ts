@@ -300,4 +300,35 @@ export class CalendarsController {
       ),
     };
   }
+
+  @ApiParam({
+    name: "calendar",
+    enum: [GOOGLE_CALENDAR],
+    type: String,
+  })
+  @ApiParam({
+    name: "eventId",
+    description: "The Google Calendar event ID",
+    type: String,
+  })
+  @Get("/:calendar/event-details/:eventId")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(ApiAuthGuard, PermissionsGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Get detailed metrics for a specific meeting",
+    description:
+      "Returns detailed information about a meeting including attendance metrics and reschedule history",
+  })
+  async getMeetingDetails(
+    @GetUser("id") userId: number,
+    @Param("calendar") calendar: string,
+    @Param("eventId") eventId: string
+  ): Promise<any> {
+    if (calendar !== GOOGLE_CALENDAR) {
+      throw new BadRequestException("Meeting details are currently only available for Google Calendar");
+    }
+
+    return await this.googleCalendarService.getMeetingDetails(userId, eventId);
+  }
 }
