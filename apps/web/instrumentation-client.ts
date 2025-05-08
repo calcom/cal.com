@@ -13,7 +13,8 @@ Sentry.init({
   beforeSend(event) {
     event.tags = {
       ...event.tags,
-      errorSource: "frontend",
+      errorSource: "client",
+      clientError: "True",
     };
     return event;
   },
