@@ -3,7 +3,7 @@
   "slug": "btcpayserver",
   "type": "btcpayserver_payment",
   "logo": "icon.svg",
-  "url": "https://example.com/link",
+  "url": "https://btcpayserver.org",
   "variant": "payment",
   "categories": ["payment"],
   "publisher": "BTCPay Server Team",

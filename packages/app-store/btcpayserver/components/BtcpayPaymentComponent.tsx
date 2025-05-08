@@ -82,13 +82,13 @@ export const BtcpayPaymentComponent = (props: IPaymentComponentProps) => {
         Powered by&nbsp;
         <img
           title="BTCPay Server"
-          src="/app-store/btcpayserver/logo.svg"
+          src="/app-store/btcpayserver/btcpay.svg"
           alt="BTCPay Server"
           className="h-8 dark:hidden"
         />
         <img
           title="BTCPay Server"
-          src="/app-store/btcpayserver/logo-dark.svg"
+          src="/app-store/btcpayserver/btcpay.svg"
           alt="BTCPay Server"
           className="hidden h-8 dark:block"
         />

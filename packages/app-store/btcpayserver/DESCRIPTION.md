@@ -1,8 +1,8 @@
 ---
 items:
-  - 1.jpeg
-  - 2.jpeg
-  - 3.jpeg
+  - website.png
+  - integrations.png
+  - checkout.png
 ---
 
 {DESCRIPTION}

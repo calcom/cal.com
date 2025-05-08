@@ -215,7 +215,7 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
 
   const btcpayIcon = (
     <>
-      <img className="h-5 w-5" src="/app-store/btcpayserver/icon.svg" alt="BTCPay Server Icon" />
+      <img className="h-5 w-5" src="/app-store/btcpayserver/btcpay.svg" alt="BTCPay Server Icon" />
     </>
   );
 
