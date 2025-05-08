@@ -19,4 +19,5 @@ export type AppFlags = {
   "delegation-credential": boolean;
   "salesforce-crm-tasker": boolean;
   "workflow-smtp-emails": boolean;
+  "cal-video-log-in-overlay": boolean;
 };

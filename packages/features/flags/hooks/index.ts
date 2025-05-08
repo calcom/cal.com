@@ -18,6 +18,7 @@ const initialData: AppFlags = {
   "delegation-credential": false,
   "salesforce-crm-tasker": false,
   "workflow-smtp-emails": false,
+  "cal-video-log-in-overlay": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {
