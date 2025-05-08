@@ -54,7 +54,7 @@ const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
 const ServerPage = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(legacyCtx);
-  throw new Error("TESTING ERROR FROM RSC");
+
   return <LegacyPage {...props} />;
 };
 
