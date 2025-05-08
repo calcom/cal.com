@@ -1566,6 +1566,7 @@
   "workflow_turned_on_successfully": "{{workflowName}} workflow turned {{offOn}} successfully",
   "download_responses": "Download responses",
   "download_responses_description": "Download all responses to your form in CSV format.",
+  "view_responses": "View Responses",
   "download": "Download",
   "downloading": "Downloading",
   "download_recording": "Download Recording",
