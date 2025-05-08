@@ -714,6 +714,103 @@ type GetUsersAvailabilityProps = {
 };
 
 const _getUsersAvailability = async ({ users, query, initialData }: GetUsersAvailabilityProps) => {
+  if (initialData?.teamBookingLimits) {
+    return await Promise.all(
+      users.map((user) =>
+        _getUserAvailability(
+          {
+            ...query,
+            userId: user.id,
+            username: user.username || "",
+          },
+          initialData
+            ? {
+                ...initialData,
+                user,
+                currentBookings: user.currentBookings,
+                outOfOfficeDays: user.outOfOfficeDays,
+              }
+            : undefined
+        )
+      )
+    );
+  }
+
+  const eventType = query.eventTypeId ? await getEventType(query.eventTypeId) : null;
+  const teamForBookingLimits =
+    initialData?.teamForBookingLimits ??
+    eventType?.team ??
+    (eventType?.parent?.team?.includeManagedEventsInLimits ? eventType?.parent?.team : null);
+
+  if (!teamForBookingLimits) {
+    return await Promise.all(
+      users.map((user) =>
+        _getUserAvailability(
+          {
+            ...query,
+            userId: user.id,
+            username: user.username || "",
+          },
+          initialData
+            ? {
+                ...initialData,
+                user,
+                currentBookings: user.currentBookings,
+                outOfOfficeDays: user.outOfOfficeDays,
+              }
+            : undefined
+        )
+      )
+    );
+  }
+
+  const teamBookingLimits = parseBookingLimit(teamForBookingLimits.bookingLimits);
+
+  if (!teamBookingLimits) {
+    return await Promise.all(
+      users.map((user) =>
+        _getUserAvailability(
+          {
+            ...query,
+            userId: user.id,
+            username: user.username || "",
+          },
+          initialData
+            ? {
+                ...initialData,
+                user,
+                currentBookings: user.currentBookings,
+                outOfOfficeDays: user.outOfOfficeDays,
+              }
+            : undefined
+        )
+      )
+    );
+  }
+
+  const timeZone = query.timeZone || "UTC";
+
+  const busyTimesFromTeamLimitsMap = await getBusyTimesFromTeamLimitsForUsers(
+    users,
+    teamBookingLimits,
+    dayjs(query.dateFrom).tz(timeZone),
+    dayjs(query.dateTo).tz(timeZone),
+    teamForBookingLimits.id,
+    teamForBookingLimits.includeManagedEventsInLimits,
+    timeZone,
+    initialData?.rescheduleUid ?? undefined
+  );
+
+  const enhancedInitialData = initialData
+    ? {
+        ...initialData,
+        teamBookingLimits: busyTimesFromTeamLimitsMap,
+      }
+    : {
+        teamBookingLimits: busyTimesFromTeamLimitsMap,
+      };
+
+  // Call _getUserAvailability for each user with the enhanced initialData
   return await Promise.all(
     users.map((user) =>
       _getUserAvailability(
@@ -722,14 +819,12 @@ const _getUsersAvailability = async ({ users, query, initialData }: GetUsersAvai
           userId: user.id,
           username: user.username || "",
         },
-        initialData
-          ? {
-              ...initialData,
-              user,
-              currentBookings: user.currentBookings,
-              outOfOfficeDays: user.outOfOfficeDays,
-            }
-          : undefined
+        {
+          ...enhancedInitialData,
+          user,
+          currentBookings: user.currentBookings,
+          outOfOfficeDays: user.outOfOfficeDays,
+        }
       )
     )
   );

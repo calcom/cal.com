@@ -287,3 +287,81 @@ const _getBusyTimesFromTeamLimits = async (
 
   return limitManager.getBusyTimes();
 };
+
+export const getBusyTimesFromTeamLimitsForUsers = async (
+  ...args: Parameters<typeof _getBusyTimesFromTeamLimitsForUsers>
+): Promise<ReturnType<typeof _getBusyTimesFromTeamLimitsForUsers>> => {
+  return monitorCallbackAsync(_getBusyTimesFromTeamLimitsForUsers, ...args);
+};
+
+const _getBusyTimesFromTeamLimitsForUsers = async (
+  users: { id: number; email: string }[],
+  bookingLimits: IntervalLimit,
+  dateFrom: Dayjs,
+  dateTo: Dayjs,
+  teamId: number,
+  includeManagedEvents: boolean,
+  timeZone: string,
+  rescheduleUid?: string
+) => {
+  const { limitDateFrom, limitDateTo } = getStartEndDateforLimitCheck(
+    dateFrom.toISOString(),
+    dateTo.toISOString(),
+    bookingLimits
+  );
+
+  const bookings = await BookingRepository.getAllAcceptedTeamBookingsOfUsers({
+    users,
+    teamId,
+    startDate: limitDateFrom.toDate(),
+    endDate: limitDateTo.toDate(),
+    excludedUid: rescheduleUid,
+    includeManagedEvents,
+  });
+
+  const busyTimes = bookings.map(({ id, startTime, endTime, eventTypeId, title, userId }) => ({
+    start: dayjs(startTime).toDate(),
+    end: dayjs(endTime).toDate(),
+    title,
+    source: `eventType-${eventTypeId}-booking-${id}`,
+    userId,
+  }));
+
+  const userBusyTimesMap = new Map<number, EventBusyDetails[]>();
+
+  users.forEach((user) => {
+    userBusyTimesMap.set(user.id, []);
+  });
+
+  for (const booking of busyTimes) {
+    if (booking.userId) {
+      const userBusyTimes = userBusyTimesMap.get(booking.userId) || [];
+      userBusyTimes.push(booking);
+      userBusyTimesMap.set(booking.userId, userBusyTimes);
+    }
+  }
+
+  const result = new Map<number, EventBusyDetails[]>();
+
+  for (const user of users) {
+    const userBusyTimes = userBusyTimesMap.get(user.id) || [];
+    const limitManager = new LimitManager();
+
+    await getBusyTimesFromBookingLimits({
+      bookings: userBusyTimes,
+      bookingLimits,
+      dateFrom,
+      dateTo,
+      limitManager,
+      rescheduleUid,
+      teamId,
+      user,
+      includeManagedEvents,
+      timeZone,
+    });
+
+    result.set(user.id, limitManager.getBusyTimes());
+  }
+
+  return result;
+};

@@ -74,8 +74,8 @@ export async function checkBookingLimit({
     let bookingsInPeriod;
 
     if (teamId && user) {
-      bookingsInPeriod = await BookingRepository.getAllAcceptedTeamBookingsOfUser({
-        user: { id: user.id, email: user.email },
+      bookingsInPeriod = await BookingRepository.getAllAcceptedTeamBookingsOfUsers({
+        users: [{ id: user.id, email: user.email }],
         teamId,
         startDate: startDate,
         endDate: endDate,
