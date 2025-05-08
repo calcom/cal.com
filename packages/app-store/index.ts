@@ -1,7 +1,6 @@
 const appStore = {
   alby: createCachedImport(() => import("./alby")),
   applecalendar: createCachedImport(() => import("./applecalendar")),
-  aroundvideo: createCachedImport(() => import("./around")),
   caldavcalendar: createCachedImport(() => import("./caldavcalendar")),
   closecom: createCachedImport(() => import("./closecom")),
   dailyvideo: createCachedImport(() => import("./dailyvideo")),

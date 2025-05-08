@@ -14163,8 +14163,7 @@
               "eightxeight-video",
               "discord-video",
               "demodesk-video",
-              "campfire-video",
-              "around-video"
+              "campfire-video"
             ],
             "example": "cal-video"
           },
@@ -20419,8 +20418,7 @@
               "eightxeight-video",
               "discord-video",
               "demodesk-video",
-              "campfire-video",
-              "around-video"
+              "campfire-video"
             ]
           }
         },
