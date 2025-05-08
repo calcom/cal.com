@@ -264,7 +264,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
 
   const mailData = await prepareEmailData();
 
-  const isSendgridEnabled = process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL;
+  const isSendgridEnabled = !!(process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL);
 
   const featureRepo = new FeaturesRepository();
 
