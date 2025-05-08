@@ -3190,8 +3190,16 @@
             "required": false,
             "in": "query",
             "description": "Filter booking references by type",
-            "example": "zoom",
+            "example": "google_calendar",
             "schema": {
+              "enum": [
+                "google_calendar",
+                "office365_calendar",
+                "daily_video",
+                "google_video",
+                "office365_video",
+                "zoom_video"
+              ],
               "type": "string"
             }
           }
@@ -7212,8 +7220,16 @@
             "required": false,
             "in": "query",
             "description": "Filter booking references by type",
-            "example": "zoom",
+            "example": "google_calendar",
             "schema": {
+              "enum": [
+                "google_calendar",
+                "office365_calendar",
+                "daily_video",
+                "google_video",
+                "office365_video",
+                "zoom_video"
+              ],
               "type": "string"
             }
           },
@@ -22257,16 +22273,21 @@
             "type": "string",
             "description": "The type of the booking reference"
           },
-          "externalUid": {
+          "eventUid": {
             "type": "string",
-            "description": "The external uid of the booking reference"
+            "description": "The event uid of the booking"
+          },
+          "destinationCalendarId": {
+            "type": "string",
+            "nullable": true,
+            "description": "The id of the calendar the event is created in"
           },
           "id": {
             "type": "number",
             "description": "The id of the booking reference"
           }
         },
-        "required": ["type", "externalUid", "id"]
+        "required": ["type", "eventUid", "destinationCalendarId", "id"]
       },
       "BookingReferencesOutput_2024_08_13": {
         "type": "object",

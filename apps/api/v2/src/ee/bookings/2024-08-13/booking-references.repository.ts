@@ -19,6 +19,7 @@ export class BookingReferencesRepository_2024_08_13 {
         type: true,
         uid: true,
         id: true,
+        externalCalendarId: true,
       },
     });
   }
