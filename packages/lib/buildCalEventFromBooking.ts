@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import dayjs from "@calcom/dayjs";
 
 import { parseRecurringEvent } from "./isRecurringEvent";
-import { getTranslation } from "./server";
+import { getTranslation } from "./server/i18n";
 
 type DestinationCalendar = {
   id: number;
