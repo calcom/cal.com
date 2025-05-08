@@ -565,6 +565,9 @@ async function getBookings(activeOn: number[], isOrg: boolean, alreadyScheduledA
         },
       },
       select: bookingSelect,
+      orderBy: {
+        startTime: "asc",
+      },
     });
     return bookingsForReminders;
   } else {
@@ -586,6 +589,9 @@ async function getBookings(activeOn: number[], isOrg: boolean, alreadyScheduledA
         },
       },
       select: bookingSelect,
+      orderBy: {
+        startTime: "asc",
+      },
     });
     return bookingsForReminders;
   }
