@@ -253,8 +253,8 @@ const _getBusyTimesFromTeamLimits = async (
     bookingLimits
   );
 
-  const bookings = await BookingRepository.getAllAcceptedTeamBookingsOfUser({
-    user,
+  const bookings = await BookingRepository.getAllAcceptedTeamBookingsOfUsers({
+    users: [user],
     teamId,
     startDate: limitDateFrom.toDate(),
     endDate: limitDateTo.toDate(),
