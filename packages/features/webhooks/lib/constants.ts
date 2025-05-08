@@ -20,6 +20,8 @@ export const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP = {
     WebhookTriggerEvents.OOO_CREATED,
     WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
     WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+    WebhookTriggerEvents.AFTER_HOSTS_CALL_NO_SHOW,
+    WebhookTriggerEvents.AFTER_GUESTS_CALL_NO_SHOW,
   ] as const,
   "routing-forms": [
     WebhookTriggerEvents.FORM_SUBMITTED,

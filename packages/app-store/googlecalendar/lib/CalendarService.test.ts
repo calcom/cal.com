@@ -35,6 +35,7 @@ interface MockJWT {
     key: string;
     scopes: string[];
     subject: string;
+    universeDomain: string;
   };
   authorize: () => Promise<void>;
 }
@@ -330,6 +331,7 @@ const createMockJWTInstance = ({
       key: defaultDelegatedCredential.serviceAccountKey.private_key,
       scopes: ["https://www.googleapis.com/auth/calendar"],
       subject: email,
+      universeDomain: "googleapis.com",
     },
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
@@ -1259,6 +1261,7 @@ describe("GoogleCalendarService credential handling", () => {
         key: defaultDelegatedCredential.serviceAccountKey.private_key,
         scopes: ["https://www.googleapis.com/auth/calendar"],
         subject: "user@example.com",
+        universeDomain: "googleapis.com",
       },
       authorize: expect.any(Function) as () => Promise<void>,
     };
