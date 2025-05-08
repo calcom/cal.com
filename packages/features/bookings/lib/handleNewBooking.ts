@@ -113,7 +113,7 @@ import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
 import { getBookingRequest } from "./requiresConfirmation/getBookingRequest";
 
-const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
+const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY;
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -1030,10 +1030,14 @@ async function handler(
     : null;
 
   let organizerEmail = organizerUser.email || "Email-less";
-  if (eventType.useEventTypeDestinationCalendarEmail) {
+  if (
+    eventType.useEventTypeDestinationCalendarEmail &&
+    destinationCalendar &&
+    destinationCalendar.length > 0
+  ) {
     if (destinationCalendar?.[0]?.primaryEmail) {
       organizerEmail = destinationCalendar[0].primaryEmail;
-    } else if (destinationCalendar?.[0]?.integration === "apple_calendar") {
+    } else if (destinationCalendar?.[0]?.integration === "apple_calendar" && CALENDSO_ENCRYPTION_KEY) {
       /* For when useEventTypeDestinationCalendarEmail, there are cases where primary email is not present, in that case. get it directly by decrypting the key for the credential.
       Code is wrapper around try catch so as to catch any form of error during decryption or json parsing.
        */
@@ -1043,8 +1047,9 @@ async function handler(
           symmetricDecrypt(credentials?.key as string, CALENDSO_ENCRYPTION_KEY)
         );
         organizerEmail = username;
-      } catch {
+      } catch (error) {
         // do nothing
+        logger.error("Error decrypting destination calendar email", error);
       }
     }
   } else if (eventType.secondaryEmailId && eventType.secondaryEmail?.email) {
