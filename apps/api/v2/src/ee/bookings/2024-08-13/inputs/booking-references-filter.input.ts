@@ -1,14 +1,14 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEnum, IsOptional } from "class-validator";
+import { IsIn, IsOptional } from "class-validator";
 
-export enum BookingReferenceType {
-  GOOGLE_CALENDAR = "google_calendar",
-  OFFICE365_CALENDAR = "office365_calendar",
-  DAILY_VIDEO = "daily_video",
-  GOOGLE_VIDEO = "google_video",
-  OFFICE365_VIDEO = "office365_video",
-  ZOOM_VIDEO = "zoom_video",
-}
+export const BookingReferenceType = [
+  "google_calendar",
+  "office365_calendar",
+  "daily_video",
+  "google_video",
+  "office365_video",
+  "zoom_video",
+] as const;
 
 export class BookingReferencesFilterInput_2024_08_13 {
   @ApiProperty({
@@ -18,6 +18,6 @@ export class BookingReferencesFilterInput_2024_08_13 {
     example: "google_calendar",
   })
   @IsOptional()
-  @IsEnum(BookingReferenceType)
-  type?: BookingReferenceType;
+  @IsIn(BookingReferenceType)
+  type?: (typeof BookingReferenceType)[number];
 }
