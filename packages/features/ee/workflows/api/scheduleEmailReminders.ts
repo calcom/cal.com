@@ -65,9 +65,7 @@ export async function handler(req: NextRequest) {
     });
 
     await Promise.allSettled(handlePastCancelledReminders);
-  }
 
-  if (isSendgridEnabled) {
     //cancel reminders for cancelled/rescheduled bookings that are scheduled within the next hour
     const remindersToCancel: { referenceId: string | null; id: number }[] = await getAllRemindersToCancel();
 
