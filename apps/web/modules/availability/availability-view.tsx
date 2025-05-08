@@ -8,7 +8,7 @@ import { useCallback, useState } from "react";
 
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
-import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
+import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules/components/Schedule";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
