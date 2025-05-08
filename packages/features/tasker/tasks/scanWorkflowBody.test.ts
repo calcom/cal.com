@@ -53,6 +53,21 @@ const mockWorkflow = {
   team: null,
 };
 
+const mockTranslateWorkflowTaskCreation = {
+  id: "mock-task-id",
+  type: "translateWorkflowStepData",
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  payload: "",
+  scheduledAt: new Date(),
+  attempts: 0,
+  maxAttempts: 3,
+  succeededAt: null,
+  lastError: null,
+  lastFailedAttemptAt: null,
+  referenceUid: null,
+};
+
 describe("scanWorkflowBody", () => {
   beforeEach(() => {
     vi.resetAllMocks();
@@ -98,6 +113,7 @@ describe("scanWorkflowBody", () => {
 
     prismaMock.workflowStep.findMany.mockResolvedValue([mockWorkflowStep]);
     prismaMock.workflow.findFirst.mockResolvedValue(mockWorkflow);
+    prismaMock.task.create.mockResolvedValue(mockTranslateWorkflowTaskCreation);
     mockAkismetCheckSpam.mockResolvedValue(false);
 
     await scanWorkflowBody(payload);
@@ -136,6 +152,7 @@ describe("scanWorkflowBody", () => {
 
     prismaMock.workflowStep.findMany.mockResolvedValue([mockWorkflowStep]);
     prismaMock.workflow.findFirst.mockResolvedValue(mockWorkflow);
+    prismaMock.task.create.mockResolvedValue(mockTranslateWorkflowTaskCreation);
     mockAkismetCheckSpam.mockResolvedValue(false);
 
     await scanWorkflowBody(payload);
@@ -166,6 +183,7 @@ describe("scanWorkflowBody", () => {
 
     prismaMock.workflowStep.findMany.mockResolvedValue([mockWorkflowStep]);
     prismaMock.workflow.findFirst.mockResolvedValue(null);
+    prismaMock.task.create.mockResolvedValue(mockTranslateWorkflowTaskCreation);
     mockAkismetCheckSpam.mockResolvedValue(false);
 
     await scanWorkflowBody(payload);
