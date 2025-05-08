@@ -318,4 +318,20 @@ export class MembershipRepository {
       },
     });
   }
+  /**
+   * Get all team IDs that a user is a member of
+   */
+  static async findUserTeamIds({ userId }: { userId: number }) {
+    const memberships = await prisma.membership.findMany({
+      where: {
+        userId,
+        accepted: true,
+      },
+      select: {
+        teamId: true,
+      },
+    });
+
+    return memberships.map((membership) => membership.teamId);
+  }
 }
