@@ -271,6 +271,7 @@ export class OrganizationRepository {
         orgProfileRedirectsToVerifiedDomain: true,
         orgAutoAcceptEmail: true,
         disablePhoneOnlySMSNotifications: true,
+        enforceSingleSignOn: true,
       },
     });
 
@@ -289,6 +290,7 @@ export class OrganizationRepository {
         orgProfileRedirectsToVerifiedDomain: organizationSettings?.orgProfileRedirectsToVerifiedDomain,
         orgAutoAcceptEmail: organizationSettings?.orgAutoAcceptEmail,
         disablePhoneOnlySMSNotifications: organizationSettings?.disablePhoneOnlySMSNotifications,
+        enforceSingleSignOn: organizationSettings?.enforceSingleSignOn,
       },
       user: {
         role: membership?.role,
