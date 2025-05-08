@@ -382,9 +382,12 @@ export async function handler(req: NextRequest) {
         }
       } catch (error) {
         logger.error(`Error scheduling Email with error ${error}`, {
-          reminder: safeStringify(reminder),
-          fullError: safeStringify(error),
+          reminderId: reminder.id,
+          scheduledDate: reminder.scheduledDate,
+          isMandatoryReminder: reminder.isMandatoryReminder,
           workflowStepId: reminder?.workflowStep?.id,
+          bookingUid: reminder.booking?.uid,
+          fullError: safeStringify(error),
         });
       }
     } else if (reminder.isMandatoryReminder) {
@@ -467,9 +470,12 @@ export async function handler(req: NextRequest) {
         }
       } catch (error) {
         logger.error(`Error scheduling Email with error ${error}`, {
-          reminder: safeStringify(reminder),
-          fullError: safeStringify(error),
+          reminderId: reminder.id,
+          scheduledDate: reminder.scheduledDate,
+          isMandatoryReminder: reminder.isMandatoryReminder,
           workflowStepId: reminder?.workflowStep?.id,
+          bookingUid: reminder.booking?.uid,
+          fullError: safeStringify(error),
         });
       }
     }
