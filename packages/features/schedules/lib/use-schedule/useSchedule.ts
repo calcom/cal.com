@@ -113,7 +113,7 @@ export const useSchedule = ({
     duration: input.duration ? Number(input.duration) : undefined,
     routedTeamMemberIds: input.routedTeamMemberIds ?? undefined,
     teamMemberEmail: input.teamMemberEmail ?? undefined,
-    eventTypeId: eventId,
+    eventTypeId: eventId ?? undefined,
   });
 
   if (isTeamEvent) {
