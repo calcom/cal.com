@@ -191,7 +191,7 @@ export class BookingsService_2024_08_13 {
     }
 
     for (const field of eventTypeBookingFields) {
-      if (field.required && !bookingFields[field.name]) {
+      if (field.required && (bookingFields[field.name] === null || bookingFields[field.name] === undefined)) {
         if (field.name === "attendeePhoneNumber" || field.name === "smsReminderNumber") {
           throw new BadRequestException(
             `Missing attendee phone number - it is required by the event type. Pass it as "attendee.phoneNumber" string in the request.`
