@@ -77,6 +77,9 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
           isAdminAPIEnabled: !!(
             organizationSettings?.isAdminAPIEnabled ?? existingOrg.organizationSettings?.isAdminAPIEnabled
           ),
+          enforceSingleSignOn:
+            organizationSettings?.enforceSingleSignOn ??
+            existingOrg.organizationSettings?.enforceSingleSignOn,
         },
       });
     }
