@@ -6,6 +6,7 @@ import { router } from "../../../trpc";
 import { ZChangePasswordInputSchema } from "./changePassword.schema";
 import { ZResendVerifyEmailSchema } from "./resendVerifyEmail.schema";
 import { ZSendVerifyEmailCodeSchema } from "./sendVerifyEmailCode.schema";
+import { ZVerifyEmailInputSchema } from "./verifyEmail.schema";
 import { ZVerifyPasswordInputSchema } from "./verifyPassword.schema";
 
 type AuthRouterHandlerCache = {
@@ -16,9 +17,18 @@ type AuthRouterHandlerCache = {
   sendVerifyEmailCode?: typeof import("./sendVerifyEmailCode.handler").sendVerifyEmailCodeHandler;
   resendVerifySecondaryEmail?: typeof import("./resendVerifyEmail.handler").resendVerifyEmail;
   createAccountPassword?: typeof import("./createAccountPassword.handler").createAccountPasswordHandler;
+  verifyEmail?: typeof import("./verifyEmail.handler").verifyEmailHandler;
 };
 
 export const authRouter = router({
+  verifyEmail: publicProcedure.input(ZVerifyEmailInputSchema).query(async ({ input }) => {
+    const { verifyEmailHandler } = await import("./verifyEmail.handler");
+
+    return verifyEmailHandler({
+      input,
+    });
+  }),
+
   changePassword: authedProcedure.input(ZChangePasswordInputSchema).mutation(async ({ input, ctx }) => {
     const { changePasswordHandler } = await import("./changePassword.handler");
 

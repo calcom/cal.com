@@ -2,6 +2,7 @@
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import EnforceSSOSwitch from "@calcom/features/ee/organizations/components/EnforceSSOSwitch";
 import MakeTeamPrivateSwitch from "@calcom/features/ee/teams/components/MakeTeamPrivateSwitch";
 import { trpc } from "@calcom/trpc/react";
 
@@ -21,6 +22,11 @@ const PrivacyView = () => {
           isOrg={true}
           teamId={currentOrg.id}
           isPrivate={currentOrg.isPrivate}
+          disabled={isDisabled}
+        />
+        <EnforceSSOSwitch
+          teamId={currentOrg.id}
+          enforceSingleSignOn={currentOrg.organizationSettings?.enforceSingleSignOn || false}
           disabled={isDisabled}
         />
       </div>
