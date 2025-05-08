@@ -1,3 +1,4 @@
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import {
   isAttendeeAction,
   isSMSAction,
@@ -260,8 +261,6 @@ export async function cancelScheduledMessagesAndScheduleEmails(teamId: number) {
       accepted: true,
     },
   });
-  const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
-
   const creditService = new CreditService();
 
   const membersWithNoCredits = (
