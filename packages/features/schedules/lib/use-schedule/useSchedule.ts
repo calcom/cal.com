@@ -1,5 +1,7 @@
 import { useSearchParams } from "next/navigation";
 
+import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
+import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS } from "@calcom/lib/constants";
@@ -41,6 +43,8 @@ export const useSchedule = ({
   orgSlug,
   teamMemberEmail,
 }: UseScheduleWithCacheArgs) => {
+  const bookerState = useBookerStore((state) => state.state);
+
   const [startTime, endTime] = useTimesForSchedule({
     month,
     monthCount,
@@ -58,11 +62,13 @@ export const useSchedule = ({
   const utils = trpc.useUtils();
   const routingFormResponseIdParam = searchParams?.get("cal.routingFormResponseId");
   const email = searchParams?.get("email");
-
+  // We allow skipping the schedule fetch as a requirement for prerendering in iframe through embed as when the pre-rendered iframe is connected, then we would fetch the availability, which would be upto-date
+  // Also, a reuse through Headless Router could completely change the availability as different team members are selected and thus it is unnecessary to fetch the schedule
+  const skipGetSchedule = searchParams?.get("cal.skipSlotsFetch") === "true";
   const routingFormResponseId = routingFormResponseIdParam
     ? parseInt(routingFormResponseIdParam, 10)
     : undefined;
-
+  const embedConnectVersion = searchParams?.get("cal.embed.connectVersion") || "";
   const input = {
     isTeamEvent,
     usernameList: getUsernameList(username ?? ""),
@@ -85,6 +91,8 @@ export const useSchedule = ({
     _shouldServeCache,
     routingFormResponseId,
     email,
+    // Ensures that connectVersion causes a refresh of the data
+    ...(embedConnectVersion ? { embedConnectVersion } : {}),
   };
 
   const options = {
@@ -100,6 +108,7 @@ export const useSchedule = ({
     // It allows long sitting users to get latest available slots
     refetchInterval: PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS * 1000,
     enabled:
+      !skipGetSchedule &&
       Boolean(username) &&
       Boolean(month) &&
       Boolean(timezone) &&
@@ -117,6 +126,10 @@ export const useSchedule = ({
   });
 
   if (isTeamEvent) {
+    updateEmbedBookerState({
+      bookerState,
+      slotsQuery: teamSchedule,
+    });
     return {
       ...teamSchedule,
       /**
@@ -129,6 +142,11 @@ export const useSchedule = ({
   }
 
   const schedule = trpc.viewer.slots.getSchedule.useQuery(input, options);
+
+  updateEmbedBookerState({
+    bookerState,
+    slotsQuery: schedule,
+  });
 
   return {
     ...schedule,
