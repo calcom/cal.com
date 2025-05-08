@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { AvailableSlotsType } from "@calcom/platform-libraries";
 import type {
   GetAvailableSlotsInput_2024_04_15,
@@ -36,7 +35,7 @@ export const useApiV2AvailableSlots = ({
           params: rest,
         })
         .then((res) => {
-          if (res.data.status === SUCCESS_STATUS) {
+          if (res.data.status === "success") {
             return (res.data as ApiSuccessResponse<AvailableSlotsType>).data;
           }
           throw new Error(res.data.error.message);

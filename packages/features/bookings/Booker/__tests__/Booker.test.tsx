@@ -87,10 +87,6 @@ vi.mock("@calcom/atoms/hooks/useIsPlatform", () => ({
   useIsPlatform: () => false,
 }));
 
-vi.mock("@calcom/platform-constants", () => ({
-  SUCCESS_STATUS: "success",
-}));
-
 // Update mockStoreState to include all required state
 const mockStoreState = {
   state: "booking" as BookerState,
