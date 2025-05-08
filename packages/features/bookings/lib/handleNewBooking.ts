@@ -164,8 +164,8 @@ type BookingDataSchemaGetter =
   | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
 
 type CreatedBooking = Booking & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number };
-
-const buildDryRunBooking = ({
+type ReturnTypeCreateBooking = Awaited<ReturnType<typeof createBooking>>;
+export const buildDryRunBooking = ({
   eventTypeId,
   organizerUser,
   eventName,
@@ -193,8 +193,11 @@ const buildDryRunBooking = ({
   isManagedEventType: boolean;
 }) => {
   const sanitizedOrganizerUser = {
-    ...organizerUser,
-    credentials: undefined,
+    id: organizerUser.id,
+    name: organizerUser.name,
+    username: organizerUser.username,
+    email: organizerUser.email,
+    timeZone: organizerUser.timeZone,
   };
   const booking = {
     id: -101,
@@ -210,8 +213,6 @@ const buildDryRunBooking = ({
     createdAt: new Date(),
     updatedAt: new Date(),
     attendees: [],
-    references: [],
-    payment: [],
     oneTimePassword: null,
     smsReminderNumber: null,
     metadata: {},
@@ -222,25 +223,18 @@ const buildDryRunBooking = ({
     responses: null,
     location: null,
     paid: false,
-    destinationCalendar: null,
     cancellationReason: null,
     rejectionReason: null,
     dynamicEventSlugRef: null,
     dynamicGroupSlugRef: null,
-    rescheduledFrom: null,
     fromReschedule: null,
     recurringEventId: null,
-    seatsReferences: [],
-    workflowReminders: [],
     scheduledJobs: [],
-    rescheduledTo: null,
     rescheduledBy: null,
     destinationCalendarId: null,
     reassignReason: null,
     reassignById: null,
     rescheduled: false,
-    confirmed: false,
-    isRecurringEvent: false,
     isRecorded: false,
     iCalSequence: 0,
     rating: null,
@@ -248,7 +242,9 @@ const buildDryRunBooking = ({
     noShowHost: null,
     cancelledBy: null,
     creationSource: CreationSource.WEBAPP,
-  } as CreatedBooking;
+    references: [],
+    payment: [],
+  } satisfies ReturnTypeCreateBooking;
 
   /**
    * Troubleshooting data
@@ -1415,7 +1411,7 @@ async function handler(
       err.message
     );
     if (err.code === "P2002") {
-      throw new HttpError({ statusCode: 409, message: "booking_conflict" });
+      throw new HttpError({ statusCode: 409, message: ErrorCode.BookingConflict });
     }
     throw err;
   }
