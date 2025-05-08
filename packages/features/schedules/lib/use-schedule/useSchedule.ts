@@ -129,7 +129,7 @@ export const useSchedule = ({
   }
 
   const schedule = trpc.viewer.slots.getSchedule.useQuery(input, options);
-  console.log("User schedule", schedule.data);
+
   return {
     ...schedule,
     /**
