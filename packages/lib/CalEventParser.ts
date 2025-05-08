@@ -360,21 +360,32 @@ export const getPublicVideoCallUrl = (calEvent: Pick<CalendarEvent, "uid">): str
 
 export const getVideoCallUrlFromCalEvent = (
   calEvent: Parameters<typeof getPublicVideoCallUrl>[0] &
-    Pick<CalendarEvent, "videoCallData" | "additionalInformation" | "location">
+    Pick<CalendarEvent, "videoCallData" | "additionalInformation" | "location" | "locations">
 ): string => {
+  let videoCallUrl = "";
+
   if (calEvent.videoCallData) {
     if (isDailyVideoCall(calEvent)) {
-      return getPublicVideoCallUrl(calEvent);
+      videoCallUrl = getPublicVideoCallUrl(calEvent);
+    } else {
+      videoCallUrl = calEvent.videoCallData.url;
     }
-    return calEvent.videoCallData.url;
+  } else if (calEvent.additionalInformation?.hangoutLink) {
+    videoCallUrl = calEvent.additionalInformation.hangoutLink;
+  } else if (calEvent.location?.startsWith("http")) {
+    videoCallUrl = calEvent.location;
   }
-  if (calEvent.additionalInformation?.hangoutLink) {
-    return calEvent.additionalInformation.hangoutLink;
+
+  if (
+    videoCallUrl &&
+    calEvent.locations?.some(
+      (location) => location.type === calEvent.location && location.enableEnhancedLinkTracking
+    )
+  ) {
+    return `${WEBAPP_URL}/video/${getUid(calEvent)}`;
   }
-  if (calEvent.location?.startsWith("http")) {
-    return calEvent.location;
-  }
-  return "";
+
+  return videoCallUrl;
 };
 
 export const getVideoCallPassword = (calEvent: CalendarEvent): string => {

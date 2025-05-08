@@ -200,6 +200,7 @@ export type LocationObject = {
   type: string;
   address?: string;
   displayLocationPublicly?: boolean;
+  enableEnhancedLinkTracking?: boolean;
   credentialId?: number;
 } & Partial<
   Record<

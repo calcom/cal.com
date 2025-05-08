@@ -381,6 +381,29 @@ const Locations: React.FC<LocationsProps> = ({
                       }}
                       informationIconText={t("display_location_info_badge")}
                     />
+                    {eventLocationType?.category === "conferencing" && (
+                      <CheckboxField
+                        name={`locations[${index}].enableEnhancedLinkTracking`}
+                        data-testid="enable-enhanced-link-tracking"
+                        disabled={disableLocationProp}
+                        defaultChecked={defaultLocation?.enableEnhancedLinkTracking}
+                        description={
+                          t("enable_enhanced_link_tracking_label") || "Enable Enhanced Link tracking"
+                        }
+                        className={customClassNames?.organizerContactInput?.publicDisplayCheckbox?.checkbox}
+                        onChange={(e) => {
+                          const fieldValues = getValues("locations")[index];
+                          updateLocationField(index, {
+                            ...fieldValues,
+                            enableEnhancedLinkTracking: e.target.checked,
+                          });
+                        }}
+                        informationIconText={
+                          t("enable_enhanced_link_tracking_info_badge") ||
+                          "Wrap conferencing links in Cal.com URLs for better tracking"
+                        }
+                      />
+                    )}
                   </div>
                 </div>
               )}
