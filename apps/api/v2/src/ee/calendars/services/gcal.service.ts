@@ -1,3 +1,5 @@
+import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/booking-references.repository";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { OAuthCalendarApp } from "@/ee/calendars/calendars.interface";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { AppsRepository } from "@/modules/apps/apps.repository";
@@ -33,7 +35,9 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     private readonly credentialRepository: CredentialsRepository,
     private readonly calendarsService: CalendarsService,
     private readonly tokensRepository: TokensRepository,
-    private readonly selectedCalendarsRepository: SelectedCalendarsRepository
+    private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
+    private readonly bookingsRepository: BookingsRepository_2024_08_13,
+    private readonly bookingReferencesRepository: BookingReferencesRepository_2024_08_13
   ) {}
 
   async connect(
@@ -200,13 +204,11 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     return { url: redir || origin };
   }
 
-  /**
-   * Gets detailed metrics for a specific meeting
-   * @param userId The user ID to get meeting details for
-   * @param eventId The Google Calendar event ID
-   * @returns Detailed meeting information including attendance metrics and reschedule history
-   */
-  async getMeetingDetails(userId: number, eventId: string) {
+  async getEventDetails(userId: number, eventUid: string) {
+    const bookingReference =
+      await this.bookingReferencesRepository.getBookingReferencesIncludeSensitiveCredentials(eventUid);
+    console.log("bookingReferencesssssss: ", bookingReference);
+
     await this.checkIfCalendarConnected(userId);
 
     const credentials = await this.credentialRepository.findCredentialByTypeAndUserId(
@@ -224,8 +226,8 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     const calendar = new calendar_v3.Calendar({ auth: oAuth2Client });
 
     const event = await calendar.events.get({
-      calendarId: "primary",
-      eventId: eventId,
+      calendarId: bookingReference?.externalCalendarId ?? "primary",
+      eventId: bookingReference?.uid,
     });
 
     if (!event.data) {

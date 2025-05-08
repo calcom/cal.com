@@ -7624,9 +7624,9 @@
         "tags": ["Calendars"]
       }
     },
-    "/v2/calendars/{calendar}/event-details/{eventId}": {
+    "/v2/calendars/{calendar}/event-details/{eventUid}": {
       "get": {
-        "operationId": "CalendarsController_getMeetingDetails",
+        "operationId": "CalendarsController_getCalendarEventDetails",
         "summary": "Get detailed metrics for a specific meeting",
         "description": "Returns detailed information about a meeting including attendance metrics and reschedule history",
         "parameters": [
@@ -7640,7 +7640,7 @@
             }
           },
           {
-            "name": "eventId",
+            "name": "eventUid",
             "required": true,
             "in": "path",
             "description": "The Google Calendar event ID",
@@ -19989,7 +19989,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "number"
           },
           "formId": {
             "type": "string"
