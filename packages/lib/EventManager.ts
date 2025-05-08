@@ -24,14 +24,8 @@ import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
-import type {
-  AdditionalInformation,
-  CalendarEvent,
-  NewCalendarEventType,
-  VideoCallData,
-} from "@calcom/types/Calendar";
+import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
-import type { CrmData } from "@calcom/types/CrmService";
 import type { Event } from "@calcom/types/Event";
 import type {
   CreateUpdateResult,
@@ -62,16 +56,9 @@ const delegatedCredentialFirst = <T extends { delegatedToId?: string | null }>(a
   return (b.delegatedToId ? 1 : 0) - (a.delegatedToId ? 1 : 0);
 };
 
-// It contrasts with isCalendarResult because it is true for some legacy CRM results which have type "other_calendar"
-export const isCalendarLikeResult = <
-  T extends
-    | EventResult<AdditionalInformation>
-    | EventResult<VideoCallData>
-    | EventResult<CrmData>
-    | EventResult<NewCalendarEventType>
->(
+export const isCalendarLikeResult = <T extends { type: string }>(
   result: T
-): result is EventResult<NewCalendarEventType> => {
+): result is T & EventResult<NewCalendarEventType> => {
   return result.type.includes("_calendar");
 };
 
@@ -596,7 +583,9 @@ export default class EventManager {
     ).map((reference) => {
       const thirdPartyAppResultForTheReference = results.find((result) => {
         if (isCalendarLikeResult(result)) {
-          return result.updatedEvent?.id === reference.uid;
+          const updatedEvent =
+            result.updatedEvent instanceof Array ? result.updatedEvent[0] : result.updatedEvent;
+          return updatedEvent?.id === reference.uid;
         }
         return false;
       });

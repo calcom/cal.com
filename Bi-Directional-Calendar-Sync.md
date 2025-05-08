@@ -87,6 +87,8 @@ TODO:
 - [ ] Make sure that in handleNewBooking flow, calendarSync creation failure or linking failure with BookingReference is logged as an error in only those cases where there was a successful calendar event creation - There might be calendar connected or failure to create vent in calendar, those should beignored
 - [ ] Existing bookings in the system that are re-scheduled, will they be synced back from the third party calendar?
 - [ ] Consider merging the PR without calling createCalendarSync  or calling it only for the organization that has the feature enabled.
+- [ ] Tests for Google CalendarService
+- [ ] 
 
 Follow up:
 - [ ] Support where the organizer itself declines the calendar-event

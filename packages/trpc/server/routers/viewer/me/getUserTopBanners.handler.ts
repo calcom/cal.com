@@ -57,16 +57,6 @@ export const getUserTopBannersHandler = async ({ ctx }: Props) => {
     appsWithInavlidCredentials,
   ]);
 
-  if (process.env.NEXT_PUBLIC_IS_E2E === "1") {
-    return {
-      teamUpgradeBanner: [],
-      orgUpgradeBanner: [],
-      verifyEmailBanner: false,
-      calendarCredentialBanner: false,
-      invalidAppCredentialBanners: [],
-    };
-  }
-
   return {
     teamUpgradeBanner: teamUpgradeBanner.status === "fulfilled" ? teamUpgradeBanner.value : [],
     orgUpgradeBanner: orgUpgradeBanner.status === "fulfilled" ? orgUpgradeBanner.value : [],

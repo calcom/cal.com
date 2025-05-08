@@ -53,7 +53,6 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
   constructor(calendar: Calendar | null = null) {
     this.calendar = calendar;
   }
-
   async watchCalendar(args: { calendarId: string; eventTypeIds: SelectedCalendarEventTypeIds }) {
     assertCalendarHasDbCredential(this.calendar);
     const { calendarId, eventTypeIds } = args;

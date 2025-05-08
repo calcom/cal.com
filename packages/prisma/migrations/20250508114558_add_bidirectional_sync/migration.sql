@@ -5,8 +5,7 @@ CREATE TYPE "SubscriptionStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'ERROR', 'PENDIN
 CREATE TYPE "Direction" AS ENUM ('UPSTREAM', 'DOWNSTREAM');
 
 -- AlterTable
-ALTER TABLE "BookingReference" ADD COLUMN     "calendarEventId" TEXT,
-ADD COLUMN     "calendarSyncId" TEXT;
+ALTER TABLE "BookingReference" ADD COLUMN     "calendarSyncId" TEXT;
 
 -- CreateTable
 CREATE TABLE "CalendarSubscription" (
@@ -40,7 +39,7 @@ CREATE TABLE "CalendarSync" (
     "subscriptionId" TEXT,
     "lastSyncedUpAt" TIMESTAMP(3),
     "lastSyncedDownAt" TIMESTAMP(3),
-    "lastSyncDirection" "Direction" NOT NULL,
+    "lastSyncDirection" "Direction",
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -67,9 +66,6 @@ CREATE INDEX "CalendarSync_subscriptionId_idx" ON "CalendarSync"("subscriptionId
 
 -- CreateIndex
 CREATE UNIQUE INDEX "CalendarSync_userId_externalCalendarId_integration_key" ON "CalendarSync"("userId", "externalCalendarId", "integration");
-
--- CreateIndex
-CREATE INDEX "BookingReference_calendarEventId_idx" ON "BookingReference"("calendarEventId");
 
 -- AddForeignKey
 ALTER TABLE "BookingReference" ADD CONSTRAINT "BookingReference_calendarSyncId_fkey" FOREIGN KEY ("calendarSyncId") REFERENCES "CalendarSync"("id") ON DELETE SET NULL ON UPDATE CASCADE;
