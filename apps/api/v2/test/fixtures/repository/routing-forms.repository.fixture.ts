@@ -1,7 +1,7 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
-import { Prisma, App_RoutingForms_Form } from "@prisma/client";
+import { Prisma, App_RoutingForms_Form, App_RoutingForms_FormResponse } from "@prisma/client";
 
 export class RoutingFormsRepositoryFixture {
   private prismaReadClient: PrismaReadService["prisma"];
@@ -22,5 +22,11 @@ export class RoutingFormsRepositoryFixture {
 
   async delete(routingFormId: App_RoutingForms_Form["id"]) {
     return this.prismaWriteClient.app_RoutingForms_Form.delete({ where: { id: routingFormId } });
+  }
+
+  async deleteResponse(routingFormResponseId: App_RoutingForms_FormResponse["id"]) {
+    return this.prismaWriteClient.app_RoutingForms_FormResponse.delete({
+      where: { id: routingFormResponseId },
+    });
   }
 }
