@@ -1,0 +1,105 @@
+name: Performance Tests
+
+on:
+  workflow_dispatch:  # Manual trigger
+  schedule:
+    - cron: '0 0 * * 1'  # Weekly on Mondays
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'packages/trpc/server/routers/**'
+      - 'packages/features/bookings/**'
+      - 'packages/features/ee/payments/**'
+      - 'packages/app-store/**'
+      - 'performance-tests/**'
+
+jobs:
+  performance-tests:
+    name: Run k6 Performance Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+        
+      - name: Setup test database
+        run: |
+          yarn workspace @calcom/prisma db-deploy
+          yarn workspace @calcom/prisma seed-performance-testing
+          
+      - name: Start Cal.com server
+        run: |
+          yarn dev &
+          sleep 30  # Wait for server to start
+          
+      - name: Install k6
+        run: |
+          curl -L https://github.com/grafana/k6/releases/download/v0.47.0/k6-v0.47.0-linux-amd64.tar.gz | tar xz
+          sudo mv k6-v0.47.0-linux-amd64/k6 /usr/local/bin
+          
+      - name: Run load test
+        run: |
+          k6 run performance-tests/scripts/main.js --env TEST_TYPE=load --out json=load-results.json
+          
+      - name: Run stress test
+        run: |
+          k6 run performance-tests/scripts/main.js --env TEST_TYPE=stress --out json=stress-results.json
+          
+      - name: Run spike test
+        run: |
+          k6 run performance-tests/scripts/main.js --env TEST_TYPE=spike --out json=spike-results.json
+          
+      - name: Upload performance test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: k6-results
+          path: |
+            load-results.json
+            stress-results.json
+            spike-results.json
+          
+      - name: Analyze results
+        run: |
+          echo "## Performance Test Results" > performance-summary.md
+          echo "" >> performance-summary.md
+          echo "### Load Test" >> performance-summary.md
+          echo "\`\`\`" >> performance-summary.md
+          k6 run --no-usage-report --quiet --summary-export=summary.json performance-tests/scripts/main.js --env TEST_TYPE=load --iterations 1
+          cat summary.json | jq -r '.metrics | to_entries | .[] | select(.key | contains("http_req_duration") or contains("page_load_time") or contains("api_response_time")) | "- \(.key): \(.value.avg | tostring) ms (avg), \(.value.p95 | tostring) ms (p95)"' >> performance-summary.md
+          echo "\`\`\`" >> performance-summary.md
+          
+          echo "" >> performance-summary.md
+          echo "### Stress Test" >> performance-summary.md
+          echo "\`\`\`" >> performance-summary.md
+          k6 run --no-usage-report --quiet --summary-export=summary.json performance-tests/scripts/main.js --env TEST_TYPE=stress --iterations 1
+          cat summary.json | jq -r '.metrics | to_entries | .[] | select(.key | contains("http_req_duration") or contains("page_load_time") or contains("api_response_time")) | "- \(.key): \(.value.avg | tostring) ms (avg), \(.value.p95 | tostring) ms (p95)"' >> performance-summary.md
+          echo "\`\`\`" >> performance-summary.md
+          
+          echo "" >> performance-summary.md
+          echo "### Spike Test" >> performance-summary.md
+          echo "\`\`\`" >> performance-summary.md
+          k6 run --no-usage-report --quiet --summary-export=summary.json performance-tests/scripts/main.js --env TEST_TYPE=spike --iterations 1
+          cat summary.json | jq -r '.metrics | to_entries | .[] | select(.key | contains("http_req_duration") or contains("page_load_time") or contains("api_response_time")) | "- \(.key): \(.value.avg | tostring) ms (avg), \(.value.p95 | tostring) ms (p95)"' >> performance-summary.md
+          echo "\`\`\`" >> performance-summary.md
+        
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('performance-summary.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
