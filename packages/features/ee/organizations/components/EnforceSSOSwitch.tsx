@@ -18,7 +18,7 @@ const EnforceSSOSwitch = ({
 
   const utils = trpc.useUtils();
 
-  const mutation = trpc.viewer.teams.update.useMutation({
+  const mutation = trpc.viewer.organizations.adminUpdate.useMutation({
     onError: (err) => {
       showToast(err.message, "error");
     },
@@ -40,7 +40,12 @@ const EnforceSSOSwitch = ({
         checked={isEnforceSSO}
         onCheckedChange={(checked) => {
           setEnforceSSO(checked);
-          mutation.mutate({ id: teamId, metadata: { enforceSingleSignOn: checked } });
+          mutation.mutate({
+            id: teamId,
+            organizationSettings: {
+              enforceSingleSignOn: checked,
+            },
+          });
         }}
         switchContainerClassName="my-6"
         data-testid="enforce-sso-check"

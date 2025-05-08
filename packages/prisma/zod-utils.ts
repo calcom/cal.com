@@ -355,6 +355,7 @@ export const orgSettingsSchema = z
     isAdminReviewed: z.boolean().optional(),
     orgAutoAcceptEmail: z.string().optional(),
     isAdminAPIEnabled: z.boolean().optional(),
+    enforceSingleSignOn: z.boolean().optional(),
   })
   .nullable();
 export type userMetadataType = z.infer<typeof userMetadata>;
