@@ -9,7 +9,7 @@ try {
   execSync(`sentry-cli releases new ${release}`, { stdio: "inherit" });
 
   // Add git commits
-  execSync(`sentry-cli releases set-commits ${release} --auto --ignore-missing`, {
+  execSync(`sentry-cli releases set-commits ${release} --auto`, {
     stdio: "inherit",
   });
 
