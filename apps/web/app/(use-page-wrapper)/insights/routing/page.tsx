@@ -1,7 +1,7 @@
 import { _generateMetadata } from "app/_utils";
 import { notFound } from "next/navigation";
 
-import { getFeatureFlag } from "@calcom/features/flags/server/utils";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 
 import InsightsRoutingPage from "~/insights/insights-routing-view";
 
@@ -15,8 +15,8 @@ export const generateMetadata = async () =>
   );
 
 export default async function Page() {
-  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const insightsEnabled = await getFeatureFlag(prisma, "insights");
+  const featuresRepository = new FeaturesRepository();
+  const insightsEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("insights");
 
   if (!insightsEnabled) {
     return notFound();
