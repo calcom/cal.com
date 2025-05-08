@@ -12,6 +12,10 @@ vi.mock("@calcom/features/calendars/DatePicker", () => {
   };
 });
 
+vi.mock("@calcom/platform-constants", () => ({
+  SUCCESS_STATUS: "success",
+}));
+
 const noop = () => {
   /* noop */
 };
