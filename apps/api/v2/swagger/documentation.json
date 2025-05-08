@@ -3321,6 +3321,24 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter booking references by type",
+            "example": "google_calendar",
+            "schema": {
+              "enum": [
+                "google_calendar",
+                "office365_calendar",
+                "daily_video",
+                "google_video",
+                "office365_video",
+                "zoom_video"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -7526,6 +7544,24 @@
             "required": true,
             "in": "path",
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter booking references by type",
+            "example": "google_calendar",
+            "schema": {
+              "enum": [
+                "google_calendar",
+                "office365_calendar",
+                "daily_video",
+                "google_video",
+                "office365_video",
+                "zoom_video"
+              ],
               "type": "string"
             }
           },
@@ -15063,7 +15099,7 @@
               "eightxeight-video",
               "discord-video",
               "demodesk-video",
-              "campfire-video",
+              "campfire-video"
             ],
             "example": "cal-video"
           },
@@ -21743,7 +21779,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "number"
           },
           "formId": {
             "type": "string"
@@ -22296,7 +22332,7 @@
               "eightxeight-video",
               "discord-video",
               "demodesk-video",
-              "campfire-video",
+              "campfire-video"
             ]
           }
         },
@@ -24257,9 +24293,14 @@
             "type": "string",
             "description": "The type of the booking reference"
           },
-          "externalUid": {
+          "eventUid": {
             "type": "string",
-            "description": "The external uid of the booking reference"
+            "description": "The event uid of the booking"
+          },
+          "destinationCalendarId": {
+            "type": "string",
+            "nullable": true,
+            "description": "The id of the calendar the event is created in"
           },
           "id": {
             "type": "number",
@@ -24268,7 +24309,8 @@
         },
         "required": [
           "type",
-          "externalUid",
+          "eventUid",
+          "destinationCalendarId",
           "id"
         ]
       },
