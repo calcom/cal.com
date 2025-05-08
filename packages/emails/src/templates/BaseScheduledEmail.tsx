@@ -68,6 +68,11 @@ export const BaseScheduledEmail = (
           : props.callToAction || <ManageLink attendee={props.attendee} calEvent={props.calEvent} />
       }
       subtitle={props.subtitle || <>{t("emailed_you_and_any_other_attendees")}</>}>
+      {props.calEvent.rejectionReason && (
+        <>
+          <Info label={t("rejection_reason")} description={props.calEvent.rejectionReason} withSpacer />
+        </>
+      )}
       {props.calEvent.cancellationReason && (
         <Info
           label={t(
@@ -105,7 +110,7 @@ export const BaseScheduledEmail = (
       <WhoInfo calEvent={props.calEvent} t={t} />
       <LocationInfo calEvent={props.calEvent} t={t} />
       <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
-      <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer />
+      <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer formatted />
       {props.includeAppsStatus && <AppsStatus calEvent={props.calEvent} t={t} />}
       <UserFieldsResponses t={t} calEvent={props.calEvent} isOrganizer={props.isOrganizer} />
       {props.calEvent.paymentInfo?.amount && (

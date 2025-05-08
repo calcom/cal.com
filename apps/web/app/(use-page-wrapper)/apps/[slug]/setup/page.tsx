@@ -13,7 +13,10 @@ export const generateMetadata = async ({ params: _params }: ServerPageProps) => 
   const params = await _params;
   const metadata = await _generateMetadata(
     () => `${params.slug}`,
-    () => ""
+    () => "",
+    undefined,
+    undefined,
+    `/apps/${params.slug}/setup`
   );
   return {
     ...metadata,

@@ -126,36 +126,6 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
     await app.init();
   });
 
-  afterAll(async () => {
-    await prismaWriteService.prisma.app_RoutingForms_FormResponse.deleteMany({
-      where: {
-        formId: routingForm.id,
-      },
-    });
-    await prismaWriteService.prisma.app_RoutingForms_Form.deleteMany({
-      where: {
-        teamId: org.id,
-      },
-    });
-    await prismaWriteService.prisma.apiKey.deleteMany({
-      where: {
-        teamId: org.id,
-      },
-    });
-    await prismaWriteService.prisma.team.delete({
-      where: {
-        id: team.id,
-      },
-    });
-    await prismaWriteService.prisma.team.delete({
-      where: {
-        id: org.id,
-      },
-    });
-
-    await app.close();
-  });
-
   describe(`GET /v2/organizations/:orgId/routing-forms/:routingFormId/responses`, () => {
     it("should not get routing form responses for non existing org", async () => {
       return request(app.getHttpServer())
@@ -178,9 +148,12 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
     });
 
     it("should get routing form responses", async () => {
+      const createdAt = new Date(routingFormResponse.createdAt);
+      createdAt.setHours(createdAt.getHours() - 1);
+      const isoStringCreatedAt = createdAt.toISOString();
       return request(app.getHttpServer())
         .get(
-          `/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?skip=0&take=2&sortUpdatedAt=asc&sortCreatedAt=desc`
+          `/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?skip=0&take=2&sortUpdatedAt=asc&sortCreatedAt=desc&afterCreatedAt=${isoStringCreatedAt}`
         )
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .expect(200)
@@ -257,5 +230,45 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
           expect(data.response).toEqual(updatedResponse);
         });
     });
+  });
+
+  afterAll(async () => {
+    await prismaWriteService.prisma.app_RoutingForms_FormResponse.delete({
+      where: {
+        id: routingFormResponse.id,
+      },
+    });
+    await prismaWriteService.prisma.app_RoutingForms_FormResponse.delete({
+      where: {
+        id: routingFormResponse2.id,
+      },
+    });
+    await prismaWriteService.prisma.app_RoutingForms_Form.deleteMany({
+      where: {
+        teamId: org.id,
+      },
+    });
+    await prismaWriteService.prisma.apiKey.deleteMany({
+      where: {
+        teamId: org.id,
+      },
+    });
+    await prismaWriteService.prisma.team.delete({
+      where: {
+        id: team.id,
+      },
+    });
+    await prismaWriteService.prisma.team.delete({
+      where: {
+        id: org.id,
+      },
+    });
+    await prismaWriteService.prisma.user.delete({
+      where: {
+        id: user.id,
+      },
+    });
+
+    await app.close();
   });
 });
