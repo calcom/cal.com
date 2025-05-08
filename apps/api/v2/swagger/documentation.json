@@ -3321,6 +3321,16 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter booking references by type",
+            "example": "zoom",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -7525,6 +7535,16 @@
             "name": "bookingUid",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter booking references by type",
+            "example": "zoom",
             "schema": {
               "type": "string"
             }
@@ -15063,7 +15083,7 @@
               "eightxeight-video",
               "discord-video",
               "demodesk-video",
-              "campfire-video",
+              "campfire-video"
             ],
             "example": "cal-video"
           },
@@ -21743,7 +21763,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "number"
           },
           "formId": {
             "type": "string"
@@ -22296,7 +22316,7 @@
               "eightxeight-video",
               "discord-video",
               "demodesk-video",
-              "campfire-video",
+              "campfire-video"
             ]
           }
         },
