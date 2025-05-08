@@ -65,6 +65,7 @@ export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => 
       const userMembership = usersInOrganization.find((membership) => membership.userId === userId);
       const accepted = userMembership && userMembership.accepted;
       return {
+        createdAt: new Date(),
         userId,
         teamId,
         role: MembershipRole.MEMBER,

@@ -14,6 +14,8 @@ import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
 import { InputField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 import SingleForm, {
@@ -99,201 +101,217 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
   }
   return (
     <>
-      <div className="bg-default border-subtle rounded-md border p-8">
-        <div>
-          <Switch
-            labelOnLeading
-            label="Write to Salesforce contact/lead record"
-            checked={salesforceActionEnabled}
-            onCheckedChange={(checked) => {
-              setSalesforceActionEnabled(checked);
-            }}
-          />
-        </div>
-
-        {salesforceActionEnabled ? (
-          <>
-            <hr className="mt-4 border" />
-
-            {form.team && (
-              <>
-                <div className="mt-2">
-                  <p>Credential to use</p>
-                  <Select
-                    options={credentialOptions}
-                    value={selectedCredential}
-                    onChange={(option) => {
-                      if (!option) {
-                        return;
-                      }
-                      setSelectedCredential(option);
-                    }}
-                  />
-                </div>
-
-                <hr className="mt-4 border" />
-              </>
-            )}
-
-            <div className="mt-2">
-              <div className="grid grid-cols-5 gap-4">
-                <div>{t("field_name")}</div>
-                <div>{t("field_type")}</div>
-                <div>{t("value")}</div>
-                <div>{t("when_to_write")}</div>
+      <div className="bg-default border-subtle mt-4 rounded-2xl border px-4 py-2">
+        <>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-0.5">
+              <div className="border-subtle rounded-lg border p-1">
+                <Icon name="globe" className="text-subtle h-4 w-4" />
               </div>
-              <div>
-                {Object.keys(salesforceWriteToRecordObject).map((key) => {
-                  const action =
-                    salesforceWriteToRecordObject[key as keyof typeof salesforceWriteToRecordObject];
-                  return (
-                    <div className="mt-2 grid grid-cols-5 gap-4" key={key}>
-                      <div>
-                        <InputField value={key} readOnly />
-                      </div>
-                      <div>
-                        <Select
-                          value={fieldTypeOptions.find((option) => option.value === action.fieldType)}
-                          isDisabled={true}
-                        />
-                      </div>
-                      <div>
-                        <InputField value={action.value as string} readOnly />
-                      </div>
-                      <div>
-                        <Select
-                          value={whenToWriteToRecordOptions.find(
-                            (option) => option.value === action.whenToWrite
-                          )}
-                          isDisabled={true}
-                        />
-                      </div>
-                      <div>
-                        <Button
-                          StartIcon="trash"
-                          variant="icon"
-                          color="destructive"
-                          onClick={() => {
-                            const newActions = { ...salesforceWriteToRecordObject };
-                            delete newActions[key];
-                            setSalesforceWriteToRecordObject(newActions);
-                          }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-                <div className="mt-2 grid grid-cols-5 gap-4">
-                  <div>
-                    <InputField
-                      value={newSalesforceAction.field}
-                      onChange={(e) =>
-                        setNewSalesforceAction({
-                          ...newSalesforceAction,
-                          field: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Select
-                      options={fieldTypeOptions}
-                      value={selectedFieldType}
-                      onChange={(e) => {
-                        if (e) {
-                          setSelectedFieldType(e);
-                          setNewSalesforceAction({
-                            ...newSalesforceAction,
-                            fieldType: e.value,
-                          });
-                        }
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <InputField
-                      value={newSalesforceAction.value}
-                      onChange={(e) =>
-                        setNewSalesforceAction({
-                          ...newSalesforceAction,
-                          value: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Select
-                      options={whenToWriteToRecordOptions}
-                      value={selectedWhenToWrite}
-                      onChange={(e) => {
-                        if (e) {
-                          setSelectedWhenToWrite(e);
-                          setNewSalesforceAction({
-                            ...newSalesforceAction,
-                            whenToWrite: e.value,
-                          });
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
+              <div className="flex flex-col">
+                <span className="text-emphasis ml-2 text-sm font-medium">
+                  Write to Salesforce contact/lead record
+                </span>
               </div>
-              <Button
-                className="mt-2"
-                size="sm"
-                disabled={
-                  !(
-                    newSalesforceAction.field &&
-                    newSalesforceAction.fieldType &&
-                    newSalesforceAction.value &&
-                    newSalesforceAction.whenToWrite
-                  )
-                }
-                onClick={() => {
-                  if (Object.keys(salesforceWriteToRecordObject).includes(newSalesforceAction.field.trim())) {
-                    showToast("Field already exists", "error");
-                    return;
-                  }
-
-                  setSalesforceWriteToRecordObject({
-                    ...salesforceWriteToRecordObject,
-                    [newSalesforceAction.field]: {
-                      fieldType: newSalesforceAction.fieldType,
-                      value: newSalesforceAction.value,
-                      whenToWrite: newSalesforceAction.whenToWrite,
-                    },
-                  });
-
-                  setNewSalesforceAction({
-                    field: "",
-                    fieldType: selectedFieldType.value,
-                    value: "",
-                    whenToWrite: WhenToWriteToRecord.FIELD_EMPTY,
-                  });
-                }}>
-                {t("add_new_field")}
-              </Button>
             </div>
-          </>
-        ) : null}
-      </div>
-      <div className="mt-2 flex justify-end">
-        <Button
-          size="sm"
-          disabled={mutation.isPending}
-          onClick={() => {
-            mutation.mutate({
-              formId: form.id,
-              data: {
-                writeToRecordObject: salesforceWriteToRecordObject,
-              },
-              actionType: IncompleteBookingActionType.SALESFORCE,
-              enabled: salesforceActionEnabled,
-              credentialId: selectedCredential?.value ?? data?.credentials[0].id,
-            });
-          }}>
-          {t("save")}
-        </Button>
+            <Switch
+              size="sm"
+              checked={salesforceActionEnabled}
+              onCheckedChange={(checked) => {
+                setSalesforceActionEnabled(checked);
+              }}
+            />
+          </div>
+          {salesforceActionEnabled ? (
+            <div className="bg-muted mt-1 rounded-xl p-2">
+              {form.team && (
+                <>
+                  <div className="bg-default mt-2 rounded-xl px-2 py-2">
+                    <Label>Credential to use</Label>
+                    <Select
+                      size="sm"
+                      options={credentialOptions}
+                      value={selectedCredential}
+                      onChange={(option) => {
+                        if (!option) {
+                          return;
+                        }
+                        setSelectedCredential(option);
+                      }}
+                    />
+                  </div>
+                </>
+              )}
+
+              <div className="bg-default mt-2 rounded-xl px-2 py-2">
+                <div className="grid grid-cols-5 gap-4">
+                  <Label>{t("field_name")}</Label>
+                  <Label>{t("field_type")}</Label>
+                  <Label>{t("value")}</Label>
+                  <Label>{t("when_to_write")}</Label>
+                </div>
+                <div>
+                  {Object.keys(salesforceWriteToRecordObject).map((key) => {
+                    const action =
+                      salesforceWriteToRecordObject[key as keyof typeof salesforceWriteToRecordObject];
+                    return (
+                      <div
+                        className="mt-2 grid gap-4"
+                        style={{ gridTemplateColumns: "repeat(5, 1fr)" }}
+                        key={key}>
+                        <div className="w-full">
+                          <InputField value={key} readOnly />
+                        </div>
+                        <div className="w-full">
+                          <Select
+                            value={fieldTypeOptions.find((option) => option.value === action.fieldType)}
+                            isDisabled={true}
+                          />
+                        </div>
+                        <div className="w-full">
+                          <InputField value={action.value as string} readOnly />
+                        </div>
+                        <div className="w-full">
+                          <Select
+                            value={whenToWriteToRecordOptions.find(
+                              (option) => option.value === action.whenToWrite
+                            )}
+                            isDisabled={true}
+                          />
+                        </div>
+                        <div>
+                          <Button
+                            StartIcon="trash"
+                            variant="icon"
+                            color="destructive"
+                            onClick={() => {
+                              const newActions = { ...salesforceWriteToRecordObject };
+                              delete newActions[key];
+                              setSalesforceWriteToRecordObject(newActions);
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div className="mt-2 grid grid-cols-5 gap-4">
+                    <div>
+                      <InputField
+                        size="sm"
+                        value={newSalesforceAction.field}
+                        onChange={(e) =>
+                          setNewSalesforceAction({
+                            ...newSalesforceAction,
+                            field: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Select
+                        size="sm"
+                        options={fieldTypeOptions}
+                        value={selectedFieldType}
+                        onChange={(e) => {
+                          if (e) {
+                            setSelectedFieldType(e);
+                            setNewSalesforceAction({
+                              ...newSalesforceAction,
+                              fieldType: e.value,
+                            });
+                          }
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <InputField
+                        size="sm"
+                        value={newSalesforceAction.value}
+                        onChange={(e) =>
+                          setNewSalesforceAction({
+                            ...newSalesforceAction,
+                            value: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Select
+                        size="sm"
+                        options={whenToWriteToRecordOptions}
+                        value={selectedWhenToWrite}
+                        onChange={(e) => {
+                          if (e) {
+                            setSelectedWhenToWrite(e);
+                            setNewSalesforceAction({
+                              ...newSalesforceAction,
+                              whenToWrite: e.value,
+                            });
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  className="mt-2"
+                  size="sm"
+                  disabled={
+                    !(
+                      newSalesforceAction.field &&
+                      newSalesforceAction.fieldType &&
+                      newSalesforceAction.value &&
+                      newSalesforceAction.whenToWrite
+                    )
+                  }
+                  onClick={() => {
+                    if (
+                      Object.keys(salesforceWriteToRecordObject).includes(newSalesforceAction.field.trim())
+                    ) {
+                      showToast("Field already exists", "error");
+                      return;
+                    }
+
+                    setSalesforceWriteToRecordObject({
+                      ...salesforceWriteToRecordObject,
+                      [newSalesforceAction.field]: {
+                        fieldType: newSalesforceAction.fieldType,
+                        value: newSalesforceAction.value,
+                        whenToWrite: newSalesforceAction.whenToWrite,
+                      },
+                    });
+
+                    setNewSalesforceAction({
+                      field: "",
+                      fieldType: selectedFieldType.value,
+                      value: "",
+                      whenToWrite: WhenToWriteToRecord.FIELD_EMPTY,
+                    });
+                  }}>
+                  {t("add_new_field")}
+                </Button>
+              </div>
+            </div>
+          ) : null}
+          <div className="mt-2 flex justify-end">
+            <Button
+              size="sm"
+              disabled={mutation.isPending}
+              onClick={() => {
+                mutation.mutate({
+                  formId: form.id,
+                  data: {
+                    writeToRecordObject: salesforceWriteToRecordObject,
+                  },
+                  actionType: IncompleteBookingActionType.SALESFORCE,
+                  enabled: salesforceActionEnabled,
+                  credentialId: selectedCredential?.value ?? data?.credentials[0].id,
+                });
+              }}>
+              {t("save")}
+            </Button>
+          </div>
+        </>
       </div>
     </>
   );
