@@ -18,4 +18,5 @@ export type AppFlags = {
   "organizer-request-email-v2": boolean;
   "delegation-credential": boolean;
   "salesforce-crm-tasker": boolean;
+  "cal-video-log-in-overlay": boolean;
 };
