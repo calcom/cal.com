@@ -12,7 +12,6 @@ import {
 } from "@calcom/atoms/selected-calendars/wrappers/SelectedCalendarsSettingsWebWrapper";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
-import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -1003,8 +1002,7 @@ export const EventAdvancedTab = ({
             toggleSwitchAtTheEnd={true}
             switchContainerClassName={classNames(
               "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              customClassNames?.timezoneLock?.container,
-              formMethods.getValues("lockTimeZoneToggleOnBookingPage") && "rounded-b-none"
+              customClassNames?.timezoneLock?.container
             )}
             title={t("lock_timezone_toggle_on_booking_page")}
             {...lockTimeZoneToggleOnBookingPageLocked}
@@ -1012,31 +1010,7 @@ export const EventAdvancedTab = ({
             checked={value}
             onCheckedChange={(e) => onChange(e)}
             data-testid="lock-timezone-toggle"
-            childrenClassName="lg:ml-0">
-            <div className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
-              <div>
-                <Controller
-                  name="lockedTimeZone"
-                  control={formMethods.control}
-                  render={({ field: { value } }) => (
-                    <>
-                      <Label className="text-default mb-2 block text-sm font-medium">
-                        <>{t("timezone")}</>
-                      </Label>
-                      <TimezoneSelect
-                        id="lockedTimeZone"
-                        value={value}
-                        onChange={(event) => {
-                          if (event)
-                            formMethods.setValue("lockedTimeZone", event.value, { shouldDirty: true });
-                        }}
-                      />
-                    </>
-                  )}
-                />
-              </div>
-            </div>
-          </SettingsToggle>
+          />
         )}
       />
       <Controller

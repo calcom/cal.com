@@ -12,6 +12,7 @@ import { TRPCError } from "@trpc/server";
 
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
+import { MembershipRepository } from "./membership";
 import { LookupTarget, ProfileRepository } from "./profile";
 import type { UserWithLegacySelectedCalendars } from "./user";
 import { withSelectedCalendars } from "./user";
@@ -487,7 +488,6 @@ export class EventTypeRepository {
       periodEndDate: true,
       periodCountCalendarDays: true,
       lockTimeZoneToggleOnBookingPage: true,
-      lockedTimeZone: true,
       requiresConfirmation: true,
       requiresConfirmationForFreeEmail: true,
       canSendCalVideoTranscriptionEmails: true,
@@ -677,6 +677,9 @@ export class EventTypeRepository {
       useEventLevelSelectedCalendars: true,
     });
 
+    // This is more efficient than using a complex join with team.members in the query
+    const userTeamIds = await MembershipRepository.findUserTeamIds({ userId });
+
     return await prisma.eventType.findFirst({
       where: {
         AND: [
@@ -690,13 +693,7 @@ export class EventTypeRepository {
                 },
               },
               {
-                team: {
-                  members: {
-                    some: {
-                      userId: userId,
-                    },
-                  },
-                },
+                AND: [{ teamId: { not: null } }, { teamId: { in: userTeamIds } }],
               },
               {
                 userId: userId,
