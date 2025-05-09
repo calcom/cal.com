@@ -1,7 +1,6 @@
 import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import { acrossQueryValueCompatiblity } from "@calcom/lib/raqb/raqbUtils";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import { getUsersAttributes } from "@calcom/lib/service/attribute/server/getAttributes";
 import prisma from "@calcom/prisma";
 import { AssignmentReasonEnum } from "@calcom/prisma/enums";
@@ -108,21 +107,12 @@ export default class AssignmentReasonRecorder {
       }
     }
 
-    let reroutedByUserId: number | null = null;
-    if (isRerouting && reroutedByEmail) {
-      const userQuery = await UserRepository.findByEmail({ email: reroutedByEmail });
-
-      if (userQuery) {
-        reroutedByUserId = userQuery.id;
-      }
-    }
-
     await prisma.assignmentReason.create({
       data: {
         bookingId: bookingId,
         reasonEnum: isRerouting ? AssignmentReasonEnum.REROUTED : AssignmentReasonEnum.ROUTING_FORM_ROUTING,
         reasonString: `${
-          reroutedByUserId ? `Rerouted by user: ${reroutedByUserId}` : ""
+          isRerouting && reroutedByEmail ? `Rerouted by ${reroutedByEmail}` : ""
         } ${attributeValues.join(", ")}`,
       },
     });
