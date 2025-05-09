@@ -740,11 +740,26 @@ export async function scheduleBookingReminders(
           verifiedAt: step?.verifiedAt ?? null,
         });
       } else if (booking.smsReminderNumber) {
-        if (
-          step.action === WorkflowActions.SMS_ATTENDEE ||
-          step.action === WorkflowActions.WHATSAPP_ATTENDEE
-        ) {
+        if (step.action === WorkflowActions.SMS_ATTENDEE) {
           await scheduleSMSReminder({
+            evt: bookingInfo,
+            reminderPhone: booking.smsReminderNumber,
+            triggerEvent: trigger,
+            action: step.action,
+            timeSpan: {
+              time,
+              timeUnit,
+            },
+            message: step.reminderBody || "",
+            workflowStepId: step.id,
+            template: step.template,
+            sender: step.sender,
+            userId: userId,
+            teamId: teamId,
+            verifiedAt: step?.verifiedAt ?? null,
+          });
+        } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE) {
+          await scheduleWhatsappReminder({
             evt: bookingInfo,
             reminderPhone: booking.smsReminderNumber,
             triggerEvent: trigger,
