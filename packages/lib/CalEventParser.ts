@@ -43,8 +43,8 @@ export const getWho = (
   const attendees = attendeesFromCalEvent
     .map(
       (attendee) =>
-        `${attendee?.name || t("guest")}\n${
-          !isSmsCalEmail(attendee.email) ? attendee.email : attendee.phoneNumber
+        `${attendee?.name || t("guest")}${attendee.phoneNumber ? ` - ${attendee.phoneNumber}` : ""}\n${
+          !isSmsCalEmail(attendee.email) ? attendee.email : ""
         }`
     )
     .join("\n");

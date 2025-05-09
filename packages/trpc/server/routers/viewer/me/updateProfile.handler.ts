@@ -6,7 +6,7 @@ import type { GetServerSidePropsContext, NextApiResponse } from "next";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
-import { getFeatureFlag } from "@calcom/features/flags/server/utils";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -40,7 +40,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const billingService = new StripeBillingService();
   const userMetadata = handleUserMetadata({ ctx, input });
   const locale = input.locale || user.locale;
-  const emailVerification = await getFeatureFlag(prisma, "email-verification");
+  const featuresRepository = new FeaturesRepository();
+  const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   const { travelSchedules, ...rest } = input;
 
