@@ -48,6 +48,13 @@ enum CreationSource {
   WEBAPP @map("webapp")
 }
 
+enum IdentityProvider {
+  CAL
+  GOOGLE
+  SAML
+  AZUREAD
+}
+
 model Host {
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId           Int
@@ -224,12 +231,6 @@ model Credential {
   @@index([appId])
   @@index([subscriptionId])
   @@index([invalid])
-}
-
-enum IdentityProvider {
-  CAL
-  GOOGLE
-  SAML
 }
 
 model DestinationCalendar {
