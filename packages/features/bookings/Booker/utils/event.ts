@@ -130,7 +130,9 @@ export const useScheduleForEvent = ({
     orgSlug,
     teamMemberEmail,
     useApiV2: false,
-    enabled: !!scheduleUsingApiV2?.failureReason, // only run this query if the one using Api v2 fails
+    // only run this query if the one using Api v2 fails
+    // Network error does not trigger `isError` flag, so we are instead using `failureReason` here
+    enabled: !!scheduleUsingApiV2?.failureReason,
   });
   console.log("scheduleNotUsingApiV2", scheduleNotUsingApiV2);
 
