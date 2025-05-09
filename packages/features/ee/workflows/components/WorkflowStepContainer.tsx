@@ -485,7 +485,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setIsEmailSubjectNeeded(true);
                             }
 
-                            form.unregister(`steps.${step.stepNumber - 1}.sendTo`);
+                            form.setValue(`steps.${step.stepNumber - 1}.sendTo`, null);
                             form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
                             form.setValue(`steps.${step.stepNumber - 1}.action`, val.value);
                             setUpdateTemplate(!updateTemplate);
