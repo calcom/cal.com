@@ -35,7 +35,7 @@ function buildSlotsWithDateRanges({
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
 }) {
-  const isISTTimezone = timeZone === "Asia/Kolkata" || timeZone.includes("+5:30");
+  const isISTTimezone = timeZone === "Asia/Kolkata" || (timeZone && timeZone.includes("+5:30"));
 
   if (timeZone === "Asia/Kolkata" && frequency === 60 && dateRanges.length === 1) {
     const range = dateRanges[0];
@@ -156,7 +156,7 @@ function buildSlotsWithDateRanges({
   const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
   const orderedDateRanges = dateRanges.sort((a, b) => a.start.valueOf() - b.start.valueOf());
-  const isHalfHourTimezone = timeZone === "Asia/Kolkata" || timeZone.includes("+5:30");
+  const isHalfHourTimezone = timeZone === "Asia/Kolkata" || (timeZone && timeZone.includes("+5:30"));
 
   orderedDateRanges.forEach((range) => {
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
