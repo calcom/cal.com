@@ -1,12 +1,12 @@
 import type { NextRequest } from "next/server";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { CalendarSubscriptionRepository } from "@calcom/features/calendar-sync/calendarSubscription.repository";
 import { CalendarSubscriptionService } from "@calcom/features/calendar-sync/calendarSubscription.service";
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { prisma } from "@calcom/prisma";
 import type { CalendarSubscription } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["[cron/subscription-cron]"] });
@@ -20,6 +20,126 @@ const validateRequest = (req: NextRequest) => {
   }
 };
 
+/**
+ * Attempts to reuse an existing active provider subscription from SelectedCalendar
+ * Returns true if successfully reused, false if no existing subscription found
+ */
+const tryReuseExistingSubscription = async (
+  subscription: Pick<CalendarSubscription, "id" | "externalCalendarId" | "providerType">
+): Promise<boolean> => {
+  const existingSubscription = await CalendarSubscriptionService.findActiveProviderSubscription({
+    externalCalendarId: subscription.externalCalendarId,
+    integration: subscription.providerType,
+  });
+
+  if (existingSubscription?.fromSelectedCalendar) {
+    log.info(
+      `Found existing SelectedCalendar subscription for CalendarSubscription ${subscription.id}. Reusing it.`,
+      safeStringify({
+        selectedCalendarId: subscription.id,
+      })
+    );
+
+    // Use the service to activate the subscription from SelectedCalendar data
+    await CalendarSubscriptionService.activateSubscription({
+      subscriptionId: subscription.id,
+      providerDetails: existingSubscription.providerDetails,
+    });
+
+    log.debug(
+      `Successfully ACTIVATED CalendarSubscription ${subscription.id} using existing SelectedCalendar subscription`
+    );
+    return true;
+  }
+
+  return false;
+};
+
+/**
+ * Creates or renews a subscription with the third-party calendar provider
+ */
+const createOrRenewThirdPartySubscription = async (
+  subscription: Pick<CalendarSubscription, "id" | "credentialId" | "externalCalendarId" | "status">
+): Promise<void> => {
+  const isRenewal = subscription.status === "ACTIVE";
+  const logPrefix = isRenewal ? "RENEW" : "ACTIVATE";
+
+  const credentialForCalendarCache = await getCredentialForCalendarCache({
+    credentialId: subscription.credentialId,
+  });
+
+  log.debug(`Attempting to ${logPrefix} subscription for CalendarSubscription ${subscription.id}`);
+
+  // Create or renew the subscription with the provider (e.g., Google Calendar watch)
+  const calendarService = await getCalendar(credentialForCalendarCache);
+  if (!calendarService) {
+    log.error(
+      `Calendar service not found for CalendarSubscription ${subscription.id} (credential ${subscription.credentialId}, externalId ${subscription.externalCalendarId})`
+    );
+    throw new Error("CalendarService couldn't be initialized");
+  }
+
+  if (!calendarService.subscribeToCalendar) {
+    log.error(
+      `subscribeToCalendar is not implemented for CalendarSubscription ${subscription.id} (credential ${subscription.credentialId}, externalId ${subscription.externalCalendarId})`
+    );
+    throw new Error("subscribeToCalendar is not implemented");
+  }
+
+  const thirdPartySubscriptionResponse = await calendarService.subscribeToCalendar({
+    calendarId: subscription.externalCalendarId,
+  });
+
+  if (!thirdPartySubscriptionResponse || !thirdPartySubscriptionResponse.id) {
+    // Handle cases where watch creation didn't return expected data
+    log.warn(
+      `subscribeToCalendar did not return a valid response or ID for CalendarSubscription ${subscription.id}. Response:`,
+      safeStringify(thirdPartySubscriptionResponse)
+    );
+    throw new Error(
+      `Failed to ${logPrefix.toLowerCase()} subscription for CalendarSubscription ${
+        subscription.id
+      }: Invalid response from provider.`
+    );
+  }
+
+  // Update the subscription to ACTIVE using our service
+  await CalendarSubscriptionService.activateSubscription({
+    subscriptionId: subscription.id,
+    providerDetails: thirdPartySubscriptionResponse,
+  });
+
+  log.debug(
+    `Successfully ${isRenewal ? "RENEWED" : "ACTIVATED"} CalendarSubscription ${
+      subscription.id
+    } (Provider ID: ${thirdPartySubscriptionResponse.id})`
+  );
+};
+
+/**
+ * Processes a single calendar subscription
+ * Handles both new subscriptions and renewals
+ */
+const processSubscription = async (
+  subscription: Pick<
+    CalendarSubscription,
+    "id" | "credentialId" | "externalCalendarId" | "providerType" | "status"
+  >
+) => {
+  const isRenewal = subscription.status === "ACTIVE";
+
+  // For new subscriptions, check if there's an existing subscription in SelectedCalendar we can reuse
+  if (!isRenewal) {
+    const reused = await tryReuseExistingSubscription(subscription);
+    if (reused) {
+      return;
+    }
+  }
+
+  // If we can't reuse an existing subscription, create or renew one with the provider
+  await createOrRenewThirdPartySubscription(subscription);
+};
+
 export const GET = async (req: Request) => {
   try {
     validateRequest(req as NextRequest);
@@ -28,35 +148,17 @@ export const GET = async (req: Request) => {
     return new Response(JSON.stringify({ message: "Unauthorized" }), { status: 401 });
   }
 
-  let batchSuccess = 0;
-  let batchFailures = 0;
-  let processedCount = 0;
+  let successCount = 0;
+  let failureCount = 0;
+  const processedCount = 0;
 
   try {
-    // Fetch ONE batch of PENDING Subscriptions
-    const pendingSubscriptions: Pick<
-      CalendarSubscription,
-      "id" | "credentialId" | "externalCalendarId" | "providerType"
-    >[] = await prisma.calendarSubscription.findMany({
-      take: BATCH_SIZE,
-      where: {
-        status: "PENDING",
-      },
-      select: {
-        id: true,
-        credentialId: true,
-        externalCalendarId: true,
-        providerType: true,
-      },
-      orderBy: {
-        id: "asc", // Consistent ordering
-      },
+    const subscriptionsToProcess = await CalendarSubscriptionRepository.findManyRequiringRenewalOrActivation({
+      batchSize: BATCH_SIZE,
     });
 
-    processedCount = pendingSubscriptions.length;
-
-    if (processedCount === 0) {
-      log.info("No PENDING subscriptions found in this run.");
+    if (!subscriptionsToProcess.length) {
+      log.info("No subscriptions need processing in this run.");
       return new Response(
         JSON.stringify({
           message: "No records needed processing in this run.",
@@ -68,112 +170,46 @@ export const GET = async (req: Request) => {
       );
     }
 
-    log.info(`Found ${processedCount} PENDING subscriptions. Processing batch...`);
+    const pendingCount = subscriptionsToProcess.filter((sub) => sub.status === "PENDING").length;
+    const renewalCount = processedCount - pendingCount;
+
+    log.info(
+      `Found ${processedCount} subscriptions to process: ${pendingCount} new and ${renewalCount} renewals. Processing batch...`
+    );
 
     const results = await Promise.allSettled(
-      pendingSubscriptions.map(async (sub) => {
+      subscriptionsToProcess.map(async (subscription) => {
         try {
-          // First, check if there's already an existing subscription in SelectedCalendar we can reuse
-          const existingSubscription = await CalendarSubscriptionService.findExistingProviderSubscription({
-            externalCalendarId: sub.externalCalendarId,
-            integration: sub.providerType,
-          });
-
-          if (existingSubscription?.fromSelectedCalendar) {
-            log.info(
-              `Found existing SelectedCalendar subscription for CalendarSubscription ${sub.id}. Reusing it.`,
-              safeStringify({
-                selectedCalendarId: sub.id,
-              })
-            );
-
-            // Use the service to activate the subscription from SelectedCalendar data
-            await CalendarSubscriptionService.activateSubscription({
-              subscriptionId: sub.id,
-              providerDetails: existingSubscription.providerDetails,
-            });
-
-            log.debug(
-              `Successfully ACTIVATED CalendarSubscription ${sub.id} using existing SelectedCalendar subscription`
-            );
-            return;
-          }
-
-          const credentialForCalendarCache = await getCredentialForCalendarCache({
-            credentialId: sub.credentialId,
-          });
-
-          log.debug(`Attempting to CREATE provider subscription for CalendarSubscription ${sub.id}`);
-
-          // Create the actual subscription with the provider (e.g., Google Calendar watch)
-          const calendarService = await getCalendar(credentialForCalendarCache);
-          if (!calendarService) {
-            log.error(
-              `Calendar service not found for CalendarSubscription ${sub.id} (credential ${sub.credentialId}, externalId ${sub.externalCalendarId})`
-            );
-            throw new Error("CalendarService couldn't be initialized");
-          }
-
-          if (!calendarService.subscribeToCalendar) {
-            log.error(
-              `subscribeToCalendar is not implemented for CalendarSubscription ${sub.id} (credential ${sub.credentialId}, externalId ${sub.externalCalendarId})`
-            );
-            throw new Error("subscribeToCalendar is not implemented");
-          }
-
-          const thirdPartySubscriptionResponse = await calendarService.subscribeToCalendar({
-            calendarId: sub.externalCalendarId,
-          });
-
-          if (!thirdPartySubscriptionResponse || !thirdPartySubscriptionResponse.id) {
-            // Handle cases where watch creation didn't return expected data
-            log.warn(
-              `subscribeToCalendar did not return a valid response or ID for CalendarSubscription ${sub.id}. Response:`,
-              safeStringify(thirdPartySubscriptionResponse)
-            );
-            throw new Error(
-              `Failed to create provider subscription for CalendarSubscription ${sub.id}: Invalid response from provider.`
-            );
-          }
-
-          // Update the subscription to ACTIVE using our service
-          await CalendarSubscriptionService.activateSubscription({
-            subscriptionId: sub.id,
-            providerDetails: thirdPartySubscriptionResponse,
-          });
-
-          log.debug(
-            `Successfully ACTIVATED CalendarSubscription ${sub.id} (Provider ID: ${thirdPartySubscriptionResponse.id})`
-          );
+          // TODO: Bulk subscriptions should be done Google Calendar API supports it.
+          await processSubscription(subscription);
         } catch (error) {
           log.error(
-            `Error processing CalendarSubscription record ID ${sub.id} (credential ${sub.credentialId}, externalId ${sub.externalCalendarId}):`,
+            `Error processing CalendarSubscription record ID ${subscription.id} (credential ${subscription.credentialId}, externalId ${subscription.externalCalendarId}):`,
             safeStringify(error)
           );
-          // Let the status remain PENDING for retry on next run
           throw error; // Re-throw to mark the promise as rejected
         }
       })
     );
 
-    // Calculate results for this batch
-    batchSuccess = results.filter((r) => r.status === "fulfilled").length;
-    batchFailures = results.filter((r) => r.status === "rejected").length;
+    // Calculate results
+    successCount = results.filter((r) => r.status === "fulfilled").length;
+    failureCount = results.filter((r) => r.status === "rejected").length;
 
     log.info(
-      `Batch finished. Processed: ${processedCount}, Success: ${batchSuccess}, Failures: ${batchFailures}.`
+      `Batch finished. Processed: ${processedCount} (${pendingCount} new, ${renewalCount} renewals), Success: ${successCount}, Failures: ${failureCount}.`
     );
   } catch (error) {
-    log.error("Unhandled error during subscription activation batch processing:", safeStringify(error));
+    log.error("Unhandled error during subscription processing:", safeStringify(error));
     // If a major error occurs (e.g., DB connection), report it
-    batchFailures = processedCount - batchSuccess; // Estimate failures
+    failureCount = processedCount - successCount; // Estimate failures
     return new Response(
       JSON.stringify({
-        message: "Error during batch processing.",
+        message: "Error during subscription processing.",
         error: safeStringify(error),
         executedAt: new Date().toISOString(),
-        success: batchSuccess,
-        failures: batchFailures,
+        success: successCount,
+        failures: failureCount,
         processed: processedCount,
       }),
       { status: 500 }
@@ -181,15 +217,15 @@ export const GET = async (req: Request) => {
   }
 
   log.info(
-    `Completed cron run for subscription activation. Processed: ${processedCount}, Success: ${batchSuccess}, Failures: ${batchFailures}`
+    `Completed cron run. Processed: ${processedCount}, Success: ${successCount}, Failures: ${failureCount}`
   );
 
   return new Response(
     JSON.stringify({
-      message: "CalendarSubscription activation batch finished",
+      message: "CalendarSubscription processing finished",
       executedAt: new Date().toISOString(),
-      success: batchSuccess,
-      failures: batchFailures,
+      success: successCount,
+      failures: failureCount,
       processed: processedCount,
     })
   );

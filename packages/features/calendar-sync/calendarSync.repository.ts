@@ -38,4 +38,24 @@ export class CalendarSyncRepository {
       create: createData,
     });
   }
+
+  static async findManyRequiringSubscription({ batchSize }: { batchSize: number }) {
+    const requiringSubscriptions = await prisma.calendarSync.findMany({
+      take: batchSize,
+      where: {
+        subscriptionId: null, // Only fetch records without a subscription
+      },
+      select: {
+        id: true, // Need ID for update
+        credentialId: true,
+        externalCalendarId: true,
+        integration: true, // Needed for providerType
+      },
+      orderBy: {
+        id: "asc", // Consistent ordering ensures we process oldest first
+      },
+    });
+
+    return requiringSubscriptions;
+  }
 }

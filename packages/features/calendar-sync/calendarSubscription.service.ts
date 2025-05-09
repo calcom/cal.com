@@ -19,7 +19,7 @@ export class CalendarSubscriptionService {
    * Find an existing subscription from either CalendarSubscription or SelectedCalendar tables
    * Returns normalized subscription data regardless of source
    */
-  static async findExistingProviderSubscription({
+  static async findActiveProviderSubscription({
     externalCalendarId,
     integration,
   }: {
@@ -48,6 +48,7 @@ export class CalendarSubscriptionService {
     const existingSubscription = await prisma.calendarSubscription.findFirst({
       where: {
         externalCalendarId,
+        // We query for ACTIVE because only those would have have provider details set
         status: "ACTIVE",
         providerType: integration,
       },
@@ -266,53 +267,4 @@ export class CalendarSubscriptionService {
       data: { status: "INACTIVE" },
     });
   }
-
-  /**
-   * Find all calendars that are using a particular subscription
-   */
-  // static async findCalendarsUsingSubscription({
-  //   credentialId,
-  //   externalCalendarId,
-  //   integration,
-  //   excludeEventTypeIds = [],
-  // }: {
-  //   credentialId: number;
-  //   externalCalendarId: string;
-  //   integration: string;
-  //   excludeEventTypeIds?: number[];
-  // }) {
-  //   const [selectedCalendars, calendarSyncs] = await Promise.all([
-  //     prisma.selectedCalendar.findMany({
-  //       where: {
-  //         credentialId,
-  //         externalId: externalCalendarId,
-  //         integration,
-  //         googleChannelId: {
-  //           not: null,
-  //         },
-  //         eventTypeId:
-  //           excludeEventTypeIds.length > 0
-  //             ? {
-  //                 notIn: excludeEventTypeIds,
-  //               }
-  //             : undefined,
-  //       },
-  //     }),
-  //     prisma.calendarSync.findMany({
-  //       where: {
-  //         credentialId,
-  //         externalCalendarId,
-  //         integration,
-  //         subscription: {
-  //           status: "ACTIVE",
-  //         },
-  //       },
-  //       include: {
-  //         subscription: true,
-  //       },
-  //     }),
-  //   ]);
-
-  //   return { selectedCalendars, calendarSyncs };
-  // }
 }

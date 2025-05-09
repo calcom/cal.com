@@ -6,10 +6,10 @@ import type { NextRequest } from "next/server";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { prisma } from "@calcom/prisma";
 import type { CalendarSync } from "@calcom/prisma/client";
 
-import { CalendarSubscriptionService } from "./calendarSubscription.service";
+import { CalendarSubscriptionService } from "../calendarSubscription.service";
+import { CalendarSyncRepository } from "../calendarSync.repository";
 
 const log = logger.getSubLogger({ prefix: ["[cron/bi-directional-calendar-sync]"] });
 const BATCH_SIZE = 100; // Process up to 100 records per run
@@ -19,6 +19,82 @@ const validateRequest = (req: NextRequest) => {
   const apiKey = req.headers.get("authorization") || url.searchParams.get("apiKey");
   if (!apiKey || ![process.env.CRON_API_KEY, `Bearer ${process.env.CRON_SECRET}`].includes(apiKey)) {
     throw new HttpError({ statusCode: 401, message: "Unauthorized" });
+  }
+};
+
+/**
+ * Links an existing subscription to a CalendarSync record
+ */
+const linkExistingSubscription = async (
+  calendarSync: Pick<CalendarSync, "id" | "externalCalendarId" | "integration">
+): Promise<boolean> => {
+  const existingSubscription = await CalendarSubscriptionService.findbyExternalIdAndIntegration({
+    externalId: calendarSync.externalCalendarId,
+    integration: calendarSync.integration,
+  });
+
+  if (existingSubscription) {
+    // Link the existing subscription to the CalendarSync record
+    await CalendarSubscriptionService.linkCalendarSyncToSubscription({
+      calendarSyncId: calendarSync.id,
+      subscriptionId: existingSubscription.id,
+    });
+
+    log.debug(
+      `Linked existing CalendarSubscription ${existingSubscription.id} to CalendarSync ${calendarSync.id}`
+    );
+    return true;
+  }
+
+  return false;
+};
+
+/**
+ * Creates a new pending subscription and links it to a CalendarSync record
+ */
+const createAndLinkNewSubscription = async (
+  calendarSync: Pick<CalendarSync, "id" | "credentialId" | "externalCalendarId" | "integration">
+): Promise<void> => {
+  const newSubscription = await CalendarSubscriptionService.createPendingSubscription({
+    credentialId: calendarSync.credentialId,
+    externalCalendarId: calendarSync.externalCalendarId,
+    integration: calendarSync.integration,
+  });
+
+  // Link the new subscription to the CalendarSync record
+  await CalendarSubscriptionService.linkCalendarSyncToSubscription({
+    calendarSyncId: calendarSync.id,
+    subscriptionId: newSubscription.id,
+  });
+
+  log.debug(
+    `Created PENDING CalendarSubscription ${newSubscription.id} and linked to CalendarSync ${calendarSync.id}`
+  );
+};
+
+/**
+ * Process a single CalendarSync record
+ */
+const processCalendarSync = async (
+  calendarSync: Pick<CalendarSync, "id" | "credentialId" | "externalCalendarId" | "integration">
+): Promise<void> => {
+  // Ensure essential data exists
+  if (!calendarSync.credentialId || !calendarSync.externalCalendarId) {
+    log.warn(
+      `Skipping CalendarSync record ID ${calendarSync.id} due to missing credentialId or externalCalendarId:`,
+      safeStringify(calendarSync)
+    );
+    throw new Error(
+      `Missing credentialId or externalCalendarId in CalendarSync record ID ${calendarSync.id}`
+    );
+  }
+
+  // First try to find and link an existing subscription
+  const linkedExisting = await linkExistingSubscription(calendarSync);
+
+  // If no existing subscription was found, create a new one
+  if (!linkedExisting) {
+    await createAndLinkNewSubscription(calendarSync);
   }
 };
 
@@ -36,23 +112,8 @@ export const GET = async (req: Request) => {
 
   try {
     // Fetch ONE batch of CalendarSync records needing a subscription
-    const syncedCalendarsToProcess: Pick<
-      CalendarSync,
-      "id" | "credentialId" | "externalCalendarId" | "integration"
-    >[] = await prisma.calendarSync.findMany({
-      take: BATCH_SIZE,
-      where: {
-        subscriptionId: null, // Only fetch records without a subscription
-      },
-      select: {
-        id: true, // Need ID for update
-        credentialId: true,
-        externalCalendarId: true,
-        integration: true, // Needed for providerType
-      },
-      orderBy: {
-        id: "asc", // Consistent ordering ensures we process oldest first
-      },
+    const syncedCalendarsToProcess = await CalendarSyncRepository.findManyRequiringSubscription({
+      batchSize: BATCH_SIZE,
     });
 
     batchProcessed = syncedCalendarsToProcess.length;
@@ -77,51 +138,8 @@ export const GET = async (req: Request) => {
 
     const results = await Promise.allSettled(
       syncedCalendarsToProcess.map(async (syncedCal) => {
-        // Ensure essential data exists
-        if (!syncedCal.credentialId || !syncedCal.externalCalendarId) {
-          log.warn(
-            `Skipping CalendarSync record ID ${syncedCal.id} due to missing credentialId or externalCalendarId:`,
-            safeStringify(syncedCal)
-          );
-          // Throw error to mark as failed in Promise.allSettled
-          throw new Error(
-            `Missing credentialId or externalCalendarId in CalendarSync record ID ${syncedCal.id}`
-          );
-        }
-
         try {
-          const existingSubscription = await CalendarSubscriptionService.findbyExternalIdAndIntegration({
-            externalId: syncedCal.externalCalendarId,
-            integration: syncedCal.integration,
-          });
-
-          if (existingSubscription) {
-            // Link the new subscription to the CalendarSync record
-            await CalendarSubscriptionService.linkCalendarSyncToSubscription({
-              calendarSyncId: syncedCal.id,
-              subscriptionId: existingSubscription.id,
-            });
-
-            log.debug(
-              `Linked existing CalendarSubscription ${existingSubscription.id} to CalendarSync ${syncedCal.id}`
-            );
-          } else {
-            const newSubscription = await CalendarSubscriptionService.createPendingSubscription({
-              credentialId: syncedCal.credentialId,
-              externalCalendarId: syncedCal.externalCalendarId,
-              integration: syncedCal.integration,
-            });
-
-            // Link the new subscription to the CalendarSync record
-            await CalendarSubscriptionService.linkCalendarSyncToSubscription({
-              calendarSyncId: syncedCal.id,
-              subscriptionId: newSubscription.id,
-            });
-
-            log.debug(
-              `Created PENDING CalendarSubscription ${newSubscription.id} and linked to CalendarSync ${syncedCal.id}`
-            );
-          }
+          await processCalendarSync(syncedCal);
         } catch (error) {
           log.error(
             `Error processing CalendarSync record ID ${syncedCal.id} (credential ${syncedCal.credentialId}, externalId ${syncedCal.externalCalendarId}):`,
