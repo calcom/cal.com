@@ -464,6 +464,7 @@ const getSlots = ({
       "08:30:00",
       "09:30:00",
       "10:30:00",
+      "11:30:00",
     ];
 
     for (const slotTime of morningSlotTimes) {
