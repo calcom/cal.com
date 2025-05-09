@@ -6,6 +6,7 @@ import { test } from "../../lib/fixtures";
 import { applyFilter, createFilterSegment, selectSegment, deleteSegment } from "./filter-segment-helpers";
 
 test.describe.configure({ mode: "parallel" });
+test.use({ headless: true });
 
 test.afterEach(async ({ users, orgs }) => {
   await users.deleteAll();
