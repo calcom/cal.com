@@ -152,28 +152,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
 
-  if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
-    await handleSeatsEventTypeOnBooking(
-      eventType,
-      bookingInfo,
-      seatReferenceUid,
-      session?.user.id === eventType.userId
-    );
-  }
-
-  const payment = await prisma.payment.findFirst({
-    where: {
-      bookingId: bookingInfo.id,
-    },
-    select: {
-      success: true,
-      refunded: true,
-      currency: true,
-      amount: true,
-      paymentOption: true,
-    },
-  });
-
   const userId = session?.user?.id;
 
   const checkIfUserIsHost = (userId?: number | null) => {
@@ -193,6 +171,23 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   };
 
   const isLoggedInUserHost = checkIfUserIsHost(userId);
+
+  if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
+    await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, isLoggedInUserHost);
+  }
+
+  const payment = await prisma.payment.findFirst({
+    where: {
+      bookingId: bookingInfo.id,
+    },
+    select: {
+      success: true,
+      refunded: true,
+      currency: true,
+      amount: true,
+      paymentOption: true,
+    },
+  });
 
   if (!isLoggedInUserHost) {
     // Removing hidden fields from responses

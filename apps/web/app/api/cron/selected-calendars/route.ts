@@ -1,3 +1,8 @@
+/**
+ * @description This route is used to create SelectedCalendar records based on Credential records corresponding to Delegation Credentials
+ *
+ * It works in conjunction with `/api/cron/credentials` route(which creates the Credential records for all the members of an organization that has delegation credentials enabled)
+ */
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
