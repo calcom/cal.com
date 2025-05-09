@@ -40,7 +40,7 @@ export async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
-  const isSendgridEnabled = process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL;
+  const isSendgridEnabled = !!(process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL);
 
   if (isSendgridEnabled) {
     const remindersToDelete: { referenceId: string | null; id: number }[] = await getAllRemindersToDelete();
@@ -65,9 +65,7 @@ export async function handler(req: NextRequest) {
     });
 
     await Promise.allSettled(handlePastCancelledReminders);
-  }
 
-  if (isSendgridEnabled) {
     //cancel reminders for cancelled/rescheduled bookings that are scheduled within the next hour
     const remindersToCancel: { referenceId: string | null; id: number }[] = await getAllRemindersToCancel();
 

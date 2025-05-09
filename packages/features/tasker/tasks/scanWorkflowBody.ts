@@ -1,11 +1,8 @@
-import { AkismetClient } from "akismet-api";
-import type { Comment } from "akismet-api";
 import z from "zod";
 
 import { getTemplateBodyForAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import compareReminderBodyToTemplate from "@calcom/features/ee/workflows/lib/compareReminderBodyToTemplate";
 import { lockUser, LockReason } from "@calcom/lib/autoLock";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -20,8 +17,8 @@ export const scanWorkflowBodySchema = z.object({
 const log = logger.getSubLogger({ prefix: ["[tasker] scanWorkflowBody"] });
 
 export async function scanWorkflowBody(payload: string) {
-  if (!process.env.AKISMET_API_KEY) {
-    log.info("AKISMET_API_KEY not set, skipping scan");
+  if (!process.env.IFFY_API_KEY) {
+    log.info("IFFY_API_KEY not set, skipping scan");
     return;
   }
 
@@ -47,8 +44,6 @@ export async function scanWorkflowBody(payload: string) {
       },
     },
   });
-
-  const client = new AkismetClient({ key: process.env.AKISMET_API_KEY, blog: WEBAPP_URL });
 
   for (const workflowStep of workflowSteps) {
     if (!workflowStep.reminderBody) {
@@ -93,12 +88,7 @@ export async function scanWorkflowBody(payload: string) {
       continue;
     }
 
-    const comment: Comment = {
-      user_ip: "127.0.0.1",
-      content: workflowStep.reminderBody,
-    };
-
-    const isSpam = await client.checkSpam(comment);
+    const isSpam = await iffyScanBody(workflowStep.reminderBody, workflowStep.id);
 
     if (isSpam) {
       if (workflowStep.workflow.user?.whitelistWorkflows) {
@@ -160,3 +150,27 @@ export async function scanWorkflowBody(payload: string) {
     teamId: workflow.team?.id || null,
   });
 }
+
+const iffyScanBody = async (body: string, workflowStepId: number) => {
+  try {
+    const response = await fetch("https://api.iffy.com/api/v1/moderate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.IFFY_API_KEY}`,
+      },
+      body: JSON.stringify({
+        clientId: `Workflow step - ${workflowStepId}`,
+        name: "Workflow",
+        entity: "WorkflowBody",
+        content: body,
+        passthrough: true,
+      }),
+    });
+
+    const data = await response.json();
+    return data.flagged;
+  } catch (error) {
+    log.error(`Error scanning workflow body for workflow step ${workflowStepId}:`, error);
+  }
+};

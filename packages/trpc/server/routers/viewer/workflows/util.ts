@@ -704,6 +704,8 @@ export async function scheduleBookingReminders(
           sender: step.sender,
           workflowStepId: step.id,
           verifiedAt: step?.verifiedAt ?? null,
+          userId,
+          teamId,
         });
       } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
         await scheduleSMSReminder({
