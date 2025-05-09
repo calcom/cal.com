@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import generateIcsString from "@calcom/emails/lib/generateIcsString";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 import tasker from "@calcom/features/tasker";
 import { WEBSITE_URL } from "@calcom/lib/constants";
@@ -50,6 +51,8 @@ interface scheduleEmailReminderArgs extends ScheduleReminderArgs {
   evt: BookingInfo;
   sendTo: string[];
   action: ScheduleEmailReminderAction;
+  userId?: number | null;
+  teamId?: number | null;
   emailSubject?: string;
   emailBody?: string;
   hideBranding?: boolean;
@@ -75,6 +78,8 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     isMandatoryReminder,
     action,
     verifiedAt,
+    userId,
+    teamId,
   } = args;
 
   if (!verifiedAt) {
@@ -259,9 +264,17 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
 
   const mailData = await prepareEmailData();
 
-  const isSendgridEnabled = process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL;
+  const isSendgridEnabled = !!(process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL);
 
-  if (!isSendgridEnabled) {
+  const featureRepo = new FeaturesRepository();
+
+  const isWorkflowSmtpEmailsEnabled = teamId
+    ? await featureRepo.checkIfTeamHasFeature(teamId, "workflow-smtp-emails")
+    : userId
+    ? await featureRepo.checkIfUserHasFeature(userId, "workflow-smtp-emails")
+    : false;
+
+  if (isWorkflowSmtpEmailsEnabled || !isSendgridEnabled) {
     let reminderUid;
     if (scheduledDate) {
       const reminder = await prisma.workflowReminder.create({

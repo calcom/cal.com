@@ -1,4 +1,5 @@
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
+import { BookingReferencesFilterInput_2024_08_13 } from "@/ee/bookings/2024-08-13/inputs/booking-references-filter.input";
 import { BookingReferencesOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/booking-references.output";
 import { CalendarLinksOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
@@ -404,9 +405,14 @@ export class BookingsController_2024_08_13 {
   @HttpCode(HttpStatus.OK)
   async getBookingReferences(
     @Param("bookingUid") bookingUid: string,
-    @GetUser("id") userId: number
+    @GetUser("id") userId: number,
+    @Query() filter: BookingReferencesFilterInput_2024_08_13
   ): Promise<BookingReferencesOutput_2024_08_13> {
-    const bookingReferences = await this.bookingReferencesService.getBookingReferences(bookingUid, userId);
+    const bookingReferences = await this.bookingReferencesService.getBookingReferences(
+      bookingUid,
+      userId,
+      filter
+    );
 
     return {
       status: SUCCESS_STATUS,
