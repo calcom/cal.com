@@ -47,7 +47,12 @@ function buildSlotsWithDateRanges({
       range.end.minute() === 30
     ) {
       const slotTime = dayjs.tz("2023-07-13T08:00:00", "Asia/Kolkata");
-      return [{ time: slotTime }];
+      return [
+        {
+          time: slotTime,
+          away: false,
+        },
+      ];
     }
   }
 
