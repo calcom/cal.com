@@ -1,6 +1,4 @@
 require("dotenv").config({ path: "../../.env" });
-const CopyWebpackPlugin = require("copy-webpack-plugin");
-const os = require("os");
 const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
 const { version } = require("./package.json");
@@ -238,23 +236,9 @@ const nextConfig = {
     }
 
     config.plugins.push(
-      new CopyWebpackPlugin({
-        patterns: [
-          {
-            from: "../../packages/app-store/**/static/**",
-            to({ context, absoluteFilename }) {
-              // Adds compatibility for windows path
-              if (os.platform() === "win32") {
-                const absoluteFilenameWin = absoluteFilename.replaceAll("\\", "/");
-                const contextWin = context.replaceAll("\\", "/");
-                const appName = /app-store\/(.*)\/static/.exec(absoluteFilenameWin);
-                return Promise.resolve(`${contextWin}/public/app-store/${appName[1]}/[name][ext]`);
-              }
-              const appName = /app-store\/(.*)\/static/.exec(absoluteFilename);
-              return Promise.resolve(`${context}/public/app-store/${appName[1]}/[name][ext]`);
-            },
-          },
-        ],
+      new webpack.DefinePlugin({
+        __SENTRY_DEBUG__: false,
+        __SENTRY_TRACING__: false,
       })
     );
 
