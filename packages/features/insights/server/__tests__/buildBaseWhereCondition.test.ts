@@ -84,7 +84,7 @@ describe("buildBaseWhereCondition", () => {
       expect(result.whereCondition).toEqual({
         OR: [
           {
-            teamId: 100,
+            teamId: { in: [100] },
             isTeamBooking: true,
           },
         ],

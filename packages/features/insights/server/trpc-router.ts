@@ -83,54 +83,48 @@ export const buildBaseWhereCondition = async ({
       },
     });
 
-    if (teamsFromOrg.length === 0) {
-      // For empty teams, add organization condition
-      conditions.push({
-        OR: [
-          {
-            teamId: ctx.userOrganizationId,
-            isTeamBooking: true,
-          },
-        ],
-      });
-    } else {
-      const teamConditional = {
-        id: {
-          in: [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)],
-        },
-      };
-      const usersFromOrg = await ctx.insightsDb.membership.findMany({
-        where: {
-          team: teamConditional,
-          accepted: true,
-        },
-        select: {
-          userId: true,
-        },
-      });
-      const userIdsFromOrg = usersFromOrg.map((u) => u.userId);
+    const teamIds = [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)];
+    const usersFromOrg =
+      teamsFromOrg.length > 0
+        ? await ctx.insightsDb.membership.findMany({
+            where: {
+              team: {
+                id: {
+                  in: teamIds,
+                },
+              },
+              accepted: true,
+            },
+            select: {
+              userId: true,
+            },
+          })
+        : [];
 
-      conditions.push({
-        OR: [
-          {
-            teamId: {
-              in: [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)],
-            },
-            isTeamBooking: true,
+    conditions.push({
+      OR: [
+        {
+          teamId: {
+            in: teamIds,
           },
-          {
-            userId: {
-              in: userIdsFromOrg,
-            },
-            isTeamBooking: false,
-          },
-        ],
-      });
-    }
+          isTeamBooking: true,
+        },
+        ...(usersFromOrg.length > 0
+          ? [
+              {
+                userId: {
+                  in: usersFromOrg.map((u) => u.userId),
+                },
+                isTeamBooking: false,
+              },
+            ]
+          : []),
+      ],
+    });
   }
 
   // Team-specific queries condition
-  if (teamId && !isAll) {
+  if (!isAll && teamId) {
     const usersFromTeam = await ctx.insightsDb.membership.findMany({
       where: {
         teamId: teamId,
