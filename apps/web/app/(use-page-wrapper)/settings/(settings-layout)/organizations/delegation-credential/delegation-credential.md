@@ -2,22 +2,29 @@
 
 ## Setting up Delegation Credential for Google Calendar API
 
-Step 1: Create a Google Cloud Project
+Step 0: Create a Workspace Platform(to be done once for the Cal.com instance, by the Cal.com instance admin)
+
+- Create a Workspace Platform through admin interface at <https://app.cal.com/settings/admin/workspace-platforms>
+  - Use slug="google". Slug has to be exactly this. This is how we know we need to use Google Calendar and Google Meet.
+  - Use "Google" as the name of the workspace platform. Change it as per your liking.
+  - Optionally provide description for the workspace platform.
+
+Step 1: Create a Google Cloud Project or use existing one(to be done once for the Cal.com instance)
 
 Before you can create a service account, you'll need to set up a Google Cloud project.
 
  1. Create a Google Cloud Project:
-        - Go to the Google Cloud Console
-        - Select Create Project
-        - Give your project a name and select your billing account (if applicable)
-        - Click Create
+     1. Go to the Google Cloud Console
+     2. Select Create Project
+     3. Give your project a name and select your billing account (if applicable)
+     4. Click Create
  2. Enable the Google Calendar API:
      1. Go to the Google Cloud Console
      2. Select API & Services → Library
      3. Search for "Google Calendar API"
      4. Click Enable
 
-Step 2: Create a Service Account
+Step 2: Create a Service Account in Google Cloud Console(to be done for every organization)
 
 A service account is needed to act on behalf of users
 
@@ -26,21 +33,38 @@ A service account is needed to act on behalf of users
  2. Create a New Service Account:
     - Click on Create Service Account
     - Give your service account a name and description
-    - Click Create and Continue
+    - Click Create and Continue(Optional steps can be skipped)
+ 3. Download the Service Account Key JSON file
 
-Step 3: To Be taken by Cal.com instance admin:
+Step 3: Create Delegation Credential(To Be taken by Cal.com instance admin):
 
-- Create a Workspace Platform with slug="google". Slug has to be exactly this. This is how we know we need to use Google Calendar and Google Meet.
+- Impersonate the organization owner and go to https://app.cal.com/settings/organizations/delegation-credential to create a Delegation Credential
 
-Last Step (To Be Taken By Cal.com organization Owner/Admin): Assign Specific API Permissions via OAuth Scopes:
-    - Create Delegation Credential with workspace platform "google"
-      - User must be a member of the Google Workspace to be able to enable Delegation Credential as there is a validation if the user's calendar can be accessed through the service account
-    - Get the Client ID from there
-    - Go to your Google Admin Console (admin-google-com)
-    - Navigate to Security → Access and Data Controls -> API controls -> Manage Domain-Wide Delegation
-    - Here, you'll authorize the Client ID(Unique ID) to access the Google Calendar API
-    - Add the necessary API scopes for Google Calendar(Full access to Google Calendar)
-        <https://www.googleapis.com/auth/calendar>
+  - Use domain as "acme.com" if @acme.com is the email address for your Google Workspace
+  - Choose Workspace Platform as "Google"
+  - Add Service Account Key JSON file(obtained in Step 2)
+  - Click on "Create" button
+
+Step 4: Copy the Client ID and OAuth Scope (To Be Taken By Cal.com organization Owner/Admin in Cal.com):
+
+- Go to https://app.cal.com/settings/organizations/delegation-credential
+  - Copy the Client ID for your Google Workspace domain(e.g. acme.com)
+    - Client ID is a number like 123456789012345678901 that
+
+Step 5: Add Client ID under Domain-Wide Delegation (To Be taken By Google Workspace Admin):
+
+- Go to your Google Admin Console(admin.google.com)
+  - Navigate to Security → Access and Data Controls -> API controls -> Manage Domain-Wide Delegation
+  - Here, you'll authorize the Client ID to access the Google Calendar API
+  - Add the following API scope for Google Calendar(Full access to Google Calendar. We use it to read freebusy time and create/update events in the members' calendars)
+    - `https://www.googleapis.com/auth/calendar`
+
+Step 6: Enable Delegation Credential(To Be taken By Cal.com organization Owner/Admin in Cal.com):
+
+- Prerequisite: The owner/admin must be part of the Google Workspace to enable Delegation Credential
+- Go to https://app.cal.com/settings/organizations/delegation-credential
+  - Enable Delegation Credential
+    - If you have added the Client ID for correct Google Workspace, the Delegation Credential would be enabled, otherwise you would see an error message, that should help and contact support if you still face issues.
 
 ## Onboarding Improvements
 
