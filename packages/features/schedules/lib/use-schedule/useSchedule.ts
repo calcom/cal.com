@@ -25,6 +25,8 @@ export type UseScheduleWithCacheArgs = {
   isTeamEvent?: boolean;
   orgSlug?: string;
   teamMemberEmail?: string | null;
+  useApiV2?: boolean;
+  enabled?: boolean;
 };
 
 export const useSchedule = ({
@@ -42,6 +44,8 @@ export const useSchedule = ({
   isTeamEvent,
   orgSlug,
   teamMemberEmail,
+  useApiV2 = false,
+  enabled: enabledProp = true,
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
 
@@ -113,19 +117,21 @@ export const useSchedule = ({
       Boolean(month) &&
       Boolean(timezone) &&
       // Should only wait for one or the other, not both.
-      (Boolean(eventSlug) || Boolean(eventId) || eventId === 0),
+      (Boolean(eventSlug) || Boolean(eventId) || eventId === 0) &&
+      enabledProp,
   };
 
+  const isCallingApiV2Slots = useApiV2 && Boolean(isTeamEvent) && options.enabled;
   const teamSchedule = useApiV2AvailableSlots({
     ...input,
-    enabled: Boolean(isTeamEvent) && options.enabled,
+    enabled: isCallingApiV2Slots,
     duration: input.duration ? Number(input.duration) : undefined,
     routedTeamMemberIds: input.routedTeamMemberIds ?? undefined,
     teamMemberEmail: input.teamMemberEmail ?? undefined,
     eventTypeId: eventId ?? undefined,
   });
 
-  if (isTeamEvent) {
+  if (isCallingApiV2Slots) {
     updateEmbedBookerState({
       bookerState,
       slotsQuery: teamSchedule,
@@ -141,7 +147,9 @@ export const useSchedule = ({
     };
   }
 
-  const schedule = trpc.viewer.slots.getSchedule.useQuery(input, options);
+  const schedule = isTeamEvent
+    ? trpc.viewer.highPerf.getTeamSchedule.useQuery(input, options)
+    : trpc.viewer.slots.getSchedule.useQuery(input, options);
 
   updateEmbedBookerState({
     bookerState,
