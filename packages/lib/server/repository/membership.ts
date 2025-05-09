@@ -305,6 +305,9 @@ export class MembershipRepository {
           in: [MembershipRole.ADMIN, MembershipRole.OWNER],
         },
       },
+      select: {
+        id: true,
+      },
     });
   }
   static async findAllAcceptedMemberships(userId: number) {
