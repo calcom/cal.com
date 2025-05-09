@@ -28,6 +28,7 @@ export const useApiV2AvailableSlots = ({
       rest.skipContactOwner,
       rest._shouldServeCache,
       rest.teamMemberEmail,
+      rest.embedConnectVersion ?? false,
     ],
     queryFn: () => {
       return axios
