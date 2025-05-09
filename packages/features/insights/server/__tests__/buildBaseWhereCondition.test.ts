@@ -1,5 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
+import type { readonlyPrisma } from "@calcom/prisma";
+
 import { buildBaseWhereCondition } from "../trpc-router";
 
 const mockTeamFindMany = vi.fn();
@@ -12,7 +14,7 @@ const mockInsightsDb = {
   membership: {
     findMany: mockMembershipFindMany,
   },
-};
+} as unknown as typeof readonlyPrisma;
 
 const createMockContext = (overrides = {}) => ({
   userIsOwnerAdminOfParentTeam: false,
@@ -66,7 +68,7 @@ describe("buildBaseWhereCondition", () => {
   });
 
   describe("Organization-wide queries", () => {
-    it("should return isEmptyResponse when no teams found in organization", async () => {
+    it("should return appropriate where condition when no teams found in organization", async () => {
       mockTeamFindMany.mockResolvedValue([]);
 
       const ctx = createMockContext({
@@ -79,7 +81,6 @@ describe("buildBaseWhereCondition", () => {
         ctx,
       });
 
-      expect(result.isEmptyResponse).toBe(true);
       expect(result.whereCondition).toEqual({
         OR: [
           {
@@ -213,7 +214,6 @@ describe("buildBaseWhereCondition", () => {
       });
 
       expect(result.whereCondition).toEqual({ id: -1 });
-      expect(result.isEmptyResponse).toBeUndefined();
     });
 
     it("should handle null teamId with restrictive where condition", async () => {
@@ -225,7 +225,6 @@ describe("buildBaseWhereCondition", () => {
       });
 
       expect(result.whereCondition).toEqual({ id: -1 });
-      expect(result.isEmptyResponse).toBeUndefined();
     });
 
     it("should handle empty team members with proper team condition", async () => {
