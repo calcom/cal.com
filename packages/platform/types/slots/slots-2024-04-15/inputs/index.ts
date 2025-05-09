@@ -167,6 +167,12 @@ export class GetAvailableSlotsInput_2024_04_15 {
   @IsOptional()
   @ApiHideProperty()
   isTeamEvent?: boolean;
+
+  @Transform(({ value }: { value: string }) => value && parseInt(value))
+  @IsNumber()
+  @IsOptional()
+  @ApiHideProperty()
+  teamId?: number;
 }
 
 export class RemoveSelectedSlotInput_2024_04_15 {
