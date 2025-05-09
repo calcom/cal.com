@@ -1,6 +1,6 @@
 import { useId } from "react";
 
-import { Badge } from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
 
 import type { RoutingFormTableRow } from "../lib/types";
 import { CellWithOverflowX } from "./CellWithOverflowX";

@@ -3,15 +3,28 @@ import type { Prisma } from "@prisma/client";
 
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { MeetLocationType } from "@calcom/app-store/locations";
-import EventManager from "@calcom/core/EventManager";
-import type { EventManagerInitParams } from "@calcom/core/EventManager";
+import { getAllCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
+import type { EventType } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getVideoCallDetails } from "@calcom/features/bookings/lib/handleNewBooking/getVideoCallDetails";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import EventManager from "@calcom/lib/EventManager";
+import type { EventManagerInitParams } from "@calcom/lib/EventManager";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import { prisma } from "@calcom/prisma";
 import type { CalendarEvent, AdditionalInformation } from "@calcom/types/Calendar";
+
+type InitParams = {
+  user: {
+    id: number;
+    name: string | null;
+    email: string;
+    username: string | null;
+  } & EventManagerInitParams["user"];
+  eventTypeAppMetadata?: EventManagerInitParams["eventTypeAppMetadata"];
+  eventType: EventType;
+};
 
 export const handleRescheduleEventManager = async ({
   evt,
@@ -30,7 +43,7 @@ export const handleRescheduleEventManager = async ({
   newBookingId?: number;
   changedOrganizer?: boolean;
   previousHostDestinationCalendar?: DestinationCalendar[] | null;
-  initParams: EventManagerInitParams;
+  initParams: InitParams;
   bookingLocation: string | null;
   bookingId: number;
   bookingICalUID?: string | null;
@@ -40,7 +53,12 @@ export const handleRescheduleEventManager = async ({
     prefix: ["handleRescheduleEventManager", `${bookingId}`],
   });
 
-  const eventManager = new EventManager(initParams.user, initParams?.eventTypeAppMetadata);
+  const allCredentials = await getAllCredentials(initParams.user, initParams?.eventType);
+
+  const eventManager = new EventManager(
+    { ...initParams.user, credentials: allCredentials },
+    initParams?.eventTypeAppMetadata
+  );
 
   const updateManager = await eventManager.reschedule(
     evt,

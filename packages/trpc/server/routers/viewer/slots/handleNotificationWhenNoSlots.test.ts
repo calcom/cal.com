@@ -19,12 +19,11 @@ vi.mock("@calcom/features/redis/RedisService", () => {
   };
 });
 
-vi.mock("@calcom/features/flags/server/utils", () => {
-  // Mock kill switch to be false
-  return {
-    getFeatureFlag: vi.fn().mockResolvedValue(false),
-  };
-});
+vi.mock("@calcom/features/flags/features.repository", () => ({
+  FeaturesRepository: vi.fn().mockImplementation(() => ({
+    checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
+  })),
+}));
 
 vi.spyOn(CalcomEmails, "sendOrganizationAdminNoSlotsNotification");
 
@@ -46,10 +45,10 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
       },
     ]);
 
-    // @ts-expect-error FIXME - also type error in bookingScenario
     i18nMock.getTranslation.mockImplementation(() => {
       return new Promise((resolve) => {
         const identityFn = (key: string) => key;
+        // @ts-expect-error Target allows only 1 element(s) but source may have more.
         resolve(identityFn);
       });
     });

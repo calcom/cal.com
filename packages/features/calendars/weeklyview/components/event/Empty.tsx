@@ -3,7 +3,7 @@ import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 import { OutOfOfficeInSlots } from "../../../../bookings/Booker/components/OutOfOfficeInSlots";
 import { useBookerTime } from "../../../../bookings/Booker/components/hooks/useBookerTime";

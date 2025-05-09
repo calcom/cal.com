@@ -3,22 +3,26 @@ const { nextJsOrgRewriteConfig } = require("./getNextjsOrgRewriteConfig");
 /** Needed to rewrite public booking page, gets all static pages but [user] */
 // Pages found here are excluded from redirects in beforeFiles in next.config.js
 let pages = (exports.pages = glob
-  .sync("{pages,app,app/(use-page-wrapper),app/(use-page-wrapper)/(main-nav)}/**/[^_]*.{tsx,js,ts}", {
-    cwd: __dirname,
-  })
+  .sync(
+    "{pages,app,app/(booking-page-wrapper),app/(use-page-wrapper),app/(use-page-wrapper)/(main-nav)}/**/[^_]*.{tsx,js,ts}",
+    {
+      cwd: __dirname,
+    }
+  )
   .map((filename) =>
     filename
-      .replace(/^(app\/\(use-page-wrapper\)\/\(main-nav\)|app\/\(use-page-wrapper\)|pages|app)\//, "")
+      .replace(
+        /^(app\/\(use-page-wrapper\)\/\(main-nav\)|app\/\(use-page-wrapper\)|app\/\(booking-page-wrapper\)|pages|app)\//,
+        ""
+      )
       .replace(/(\.tsx|\.js|\.ts)/, "")
       .replace(/\/.*/, "")
   )
-  // "/future" is a temporary directory for incremental migration to App Router
   .filter(
     (v, i, self) =>
       self.indexOf(v) === i &&
       ![
         "[user]",
-        "future",
         "_trpc",
         "layout",
         "layoutHOC",
@@ -48,15 +52,22 @@ function getRegExpMatchingAllReservedRoutes(suffix) {
   // Following routes don't exist but they work by doing rewrite. Thus they need to be excluded from matching the orgRewrite patterns
   // Make sure to keep it upto date as more nonExistingRouteRewrites are added.
   const otherNonExistingRoutePrefixes = ["forms", "router", "success", "cancel"];
+  // Most files/dirs in public dir must not be rewritten to org pages. Ideally it should be all the content of public dir, but that can be done later
+  // It is important to exclude the embed pages separately here because with SINGLE_ORG_SLUG enabled, the entire domain is eligible for rewrite vs just the org subdomain otherwise
+  const staticAssets = ["embed"];
+  // FIXME: I am not sure why public is needed here, an asset 'test' in public isn't accessible through "/public/test" but only through "/test"
+  // We should infact scan through all files in public and exclude them instead.
   const nextJsSpecialPaths = ["_next", "public"];
 
-  let beforeRewriteExcludePages = pages.concat(otherNonExistingRoutePrefixes).concat(nextJsSpecialPaths);
+  let beforeRewriteExcludePages = pages
+    .concat(otherNonExistingRoutePrefixes)
+    .concat(nextJsSpecialPaths)
+    .concat(staticAssets);
   return beforeRewriteExcludePages.join(`${suffix}|`) + suffix;
 }
 
 // To handle /something
 exports.orgUserRoutePath = `/:user((?!${getRegExpMatchingAllReservedRoutes("/?$")})[a-zA-Z0-9\-_]+)`;
-
 // To handle /something/somethingelse
 exports.orgUserTypeRoutePath = `/:user((?!${getRegExpMatchingAllReservedRoutes(
   "/"

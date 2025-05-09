@@ -3,21 +3,18 @@
 import type { ChangeEventHandler } from "react";
 import { useState } from "react";
 
-import { classNames } from "@calcom/lib";
+import { AllApps } from "@calcom/features/apps/components/AllApps";
+import { AppStoreCategories } from "@calcom/features/apps/components/Categories";
+import { PopularAppsSlider } from "@calcom/features/apps/components/PopularAppsSlider";
+import { RecentAppsSlider } from "@calcom/features/apps/components/RecentAppsSlider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import type { HorizontalTabItemProps } from "@calcom/ui";
-import {
-  AllApps,
-  AppStoreCategories,
-  HorizontalTabs,
-  TextField,
-  PopularAppsSlider,
-  RecentAppsSlider,
-} from "@calcom/ui";
-import { Icon } from "@calcom/ui";
-
-import { type getServerSideProps } from "@lib/apps/getServerSideProps";
+import type { AppCategories } from "@calcom/prisma/enums";
+import type { AppFrontendPayload } from "@calcom/types/App";
+import classNames from "@calcom/ui/classNames";
+import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
+import { HorizontalTabs } from "@calcom/ui/components/navigation";
 
 import AppsLayout from "@components/apps/layouts/AppsLayout";
 
@@ -53,15 +50,24 @@ function AppsSearch({
   );
 }
 
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
+export type PageProps = {
+  categories: {
+    name: AppCategories;
+    count: number;
+  }[];
+  appStore: AppFrontendPayload[];
+  userAdminTeams: number[];
+  isAdmin: boolean;
+};
 
-export default function Apps({ categories, appStore, userAdminTeams }: PageProps) {
+export default function Apps({ isAdmin, categories, appStore, userAdminTeams }: PageProps) {
   const { t } = useLocale();
   const [searchText, setSearchText] = useState<string | undefined>(undefined);
 
   return (
     <AppsLayout
       isPublic
+      isAdmin={isAdmin}
       heading={t("app_store")}
       subtitle={t("app_store_description")}
       actions={(className) => (

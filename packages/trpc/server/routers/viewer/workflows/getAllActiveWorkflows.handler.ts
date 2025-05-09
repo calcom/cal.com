@@ -1,6 +1,6 @@
 import { isTeamMember } from "@calcom/lib/server/queries";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 

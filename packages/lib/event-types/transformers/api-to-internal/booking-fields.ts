@@ -147,6 +147,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
       placeholder: field.placeholder,
       disableOnPrefill: !!field.disableOnPrefill,
       required: field.required,
+      hidden: !!field.hidden,
     };
   }
 
@@ -199,6 +200,28 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
       name: field.slug,
       type: field.type,
       label: field.label,
+      labelAsSafeHtml: `<p>${field.label}</p>\n`,
+      sources: [
+        {
+          id: "user",
+          type: "user",
+          label: "User",
+          fieldRequired: true,
+        },
+      ],
+      editable: "user",
+      required: !!field.required,
+      disableOnPrefill: !!field.disableOnPrefill,
+      hidden: !!field.hidden,
+    };
+  }
+
+  if (field.type === "url") {
+    return {
+      name: field.slug,
+      type: field.type,
+      label: field.label,
+      placeholder: "placeholder" in field ? field.placeholder : "",
       labelAsSafeHtml: `<p>${field.label}</p>\n`,
       sources: [
         {
@@ -268,7 +291,9 @@ function fieldIsCustomSystemRescheduleReason(
 }
 
 function fieldIsDefaultAttendeePhone(field: InputBookingField): field is PhoneDefaultFieldOutput_2024_06_14 {
-  return "slug" in field && field.slug === "attendeePhoneNumber";
+  const isPhone = "type" in field && field.type === "phone";
+  const isAttendeePhoneNumber = "slug" in field && field.slug === "attendeePhoneNumber";
+  return isPhone && isAttendeePhoneNumber;
 }
 
 function fieldIsDefaultSystemLocation(

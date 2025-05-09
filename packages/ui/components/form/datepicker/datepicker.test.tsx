@@ -1,44 +1,63 @@
-/* eslint-disable playwright/missing-playwright-await */
 import { render, fireEvent } from "@testing-library/react";
 import { format } from "date-fns";
 import { vi } from "vitest";
 
 import DatePicker from "./DatePicker";
 
-describe("Tests for DatePicker component", () => {
-  const date = new Date("2023-07-15");
+const onChangeMock = vi.fn();
 
-  test("Should display the selected date correctly and call the onDatesChange callback when the selected date changes", () => {
-    const mockOnDatesChange = vi.fn((changedDate: Date) => format(new Date(changedDate), "yyyy-MM-dd"));
-    const { container } = render(<DatePicker date={date} onDatesChange={mockOnDatesChange} />);
+describe("Tests for DatePicker Component", () => {
+  const testDate = new Date("2024-02-20");
 
-    const day = container.querySelector('input[name="day"]') as HTMLInputElement;
-    const dayEvent = { target: { value: "27" } };
+  test("Should render correctly with default date", () => {
+    const testDate = new Date("2024-02-20");
+    const { getByTestId } = render(<DatePicker date={testDate} />);
 
-    const month = container.querySelector('input[name="month"]') as HTMLInputElement;
-    const monthEvent = { target: { value: "06" } };
-
-    const year = container.querySelector('input[name="year"]') as HTMLInputElement;
-    const yearEvent = { target: { value: "2022" } };
-
-    fireEvent.change(day, dayEvent);
-    expect(mockOnDatesChange).toHaveReturnedWith("2023-07-27");
-
-    fireEvent.change(month, monthEvent);
-    expect(mockOnDatesChange).toHaveReturnedWith("2023-06-27");
-
-    fireEvent.change(year, yearEvent);
-    expect(mockOnDatesChange).toHaveReturnedWith("2022-06-27");
-
-    expect(mockOnDatesChange).toHaveBeenCalledTimes(3);
+    const dateButton = getByTestId("pick-date");
+    expect(dateButton).toHaveTextContent(format(testDate, "LLL dd, y"));
   });
 
-  test("Should disable the DatePicker when disabled prop is true", () => {
-    const { getByDisplayValue } = render(<DatePicker date={date} disabled />);
+  test("Should show placeholder when no date is provided", () => {
+    const { getByTestId } = render(<DatePicker date={null as unknown as Date} />);
 
-    const dateInput = getByDisplayValue(format(date, "yyyy-MM-dd")) as HTMLInputElement;
-    expect(dateInput).toBeDisabled();
+    const dateButton = getByTestId("pick-date");
+    expect(dateButton).toHaveTextContent("Pick a date");
+  });
+
+  test("Should handle date selection correctly", async () => {
+    const testDate = new Date("2024-02-20");
+    const { getByTestId, getAllByRole } = render(<DatePicker date={testDate} onDatesChange={onChangeMock} />);
+
+    const dateButton = getByTestId("pick-date");
+    fireEvent.click(dateButton);
+    const gridCells = getAllByRole("gridcell");
+    const selectedDate = gridCells.find((cell) => {
+      return cell.getAttribute("tabindex") === "0";
+    });
+
+    expect(selectedDate).toBeTruthy();
+    await expect(selectedDate).not.toHaveClass("opacity-50");
+  });
+  test("Should respect minDate prop", async () => {
+    const testDate = new Date("2024-02-20");
+    const minDate = new Date("2024-02-19");
+    const { getByTestId, getAllByRole } = render(
+      <DatePicker date={testDate} minDate={minDate} onDatesChange={onChangeMock} />
+    );
+
+    const dateButton = getByTestId("pick-date");
+    fireEvent.click(dateButton);
+
+    const disabledDates = getAllByRole("gridcell").filter((cell) => cell.classList.contains("opacity-50"));
+    expect(disabledDates.length).toBeGreaterThan(0);
+    await expect(disabledDates[0]).toHaveAttribute("disabled");
+  });
+
+  test("Should respect disabled prop", () => {
+    const { getByTestId } = render(<DatePicker date={testDate} disabled={true} />);
+
+    const dateButton = getByTestId("pick-date");
+    expect(dateButton.classList.toString()).toContain("disabled:cursor-not-allowed");
+    expect(dateButton.classList.toString()).toContain("disabled:opacity-30");
   });
 });
-
-HTMLCanvasElement.prototype.getContext = vi.fn() as never;

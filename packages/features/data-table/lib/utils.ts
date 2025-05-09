@@ -1,5 +1,3 @@
-"use client";
-
 import type {
   SingleSelectFilterValue,
   MultiSelectFilterValue,
@@ -151,7 +149,7 @@ export const dataTableFilter = (cellValue: unknown, filterValue: FilterValue) =>
 
 export const convertFacetedValuesToMap = (array: FacetedValue[]) => {
   return new Map<FacetedValue, number>(
-    array.map((option) => [{ label: option.label, value: option.value }, 1])
+    array.map((option) => [{ label: option.label, value: option.value, section: option.section }, 1])
   );
 };
 
@@ -161,8 +159,10 @@ export const convertMapToFacetedValues = (map: Map<FacetedValue, number> | undef
   }
   return Array.from(map.keys()).map((option) => {
     if (typeof option === "string") {
-      return { label: option, value: option };
+      return { label: option, value: option, section: undefined };
     }
-    return { label: option.label as string, value: option.value as string | number };
+    return { label: option.label as string, value: option.value as string | number, section: option.section };
   });
 };
+
+export const CTA_CONTAINER_CLASS_NAME = "data_table_cta_container";

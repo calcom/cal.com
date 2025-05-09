@@ -10,12 +10,12 @@ import {
   ConfigFor,
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/config/uiConfig";
 import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
-import { classNames as cn } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isEqual } from "@calcom/lib/isEqual";
 import { buildStateFromQueryValue } from "@calcom/lib/raqb/raqbUtils";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
+import cn from "@calcom/ui/classNames";
 
 export type Attributes = RouterOutputs["viewer"]["appRoutingForms"]["getAttributesForTeam"];
 export function useAttributes(teamId: number) {

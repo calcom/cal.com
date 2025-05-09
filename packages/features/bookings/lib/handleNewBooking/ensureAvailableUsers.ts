@@ -1,17 +1,19 @@
 import type { Logger } from "tslog";
 
-import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
-import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import type { Dayjs } from "@calcom/dayjs";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
-import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { getBusyTimesForLimitChecks } from "@calcom/lib/getBusyTimes";
+import { getUsersAvailability } from "@calcom/lib/getUserAvailability";
+import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
+import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
-import type { IsFixedAwareUser, BookingType } from "./types";
+import type { BookingType } from "./originalRescheduledBookingUtils";
+import type { IsFixedAwareUser } from "./types";
 
 type DateRange = {
   start: Dayjs;
@@ -49,7 +51,7 @@ const hasDateRangeForBooking = (
 };
 
 export async function ensureAvailableUsers(
-  eventType: getEventTypeResponse & {
+  eventType: Omit<getEventTypeResponse, "users"> & {
     users: IsFixedAwareUser[];
   },
   input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType },

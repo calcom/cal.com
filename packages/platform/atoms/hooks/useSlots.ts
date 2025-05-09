@@ -20,13 +20,21 @@ type UseSlotsCallbacks = {
   onReserveSlotError?: (err: ApiErrorResponse) => void;
   onDeleteSlotSuccess?: (data: ApiSuccessResponseWithoutData) => void;
   onDeleteSlotError?: (err: ApiErrorResponse) => void;
+  handleSlotReservation?: (timeslot: string) => void;
 };
 
 export type UseSlotsReturnType = ReturnType<typeof useSlots>;
 
 export const useSlots = (
   event: { data?: Pick<BookerEvent, "id" | "length"> | null },
-  { onReserveSlotSuccess, onReserveSlotError, onDeleteSlotSuccess, onDeleteSlotError }: UseSlotsCallbacks = {}
+  {
+    onReserveSlotSuccess,
+    onReserveSlotError,
+    onDeleteSlotSuccess,
+    onDeleteSlotError,
+    isBookingDryRun,
+    handleSlotReservation,
+  }: UseSlotsCallbacks & { isBookingDryRun?: boolean } = {}
 ) => {
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
@@ -57,6 +65,11 @@ export const useSlots = (
 
   const handleReserveSlot = () => {
     if (event?.data?.id && selectedTimeslot && (selectedDuration || event?.data?.length)) {
+      if (handleSlotReservation) {
+        handleSlotReservation(selectedTimeslot);
+        return;
+      }
+
       reserveSlotMutation.mutate({
         slotUtcStartDate: dayjs(selectedTimeslot).utc().format(),
         eventTypeId: event.data.id,
@@ -64,6 +77,7 @@ export const useSlots = (
           .utc()
           .add(selectedDuration || event.data.length, "minutes")
           .format(),
+        _isDryRun: isBookingDryRun,
       });
     }
   };
@@ -91,5 +105,7 @@ export const useSlots = (
     slotReservationId,
     handleReserveSlot,
     handleRemoveSlot,
+    // TODO: implement slot no longer available feature
+    allSelectedTimeslots: [],
   };
 };

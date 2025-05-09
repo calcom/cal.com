@@ -1,7 +1,7 @@
 "use client";
 
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 import { useMemo } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -16,7 +16,7 @@ import type {
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
-import type { VerticalTabItemProps } from "@calcom/ui";
+import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
 type Props = {
   formMethods: UseFormReturn<FormValues>;

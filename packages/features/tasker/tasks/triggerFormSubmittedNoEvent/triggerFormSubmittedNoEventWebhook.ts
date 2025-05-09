@@ -108,6 +108,7 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
       formName: form.name,
       teamId: form.teamId,
       redirect,
+      responseId,
       responses,
     },
   }).catch((e) => {

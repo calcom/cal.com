@@ -6,10 +6,8 @@ import type {
 
 export function transformSeatsApiToInternal(
   inputSeats: CreateEventTypeInput_2024_06_14["seats"]
-): SeatOptionsTransformedSchema | SeatOptionsDisabledSchema | undefined {
-  if (!inputSeats) return undefined;
-
-  if (inputSeats.disabled)
+): SeatOptionsTransformedSchema | SeatOptionsDisabledSchema {
+  if (!inputSeats || inputSeats.disabled)
     return {
       seatsPerTimeSlot: null,
     };

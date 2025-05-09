@@ -1,7 +1,7 @@
 import { cva } from "class-variance-authority";
 import { Fragment } from "react";
 
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 import { ButtonOrLink } from "../dropdown";
 import { Icon } from "../icon";

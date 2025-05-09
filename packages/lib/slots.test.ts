@@ -243,17 +243,8 @@ describe("Tests the slot logic", () => {
       frequency: 20,
       minimumBookingNotice: 0,
       dateRanges: [{ start: dayjs("2021-06-21T00:00:00.000Z"), end: dayjs("2021-06-21T23:45:00.000Z") }],
-      /*workingHours: [
-        {
-          userId: 1,
-          days: Array.from(Array(7).keys()),
-          startTime: MINUTES_DAY_START,
-          endTime: MINUTES_DAY_END - 14, // 23:45
-        },
-      ],*/
       eventLength: 20,
       offsetStart: 0,
-      organizerTimeZone: "America/Toronto",
     });
 
     // 71 20-minutes events in a 24h - 15m day
@@ -271,7 +262,6 @@ describe("Tests the slot logic", () => {
       ],
       minimumBookingNotice: 120,
       frequency: 15,
-      organizerTimeZone: "Europe/London",
     }).reverse();
 
     expect(slots[0].time.format()).toBe("2023-07-13T22:45:00+02:00");

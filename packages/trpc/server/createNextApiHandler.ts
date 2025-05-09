@@ -4,6 +4,7 @@ import type { AnyRouter } from "@trpc/server";
 import { createNextApiHandler as _createNextApiHandler } from "@trpc/server/adapters/next";
 
 import { createContext as createTrpcContext } from "./createContext";
+import { onErrorHandler } from "./onErrorHandler";
 
 /**
  * Creates an API handler executed by Next.js.
@@ -20,12 +21,7 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
     /**
      * @link https://trpc.io/docs/error-handling
      */
-    onError({ error }) {
-      if (error.code === "INTERNAL_SERVER_ERROR") {
-        // send to bug reporting
-        console.error("Something went wrong", error);
-      }
-    },
+    onError: onErrorHandler,
     /**
      * Enable query batching
      */
@@ -67,7 +63,7 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
 
           // i18n and cityTimezones are now being accessed using the CalComVersion, which updates on every release,
           // letting the clients get the new versions when the version number changes.
-          i18n: SETTING_FOR_CACHED_BY_VERSION,
+          "i18n.get": SETTING_FOR_CACHED_BY_VERSION,
           cityTimezones: SETTING_FOR_CACHED_BY_VERSION,
 
           // FIXME: Using `max-age=1, stale-while-revalidate=60` fails some booking tests.

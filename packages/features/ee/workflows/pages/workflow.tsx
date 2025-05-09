@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
-import { classNames } from "@calcom/lib";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -17,8 +16,13 @@ import { MembershipRole, WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
-import { Alert, Badge, Button, Form, showToast } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
+import { Form } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
@@ -225,7 +229,7 @@ function WorkflowPage({
   });
 
   return session.data ? (
-    <Shell withoutSeo={true} withoutMain backPath="/workflows">
+    <Shell withoutMain backPath="/workflows">
       <LicenseRequired>
         <Form
           form={form}

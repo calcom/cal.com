@@ -4,7 +4,7 @@ import * as PrimitiveSwitch from "@radix-ui/react-switch";
 import type { ReactNode } from "react";
 import React from "react";
 
-import cx from "@calcom/lib/classNames";
+import cx from "@calcom/ui/classNames";
 
 import { Tooltip } from "../../tooltip";
 
@@ -14,7 +14,7 @@ const Wrapper = ({ children, tooltip }: { tooltip?: string; children: React.Reac
   }
   return <Tooltip content={tooltip}>{children}</Tooltip>;
 };
-const Switch = (
+export const Switch = (
   props: React.ComponentProps<typeof PrimitiveSwitch.Root> & {
     label?: string | ReactNode;
     fitToHeight?: boolean;
@@ -87,5 +87,3 @@ const Switch = (
     </Wrapper>
   );
 };
-
-export default Switch;

@@ -3,7 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { BookingResponse } from "@calcom/platform-libraries";
 import type { ApiResponse, ApiErrorResponse, ApiSuccessResponse } from "@calcom/platform-types";
-import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
+import type { BookingCreateBody } from "@calcom/prisma/zod/custom/booking";
 
 import http from "../../lib/http";
 

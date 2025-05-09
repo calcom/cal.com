@@ -2,8 +2,8 @@ import type Stripe from "stripe";
 import { z } from "zod";
 
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
-import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getDubCustomer } from "@calcom/features/auth/lib/dub";
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import {
   IS_PRODUCTION,
   MINIMUM_NUMBER_OF_ORG_SEATS,

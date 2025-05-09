@@ -2,11 +2,11 @@ import type { Prisma, Webhook, Booking } from "@prisma/client";
 import { v4 } from "uuid";
 
 import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
-import { getHumanReadableLocationValue } from "@calcom/core/location";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { getHumanReadableLocationValue } from "@calcom/lib/location";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/lib/server";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { ApiKey } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";

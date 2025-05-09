@@ -5,26 +5,23 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  Form,
-  Label,
-  Select,
-  showToast,
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
-  TimezoneSelect,
-} from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
 
+import { DisablePhoneOnlySMSNotificationsSwitch } from "../components/DisablePhoneOnlySMSNotificationsSwitch";
 import { LockEventTypeSwitch } from "../components/LockEventTypeSwitch";
 import { NoSlotsNotificationSwitch } from "../components/NoSlotsNotificationSwitch";
 
@@ -53,14 +50,14 @@ const OrgGeneralView = () => {
   const { t } = useLocale();
   const router = useRouter();
   const session = useSession();
-  const orgRole = session?.data?.user?.org?.role;
+  const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
 
   const {
     data: currentOrg,
     isPending,
     error,
   } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {});
-  const { data: user } = trpc.viewer.me.useQuery();
+  const { data: user } = trpc.viewer.me.get.useQuery();
 
   useEffect(
     function refactorMeWithoutEffect() {
@@ -75,7 +72,6 @@ const OrgGeneralView = () => {
   if (!currentOrg) {
     return null;
   }
-  const isAdminOrOwner = orgRole === MembershipRole.OWNER || orgRole === MembershipRole.ADMIN;
 
   return (
     <LicenseRequired>
@@ -87,6 +83,7 @@ const OrgGeneralView = () => {
 
       <LockEventTypeSwitch currentOrg={currentOrg} isAdminOrOwner={!!isAdminOrOwner} />
       <NoSlotsNotificationSwitch currentOrg={currentOrg} isAdminOrOwner={!!isAdminOrOwner} />
+      <DisablePhoneOnlySMSNotificationsSwitch currentOrg={currentOrg} isAdminOrOwner={!!isAdminOrOwner} />
     </LicenseRequired>
   );
 };

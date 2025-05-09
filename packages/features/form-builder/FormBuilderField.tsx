@@ -1,11 +1,13 @@
 import { ErrorMessage } from "@hookform/error-message";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon, InfoBadge, Label } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { InfoBadge } from "@calcom/ui/components/badge";
+import { Label } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { Components, isValidValueProp } from "./Components";
 import { fieldTypesConfigMap } from "./fieldTypes";
@@ -162,6 +164,9 @@ const WithLabel = ({
             </div>
           )}
       {children}
+      {field.name === "smsReminderNumber" && (
+        <div className="text-sm text-gray-500">{t("sms_workflow_consent")}</div>
+      )}
     </div>
   );
 };

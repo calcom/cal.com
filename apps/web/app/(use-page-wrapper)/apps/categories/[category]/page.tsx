@@ -13,7 +13,7 @@ const querySchema = z.object({
 });
 
 async function Page({ params, searchParams }: PageProps) {
-  const parsed = querySchema.safeParse({ ...params, ...searchParams });
+  const parsed = querySchema.safeParse({ ...(await params), ...(await searchParams) });
   if (!parsed.success) {
     redirect("/apps/categories/calendar");
   }

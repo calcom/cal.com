@@ -13,14 +13,19 @@ import type { PageProps as ClientPageProps } from "~/auth/setup-view";
 export const generateMetadata = async () => {
   return await _generateMetadata(
     (t) => t("setup"),
-    (t) => t("setup_description")
+    (t) => t("setup_description"),
+    undefined,
+    undefined,
+    "/auth/setup"
   );
 };
 
 const getData = withAppDirSsr<ClientPageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
-  const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
+  const props = await getData(
+    buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
+  );
   return <Setup {...props} />;
 };
 

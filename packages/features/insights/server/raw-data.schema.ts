@@ -1,6 +1,19 @@
 import z from "zod";
 
-import { ZColumnFilter, ZSorting } from "@calcom/features/data-table";
+import { ZColumnFilter, ZSorting } from "@calcom/features/data-table/lib/types";
+import type { ColumnFilter, Sorting } from "@calcom/features/data-table/lib/types";
+
+export type RawDataInput = {
+  startDate: string;
+  endDate: string;
+  teamId?: number | null;
+  userId?: number | null;
+  memberUserId?: number | null;
+  isAll?: boolean;
+  eventTypeId?: number | null;
+  offset?: number;
+  limit?: number;
+};
 
 export const rawDataInputSchema = z.object({
   startDate: z.string(),
@@ -8,13 +21,30 @@ export const rawDataInputSchema = z.object({
   teamId: z.coerce.number().optional().nullable(),
   userId: z.coerce.number().optional().nullable(),
   memberUserId: z.coerce.number().optional().nullable(),
-  isAll: z.coerce.boolean().optional(),
+  isAll: z.boolean().optional(),
   eventTypeId: z.coerce.number().optional().nullable(),
-});
+  offset: z.number().optional(),
+  limit: z.number().max(100).optional(),
+}) satisfies z.ZodType<RawDataInput>;
 
-export type RawDataInput = z.infer<typeof rawDataInputSchema>;
+export type RoutingFormStatsInput = {
+  startDate: string;
+  endDate: string;
+  teamId?: number;
+  userId?: number;
+  memberUserIds?: number[];
+  isAll: boolean;
+  routingFormId?: string;
+  columnFilters: ColumnFilter[];
+  sorting?: Sorting[];
+};
 
-export const routingFormResponsesInputSchema = z.object({
+export type RoutingFormResponsesInput = RoutingFormStatsInput & {
+  offset?: number;
+  limit?: number;
+};
+
+export const routingFormStatsInputSchema = z.object({
   startDate: z.string(),
   endDate: z.string(),
   teamId: z.coerce.number().optional(),
@@ -22,10 +52,12 @@ export const routingFormResponsesInputSchema = z.object({
   memberUserIds: z.number().array().optional(),
   isAll: z.coerce.boolean(),
   routingFormId: z.string().optional(),
-  cursor: z.number().optional(),
-  limit: z.number().optional(),
   columnFilters: z.array(ZColumnFilter),
   sorting: z.array(ZSorting).optional(),
-});
+}) satisfies z.ZodType<RoutingFormStatsInput>;
 
-export type RoutingFormResponsesInput = z.infer<typeof routingFormResponsesInputSchema>;
+export const routingFormResponsesInputSchema = z.object({
+  ...routingFormStatsInputSchema.shape,
+  offset: z.number().optional(),
+  limit: z.number().max(100).optional(),
+}) satisfies z.ZodType<RoutingFormResponsesInput>;

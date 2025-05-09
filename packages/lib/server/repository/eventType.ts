@@ -12,6 +12,7 @@ import { TRPCError } from "@trpc/server";
 
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
+import { MembershipRepository } from "./membership";
 import { LookupTarget, ProfileRepository } from "./profile";
 import type { UserWithLegacySelectedCalendars } from "./user";
 import { withSelectedCalendars } from "./user";
@@ -461,6 +462,7 @@ export class EventTypeRepository {
       email: true,
       locale: true,
       defaultScheduleId: true,
+      isPlatformManaged: true,
     });
 
     const CompleteEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
@@ -503,6 +505,8 @@ export class EventTypeRepository {
       hideCalendarNotes: true,
       hideCalendarEventDetails: true,
       disableGuests: true,
+      disableCancelling: true,
+      disableRescheduling: true,
       minimumBookingNotice: true,
       beforeEventBuffer: true,
       afterEventBuffer: true,
@@ -514,6 +518,7 @@ export class EventTypeRepository {
       durationLimits: true,
       assignAllTeamMembers: true,
       allowReschedulingPastBookings: true,
+      hideOrganizerEmail: true,
       assignRRMembersUsingSegment: true,
       rrSegmentQueryValue: true,
       isRRWeightsEnabled: true,
@@ -523,6 +528,7 @@ export class EventTypeRepository {
       currency: true,
       bookingFields: true,
       useEventTypeDestinationCalendarEmail: true,
+      customReplyToEmail: true,
       owner: {
         select: {
           id: true,
@@ -668,8 +674,12 @@ export class EventTypeRepository {
       },
       secondaryEmailId: true,
       maxLeadThreshold: true,
+      includeNoShowInRRCalculation: true,
       useEventLevelSelectedCalendars: true,
     });
+
+    // This is more efficient than using a complex join with team.members in the query
+    const userTeamIds = await MembershipRepository.findUserTeamIds({ userId });
 
     return await prisma.eventType.findFirst({
       where: {
@@ -684,13 +694,7 @@ export class EventTypeRepository {
                 },
               },
               {
-                team: {
-                  members: {
-                    some: {
-                      userId: userId,
-                    },
-                  },
-                },
+                AND: [{ teamId: { not: null } }, { teamId: { in: userTeamIds } }],
               },
               {
                 userId: userId,
@@ -741,6 +745,7 @@ export class EventTypeRepository {
         team: {
           select: {
             parentId: true,
+            rrResetInterval: true,
           },
         },
       },
@@ -798,13 +803,16 @@ export class EventTypeRepository {
         periodEndDate: true,
         onlyShowFirstAvailableSlot: true,
         allowReschedulingPastBookings: true,
+        hideOrganizerEmail: true,
         periodCountCalendarDays: true,
         rescheduleWithSameRoundRobinHost: true,
         periodDays: true,
         metadata: true,
         assignRRMembersUsingSegment: true,
         rrSegmentQueryValue: true,
+        isRRWeightsEnabled: true,
         maxLeadThreshold: true,
+        includeNoShowInRRCalculation: true,
         useEventLevelSelectedCalendars: true,
         team: {
           select: {
@@ -812,6 +820,7 @@ export class EventTypeRepository {
             bookingLimits: true,
             includeManagedEventsInLimits: true,
             parentId: true,
+            rrResetInterval: true,
           },
         },
         parent: {
@@ -851,6 +860,8 @@ export class EventTypeRepository {
           select: {
             isFixed: true,
             createdAt: true,
+            weight: true,
+            priority: true,
             user: {
               select: {
                 credentials: { select: credentialForCalendarServiceSelect },

@@ -15,7 +15,6 @@ import {
   getZoomAppCredential,
   getDefaultBookingFields,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
   // expectWorkflowToBeTriggered,
   expectSuccessfulBookingCreationEmails,
@@ -60,7 +59,7 @@ describe("handleNewBooking", () => {
     describe("Collective Assignment", () => {
       describe("When there is no schedule set on eventType - Hosts schedules would be used", () => {
         test(
-          `succesfully creates a booking when all the hosts are free as per their schedules
+          `successfully creates a booking when all the hosts are free as per their schedules
           - Destination calendars for event-type and non-first hosts are used to create calendar events
         `,
           async ({ emails }) => {
@@ -174,12 +173,9 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
             });
-
-            const createdBooking = await handleNewBooking(req);
 
             await expectBookingToBeInDatabase({
               description: "",
@@ -360,13 +356,10 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
-            });
-
             await expect(async () => {
-              await handleNewBooking(req);
+              await handleNewBooking({
+                bookingData: mockBookingData,
+              });
             }).rejects.toThrowError(ErrorCode.HostsUnavailableForBooking);
           },
           timeout
@@ -375,7 +368,7 @@ describe("handleNewBooking", () => {
 
       describe("When there is a schedule set on eventType - Event Type common schedule would be used", () => {
         test(
-          `succesfully creates a booking when the users are available as per the common schedule selected in the event-type
+          `successfully creates a booking when the users are available as per the common schedule selected in the event-type
           - Destination calendars for event-type and non-first hosts are used to create calendar events
         `,
           async ({ emails }) => {
@@ -483,11 +476,9 @@ describe("handleNewBooking", () => {
                 },
               },
             });
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
             });
-            const createdBooking = await handleNewBooking(req);
             await expectBookingToBeInDatabase({
               description: "",
               location: BookingLocations.CalVideo,
@@ -551,7 +542,7 @@ describe("handleNewBooking", () => {
           timeout
         );
         test(
-          `[Event Type with both Attendee Phone number and Email as required fields] succesfully creates a booking when the users are available as per the common schedule selected in the event-type
+          `[Event Type with both Attendee Phone number and Email as required fields] successfully creates a booking when the users are available as per the common schedule selected in the event-type
           - Destination calendars for event-type and non-first hosts are used to create calendar events
         `,
           async ({ emails, sms }) => {
@@ -713,12 +704,9 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
             });
-
-            const createdBooking = await handleNewBooking(req);
 
             await expectBookingToBeInDatabase({
               description: "",
@@ -788,7 +776,7 @@ describe("handleNewBooking", () => {
         );
 
         test(
-          `[Event Type with only Attendee Phone number as required field and Email as hidden field] succesfully creates a booking when the users are available as per the common schedule selected in the event-type
+          `[Event Type with only Attendee Phone number as required field and Email as hidden field] successfully creates a booking when the users are available as per the common schedule selected in the event-type
           - Destination calendars for event-type and non-first hosts are used to create calendar events
         `,
           async ({ emails, sms }) => {
@@ -951,12 +939,9 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
             });
-
-            const createdBooking = await handleNewBooking(req);
 
             await expectBookingToBeInDatabase({
               description: "",
@@ -1029,7 +1014,7 @@ describe("handleNewBooking", () => {
           timeout
         );
         test(
-          `[Event Type that requires confirmation with only Attendee Phone number as required field and Email as optional field] succesfully creates a booking when the users are available as per the common schedule selected in the event-type
+          `[Event Type that requires confirmation with only Attendee Phone number as required field and Email as optional field] successfully creates a booking when the users are available as per the common schedule selected in the event-type
           - Destination calendars for event-type and non-first hosts are used to create calendar events
         `,
           async ({ emails, sms }) => {
@@ -1194,12 +1179,9 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
             });
-
-            const createdBooking = await handleNewBooking(req);
 
             await expectBookingToBeInDatabase({
               description: "",
@@ -1337,12 +1319,10 @@ describe("handleNewBooking", () => {
                 },
               },
             });
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
-            });
             await expect(async () => {
-              await handleNewBooking(req);
+              await handleNewBooking({
+                bookingData: mockBookingData,
+              });
             }).rejects.toThrowError(ErrorCode.NoAvailableUsersFound);
           },
           timeout
@@ -1450,11 +1430,9 @@ describe("handleNewBooking", () => {
               },
             },
           });
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
-          const createdBooking = await handleNewBooking(req);
           await expectBookingToBeInDatabase({
             description: "",
             location: BookingLocations.CalVideo,
@@ -1653,11 +1631,9 @@ describe("handleNewBooking", () => {
               },
             },
           });
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
-          const createdBooking = await handleNewBooking(req);
           await expectBookingToBeInDatabase({
             description: "",
             location: BookingLocations.ZoomVideo,
@@ -1861,11 +1837,9 @@ describe("handleNewBooking", () => {
               },
             },
           });
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
-          const createdBooking = await handleNewBooking(req);
           await expectBookingToBeInDatabase({
             description: "",
             location: BookingLocations.CalVideo,
@@ -1931,7 +1905,7 @@ describe("handleNewBooking", () => {
 
       describe("Team(T1) not part of any org but the organizer is part of an organization(O1)", () => {
         test(
-          `succesfully creates a booking when all the hosts are free as per their schedules
+          `successfully creates a booking when all the hosts are free as per their schedules
           - Destination calendars for event-type and non-first hosts are used to create calendar events
           - Reschedule and Cancel link in email are not of the org domain because the team is not part of any org
         `,
@@ -2058,11 +2032,9 @@ describe("handleNewBooking", () => {
                 },
               },
             });
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
             });
-            const createdBooking = await handleNewBooking(req);
             await expectBookingToBeInDatabase({
               description: "",
               location: BookingLocations.CalVideo,
@@ -2193,14 +2165,7 @@ describe("handleNewBooking", () => {
                     },
                   },
                 },
-                users: [
-                  {
-                    id: 101,
-                  },
-                  {
-                    id: 102,
-                  },
-                ],
+                hosts: [{ userId: 101 }, { userId: 102 }],
               },
             ],
             organizer,
@@ -2234,21 +2199,15 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const { req: req1 } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData1,
+        const createdBooking1 = await handleNewBooking({
+          bookingData: mockBookingData1,
         });
-
-        const { req: req2 } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData2,
-        });
-
-        const createdBooking1 = await handleNewBooking(req1);
 
         expect(createdBooking1.userId).toBe(102);
 
-        const createdBooking2 = await handleNewBooking(req2);
+        const createdBooking2 = await handleNewBooking({
+          bookingData: mockBookingData2,
+        });
         expect(createdBooking2.userId).toBe(102);
       });
     });

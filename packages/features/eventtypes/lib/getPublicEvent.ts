@@ -81,6 +81,8 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
     price: true,
     currency: true,
     seatsPerTimeSlot: true,
+    disableCancelling: true,
+    disableRescheduling: true,
     seatsShowAvailabilityCount: true,
     bookingFields: true,
     teamId: true,
@@ -94,6 +96,7 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
         name: true,
         logoUrl: true,
         theme: true,
+        hideTeamProfileLink: true,
         parent: {
           select: {
             slug: true,
@@ -139,6 +142,11 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
         timeZone: true,
       },
     },
+    periodType: true,
+    periodDays: true, // days if limiting future bookings
+    periodEndDate: true, //end date limit by range
+    periodStartDate: true, //start date limit by range
+    periodCountCalendarDays: true, // count calendar days? Or only business days based on periodDays
     hidden: true,
     assignAllTeamMembers: true,
     rescheduleWithSameRoundRobinHost: true,
@@ -235,7 +243,7 @@ export const getPublicEvent = async (
     const defaultEvent = getDefaultEvent(eventSlug);
     let locations = defaultEvent.locations ? (defaultEvent.locations as LocationObject[]) : [];
 
-    // Get the prefered location type from the first user
+    // Get the preferred location type from the first user
     const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata || {});
     const preferedLocationType = firstUsersMetadata?.defaultConferencingApp;
 
@@ -243,7 +251,7 @@ export const getPublicEvent = async (
       const foundApp = getAppFromSlug(preferedLocationType.appSlug);
       const appType = foundApp?.appData?.location?.type;
       if (appType) {
-        // Replace the location with the prefered location type
+        // Replace the location with the preferred location type
         // This will still be default to daily if the app is not found
         locations = [{ type: appType, link: preferedLocationType.appLink }] as LocationObject[];
       }
@@ -309,6 +317,7 @@ export const getPublicEvent = async (
         name: unPublishedOrgUser?.profile?.organization?.name ?? null,
         teamSlug: null,
         logoUrl: null,
+        hideProfileLink: false,
       },
       isInstantEvent: false,
       instantMeetingParameters: [],
@@ -364,9 +373,11 @@ export const getPublicEvent = async (
           some: {
             username,
             isPlatformManaged: false,
-            movedToProfile: {
-              organization: {
-                isPlatform: true,
+            profiles: {
+              some: {
+                organization: {
+                  isPlatform: true,
+                },
               },
             },
           },
@@ -407,7 +418,7 @@ export const getPublicEvent = async (
     (await getOwnerFromUsersArray(prisma, event.id));
 
   if (users === null) {
-    throw new Error("Event has no owner");
+    throw new Error(`EventType ${event.id} has no owner or users.`);
   }
   //In case the event schedule is not defined ,use the event owner's default schedule
   if (!eventWithUserProfiles.schedule && eventWithUserProfiles.owner?.defaultScheduleId) {
@@ -470,6 +481,7 @@ export const getPublicEvent = async (
   if (event.team?.isPrivate && !isTeamAdminOrOwner && !isOrgAdminOrOwner) {
     users = [];
   }
+
   return {
     ...eventWithUserProfiles,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
@@ -499,6 +511,7 @@ export const getPublicEvent = async (
           eventWithUserProfiles.team?.parent?.name ||
           eventWithUserProfiles.team?.name) ??
         null,
+      hideProfileLink: eventWithUserProfiles.team?.hideTeamProfileLink ?? false,
       ...(orgDetails
         ? {
             logoUrl: getPlaceholderAvatar(orgDetails?.logoUrl, orgDetails?.name),
@@ -512,6 +525,8 @@ export const getPublicEvent = async (
     instantMeetingParameters: eventWithUserProfiles.instantMeetingParameters,
     aiPhoneCallConfig: eventWithUserProfiles.aiPhoneCallConfig,
     assignAllTeamMembers: event.assignAllTeamMembers,
+    disableCancelling: event.disableCancelling,
+    disableRescheduling: event.disableRescheduling,
   };
 };
 

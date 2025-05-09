@@ -1,6 +1,6 @@
 import prisma from "@calcom/prisma";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 
 type ListOptions = {
   ctx: {

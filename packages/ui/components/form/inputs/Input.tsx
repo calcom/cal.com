@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 import React, { forwardRef, useCallback, useId, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 
 import { Alert } from "../../alert";
 import { Icon } from "../../icon";
@@ -21,6 +21,11 @@ export function InputLeading(props: JSX.IntrinsicElements["div"]) {
     </span>
   );
 }
+
+type PasswordFieldTranslations = {
+  showPasswordText?: string;
+  hidePasswordText?: string;
+};
 
 export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(function PasswordField(
   props,

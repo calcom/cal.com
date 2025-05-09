@@ -3,8 +3,8 @@ import { useId } from "@radix-ui/react-id";
 import type { InputHTMLAttributes } from "react";
 import React, { forwardRef } from "react";
 
-import classNames from "@calcom/lib/classNames";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import classNames from "@calcom/ui/classNames";
 
 import { Icon } from "../../icon";
 

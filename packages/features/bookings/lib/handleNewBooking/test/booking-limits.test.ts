@@ -20,7 +20,6 @@ import {
   mockSuccessfulVideoMeetingCreation,
   mockCalendarToHaveNoBusySlots,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import { expectBookingToBeInDatabase } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
@@ -116,12 +115,12 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
-          });
-
-          await expect(async () => await handleNewBooking(req)).rejects.toThrowError("booking_limit_reached");
+          await expect(
+            async () =>
+              await handleNewBooking({
+                bookingData: mockBookingData,
+              })
+          ).rejects.toThrowError("booking_limit_reached");
 
           const { dateString: yearWithoutBookingsDateString } = getDate({ yearIncrement: 2 });
 
@@ -138,12 +137,9 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req: reqFollowingYear } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingDataFollowingYear,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingDataFollowingYear,
           });
-
-          const createdBooking = await handleNewBooking(reqFollowingYear);
 
           expect(createdBooking.responses).toContain({
             email: booker.email,
@@ -239,16 +235,14 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
-          });
-
           vi.spyOn(prismock, "$queryRaw").mockResolvedValue([{ totalMinutes: yearlyDurationLimit }]);
 
-          await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
-            "duration_limit_reached"
-          );
+          await expect(
+            async () =>
+              await handleNewBooking({
+                bookingData: mockBookingData,
+              })
+          ).rejects.toThrowError("duration_limit_reached");
 
           const { dateString: yearWithoutBookingsDateString } = getDate({ yearIncrement: 2 });
 
@@ -265,14 +259,11 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req: reqFollowingYear } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingDataFollowingYear,
-          });
-
           vi.spyOn(prismock, "$queryRaw").mockResolvedValue([{ totalMinutes: 0 }]);
 
-          const createdBooking = await handleNewBooking(reqFollowingYear);
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingDataFollowingYear,
+          });
 
           expect(createdBooking.responses).toEqual(
             expect.objectContaining({
@@ -373,12 +364,12 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
-          });
-
-          await expect(async () => await handleNewBooking(req)).rejects.toThrowError("booking_limit_reached");
+          await expect(
+            async () =>
+              await handleNewBooking({
+                bookingData: mockBookingData,
+              })
+          ).rejects.toThrowError("booking_limit_reached");
         },
         timeout
       );
@@ -460,12 +451,12 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
-          });
-
-          await expect(async () => await handleNewBooking(req)).rejects.toThrowError("booking_limit_reached");
+          await expect(
+            async () =>
+              await handleNewBooking({
+                bookingData: mockBookingData,
+              })
+          ).rejects.toThrowError("booking_limit_reached");
         },
         timeout
       );
@@ -536,13 +527,12 @@ describe("handleNewBooking", () => {
         },
       });
 
-      const { req: reqBookingBefore } = createMockNextJsRequest({
-        method: "POST",
-        body: mockBookingBeforeData,
-      });
-      await expect(async () => await handleNewBooking(reqBookingBefore)).rejects.toThrowError(
-        "no_available_users_found_error"
-      );
+      await expect(
+        async () =>
+          await handleNewBooking({
+            bookingData: mockBookingBeforeData,
+          })
+      ).rejects.toThrowError("no_available_users_found_error");
 
       // 7:00 - 7:15 busy
       // 7:17 - 8:15 after event buffer
@@ -560,13 +550,12 @@ describe("handleNewBooking", () => {
         },
       });
 
-      const { req: reqBookingAfter } = createMockNextJsRequest({
-        method: "POST",
-        body: mockBookingAfterData,
-      });
-      await expect(async () => await handleNewBooking(reqBookingAfter)).rejects.toThrowError(
-        "no_available_users_found_error"
-      );
+      await expect(
+        async () =>
+          await handleNewBooking({
+            bookingData: mockBookingAfterData,
+          })
+      ).rejects.toThrowError("no_available_users_found_error");
     });
 
     test(`should throw error when booking is within a before event buffer of an existing booking
@@ -628,13 +617,12 @@ describe("handleNewBooking", () => {
         },
       });
 
-      const { req } = createMockNextJsRequest({
-        method: "POST",
-        body: mockBookingData,
-      });
-      await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
-        "no_available_users_found_error"
-      );
+      await expect(
+        async () =>
+          await handleNewBooking({
+            bookingData: mockBookingData,
+          })
+      ).rejects.toThrowError("no_available_users_found_error");
     });
   });
   test(`should throw error when booking is within a after event buffer of an existing booking
@@ -696,13 +684,12 @@ describe("handleNewBooking", () => {
       },
     });
 
-    const { req } = createMockNextJsRequest({
-      method: "POST",
-      body: mockBookingData,
-    });
-    await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
-      "no_available_users_found_error"
-    );
+    await expect(
+      async () =>
+        await handleNewBooking({
+          bookingData: mockBookingData,
+        })
+    ).rejects.toThrowError("no_available_users_found_error");
   });
 
   test(
@@ -737,11 +724,6 @@ describe("handleNewBooking", () => {
         },
       });
 
-      const { req } = createMockNextJsRequest({
-        method: "POST",
-        body: mockBookingData,
-      });
-
       const scenarioData = getScenarioData({
         webhooks: [
           {
@@ -772,9 +754,12 @@ describe("handleNewBooking", () => {
       mockCalendarToHaveNoBusySlots("googlecalendar", {});
       await createBookingScenario(scenarioData);
 
-      await expect(() => handleNewBooking(req)).rejects.toThrowError(
-        "Attempting to book a meeting in the past."
-      );
+      await expect(
+        async () =>
+          await handleNewBooking({
+            bookingData: mockBookingData,
+          })
+      ).rejects.toThrowError("Attempting to book a meeting in the past.");
     },
     timeout
   );
@@ -847,11 +832,6 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
-        });
-
         mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
             id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
@@ -867,7 +847,12 @@ describe("handleNewBooking", () => {
           },
         });
 
-        expect(() => handleNewBooking(req)).rejects.toThrowError("booking_time_out_of_bounds_error");
+        await expect(
+          async () =>
+            await handleNewBooking({
+              bookingData: mockBookingData,
+            })
+        ).rejects.toThrowError("booking_time_out_of_bounds_error");
       },
       timeout
     );

@@ -39,4 +39,59 @@ export class WatchlistRepository implements IWatchlistRepository {
       throw err;
     }
   }
+
+  /** Returns a boolean if any of the users passed are blocked */
+  async searchForAllBlockedRecords({
+    usernames,
+    emails,
+    domains,
+  }: {
+    usernames: string[];
+    emails: string[];
+    domains: string[];
+  }) {
+    try {
+      const blockedRecords = await db.watchlist.findMany({
+        where: {
+          severity: WatchlistSeverity.CRITICAL,
+          OR: [
+            ...(usernames.length > 0
+              ? [
+                  {
+                    type: WatchlistType.USERNAME,
+                    value: {
+                      in: usernames,
+                    },
+                  },
+                ]
+              : []),
+            ...(emails.length > 0
+              ? [
+                  {
+                    type: WatchlistType.EMAIL,
+                    value: {
+                      in: emails,
+                    },
+                  },
+                ]
+              : []),
+            ...(domains.length > 0
+              ? [
+                  {
+                    type: WatchlistType.DOMAIN,
+                    value: {
+                      in: domains,
+                    },
+                  },
+                ]
+              : []),
+          ],
+        },
+      });
+      return blockedRecords;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
 }

@@ -16,6 +16,7 @@ import type {
   SeatOptionsDisabledSchema,
   OutputAddressLocation_2024_06_14,
   OutputAttendeeAddressLocation_2024_06_14,
+  OutputOrganizersDefaultAppLocation_2024_06_14,
   OutputAttendeeDefinedLocation_2024_06_14,
   OutputAttendeePhoneLocation_2024_06_14,
   OutputIntegrationLocation_2024_06_14,
@@ -230,6 +231,23 @@ describe("transformLocationsInternalToApi", () => {
     expect(result).toEqual(expectedOutput);
   });
 
+  it("should reverse transform organizersDefaultApp locations", () => {
+    const transformedLocation = [
+      {
+        type: "conferencing" as const,
+      },
+    ];
+
+    const expectedOutput: OutputOrganizersDefaultAppLocation_2024_06_14[] = [
+      {
+        type: "organizersDefaultApp",
+      },
+    ];
+
+    const result = transformLocationsInternalToApi(transformedLocation);
+    expect(result).toEqual(expectedOutput);
+  });
+
   it("should reverse transform attendee phone location", () => {
     const transformedLocation = [
       {
@@ -340,6 +358,7 @@ describe("transformBookingFieldsInternalToApi", () => {
         disableOnPrefill: false,
         label: undefined,
         placeholder: undefined,
+        hidden: false,
       },
     ];
 
@@ -367,6 +386,7 @@ describe("transformBookingFieldsInternalToApi", () => {
         placeholder: "custom placeholder",
         disableOnPrefill: true,
         label: "custom label",
+        hidden: false,
       },
     ];
 

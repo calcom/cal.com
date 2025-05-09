@@ -4,7 +4,9 @@ import type z from "zod";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 
-import type { Booking, NewBookingEventType, OriginalRescheduledBooking } from "../handleNewBooking/types";
+import type { Booking } from "../handleNewBooking/createBooking";
+import type { NewBookingEventType } from "../handleNewBooking/getEventTypesFromDB";
+import type { OriginalRescheduledBooking } from "../handleNewBooking/originalRescheduledBookingUtils";
 
 export type BookingSeat = Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null;
 

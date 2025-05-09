@@ -2,10 +2,11 @@ import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-import { TRPCError } from "@calcom/trpc/server";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TRPCContext } from "../../../createContext";
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TResendVerifyEmailSchema } from "./resendVerifyEmail.schema";
 
 type ResendEmailOptions = {
