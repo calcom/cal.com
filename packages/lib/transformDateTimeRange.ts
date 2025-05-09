@@ -58,7 +58,7 @@ const transformDateTimeRange = (
       ? startTime
       : dayjs(startTime).subtract(1, "month").toISOString();
 
-  let startTimeResult = getStartTime(
+  const startTimeResult = getStartTime(
     startTimeAdjustedForRollingWindowComputation,
     timeZone,
     eventType.minimumBookingNotice
@@ -89,7 +89,7 @@ const transformDateTimeRange = (
     }
   }
 
-  if (periodLimits.startOfRangeStartDayInEventTz) {
+  /*if (periodLimits.startOfRangeStartDayInEventTz) {
     const isBeforeStartOfRange =
       endTimeResult.valueOf() < periodLimits.startOfRangeStartDayInEventTz.valueOf();
     if (isBeforeStartOfRange) {
@@ -102,7 +102,7 @@ const transformDateTimeRange = (
     if (isAfterEndOfRange) {
       endTimeResult = periodLimits.endOfRangeEndDayInEventTz;
     }
-  }
+  }*/
 
   return {
     success: true,
