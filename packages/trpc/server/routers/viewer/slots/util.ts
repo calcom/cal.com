@@ -30,6 +30,7 @@ import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import LimitManager from "@calcom/lib/intervalLimits/limitManager";
 import { checkBookingLimit } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
+import { isBookingWithinPeriod, getUnitFromBusyTime } from "@calcom/lib/intervalLimits/utils";
 import {
   calculatePeriodLimits,
   isTimeOutOfBounds,
@@ -898,12 +899,7 @@ const getBusyTimesFromLimitsForUsers = async (
         let totalBookings = 0;
 
         for (const booking of busyTimesFromLimitsBookings) {
-          const bookingStart = dayjs(booking.start).tz(timeZone);
-          const bookingDay = bookingStart.format("YYYY-MM-DD");
-          const periodStartDay = periodStart.format("YYYY-MM-DD");
-          const periodEndDay = periodEnd.format("YYYY-MM-DD");
-
-          if (bookingDay < periodStartDay || bookingDay > periodEndDay) {
+          if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
             continue;
           }
 
@@ -924,18 +920,7 @@ const getBusyTimesFromLimitsForUsers = async (
     for (const busyTime of globalLimitManager.getBusyTimes()) {
       const start = dayjs(busyTime.start);
       const end = dayjs(busyTime.end);
-
-      let unit: "year" | "month" | "week" | "day";
-
-      if (end.diff(start, "year") >= 1) {
-        unit = "year";
-      } else if (end.diff(start, "month") >= 1) {
-        unit = "month";
-      } else if (end.diff(start, "week") >= 1) {
-        unit = "week";
-      } else {
-        unit = "day";
-      }
+      const unit = getUnitFromBusyTime(start, end);
 
       limitManager.addBusyTime(start, unit, timeZone);
     }
@@ -978,12 +963,7 @@ const getBusyTimesFromLimitsForUsers = async (
             let totalBookings = 0;
 
             for (const booking of userBookings) {
-              const bookingStart = dayjs(booking.start).tz(timeZone);
-              const bookingDay = bookingStart.format("YYYY-MM-DD");
-              const periodStartDay = periodStart.format("YYYY-MM-DD");
-              const periodEndDay = periodEnd.format("YYYY-MM-DD");
-
-              if (bookingDay < periodStartDay || bookingDay > periodEndDay) {
+              if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
                 continue;
               }
 
@@ -1037,12 +1017,7 @@ const getBusyTimesFromLimitsForUsers = async (
             let totalDuration = selectedDuration;
 
             for (const booking of userBookings) {
-              const bookingStart = dayjs(booking.start).tz(timeZone);
-              const bookingDay = bookingStart.format("YYYY-MM-DD");
-              const periodStartDay = periodStart.format("YYYY-MM-DD");
-              const periodEndDay = periodEnd.format("YYYY-MM-DD");
-
-              if (bookingDay < periodStartDay || bookingDay > periodEndDay) {
+              if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
                 continue;
               }
 
@@ -1115,12 +1090,7 @@ const getBusyTimesFromTeamLimitsForUsers = async (
       let totalBookings = 0;
 
       for (const booking of busyTimes) {
-        const bookingStart = dayjs(booking.start).tz(timeZone);
-        const bookingDay = bookingStart.format("YYYY-MM-DD");
-        const periodStartDay = periodStart.format("YYYY-MM-DD");
-        const periodEndDay = periodEnd.format("YYYY-MM-DD");
-
-        if (bookingDay < periodStartDay || bookingDay > periodEndDay) {
+        if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
           continue;
         }
 
@@ -1142,18 +1112,7 @@ const getBusyTimesFromTeamLimitsForUsers = async (
     for (const busyTime of globalLimitManager.getBusyTimes()) {
       const start = dayjs(busyTime.start);
       const end = dayjs(busyTime.end);
-
-      let unit: "year" | "month" | "week" | "day";
-
-      if (end.diff(start, "year") >= 1) {
-        unit = "year";
-      } else if (end.diff(start, "month") >= 1) {
-        unit = "month";
-      } else if (end.diff(start, "week") >= 1) {
-        unit = "week";
-      } else {
-        unit = "day";
-      }
+      const unit = getUnitFromBusyTime(start, end);
 
       limitManager.addBusyTime(start, unit, timeZone);
     }
@@ -1209,12 +1168,7 @@ const getBusyTimesFromTeamLimitsForUsers = async (
           let totalBookings = 0;
 
           for (const booking of userBusyTimes) {
-            const bookingStart = dayjs(booking.start).tz(timeZone);
-            const bookingDay = bookingStart.format("YYYY-MM-DD");
-            const periodStartDay = periodStart.format("YYYY-MM-DD");
-            const periodEndDay = periodEnd.format("YYYY-MM-DD");
-
-            if (bookingDay < periodStartDay || bookingDay > periodEndDay) {
+            if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
               continue;
             }
 
