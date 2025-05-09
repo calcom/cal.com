@@ -33,6 +33,9 @@ type BookingsRouterHandlerCache = {
   getHashedLinks?: typeof import("./getHashedLinks.handler").getHashedLinksHandler;
 };
 
+// Init the handler cache
+const UNSTABLE_HANDLER_CACHE: BookingsRouterHandlerCache = {};
+
 export const eventTypesRouter = router({
   // REVIEW: What should we name this procedure?
   getByViewer: authedProcedure.input(ZEventTypeInputSchema).query(async ({ ctx, input }) => {

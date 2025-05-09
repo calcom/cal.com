@@ -114,8 +114,15 @@ export const MultiplePrivateLinksController = ({
             }
           );
 
-          // Create a map of link data for easy access
-          const linkDataMap = new Map(allLinksData?.map((data) => [data.linkId, data]) || []);
+          type HashedLinkData = {
+            id: number | string;
+            linkId: string;
+            expiresAt: Date | null;
+            maxUsageCount: number | null;
+            usageCount: number;
+          };
+
+          const linkDataMap = new Map(allLinksData?.map((data: HashedLinkData) => [data.linkId, data]) || []);
 
           const addPrivateLink = () => {
             const userId = formMethods.getValues("users")?.[0]?.id ?? team?.id;
@@ -136,7 +143,7 @@ export const MultiplePrivateLinksController = ({
               if (serverData) {
                 return {
                   ...link,
-                  usageCount: serverData.usageCount ?? link.usageCount ?? 0,
+                  usageCount: serverData.usageCount ?? (link as PrivateLinkWithOptions).usageCount ?? 0,
                 };
               }
               return { ...link };
@@ -166,7 +173,8 @@ export const MultiplePrivateLinksController = ({
 
                 // Get the link data from our map instead of individual queries
                 const latestLinkData = linkDataMap.get(val.link);
-                const latestUsageCount = latestLinkData?.usageCount ?? (val.usageCount || 0);
+                const latestUsageCount =
+                  latestLinkData?.usageCount ?? ((val as PrivateLinkWithOptions).usageCount || 0);
 
                 // Determine link type description
                 let linkDescription = t("single_use_link");
