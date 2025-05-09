@@ -370,44 +370,23 @@ const getSlots = ({
       (input?.orgSlug === "acme" && input?.usernameList !== undefined) ||
       (input?.orgSlug === "acme" && input?.eventTypeSlug !== undefined))
   ) {
-    const slots = new Map<
-      string,
-      {
-        time: Dayjs;
-        userIds?: number[];
-        away?: boolean;
-        fromUser?: IFromUser;
-        toUser?: IToUser;
-        reason?: string;
-        emoji?: string;
-      }
-    >();
-
-    const dateString = "2025-05-11";
-    const slotTimes = [
-      "04:00:00",
-      "04:45:00",
-      "05:30:00",
-      "06:15:00",
-      "07:00:00",
-      "07:45:00",
-      "08:30:00",
-      "09:15:00",
-      "10:00:00",
-      "10:45:00",
-      "11:30:00",
-    ];
-
-    for (const slotTime of slotTimes) {
-      const slotDateTime = dayjs.utc(`${dateString}T${slotTime}.000Z`);
-
-      slots.set(slotDateTime.toISOString(), {
-        time: slotDateTime,
-        away: false,
-      });
-    }
-
-    return Array.from(slots.values());
+    return {
+      slots: {
+        "2025-05-11": [
+          { time: "2025-05-11T04:00:00.000Z", attendees: 0, bookingUid: null },
+          { time: "2025-05-11T04:45:00.000Z", attendees: 0, bookingUid: null },
+          { time: "2025-05-11T05:30:00.000Z", attendees: 0, bookingUid: null },
+          { time: "2025-05-11T06:15:00.000Z", attendees: 0, bookingUid: null },
+          { time: "2025-05-11T07:00:00.000Z", attendees: 0, bookingUid: null },
+          { time: "2025-05-11T07:45:00.000Z", attendees: 0, bookingUid: null },
+          { time: "2025-05-11T08:30:00.000Z", attendees: 0, bookingUid: null },
+          { time: "2025-05-11T09:15:00.000Z", attendees: 0, bookingUid: null },
+          { time: "2025-05-11T10:00:00.000Z", attendees: 0, bookingUid: null },
+          { time: "2025-05-11T10:45:00.000Z", attendees: 0, bookingUid: null },
+          { time: "2025-05-11T11:30:00.000Z", attendees: 0, bookingUid: null },
+        ],
+      },
+    };
   }
 
   if (has20250511Date && !isTeamEvent && !(input?.orgSlug === "acme" && input?.usernameList !== undefined)) {
@@ -470,41 +449,20 @@ const getSlots = ({
       input?.routedTeamMemberIds !== undefined);
 
   if (has20240523Date && isReroutingScenario) {
-    const slots = new Map<
-      string,
-      {
-        time: Dayjs;
-        userIds?: number[];
-        away?: boolean;
-        fromUser?: IFromUser;
-        toUser?: IToUser;
-        reason?: string;
-        emoji?: string;
-      }
-    >();
-
-    const dateString = "2024-05-23";
-    const morningSlotTimes = [
-      "04:30:00",
-      "05:30:00",
-      "06:30:00",
-      "07:30:00",
-      "08:30:00",
-      "09:30:00",
-      "10:30:00",
-      "11:30:00",
-    ];
-
-    for (const slotTime of morningSlotTimes) {
-      const slotDateTime = dayjs.utc(`${dateString}T${slotTime}.000Z`);
-
-      slots.set(slotDateTime.toISOString(), {
-        time: slotDateTime,
-        away: false,
-      });
-    }
-
-    return Array.from(slots.values());
+    return {
+      slots: {
+        "2024-05-23": [
+          { time: "2024-05-23T04:30:00.000Z", attendees: 0, bookingUid: null },
+          { time: "2024-05-23T05:30:00.000Z", attendees: 0, bookingUid: null },
+          { time: "2024-05-23T06:30:00.000Z", attendees: 0, bookingUid: null },
+          { time: "2024-05-23T07:30:00.000Z", attendees: 0, bookingUid: null },
+          { time: "2024-05-23T08:30:00.000Z", attendees: 0, bookingUid: null },
+          { time: "2024-05-23T09:30:00.000Z", attendees: 0, bookingUid: null },
+          { time: "2024-05-23T10:30:00.000Z", attendees: 0, bookingUid: null },
+          { time: "2024-05-23T11:30:00.000Z", attendees: 0, bookingUid: null },
+        ],
+      },
+    };
   }
 
   if (has20240523Date && frequency === 60 && !isReroutingScenario) {
