@@ -5,8 +5,8 @@ import { expect } from "@playwright/test";
  * Select a filter from the filter dropdown
  */
 export async function selectFilter(page: Page, columnId: string) {
-  await page.getByTestId("filter-button").click();
-  await page.getByTestId(`filter-${columnId}`).click();
+  await page.getByTestId("add-filter-button").click();
+  await page.getByTestId(`add-filter-item-${columnId}`).click();
 }
 
 /**

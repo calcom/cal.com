@@ -6,7 +6,6 @@ import { test } from "../../lib/fixtures";
 import { applyFilter, createFilterSegment, selectSegment, deleteSegment } from "./filter-segment-helpers";
 
 test.describe.configure({ mode: "parallel" });
-test.use({ headless: true });
 
 test.afterEach(async ({ users, orgs }) => {
   await users.deleteAll();
@@ -14,7 +13,7 @@ test.afterEach(async ({ users, orgs }) => {
 });
 
 test.describe("Filter Segment Functionality", () => {
-  test.skip("Admin can create, use, and delete filter segments in organization members list", async ({
+  test("Admin can create, use, and delete filter segments in organization members list", async ({
     page,
     users,
     orgs,
@@ -22,22 +21,19 @@ test.describe("Filter Segment Functionality", () => {
     const orgOwner = await users.create(undefined, {
       hasTeam: true,
       isOrg: true,
-      overrideDefaultEventTypes: true,
     });
     const { team: org } = await orgOwner.getOrgMembership();
 
     await users.create({
-      role: MembershipRole.MEMBER,
+      roleInOrganization: MembershipRole.MEMBER,
       organizationId: org.id,
       username: "member-user",
-      overrideDefaultEventTypes: true,
     });
 
     await users.create({
-      role: MembershipRole.ADMIN,
+      roleInOrganization: MembershipRole.ADMIN,
       organizationId: org.id,
       username: "admin-user",
-      overrideDefaultEventTypes: true,
     });
 
     await orgOwner.apiLogin();
@@ -75,7 +71,7 @@ test.describe("Filter Segment Functionality", () => {
     });
   });
 
-  test.skip("Filter segments persist across page reloads", async ({ page, users, orgs }) => {
+  test("Filter segments persist across page reloads", async ({ page, users, orgs }) => {
     const orgOwner = await users.create(undefined, {
       hasTeam: true,
       isOrg: true,
@@ -119,7 +115,7 @@ test.describe("Filter Segment Functionality", () => {
     await deleteSegment(page, segmentName);
   });
 
-  test.skip("Admin can create and use team scope filter segments", async ({ page, users, orgs }) => {
+  test("Admin can create and use team scope filter segments", async ({ page, users, orgs }) => {
     const orgOwner = await users.create(undefined, {
       hasTeam: true,
       isOrg: true,
