@@ -1254,7 +1254,7 @@ async function handler(
             routingFormResponseId,
             organizerId: organizerUser.id,
             teamId,
-            isRerouting: isReroutingCase,
+            isRerouting: !!reroutingFormResponses,
             reroutedByEmail: reqBody.rescheduledBy,
           });
         }
