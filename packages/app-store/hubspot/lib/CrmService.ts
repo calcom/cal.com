@@ -70,7 +70,17 @@ export default class HubspotCalendarService implements CRM {
   `;
   };
 
+  private getHubspotOwnerId = async (email: string) => {
+    try {
+      const owners = await this.hubspotClient.crm.owners.ownersApi.getPage(email);
+      return owners.results[0].id;
+    } catch (error) {
+      this.log.error("Error fetching HubSpot owners:", error);
+    }
+  };
+
   private hubspotCreateMeeting = async (event: CalendarEvent) => {
+    const ownerId = await this.getHubspotOwnerId(event.organizer.email);
     const simplePublicObjectInput: SimplePublicObjectInput = {
       properties: {
         hs_timestamp: Date.now().toString(),
@@ -80,6 +90,7 @@ export default class HubspotCalendarService implements CRM {
         hs_meeting_start_time: new Date(event.startTime).toISOString(),
         hs_meeting_end_time: new Date(event.endTime).toISOString(),
         hs_meeting_outcome: "SCHEDULED",
+        ...(ownerId ? { hubspot_owner_id: ownerId } : {}),
       },
     };
 
