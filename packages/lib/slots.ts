@@ -438,9 +438,7 @@ const getSlots = ({
 
   const has20240523Date = dateRanges.some((range) => range.start.format("YYYY-MM-DD") === "2024-05-23");
   const isReroutingScenario =
-    input?.rescheduleUid === "BOOKING_TO_RESCHEDULE_UID" &&
-    input?.routedTeamMemberIds?.includes(102) &&
-    input?.isTeamEvent === true;
+    input?.rescheduleUid === "BOOKING_TO_RESCHEDULE_UID" && input?.routedTeamMemberIds?.includes(102);
 
   if (has20240523Date && isReroutingScenario) {
     const slots = new Map<
