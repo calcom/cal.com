@@ -48,7 +48,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   };
 
   if (!queryParsed.success) {
-    log.warn("Error parsing query", queryParsed.error);
+    log.warn("Error parsing query", { issues: queryParsed.error.issues });
     return {
       notFound: true,
     };
@@ -150,7 +150,8 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
         props: {
           ...pageProps,
           form: serializableForm,
-          message: e.message,
+          message: null,
+          errorMessage: e.message,
         },
       };
     }
@@ -166,6 +167,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
         ...pageProps,
         form: serializableForm,
         message: decidedAction.value,
+        errorMessage: null,
       },
     };
   } else if (decidedAction.type === "eventTypeRedirectUrl") {
@@ -214,7 +216,8 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     props: {
       ...pageProps,
       form: serializableForm,
-      message: "Unhandled type of action",
+      message: null,
+      errorMessage: "Unhandled type of action",
     },
   };
 };

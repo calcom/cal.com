@@ -1,3 +1,8 @@
+/**
+ * @description This route is used to create and delete Credential records for all members of an organization that has delegation credentials enabled.
+ *
+ * It also deletes Credential records for all members of an organization that has delegation credentials disabled.
+ */
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
