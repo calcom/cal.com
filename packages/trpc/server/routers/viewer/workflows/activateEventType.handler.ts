@@ -372,6 +372,25 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               teamId: eventTypeWorkflow.teamId,
               verifiedAt: step.verifiedAt,
             });
+          } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE) {
+            if (booking.smsReminderNumber) {
+              await scheduleWhatsappReminder({
+                evt: bookingInfo,
+                reminderPhone: booking.smsReminderNumber,
+                triggerEvent: eventTypeWorkflow.trigger,
+                action: step.action,
+                timeSpan: {
+                  time: eventTypeWorkflow.time,
+                  timeUnit: eventTypeWorkflow.timeUnit,
+                },
+                message: step.reminderBody || "",
+                workflowStepId: step.id,
+                template: step.template,
+                userId: booking.userId,
+                teamId: eventTypeWorkflow.teamId,
+                verifiedAt: step.verifiedAt,
+              });
+            }
           }
         }
       }
