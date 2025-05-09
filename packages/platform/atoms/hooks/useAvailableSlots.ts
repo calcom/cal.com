@@ -15,7 +15,7 @@ export const QUERY_KEY = "get-available-slots";
 export const useAvailableSlots = ({
   enabled,
   ...rest
-}: GetAvailableSlotsInput_2024_04_15 & { enabled: boolean; teamId?: number }) => {
+}: GetAvailableSlotsInput_2024_04_15 & { enabled: boolean }) => {
   const availableSlots = useQuery({
     queryKey: [
       QUERY_KEY,
