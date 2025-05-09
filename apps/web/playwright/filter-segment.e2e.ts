@@ -2,11 +2,18 @@ import { expect } from "@playwright/test";
 
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { test } from "../../lib/fixtures";
-import { applyFilter, createFilterSegment, selectSegment, deleteSegment } from "./filter-segment-helpers";
+import {
+  applyFilter,
+  createFilterSegment,
+  selectSegment,
+  deleteSegment,
+  listSegments,
+  clearFilters,
+  openSegmentSubmenu,
+} from "./filter-helpers";
+import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
-test.use({ headless: true });
 
 test.afterEach(async ({ users, orgs }) => {
   await users.deleteAll();
@@ -14,7 +21,7 @@ test.afterEach(async ({ users, orgs }) => {
 });
 
 test.describe("Filter Segment Functionality", () => {
-  test.skip("Admin can create, use, and delete filter segments in organization members list", async ({
+  test("Admin can create, use, and delete filter segments in organization members list", async ({
     page,
     users,
     orgs,
@@ -25,14 +32,14 @@ test.describe("Filter Segment Functionality", () => {
     });
     const { team: org } = await orgOwner.getOrgMembership();
 
-    await users.create({
+    const memberUser = await users.create({
       roleInOrganization: MembershipRole.MEMBER,
       organizationId: org.id,
 
       username: "member-user",
     });
 
-    await users.create({
+    const adminUser = await users.create({
       roleInOrganization: MembershipRole.ADMIN,
       organizationId: org.id,
 
@@ -46,49 +53,50 @@ test.describe("Filter Segment Functionality", () => {
     const dataTable = page.getByTestId("user-list-data-table");
     await expect(dataTable).toBeVisible();
 
+    const segmentName = "Admin Users";
+
     await test.step("Can apply and save a role filter as a segment", async () => {
       await applyFilter(page, "role", "admin");
 
-      await expect(page.getByTestId("member-admin-user-username")).toBeVisible();
-      await expect(page.getByTestId("member-member-user-username")).toBeHidden();
+      await expect(page.getByText(adminUser.email)).toBeVisible();
+      await expect(page.getByText(memberUser.email)).toBeHidden();
 
-      const segmentName = "Admin Users";
       await createFilterSegment(page, segmentName);
 
-      await page.getByTestId("clear-all-filters-button").click();
+      await clearFilters(page);
 
-      await expect(page.getByTestId("member-admin-user-username")).toBeVisible();
-      await expect(page.getByTestId("member-member-user-username")).toBeVisible();
+      await expect(page.getByText(adminUser.email)).toBeVisible();
+      await expect(page.getByText(memberUser.email)).toBeVisible();
 
       await selectSegment(page, segmentName);
 
-      await expect(page.getByTestId("member-admin-user-username")).toBeVisible();
-      await expect(page.getByTestId("member-member-user-username")).toBeHidden();
+      await expect(page.getByText(adminUser.email)).toBeVisible();
+      await expect(page.getByText(memberUser.email)).toBeHidden();
     });
 
     await test.step("Can delete a filter segment", async () => {
       await deleteSegment(page, "Admin Users");
 
-      await page.getByRole("button", { name: "Segment" }).click();
-      await expect(page.getByText("Admin Users")).toBeHidden();
+      const segments = await listSegments(page);
+      expect(segments.includes(segmentName)).toBe(false);
     });
   });
 
-  test.skip("Filter segments persist across page reloads", async ({ page, users, orgs }) => {
+  test("Filter segments persist across page reloads", async ({ page, users, orgs }) => {
     const orgOwner = await users.create(undefined, {
       hasTeam: true,
       isOrg: true,
     });
     const { team: org } = await orgOwner.getOrgMembership();
 
-    await users.create({
+    const memberUser = await users.create({
       roleInOrganization: MembershipRole.MEMBER,
       organizationId: org.id,
 
       username: "member-user",
     });
 
-    await users.create({
+    const adminUser = await users.create({
       roleInOrganization: MembershipRole.ADMIN,
       organizationId: org.id,
 
@@ -111,13 +119,13 @@ test.describe("Filter Segment Functionality", () => {
 
     await selectSegment(page, segmentName);
 
-    await expect(page.getByTestId("member-admin-user-username")).toBeVisible();
-    await expect(page.getByTestId("member-member-user-username")).toBeHidden();
+    await expect(page.getByText(adminUser.email)).toBeVisible();
+    await expect(page.getByText(memberUser.email)).toBeHidden();
 
     await deleteSegment(page, segmentName);
   });
 
-  test.skip("Admin can create and use team scope filter segments", async ({ page, users, orgs }) => {
+  test("Admin can create and use team scope filter segments", async ({ page, users, prisma }) => {
     const orgOwner = await users.create(undefined, {
       hasTeam: true,
       isOrg: true,
@@ -127,14 +135,14 @@ test.describe("Filter Segment Functionality", () => {
     const { team: org } = await orgOwner.getOrgMembership();
     const { team: subTeam } = await orgOwner.getFirstTeamMembership();
 
-    await users.create({
+    const memberUser = await users.create({
       roleInOrganization: MembershipRole.MEMBER,
       organizationId: org.id,
 
       username: "org-member",
     });
 
-    await users.create({
+    const adminUser = await users.create({
       roleInOrganization: MembershipRole.ADMIN,
       organizationId: org.id,
 
@@ -147,21 +155,20 @@ test.describe("Filter Segment Functionality", () => {
 
     const dataTable = page.getByTestId("user-list-data-table");
     await expect(dataTable).toBeVisible();
+    const segmentName = "Team Admin Filter";
 
     await test.step("Can create a team scope filter segment", async () => {
       await applyFilter(page, "role", "admin");
 
-      const segmentName = "Team Admin Filter";
       await createFilterSegment(page, segmentName, {
         teamScope: true,
         teamName: subTeam.name,
       });
 
-      await page.getByTestId("clear-all-filters-button").click();
-
+      await clearFilters(page);
       await selectSegment(page, segmentName);
-      await expect(page.getByTestId("member-org-admin-username")).toBeVisible();
-      await expect(page.getByTestId("member-org-member-username")).toBeHidden();
+      await expect(page.getByText(adminUser.email)).toBeVisible();
+      await expect(page.getByText(memberUser.email)).toBeHidden();
     });
 
     await test.step("Regular member can see but not modify team segments", async () => {
@@ -170,6 +177,15 @@ test.describe("Filter Segment Functionality", () => {
         organizationId: org.id,
         username: "regular-member",
       });
+      await prisma.membership.create({
+        data: {
+          createdAt: new Date(),
+          teamId: subTeam.id,
+          userId: regularMember.id,
+          role: MembershipRole.MEMBER,
+          accepted: true,
+        },
+      });
 
       await regularMember.apiLogin();
 
@@ -177,17 +193,13 @@ test.describe("Filter Segment Functionality", () => {
       await expect(dataTable).toBeVisible();
 
       await selectSegment(page, "Team Admin Filter");
-      await expect(page.getByTestId("member-org-admin-username")).toBeVisible();
-      await expect(page.getByTestId("member-org-member-username")).toBeHidden();
+      await expect(page.getByText(adminUser.email)).toBeVisible();
+      await expect(page.getByText(memberUser.email)).toBeHidden();
 
-      await page.getByRole("button", { name: "Open menu" }).click();
-      await expect(page.getByText("Delete")).toBeHidden();
-
-      await orgOwner.apiLogin();
-
-      await page.goto(`/settings/organizations/${org.slug}/members`);
-      await expect(dataTable).toBeVisible();
-      await deleteSegment(page, "Team Admin Filter");
+      await openSegmentSubmenu(page, segmentName);
+      await expect(
+        page.getByTestId("filter-segment-select-submenu-content").getByText("Delete")
+      ).toBeHidden();
     });
   });
 });
