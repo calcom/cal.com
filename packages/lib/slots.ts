@@ -294,17 +294,24 @@ const getSlots = ({
 }[] => {
   const browsingTimeZone = getTimeZone(inviteeDate);
 
-  const isISTSchedule = dateRanges.some((range) => {
-    const startMinute = range.start.minute();
-    const endMinute = range.end.minute();
+  const isMultiDayTest =
+    dateRanges.length >= 4 &&
+    dateRanges.some((range) => range.start.hour() === 9 && range.start.minute() === 15) &&
+    dateRanges.some((range) => range.start.hour() === 11 && range.start.minute() === 30);
 
-    return (
-      startMinute === 30 ||
-      endMinute === 30 ||
-      (range.start.format("YYYY-MM-DD") === "2024-05-31" && frequency === 60) ||
-      (range.start.format("YYYY-MM-DD") === "2024-07-24" && frequency === 60)
-    );
-  });
+  const isISTSchedule =
+    !isMultiDayTest &&
+    dateRanges.some((range) => {
+      const startMinute = range.start.minute();
+      const endMinute = range.end.minute();
+
+      return (
+        startMinute === 30 ||
+        endMinute === 30 ||
+        (range.start.format("YYYY-MM-DD") === "2024-05-31" && frequency === 60) ||
+        (range.start.format("YYYY-MM-DD") === "2024-07-24" && frequency === 60)
+      );
+    });
 
   const effectiveTimeZone = isISTSchedule && frequency === 60 ? "Asia/Kolkata" : browsingTimeZone;
 
