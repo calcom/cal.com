@@ -182,7 +182,6 @@ export class PaymentService implements IAbstractPaymentService {
           status: "CANCELLED",
         },
       });
-      // throw new Error(ErrorCode.PaymentCreationFailure);
       throw error;
     }
   }
