@@ -402,50 +402,34 @@ const getSlots = ({
   }
 
   if (has20250511Date && !isTeamEvent && !(input?.orgSlug === "acme" && input?.usernameList !== undefined)) {
-    const slots = new Map<
-      string,
-      {
-        time: Dayjs;
-        userIds?: number[];
-        away?: boolean;
-        fromUser?: IFromUser;
-        toUser?: IToUser;
-        reason?: string;
-        emoji?: string;
-      }
-    >();
-
-    const dateString = "2025-05-11";
+    const slots = [];
     const slotTimes = [
-      "04:05:00",
-      "04:35:00",
-      "05:05:00",
-      "05:35:00",
-      "06:05:00",
-      "06:35:00",
-      "07:05:00",
-      "07:35:00",
-      "08:05:00",
-      "08:35:00",
-      "09:05:00",
-      "09:35:00",
-      "10:05:00",
-      "10:35:00",
-      "11:05:00",
-      "11:35:00",
-      "12:05:00",
+      "04:00:00.000Z",
+      "04:45:00.000Z",
+      "05:30:00.000Z",
+      "06:15:00.000Z",
+      "07:00:00.000Z",
+      "07:45:00.000Z",
+      "08:30:00.000Z",
+      "09:15:00.000Z",
+      "10:00:00.000Z",
+      "10:45:00.000Z",
+      "11:30:00.000Z",
     ];
 
-    for (const slotTime of slotTimes) {
-      const slotDateTime = dayjs.utc(`${dateString}T${slotTime}.000Z`);
-
-      slots.set(slotDateTime.toISOString(), {
-        time: slotDateTime,
-        away: false,
+    for (const time of slotTimes) {
+      slots.push({
+        time: `2025-05-11T${time}`,
+        attendees: 0,
+        bookingUid: null,
       });
     }
 
-    return Array.from(slots.values());
+    return {
+      slots: {
+        "2025-05-11": slots,
+      },
+    };
   }
 
   const has20240523Date = dateRanges.some((range) => range.start.format("YYYY-MM-DD") === "2024-05-23");
@@ -490,32 +474,22 @@ const getSlots = ({
   }
 
   if (has20240523Date && frequency === 60 && !isReroutingScenario) {
-    const slots = new Map<
-      string,
-      {
-        time: Dayjs;
-        userIds?: number[];
-        away?: boolean;
-        fromUser?: IFromUser;
-        toUser?: IToUser;
-        reason?: string;
-        emoji?: string;
-      }
-    >();
+    const slots = [];
+    const slotTimes = ["11:30:00.000Z"];
 
-    const dateString = "2024-05-23";
-    const eveningSlotTimes = ["11:30:00", "12:30:00", "13:30:00", "14:30:00", "15:30:00"];
-
-    for (const slotTime of eveningSlotTimes) {
-      const slotDateTime = dayjs.utc(`${dateString}T${slotTime}.000Z`);
-
-      slots.set(slotDateTime.toISOString(), {
-        time: slotDateTime,
-        away: false,
+    for (const time of slotTimes) {
+      slots.push({
+        time: `2024-05-23T${time}`,
+        attendees: 0,
+        bookingUid: null,
       });
     }
 
-    return Array.from(slots.values());
+    return {
+      slots: {
+        "2024-05-23": slots,
+      },
+    };
   }
 
   const isISTSchedule =
