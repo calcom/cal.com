@@ -100,20 +100,19 @@ export async function scanWorkflowBody(payload: string) {
 
     const isSpam = await iffyScanBody(workflowStep.reminderBody, workflowStep.id);
 
-    if (isSpam) {
-      if (!workflowStep.workflow.user?.whitelistWorkflows) {
-        // We won't delete the workflow step incase it is flagged as a false positive
-        log.warn(`Workflow step ${workflowStep.id} is spam with body ${workflowStep.reminderBody}`);
-        await lockUser("userId", userId.toString(), LockReason.SPAM_WORKFLOW_BODY);
+    if (isSpam && !workflowStep.workflow.user?.whitelistWorkflows) {
+      // We won't delete the workflow step incase it is flagged as a false positive
+      log.warn(`Workflow step ${workflowStep.id} is spam with body ${workflowStep.reminderBody}`);
+      await lockUser("userId", userId.toString(), LockReason.SPAM_WORKFLOW_BODY);
 
-        // Return early if spam is detected
-        return;
-      } else {
-        log.warn(
-          `For whitelisted user, workflow step ${workflowStep.id} is spam with body ${workflowStep.reminderBody}`
-        );
-        continue;
-      }
+      // Return early if spam is detected
+      return;
+    }
+
+    if (workflowStep.workflow.user?.whitelistWorkflows) {
+      log.warn(
+        `For whitelisted user, workflow step ${workflowStep.id} is spam with body ${workflowStep.reminderBody}`
+      );
     }
 
     await prisma.workflowStep.update({
