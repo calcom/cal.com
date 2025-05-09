@@ -50,7 +50,6 @@ export const buildBaseWhereCondition = async ({
   ctx,
 }: BuildBaseWhereConditionType): Promise<{
   whereCondition: Prisma.BookingTimeStatusWhereInput;
-  isEmptyResponse?: boolean;
 }> => {
   let whereCondition: Prisma.BookingTimeStatusWhereInput = {};
 
@@ -91,7 +90,6 @@ export const buildBaseWhereCondition = async ({
             },
           ],
         },
-        isEmptyResponse: true,
       };
     }
 
@@ -128,13 +126,10 @@ export const buildBaseWhereCondition = async ({
       ],
     };
 
-    if (eventTypeId && whereCondition.OR) {
-      whereCondition = {
-        AND: [{ OR: whereCondition.OR }, teamOrgConditions],
-      };
-    } else {
-      whereCondition = teamOrgConditions;
-    }
+    whereCondition =
+      eventTypeId && whereCondition.OR
+        ? { AND: [{ OR: whereCondition.OR }, teamOrgConditions] }
+        : teamOrgConditions;
   }
 
   if (teamId && !isAll) {
@@ -164,21 +159,18 @@ export const buildBaseWhereCondition = async ({
       ],
     };
 
-    if (eventTypeId && whereCondition.OR) {
-      whereCondition = {
-        AND: [{ OR: whereCondition.OR }, teamConditions],
-      };
-    } else {
-      whereCondition = teamConditions;
-    }
+    whereCondition =
+      eventTypeId && whereCondition.OR
+        ? { AND: [{ OR: whereCondition.OR }, teamConditions] }
+        : teamConditions;
   }
 
-  // If no valid parameters were provided, return a restrictive condition
-  if (Object.keys(whereCondition).length === 0) {
-    whereCondition = { id: -1 }; // Ensure no data is returned for invalid parameters
-  }
-
-  return { whereCondition };
+  return {
+    whereCondition:
+      Object.keys(whereCondition).length === 0
+        ? { id: -1 } // Ensure no data is returned for invalid parameters
+        : whereCondition,
+  };
 };
 
 const buildHashMapForUsers = <
