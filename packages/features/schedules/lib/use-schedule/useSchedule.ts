@@ -117,8 +117,8 @@ export const useSchedule = ({
   };
 
   const teamSchedule = useApiV2AvailableSlots({
-    enabled: Boolean(isTeamEvent),
     ...input,
+    enabled: Boolean(isTeamEvent) && options.enabled,
     duration: input.duration ? Number(input.duration) : undefined,
     routedTeamMemberIds: input.routedTeamMemberIds ?? undefined,
     teamMemberEmail: input.teamMemberEmail ?? undefined,
