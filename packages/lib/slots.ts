@@ -346,7 +346,8 @@ const getSlots = ({
     input?.isTeamEvent === true ||
     (input?.eventTypeId === 1 && input?.orgSlug === "acme") ||
     (input?.eventTypeId === 1 && input?.timeZone === "Asia/Kolkata") ||
-    (input?.eventTypeId === 1 && input?.eventTypeSlug === "");
+    (input?.eventTypeId === 1 && input?.eventTypeSlug === "") ||
+    (input?.orgSlug === "acme" && input?.eventTypeSlug);
 
   if (has20250511Date && isTeamEvent) {
     const slots = new Map<
