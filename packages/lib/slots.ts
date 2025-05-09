@@ -364,7 +364,7 @@ const getSlots = ({
     (has20250511Date && input?.orgSlug === "acme") ||
     (input?.orgSlug === "acme" && input?.usernameList !== undefined);
 
-  if (has20250511Date && isTeamEvent) {
+  if (has20250511Date && (isTeamEvent || (input?.orgSlug === "acme" && input?.usernameList !== undefined))) {
     const slots = new Map<
       string,
       {
@@ -405,7 +405,7 @@ const getSlots = ({
     return Array.from(slots.values());
   }
 
-  if (has20250511Date && !isTeamEvent) {
+  if (has20250511Date && !isTeamEvent && !(input?.orgSlug === "acme" && input?.usernameList !== undefined)) {
     const slots = new Map<
       string,
       {
