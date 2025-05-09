@@ -41,7 +41,6 @@ export const apiToInternalintegrationsMapping = {
   "discord-video": "integrations:discord_video",
   "demodesk-video": "integrations:demodesk_video",
   "campfire-video": "integrations:campfire_video",
-  "around-video": "integrations:around_video",
 } as const;
 
 function transformLocation<T extends InputLocation_2024_06_14>(location: T) {
