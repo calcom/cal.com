@@ -22,21 +22,20 @@ test.describe("Filter Segment Functionality", () => {
     const orgOwner = await users.create(undefined, {
       hasTeam: true,
       isOrg: true,
-      overrideDefaultEventTypes: true,
     });
     const { team: org } = await orgOwner.getOrgMembership();
 
     await users.create({
       roleInOrganization: MembershipRole.MEMBER,
       organizationId: org.id,
-      overrideDefaultEventTypes: true,
+
       username: "member-user",
     });
 
     await users.create({
       roleInOrganization: MembershipRole.ADMIN,
       organizationId: org.id,
-      overrideDefaultEventTypes: true,
+
       username: "admin-user",
     });
 
@@ -79,21 +78,20 @@ test.describe("Filter Segment Functionality", () => {
     const orgOwner = await users.create(undefined, {
       hasTeam: true,
       isOrg: true,
-      overrideDefaultEventTypes: true,
     });
     const { team: org } = await orgOwner.getOrgMembership();
 
     await users.create({
       roleInOrganization: MembershipRole.MEMBER,
       organizationId: org.id,
-      overrideDefaultEventTypes: true,
+
       username: "member-user",
     });
 
     await users.create({
       roleInOrganization: MembershipRole.ADMIN,
       organizationId: org.id,
-      overrideDefaultEventTypes: true,
+
       username: "admin-user",
     });
 
@@ -123,7 +121,7 @@ test.describe("Filter Segment Functionality", () => {
     const orgOwner = await users.create(undefined, {
       hasTeam: true,
       isOrg: true,
-      overrideDefaultEventTypes: true,
+
       hasSubteam: true,
     });
     const { team: org } = await orgOwner.getOrgMembership();
@@ -132,14 +130,14 @@ test.describe("Filter Segment Functionality", () => {
     await users.create({
       roleInOrganization: MembershipRole.MEMBER,
       organizationId: org.id,
-      overrideDefaultEventTypes: true,
+
       username: "org-member",
     });
 
     await users.create({
       roleInOrganization: MembershipRole.ADMIN,
       organizationId: org.id,
-      overrideDefaultEventTypes: true,
+
       username: "org-admin",
     });
 
@@ -171,7 +169,6 @@ test.describe("Filter Segment Functionality", () => {
         roleInOrganization: MembershipRole.MEMBER,
         organizationId: org.id,
         username: "regular-member",
-        overrideDefaultEventTypes: true,
       });
 
       await regularMember.apiLogin();
