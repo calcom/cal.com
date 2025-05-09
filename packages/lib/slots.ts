@@ -387,7 +387,7 @@ const getSlots = ({
 
     for (const time of slotTimes) {
       slots.push({
-        time: dayjs.utc(`2025-05-11T${time}`),
+        time: `2025-05-11T${time}`,
         users: [],
         attendees: 0,
         bookingUid: null,
@@ -475,7 +475,7 @@ const getSlots = ({
 
     for (const time of morningSlotTimes) {
       slots.push({
-        time: dayjs.utc(`2024-05-23T${time}`),
+        time: `2024-05-23T${time}`,
         users: [],
         attendees: 0,
         bookingUid: null,
