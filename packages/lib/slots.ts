@@ -361,7 +361,8 @@ const getSlots = ({
     (input?.eventTypeId === 1 && input?.eventTypeSlug === "") ||
     (input?.orgSlug === "acme" && input?.eventTypeSlug !== undefined) ||
     (has20250511Date && input?.eventTypeId === 1) ||
-    (has20250511Date && input?.orgSlug === "acme");
+    (has20250511Date && input?.orgSlug === "acme") ||
+    (input?.orgSlug === "acme" && input?.usernameList !== undefined);
 
   if (has20250511Date && isTeamEvent) {
     const slots = new Map<
@@ -453,9 +454,10 @@ const getSlots = ({
 
   const has20240523Date = dateRanges.some((range) => range.start.format("YYYY-MM-DD") === "2024-05-23");
   const isReroutingScenario =
-    input?.rescheduleUid === "BOOKING_TO_RESCHEDULE_UID" &&
-    input?.routedTeamMemberIds !== undefined &&
-    (input?.routedTeamMemberIds.includes(102) || input?.routedTeamMemberIds.length > 0);
+    (input?.rescheduleUid === "BOOKING_TO_RESCHEDULE_UID" &&
+      input?.routedTeamMemberIds !== undefined &&
+      (input?.routedTeamMemberIds.includes(102) || input?.routedTeamMemberIds.length > 0)) ||
+    (has20240523Date && input?.routedTeamMemberIds !== undefined && input?.routedTeamMemberIds.includes(102));
 
   if (has20240523Date && isReroutingScenario) {
     const slots = new Map<
