@@ -112,7 +112,6 @@ export const useScheduleForEvent = ({
     teamMemberEmail,
     useApiV2: true,
   });
-  console.log("scheduleUsingApiV2", scheduleUsingApiV2?.failureReason);
 
   const scheduleNotUsingApiV2 = useSchedule({
     username: usernameFromStore ?? username,
@@ -134,7 +133,6 @@ export const useScheduleForEvent = ({
     // Network error does not trigger `isError` flag, so we are instead using `failureReason` here
     enabled: !!scheduleUsingApiV2?.failureReason,
   });
-  console.log("scheduleNotUsingApiV2", scheduleNotUsingApiV2);
 
   const schedule = scheduleNotUsingApiV2 ?? scheduleUsingApiV2;
 
