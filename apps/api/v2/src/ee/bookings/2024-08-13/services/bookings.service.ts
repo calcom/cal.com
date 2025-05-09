@@ -433,9 +433,9 @@ export class BookingsService_2024_08_13 {
     }
 
     const skip = Math.abs(queryParams?.skip ?? 0);
-    const take = Math.abs(queryParams?.take === 0 ? 1 : queryParams?.take ?? 100);
+    const take = Math.abs(queryParams?.take ?? 100);
     const itemsPerPage = take;
-    const totalPages = Math.ceil(fetchedBookings.totalCount / itemsPerPage);
+    const totalPages = itemsPerPage !== 0 ? Math.ceil(fetchedBookings.totalCount / itemsPerPage) : 0;
     const currentPage = Math.floor(skip / itemsPerPage) + 1;
     const hasNextPage = skip + itemsPerPage < fetchedBookings.totalCount;
     const hasPreviousPage = skip > 0;

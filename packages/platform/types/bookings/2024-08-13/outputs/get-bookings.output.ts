@@ -10,7 +10,7 @@ import {
   RecurringBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
 
-class PaginationMetaDto {
+export class PaginationMetaDto {
   @ApiProperty({
     description: "The total number of items available across all pages, matching the query criteria.",
     example: 123,
