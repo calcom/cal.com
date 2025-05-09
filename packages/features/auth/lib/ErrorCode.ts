@@ -17,4 +17,5 @@ export enum ErrorCode {
   RateLimitExceeded = "rate-limit-exceeded",
   SocialIdentityProviderRequired = "social-identity-provider-required",
   UserAccountLocked = "user-account-locked",
+  SingleSignOnRequired = "single-sign-on-required",
 }

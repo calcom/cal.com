@@ -538,6 +538,7 @@ model OrganizationSettings {
   allowSEOIndexing                    Boolean    @default(false)
   orgProfileRedirectsToVerifiedDomain Boolean    @default(false)
   disablePhoneOnlySMSNotifications    Boolean    @default(false)
+  enforceSingleSignOn                 Boolean    @default(false)
 }
 
 enum MembershipRole {

@@ -75,6 +75,7 @@ PageProps & WithNonceProps<{}>) {
   const [twoFactorLostAccess, setTwoFactorLostAccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [lastUsed, setLastUsed] = useLastUsed();
+  const utils = trpc.useUtils();
 
   const errorMessages: { [key: string]: string } = {
     // [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
@@ -83,6 +84,7 @@ PageProps & WithNonceProps<{}>) {
     [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t("please_try_again")}`,
     [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
+    [ErrorCode.SingleSignOnRequired]: t("single_sign_on_required"),
   };
 
   const telemetry = useTelemetry();
@@ -151,21 +153,46 @@ PageProps & WithNonceProps<{}>) {
   const onSubmit = async (values: LoginValues) => {
     setErrorMessage(null);
     telemetry.event(telemetryEventTypes.login, collectPageParameters());
-    const res = await signIn<"credentials">("credentials", {
-      ...values,
-      callbackUrl,
-      redirect: false,
-    });
-    if (!res) setErrorMessage(errorMessages[ErrorCode.InternalServerError]);
-    // we're logged in! let's do a hard refresh to the desired url
-    else if (!res.error) {
-      setLastUsed("credentials");
-      router.push(callbackUrl);
-    } else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
-    else if (res.error === ErrorCode.IncorrectBackupCode) setErrorMessage(t("incorrect_backup_code"));
-    else if (res.error === ErrorCode.MissingBackupCodes) setErrorMessage(t("missing_backup_codes"));
-    // fallback if error not found
-    else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
+
+    try {
+      const emailVerification = await utils.viewer.auth.verifyEmail.fetch({ email: values.email });
+
+      if (emailVerification?.belongsToOrg && emailVerification.enforceSingleSignOn) {
+        setErrorMessage(t("single_sign_on_required"));
+
+        if (emailVerification.useSAML) {
+          await signIn("saml", {
+            callbackUrl,
+            email: values.email,
+          });
+        } else {
+          await signIn("google", {
+            callbackUrl,
+            login_hint: values.email,
+          });
+        }
+        return;
+      }
+
+      const res = await signIn<"credentials">("credentials", {
+        ...values,
+        callbackUrl,
+        redirect: false,
+      });
+      if (!res) setErrorMessage(errorMessages[ErrorCode.InternalServerError]);
+      // we're logged in! let's do a hard refresh to the desired url
+      else if (!res.error) {
+        setLastUsed("credentials");
+        router.push(callbackUrl);
+      } else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
+      else if (res.error === ErrorCode.IncorrectBackupCode) setErrorMessage(t("incorrect_backup_code"));
+      else if (res.error === ErrorCode.MissingBackupCodes) setErrorMessage(t("missing_backup_codes"));
+      // fallback if error not found
+      else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
+    } catch (error) {
+      console.error(error);
+      setErrorMessage(t("something_went_wrong"));
+    }
   };
 
   const { data, isPending, error } = trpc.viewer.public.ssoConnections.useQuery();
