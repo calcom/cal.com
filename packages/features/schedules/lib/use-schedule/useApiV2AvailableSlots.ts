@@ -13,7 +13,7 @@ export const QUERY_KEY = "get-available-slots";
 export const useApiV2AvailableSlots = ({
   enabled,
   ...rest
-}: GetAvailableSlotsInput_2024_04_15 & { enabled: boolean; isTeamEvent?: boolean; teamId?: number }) => {
+}: GetAvailableSlotsInput_2024_04_15 & { enabled: boolean; teamId?: number }) => {
   const availableSlots = useQuery({
     queryKey: [
       QUERY_KEY,
