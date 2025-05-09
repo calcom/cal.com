@@ -51,21 +51,25 @@ export const buildBaseWhereCondition = async ({
 }: BuildBaseWhereConditionType): Promise<{
   whereCondition: Prisma.BookingTimeStatusWhereInput;
 }> => {
-  let whereCondition: Prisma.BookingTimeStatusWhereInput = {};
+  const conditions: Prisma.BookingTimeStatusWhereInput[] = [];
 
   // EventType Filter
   if (eventTypeId) {
-    whereCondition.OR = [{ eventTypeId }, { eventParentId: eventTypeId }];
+    conditions.push({
+      OR: [{ eventTypeId }, { eventParentId: eventTypeId }],
+    });
   }
 
   // User/Member filter
   if (memberUserId) {
-    whereCondition.userId = memberUserId;
+    conditions.push({ userId: memberUserId });
   }
 
   if (userId) {
-    whereCondition.teamId = null;
-    whereCondition.userId = userId;
+    conditions.push({
+      teamId: null,
+      userId: userId,
+    });
   }
 
   // organization-wide queries condition
@@ -80,58 +84,52 @@ export const buildBaseWhereCondition = async ({
     });
 
     if (teamsFromOrg.length === 0) {
-      // For empty teams, return only the OR condition
-      return {
-        whereCondition: {
-          OR: [
-            {
-              teamId: ctx.userOrganizationId,
-              isTeamBooking: true,
-            },
-          ],
+      // For empty teams, add organization condition
+      conditions.push({
+        OR: [
+          {
+            teamId: ctx.userOrganizationId,
+            isTeamBooking: true,
+          },
+        ],
+      });
+    } else {
+      const teamConditional = {
+        id: {
+          in: [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)],
         },
       };
+      const usersFromOrg = await ctx.insightsDb.membership.findMany({
+        where: {
+          team: teamConditional,
+          accepted: true,
+        },
+        select: {
+          userId: true,
+        },
+      });
+      const userIdsFromOrg = usersFromOrg.map((u) => u.userId);
+
+      conditions.push({
+        OR: [
+          {
+            teamId: {
+              in: [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)],
+            },
+            isTeamBooking: true,
+          },
+          {
+            userId: {
+              in: userIdsFromOrg,
+            },
+            isTeamBooking: false,
+          },
+        ],
+      });
     }
-
-    const teamConditional = {
-      id: {
-        in: [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)],
-      },
-    };
-    const usersFromOrg = await ctx.insightsDb.membership.findMany({
-      where: {
-        team: teamConditional,
-        accepted: true,
-      },
-      select: {
-        userId: true,
-      },
-    });
-    const userIdsFromOrg = usersFromOrg.map((u) => u.userId);
-
-    const teamOrgConditions = {
-      OR: [
-        {
-          teamId: {
-            in: [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)],
-          },
-          isTeamBooking: true,
-        },
-        {
-          userId: {
-            in: userIdsFromOrg,
-          },
-          isTeamBooking: false,
-        },
-      ],
-    };
-
-    whereCondition =
-      eventTypeId && whereCondition.OR
-        ? { AND: [{ OR: whereCondition.OR }, teamOrgConditions] }
-        : teamOrgConditions;
   }
 
+  // Team-specific queries condition
   if (teamId && !isAll) {
     const usersFromTeam = await ctx.insightsDb.membership.findMany({
       where: {
@@ -144,7 +142,7 @@ export const buildBaseWhereCondition = async ({
     });
     const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
 
-    const teamConditions = {
+    conditions.push({
       OR: [
         {
           teamId,
@@ -157,12 +155,23 @@ export const buildBaseWhereCondition = async ({
           isTeamBooking: false,
         },
       ],
-    };
+    });
+  }
 
-    whereCondition =
-      eventTypeId && whereCondition.OR
-        ? { AND: [{ OR: whereCondition.OR }, teamConditions] }
-        : teamConditions;
+  let whereCondition: Prisma.BookingTimeStatusWhereInput = {};
+
+  if (conditions.length === 2 && eventTypeId && (memberUserId || userId) && !teamId && !isAll) {
+    const eventTypeCondition = { OR: [{ eventTypeId }, { eventParentId: eventTypeId }] };
+    const userCondition = memberUserId ? { userId: memberUserId } : { teamId: null, userId };
+
+    whereCondition = {
+      ...eventTypeCondition,
+      ...userCondition,
+    };
+  } else if (conditions.length === 1) {
+    whereCondition = conditions[0];
+  } else if (conditions.length > 1) {
+    whereCondition = { AND: conditions };
   }
 
   return {
