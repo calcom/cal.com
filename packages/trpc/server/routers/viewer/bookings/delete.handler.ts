@@ -44,9 +44,9 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
 
   if (!isOrganizer) {
     const teamId = booking.eventType?.teamId ?? null;
-    const isAdmin = teamId && (await isTeamAdmin(user.id, teamId));
+    const isAdminOrOwner = teamId && (await isTeamAdmin(user.id, teamId));
 
-    if (!isAdmin) {
+    if (!isAdminOrOwner) {
       throw new Error("Unauthorized: You don't have permission to delete this booking");
     }
   }
