@@ -15,14 +15,14 @@ import {
 import { SlotFormat } from "@calcom/platform-enums";
 
 export class GetAvailableSlotsInput_2024_04_15 {
-  @IsDateString()
+  @IsDateString({ strict: true })
   @ApiProperty({
     description: "Start date string starting from which to fetch slots in UTC timezone.",
     example: "2022-06-14T00:00:00.000Z",
   })
   startTime!: string;
 
-  @IsDateString()
+  @IsDateString({ strict: true })
   @ApiProperty({
     description: "End date string until which to fetch slots in UTC timezone.",
     example: "2022-06-14T23:59:59.999Z",
