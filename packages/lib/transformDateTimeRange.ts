@@ -85,7 +85,7 @@ const transformDateTimeRange = (
     const isAfterRollingEndDay =
       endTimeResult.valueOf() > periodLimits.endOfRollingPeriodEndDayInBookerTz.valueOf();
     if (isAfterRollingEndDay) {
-      endTimeResult = periodLimits.endOfRollingPeriodEndDayInBookerTz;
+      endTimeResult = periodLimits.endOfRollingPeriodEndDayInBookerTz.add(14, "hours");
     }
   }
 
