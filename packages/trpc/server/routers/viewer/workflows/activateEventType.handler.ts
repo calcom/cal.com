@@ -336,11 +336,10 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               verifiedAt: step.verifiedAt,
             });
           } else if (step.action === WorkflowActions.SMS_ATTENDEE) {
-            const attendee = booking.attendees[0]; // Use the first attendee if multiple
-            if (attendee?.phoneNumber) {
+            if (booking.smsReminderNumber) {
               await scheduleSMSReminder({
                 evt: bookingInfo,
-                reminderPhone: attendee.phoneNumber,
+                reminderPhone: booking.smsReminderNumber,
                 triggerEvent: eventTypeWorkflow.trigger,
                 action: step.action,
                 timeSpan: {
