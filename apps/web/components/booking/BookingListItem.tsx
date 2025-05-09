@@ -54,6 +54,8 @@ import { ReassignDialog } from "@components/dialog/ReassignDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
+import InternalRejectionNotePresetsSelect from "./InternalRejectionNotePresetsSelect";
+
 type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
@@ -114,6 +116,9 @@ function BookingListItem(booking: BookingItemProps) {
   const utils = trpc.useUtils();
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
+  const [internalRejectionNote, setInternalRejectionNote] = useState<{ id: number; name: string } | null>(
+    null
+  );
   const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);
   const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
   const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
@@ -187,11 +192,18 @@ function BookingListItem(booking: BookingItemProps) {
   );
   const provider = guessEventLocationType(location);
 
+  const teamId = booking.eventType?.team?.id;
+  const { data: internalNotePresets = [] } = trpc.viewer.teams.getInternalNotesPresets.useQuery(
+    { teamId: teamId as number },
+    { enabled: !!teamId }
+  );
+
   const bookingConfirm = async (confirm: boolean) => {
     let body = {
       bookingId: booking.id,
       confirmed: confirm,
       reason: rejectionReason,
+      internalNote: internalRejectionNote,
     };
     /**
      * Only pass down the recurring event id when we need to confirm the entire series, which happens in
@@ -532,6 +544,27 @@ function BookingListItem(booking: BookingItemProps) {
       )}
       <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
         <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
+          {teamId && internalNotePresets.length > 0 && (
+            <InternalRejectionNotePresetsSelect
+              internalNotePresets={internalNotePresets}
+              setRejectionReason={setRejectionReason}
+              onPresetSelect={(option) => {
+                if (!option) return;
+
+                if (option.value === "other") {
+                  setInternalRejectionNote({ id: -1, name: option.label });
+                } else {
+                  const foundInternalNote = internalNotePresets.find(
+                    (preset) => preset.id === Number(option.value)
+                  );
+                  if (foundInternalNote) {
+                    setInternalRejectionNote(foundInternalNote);
+                    setRejectionReason(foundInternalNote.rejectionReason || "");
+                  }
+                }
+              }}
+            />
+          )}
           <div>
             <TextAreaField
               name="rejectionReason"

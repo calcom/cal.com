@@ -32,13 +32,19 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
     return (_loadedPresets ?? []).map((preset) => ({
       ...preset,
       cancellationReason: preset.cancellationReason ?? undefined,
+      rejectionReason: preset.rejectionReason ?? undefined,
     }));
   }, [_loadedPresets]);
 
   const hasExistingPresets = loadedPresets.length > 0;
 
   type FormValues = {
-    presets: { id: number; name: string; cancellationReason?: string | undefined }[];
+    presets: {
+      id: number;
+      name: string;
+      cancellationReason?: string | undefined;
+      rejectionReason?: string | undefined;
+    }[];
   };
 
   const form = useForm<FormValues>({
@@ -154,6 +160,21 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
                               type="text"
                               {...field}
                               placeholder={t("internal_note_cancellation_reason")}
+                              className="!mb-0"
+                            />
+                          )}
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Icon name="corner-down-right" className="h-4 w-4" />
+                        <Controller
+                          name={`presets.${index}.rejectionReason`}
+                          control={form.control}
+                          render={({ field }) => (
+                            <Input
+                              type="text"
+                              {...field}
+                              placeholder={t("internal_note_rejection_reason")}
                               className="!mb-0"
                             />
                           )}

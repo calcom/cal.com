@@ -2091,6 +2091,7 @@ model InternalNotePreset {
   id                 Int     @id @default(autoincrement())
   name               String
   cancellationReason String?
+  rejectionReason    String?
   team               Team    @relation(fields: [teamId], references: [id])
   teamId             Int
 

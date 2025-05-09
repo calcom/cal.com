@@ -332,6 +332,19 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         data: {
           status: BookingStatus.REJECTED,
           rejectionReason,
+          ...(input.internalNote
+            ? {
+                internalNote: {
+                  create: [
+                    {
+                      text: input.internalNote.rejectionReason,
+                      notePresetId: input.internalNote.id,
+                      createdById: user.id,
+                    },
+                  ],
+                },
+              }
+            : {}),
         },
       });
     }

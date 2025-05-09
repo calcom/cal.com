@@ -66,6 +66,7 @@ export const updateInternalNotesPresetsHandler = async ({
           data: {
             name: preset.name,
             cancellationReason: preset.cancellationReason,
+            rejectionReason: preset.rejectionReason,
           },
         });
       } else {
@@ -74,6 +75,7 @@ export const updateInternalNotesPresetsHandler = async ({
           data: {
             name: preset.name,
             cancellationReason: preset.cancellationReason,
+            rejectionReason: preset.rejectionReason,
             teamId: input.teamId,
           },
         });
