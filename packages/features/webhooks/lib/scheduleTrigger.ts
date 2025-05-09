@@ -304,7 +304,7 @@ export async function scheduleTrigger({
   }
 }
 
-export async function deleteWebhookScheduledTriggers({
+async function _deleteWebhookScheduledTriggers({
   booking,
   appId,
   triggerEvent,
@@ -360,6 +360,11 @@ export async function deleteWebhookScheduledTriggers({
     console.error("Error deleting webhookScheduledTriggers ", error);
   }
 }
+
+export const deleteWebhookScheduledTriggers = withReporting(
+  _deleteWebhookScheduledTriggers,
+  "deleteWebhookScheduledTriggers"
+);
 
 export async function updateTriggerForExistingBookings(
   webhook: Webhook,

@@ -35,7 +35,7 @@ import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar
 import type { TimeRange } from "@calcom/types/schedule";
 
 import { getBusyTimes } from "./getBusyTimes";
-import monitorCallbackAsync, { monitorCallbackSync } from "./sentryWrapper";
+import { withReporting } from "./sentryWrapper";
 
 const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
 const availabilitySchema = z
@@ -55,12 +55,7 @@ const availabilitySchema = z
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
-const getEventType = async (
-  ...args: Parameters<typeof _getEventType>
-): Promise<ReturnType<typeof _getEventType>> => {
-  return monitorCallbackAsync(_getEventType, ...args);
-};
-
+// Define all functions with underscore prefix
 const _getEventType = async (id: number) => {
   const eventType = await prisma.eventType.findUnique({
     where: { id },
@@ -150,73 +145,8 @@ const _getEventType = async (id: number) => {
   };
 };
 
-export type EventType = Awaited<ReturnType<typeof getEventType>>;
-
-const getUser = async (...args: Parameters<typeof _getUser>): Promise<ReturnType<typeof _getUser>> => {
-  return monitorCallbackAsync(_getUser, ...args);
-};
-
 const _getUser = async (where: Prisma.UserWhereInput) => {
   return findUsersForAvailabilityCheck({ where });
-};
-
-type GetUser = Awaited<ReturnType<typeof getUser>>;
-
-export type GetUserAvailabilityInitialData = {
-  user?: GetUser;
-  eventType?: EventType;
-  currentSeats?: CurrentSeats;
-  rescheduleUid?: string | null;
-  currentBookings?: (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
-    eventType: Pick<
-      PrismaEventType,
-      "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
-    > | null;
-    _count?: {
-      seatsReferences: number;
-    };
-  })[];
-  outOfOfficeDays?: (Pick<OutOfOfficeEntry, "id" | "start" | "end"> & {
-    user: Pick<User, "id" | "name">;
-    toUser: Pick<User, "id" | "username" | "name"> | null;
-    reason: Pick<OutOfOfficeReason, "id" | "emoji" | "reason"> | null;
-  })[];
-  busyTimesFromLimitsBookings: EventBusyDetails[];
-  busyTimesFromLimits?: Map<number, EventBusyDetails[]>;
-  eventTypeForLimits?: {
-    id: number;
-    bookingLimits?: unknown;
-    durationLimits?: unknown;
-  } | null;
-  teamBookingLimits?: Map<number, EventBusyDetails[]>;
-  teamForBookingLimits?: {
-    id: number;
-    bookingLimits?: unknown;
-    includeManagedEventsInLimits: boolean;
-  } | null;
-};
-
-export type GetAvailabilityUser = NonNullable<GetUserAvailabilityInitialData["user"]>;
-
-type GetUserAvailabilityQuery = {
-  withSource?: boolean;
-  username?: string;
-  userId?: number;
-  dateFrom: string;
-  dateTo: string;
-  eventTypeId?: number;
-  afterEventBuffer?: number;
-  beforeEventBuffer?: number;
-  duration?: number;
-  returnDateOverrides: boolean;
-  bypassBusyCalendarTimes: boolean;
-  shouldServeCache?: boolean;
-};
-
-export const getCurrentSeats = async (
-  ...args: Parameters<typeof _getCurrentSeats>
-): Promise<ReturnType<typeof _getCurrentSeats>> => {
-  return monitorCallbackAsync(_getCurrentSeats, ...args);
 };
 
 const _getCurrentSeats = async (
@@ -274,17 +204,6 @@ const _getCurrentSeats = async (
   });
 };
 
-export type CurrentSeats = Awaited<ReturnType<typeof getCurrentSeats>>;
-
-export const getUserAvailability = async (
-  ...args: Parameters<typeof _getUserAvailability>
-): Promise<GetUserAvailabilityResult> => {
-  return monitorCallbackAsync(_getUserAvailability, ...args);
-};
-
-type GetUserAvailabilityResult = ReturnType<typeof _getUserAvailability>;
-
-/** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
 const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseAndEverythingElse(
   query: GetUserAvailabilityQuery,
   initialData?: GetUserAvailabilityInitialData
@@ -317,20 +236,20 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   if (username) where.username = username;
   if (userId) where.id = userId;
 
-  const user = initialData?.user || (await getUser(where));
+  const user = initialData?.user || (await _getUser(where));
 
   if (!user) {
     throw new HttpError({ statusCode: 404, message: "No user found in getUserAvailability" });
   }
 
   let eventType: EventType | null = initialData?.eventType || null;
-  if (!eventType && eventTypeId) eventType = await getEventType(eventTypeId);
+  if (!eventType && eventTypeId) eventType = await _getEventType(eventTypeId);
 
   /* Current logic is if a booking is in a time slot mark it as busy, but seats can have more than one attendee so grab
     current bookings with a seats event type and display them on the calendar, even if they are full */
   let currentSeats: CurrentSeats | null = initialData?.currentSeats || null;
   if (!currentSeats && eventType?.seatsPerTimeSlot) {
-    currentSeats = await getCurrentSeats(eventType, dateFrom, dateTo);
+    currentSeats = await _getCurrentSeats(eventType, dateFrom, dateTo);
   }
 
   const userSchedule = user.schedules.filter(
@@ -416,7 +335,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     ? EventTypeRepository.getSelectedCalendarsFromUser({ user, eventTypeId: eventType.id })
     : user.userLevelSelectedCalendars;
 
-  const busyTimes = await monitorCallbackAsync(getBusyTimes, {
+  const busyTimes = await getBusyTimes({
     credentials: user.credentials,
     startTime: getBusyTimesStart,
     endTime: getBusyTimesEnd,
@@ -436,12 +355,12 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   });
 
   const detailedBusyTimes: EventBusyDetails[] = [
-    ...busyTimes.map((a) => ({
-      ...a,
-      start: dayjs(a.start).toISOString(),
-      end: dayjs(a.end).toISOString(),
-      title: a.title,
-      source: query.withSource ? a.source : undefined,
+    ...busyTimes.map((busyTime: EventBusyDetails) => ({
+      ...busyTime,
+      start: dayjs(busyTime.start).toISOString(),
+      end: dayjs(busyTime.end).toISOString(),
+      title: busyTime.title,
+      source: query.withSource ? busyTime.source : undefined,
     })),
     ...busyTimesFromLimits,
     ...busyTimesFromTeamLimits,
@@ -613,18 +532,12 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   return result;
 };
 
-export const getPeriodStartDatesBetween = (
-  ...args: Parameters<typeof _getPeriodStartDatesBetween>
-): ReturnType<typeof _getPeriodStartDatesBetween> => {
-  return monitorCallbackSync(_getPeriodStartDatesBetween, ...args);
-};
-
-const _getPeriodStartDatesBetween = (
+const _getPeriodStartDatesBetween = async (
   dateFrom: Dayjs,
   dateTo: Dayjs,
   period: IntervalLimitUnit,
   timeZone?: string
-) => {
+): Promise<Dayjs[]> => {
   const dates = [];
   let startDate = timeZone ? dayjs(dateFrom).tz(timeZone).startOf(period) : dayjs(dateFrom).startOf(period);
   const endDate = timeZone ? dayjs(dateTo).tz(timeZone).endOf(period) : dayjs(dateTo).endOf(period);
@@ -634,6 +547,96 @@ const _getPeriodStartDatesBetween = (
     startDate = startDate.add(1, period);
   }
   return dates;
+};
+
+const _getUsersAvailability = async ({ users, query, initialData }: GetUsersAvailabilityProps) => {
+  return await Promise.all(
+    users.map((user) =>
+      _getUserAvailability(
+        {
+          ...query,
+          userId: user.id,
+          username: user.username || "",
+        },
+        initialData
+          ? {
+              ...initialData,
+              user,
+              currentBookings: user.currentBookings,
+              outOfOfficeDays: user.outOfOfficeDays,
+            }
+          : undefined
+      )
+    )
+  );
+};
+
+// Export all functions wrapped with withReporting
+export const getEventType = withReporting(_getEventType, "getEventType");
+export const getUser = withReporting(_getUser, "getUser");
+export const getCurrentSeats = withReporting(_getCurrentSeats, "getCurrentSeats");
+export const getUserAvailability = withReporting(_getUserAvailability, "getUserAvailability");
+export const getPeriodStartDatesBetween = withReporting(
+  _getPeriodStartDatesBetween,
+  "getPeriodStartDatesBetween"
+);
+export const getUsersAvailability = withReporting(_getUsersAvailability, "getUsersAvailability");
+
+// Move type definitions after function declarations
+export type EventType = Awaited<ReturnType<typeof getEventType>>;
+export type GetUser = Awaited<ReturnType<typeof getUser>>;
+export type CurrentSeats = Awaited<ReturnType<typeof getCurrentSeats>>;
+type GetUserAvailabilityResult = ReturnType<typeof _getUserAvailability>;
+
+export type GetUserAvailabilityInitialData = {
+  user?: GetUser;
+  eventType?: EventType;
+  currentSeats?: CurrentSeats;
+  rescheduleUid?: string | null;
+  currentBookings?: (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
+    eventType: Pick<
+      PrismaEventType,
+      "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
+    > | null;
+    _count?: {
+      seatsReferences: number;
+    };
+  })[];
+  outOfOfficeDays?: (Pick<OutOfOfficeEntry, "id" | "start" | "end"> & {
+    user: Pick<User, "id" | "name">;
+    toUser: Pick<User, "id" | "username" | "name"> | null;
+    reason: Pick<OutOfOfficeReason, "id" | "emoji" | "reason"> | null;
+  })[];
+  busyTimesFromLimitsBookings: EventBusyDetails[];
+  busyTimesFromLimits?: Map<number, EventBusyDetails[]>;
+  eventTypeForLimits?: {
+    id: number;
+    bookingLimits?: unknown;
+    durationLimits?: unknown;
+  } | null;
+  teamBookingLimits?: Map<number, EventBusyDetails[]>;
+  teamForBookingLimits?: {
+    id: number;
+    bookingLimits?: unknown;
+    includeManagedEventsInLimits: boolean;
+  } | null;
+};
+
+export type GetAvailabilityUser = NonNullable<GetUserAvailabilityInitialData["user"]>;
+
+type GetUserAvailabilityQuery = {
+  withSource?: boolean;
+  username?: string;
+  userId?: number;
+  dateFrom: string;
+  dateTo: string;
+  eventTypeId?: number;
+  afterEventBuffer?: number;
+  beforeEventBuffer?: number;
+  duration?: number;
+  returnDateOverrides: boolean;
+  bypassBusyCalendarTimes: boolean;
+  shouldServeCache?: boolean;
 };
 
 interface GetUserAvailabilityParamsDTO {
@@ -711,32 +714,4 @@ type GetUsersAvailabilityProps = {
   })[];
   query: Omit<GetUserAvailabilityQuery, "userId" | "username">;
   initialData?: Omit<GetUserAvailabilityInitialData, "user">;
-};
-
-const _getUsersAvailability = async ({ users, query, initialData }: GetUsersAvailabilityProps) => {
-  return await Promise.all(
-    users.map((user) =>
-      _getUserAvailability(
-        {
-          ...query,
-          userId: user.id,
-          username: user.username || "",
-        },
-        initialData
-          ? {
-              ...initialData,
-              user,
-              currentBookings: user.currentBookings,
-              outOfOfficeDays: user.outOfOfficeDays,
-            }
-          : undefined
-      )
-    )
-  );
-};
-
-export const getUsersAvailability = async (
-  ...args: Parameters<typeof _getUsersAvailability>
-): Promise<Awaited<GetUserAvailabilityResult>[]> => {
-  return monitorCallbackAsync(_getUsersAvailability, ...args);
 };

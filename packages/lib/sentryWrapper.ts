@@ -10,6 +10,10 @@ For smaller loops, the cost incurred may not be very significant on an absolute 
 considering that a million monitored iterations only took roughly 8 seconds when monitored.
 */
 
+/**
+ * @deprecated Use withReporting instead. This function will be removed in a future version.
+ * Example: withReporting(myFunction, "myFunction")(...args)
+ */
 const monitorCallbackAsync = async <T extends (...args: any[]) => any>(
   cb: T,
   ...args: Parameters<T>
@@ -30,6 +34,10 @@ const monitorCallbackAsync = async <T extends (...args: any[]) => any>(
   });
 };
 
+/**
+ * @deprecated Use withReporting instead. This function will be removed in a future version.
+ * Example: withReporting(myFunction, "myFunction")(...args)
+ */
 const monitorCallbackSync = <T extends (...args: any[]) => any>(
   cb: T,
   ...args: Parameters<T>
@@ -48,6 +56,25 @@ const monitorCallbackSync = <T extends (...args: any[]) => any>(
     }
   });
 };
+
+/**
+ * Recommended way to wrap functions for Sentry reporting.
+ * Provides better type safety and a more functional approach.
+ *
+ * @example
+ * const myFunction = withReporting(async (arg1: string, arg2: number) => {
+ *   // function implementation
+ * }, "myFunction");
+ *
+ * // Usage
+ * await myFunction("hello", 42);
+ */
+export const withReporting =
+  <T extends any[], U>(func: (...args: T) => U, name: string = func.name): ((...args: T) => U) =>
+  (...args) =>
+    !process.env.NEXT_PUBLIC_SENTRY_DSN || !process.env.SENTRY_TRACES_SAMPLE_RATE
+      ? func(...args)
+      : startSpan({ name }, () => func(...args));
 
 export default monitorCallbackAsync;
 export { monitorCallbackSync };

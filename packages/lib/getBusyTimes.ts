@@ -10,6 +10,7 @@ import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSche
 import logger from "@calcom/lib/logger";
 import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
 import { performance } from "@calcom/lib/server/perfObserver";
+import { withReporting } from "@calcom/lib/withReporting";
 import prisma from "@calcom/prisma";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -19,7 +20,7 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import { getDefinedBufferTimes } from "../features/eventtypes/lib/getDefinedBufferTimes";
 import { BookingRepository as BookingRepo } from "./server/repository/booking";
 
-export async function getBusyTimes(params: {
+const _getBusyTimes = async (params: {
   credentials: CredentialForCalendarService[];
   userId: number;
   userEmail: string;
@@ -46,7 +47,7 @@ export async function getBusyTimes(params: {
     | null;
   bypassBusyCalendarTimes: boolean;
   shouldServeCache?: boolean;
-}) {
+}) => {
   const {
     credentials,
     userId,
@@ -244,7 +245,9 @@ export async function getBusyTimes(params: {
     })
   );
   return busyTimes;
-}
+};
+
+export const getBusyTimes = withReporting(_getBusyTimes, "getBusyTimes");
 
 export function getStartEndDateforLimitCheck(
   startDate: string,
@@ -358,5 +361,3 @@ export async function getBusyTimesForLimitChecks(params: {
   );
   return busyTimes;
 }
-
-export default getBusyTimes;

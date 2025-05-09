@@ -80,4 +80,4 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
   return allWebhooks;
 };
 
-export default getWebhooks;
+export default withReporting(getWebhooks, "getWebhooks");

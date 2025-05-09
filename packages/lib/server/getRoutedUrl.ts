@@ -18,7 +18,7 @@ import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import logger from "@calcom/lib/logger";
-import monitorCallbackAsync from "@calcom/lib/sentryWrapper";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 
@@ -35,10 +35,6 @@ function hasEmbedPath(pathWithQuery: string) {
   const onlyPath = pathWithQuery.split("?")[0];
   return onlyPath.endsWith("/embed") || onlyPath.endsWith("/embed/");
 }
-
-export const getRoutedUrl = (context: Pick<GetServerSidePropsContext, "query" | "req">) => {
-  return monitorCallbackAsync(_getRoutedUrl, context);
-};
 
 const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req">) => {
   const queryParsed = querySchema.safeParse(context.query);
@@ -221,3 +217,5 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     },
   };
 };
+
+export const getRoutedUrl = withReporting(_getRoutedUrl, "_getRoutedUrl");

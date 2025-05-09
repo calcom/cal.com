@@ -84,7 +84,7 @@ export function getFieldResponse({
  * Not called in preview mode or dry run mode
  * It takes care of sending webhooks and emails for form submissions
  */
-export async function onFormSubmission(
+async function _onFormSubmission(
   form: Ensure<
     SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userWithEmails?: string[] },
     "fields"
@@ -206,6 +206,7 @@ export async function onFormSubmission(
     }
   }
 }
+export const onFormSubmission = withReporting(_onFormSubmission, "onFormSubmission");
 
 export const sendResponseEmail = async (
   form: Pick<App_RoutingForms_Form, "id" | "name" | "fields">,

@@ -1,6 +1,7 @@
 import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import { acrossQueryValueCompatiblity } from "@calcom/lib/raqb/raqbUtils";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getUsersAttributes } from "@calcom/lib/service/attribute/server/getAttributes";
 import prisma from "@calcom/prisma";
 import { AssignmentReasonEnum } from "@calcom/prisma/enums";
@@ -13,7 +14,11 @@ export enum RRReassignmentType {
 }
 
 export default class AssignmentReasonRecorder {
-  static async routingFormRoute({
+  static routingFormRoute = withReporting(
+    AssignmentReasonRecorder._routingFormRoute,
+    "AssignmentReasonRecorder.routingFormRoute"
+  );
+  static async _routingFormRoute({
     bookingId,
     routingFormResponseId,
     organizerId,
@@ -113,8 +118,11 @@ export default class AssignmentReasonRecorder {
   }
 
   // Separate method to handle rerouting
-
-  static async CRMOwnership({
+  static CRMOwnership = withReporting(
+    AssignmentReasonRecorder._CRMOwnership,
+    "AssignmentReasonRecorder.CRMOwnership"
+  );
+  static async _CRMOwnership({
     bookingId,
     crmAppSlug,
     teamMemberEmail,

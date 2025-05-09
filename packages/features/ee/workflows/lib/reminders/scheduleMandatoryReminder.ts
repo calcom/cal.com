@@ -11,7 +11,7 @@ const log = logger.getSubLogger({ prefix: ["[scheduleMandatoryReminder]"] });
 
 export type NewBookingEventType = Awaited<ReturnType<typeof getDefaultEvent>> | getEventTypeResponse;
 
-export async function scheduleMandatoryReminder({
+async function _scheduleMandatoryReminder({
   evt,
   workflows,
   requiresConfirmation,
@@ -75,3 +75,8 @@ export async function scheduleMandatoryReminder({
     log.error("Error while scheduling mandatory reminders", JSON.stringify({ error }));
   }
 }
+
+export const scheduleMandatoryReminder = withReporting(
+  _scheduleMandatoryReminder,
+  "scheduleMandatoryReminder"
+);
