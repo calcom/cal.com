@@ -335,6 +335,27 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               teamId: eventTypeWorkflow.teamId,
               verifiedAt: step.verifiedAt,
             });
+          } else if (step.action === WorkflowActions.SMS_ATTENDEE) {
+            const attendee = booking.attendees[0]; // Use the first attendee if multiple
+            if (attendee?.phoneNumber) {
+              await scheduleSMSReminder({
+                evt: bookingInfo,
+                reminderPhone: attendee.phoneNumber,
+                triggerEvent: eventTypeWorkflow.trigger,
+                action: step.action,
+                timeSpan: {
+                  time: eventTypeWorkflow.time,
+                  timeUnit: eventTypeWorkflow.timeUnit,
+                },
+                message: step.reminderBody || "",
+                workflowStepId: step.id,
+                template: step.template,
+                sender: step.sender,
+                userId: booking.userId,
+                teamId: eventTypeWorkflow.teamId,
+                verifiedAt: step.verifiedAt,
+              });
+            }
           } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
             await scheduleWhatsappReminder({
               evt: bookingInfo,
