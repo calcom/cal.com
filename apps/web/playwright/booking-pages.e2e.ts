@@ -246,9 +246,13 @@ test.describe("pro user", () => {
     const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
     await expect(cancelledHeadline).toBeVisible();
     const bookingCancelledId = new URL(page.url()).pathname.split("/booking/")[1];
+
+    const { slug: eventSlug } = await pro.getFirstEventAsOwner();
+
     await page.goto(`/reschedule/${bookingCancelledId}`);
-    // Should be redirected to the booking details page which shows the cancelled headline
-    await expect(page.locator('[data-testid="cancelled-headline"]')).toBeVisible();
+
+    // Should be redirected to the original event link
+    await expect(page).toHaveURL(new RegExp(`/${pro.username}/${eventSlug}`));
   });
 
   test("can book an event that requires confirmation and then that booking can be accepted by organizer", async ({
@@ -283,7 +287,10 @@ test.describe("pro user", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 
-  test("cannot book an unconfirmed event multiple times with the same email", async ({ page, users }) => {
+  test("booking an unconfirmed event with the same email brings you to the original request", async ({
+    page,
+    users,
+  }) => {
     await page.locator('[data-testid="event-type-link"]:has-text("Opt in")').click();
     await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -293,8 +300,8 @@ test.describe("pro user", () => {
     // go back to the booking page to re-book.
     await page.goto(pageUrl);
 
-    await bookTimeSlot(page, { expectedStatusCode: 409 });
-    await expect(page.getByText("Could not book the meeting.")).toBeVisible();
+    await bookTimeSlot(page);
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 
   test("can book with multiple guests", async ({ page, users }) => {
@@ -653,4 +660,37 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
     const responseBody = await response.json();
     expect(responseBody.message).toBe("This event type does not allow cancellations");
   });
+});
+test("Should throw error when both seatsPerTimeSlot and recurringEvent are set", async ({ page, users }) => {
+  const user = await users.create({
+    name: `Test-user-${randomString(4)}`,
+    eventTypes: [
+      {
+        title: "Seats With Recurrence",
+        slug: "seats-with-recurrence",
+        length: 30,
+        seatsPerTimeSlot: 3,
+        recurringEvent: {
+          freq: 1,
+          count: 4,
+          interval: 1,
+        },
+      },
+    ],
+  });
+
+  // Way to book the event
+  await page.goto(`/${user.username}/seats-with-recurrence`);
+  await selectFirstAvailableTimeSlotNextMonth(page);
+  await page.locator('[name="name"]').fill("Test name");
+  await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
+
+  page.locator("[data-testid=confirm-book-button]").click();
+
+  // Expect an error message to be displayed
+  const alertError = page.locator("[data-testid=booking-fail]");
+  await expect(alertError).toBeVisible();
+  await expect(alertError).toContainText(
+    "Could not book the meeting. Recurring event doesn't support seats feature. Disable seats feature or make the event non-recurring."
+  );
 });

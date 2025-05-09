@@ -24,17 +24,13 @@ const getUser = async (userId: number) => {
     return null;
   }
 
-  let teams = userAdminTeams.teams.map(({ team }) => ({
+  const teams = userAdminTeams.teams.map(({ team }) => ({
     ...team,
     logoUrl: team.parent
       ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
       : getPlaceholderAvatar(team.logoUrl, team.name),
   }));
 
-  const orgTeam = teams.find((team) => team.isOrganization === true);
-  if (orgTeam?.id) {
-    teams = teams.filter((team) => team?.parent?.id !== orgTeam.id);
-  }
   return {
     ...userAdminTeams,
     teams,

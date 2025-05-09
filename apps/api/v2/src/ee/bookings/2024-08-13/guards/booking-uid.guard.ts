@@ -8,7 +8,7 @@ export class BookingUidGuard implements CanActivate {
     const bookingUid = request.params.bookingUid;
 
     if (!bookingUid) {
-      throw new BadRequestException("Booking UID missing in the request path");
+      throw new BadRequestException("BookingUidGuard - Booking UID missing in the request path");
     }
 
     return true;

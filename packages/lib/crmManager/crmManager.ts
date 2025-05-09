@@ -57,9 +57,9 @@ export default class CrmManager {
     return await crmService?.updateEvent(uid, event);
   }
 
-  public async deleteEvent(uid: string) {
+  public async deleteEvent(uid: string, event: CalendarEvent) {
     const crmService = await this.getCrmService(this.credential);
-    return await crmService?.deleteEvent(uid);
+    return await crmService?.deleteEvent(uid, event);
   }
 
   public async getContacts(params: {

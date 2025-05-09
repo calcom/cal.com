@@ -950,7 +950,7 @@ export const getOptions = ({
               return true;
             }
           } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
-            return "/auth/error?error=use-password-login";
+            return `/auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
           } else if (
             existingUserWithEmail.identityProvider === IdentityProvider.GOOGLE &&
             idP === IdentityProvider.SAML
@@ -971,8 +971,7 @@ export const getOptions = ({
               return true;
             }
           }
-
-          return "/auth/error?error=use-identity-login";
+          return `auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
         }
 
         // Associate with organization if enabled by flag and idP is Google (for now)
@@ -1010,7 +1009,7 @@ export const getOptions = ({
           }
         } catch (err) {
           log.error("Error creating a new user", err);
-          return "/auth/error?error=use-identity-login";
+          return `/auth/error?error=user-creation-error`;
         }
       }
 

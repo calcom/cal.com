@@ -3053,5 +3053,17 @@
   "most_cancelled_bookings": "Najviac zrušených rezervácií",
   "name_or_email": "Meno alebo email",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "Ak sa nenájde žiadny kontakt, použije sa vlastník leadu, ak existuje",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "date_and_time": "Dátum a čas",
+  "email_reminder_upcoming_event_notice": "Toto je pripomienka k vášmu pripravovanému podujatiu.",
+  "email_reminder_triggered_by_workflow": "Toto pripomenutie bolo spustené pracovným postupom v Cal.",
+  "event_upper_case": "Udalosť",
+  "scheduling_by": "Naplánované",
+  "experience_review_prompt": "Aký bol váš posledný zážitok?",
+  "improve_customer_experience_message": "Neustále zlepšujeme zákaznícku skúsenosť.",
+  "meeting_satisfaction_question": "Ako spokojní ste boli s posledným stretnutím?",
+  "meeting_not_joined_question": "nezúčastnili ste sa stretnutia?",
+  "reschedule_cta_short": "Preplánujte tu.",
+  "you_and_conjunction": "Vy &",
+  "email_survey_triggered_by_workflow": "Tento prieskum bol aktivovaný pracovným postupom v Cal."
 }

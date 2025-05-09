@@ -89,6 +89,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     autoTranslateDescriptionEnabled,
     description: newDescription,
     title: newTitle,
+    seatsPerTimeSlot,
     ...rest
   } = input;
 
@@ -97,6 +98,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     select: {
       title: true,
       description: true,
+      seatsPerTimeSlot: true,
+      recurringEvent: true,
       fieldTranslations: {
         select: {
           field: true,
@@ -167,6 +170,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
+  const finalSeatsPerTimeSlot = seatsPerTimeSlot ?? eventType.seatsPerTimeSlot;
+  const finalRecurringEvent = recurringEvent ?? eventType.recurringEvent;
+
+  if (finalSeatsPerTimeSlot && finalRecurringEvent) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Recurring Events and Offer Seats cannot be active at the same time.",
+    });
+  }
+
   const teamId = input.teamId || eventType.team?.id;
   const guestsField = bookingFields?.find((field) => field.name === "guests");
 
@@ -192,8 +205,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
     eventTypeColor: eventTypeColor === null ? Prisma.DbNull : (eventTypeColor as Prisma.InputJsonObject),
     disableGuests: guestsField?.hidden ?? false,
+    seatsPerTimeSlot,
   };
   data.locations = locations ?? undefined;
+
   if (periodType) {
     data.periodType = handlePeriodType(periodType);
   }

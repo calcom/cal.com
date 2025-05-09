@@ -57,7 +57,7 @@ export async function scheduleMandatoryReminder({
             time: 1,
             timeUnit: TimeUnit.HOUR,
           },
-          sendTo: filteredAttendees,
+          sendTo: filteredAttendees.map((attendee) => attendee.email),
           template: WorkflowTemplates.REMINDER,
           hideBranding,
           seatReferenceUid,
@@ -65,6 +65,7 @@ export async function scheduleMandatoryReminder({
           isMandatoryReminder: true,
           // Template is fixed so we don't have to verify
           verifiedAt: new Date(),
+          userId: evt.organizer.id,
         });
       } catch (error) {
         log.error("Error while scheduling mandatory reminders", JSON.stringify({ error }));
