@@ -15,7 +15,8 @@ export class ZodExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
-    const requestId = request.headers["X-Request-Id"];
+    const requestId = request.headers["X-Request-Id"] ?? "unknown-request-id";
+    response.setHeader("X-Request-Id", requestId.toString());
 
     this.logger.error(`ZodError: ${error.message}`, {
       error,

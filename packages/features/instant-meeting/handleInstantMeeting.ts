@@ -177,7 +177,7 @@ async function handler(req: NextApiRequest) {
     bookingFields: eventType.bookingFields,
   });
   const reqBody = await getBookingData({
-    req,
+    reqBody: req.body,
     eventType,
     schema,
   });

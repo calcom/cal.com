@@ -3,6 +3,8 @@ import { z } from "zod";
 const integrationsApiAvailable = {
   "cal-video": z.literal("integrations:daily"),
   "google-meet": z.literal("integrations:google:meet"),
+  zoom: z.literal("integrations:zoom"),
+  "office365-video": z.literal("integrations:office365_video"),
 };
 
 // note(Lauris): these are read only aka they exist in database and are to be returned by a READ operation
@@ -34,7 +36,6 @@ const integrationsApiUnavailable = {
   "discord-video": z.literal("integrations:discord_video"),
   "demodesk-video": z.literal("integrations:demodesk_video"),
   "campfire-video": z.literal("integrations:campfire_video"),
-  "around-video": z.literal("integrations:around_video"),
 };
 
 export const integrationsApiToInternalMappingSchema = {
@@ -73,7 +74,6 @@ const OrganizerIntegrationSchema = z.object({
     integrationsApiToInternalMappingSchema["discord-video"],
     integrationsApiToInternalMappingSchema["demodesk-video"],
     integrationsApiToInternalMappingSchema["campfire-video"],
-    integrationsApiToInternalMappingSchema["around-video"],
   ]),
   link: z.string().url().optional(),
   credentialId: z.number().optional(),

@@ -1,4 +1,4 @@
-import { getTRPCContext } from "app/_trpc/context";
+import { createRouterCaller } from "app/_trpc/context";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
@@ -8,7 +8,6 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { publicViewerRouter } from "@calcom/trpc/server/routers/publicViewer/_router";
-import { createCallerFactory } from "@calcom/trpc/server/trpc";
 
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
@@ -39,9 +38,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const org = isValidOrgDomain ? currentOrgDomain : null;
-  const trpcContext = await getTRPCContext();
-  const createCaller = createCallerFactory(publicViewerRouter);
-  const caller = createCaller(trpcContext);
+
+  const caller = await createRouterCaller(publicViewerRouter);
+
   const eventData = await caller.event({
     username: teamSlug,
     eventSlug: meetingSlug,

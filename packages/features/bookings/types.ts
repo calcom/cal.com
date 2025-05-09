@@ -59,6 +59,8 @@ export type BookerEvent = Pick<
   | "instantMeetingParameters"
   | "fieldTranslations"
   | "autoTranslateDescriptionEnabled"
+  | "disableCancelling"
+  | "disableRescheduling"
 > & {
   subsetOfUsers: BookerEventUser[];
   showInstantEventConnectNowModal: boolean;

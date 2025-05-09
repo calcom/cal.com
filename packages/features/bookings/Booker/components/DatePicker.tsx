@@ -3,10 +3,11 @@ import { shallow } from "zustand/shallow";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { DatePicker as DatePickerComponent } from "@calcom/features/calendars/DatePicker";
-import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
-import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
+import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
+import { weekdayToWeekIndex } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
+import type { PeriodData } from "@calcom/types/Event";
 
 import type { Slots } from "../../types";
 import { useBookerStore } from "../store";
@@ -57,7 +58,14 @@ export const DatePicker = ({
   scrollToTimeSlots,
 }: {
   event: {
-    data?: { subsetOfUsers: Pick<User, "weekStart">[] } | null;
+    data?: {
+      subsetOfUsers: Pick<User, "weekStart">[];
+      periodType?: PeriodData["periodType"];
+      periodStartDate?: PeriodData["periodStartDate"];
+      periodEndDate?: PeriodData["periodEndDate"];
+      periodDays?: PeriodData["periodDays"];
+      periodCountCalendarDays?: PeriodData["periodCountCalendarDays"];
+    } | null;
   };
   slots?: Slots;
   isLoading?: boolean;
@@ -95,6 +103,23 @@ export const DatePicker = ({
     isLoading: isLoading ?? true,
   });
   moveToNextMonthOnNoAvailability();
+
+  const periodData: PeriodData = {
+    ...{
+      periodType: "UNLIMITED",
+      periodStartDate: null,
+      periodEndDate: null,
+      periodDays: null,
+      periodCountCalendarDays: false,
+    },
+    ...(event?.data && {
+      periodType: event.data.periodType,
+      periodStartDate: event.data.periodStartDate,
+      periodEndDate: event.data.periodEndDate,
+      periodDays: event.data.periodDays,
+      periodCountCalendarDays: event.data.periodCountCalendarDays,
+    }),
+  };
   return (
     <DatePickerComponent
       customClassNames={{
@@ -117,6 +142,7 @@ export const DatePicker = ({
       weekStart={weekdayToWeekIndex(event?.data?.subsetOfUsers?.[0]?.weekStart)}
       slots={slots}
       scrollToTimeSlots={scrollToTimeSlots}
+      periodData={periodData}
     />
   );
 };

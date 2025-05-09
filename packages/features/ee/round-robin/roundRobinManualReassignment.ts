@@ -266,11 +266,13 @@ export const roundRobinManualReassignment = async ({
       name: eventType.team?.name || "",
       id: eventType.team?.id || 0,
     },
+    hideOrganizerEmail: eventType.hideOrganizerEmail,
     customInputs: isPrismaObjOrUndefined(booking.customInputs),
     ...getCalEventResponses({
       bookingFields: eventType.bookingFields ?? null,
       booking,
     }),
+    customReplyToEmail: eventType?.customReplyToEmail,
     location: bookingLocation,
     ...(platformClientParams ? platformClientParams : {}),
   };
@@ -421,6 +423,8 @@ async function handleWorkflowsUpdate({
           template: true,
           workflow: {
             select: {
+              userId: true,
+              teamId: true,
               trigger: true,
               time: true,
               timeUnit: true,
@@ -430,6 +434,7 @@ async function handleWorkflowsUpdate({
           reminderBody: true,
           sender: true,
           includeCalendarEvent: true,
+          verifiedAt: true,
         },
       },
     },
@@ -456,7 +461,7 @@ async function handleWorkflowsUpdate({
           time: workflow.time,
           timeUnit: workflow.timeUnit,
         },
-        sendTo: newUser.email,
+        sendTo: [newUser.email],
         template: workflowStep.template,
         emailSubject: workflowStep.emailSubject || undefined,
         emailBody: workflowStep.reminderBody || undefined,
@@ -464,10 +469,13 @@ async function handleWorkflowsUpdate({
         hideBranding: true,
         includeCalendarEvent: workflowStep.includeCalendarEvent,
         workflowStepId: workflowStep.id,
+        verifiedAt: workflowStep.verifiedAt,
+        userId: workflow.userId,
+        teamId: workflow.teamId,
       });
     }
 
-    await deleteScheduledEmailReminder(workflowReminder.id, workflowReminder.referenceId);
+    await deleteScheduledEmailReminder(workflowReminder.id);
   }
 
   // Send new event workflows to new organizer

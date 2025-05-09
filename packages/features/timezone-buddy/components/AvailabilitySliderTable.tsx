@@ -8,9 +8,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dayjs from "@calcom/dayjs";
 import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
 import { DataTable, DataTableToolbar } from "@calcom/features/data-table/components";
+import { useDataTable } from "@calcom/features/data-table/hooks";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import type { DateRange } from "@calcom/lib/date-ranges";
-import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import type { MembershipRole } from "@calcom/prisma/enums";
@@ -47,7 +47,7 @@ function UpgradeTeamTip() {
     <UpgradeTip
       plan="team"
       title={t("calcom_is_better_with_team", { appName: APP_NAME }) as string}
-      description="add_your_team_members"
+      description={t("add_your_team_members")}
       background="/tips/teams"
       features={[]}
       buttons={
@@ -80,8 +80,7 @@ function AvailabilitySliderTableContent(props: { userTimeFormat: number | null; 
   const [browsingDate, setBrowsingDate] = useState(dayjs());
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SliderUser | null>(null);
-  const [searchString, setSearchString] = useState("");
-  const debouncedSearchString = useDebounce(searchString, 500);
+  const { searchTerm } = useDataTable();
 
   const tbStore = createTimezoneBuddyStore({
     browsingDate: browsingDate.toDate(),
@@ -93,7 +92,7 @@ function AvailabilitySliderTableContent(props: { userTimeFormat: number | null; 
       loggedInUsersTz: CURRENT_TIMEZONE,
       startDate: browsingDate.startOf("day").toISOString(),
       endDate: browsingDate.endOf("day").toISOString(),
-      searchString: debouncedSearchString,
+      searchString: searchTerm,
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -253,7 +252,7 @@ function AvailabilitySliderTableContent(props: { userTimeFormat: number | null; 
             isPending={isPending}
             onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
             <DataTableToolbar.Root>
-              <DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchString(value)} />
+              <DataTableToolbar.SearchBar />
             </DataTableToolbar.Root>
           </DataTable>
         </CellHighlightContainer>

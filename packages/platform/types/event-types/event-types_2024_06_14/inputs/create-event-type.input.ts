@@ -5,7 +5,6 @@ import {
   ApiExtraModels,
 } from "@nestjs/swagger";
 import { Type, Transform, Expose } from "class-transformer";
-import type { ValidationOptions, ValidationArguments } from "class-validator";
 import {
   IsString,
   IsInt,
@@ -18,7 +17,6 @@ import {
   ValidateNested,
   ArrayNotEmpty,
   ArrayUnique,
-  registerDecorator,
 } from "class-validator";
 
 import { SchedulingType } from "@calcom/platform-enums";
@@ -290,6 +288,7 @@ class BaseCreateEventTypeInput {
       "Should booker have week, month or column view. Specify default layout and enabled layouts user can pick.",
   })
   @Type(() => BookerLayouts_2024_06_14)
+  @ValidateNested()
   bookerLayouts?: BookerLayouts_2024_06_14;
 
   @IsOptional()
@@ -397,6 +396,14 @@ class BaseCreateEventTypeInput {
     example: "https://masterchief.com/argentina/flan/video/9129412",
   })
   successRedirectUrl?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description:
+      "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events",
+  })
+  hideOrganizerEmail?: boolean;
 }
 export class CreateEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @IsOptional()
@@ -447,33 +454,6 @@ export class Host {
   @DocsPropertyOptional({ enum: HostPriority })
   priority?: keyof typeof HostPriority = "medium";
 }
-
-function RequireHostsOrAssignAllMembers(validationOptions?: ValidationOptions) {
-  return function (object: any) {
-    registerDecorator({
-      name: "requireHostsOrAssignAllMembers",
-      target: object,
-      propertyName: "hosts OR assignAllTeamMembers",
-      options: validationOptions,
-      constraints: [],
-      validator: {
-        validate(_value: any, args: ValidationArguments) {
-          const obj = args.object as CreateTeamEventTypeInput_2024_06_14;
-
-          const hasHosts = !!obj.hosts && !!obj.hosts.length;
-          const hasAssignAllTeamMembers = obj.assignAllTeamMembers === true;
-
-          return hasHosts || hasAssignAllTeamMembers;
-        },
-        defaultMessage(): string {
-          return "Either hosts OR assignAllTeamMembers set to true is required";
-        },
-      },
-    });
-  };
-}
-
-@RequireHostsOrAssignAllMembers()
 export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @Transform(({ value }) => {
     if (value === "collective") {

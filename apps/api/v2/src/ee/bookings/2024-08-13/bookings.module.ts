@@ -1,7 +1,11 @@
+import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/booking-references.repository";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { BookingsController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/bookings.controller";
+import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
+import { ErrorsBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/errors.service";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
+import { OutputBookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output-booking-references.service";
 import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
@@ -16,12 +20,18 @@ import { BillingModule } from "@/modules/billing/billing.module";
 import { BookingSeatModule } from "@/modules/booking-seat/booking-seat.module";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
+import { KyselyModule } from "@/modules/kysely/kysely.module";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
+import { StripeModule } from "@/modules/stripe/stripe.module";
+import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";
+import { TeamsModule } from "@/modules/teams/teams/teams.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersModule } from "@/modules/users/users.module";
@@ -30,6 +40,7 @@ import { Module } from "@nestjs/common";
 @Module({
   imports: [
     PrismaModule,
+    KyselyModule,
     RedisModule,
     TokensModule,
     BillingModule,
@@ -38,6 +49,9 @@ import { Module } from "@nestjs/common";
     SchedulesModule_2024_04_15,
     EventTypesModule_2024_04_15,
     EventTypesModule_2024_06_14,
+    StripeModule,
+    TeamsModule,
+    TeamsEventTypesModule,
   ],
   providers: [
     TokensRepository,
@@ -47,6 +61,7 @@ import { Module } from "@nestjs/common";
     BookingsService_2024_08_13,
     InputBookingsService_2024_08_13,
     OutputBookingsService_2024_08_13,
+    OutputBookingReferencesService_2024_08_13,
     BookingsRepository_2024_08_13,
     EventTypesRepository_2024_06_14,
     BookingSeatRepository,
@@ -57,6 +72,11 @@ import { Module } from "@nestjs/common";
     AppsRepository,
     CalendarsRepository,
     SelectedCalendarsRepository,
+    OrganizationsTeamsRepository,
+    OrganizationsRepository,
+    ErrorsBookingsService_2024_08_13,
+    BookingReferencesService_2024_08_13,
+    BookingReferencesRepository_2024_08_13,
   ],
   controllers: [BookingsController_2024_08_13],
   exports: [InputBookingsService_2024_08_13, OutputBookingsService_2024_08_13, BookingsService_2024_08_13],

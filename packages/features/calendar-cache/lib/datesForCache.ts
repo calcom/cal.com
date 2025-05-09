@@ -23,44 +23,37 @@ export function getTimeMax(timeMax?: string) {
   const currentMonth = now.getUTCMonth();
   const currentYear = now.getUTCFullYear();
 
+  // If no date is passed, return start of the month two months from *now*.
   if (!timeMax) {
-    // If no date passed, return start of the overnext month from current date
     const result = new Date(Date.UTC(currentYear, currentMonth + 2, 1));
     result.setUTCHours(0, 0, 0, 0);
     return result.toISOString();
   }
 
+  // If a date is passed, determine the base month/year for calculation.
   const date = new Date(timeMax);
   const dateMonth = date.getUTCMonth();
   const dateYear = date.getUTCFullYear();
 
-  // If the date is within current month or next month, return start of overnext month
-  // Otherwise, return start of overnext month from the date
-  let targetYear = dateYear;
-  let targetMonth = dateMonth;
+  let baseYear = currentYear;
+  let baseMonth = currentMonth;
 
-  // Check if date is within current month or next month
-  const isWithinCurrentOrNextMonth =
-    (dateYear === currentYear && dateMonth <= currentMonth + 1) ||
-    (dateYear === currentYear + 1 && currentMonth === 11 && dateMonth === 0);
+  // Check if date is within the current month or the next two months relative to *now*.
+  const isWithinCurrentOrNextTwoMonths =
+    (dateYear === currentYear && dateMonth <= currentMonth + 2) ||
+    (dateYear === currentYear + 1 &&
+      ((currentMonth === 10 && dateMonth === 0) || (currentMonth === 11 && dateMonth <= 1)));
 
-  if (isWithinCurrentOrNextMonth) {
-    // For dates within current month or next month, return start of overnext month
-    targetMonth = dateMonth + 2;
-    if (targetMonth > 11) {
-      targetMonth = 0;
-      targetYear++;
-    }
-  } else {
-    // For dates beyond overnext month, return start of overnext month from the date
-    targetMonth = dateMonth + 2;
-    if (targetMonth > 11) {
-      targetMonth = 0;
-      targetYear++;
-    }
+  // If the input date is beyond the next two months relative to *now*,
+  // use the *input date's* month/year as the base.
+  if (!isWithinCurrentOrNextTwoMonths) {
+    baseYear = dateYear;
+    baseMonth = dateMonth;
   }
+  // Otherwise, the base remains the current year/month.
 
-  const result = new Date(Date.UTC(targetYear, targetMonth, 1));
+  // Calculate the start of the month two months after the determined base date.
+  const result = new Date(Date.UTC(baseYear, baseMonth + 2, 1));
   result.setUTCHours(0, 0, 0, 0);
   return result.toISOString();
 }

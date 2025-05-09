@@ -1,5 +1,4 @@
 import type { Prisma } from "@prisma/client";
-import type { IncomingMessage } from "http";
 import type { Logger } from "tslog";
 
 import { checkIfUsersAreBlocked } from "@calcom/features/watchlist/operations/check-if-users-are-blocked.controller";
@@ -54,7 +53,6 @@ type EventType = Pick<
 >;
 
 type InputProps = {
-  req: IncomingMessage;
   eventType: EventType;
   eventTypeId: number;
   dynamicUserList: string[];
@@ -63,10 +61,12 @@ type InputProps = {
   contactOwnerEmail: string | null;
   rescheduleUid: string | null;
   routingFormResponse: RoutingFormResponse | null;
+  isPlatform: boolean;
+  hostname: string | undefined;
+  forcedSlug: string | undefined;
 };
 
 export async function loadAndValidateUsers({
-  req,
   eventType,
   eventTypeId,
   dynamicUserList,
@@ -75,6 +75,9 @@ export async function loadAndValidateUsers({
   contactOwnerEmail,
   rescheduleUid,
   routingFormResponse,
+  isPlatform,
+  hostname,
+  forcedSlug,
 }: InputProps): Promise<{
   qualifiedRRUsers: UsersWithDelegationCredentials;
   additionalFallbackRRUsers: UsersWithDelegationCredentials;
@@ -83,7 +86,9 @@ export async function loadAndValidateUsers({
   let users: Users = await loadUsers({
     eventType,
     dynamicUserList,
-    req,
+    hostname: hostname || "",
+    forcedSlug,
+    isPlatform,
     routedTeamMemberIds,
     contactOwnerEmail,
   });

@@ -1,3 +1,5 @@
+import { captureException } from "@sentry/nextjs";
+
 import db from "@calcom/prisma";
 import { WatchlistType, WatchlistSeverity } from "@calcom/prisma/enums";
 
@@ -18,7 +20,6 @@ export class WatchlistRepository implements IWatchlistRepository {
       });
       return emailInWatchlist;
     } catch (err) {
-      const captureException = (await import("@sentry/nextjs")).captureException;
       captureException(err);
       throw err;
     }
@@ -34,7 +35,6 @@ export class WatchlistRepository implements IWatchlistRepository {
       });
       return domainInWatchWatchlist;
     } catch (err) {
-      const captureException = (await import("@sentry/nextjs")).captureException;
       captureException(err);
       throw err;
     }
@@ -90,7 +90,6 @@ export class WatchlistRepository implements IWatchlistRepository {
       });
       return blockedRecords;
     } catch (err) {
-      const captureException = (await import("@sentry/nextjs")).captureException;
       captureException(err);
       throw err;
     }

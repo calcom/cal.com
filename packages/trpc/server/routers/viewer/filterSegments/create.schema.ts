@@ -10,6 +10,7 @@ const baseCreateSchema = {
   sorting: ZSortingState.optional(),
   columnVisibility: ZColumnVisibility.optional(),
   columnSizing: ZColumnSizing.optional(),
+  searchTerm: z.string().nullable().optional(),
   perPage: z.number().int().min(1),
 };
 
