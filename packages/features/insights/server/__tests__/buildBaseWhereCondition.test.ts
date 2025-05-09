@@ -199,8 +199,14 @@ describe("buildBaseWhereCondition", () => {
       });
 
       expect(result.whereCondition).toEqual({
-        OR: [{ eventTypeId: 123 }, { eventParentId: 123 }],
-        userId: 456,
+        AND: [
+          {
+            OR: [{ eventTypeId: 123 }, { eventParentId: 123 }],
+          },
+          {
+            userId: 456,
+          },
+        ],
       });
     });
   });
