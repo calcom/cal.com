@@ -129,6 +129,44 @@ export class GetAvailableSlotsInput_2024_04_15 {
   @IsOptional()
   @ApiPropertyOptional()
   teamMemberEmail?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  @ApiHideProperty()
+  embedConnectVersion?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  @ApiHideProperty()
+  email?: string | null;
+
+  @Transform(({ value }: { value: string }) => value && parseInt(value))
+  @IsNumber()
+  @IsOptional()
+  @Min(1, { message: "routingFormResponseId must be a positive number" })
+  @ApiPropertyOptional()
+  @ApiHideProperty()
+  routingFormResponseId?: number;
+
+  @Transform(({ value }) => value && value.toLowerCase() === "true")
+  @IsBoolean()
+  @IsOptional()
+  @ApiHideProperty()
+  _shouldServeCache?: boolean;
+
+  @Transform(({ value }) => value && value.toLowerCase() === "true")
+  @IsBoolean()
+  @IsOptional()
+  @ApiHideProperty()
+  _bypassCalendarBusyTimes?: boolean;
+
+  @Transform(({ value }) => (value ? value.toLowerCase() === "true" : false))
+  @IsBoolean()
+  @IsOptional()
+  @ApiHideProperty()
+  isTeamEvent?: boolean;
 }
 
 export class RemoveSelectedSlotInput_2024_04_15 {
