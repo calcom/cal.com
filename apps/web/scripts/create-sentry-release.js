@@ -3,6 +3,16 @@ const { execSync } = require("child_process");
 const CLIENT_FILES_PATH = ".next/static/chunks";
 
 try {
+  // Continue if required any env vars are not set
+  const requiredEnvVars = ["SENTRY_AUTH_TOKEN", "SENTRY_ORG", "SENTRY_PROJECT"];
+  const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
+  if (missingEnvVars.length > 0) {
+    console.log(
+      `Skipping release creation as required environment variables are not set: ${missingEnvVars.join(", ")}`
+    );
+    process.exit(0);
+  }
+
   const release = execSync("git rev-parse HEAD").toString().trim();
 
   // Add release
