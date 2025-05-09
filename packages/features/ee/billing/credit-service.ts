@@ -30,41 +30,46 @@ export class CreditService {
     bookingUid?: string;
     smsSid?: string;
   }) {
-    let teamToCharge = credits === 0 && teamId ? teamId : null;
+    let teamIdToCharge = credits === 0 && teamId ? teamId : undefined;
     let creditType: CreditType = CreditType.ADDITIONAL;
     let remainingCredits;
-    if (credits !== 0) {
-      const result = await this.getTeamToCharge({
+    let userIdToCharge;
+    if (!teamIdToCharge) {
+      const result = await this.getUserOrTeamToCharge({
         credits: credits ?? 1, // if we don't have exact credits, we check for at east 1 credit available
         userId,
         teamId,
       });
-      teamToCharge = result?.teamId ?? null;
+      teamIdToCharge = result?.teamId;
+      userIdToCharge = result?.userId;
       creditType = result?.creditType ?? creditType;
       remainingCredits = result?.remainingCredits;
     }
 
-    if (!teamToCharge) {
+    if (!teamIdToCharge && !userIdToCharge) {
       log.error("No team or user found to charge. No credit expense log created");
       return null;
     }
 
+    //continue here
     await this.createExpenseLog({
       bookingUid,
       smsSid,
-      teamId: teamToCharge,
+      teamId: teamIdToCharge,
+      userId: userIdToCharge,
       credits,
       creditType,
     });
 
     if (credits) {
       await this.handleLowCreditBalance({
-        teamId: teamToCharge,
-        remainingCredits,
+        teamId: teamIdToCharge,
+        userId: userIdToCharge,
+        remainingCredits: remainingCredits ?? 0,
       });
     }
 
-    return teamToCharge;
+    return { teamId: teamIdToCharge, userId: userIdToCharge };
   }
 
   async hasAvailableCredits({ userId, teamId }: { userId?: number | null; teamId?: number | null }) {
@@ -106,6 +111,10 @@ export class CreditService {
   async getTeamWithAvailableCredits(userId: number) {
     const memberships = await MembershipRepository.findAllAcceptedMemberships(userId);
 
+    if (memberships.length === 0) {
+      return null;
+    }
+
     //check if user is member of team that has available credits
     for (const membership of memberships) {
       const creditBalance = await CreditsRepository.findCreditBalance({ teamId: membership.teamId });
@@ -146,7 +155,7 @@ export class CreditService {
   /*
     always returns a team, even if all teams are out of credits
   */
-  async getTeamToCharge({
+  async getUserOrTeamToCharge({
     credits,
     userId,
     teamId,
@@ -168,7 +177,18 @@ export class CreditService {
 
     if (userId) {
       const team = await this.getTeamWithAvailableCredits(userId);
-      return { ...team, remainingCredits: team.availableCredits - credits };
+
+      if (team) {
+        return { ...team, remainingCredits: team.availableCredits - credits };
+      }
+
+      const userCredits = await this.getAllCredits({ userId });
+
+      return {
+        userId,
+        remainingCredits: userCredits.additionalCredits - credits,
+        creditType: CreditType.ADDITIONAL,
+      };
     }
     return null;
   }
@@ -176,17 +196,19 @@ export class CreditService {
   private async createExpenseLog(props: {
     bookingUid?: string;
     smsSid?: string;
-    teamId: number;
+    teamId?: number;
+    userId?: number;
     credits: number | null;
     creditType: CreditType;
   }) {
-    const { credits, creditType, bookingUid, smsSid, teamId } = props;
-    let creditBalance: { id: string; additionalCredits: number } | null =
-      await CreditsRepository.findCreditBalance({ teamId });
+    const { credits, creditType, bookingUid, smsSid, teamId, userId } = props;
+    let creditBalance: { id: string; additionalCredits: number } | null | undefined =
+      await CreditsRepository.findCreditBalance({ teamId, userId });
 
     if (!creditBalance) {
       creditBalance = await CreditsRepository.createCreditBalance({
         teamId,
+        userId,
       });
     }
 
