@@ -160,15 +160,7 @@ export const buildBaseWhereCondition = async ({
 
   let whereCondition: Prisma.BookingTimeStatusWhereInput = {};
 
-  if (conditions.length === 2 && eventTypeId && (memberUserId || userId) && !teamId && !isAll) {
-    const eventTypeCondition = { OR: [{ eventTypeId }, { eventParentId: eventTypeId }] };
-    const userCondition = memberUserId ? { userId: memberUserId } : { teamId: null, userId };
-
-    whereCondition = {
-      ...eventTypeCondition,
-      ...userCondition,
-    };
-  } else if (conditions.length === 1) {
+  if (conditions.length === 1) {
     whereCondition = conditions[0];
   } else if (conditions.length > 1) {
     whereCondition = { AND: conditions };
