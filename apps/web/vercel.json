@@ -30,8 +30,5 @@
     "pages/api/book/event.ts": {
       "memory": 2048
     }
-  },
-  "git": {
-    "cloneDepth": 1000
   }
 }
