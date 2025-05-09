@@ -1,6 +1,6 @@
 import { shallow } from "zustand/shallow";
 
-import { useSchedule } from "@calcom/features/schedules";
+import { useSchedule } from "@calcom/features/schedules/lib/use-schedule/useSchedule";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc/react";
 

@@ -32,6 +32,7 @@ import { OrganizationsRepository } from "@/modules/organizations/index/organizat
 import { OrganizationsService } from "@/modules/organizations/index/organizations.service";
 import { OrganizationsMembershipsController } from "@/modules/organizations/memberships/organizations-membership.controller";
 import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
+import { OrganizationsMembershipOutputService } from "@/modules/organizations/memberships/services/organizations-membership-output.service";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import { OrganizationsOrganizationsModule } from "@/modules/organizations/organizations/organizations-organizations.module";
 import { OrganizationsSchedulesController } from "@/modules/organizations/schedules/organizations-schedules.controller";
@@ -98,6 +99,7 @@ import { Module } from "@nestjs/common";
     EmailService,
     OrganizationsMembershipRepository,
     OrganizationsMembershipService,
+    OrganizationsMembershipOutputService,
     OrganizationsEventTypesService,
     InputOrganizationsEventTypesService,
     OutputOrganizationsEventTypesService,
