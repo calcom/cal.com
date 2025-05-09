@@ -1222,8 +1222,6 @@ export const insightsRouter = router({
 
     bookingWhere = {
       ...bookingWhere,
-      teamId,
-      eventTypeId,
       createdAt: {
         gte: dayjs(startDate).startOf("day").toDate(),
         lte: dayjs(endDate).endOf("day").toDate(),
@@ -1340,8 +1338,6 @@ export const insightsRouter = router({
 
       bookingWhere = {
         ...bookingWhere,
-        teamId,
-        eventTypeId,
         createdAt: {
           gte: dayjs(startDate).startOf("day").toDate(),
           lte: dayjs(endDate).endOf("day").toDate(),
@@ -1419,8 +1415,7 @@ export const insightsRouter = router({
       let { whereCondition: bookingWhere } = r;
 
       bookingWhere = {
-        teamId,
-        eventTypeId,
+        ...bookingWhere,
         createdAt: {
           gte: dayjs(startDate).startOf("day").toDate(),
           lte: dayjs(endDate).endOf("day").toDate(),
@@ -1498,8 +1493,7 @@ export const insightsRouter = router({
 
       let { whereCondition: bookingWhere } = r;
       bookingWhere = {
-        teamId,
-        eventTypeId,
+        ...bookingWhere,
         createdAt: {
           gte: dayjs(startDate).startOf("day").toDate(),
           lte: dayjs(endDate).endOf("day").toDate(),
