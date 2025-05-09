@@ -52,38 +52,21 @@ export const buildBaseWhereCondition = async ({
   whereCondition: Prisma.BookingTimeStatusWhereInput;
   isEmptyResponse?: boolean;
 }> => {
-  let whereCondition: Prisma.BookingTimeStatusWhereInput = {
-    id: -1, // Restrictive fallback - will be overridden if valid parameters are provided
-  };
-
-  let hasValidParameters = false;
+  let whereCondition: Prisma.BookingTimeStatusWhereInput = {};
 
   // EventType Filter
   if (eventTypeId) {
-    whereCondition = {
-      OR: [{ eventTypeId }, { eventParentId: eventTypeId }],
-    };
-    hasValidParameters = true;
+    whereCondition.OR = [{ eventTypeId }, { eventParentId: eventTypeId }];
   }
 
   // User/Member filter
   if (memberUserId) {
-    whereCondition = {
-      ...whereCondition,
-      userId: memberUserId,
-    };
-    delete whereCondition.id; // Remove restrictive fallback
-    hasValidParameters = true;
+    whereCondition.userId = memberUserId;
   }
 
   if (userId) {
-    whereCondition = {
-      ...whereCondition,
-      teamId: null,
-      userId: userId,
-    };
-    delete whereCondition.id; // Remove restrictive fallback
-    hasValidParameters = true;
+    whereCondition.teamId = null;
+    whereCondition.userId = userId;
   }
 
   // organization-wide queries condition
@@ -98,7 +81,7 @@ export const buildBaseWhereCondition = async ({
     });
 
     if (teamsFromOrg.length === 0) {
-      // For empty teams, return only the OR condition without the restrictive fallback
+      // For empty teams, return only the OR condition
       return {
         whereCondition: {
           OR: [
@@ -127,8 +110,8 @@ export const buildBaseWhereCondition = async ({
       },
     });
     const userIdsFromOrg = usersFromOrg.map((u) => u.userId);
-    whereCondition = {
-      ...whereCondition,
+
+    const teamOrgConditions = {
       OR: [
         {
           teamId: {
@@ -144,8 +127,14 @@ export const buildBaseWhereCondition = async ({
         },
       ],
     };
-    delete whereCondition.id; // Remove restrictive fallback
-    hasValidParameters = true;
+
+    if (eventTypeId && whereCondition.OR) {
+      whereCondition = {
+        AND: [{ OR: whereCondition.OR }, teamOrgConditions],
+      };
+    } else {
+      whereCondition = teamOrgConditions;
+    }
   }
 
   if (teamId && !isAll) {
@@ -160,50 +149,32 @@ export const buildBaseWhereCondition = async ({
     });
     const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
 
-    if (eventTypeId) {
+    const teamConditions = {
+      OR: [
+        {
+          teamId,
+          isTeamBooking: true,
+        },
+        {
+          userId: {
+            in: userIdsFromTeam,
+          },
+          isTeamBooking: false,
+        },
+      ],
+    };
+
+    if (eventTypeId && whereCondition.OR) {
       whereCondition = {
-        AND: [
-          {
-            OR: [{ eventTypeId }, { eventParentId: eventTypeId }],
-          },
-          {
-            OR: [
-              {
-                teamId,
-                isTeamBooking: true,
-              },
-              {
-                userId: {
-                  in: userIdsFromTeam,
-                },
-                isTeamBooking: false,
-              },
-            ],
-          },
-        ],
+        AND: [{ OR: whereCondition.OR }, teamConditions],
       };
     } else {
-      whereCondition = {
-        ...whereCondition,
-        OR: [
-          {
-            teamId,
-            isTeamBooking: true,
-          },
-          {
-            userId: {
-              in: userIdsFromTeam,
-            },
-            isTeamBooking: false,
-          },
-        ],
-      };
+      whereCondition = teamConditions;
     }
-    delete whereCondition.id; // Remove restrictive fallback
-    hasValidParameters = true;
   }
 
-  if (!hasValidParameters) {
+  // If no valid parameters were provided, return a restrictive condition
+  if (Object.keys(whereCondition).length === 0) {
     whereCondition = { id: -1 }; // Ensure no data is returned for invalid parameters
   }
 
