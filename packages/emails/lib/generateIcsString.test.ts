@@ -31,14 +31,9 @@ const testIcsStringContains = ({
   // Sometimes the deeply equal stringMatching error appears. Don't want to add flakey tests
   // expect(icsString).toEqual(expect.stringContaining(`SUMMARY:${event.title}`));
   expect(icsString).toEqual(expect.stringContaining(`DTSTART:${DTSTART}`));
-  if (event.hideOrganizerEmail) {
-    expect(icsString).toEqual(expect.stringContaining(`ORGANIZER;CN=${event.organizer.name}`));
-    expect(icsString).not.toEqual(expect.stringContaining(`mailto:${event.organizer.email}`));
-  } else {
-    expect(icsString).toEqual(
-      expect.stringContaining(`ORGANIZER;CN=${event.organizer.name}:mailto:${event.organizer.email}`)
-    );
-  }
+  expect(icsString).toEqual(
+    expect.stringContaining(`ORGANIZER;CN=${event.organizer.name}:mailto:${event.organizer.email}`)
+  );
   expect(icsString).toEqual(expect.stringContaining(`DTEND:${DTEND}`));
   expect(icsString).toEqual(expect.stringContaining(`STATUS:${status}`));
   //   Getting an error expected icsString to deeply equal stringMatching
