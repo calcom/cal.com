@@ -1,7 +1,6 @@
 require("dotenv").config({ path: "../../.env" });
 const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
-const { withSentryConfig } = require("@sentry/nextjs");
 const { version } = require("./package.json");
 const {
   i18n: { locales },
@@ -188,9 +187,8 @@ const nextConfig = {
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     optimizePackageImports: ["@calcom/ui"],
-    turbo: {},
   },
-  productionBrowserSourceMaps: process.env.SENTRY_DISABLE_CLIENT_SOURCE_MAPS === "0",
+  productionBrowserSourceMaps: true,
   /* We already do type check on GH actions */
   typescript: {
     ignoreBuildErrors: !!process.env.CI,
@@ -226,10 +224,6 @@ const nextConfig = {
   },
   webpack: (config, { webpack, buildId, isServer }) => {
     if (isServer) {
-      if (process.env.SENTRY_DISABLE_SERVER_SOURCE_MAPS === "1") {
-        config.devtool = false;
-      }
-
       // Module not found fix @see https://github.com/boxyhq/jackson/issues/1535#issuecomment-1704381612
       config.plugins.push(
         new webpack.IgnorePlugin({
@@ -690,20 +684,5 @@ const nextConfig = {
     return redirects;
   },
 };
-
-if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
-  plugins.push((nextConfig) =>
-    withSentryConfig(nextConfig, {
-      autoInstrumentServerFunctions: false,
-      hideSourceMaps: true,
-      // disable source map generation for the server code
-      disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
-      silent: false,
-      sourcemaps: {
-        disable: process.env.SENTRY_DISABLE_SERVER_SOURCE_MAPS === "1",
-      },
-    })
-  );
-}
 
 module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);

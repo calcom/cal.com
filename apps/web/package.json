@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "5.2.13",
+  "version": "5.2.14",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -14,8 +14,9 @@
     "test-codegen": "yarn playwright codegen http://localhost:3000",
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
+    "sentry:release": "NODE_OPTIONS='--max-old-space-size=6144' node scripts/create-sentry-release.js",
     "copy-static": "node scripts/copy-app-store-static.js",
-    "build": "yarn copy-static && next build",
+    "build": "yarn copy-static && next build && yarn sentry:release",
     "start": "next start",
     "lint": "eslint . --ignore-path .gitignore",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
@@ -70,7 +71,7 @@
     "@radix-ui/react-switch": "^1.0.0",
     "@radix-ui/react-toggle-group": "^1.0.0",
     "@radix-ui/react-tooltip": "^1.0.0",
-    "@sentry/nextjs": "^9.8.0",
+    "@sentry/nextjs": "^9.15.0",
     "@stripe/react-stripe-js": "^1.10.0",
     "@stripe/stripe-js": "^1.35.0",
     "@tanstack/react-query": "^5.17.15",

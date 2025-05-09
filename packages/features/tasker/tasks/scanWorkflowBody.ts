@@ -17,12 +17,22 @@ export const scanWorkflowBodySchema = z.object({
 const log = logger.getSubLogger({ prefix: ["[tasker] scanWorkflowBody"] });
 
 export async function scanWorkflowBody(payload: string) {
+  const { workflowStepIds, userId } = scanWorkflowBodySchema.parse(JSON.parse(payload));
+
   if (!process.env.IFFY_API_KEY) {
     log.info("IFFY_API_KEY not set, skipping scan");
+    await prisma.workflowStep.updateMany({
+      where: {
+        id: {
+          in: workflowStepIds,
+        },
+      },
+      data: {
+        verifiedAt: new Date(),
+      },
+    });
     return;
   }
-
-  const { workflowStepIds, userId } = scanWorkflowBodySchema.parse(JSON.parse(payload));
 
   const workflowSteps = await prisma.workflowStep.findMany({
     where: {
@@ -91,29 +101,27 @@ export async function scanWorkflowBody(payload: string) {
     const isSpam = await iffyScanBody(workflowStep.reminderBody, workflowStep.id);
 
     if (isSpam) {
-      if (workflowStep.workflow.user?.whitelistWorkflows) {
-        log.warn(
-          `For whitelisted user, workflow step ${workflowStep.id} is spam with body ${workflowStep.reminderBody}`
-        );
+      if (!workflowStep.workflow.user?.whitelistWorkflows) {
+        // We won't delete the workflow step incase it is flagged as a false positive
+        log.warn(`Workflow step ${workflowStep.id} is spam with body ${workflowStep.reminderBody}`);
+        await lockUser("userId", userId.toString(), LockReason.SPAM_WORKFLOW_BODY);
+
+        // Return early if spam is detected
         return;
       }
-
-      // We won't delete the workflow step incase it is flagged as a false positive
-      log.warn(`Workflow step ${workflowStep.id} is spam with body ${workflowStep.reminderBody}`);
-      await lockUser("userId", userId.toString(), LockReason.SPAM_WORKFLOW_BODY);
-
-      // Return early if spam is detected
-      return;
-    } else {
-      await prisma.workflowStep.update({
-        where: {
-          id: workflowStep.id,
-        },
-        data: {
-          verifiedAt: new Date(),
-        },
-      });
+      log.warn(
+        `For whitelisted user, workflow step ${workflowStep.id} is spam with body ${workflowStep.reminderBody}`
+      );
     }
+
+    await prisma.workflowStep.update({
+      where: {
+        id: workflowStep.id,
+      },
+      data: {
+        verifiedAt: new Date(),
+      },
+    });
   }
 
   const workflow = await prisma.workflow.findFirst({
