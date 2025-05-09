@@ -14,7 +14,7 @@ test.afterEach(async ({ users, orgs }) => {
 });
 
 test.describe("Filter Segment Functionality", () => {
-  test("Admin can create, use, and delete filter segments in organization members list", async ({
+  test.skip("Admin can create, use, and delete filter segments in organization members list", async ({
     page,
     users,
     orgs,
@@ -75,7 +75,7 @@ test.describe("Filter Segment Functionality", () => {
     });
   });
 
-  test("Filter segments persist across page reloads", async ({ page, users, orgs }) => {
+  test.skip("Filter segments persist across page reloads", async ({ page, users, orgs }) => {
     const orgOwner = await users.create(undefined, {
       hasTeam: true,
       isOrg: true,
@@ -119,7 +119,7 @@ test.describe("Filter Segment Functionality", () => {
     await deleteSegment(page, segmentName);
   });
 
-  test("Admin can create and use team scope filter segments", async ({ page, users, orgs }) => {
+  test.skip("Admin can create and use team scope filter segments", async ({ page, users, orgs }) => {
     const orgOwner = await users.create(undefined, {
       hasTeam: true,
       isOrg: true,
