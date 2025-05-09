@@ -4,7 +4,6 @@ import dayjs from "@calcom/dayjs";
 import * as EmailManager from "@calcom/emails/email-manager";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { CreditType } from "@calcom/prisma/enums";
 
 import { CreditService } from "./credit-service";
@@ -134,19 +133,19 @@ describe("CreditService", () => {
         warningSentAt: null,
       });
 
-      vi.mocked(TeamRepository.findTeamWithAdmins).mockResolvedValue({
-        id: 1,
-        name: "team-name",
-        members: [
-          {
-            user: {
-              name: "admin",
-              email: "admin@example.com",
-              locale: "en",
-            },
-          },
-        ],
-      });
+      // vi.mocked(TeamRepository.findTeamWithAdminsAndOwners).mockResolvedValue({
+      //   id: 1,
+      //   name: "team-name",
+      //   members: [
+      //     {
+      //       user: {
+      //         name: "admin",
+      //         email: "admin@example.com",
+      //         locale: "en",
+      //       },
+      //     },
+      //   ],
+      // });
 
       vi.spyOn(EmailManager, "sendCreditBalanceLowWarningEmails").mockResolvedValue();
 
@@ -184,19 +183,19 @@ describe("CreditService", () => {
         warningSentAt: null,
       });
 
-      vi.mocked(TeamRepository.findTeamWithAdmins).mockResolvedValue({
-        id: 1,
-        name: "team-name",
-        members: [
-          {
-            user: {
-              name: "admin",
-              email: "admin@example.com",
-              locale: "en",
-            },
-          },
-        ],
-      });
+      // vi.mocked(TeamRepository.findTeamWithAdminsAndOwners).mockResolvedValue({
+      //   id: 1,
+      //   name: "team-name",
+      //   members: [
+      //     {
+      //       user: {
+      //         name: "admin",
+      //         email: "admin@example.com",
+      //         locale: "en",
+      //       },
+      //     },
+      //   ],
+      // });
 
       vi.spyOn(EmailManager, "sendCreditBalanceLimitReachedEmails").mockResolvedValue();
 

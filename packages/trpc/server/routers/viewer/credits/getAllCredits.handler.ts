@@ -16,7 +16,7 @@ type GetAllCreditsOptions = {
 export const getAllCreditsHandler = async ({ ctx, input }: GetAllCreditsOptions) => {
   const { teamId } = input;
 
-  const adminMembership = await MembershipRepository.getAdminMembership(ctx.user.id, teamId);
+  const adminMembership = await MembershipRepository.getAdminOrOwnerMembership(ctx.user.id, teamId);
 
   if (!adminMembership) {
     throw new TRPCError({
