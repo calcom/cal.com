@@ -75,22 +75,19 @@ test.describe("Filter Segment Functionality", () => {
     const orgOwner = await users.create(undefined, {
       hasTeam: true,
       isOrg: true,
-      overrideDefaultEventTypes: true,
     });
     const { team: org } = await orgOwner.getOrgMembership();
 
     await users.create({
-      role: MembershipRole.MEMBER,
+      roleInOrganization: MembershipRole.MEMBER,
       organizationId: org.id,
       username: "member-user",
-      overrideDefaultEventTypes: true,
     });
 
     await users.create({
-      role: MembershipRole.ADMIN,
+      roleInOrganization: MembershipRole.ADMIN,
       organizationId: org.id,
       username: "admin-user",
-      overrideDefaultEventTypes: true,
     });
 
     await orgOwner.apiLogin();
@@ -120,23 +117,20 @@ test.describe("Filter Segment Functionality", () => {
       hasTeam: true,
       isOrg: true,
       hasSubteam: true,
-      eventTypes: [],
     });
     const { team: org } = await orgOwner.getOrgMembership();
     const { team: subTeam } = await orgOwner.getFirstTeamMembership();
 
     await users.create({
-      role: MembershipRole.MEMBER,
+      roleInOrganization: MembershipRole.MEMBER,
       organizationId: org.id,
       username: "org-member",
-      overrideDefaultEventTypes: true,
     });
 
     await users.create({
-      role: MembershipRole.ADMIN,
+      roleInOrganization: MembershipRole.ADMIN,
       organizationId: org.id,
       username: "org-admin",
-      overrideDefaultEventTypes: true,
     });
 
     await orgOwner.apiLogin();
@@ -164,10 +158,9 @@ test.describe("Filter Segment Functionality", () => {
 
     await test.step("Regular member can see but not modify team segments", async () => {
       const regularMember = await users.create({
-        role: MembershipRole.MEMBER,
+        roleInOrganization: MembershipRole.MEMBER,
         organizationId: org.id,
         username: "regular-member",
-        overrideDefaultEventTypes: true,
       });
 
       await regularMember.apiLogin();
@@ -182,7 +175,7 @@ test.describe("Filter Segment Functionality", () => {
       await page.getByRole("button", { name: "Open menu" }).click();
       await expect(page.getByText("Delete")).toBeHidden();
 
-      await apiLogin(orgOwner, page);
+      await orgOwner.apiLogin();
 
       await page.goto(`/settings/organizations/${org.slug}/members`);
       await expect(dataTable).toBeVisible();

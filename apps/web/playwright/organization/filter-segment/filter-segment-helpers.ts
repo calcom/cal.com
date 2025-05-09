@@ -13,13 +13,16 @@ export async function selectFilter(page: Page, columnId: string) {
  * Apply a filter with a specific value
  */
 export async function applyFilter(page: Page, columnId: string, value: string) {
-  const existingFilter = page.getByTestId(`filter-${columnId}-selected`);
+  const existingFilter = page.getByTestId(`filter-popover-trigger-${columnId}`);
   if (!(await existingFilter.isVisible())) {
     await selectFilter(page, columnId);
   }
 
-  await page.getByTestId(`filter-${columnId}-input`).fill(value);
-  await page.getByTestId("apply-filter").click();
+  await page.getByTestId(`filter-popover-trigger-${columnId}`).click();
+
+  await page.getByPlaceholder("Search").fill(value);
+
+  await page.getByRole("button", { name: "Apply" }).click();
 
   await page.waitForResponse((response) => {
     return response.url().includes("/api/trpc/viewer") && response.status() === 200;
@@ -34,7 +37,7 @@ export async function createFilterSegment(
   name: string,
   options: { teamScope?: boolean; teamName?: string } = {}
 ) {
-  await page.getByTestId("save-filter-segment-button").click();
+  await page.getByRole("button", { name: "Save as segment" }).click();
 
   await page.getByLabel("Name").fill(name);
 
@@ -60,6 +63,7 @@ export async function createFilterSegment(
  */
 export async function selectSegment(page: Page, segmentName: string) {
   await page.getByRole("button", { name: "Segment" }).click();
+
   await page.getByText(segmentName).click();
 
   await page.waitForResponse((response) => {
@@ -72,9 +76,11 @@ export async function selectSegment(page: Page, segmentName: string) {
  */
 export async function deleteSegment(page: Page, segmentName: string) {
   await page.getByRole("button", { name: "Segment" }).click();
+
   await page.getByText(segmentName).click();
 
   await page.getByRole("button", { name: "Open menu" }).click();
+
   await page.getByText("Delete").click();
 
   await page.getByRole("button", { name: "Delete" }).click();
