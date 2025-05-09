@@ -105,7 +105,7 @@ export class GetBookingsOutput_2024_08_13 {
   error?: Error;
 
   @ApiProperty({ type: () => PaginationMetaDto }) // Crucial for Swagger
-  @Type(() => PaginationMetaDto) // Crucial for class-transformer if you need to transform plain to class
+  @Type(() => PaginationMetaDto)
   @ValidateNested()
   pagination!: PaginationMetaDto;
 }
