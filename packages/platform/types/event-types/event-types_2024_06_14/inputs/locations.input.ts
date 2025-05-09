@@ -1,7 +1,7 @@
 import { BadRequestException } from "@nestjs/common";
 import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { IsString, IsUrl, IsIn, IsPhoneNumber, IsBoolean } from "class-validator";
+import { IsString, IsUrl, IsIn, IsPhoneNumber, IsBoolean, MinLength } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
 import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
 
@@ -22,6 +22,7 @@ export class InputAddressLocation_2024_06_14 {
   type!: "address";
 
   @IsString()
+  @MinLength(1)
   @DocsProperty({ example: "123 Example St, City, Country" })
   address!: string;
 
