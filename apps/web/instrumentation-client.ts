@@ -12,13 +12,20 @@ Sentry.init({
   // Define how likely Replay events are sampled.
   // This sets the sample rate to be 10%. You may want this to be 100% while
   // in development and sample at a lower rate in production
-  //replaysSessionSampleRate: 0.1,
+  // replaysSessionSampleRate: parseFloat(process.env.SENTRY_REPLAYS_SESSION_SAMPLE_RATE ?? "0.0") || 0.0,
 
   // Define how likely Replay events are sampled when an error occurs.
-  //replaysOnErrorSampleRate: 1.0,
+  // replaysOnErrorSampleRate: parseFloat(process.env.SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE ?? "0.0") || 0.0,
 
   // Setting this option to true will print useful information to the console while you're setting up Sentry.
   debug: false,
+  beforeSend(event) {
+    event.tags = {
+      ...event.tags,
+      errorSource: "client",
+    };
+    return event;
+  },
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
