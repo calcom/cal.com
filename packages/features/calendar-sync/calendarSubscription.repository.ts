@@ -21,4 +21,19 @@ export class CalendarSubscriptionRepository {
       },
     });
   }
+
+  static async findMany({
+    where,
+  }: {
+    where: {
+      integration?: string;
+      externalCalendarId?: {
+        in: string[];
+      };
+    };
+  }) {
+    return prisma.calendarSubscription.findMany({
+      where,
+    });
+  }
 }

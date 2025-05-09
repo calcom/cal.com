@@ -25,7 +25,13 @@ type BookingUpdateAction =
       reason: { code: ReasonCode; message: string };
       notes?: string[];
     }
-  | { type: "CANCEL_BOOKING"; bookingId: number; cancelledBy: string; notes?: string[] }
+  | {
+      type: "CANCEL_BOOKING";
+      bookingId: number;
+      cancelledBy: string;
+      cancellationReason: "ORGANIZER_DECLINED_IN_CALENDAR" | "EVENT_CANCELLED_IN_CALENDAR";
+      notes?: string[];
+    }
   | {
       type: "UPDATE_BOOKING_TIMES";
       bookingId: number;
@@ -77,12 +83,16 @@ export function getBookingUpdateActions({
     return actions;
   }
 
-  if (calendarEvent.status === "cancelled") {
+  if (calendarEvent.status === "cancelled" || calendarEvent.organizerResponseStatus === "declined") {
     // Cancel the booking, we know here that the booking is ACCEPTED, so we should cancel
     actions.push({
       type: "CANCEL_BOOKING",
       bookingId: booking.id,
       cancelledBy: appName,
+      cancellationReason:
+        calendarEvent.organizerResponseStatus === "declined"
+          ? "ORGANIZER_DECLINED_IN_CALENDAR"
+          : "EVENT_CANCELLED_IN_CALENDAR",
       notes: ["Ignoring every other change as the booking has been cancelled"],
     });
     // If a booking is being cancelled, we don't need to make any other changes. We could even skip the changes in the calendar event time
@@ -218,25 +228,29 @@ export async function syncEvents({
               );
               dbUpdatePromise = prisma.booking.update({
                 where: { id: action.bookingId },
-                data: { status: "CANCELLED", cancelledBy: action.cancelledBy },
+                data: {
+                  status: "CANCELLED",
+                  cancelledBy: action.cancelledBy,
+                  cancellationReason: action.cancellationReason,
+                },
               });
               break;
             case "UPDATE_BOOKING_TIMES":
-              log.info(
-                `Calendar Event ${calendarEvent.id} triggered TIME UPDATE for Cal.com booking ${action.bookingId}.`,
+              log.debug(
+                `Calendar Event ${calendarEvent.id} triggered TIME UPDATE for Cal.com booking ${action.bookingId}. Temporarily ignored`,
                 safeStringify({
                   newStart: action.startTime,
                   newEnd: action.endTime,
                 })
               );
-              dbUpdatePromise = prisma.booking.update({
-                where: { id: action.bookingId },
-                data: {
-                  startTime: action.startTime,
-                  endTime: action.endTime,
-                  rescheduledBy: action.rescheduledBy,
-                },
-              });
+              // dbUpdatePromise = prisma.booking.update({
+              //   where: { id: action.bookingId },
+              //   data: {
+              //     startTime: action.startTime,
+              //     endTime: action.endTime,
+              //     rescheduledBy: action.rescheduledBy,
+              //   },
+              // });
               break;
             case "NO_CHANGE":
             case "IGNORE_CHANGE":

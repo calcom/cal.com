@@ -158,5 +158,25 @@ describe("calendarSync", () => {
         }),
       });
     });
+
+    it("should return CANCEL_BOOKING if organizer has declined the meeting", () => {
+      const calendarEvent = {
+        id: "event9",
+        startTime: dayjs(baseBooking.startTime),
+        endTime: dayjs(baseBooking.endTime),
+        status: "confirmed",
+        organizerResponseStatus: "declined",
+      } as CalendarEventsToSync[number];
+      const actions = getBookingUpdateActions({ calendarEvent, booking: baseBooking, appName });
+      expect(actions).toHaveLength(1);
+      expect(actions[0]).toEqual(
+        expect.objectContaining({
+          type: "CANCEL_BOOKING",
+          bookingId: baseBooking.id,
+          cancelledBy: appName,
+          notes: ["Organizer declined the meeting in Google Calendar"],
+        })
+      );
+    });
   });
 });

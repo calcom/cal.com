@@ -3,6 +3,7 @@
  */
 import type { NextRequest } from "next/server";
 
+import { CalendarSubscriptionService } from "@calcom/features/calendar-sync/calendarSubscription.service";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -28,7 +29,7 @@ export const GET = async (req: Request) => {
     return new Response(JSON.stringify({ message: "Unauthorized" }), { status: 401 });
   }
 
-  const batchProcessed = 0;
+  let batchProcessed = 0;
   let batchSuccess = 0;
   let batchFailures = 0;
 
@@ -52,6 +53,8 @@ export const GET = async (req: Request) => {
         id: "asc", // Consistent ordering ensures we process oldest first
       },
     });
+
+    batchProcessed = syncedCalendarsToProcess.length;
 
     if (syncedCalendarsToProcess.length === 0) {
       log.info("No CalendarSync records found needing subscriptions in this run.");
@@ -86,27 +89,38 @@ export const GET = async (req: Request) => {
         }
 
         try {
-          // Directly create a PENDING subscription
-          const newSubscription = await prisma.calendarSubscription.create({
-            data: {
+          const existingSubscription = await CalendarSubscriptionService.findbyExternalIdAndIntegration({
+            externalId: syncedCal.externalCalendarId,
+            integration: syncedCal.integration,
+          });
+
+          if (existingSubscription) {
+            // Link the new subscription to the CalendarSync record
+            await CalendarSubscriptionService.linkCalendarSyncToSubscription({
+              calendarSyncId: syncedCal.id,
+              subscriptionId: existingSubscription.id,
+            });
+
+            log.debug(
+              `Linked existing CalendarSubscription ${existingSubscription.id} to CalendarSync ${syncedCal.id}`
+            );
+          } else {
+            const newSubscription = await CalendarSubscriptionService.createPendingSubscription({
               credentialId: syncedCal.credentialId,
               externalCalendarId: syncedCal.externalCalendarId,
-              providerType: syncedCal.integration,
-              status: "PENDING",
-            },
-            select: { id: true }, // Select only needed ID
-          });
+              integration: syncedCal.integration,
+            });
 
-          // Link the new subscription back to the CalendarSync record
-          await prisma.calendarSync.update({
-            where: { id: syncedCal.id }, // Use the CalendarSync ID
-            data: { subscriptionId: newSubscription.id },
-          });
+            // Link the new subscription to the CalendarSync record
+            await CalendarSubscriptionService.linkCalendarSyncToSubscription({
+              calendarSyncId: syncedCal.id,
+              subscriptionId: newSubscription.id,
+            });
 
-          log.debug(
-            // Changed to debug to reduce noise for successful operations
-            `Created PENDING CalendarSubscription ${newSubscription.id} and linked to SyncedCalendar ${syncedCal.id}`
-          );
+            log.debug(
+              `Created PENDING CalendarSubscription ${newSubscription.id} and linked to CalendarSync ${syncedCal.id}`
+            );
+          }
         } catch (error) {
           log.error(
             `Error processing CalendarSync record ID ${syncedCal.id} (credential ${syncedCal.credentialId}, externalId ${syncedCal.externalCalendarId}):`,

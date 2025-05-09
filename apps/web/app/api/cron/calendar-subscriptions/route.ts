@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { CalendarSubscriptionService } from "@calcom/features/calendar-sync/calendarSubscription.service";
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -72,7 +73,32 @@ export const GET = async (req: Request) => {
     const results = await Promise.allSettled(
       pendingSubscriptions.map(async (sub) => {
         try {
-          // FIXME: We need to look into SelectedCalendar table to see if there are already some subscription to same integration and externalCalendarId, we could avoid creating a new channel and reuse that channel.
+          // First, check if there's already an existing subscription in SelectedCalendar we can reuse
+          const existingSubscription = await CalendarSubscriptionService.findExistingProviderSubscription({
+            externalCalendarId: sub.externalCalendarId,
+            integration: sub.providerType,
+          });
+
+          if (existingSubscription?.fromSelectedCalendar) {
+            log.info(
+              `Found existing SelectedCalendar subscription for CalendarSubscription ${sub.id}. Reusing it.`,
+              safeStringify({
+                selectedCalendarId: sub.id,
+              })
+            );
+
+            // Use the service to activate the subscription from SelectedCalendar data
+            await CalendarSubscriptionService.activateSubscription({
+              subscriptionId: sub.id,
+              providerDetails: existingSubscription.providerDetails,
+            });
+
+            log.debug(
+              `Successfully ACTIVATED CalendarSubscription ${sub.id} using existing SelectedCalendar subscription`
+            );
+            return;
+          }
+
           const credentialForCalendarCache = await getCredentialForCalendarCache({
             credentialId: sub.credentialId,
           });
@@ -99,7 +125,7 @@ export const GET = async (req: Request) => {
             calendarId: sub.externalCalendarId,
           });
 
-          if (!thirdPartySubscriptionResponse || !thirdPartySubscriptionResponse.subscriptionId) {
+          if (!thirdPartySubscriptionResponse || !thirdPartySubscriptionResponse.id) {
             // Handle cases where watch creation didn't return expected data
             log.warn(
               `subscribeToCalendar did not return a valid response or ID for CalendarSubscription ${sub.id}. Response:`,
@@ -110,25 +136,14 @@ export const GET = async (req: Request) => {
             );
           }
 
-          // Update the CalendarSubscription record to ACTIVE and store provider details
-          await prisma.calendarSubscription.update({
-            where: { id: sub.id },
-            data: {
-              // Keep credentialId, externalCalendarId, providerType as they are
-              providerSubscriptionId: thirdPartySubscriptionResponse.subscriptionId,
-              providerSubscriptionKind: thirdPartySubscriptionResponse.subscriptionKind,
-              providerResourceId: thirdPartySubscriptionResponse.resourceId,
-              providerResourceUri: thirdPartySubscriptionResponse.resourceUri,
-              providerExpiration: thirdPartySubscriptionResponse.expiration
-                ? new Date(Number(thirdPartySubscriptionResponse.expiration))
-                : null,
-              status: "ACTIVE",
-            },
+          // Update the subscription to ACTIVE using our service
+          await CalendarSubscriptionService.activateSubscription({
+            subscriptionId: sub.id,
+            providerDetails: thirdPartySubscriptionResponse,
           });
 
           log.debug(
-            // Changed to debug to reduce noise for successful operations
-            `Successfully ACTIVATED CalendarSubscription ${sub.id} (Provider ID: ${thirdPartySubscriptionResponse.subscriptionId})`
+            `Successfully ACTIVATED CalendarSubscription ${sub.id} (Provider ID: ${thirdPartySubscriptionResponse.id})`
           );
         } catch (error) {
           log.error(

@@ -37,7 +37,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
+import type { SelectedCalendarEventTypeIds, CalendarSubscription } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
 import { invalidateCredential } from "../../_utils/invalidateCredential";
@@ -71,15 +71,6 @@ type GoogleChannelProps = {
   resourceUri?: string | null;
   expiration?: string | null;
 };
-
-export function buildDayjsObject(time: { dateTime?: string | null; timeZone?: string | null } | undefined) {
-  if (!time) return time;
-  if (!time.dateTime) return null;
-  // If timeZone is provided, then the time is in that timeZone
-  if (time.timeZone) return dayjs.tz(time.dateTime, time.timeZone);
-  // If timeZone is not provided, then dateTime itself has timezone offset
-  return dayjs(time.dateTime);
-}
 
 export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
@@ -1005,7 +996,7 @@ export default class GoogleCalendarService implements Calendar {
     await this.fetchAvailabilityAndSetCache(selectedCalendars);
   }
 
-  private async fetchRecentlyUpdatedEvents({
+  private async listRecentlyUpdatedEvents({
     calendarId,
     updatedMin,
     includeDeleted,
@@ -1038,6 +1029,10 @@ export default class GoogleCalendarService implements Calendar {
             summary: item.summary,
             start: item.start,
             end: item.end,
+            attendees: item.attendees?.map((attendee) => ({
+              email: attendee.email,
+              responseStatus: attendee.responseStatus,
+            })),
           })),
         })
       );
@@ -1052,30 +1047,23 @@ export default class GoogleCalendarService implements Calendar {
   private async getEventsThatShouldBeSyncedDownstream(calendarId: string) {
     log.debug("getEventsThatShouldBeSyncedDownstream", safeStringify({ calendarId }));
     const timeMin = dayjs().subtract(1, "hour").toISOString(); // Look back 1 hour
-    const recentlyUpdatedEvents = await this.fetchRecentlyUpdatedEvents({
+    const recentlyUpdatedEvents = await this.listRecentlyUpdatedEvents({
       calendarId,
       updatedMin: timeMin,
+      // We want cancelled events too
       includeDeleted: true,
       maxResults: 10,
     });
     const concernedEvents = recentlyUpdatedEvents.map((event) => {
-      if (!event.id || !event.start?.dateTime || !event.end?.dateTime) {
-        log.warn(
-          "Skipping event due to missing required fields",
-          safeStringify({
-            eventId: event.id,
-            startTime: event.start?.dateTime,
-            endTime: event.end?.dateTime,
-          })
-        );
-        return null;
-      }
+      // Find the organizer in attendees
+      const organizer = event.attendees?.find((attendee) => attendee.organizer === true);
       return {
         id: event.id,
         status: event.status,
-        // TODO: Check if it is set for all day events too?
-        startTime: buildDayjsObject(event.start),
-        endTime: buildDayjsObject(event.end),
+        // startTime and endTime need to be correctly interpreted in timezone, so for now even though they are sent, we don't update Booking start time and end time
+        startTime: event.start?.dateTime ? dayjs(event.start.dateTime) : null,
+        endTime: event.end?.dateTime ? dayjs(event.end.dateTime) : null,
+        organizerResponseStatus: organizer?.responseStatus || null,
       };
     });
 
@@ -1100,8 +1088,8 @@ export default class GoogleCalendarService implements Calendar {
     try {
       const watchResponse = await this.startWatchingCalendarsInGoogle({ calendarId });
       return {
-        subscriptionId: watchResponse.id ?? null,
-        subscriptionKind: watchResponse.kind ?? null,
+        id: watchResponse.id ?? null,
+        kind: watchResponse.kind ?? null,
         resourceId: watchResponse.resourceId ?? null,
         resourceUri: watchResponse.resourceUri ?? null,
         expiration: watchResponse.expiration ?? null,
@@ -1141,9 +1129,11 @@ export default class GoogleCalendarService implements Calendar {
   async watchCalendar({
     calendarId,
     eventTypeIds,
+    calendarSubscription,
   }: {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
+    calendarSubscription: CalendarSubscription;
   }) {
     log.debug("watchCalendar", safeStringify({ calendarId, eventTypeIds }));
     if (!process.env.GOOGLE_WEBHOOK_TOKEN) {
@@ -1166,18 +1156,47 @@ export default class GoogleCalendarService implements Calendar {
       (sc) => !eventTypeIds?.includes(sc.eventTypeId)
     );
 
-    let googleChannelProps: GoogleChannelProps = otherCalendarsWithSameSubscription.length
-      ? {
-          kind: otherCalendarsWithSameSubscription[0].googleChannelKind,
-          id: otherCalendarsWithSameSubscription[0].googleChannelId,
-          resourceId: otherCalendarsWithSameSubscription[0].googleChannelResourceId,
-          resourceUri: otherCalendarsWithSameSubscription[0].googleChannelResourceUri,
-          expiration: otherCalendarsWithSameSubscription[0].googleChannelExpiration,
-        }
-      : {};
+    // Fill in googleChannelProps from either an existing subscription or selected calendar
+    let googleChannelProps: GoogleChannelProps = {};
+    let shouldCreateNewSubscription = true;
+    if (calendarSubscription) {
+      // Use CalendarSubscription data
+      googleChannelProps = {
+        id: calendarSubscription.providerSubscriptionId,
+        kind: calendarSubscription.providerSubscriptionKind,
+        resourceId: calendarSubscription.providerResourceId,
+        resourceUri: calendarSubscription.providerResourceUri,
+        expiration: calendarSubscription.providerExpiration?.toISOString() ?? null,
+      };
+      shouldCreateNewSubscription = false;
+      logger.info(
+        `Calendar ${calendarId} is already being watched via CalendarSubscription. Reusing existing channel.`,
+        safeStringify({
+          calendarSubscriptionId: calendarSubscription?.id,
+        })
+      );
+    } else if (otherCalendarsWithSameSubscription.length > 0) {
+      // Use SelectedCalendar data
+      googleChannelProps = {
+        kind: otherCalendarsWithSameSubscription[0].googleChannelKind,
+        id: otherCalendarsWithSameSubscription[0].googleChannelId,
+        resourceId: otherCalendarsWithSameSubscription[0].googleChannelResourceId,
+        resourceUri: otherCalendarsWithSameSubscription[0].googleChannelResourceUri,
+        expiration: otherCalendarsWithSameSubscription[0].googleChannelExpiration,
+      };
+      shouldCreateNewSubscription = false;
+      logger.info(
+        `Calendar ${calendarId} is already being watched via otherSelectedCalendars. Reusing existing channel.`,
+        safeStringify({
+          otherCalendarsWithSameSubscription: otherCalendarsWithSameSubscription.map((sc) => sc.id),
+        })
+      );
+    }
+
     let error: string | undefined;
 
-    if (!otherCalendarsWithSameSubscription.length) {
+    // Only create a new subscription if none exists
+    if (shouldCreateNewSubscription) {
       try {
         googleChannelProps = await this.subscribeToCalendar({ calendarId });
       } catch (error) {
@@ -1185,13 +1204,8 @@ export default class GoogleCalendarService implements Calendar {
         // We set error to prevent attempting to watch on next cron run
         error = error instanceof Error ? error.message : "Unknown error";
       }
-    } else {
-      logger.info(
-        `Calendar ${calendarId} is already being watched for event types ${otherCalendarsWithSameSubscription.map(
-          (sc) => sc.eventTypeId
-        )}. So, not watching again and instead reusing the existing channel`
-      );
     }
+
     // FIXME: We shouldn't create SelectedCalendar, we should only update if exists
     await this.upsertSelectedCalendarsForEventTypeIds(
       {
@@ -1241,9 +1255,11 @@ export default class GoogleCalendarService implements Calendar {
   async unwatchCalendar({
     calendarId,
     eventTypeIds,
+    calendarSubscription,
   }: {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
+    calendarSubscription: CalendarSubscription;
   }) {
     const credentialId = this.credential.id;
     const eventTypeIdsToBeUnwatched = eventTypeIds;
@@ -1262,18 +1278,20 @@ export default class GoogleCalendarService implements Calendar {
       (sc) => !!sc.googleChannelId
     );
 
-    // Except those requested to be un-watched, other calendars are still being watched
+    // Find which ones will still be watched after this unwatching operation
     const calendarsWithSameExternalIdToBeStillWatched = calendarsWithSameExternalIdThatAreBeingWatched.filter(
       (sc) => !eventTypeIdsToBeUnwatched.includes(sc.eventTypeId)
     );
 
-    if (calendarsWithSameExternalIdToBeStillWatched.length) {
+    // If there are other calendars still using this subscription, don't unwatch
+    if (calendarsWithSameExternalIdToBeStillWatched.length || calendarSubscription) {
       logger.info(
-        `There are other ${calendarsWithSameExternalIdToBeStillWatched.length} calendars with the same externalId_credentialId. Not unwatching. Just removing the channelId from this selected calendar`
+        `There are other ${calendarsWithSameExternalIdToBeStillWatched.length} SelectedCalendars or CalendarSubscription record with the same externalId_credentialId. Not unwatching. Just removing the channelId from this selected calendar`,
+        safeStringify({
+          calendarsWithSameExternalIdToBeStillWatched,
+          calendarSubscriptionId: calendarSubscription?.id,
+        })
       );
-
-      // CalendarCache still need to exist
-      // We still need to keep the subscription
 
       // Just remove the google channel related fields from this selected calendar
       await this.upsertSelectedCalendarsForEventTypeIds(

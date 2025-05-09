@@ -585,6 +585,7 @@ export default class EventManager {
         if (isCalendarLikeResult(result)) {
           const updatedEvent =
             result.updatedEvent instanceof Array ? result.updatedEvent[0] : result.updatedEvent;
+          // @ts-expect-error - id is present in updatedEvent
           return updatedEvent?.id === reference.uid;
         }
         return false;

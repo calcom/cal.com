@@ -73,24 +73,31 @@ Flow:
 Notes:
 - We could use lastUsedAt field in CalendarSync table, which is update every time a booking uses that calendar as the destination. We could start updating that as well in a follow up as we avoid the need to make the changes in handleNewBooking flow.
 
+FAQ:
+- Existing bookings in the system that are re-scheduled, will they be synced back from the third party calendar?
+  - Yes, they will be synced back as those bookings still have BookingReference.uid to identify the eventId in third party calendar
+  - [ ] Test this
 
 TODO:
-- [ ] Renew test
-- [ ] Expire a subscription in Google Calendar when the subscription is deleted in Cal.com
-- [ ] Stopping channel subscript requires passing both channelId and resourceId, does that mean channelId is shared across resources. Should we use resourceId as well in webhook.handler.ts to filter out relevant records.
-- [ ] Ensure that a subscription record is never deleted, unless it has been expired by Cal.com itself, then it is safe to be deleted. This is important because otherwise we wouldn't be able to stop subscription on that if needed and such channels could cause increased push notification delay. They can be obtained from logs though, received when there is change in calendar.
-- [ ] unusubscribe from channel,resourceId which are not connected to any CalendarSync record.
+- [ ] Subscription renewal support
+- [ ] Reuse subscription from SelectedCalendar
+- [ ] Ensure that a subscription record is never deleted, unless it has been expired by Cal.com itself, then it is safe to be deleted. This is important because otherwise we wouldn't be able to stop subscription on that if needed and such channels could cause increased push notification delay. 
 - [ ] Review indices carefully on DB. Maybe use explain analyze to check if they are being used.
-- [ ] Test woth different timezone of Google Calendar and Cal.com accoutn and machine's timezone.
-- [ ] Integration test handleNewBooking
 - [ ] When does updateEvent return an array of NewCalendarEventType?
-- [ ] Make sure that in handleNewBooking flow, calendarSync creation failure or linking failure with BookingReference is logged as an error in only those cases where there was a successful calendar event creation - There might be calendar connected or failure to create vent in calendar, those should beignored
-- [ ] Existing bookings in the system that are re-scheduled, will they be synced back from the third party calendar?
-- [ ] Consider merging the PR without calling createCalendarSync  or calling it only for the organization that has the feature enabled.
 - [ ] Tests for Google CalendarService
-- [ ] 
+
+
+- Tests:
+   - [ ] Subscription renewal
+   - [ ] Reusing subscription from SelectedCalendar and CalendarSubscription both
 
 Follow up:
-- [ ] Support where the organizer itself declines the calendar-event
-- [ ] Delegation Credential support
-- [ ] Test and support recurring events
+- [ ] Cleanup
+   - [ ] unusubscribe from channel, resourceId which are not connected to any CalendarSync record or don't have SelectedCalendar record with same channelId and resourceId.
+- [ ] Feature Completeness
+   - [ ] Cancel when all attendees(booker + guests and not organizer) have declined the calendar-event
+   - [ ] Send email and trigger other things that are done when a booking is cancelled
+   - [ ] Delegation Credential support
+   - [ ] Calendar Event time change sync support(Test with different timezone of Google Calendar and Cal.com account and machine's timezone.)
+       - Do we need it ?
+- [ ] Test and support recurring events(Beta)

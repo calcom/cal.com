@@ -2244,7 +2244,7 @@ model CalendarSync {
   userId             Int
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   credential         Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  subscription       CalendarSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  subscription       CalendarSubscription? @relation(fields: [subscriptionId], references: [id])
   subscriptionId     String? @unique
   lastSyncedUpAt     DateTime?
   lastSyncedDownAt   DateTime?

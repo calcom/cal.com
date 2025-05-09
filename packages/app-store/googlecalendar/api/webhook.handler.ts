@@ -1,11 +1,11 @@
 import type { NextApiRequest } from "next";
 import { z } from "zod";
 
+import { CalendarSyncRepository } from "@calcom/features/calendar-sync/calendarSync.repository";
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CalendarSyncRepository } from "@calcom/lib/server/repository/calendarSync";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import prisma from "@calcom/prisma";
 

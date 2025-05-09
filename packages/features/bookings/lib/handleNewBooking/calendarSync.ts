@@ -1,11 +1,11 @@
 import type { CalendarSync } from "@prisma/client";
 
+import { CalendarSyncRepository } from "@calcom/features/calendar-sync/calendarSync.repository";
 import { featureName } from "@calcom/features/calendar-sync/feature";
 // eslint-disable-next-line no-restricted-imports
 import { isCalendarLikeResult } from "@calcom/lib/EventManager";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CalendarSyncRepository } from "@calcom/lib/server/repository/calendarSync";
 import type { AdditionalInformation } from "@calcom/types/Calendar";
 import type { EventResult } from "@calcom/types/EventManager";
 import type { Ensure } from "@calcom/types/utils";
