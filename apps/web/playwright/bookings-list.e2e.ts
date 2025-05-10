@@ -362,7 +362,7 @@ test.describe("Bookings", () => {
       (response) => response.url().includes("/api/trpc/bookings/get?batch=1") && response.status() === 200
     );
     await page
-      .locator(`[data-testid="multi-select-options-userId"] [role="option"]:has-text("${thirdUser.name}")`)
+      .locator(`[data-testid="select-filter-options-userId"] [role="option"]:has-text("${thirdUser.name}")`)
       .click();
     await bookingsGetResponse2;
     await expect(page.locator('text="Cancel event"').nth(0)).toBeVisible();
@@ -465,7 +465,7 @@ test.describe("Bookings", () => {
     await page.locator('[data-testid="add-filter-item-userId"]').click();
     await page.locator('[data-testid="filter-popover-trigger-userId"]').click();
     await page
-      .locator(`[data-testid="multi-select-options-userId"] [role="option"]:has-text("${anotherUser}")`)
+      .locator(`[data-testid="select-filter-options-userId"] [role="option"]:has-text("${anotherUser}")`)
       .click();
     await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
 
