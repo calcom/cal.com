@@ -132,7 +132,7 @@ export function withReporting<T extends any[], U>(
 
   // Handle sync functions
   return (...args: T): U => {
-    return startSpan({ name }, () => {
+    const result = startSpan({ name }, () => {
       try {
         return func(...args);
       } catch (error) {
@@ -153,6 +153,10 @@ export function withReporting<T extends any[], U>(
         throw error;
       }
     });
+
+    // Since this is the sync handler, we know startSpan will return U directly
+    // and not a Promise<U> because we're not using async/await
+    return result as U;
   };
 }
 
