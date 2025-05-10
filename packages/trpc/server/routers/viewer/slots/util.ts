@@ -158,7 +158,6 @@ async function _getReservedSlotsAndCleanupExpired({
   }
 }
 
-// Convert getEventType to use withReporting
 const _getEventType = async (
   input: TGetScheduleInputSchema,
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
@@ -184,7 +183,6 @@ const _getEventType = async (
 
 export const getEventType = withReporting(_getEventType, "getEventType");
 
-// Convert getDynamicEventType to use withReporting
 const _getDynamicEventType = async (
   input: TGetScheduleInputSchema,
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
@@ -234,7 +232,6 @@ const _getDynamicEventType = async (
 
 export const getDynamicEventType = withReporting(_getDynamicEventType, "getDynamicEventType");
 
-// Convert getRegularOrDynamicEventType to use withReporting
 const _getRegularOrDynamicEventType = async (
   input: TGetScheduleInputSchema,
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
@@ -279,7 +276,6 @@ export interface IGetAvailableSlots {
   troubleshooter?: any;
 }
 
-// Convert getUsersWithCredentials to use withReporting
 const _getUsersWithCredentials = ({
   hosts,
 }: {
@@ -300,7 +296,6 @@ const getStartTime = (startTimeInput: string, timeZone?: string, minimumBookingN
   return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
 };
 
-// Convert getAvailableSlots to use withReporting
 const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> => {
   const {
     _enableTroubleshooter: enableTroubleshooter = false,
@@ -776,7 +771,6 @@ async function getTeamIdFromSlug(
   return team?.id;
 }
 
-// Convert getOOODates to use withReporting
 const _getOOODates = async (startTimeDate: Date, endTimeDate: Date, allUserIds: number[]) => {
   return await prisma.outOfOfficeEntry.findMany({
     where: {
@@ -848,7 +842,6 @@ const _getOOODates = async (startTimeDate: Date, endTimeDate: Date, allUserIds: 
 
 export const getOOODates = withReporting(_getOOODates, "getOOODates");
 
-// Convert getAllDatesWithBookabilityStatus to use withReporting
 const _getAllDatesWithBookabilityStatus = (availableDates: string[]) => {
   const availableDatesSet = new Set(availableDates);
   const firstDate = dayjs(availableDates[0]);
@@ -871,7 +864,6 @@ export const getAllDatesWithBookabilityStatus = withReporting(
   "getAllDatesWithBookabilityStatus"
 );
 
-// Convert getBusyTimesFromLimitsForUsers to use withReporting
 const _getBusyTimesFromLimitsForUsers = async (
   users: { id: number; email: string }[],
   bookingLimits: IntervalLimit | null,
@@ -1063,7 +1055,6 @@ export const getBusyTimesFromLimitsForUsers = withReporting(
   "getBusyTimesFromLimitsForUsers"
 );
 
-// Convert getBusyTimesFromTeamLimitsForUsers to use withReporting
 const _getBusyTimesFromTeamLimitsForUsers = async (
   users: { id: number; email: string }[],
   bookingLimits: IntervalLimit,
