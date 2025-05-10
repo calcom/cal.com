@@ -210,7 +210,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     }
     sendEmailVerification({
       email,
-      language: await getLocaleFromRequest(buildLegacyRequest(headers(), cookies())),
+      language: await getLocaleFromRequest(buildLegacyRequest(await headers(), await cookies())),
       username: username || "",
     });
   }
