@@ -28,10 +28,7 @@ export default function BillingCredits() {
   const params = useParamsWithFallback();
 
   const teamId = params.id ? Number(params.id) : undefined;
-  const { data: creditsData, isLoading } = trpc.viewer.credits.getAllCredits.useQuery(
-    { teamId: teamId ?? 0 },
-    { enabled: !!teamId }
-  );
+  const { data: creditsData, isLoading } = trpc.viewer.credits.getAllCredits.useQuery({ teamId });
 
   const buyCreditsMutation = trpc.viewer.credits.buyCredits.useMutation({
     onSuccess: (data) => {
@@ -39,17 +36,16 @@ export default function BillingCredits() {
         router.push(data.sessionUrl);
       }
     },
-    onError: (err) => {
+    onError: () => {
       showToast(t("credit_purchase_failed"), "error");
     },
   });
 
-  if (!teamId || !IS_SMS_CREDITS_ENABLED) {
+  if (!IS_SMS_CREDITS_ENABLED) {
     return null;
   }
 
   if (isLoading) return <BillingCreditsSkeleton />;
-
   if (!creditsData) return null;
 
   const onSubmit = (data: { quantity: number }) => {
@@ -57,9 +53,8 @@ export default function BillingCredits() {
   };
 
   const teamCreditsPercentageUsed =
-    creditsData.teamCredits.totalMonthlyCredits > 0
-      ? (creditsData.teamCredits.totalRemainingMonthlyCredits / creditsData.teamCredits.totalMonthlyCredits) *
-        100
+    creditsData.credits.totalMonthlyCredits > 0
+      ? (creditsData.credits.totalRemainingMonthlyCredits / creditsData.credits.totalMonthlyCredits) * 100
       : 0;
 
   return (
@@ -71,24 +66,33 @@ export default function BillingCredits() {
           <hr className="border-subtle" />
         </div>
         <div className="mt-6">
-          <div className="mb-4">
-            <Label>{t("monthly_credits")}</Label>
-            <ProgressBar
-              color="green"
-              percentageValue={teamCreditsPercentageUsed}
-              label={`${Math.max(0, Math.round(teamCreditsPercentageUsed))}%`}
-            />
-            <div className="text-subtle">
-              <div>{t("total_credits", { totalCredits: creditsData.teamCredits.totalMonthlyCredits })}</div>
-              <div>
-                {t("remaining_credits", {
-                  remainingCredits: creditsData.teamCredits.totalRemainingMonthlyCredits,
-                })}
+          {creditsData.credits.totalMonthlyCredits > 0 ? (
+            <div className="mb-4">
+              <Label>{t("monthly_credits")}</Label>
+              <ProgressBar
+                color="green"
+                percentageValue={teamCreditsPercentageUsed}
+                label={`${Math.max(0, Math.round(teamCreditsPercentageUsed))}%`}
+              />
+              <div className="text-subtle">
+                <div>
+                  {t("total_credits", {
+                    totalCredits: creditsData.credits.totalMonthlyCredits,
+                  })}
+                </div>
+                <div>
+                  {t("remaining_credits", {
+                    remainingCredits: creditsData.credits.totalRemainingMonthlyCredits,
+                  })}
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <></>
+          )}
+
           <Label>{t("additional_credits")}</Label>
-          <div className="mt-2 text-sm">{creditsData.teamCredits.additionalCredits}</div>{" "}
+          <div className="mt-2 text-sm">{creditsData.credits.additionalCredits}</div>
           <div className="-mx-6 mb-6 mt-6">
             <hr className="border-subtle mb-3 mt-3" />
           </div>
