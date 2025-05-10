@@ -70,7 +70,7 @@ const monitorCallbackSync = <T extends (...args: any[]) => any>(
  * await myFunction("hello", 42);
  */
 export const withReporting =
-  <T extends any[], U>(func: (...args: T) => U, name: string = func.name): ((...args: T) => U) =>
+  <T extends any[], U>(func: (...args: T) => U, name: string): ((...args: T) => U) =>
   (...args) =>
     !process.env.NEXT_PUBLIC_SENTRY_DSN || !process.env.SENTRY_TRACES_SAMPLE_RATE
       ? func(...args)
