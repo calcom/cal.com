@@ -68,6 +68,7 @@ export const findQualifiedHostsWithDelegationCredentials = async <
     schedulingType: SchedulingType | null;
     isRRWeightsEnabled: boolean;
     rescheduleWithSameRoundRobinHost: boolean;
+    includeNoShowInRRCalculation: boolean;
   } & EventType;
   rescheduleUid: string | null;
   routedTeamMemberIds: number[];

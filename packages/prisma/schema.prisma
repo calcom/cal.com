@@ -169,6 +169,7 @@ model EventType {
   isRRWeightsEnabled                      Boolean                   @default(false)
   fieldTranslations                       EventTypeTranslation[]
   maxLeadThreshold                        Int?
+  includeNoShowInRRCalculation            Boolean                   @default(false)
   selectedCalendars                       SelectedCalendar[]
   allowReschedulingPastBookings           Boolean                   @default(false)
   hideOrganizerEmail                      Boolean                   @default(false)

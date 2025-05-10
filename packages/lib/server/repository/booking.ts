@@ -45,6 +45,7 @@ const buildWhereClauseForActiveBookings = ({
   endDate,
   users,
   virtualQueuesData,
+  includeNoShowInRRCalculation = false,
 }: {
   eventTypeId: number;
   startDate?: Date;
@@ -57,20 +58,18 @@ const buildWhereClauseForActiveBookings = ({
       selectedOptionIds: string | number | string[];
     };
   } | null;
+  includeNoShowInRRCalculation: boolean;
 }): Prisma.BookingWhereInput => ({
   OR: [
     {
       userId: {
         in: users.map((user) => user.id),
       },
-      OR: [
-        {
-          noShowHost: false,
-        },
-        {
-          noShowHost: null,
-        },
-      ],
+      ...(!includeNoShowInRRCalculation
+        ? {
+            OR: [{ noShowHost: false }, { noShowHost: null }],
+          }
+        : {}),
     },
     {
       attendees: {
@@ -82,7 +81,7 @@ const buildWhereClauseForActiveBookings = ({
       },
     },
   ],
-  attendees: { some: { noShow: false } },
+  ...(!includeNoShowInRRCalculation ? { attendees: { some: { noShow: false } } } : {}),
   status: BookingStatus.ACCEPTED,
   eventTypeId,
   ...(startDate || endDate
@@ -162,29 +161,6 @@ export class BookingRepository {
       select: {
         rescheduledBy: true,
         uid: true,
-      },
-    });
-  }
-
-  static async groupByActiveBookingCounts({
-    users,
-    eventTypeId,
-    startDate,
-  }: {
-    users: { id: number; email: string }[];
-    eventTypeId: number;
-    startDate?: Date;
-  }) {
-    return await prisma.booking.groupBy({
-      by: ["userId"],
-      where: buildWhereClauseForActiveBookings({
-        users,
-        eventTypeId,
-        startDate,
-        virtualQueuesData: null,
-      }),
-      _count: {
-        _all: true,
       },
     });
   }
@@ -307,6 +283,7 @@ export class BookingRepository {
     startDate,
     endDate,
     virtualQueuesData,
+    includeNoShowInRRCalculation,
   }: {
     users: { id: number; email: string }[];
     eventTypeId: number;
@@ -319,6 +296,7 @@ export class BookingRepository {
         selectedOptionIds: string | number | string[];
       };
     } | null;
+    includeNoShowInRRCalculation: boolean;
   }) {
     const allBookings = await prisma.booking.findMany({
       where: buildWhereClauseForActiveBookings({
@@ -327,6 +305,7 @@ export class BookingRepository {
         endDate,
         users,
         virtualQueuesData,
+        includeNoShowInRRCalculation,
       }),
       select: {
         id: true,
