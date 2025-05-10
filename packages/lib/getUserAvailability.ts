@@ -619,30 +619,7 @@ export const getPeriodStartDatesBetween = withReporting(
   "getPeriodStartDatesBetween"
 );
 
-const _getUsersAvailability = async ({ users, query, initialData }: GetUsersAvailabilityProps) => {
-  return await Promise.all(
-    users.map((user) =>
-      _getUserAvailability(
-        {
-          ...query,
-          userId: user.id,
-          username: user.username || "",
-        },
-        initialData
-          ? {
-              ...initialData,
-              user,
-              currentBookings: user.currentBookings,
-              outOfOfficeDays: user.outOfOfficeDays,
-            }
-          : undefined
-      )
-    )
-  );
-};
-
 export const getUserAvailability = withReporting(_getUserAvailability, "getUserAvailability");
-export const getUsersAvailability = withReporting(_getUsersAvailability, "getUsersAvailability");
 
 interface GetUserAvailabilityParamsDTO {
   availability: (DateOverride | WorkingHours)[];
@@ -720,3 +697,27 @@ type GetUsersAvailabilityProps = {
   query: Omit<GetUserAvailabilityQuery, "userId" | "username">;
   initialData?: Omit<GetUserAvailabilityInitialData, "user">;
 };
+
+const _getUsersAvailability = async ({ users, query, initialData }: GetUsersAvailabilityProps) => {
+  return await Promise.all(
+    users.map((user) =>
+      _getUserAvailability(
+        {
+          ...query,
+          userId: user.id,
+          username: user.username || "",
+        },
+        initialData
+          ? {
+              ...initialData,
+              user,
+              currentBookings: user.currentBookings,
+              outOfOfficeDays: user.outOfOfficeDays,
+            }
+          : undefined
+      )
+    )
+  );
+};
+
+export const getUsersAvailability = withReporting(_getUsersAvailability, "getUsersAvailability");
