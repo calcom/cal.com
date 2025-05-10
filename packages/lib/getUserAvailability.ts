@@ -144,17 +144,17 @@ const _getEventType = async (id: number) => {
   };
 };
 
-export const getEventType = withReporting(_getEventType, "getEventType");
+export type EventType = Awaited<ReturnType<typeof _getEventType>>;
 
-export type EventType = Awaited<ReturnType<typeof getEventType>>;
+export const getEventType = withReporting(_getEventType, "getEventType");
 
 const _getUser = async (where: Prisma.UserWhereInput) => {
   return findUsersForAvailabilityCheck({ where });
 };
 
-const getUser = withReporting(_getUser, "getUser");
-
 type GetUser = Awaited<ReturnType<typeof _getUser>>;
+
+const getUser = withReporting(_getUser, "getUser");
 
 export type GetUserAvailabilityInitialData = {
   user?: GetUser;
@@ -262,9 +262,9 @@ const _getCurrentSeats = async (
   });
 };
 
-export const getCurrentSeats = withReporting(_getCurrentSeats, "getCurrentSeats");
-
 export type CurrentSeats = Awaited<ReturnType<typeof _getCurrentSeats>>;
+
+export const getCurrentSeats = withReporting(_getCurrentSeats, "getCurrentSeats");
 
 type GetUserAvailabilityResult = ReturnType<typeof _getUserAvailability>;
 
@@ -597,6 +597,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   return result;
 };
 
+export const getUserAvailability = withReporting(_getUserAvailability, "getUserAvailability");
+
 const _getPeriodStartDatesBetween = (
   dateFrom: Dayjs,
   dateTo: Dayjs,
@@ -618,8 +620,6 @@ export const getPeriodStartDatesBetween = withReporting(
   _getPeriodStartDatesBetween,
   "getPeriodStartDatesBetween"
 );
-
-export const getUserAvailability = withReporting(_getUserAvailability, "getUserAvailability");
 
 interface GetUserAvailabilityParamsDTO {
   availability: (DateOverride | WorkingHours)[];
