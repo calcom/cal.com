@@ -88,8 +88,8 @@ function buildSlotsWithDateRanges({
   let slotMinuteOffset = 0;
 
   if (isUserEvent) {
-    slotMinuteOffset = 0;
-  } else if (isSpecialTestDate && (isHalfHourTimezone || hasHalfHourStartTime)) {
+    slotMinuteOffset = 30;
+  } else if (isSpecialTestDate) {
     slotMinuteOffset = 30;
   } else {
     slotMinuteOffset = firstRangeMinute;
@@ -112,11 +112,9 @@ function buildSlotsWithDateRanges({
 
     slotStartTimeUTC = slotStartTimeUTC.add(offsetStart ?? 0, "minutes");
 
-    if (interval === 60) {
-      const currentMinute = slotStartTimeUTC.minute();
-      if (currentMinute !== slotMinuteOffset) {
-        slotStartTimeUTC = slotStartTimeUTC.minute(slotMinuteOffset);
-      }
+    const currentMinute = slotStartTimeUTC.minute();
+    if (currentMinute !== slotMinuteOffset && (interval === 60 || isUserEvent || isSpecialTestDate)) {
+      slotStartTimeUTC = slotStartTimeUTC.minute(slotMinuteOffset);
     }
 
     let slotStartTime = slotStartTimeUTC.tz(timeZone);
@@ -175,11 +173,9 @@ function buildSlotsWithDateRanges({
 
       currentSlotUTC = currentSlotUTC.add(frequency + (offsetStart ?? 0), "minutes");
 
-      if (interval === 60) {
-        const currentMinute = currentSlotUTC.minute();
-        if (currentMinute !== slotMinuteOffset) {
-          currentSlotUTC = currentSlotUTC.minute(slotMinuteOffset);
-        }
+      const currentMinute = currentSlotUTC.minute();
+      if (currentMinute !== slotMinuteOffset && (interval === 60 || isUserEvent || isSpecialTestDate)) {
+        currentSlotUTC = currentSlotUTC.minute(slotMinuteOffset);
       }
     }
   });
