@@ -14,6 +14,7 @@ import type { Tracking } from "@calcom/features/bookings/lib/handleNewBooking/ty
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { Direction } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { AppsStatus } from "@calcom/types/Calendar";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -427,6 +428,11 @@ export async function expectBookingToBeInDatabase(
   expect(actualBooking?.references).toEqual(
     expect.arrayContaining((references || []).map((reference) => expect.objectContaining(reference)))
   );
+
+  return {
+    booking: actualBooking,
+    bookingReferences: actualBooking?.references,
+  };
 }
 
 export async function expectBookingTrackingToBeInDatabase(tracking: Tracking, uid?: string) {
@@ -1366,17 +1372,20 @@ export function expectSuccessfulVideoMeetingDeletionInCalendar(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function expectBookingInDBToBeRescheduledFromTo({ from, to }: { from: any; to: any }) {
   // Expect previous booking to be cancelled
-  await expectBookingToBeInDatabase({
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    ...from,
-    status: BookingStatus.CANCELLED,
-  });
+  const { booking: previousBooking, bookingReferences: previousBookingReferences } =
+    await expectBookingToBeInDatabase({
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      ...from,
+      status: BookingStatus.CANCELLED,
+    });
 
   // Expect new booking to be created but status would depend on whether the new booking requires confirmation or not.
-  await expectBookingToBeInDatabase({
+  const { booking: newBooking, bookingReferences: newBookingReferences } = await expectBookingToBeInDatabase({
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     ...to,
   });
+
+  return { previousBooking, previousBookingReferences, newBooking, newBookingReferences };
 }
 
 export function expectICalUIDAsString(iCalUID: string | undefined | null) {
@@ -1409,4 +1418,48 @@ export function expectNoAttemptToCreateCalendarEvent(calendarMock: CalendarServi
 
 export function expectNoAttemptToGetAvailability(calendarMock: CalendarServiceMethodMock) {
   expect(calendarMock.getAvailabilityCalls.length).toBe(0);
+}
+
+/**
+ * Helper function to check that a CalendarSync record was created with the expected properties
+ */
+export async function expectCalendarSyncToBeInDatabase({
+  userId,
+  credentialId,
+  externalCalendarId,
+  integration,
+  bookingReference,
+}: {
+  userId: number;
+  credentialId: number;
+  externalCalendarId: string;
+  integration: string;
+  bookingReference: { id: string | null };
+}) {
+  const calendarSync = await prismaMock.calendarSync.findFirst({
+    where: {
+      userId,
+      externalCalendarId,
+      integration,
+    },
+    include: {
+      bookingReferences: true,
+    },
+  });
+
+  expect(calendarSync).toEqual(
+    expect.objectContaining({
+      userId,
+      credentialId,
+      externalCalendarId,
+      integration,
+      lastSyncDirection: Direction.UPSTREAM,
+      lastSyncedUpAt: expect.any(Date),
+    })
+  );
+
+  expect(calendarSync?.bookingReferences).toHaveLength(1);
+  expect(calendarSync?.bookingReferences[0].id).toBe(bookingReference.id);
+
+  return calendarSync;
 }

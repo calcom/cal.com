@@ -5,7 +5,7 @@ import { isInMemoryDelegationCredential } from "@calcom/lib/delegationCredential
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
-import type { Calendar, SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
+import type { Calendar, SelectedCalendarEventTypeIds, CalendarSubscription } from "@calcom/types/Calendar";
 
 import type { ICalendarCacheRepository } from "./calendar-cache.repository.interface";
 
@@ -53,28 +53,36 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
   constructor(calendar: Calendar | null = null) {
     this.calendar = calendar;
   }
-  async watchCalendar(args: { calendarId: string; eventTypeIds: SelectedCalendarEventTypeIds }) {
+  async watchCalendar(args: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+    calendarSubscription: CalendarSubscription;
+  }) {
     assertCalendarHasDbCredential(this.calendar);
-    const { calendarId, eventTypeIds } = args;
+    const { calendarId, eventTypeIds, calendarSubscription } = args;
     if (typeof this.calendar?.watchCalendar !== "function") {
       log.info(
         '[handleWatchCalendar] Skipping watching calendar due to calendar not having "watchCalendar" method'
       );
       return;
     }
-    await this.calendar?.watchCalendar({ calendarId, eventTypeIds });
+    await this.calendar?.watchCalendar({ calendarId, eventTypeIds, calendarSubscription });
   }
 
-  async unwatchCalendar(args: { calendarId: string; eventTypeIds: SelectedCalendarEventTypeIds }) {
+  async unwatchCalendar(args: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+    calendarSubscription: CalendarSubscription;
+  }) {
     assertCalendarHasDbCredential(this.calendar);
-    const { calendarId, eventTypeIds } = args;
+    const { calendarId, eventTypeIds, calendarSubscription } = args;
     if (typeof this.calendar?.unwatchCalendar !== "function") {
       log.info(
         '[unwatchCalendar] Skipping unwatching calendar due to calendar not having "unwatchCalendar" method'
       );
       return;
     }
-    const response = await this.calendar?.unwatchCalendar({ calendarId, eventTypeIds });
+    const response = await this.calendar?.unwatchCalendar({ calendarId, eventTypeIds, calendarSubscription });
     return response;
   }
 
