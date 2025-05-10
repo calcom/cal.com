@@ -1,23 +1,5 @@
 import logger from "./logger";
 
-/**
- * Creates a replacer function with the redaction keys captured in a closure.
- * This avoids the need for explicit 'bind'.
- *
- * @param keysToRedactSet - A Set containing the string keys to redact.
- * @returns A replacer function suitable for JSON.stringify.
- */
-function createReplacer(keysToRedactSet: Set<string>): (key: string, value: any) => any {
-  return function (key: string, value: any): any {
-    if (keysToRedactSet.has(key)) {
-      // Omit the key-value pair if the key is in the set.
-      return undefined;
-    }
-    // Keep the value otherwise.
-    return value;
-  };
-}
-
 // Fields that might contain sensitive data
 const SENSITIVE_FIELDS = [
   "accessToken",
@@ -39,15 +21,55 @@ const SENSITIVE_FIELDS = [
 // Create a Set for efficient O(1) average time complexity lookups
 const SENSITIVE_FIELDS_SET = new Set<string>(SENSITIVE_FIELDS);
 
+/**
+ * Creates a replacer function for JSON.stringify that redacts sensitive fields.
+ * This approach is more efficient as it leverages native JSON serialization.
+ */
+function createReplacer(): (key: string, value: unknown) => unknown {
+  // Use a WeakSet to track circular references
+  const seen = new WeakSet();
+
+  return function replacer(key: string, value: unknown): unknown {
+    // Handle circular references
+    if (value && typeof value === "object") {
+      if (seen.has(value)) {
+        return "[Circular]";
+      }
+      seen.add(value);
+    }
+
+    // Redact sensitive fields
+    if (SENSITIVE_FIELDS_SET.has(key)) {
+      return "[REDACTED]";
+    }
+
+    // Handle Error objects specially to preserve their structure
+    if (value instanceof Error) {
+      return {
+        name: value.name,
+        message: value.message,
+        ...(value.stack && { stack: value.stack }),
+        ...(value.cause && { cause: value.cause }),
+      };
+    }
+
+    return value;
+  };
+}
+
+/**
+ * Redacts sensitive data from an object by replacing sensitive fields with a placeholder.
+ * Uses JSON.stringify's replacer function for efficient serialization and redaction.
+ */
 export function redactSensitiveData(data: unknown): unknown {
   if (!data || typeof data !== "object") return data;
+
   try {
-    const closureReplacer = createReplacer(SENSITIVE_FIELDS_SET);
-    return JSON.parse(JSON.stringify(data, closureReplacer, 2));
+    const replacer = createReplacer();
+    const jsonString = JSON.stringify(data, replacer);
+    return JSON.parse(jsonString);
   } catch (error) {
-    // Fallback or logging if JSON operations fail
-    logger.error("Failed to redact sensitive data using JSON.stringify/parse", error);
-    // Return a generic redacted object or the original data as a fallback
+    logger.error("Failed to redact sensitive data", error);
     return { error: "Redaction failed" };
   }
 }
