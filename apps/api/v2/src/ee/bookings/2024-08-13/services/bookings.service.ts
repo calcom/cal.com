@@ -51,7 +51,7 @@ import {
   CancelBookingInput,
 } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
-import { EventType, User, Team } from "@calcom/prisma/client";
+import { EventType, User, Team, BookingStatus } from "@calcom/prisma/client";
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -723,6 +723,11 @@ export class BookingsService_2024_08_13 {
     const booking = await this.bookingsRepository.getByUid(bookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    // if booking is already confirmed, return same booking
+    if (booking.status === BookingStatus.ACCEPTED) {
+      return this.getBooking(bookingUid);
     }
 
     const platformClientParams = booking.eventTypeId
