@@ -137,6 +137,10 @@ class InputLocationValidator_2024_06_14 implements ValidatorConstraintInterface 
     }
 
     for (const location of locations) {
+      if (!location || typeof location !== "object") {
+        throw new BadRequestException(`Each object in 'locations' must be an object.`);
+      }
+
       const { type } = location;
       if (!type) {
         throw new BadRequestException(`Each object in 'locations' must have a 'type' property.`);
@@ -188,6 +192,10 @@ class InputTeamLocationValidator_2024_06_14 implements ValidatorConstraintInterf
     }
 
     for (const location of locations) {
+      if (!location || typeof location !== "object") {
+        throw new BadRequestException(`Each object in 'locations' must be an object.`);
+      }
+
       const { type } = location;
       if (!type) {
         throw new BadRequestException(`Each object in 'locations' must have a 'type' property.`);
