@@ -13,10 +13,16 @@ import {
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
-import { describe, expect, beforeAll, vi } from "vitest";
+import { describe, expect, beforeAll, vi, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import { BookingStatus, WorkflowMethods, TimeUnit } from "@calcom/prisma/enums";
+import {
+  BookingStatus,
+  WorkflowMethods,
+  TimeUnit,
+  WorkflowTriggerEvents,
+  WorkflowActions,
+} from "@calcom/prisma/enums";
 import {
   deleteRemindersOfActiveOnIds,
   scheduleBookingReminders,
@@ -24,7 +30,11 @@ import {
 } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
+import { FeaturesRepository } from "../../../../flags/features.repository";
 import { deleteWorkfowRemindersOfRemovedMember } from "../../../teams/lib/deleteWorkflowRemindersOfRemovedMember";
+import { scheduleEmailReminder } from "../reminders/emailReminderManager";
+import * as emailProvider from "../reminders/providers/emailProvider";
+import * as sendgridProvider from "../reminders/providers/sendgridProvider";
 
 const workflowSelect = {
   id: true,
@@ -955,5 +965,116 @@ describe("deleteWorkfowRemindersOfRemovedMember", () => {
     expect(tasks.map((task) => task.referenceUid)).toEqual(
       workflowReminders.map((reminder) => reminder.uuid)
     );
+  });
+});
+
+describe("Workflow SMTP Emails Feature Flag", () => {
+  vi.spyOn(sendgridProvider, "sendSendgridMail");
+  vi.spyOn(emailProvider, "sendOrScheduleWorkflowEmails");
+
+  const mockEvt = {
+    uid: "test-uid",
+    title: "Test Event",
+    startTime: new Date().toISOString(),
+    endTime: new Date().toISOString(),
+    bookerUrl: "https://cal.com",
+    attendees: [
+      {
+        name: "Test Attendee",
+        email: "attendee@test.com",
+        timeZone: "UTC",
+        language: { locale: "en" },
+      },
+    ],
+    organizer: {
+      name: "Test Organizer",
+      email: "organizer@test.com",
+      timeZone: "UTC",
+      language: { locale: "en" },
+    },
+  };
+
+  const baseArgs = {
+    evt: mockEvt,
+    triggerEvent: WorkflowTriggerEvents.NEW_EVENT,
+    timeSpan: { time: 1, timeUnit: TimeUnit.HOUR },
+    sendTo: ["test@example.com"],
+    action: WorkflowActions.EMAIL_ATTENDEE,
+    verifiedAt: new Date(),
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Mock SendGrid environment variables
+    process.env.SENDGRID_API_KEY = "test-key";
+    process.env.SENDGRID_EMAIL = "test@example.com";
+  });
+
+  test("should use SMTP when team has workflow-smtp-emails feature", async () => {
+    const featuresRepository = new FeaturesRepository();
+    vi.spyOn(FeaturesRepository.prototype, "checkIfTeamHasFeature").mockResolvedValue(true);
+
+    await scheduleEmailReminder({
+      ...baseArgs,
+      teamId: 123,
+    });
+    expect(sendgridProvider.sendSendgridMail).not.toHaveBeenCalled();
+    expect(emailProvider.sendOrScheduleWorkflowEmails).toHaveBeenCalled();
+  });
+
+  test("should use SMTP when user has workflow-smtp-emails feature", async () => {
+    const featuresRepository = new FeaturesRepository();
+    vi.spyOn(FeaturesRepository.prototype, "checkIfUserHasFeature").mockResolvedValue(true);
+
+    await scheduleEmailReminder({
+      ...baseArgs,
+      userId: 123,
+    });
+    expect(sendgridProvider.sendSendgridMail).not.toHaveBeenCalled();
+    expect(emailProvider.sendOrScheduleWorkflowEmails).toHaveBeenCalled();
+  });
+
+  test("should use SendGrid when workflow-smtp-emails feature is not enabled for team", async () => {
+    const featuresRepository = new FeaturesRepository();
+    vi.spyOn(FeaturesRepository.prototype, "checkIfTeamHasFeature").mockResolvedValue(false);
+
+    await scheduleEmailReminder({
+      ...baseArgs,
+      teamId: 123,
+    });
+
+    expect(sendgridProvider.sendSendgridMail).toHaveBeenCalled();
+    expect(emailProvider.sendOrScheduleWorkflowEmails).not.toHaveBeenCalled();
+  });
+
+  test("should use SendGrid when workflow-smtp-emails feature is not enabled for user", async () => {
+    const featuresRepository = new FeaturesRepository();
+    vi.spyOn(FeaturesRepository.prototype, "checkIfUserHasFeature").mockResolvedValue(false);
+
+    await scheduleEmailReminder({
+      ...baseArgs,
+      userId: 123,
+    });
+
+    expect(sendgridProvider.sendSendgridMail).toHaveBeenCalled();
+    expect(emailProvider.sendOrScheduleWorkflowEmails).not.toHaveBeenCalled();
+  });
+
+  test("should use SMTP when SendGrid is not configured", async () => {
+    const featuresRepository = new FeaturesRepository();
+    vi.spyOn(featuresRepository, "checkIfTeamHasFeature").mockResolvedValue(false);
+    vi.spyOn(featuresRepository, "checkIfUserHasFeature").mockResolvedValue(false);
+
+    delete process.env.SENDGRID_API_KEY;
+    delete process.env.SENDGRID_EMAIL;
+
+    await scheduleEmailReminder({
+      ...baseArgs,
+      teamId: 123,
+      userId: 456,
+    });
+
+    expect(sendgridProvider.sendSendgridMail).not.toHaveBeenCalled();
+    expect(emailProvider.sendOrScheduleWorkflowEmails).toHaveBeenCalled();
   });
 });
