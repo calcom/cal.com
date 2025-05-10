@@ -145,9 +145,9 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
                       isFullWidth
                       id="billingPeriod"
                       value={value}
-                      onValueChange={(e: BillingPeriod) => {
-                        if ([BillingPeriod.ANNUALLY, BillingPeriod.MONTHLY].includes(e)) {
-                          onChange(e);
+                      onValueChange={(e: string) => {
+                        if ([BillingPeriod.ANNUALLY, BillingPeriod.MONTHLY].includes(e as BillingPeriod)) {
+                          onChange(e as BillingPeriod);
                         }
                       }}
                       options={[
