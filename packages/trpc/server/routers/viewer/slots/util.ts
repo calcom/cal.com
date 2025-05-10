@@ -1130,19 +1130,66 @@ const _getBusyTimesFromTeamLimitsForUsers = async (
 
       limitManager.addBusyTime(start, unit, timeZone);
     }
-
-    await checkTeamBookingLimits(
-      user,
+    const bookingLimitsParams = {
+      bookings: userBusyTimes,
       bookingLimits,
-      limitManager,
       dateFrom,
       dateTo,
-      timeZone,
-      userBusyTimes,
+      imitManager,
+      rescheduleUid,
       teamId,
+      user,
       includeManagedEvents,
-      rescheduleUid
-    );
+      timeZone,
+    };
+
+    for (const key of descendingLimitKeys) {
+      const limit = bookingLimits?.[key];
+      if (!limit) continue;
+
+      const unit = intervalLimitKeyToUnit(key);
+      const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
+
+      for (const periodStart of periodStartDates) {
+        if (limitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
+
+        if (unit === "year") {
+          try {
+            await checkBookingLimit({
+              eventStartDate: periodStart.toDate(),
+              limitingNumber: limit,
+              key,
+              teamId,
+              user,
+              rescheduleUid,
+              includeManagedEvents,
+              timeZone,
+            });
+          } catch (_) {
+            limitManager.addBusyTime(periodStart, unit, timeZone);
+            if (periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))) {
+              return;
+            }
+          }
+          continue;
+        }
+
+        const periodEnd = periodStart.endOf(unit);
+        let totalBookings = 0;
+
+        for (const booking of userBusyTimes) {
+          if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
+            continue;
+          }
+
+          totalBookings++;
+          if (totalBookings >= limit) {
+            limitManager.addBusyTime(periodStart, unit, timeZone);
+            break;
+          }
+        }
+      }
+    }
 
     userBusyTimesMap.set(user.id, limitManager.getBusyTimes());
   }
