@@ -101,7 +101,6 @@ export class CreditService {
     }
 
     if (userId) {
-      //todo: check if user maybe has available credits
       const teamWithAvailableCredits = await this.getTeamWithAvailableCredits(userId);
 
       if (teamWithAvailableCredits && teamWithAvailableCredits?.availableCredits > 0) return true;
@@ -322,8 +321,7 @@ export class CreditService {
           },
         });
 
-        //todo: add userId to function
-        await cancelScheduledMessagesAndScheduleEmails(teamId);
+        await cancelScheduledMessagesAndScheduleEmails({ teamId, userId });
         return;
       }
       if (

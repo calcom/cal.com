@@ -23,13 +23,13 @@ export default class CreditBalanceLowWarningEmail extends BaseEmail {
     balance,
     team,
   }: {
-    user: { id: number; name: string; email: string; t: TFunction };
+    user: { id: number; name: string | null; email: string; t: TFunction };
     balance: number;
-    team?: { id: number; name: string };
+    team?: { id: number; name: string | null };
   }) {
     super();
-    this.user = user;
-    this.team = team;
+    this.user = { ...user, name: user.name || "" };
+    this.team = team ? { ...team, name: team.name || "" } : undefined;
     this.balance = balance;
   }
 
