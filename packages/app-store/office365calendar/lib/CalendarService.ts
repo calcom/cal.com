@@ -453,8 +453,29 @@ export default class Office365CalendarService implements Calendar {
               })
           : []),
       ],
-      location: event.location ? { displayName: getLocation(event) } : undefined,
     };
+
+    // Handle location and online meetings
+    if (event.videoCallData && event.videoCallData.type === "office365_video") {
+      // This is a Microsoft Teams meeting
+      office365Event.isOnlineMeeting = true;
+      office365Event.onlineMeetingProvider = "teamsForBusiness";
+      office365Event.onlineMeeting = {
+        joinUrl: event.videoCallData.url
+      };
+      
+      // Set the location to the Teams meeting
+      office365Event.location = {
+        displayName: "Microsoft Teams Meeting",
+        locationType: "virtual",
+        uniqueId: event.videoCallData.url,
+        uniqueIdType: "other"
+      };
+    } else if (event.location) {
+      // Handle regular location
+      office365Event.location = { displayName: getLocation(event) };
+    }
+    
     if (event.hideCalendarEventDetails) {
       office365Event.sensitivity = "private";
     }

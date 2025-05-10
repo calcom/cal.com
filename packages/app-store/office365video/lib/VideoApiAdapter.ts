@@ -216,11 +216,9 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       return Promise.resolve([]);
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
-      console.log("=======>createMeeting: ");
-
+      // Create a Teams meeting using the Microsoft Graph API
       const url = `${await getUserEndpoint()}/onlineMeetings`;
-      console.log("urllllllllllll: ", url);
-      console.log("translateEvent(event): ", translateEvent(event));
+      
       const resultString = await auth
         .requestRaw({
           url,
@@ -236,15 +234,23 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       if (!resultObject.id || !resultObject.joinUrl || !resultObject.joinWebUrl) {
         throw new HttpError({
           statusCode: 500,
-          message: `Error creating MS Teams meeting: ${resultObject.error.message}`,
+          message: `Error creating MS Teams meeting: ${resultObject.error?.message || "Unknown error"}`,
         });
       }
-
+      
+      // Return the meeting data in the format expected by Cal.com
+      // The videoCallData.type is used in the calendar integration to properly format the event
       return Promise.resolve({
         type: "office365_video",
         id: resultObject.id,
         password: "",
         url: resultObject.joinWebUrl || resultObject.joinUrl,
+        // Include additional data that might be useful for the calendar integration
+        data: {
+          meetingId: resultObject.id,
+          meetingProvider: "teamsForBusiness",
+          meetingUrl: resultObject.joinWebUrl || resultObject.joinUrl
+        }
       });
     },
   };
