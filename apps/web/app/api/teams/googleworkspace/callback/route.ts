@@ -20,8 +20,8 @@ const stateSchema = z.object({
 
 async function getHandler(request: NextRequest) {
   try {
-    const headersList = headers();
-    const cookiesList = cookies();
+    const headersList = await headers();
+    const cookiesList = await cookies();
     const legacyReq = buildLegacyRequest(headersList, cookiesList);
 
     const session = await getServerSession({ req: legacyReq });

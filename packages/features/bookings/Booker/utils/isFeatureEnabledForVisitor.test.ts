@@ -81,9 +81,10 @@ describe("isVisitorWithinPercentage", () => {
   });
 
   // Test for fallback to random behavior when no UUID is provided
-  it("should not enable feature when UUID is notavailable", () => {
+  it("should not enable feature when UUID is not available unless the feature is 100% enabled", () => {
     mockGetCookie({ expectedUid: undefined });
     expect(isVisitorWithinPercentage({ percentage: 50 })).toBe(false);
+    expect(isVisitorWithinPercentage({ percentage: 100 })).toBe(true);
   });
 
   it("should disable the feature when percentage is 0", () => {

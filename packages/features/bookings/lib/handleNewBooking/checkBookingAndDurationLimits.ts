@@ -3,7 +3,7 @@ import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSche
 import { checkBookingLimits } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 import { checkDurationLimits } from "@calcom/lib/intervalLimits/server/checkDurationLimits";
 
-import type { NewBookingEventType } from "./types";
+import type { NewBookingEventType } from "./getEventTypesFromDB";
 
 type EventType = Pick<NewBookingEventType, "bookingLimits" | "durationLimits" | "id" | "schedule">;
 

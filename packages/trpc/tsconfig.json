@@ -21,9 +21,9 @@
     "../types/tanstack-table.d.ts",
     "../types/next.d.ts",
     "../types/window.d.ts",
-    "react"
+    "./server"
   ],
-  "exclude": ["**/node_modules/**", "types/router.d.ts"],
+  "exclude": ["**/node_modules/**", "./react", "./server/**/*.test.ts", "./server/**/*.spec.ts"],
   "compilerOptions": {
     "isolatedModules": false,
     "noEmit": false,
@@ -32,6 +32,7 @@
     "experimentalDecorators": true,
     "declarationMap": false,
     "resolveJsonModule": true,
-    "outFile": "types/router.d.ts"
+    "declarationDir": "types/server",
+    "moduleResolution": "node"
   }
 }

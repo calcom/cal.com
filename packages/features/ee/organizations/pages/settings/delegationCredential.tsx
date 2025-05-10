@@ -3,28 +3,24 @@
 import { useState } from "react";
 import { useForm, Controller, useFormContext } from "react-hook-form";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import {
-  DropdownActions,
-  Button,
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  Form,
-  TextField,
-  TextAreaField,
-  SelectField,
-  showToast,
-  Badge,
-  Switch,
-  InfoBadge,
-  EmptyScreen,
-  SkeletonContainer,
-  SkeletonText,
-} from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
+import { InfoBadge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Form } from "@calcom/ui/components/form";
+import { TextAreaField } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { SelectField } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import { DropdownActions } from "@calcom/ui/components/table";
+import { showToast } from "@calcom/ui/components/toast";
 
 interface DelegationItemProps {
   delegation: {
@@ -327,12 +323,21 @@ function DelegationCredentialList() {
     deleteMutation.mutate({ id });
   };
 
+  const [delegationToToggle, setDelegationToToggle] = useState<DelegationItemProps["delegation"] | null>(
+    null
+  );
+
   const toggleDelegation = (delegation: DelegationItemProps["delegation"]) => {
-    if (delegation) {
+    setDelegationToToggle(delegation);
+  };
+
+  const handleToggleConfirm = () => {
+    if (delegationToToggle) {
       toggleEnabledMutation.mutate({
-        id: delegation.id,
-        enabled: !delegation.enabled,
+        id: delegationToToggle.id,
+        enabled: !delegationToToggle.enabled,
       });
+      setDelegationToToggle(null);
     }
   };
 
@@ -414,7 +419,8 @@ function DelegationCredentialList() {
                 )
             )}
           </ul>
-          <AddDwDButton />
+          {/* Disable till we thoroughly test multiple delegation credentials support */}
+          {/* <AddDwDButton /> */}
         </>
       ) : (
         <EmptyScreen
@@ -442,9 +448,51 @@ function DelegationCredentialList() {
           handleCreate={handleCreate}
         />
       )}
+
+      <ToggleDelegationDialog
+        delegation={delegationToToggle}
+        onClose={() => setDelegationToToggle(null)}
+        onConfirm={handleToggleConfirm}
+      />
     </div>
   );
 }
+
+const ToggleDelegationDialog = ({
+  delegation,
+  onConfirm,
+  onClose,
+}: {
+  delegation: DelegationItemProps["delegation"] | null;
+  onConfirm: () => void;
+  onClose: () => void;
+}) => {
+  const { t } = useLocale();
+  if (!delegation) {
+    return null;
+  }
+  return (
+    <Dialog
+      name="toggle-delegation"
+      open={!!delegation}
+      onOpenChange={(open) => (!open ? onClose() : undefined)}>
+      <ConfirmationDialogContent
+        title={t(delegation.enabled ? "disable_delegation_credential" : "enable_delegation_credential")}
+        confirmBtnText={t(delegation.enabled ? "disable" : "enable")}
+        cancelBtnText={t("cancel")}
+        variety={delegation.enabled ? "danger" : "success"}
+        onConfirm={onConfirm}>
+        <p className="mt-5">
+          {t(
+            delegation.enabled
+              ? "disable_delegation_credential_description"
+              : "enable_delegation_credential_description"
+          )}
+        </p>
+      </ConfirmationDialogContent>
+    </Dialog>
+  );
+};
 
 export default function DelegationCredentialListPage() {
   return <DelegationCredentialList />;

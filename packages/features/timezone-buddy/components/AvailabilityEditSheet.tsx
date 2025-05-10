@@ -2,7 +2,8 @@ import { useFieldArray, useForm, useFormContext } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
-import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
+import DateOverrideInputDialog from "@calcom/features/schedules/components/DateOverrideInputDialog";
+import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
 import Schedule from "@calcom/features/schedules/components/Schedule";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -10,11 +11,11 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
 import {
-  Alert,
-  Button,
-  Form,
-  Label,
   Sheet,
   SheetBody,
   SheetClose,
@@ -22,8 +23,8 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-  showToast,
-} from "@calcom/ui";
+} from "@calcom/ui/components/sheet";
+import { showToast } from "@calcom/ui/components/toast";
 
 import type { SliderUser } from "./AvailabilitySliderTable";
 

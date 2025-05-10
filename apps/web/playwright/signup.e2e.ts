@@ -6,7 +6,8 @@ import { APP_NAME, IS_PREMIUM_USERNAME_ENABLED, IS_MAILHOG_ENABLED } from "@calc
 import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
-import { getEmailsReceivedByUser, localize } from "./lib/testUtils";
+import { localize } from "./lib/localize";
+import { getEmailsReceivedByUser } from "./lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./team/expects";
 
 test.describe.configure({ mode: "parallel" });

@@ -2,6 +2,7 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
+import type { DefaultEvent } from "@calcom/lib/defaultEvents";
 import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import prisma, { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -61,6 +62,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       requiresConfirmationForFreeEmail: true,
       requiresBookerEmailVerification: true,
       maxLeadThreshold: true,
+      includeNoShowInRRCalculation: true,
       minimumBookingNotice: true,
       userId: true,
       price: true,
@@ -69,6 +71,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       destinationCalendar: true,
       hideCalendarNotes: true,
       hideCalendarEventDetails: true,
+      hideOrganizerEmail: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
       seatsShowAttendees: true,
@@ -79,6 +82,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       assignAllTeamMembers: true,
       isRRWeightsEnabled: true,
       beforeEventBuffer: true,
+      customReplyToEmail: true,
       afterEventBuffer: true,
       parentId: true,
       parent: {
@@ -191,3 +195,5 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
 };
 
 export type getEventTypeResponse = Awaited<ReturnType<typeof getEventTypesFromDB>>;
+
+export type NewBookingEventType = DefaultEvent | getEventTypeResponse;

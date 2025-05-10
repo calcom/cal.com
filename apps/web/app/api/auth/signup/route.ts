@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import calcomSignupHandler from "@calcom/feature-auth/signup/handlers/calcomHandler";
 import selfHostedSignupHandler from "@calcom/feature-auth/signup/handlers/selfHostedHandler";
-import { getFeatureFlag } from "@calcom/features/flags/server/utils";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import getIP from "@calcom/lib/getIP";
 import { HttpError } from "@calcom/lib/http-error";
@@ -22,8 +22,8 @@ async function ensureSignupIsEnabled(body: Record<string, string>) {
   // Still allow signups if there is a team invite
   if (token) return;
 
-  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const signupDisabled = await getFeatureFlag(prisma, "disable-signup");
+  const featuresRepository = new FeaturesRepository();
+  const signupDisabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("disable-signup");
 
   if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" || signupDisabled) {
     throw new HttpError({

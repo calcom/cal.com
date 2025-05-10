@@ -12,7 +12,8 @@ import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
-import type { IsFixedAwareUser, BookingType } from "./types";
+import type { BookingType } from "./originalRescheduledBookingUtils";
+import type { IsFixedAwareUser } from "./types";
 
 type DateRange = {
   start: Dayjs;

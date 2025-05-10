@@ -1,12 +1,12 @@
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
@@ -42,6 +42,8 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
       token: true,
     })
     .parse(body);
+
+  const billingService = new StripeBillingService();
 
   const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(_email);
 
@@ -99,7 +101,8 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
   }
 
   // Create the customer in Stripe
-  const customer = await stripe.customers.create({
+
+  const customer = await billingService.createCustomer({
     email,
     metadata: {
       email /* Stripe customer email can be changed, so we add this to keep track of which email was used to signup */,
@@ -111,22 +114,18 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
 
   // Pro username, must be purchased
   if (usernameStatus.statusCode === 402) {
-    const checkoutSession = await stripe.checkout.sessions.create({
+    const checkoutSession = await billingService.createSubscriptionCheckout({
       mode: "subscription",
-      customer: customer.id,
-      line_items: [
-        {
-          price: getPremiumMonthlyPlanPriceId(),
-          quantity: 1,
-        },
-      ],
-      success_url: returnUrl,
-      cancel_url: returnUrl,
-      allow_promotion_codes: true,
+      customerId: customer.stripeCustomerId,
+      successUrl: returnUrl,
+      cancelUrl: returnUrl,
+      priceId: getPremiumMonthlyPlanPriceId(),
+      quantity: 1,
+      allowPromotionCodes: true,
     });
 
     /** We create a username-less user until he pays */
-    checkoutSessionId = checkoutSession.id;
+    checkoutSessionId = checkoutSession.sessionId;
     username = null;
   }
 
@@ -171,7 +170,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
         },
       });
       // Wrapping in a transaction as if one fails we want to rollback the whole thing to preventa any data inconsistencies
-      const { membership } = await createOrUpdateMemberships({
+      await createOrUpdateMemberships({
         user,
         team,
       });
@@ -193,14 +192,14 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     });
   } else {
     // Create the user
-    const user = await prisma.user.create({
+    await prisma.user.create({
       data: {
         username,
         email,
         locked: shouldLockByDefault,
         password: { create: { hash: hashedPassword } },
         metadata: {
-          stripeCustomerId: customer.id,
+          stripeCustomerId: customer.stripeCustomerId,
           checkoutSessionId,
         },
         creationSource: CreationSource.WEBAPP,
@@ -224,7 +223,10 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     );
   }
 
-  return NextResponse.json({ message: "Created user", stripeCustomerId: customer.id }, { status: 201 });
+  return NextResponse.json(
+    { message: "Created user", stripeCustomerId: customer.stripeCustomerId },
+    { status: 201 }
+  );
 };
 
 export default usernameHandler(handler);

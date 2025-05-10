@@ -4,7 +4,7 @@ import getApps from "@calcom/app-store/utils";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeLocation } from "@calcom/prisma/zod/custom/eventtype";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 type User = {

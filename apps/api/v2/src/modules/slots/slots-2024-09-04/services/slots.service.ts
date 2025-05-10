@@ -21,9 +21,11 @@ import { getAvailableSlots } from "@calcom/platform-libraries/slots";
 import { GetSlotsInput_2024_09_04, ReserveSlotInput_2024_09_04 } from "@calcom/platform-types";
 import { EventType } from "@calcom/prisma/client";
 
-const eventTypeMetadataSchema = z.object({
-  multipleDuration: z.number().array().optional(),
-});
+const eventTypeMetadataSchema = z
+  .object({
+    multipleDuration: z.number().array().optional(),
+  })
+  .nullable();
 
 const DEFAULT_RESERVATION_DURATION = 5;
 
@@ -89,17 +91,8 @@ export class SlotsService_2024_09_04 {
       throw new BadRequestException("Invalid start date");
     }
 
-    const metadata = eventTypeMetadataSchema.parse(eventType);
-    if (
-      input.slotDuration &&
-      metadata.multipleDuration &&
-      !metadata.multipleDuration.includes(input.slotDuration)
-    ) {
-      throw new BadRequestException(
-        `Provided 'slotDuration' is not one of the possible lengths for the event type. The possible lengths for this variable length event type are: ${metadata.multipleDuration.join(
-          ", "
-        )}`
-      );
+    if (input.slotDuration) {
+      this.validateSlotDuration(eventType, input.slotDuration);
     }
 
     const endDate = startDate.plus({ minutes: input.slotDuration ?? eventType.length });
@@ -131,6 +124,8 @@ export class SlotsService_2024_09_04 {
 
     const reservationDuration = input.reservationDuration ?? DEFAULT_RESERVATION_DURATION;
 
+    await this.checkSlotOverlap(input.eventTypeId, startDate.toISO(), endDate.toISO());
+
     if (eventType.userId) {
       const slot = await this.slotsRepository.createSlot(
         eventType.userId,
@@ -158,6 +153,37 @@ export class SlotsService_2024_09_04 {
     );
 
     return this.slotsOutputService.getReservationSlotCreated(slot, reservationDuration);
+  }
+
+  private async checkSlotOverlap(eventTypeId: number, startDate: string, endDate: string) {
+    const overlappingReservation = await this.slotsRepository.getOverlappingSlotReservation(
+      eventTypeId,
+      startDate,
+      endDate
+    );
+
+    if (overlappingReservation) {
+      throw new UnprocessableEntityException(
+        `This time slot is already reserved by another user. Please choose a different time.`
+      );
+    }
+  }
+
+  validateSlotDuration(eventType: EventType, inputSlotDuration: number) {
+    const eventTypeMetadata = eventTypeMetadataSchema.parse(eventType.metadata);
+    if (!eventTypeMetadata?.multipleDuration) {
+      throw new BadRequestException(
+        "You passed 'slotDuration' but this event type is not a variable length event type."
+      );
+    }
+
+    if (!eventTypeMetadata.multipleDuration.includes(inputSlotDuration)) {
+      throw new BadRequestException(
+        `Provided 'slotDuration' is not one of the possible lengths for the event type. The possible lengths for this variable length event type are: ${eventTypeMetadata.multipleDuration.join(
+          ", "
+        )}`
+      );
+    }
   }
 
   async canSpecifyCustomReservationDuration(authUserId: number, eventType: EventType) {
@@ -214,17 +240,8 @@ export class SlotsService_2024_09_04 {
       throw new BadRequestException("Invalid start date");
     }
 
-    const metadata = eventTypeMetadataSchema.parse(eventType);
-    if (
-      input.slotDuration &&
-      metadata.multipleDuration &&
-      !metadata.multipleDuration.includes(input.slotDuration)
-    ) {
-      throw new BadRequestException(
-        `Provided 'slotDuration' is not one of the possible lengths for the event type. The possible lengths for this variable length event type are: ${metadata.multipleDuration.join(
-          ", "
-        )}`
-      );
+    if (input.slotDuration) {
+      this.validateSlotDuration(eventType, input.slotDuration);
     }
 
     const endDate = startDate.plus({ minutes: input.slotDuration ?? eventType.length });
@@ -255,6 +272,8 @@ export class SlotsService_2024_09_04 {
     }
 
     const reservationDuration = input.reservationDuration ?? DEFAULT_RESERVATION_DURATION;
+
+    await this.checkSlotOverlap(input.eventTypeId, startDate.toISO(), endDate.toISO());
 
     const slot = await this.slotsRepository.updateSlot(
       eventType.id,

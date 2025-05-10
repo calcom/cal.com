@@ -75,8 +75,12 @@ test.describe("Event Types tests", () => {
       const eventTitle = `my recurring event ${nonce}`;
       await createNewEventType(page, { eventTitle });
 
-      // eslint-disable-next-line playwright/no-wait-for-timeout
-      await page.waitForTimeout(1000); // waits for 1 second
+      // fix the race condition
+      await page.waitForSelector('[data-testid="event-title"]');
+      await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
+        "aria-current",
+        "page"
+      );
 
       await page.click("[data-testid=vertical-tab-recurring]");
       await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeHidden();
@@ -382,6 +386,39 @@ test.describe("Event Types tests", () => {
         await checkDisplayLocation(page);
         await unCheckDisplayLocation(page);
       });
+    });
+
+    test("Should not allow enabling both recurring event and offer seats at the same time", async ({
+      page,
+    }) => {
+      const nonce = randomString(3);
+      const eventTitle = `Conflict event ${nonce}`;
+      await createNewEventType(page, { eventTitle });
+      await page.goto("/event-types");
+      await page.click(`text=${eventTitle}`);
+
+      // Go to Advanced tab and enable offerSeats
+      await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+      const offerSeatsToggle = page.locator("[data-testid=offer-seats-toggle]");
+      await offerSeatsToggle.click();
+
+      // Try enabling recurring - should be disabled
+      await page.click("[data-testid=vertical-tab-recurring]");
+      const recurringEventToggle = page.locator("[data-testid=recurring-event-check]");
+      await expect(recurringEventToggle).toBeDisabled();
+
+      // Go back and disable offerSeats
+      await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+      await offerSeatsToggle.click(); // turn it off
+
+      // Enable recurring now
+      await page.click("[data-testid=vertical-tab-recurring]");
+      await recurringEventToggle.click();
+      await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeVisible();
+
+      // After enabling recurring, offerSeats should now be disabled
+      await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+      await expect(offerSeatsToggle).toBeDisabled();
     });
   });
 });

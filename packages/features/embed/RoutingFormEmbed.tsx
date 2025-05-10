@@ -8,7 +8,7 @@ import { useEmbedTypes } from "./lib/hooks";
 
 export const RoutingFormEmbedDialog = () => {
   const types = useEmbedTypes();
-  const { data: user } = trpc.viewer.me.useQuery();
+  const { data: user } = trpc.viewer.me.get.useQuery();
   const routingFormTypes = types.filter((type) => type.type !== "email");
   return (
     <EmbedDialog

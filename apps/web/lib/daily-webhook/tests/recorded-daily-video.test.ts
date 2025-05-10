@@ -161,10 +161,7 @@ function createNextRequest(mockReq: ReturnType<typeof createMocks>["req"]): Next
   });
 
   // Create a NextRequest from the Request
-  const nextRequest = new NextRequest(request, {
-    ip: mockReq.socket?.remoteAddress || "127.0.0.1",
-    geo: { city: "", country: "", region: "" },
-  });
+  const nextRequest = new NextRequest(request);
 
   return nextRequest;
 }

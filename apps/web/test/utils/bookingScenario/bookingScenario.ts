@@ -13,7 +13,7 @@ import type { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
-import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/date-fns";
+import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/dayjs";
 import type { HttpError } from "@calcom/lib/http-error";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import logger from "@calcom/lib/logger";
@@ -89,6 +89,7 @@ type InputWorkflow = {
   time?: number | null;
   timeUnit?: TimeUnit | null;
   sendTo?: string;
+  verifiedAt?: Date;
 };
 
 type InputPayment = {
@@ -642,6 +643,7 @@ async function addWorkflowsToDb(workflows: InputWorkflow[]) {
               id: createdWorkflow.id,
             },
           },
+          verifiedAt: workflow?.verifiedAt ?? new Date(),
         },
       });
 
@@ -1433,6 +1435,7 @@ export function getOrganizer({
   smsLockState,
   completedOnboarding,
   username,
+  locked,
 }: {
   name: string;
   email: string;
@@ -1449,6 +1452,7 @@ export function getOrganizer({
   smsLockState?: SMSLockState;
   completedOnboarding?: boolean;
   username?: string;
+  locked?: boolean;
 }) {
   username = username ?? TestData.users.example.username;
   return {
@@ -1469,6 +1473,7 @@ export function getOrganizer({
     metadata,
     smsLockState,
     completedOnboarding,
+    locked,
   };
 }
 
@@ -1575,7 +1580,6 @@ export function mockNoTranslations() {
   i18nMock.getTranslation.mockImplementation(() => {
     return new Promise((resolve) => {
       const identityFn = (key: string) => key;
-      // @ts-expect-error FIXME
       resolve(identityFn);
     });
   });

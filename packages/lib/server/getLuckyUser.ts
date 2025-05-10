@@ -67,6 +67,7 @@ interface GetLuckyUserParams<T extends PartialUser> {
     id: number;
     isRRWeightsEnabled: boolean;
     team: { parentId?: number | null; rrResetInterval: RRResetInterval | null } | null;
+    includeNoShowInRRCalculation: boolean;
   };
   // all routedTeamMemberIds or all hosts of event types
   allRRHosts: {
@@ -295,7 +296,7 @@ function filterUsersBasedOnWeights<
   // Calculate the total calibration and weight of all round-robin hosts
   let totalWeight: number;
 
-  if (attributeWeights) {
+  if (attributeWeights && attributeWeights.length > 0) {
     totalWeight = attributeWeights.reduce((totalWeight, userWeight) => {
       totalWeight += userWeight.weight ?? 100;
       return totalWeight;
@@ -408,6 +409,7 @@ async function getCalendarBusyTimesOfInterval(
         getIntervalStartDate(interval).toISOString(),
         new Date().toISOString(),
         user.userLevelSelectedCalendars,
+        true,
         true
       ).then((busyTimes) => ({
         userId: user.id,
@@ -422,11 +424,13 @@ async function getBookingsOfInterval({
   users,
   virtualQueuesData,
   interval,
+  includeNoShowInRRCalculation,
 }: {
   eventTypeId: number;
   users: { id: number; email: string }[];
   virtualQueuesData: VirtualQueuesDataType | null;
   interval: RRResetInterval;
+  includeNoShowInRRCalculation: boolean;
 }) {
   return await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventTypeId,
@@ -434,6 +438,7 @@ async function getBookingsOfInterval({
     startDate: getIntervalStartDate(interval),
     endDate: new Date(),
     virtualQueuesData,
+    includeNoShowInRRCalculation,
   });
 }
 
@@ -610,6 +615,7 @@ async function fetchAllDataNeededForCalculations<
       }),
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
+      includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
     }),
 
     getBookingsOfInterval({
@@ -617,6 +623,7 @@ async function fetchAllDataNeededForCalculations<
       users: notAvailableHosts,
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
+      includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
     }),
 
     getBookingsOfInterval({
@@ -626,6 +633,7 @@ async function fetchAllDataNeededForCalculations<
       }),
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
+      includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
     }),
 
     prisma.host.findMany({
@@ -1055,16 +1063,15 @@ function getAverageAttributeWeights<
           );
 
           allRRHosts.forEach((rrHost) => {
+            //assignedUser can be undefined if fallback route is hit or in the case of crm ownership
             const assignedUser = attributeOptionWithUsers?.assignedUsers.find(
               (assignedUser) => rrHost.user.id === assignedUser.member.userId
             );
 
-            if (assignedUser) {
-              if (allRRHostsWeights.has(rrHost.user.id)) {
-                allRRHostsWeights.get(rrHost.user.id)?.push(assignedUser.weight ?? 100);
-              } else {
-                allRRHostsWeights.set(rrHost.user.id, [assignedUser.weight ?? 100]);
-              }
+            if (allRRHostsWeights.has(rrHost.user.id)) {
+              allRRHostsWeights.get(rrHost.user.id)?.push(assignedUser?.weight ?? rrHost.weight ?? 100);
+            } else {
+              allRRHostsWeights.set(rrHost.user.id, [assignedUser?.weight ?? rrHost.weight ?? 100]);
             }
           });
         });

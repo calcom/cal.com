@@ -1,12 +1,7 @@
 import { test } from "../../lib/fixtures";
+import type { TApp } from "./types";
 
-export type TApp = {
-  slug: string;
-  type: string;
-  organizerInputPlaceholder?: string;
-  label: string;
-};
-
+// Around is not available in the app store anymore
 const APP: TApp = {
   slug: "around",
   type: "integrations:around_video",
@@ -17,7 +12,8 @@ const APP: TApp = {
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
-test.describe("check non-oAuth link-based conferencing apps", () => {
+// TODO: remove skip once more apps are added
+test.skip("check non-oAuth link-based conferencing apps", () => {
   test(`check conferencing app: ${APP.slug} by skipping the configure step`, async ({
     appsPage,
     page,
@@ -30,7 +26,7 @@ test.describe("check non-oAuth link-based conferencing apps", () => {
   });
 });
 
-test.describe("check non-oAuth link-based conferencing apps using the new flow", () => {
+test.skip("check non-oAuth link-based conferencing apps using the new flow", () => {
   test(`can add ${APP.slug} app and book with it`, async ({ appsPage, page, users }) => {
     const user = await users.create();
     await user.apiLogin();

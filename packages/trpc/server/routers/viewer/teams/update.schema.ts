@@ -13,6 +13,7 @@ export type TUpdateInputSchema = {
   slug?: string;
   hideBranding?: boolean;
   hideBookATeamMember?: boolean;
+  hideTeamProfileLink?: boolean;
   isPrivate?: boolean;
   brandColor?: string;
   darkBrandColor?: string;
@@ -37,6 +38,7 @@ export const ZUpdateInputSchema: z.Schema<TUpdateInputSchema> = z.object({
     .optional(),
   hideBranding: z.boolean().optional(),
   hideBookATeamMember: z.boolean().optional(),
+  hideTeamProfileLink: z.boolean().optional(),
   isPrivate: z.boolean().optional(),
   brandColor: z.string().optional(),
   darkBrandColor: z.string().optional(),

@@ -30,5 +30,7 @@ export class CreateDelegationCredentialInput {
   })
   @Expose()
   @Type(() => Object)
-  serviceAccountKey!: GoogleServiceAccountKeyInput | MicrosoftServiceAccountKeyInput;
+  serviceAccountKey!: (GoogleServiceAccountKeyInput | MicrosoftServiceAccountKeyInput) & {
+    [key: string]: unknown;
+  };
 }

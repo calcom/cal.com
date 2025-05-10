@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 import type {
   AnyZodObject,
@@ -13,7 +13,6 @@ import type {
 } from "zod";
 
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
-import dayjs from "@calcom/dayjs";
 import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
@@ -58,6 +57,20 @@ export const bookerLayouts = z
     defaultLayout: layoutOptions,
   })
   .nullable();
+
+export const orgOnboardingInvitedMembersSchema = z.array(
+  z.object({ email: z.string().email(), name: z.string().optional() })
+);
+
+export const orgOnboardingTeamsSchema = z.array(
+  z.object({
+    id: z.number(),
+    name: z.string(),
+    isBeingMigrated: z.boolean(),
+    // "slug" is null for new teams
+    slug: z.string().nullable(),
+  })
+);
 
 export const defaultBookerLayoutSettings = {
   defaultLayout: BookerLayouts.MONTH_VIEW,
@@ -233,14 +246,6 @@ export const stringOrNumber = z.union([
   z.number().int(),
 ]);
 
-export const stringToDayjs = (val: string) => {
-  const matches = val.match(/([+-]\d{2}:\d{2})$/);
-  const timezone = matches ? matches[1] : "+00:00";
-  return dayjs(val).utcOffset(timezone);
-};
-
-export const stringToDayjsZod = z.string().transform(stringToDayjs);
-
 export const requiredCustomInputSchema = z.union([
   // string must be given & nonempty
   z.string().trim().min(1),
@@ -361,6 +366,7 @@ export enum BillingPeriod {
 
 export const teamMetadataSchema = z
   .object({
+    defaultConferencingApp: schemaDefaultConferencingApp.optional(),
     requestedSlug: z.string().or(z.null()),
     paymentId: z.string(),
     subscriptionId: z.string().nullable(),
@@ -620,6 +626,8 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   recurringEvent: true,
   customInputs: true,
   disableGuests: true,
+  disableCancelling: true,
+  disableRescheduling: true,
   requiresConfirmation: true,
   canSendCalVideoTranscriptionEmails: true,
   requiresConfirmationForFreeEmail: true,
@@ -657,8 +665,10 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   isRRWeightsEnabled: true,
   eventTypeColor: true,
   allowReschedulingPastBookings: true,
+  hideOrganizerEmail: true,
   rescheduleWithSameRoundRobinHost: true,
   maxLeadThreshold: true,
+  customReplyToEmail: true,
 };
 
 // All properties that are defined as unlocked based on all managed props

@@ -12,8 +12,8 @@ import type { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeModel } from "@calcom/prisma/zod";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
-import { Badge } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
 
 export type EventTypeDescriptionProps = {
   eventType: Pick<

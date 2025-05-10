@@ -7,20 +7,26 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/settings/organizations/new/getServerSideProps";
-import { type inferSSRProps } from "@lib/types/inferSSRProps";
 
 import LegacyPage, { LayoutWrapper } from "~/settings/organizations/new/create-new-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("set_up_your_organization"),
-    (t) => t("organizations_description")
+    (t) => t("organizations_description"),
+    undefined,
+    undefined,
+    "/settings/organizations/new"
   );
 
-const getData = withAppDirSsr<inferSSRProps<typeof getServerSideProps>>(getServerSideProps);
+type Props = {
+  isOrg: boolean;
+};
+
+const getData = withAppDirSsr<Props>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
+  await getData(buildLegacyCtx(await headers(), await cookies(), await params, await searchParams));
   return (
     <LayoutWrapper>
       <LicenseRequired>

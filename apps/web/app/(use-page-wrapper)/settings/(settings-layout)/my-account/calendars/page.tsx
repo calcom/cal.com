@@ -2,14 +2,17 @@ import { _generateMetadata } from "app/_utils";
 import { getTranslate } from "app/_utils";
 
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
 
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("calendars"),
-    (t) => t("calendars_description")
+    (t) => t("calendars_description"),
+    undefined,
+    undefined,
+    "/settings/my-account/calendars"
   );
 
 const Page = async () => {

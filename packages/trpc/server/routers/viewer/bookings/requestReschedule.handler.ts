@@ -1,5 +1,5 @@
 import type { BookingReference, EventType } from "@prisma/client";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import dayjs from "@calcom/dayjs";
@@ -29,7 +29,7 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TRequestRescheduleInputSchema } from "./requestReschedule.schema";
 import type { PersonAttendeeCommonFields } from "./types";
 
@@ -195,6 +195,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     type: event && event.slug ? event.slug : bookingToReschedule.title,
     startTime: bookingToReschedule.startTime.toISOString(),
     endTime: bookingToReschedule.endTime.toISOString(),
+    hideOrganizerEmail: eventType?.hideOrganizerEmail,
     attendees: usersToPeopleType(
       // username field doesn't exists on attendee but could be in the future
       bookingToReschedule.attendees as unknown as PersonAttendeeCommonFields[],
@@ -202,6 +203,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     ),
     organizer,
     iCalUID: bookingToReschedule.iCalUID,
+    customReplyToEmail: bookingToReschedule.eventType?.customReplyToEmail,
     team: !!bookingToReschedule.eventType?.team
       ? {
           name: bookingToReschedule.eventType.team.name,

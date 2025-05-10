@@ -8,15 +8,17 @@ import z from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
-import { Button, showToast } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 import Loader from "@components/Loader";
 
-async function sendVerificationLogin(email: string, username: string) {
+async function sendVerificationLogin(email: string, username: string, t: (key: string) => string) {
   await signIn("email", {
     email: email.toLowerCase(),
     username: username.toLowerCase(),
@@ -24,7 +26,7 @@ async function sendVerificationLogin(email: string, username: string) {
     callbackUrl: WEBAPP_URL || "https://app.cal.com",
   })
     .then(() => {
-      showToast("Verification email sent", "success");
+      showToast(t("verification_email_sent"), "success");
     })
     .catch((err) => {
       showToast(err, "error");
@@ -39,15 +41,16 @@ function useSendFirstVerificationLogin({
   username: string | undefined;
 }) {
   const sent = useRef(false);
+  const { t } = useLocale();
   useEffect(() => {
     if (!email || !username || sent.current) {
       return;
     }
     (async () => {
-      await sendVerificationLogin(email, username);
+      await sendVerificationLogin(email, username, t);
       sent.current = true;
     })();
-  }, [email, username]);
+  }, [email, username, t]);
 }
 
 const querySchema = z.object({
@@ -116,7 +119,8 @@ export default function Verify({ EMAIL_FROM }: { EMAIL_FROM?: string }) {
   const pathname = usePathname();
   const router = useRouter();
   const routerQuery = useRouterQuery();
-  const { t, sessionId, stripeCustomerId } = querySchema.parse(routerQuery);
+  const { t: tParam, sessionId, stripeCustomerId } = querySchema.parse(routerQuery);
+  const { t } = useLocale();
   const [secondsLeft, setSecondsLeft] = useState(30);
   const { data } = trpc.viewer.public.stripeCheckoutSession.useQuery(
     {
@@ -165,7 +169,7 @@ export default function Verify({ EMAIL_FROM }: { EMAIL_FROM?: string }) {
   }
 
   if (!stripeCustomerId && !sessionId) {
-    return <div>Invalid Link</div>;
+    return <div>{t("invalid_link")}</div>;
   }
 
   return (
@@ -175,18 +179,15 @@ export default function Verify({ EMAIL_FROM }: { EMAIL_FROM?: string }) {
           {hasPaymentFailed ? <PaymentFailedIcon /> : sessionId ? <PaymentSuccess /> : <MailOpenIcon />}
           <h3 className="font-cal text-emphasis my-6 text-2xl font-normal leading-none">
             {hasPaymentFailed
-              ? "Your payment failed"
+              ? t("your_payment_failed")
               : sessionId
-              ? "Payment successful!"
-              : "Check your Inbox"}
+              ? t("payment_successful")
+              : t("check_your_inbox")}
           </h3>
-          {hasPaymentFailed && (
-            <p className="my-6">Your account has been created, but your premium has not been reserved.</p>
-          )}
+          {hasPaymentFailed && <p className="my-6">{t("account_created_premium_not_reserved")}</p>}
           <p className="text-muted dark:text-subtle text-base font-normal">
-            We have sent an email to <b>{customer?.email} </b>with a link to activate your account.{" "}
-            {hasPaymentFailed &&
-              "Once you activate your account you will be able to try purchase your premium username again or select a different one."}
+            {t("email_sent_with_activation_link", { email: customer?.email })}{" "}
+            {hasPaymentFailed && t("activate_account_to_purchase_username")}
           </p>
           <div className="mt-7">
             <Button
@@ -198,12 +199,12 @@ export default function Verify({ EMAIL_FROM }: { EMAIL_FROM?: string }) {
               }
               target="_blank"
               EndIcon="external-link">
-              Open in Gmail
+              {t("open_in_gmail")}
             </Button>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <p className="text-subtle text-base font-normal ">Don’t seen an email?</p>
+          <p className="text-subtle text-base font-normal ">{t("dont_see_email")}</p>
           <button
             className={classNames(
               "font-light",
@@ -220,9 +221,9 @@ export default function Verify({ EMAIL_FROM }: { EMAIL_FROM?: string }) {
               const _searchParams = new URLSearchParams(searchParams?.toString());
               _searchParams.set("t", `${Date.now()}`);
               router.replace(`${pathname}?${_searchParams.toString()}`);
-              return await sendVerificationLogin(customer.email, customer.username);
+              return await sendVerificationLogin(customer.email, customer.username, t);
             }}>
-            {secondsLeft > 0 ? `Resend in ${secondsLeft} seconds` : "Resend"}
+            {secondsLeft > 0 ? t("resend_in_seconds", { seconds: secondsLeft }) : t("resend")}
           </button>
         </div>
       </div>

@@ -5,7 +5,9 @@ import { useMemo, useState } from "react";
 import Shell from "@calcom/features/shell/Shell";
 import { PlatformManagedUsersTable } from "@calcom/features/users/components/UserTable/PlatformManagedUsersTable";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Select, Skeleton, SkeletonContainer, SkeletonText, Label } from "@calcom/ui";
+import { Label } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
+import { Skeleton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { useOAuthClients } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
 

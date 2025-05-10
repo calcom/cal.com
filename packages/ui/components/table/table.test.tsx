@@ -2,8 +2,7 @@
 import { fireEvent, render } from "@testing-library/react";
 import { vi } from "vitest";
 
-import { TableActions } from "@calcom/ui";
-
+import { TableActions } from "./TableActions";
 import { TableNewExampleComponent } from "./TableExamples";
 
 const mockActions = [

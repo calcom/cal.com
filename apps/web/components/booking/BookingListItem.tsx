@@ -8,8 +8,9 @@ import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/a
 import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
-import { formatTime } from "@calcom/lib/date-fns";
+import { formatTime } from "@calcom/lib/dayjs";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -21,14 +22,11 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
-import type { ActionType } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import {
-  Badge,
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
   Dropdown,
   DropdownItem,
   DropdownMenuCheckboxItem,
@@ -38,14 +36,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuPortal,
-  Icon,
-  MeetingTimeInTimezones,
-  showToast,
-  TableActions,
-  TextAreaField,
-  Tooltip,
-} from "@calcom/ui";
-import classNames from "@calcom/ui/classNames";
+} from "@calcom/ui/components/dropdown";
+import { TextAreaField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { MeetingTimeInTimezones } from "@calcom/ui/components/popover";
+import type { ActionType } from "@calcom/ui/components/table";
+import { TableActions } from "@calcom/ui/components/table";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
@@ -165,6 +163,7 @@ function BookingListItem(booking: BookingItemProps) {
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
   const isRejected = booking.status === BookingStatus.REJECTED;
   const isPending = booking.status === BookingStatus.PENDING;
+  const isRescheduled = booking.fromReschedule !== null;
   const isRecurring = booking.recurringEventId !== null;
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
@@ -359,12 +358,25 @@ function BookingListItem(booking: BookingItemProps) {
     },
   ];
 
+  const isDisabledCancelling = booking.eventType.disableCancelling;
+  const isDisabledRescheduling = booking.eventType.disableRescheduling;
+
   if (isTabRecurring && isRecurring) {
     bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
   }
 
-  if (isBookingInPast && isPending && !isConfirmed) {
+  if (isDisabledCancelling || (isBookingInPast && isPending && !isConfirmed)) {
     bookedActions = bookedActions.filter((action) => action.id !== "cancel");
+  }
+
+  if (isDisabledRescheduling) {
+    bookedActions.forEach((action) => {
+      if (action.id === "edit_booking") {
+        action.actions = action.actions?.filter(
+          ({ id }) => id !== "reschedule" && id !== "reschedule_request"
+        );
+      }
+    });
   }
 
   const RequestSentMessage = () => {
@@ -375,10 +387,14 @@ function BookingListItem(booking: BookingItemProps) {
     );
   };
 
+  const bookingYear = dayjs(booking.startTime).year();
+  const currentYear = dayjs().year();
+  const isDifferentYear = bookingYear !== currentYear;
+
   const startTime = dayjs(booking.startTime)
     .tz(userTimeZone)
     .locale(language)
-    .format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
+    .format(isUpcoming ? (isDifferentYear ? "ddd, D MMM YYYY" : "ddd, D MMM") : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
   const [isOpenReassignDialog, setIsOpenReassignDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
@@ -719,6 +735,7 @@ function BookingListItem(booking: BookingItemProps) {
           recurringDates={recurringDates}
           userTimeFormat={userTimeFormat}
           userTimeZone={userTimeZone}
+          isRescheduled={isRescheduled}
         />
       </div>
 
@@ -739,12 +756,14 @@ const BookingItemBadges = ({
   recurringDates,
   userTimeFormat,
   userTimeZone,
+  isRescheduled,
 }: {
   booking: BookingItemProps;
   isPending: boolean;
   recurringDates: Date[] | undefined;
   userTimeFormat: number | null | undefined;
   userTimeZone: string | undefined;
+  isRescheduled: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -754,6 +773,13 @@ const BookingItemBadges = ({
         <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
           {t("unconfirmed")}
         </Badge>
+      )}
+      {isRescheduled && (
+        <Tooltip content={`${t("rescheduled_by")} ${booking.rescheduler}`}>
+          <Badge variant="orange" className="ltr:mr-2 rtl:ml-2">
+            {t("rescheduled")}
+          </Badge>
+        </Tooltip>
       )}
       {booking.eventType?.team && (
         <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
@@ -903,32 +929,22 @@ type NoShowProps = {
 };
 
 const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
-  const { email, name, bookingUid, isBookingInPast, noShow: noShowAttendee, phoneNumber } = attendeeProps;
+  const { email, name, bookingUid, isBookingInPast, noShow, phoneNumber } = attendeeProps;
   const { t } = useLocale();
 
-  const [noShow, setNoShow] = useState(noShowAttendee);
+  const utils = trpc.useUtils();
   const [openDropdown, setOpenDropdown] = useState(false);
   const { copyToClipboard, isCopied } = useCopy();
 
   const noShowMutation = trpc.viewer.markNoShow.useMutation({
     onSuccess: async (data) => {
       showToast(data.message, "success");
+      utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
       showToast(err.message, "error");
     },
   });
-
-  function toggleNoShow({
-    attendee,
-    bookingUid,
-  }: {
-    attendee: { email: string; noShow: boolean };
-    bookingUid: string;
-  }) {
-    noShowMutation.mutate({ bookingUid, attendees: [attendee] });
-    setNoShow(!noShow);
-  }
 
   return (
     <Dropdown open={openDropdown} onOpenChange={setOpenDropdown}>
@@ -978,29 +994,16 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
 
           {isBookingInPast && (
             <DropdownMenuItem className="focus:outline-none">
-              {noShow ? (
-                <DropdownItem
-                  data-testid="unmark-no-show"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setOpenDropdown(false);
-                    toggleNoShow({ attendee: { noShow: false, email }, bookingUid });
-                  }}
-                  StartIcon="eye">
-                  {t("unmark_as_no_show")}
-                </DropdownItem>
-              ) : (
-                <DropdownItem
-                  data-testid="mark-no-show"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setOpenDropdown(false);
-                    toggleNoShow({ attendee: { noShow: true, email }, bookingUid });
-                  }}
-                  StartIcon="eye-off">
-                  {t("mark_as_no_show")}
-                </DropdownItem>
-              )}
+              <DropdownItem
+                data-testid={noShow ? "unmark-no-show" : "mark-no-show"}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setOpenDropdown(false);
+                  noShowMutation.mutate({ bookingUid, attendees: [{ noShow: !noShow, email }] });
+                }}
+                StartIcon={noShow ? "eye" : "eye-off"}>
+                {noShow ? t("unmark_as_no_show") : t("mark_as_no_show")}
+              </DropdownItem>
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>

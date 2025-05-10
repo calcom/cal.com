@@ -1,16 +1,12 @@
+import { createRouterCaller } from "app/_trpc/context";
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { notFound } from "next/navigation";
-import { cache } from "react";
 import { z } from "zod";
 
-// import { cookies, headers } from "next/headers";
-// import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-// import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
+import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
+import { travelSchedulesRouter } from "@calcom/trpc/server/routers/viewer/travelSchedules/_router";
 
-// import { TravelScheduleRepository } from "@calcom/lib/server/repository/travelSchedule";
-// import { UserRepository } from "@calcom/lib/server/repository/user";
 import { AvailabilitySettingsWebWrapper } from "~/availability/[schedule]/schedule-view";
 
 const querySchema = z.object({
@@ -22,71 +18,39 @@ const querySchema = z.object({
     .transform((val) => Number(val)),
 });
 
-const getSchedule = cache((id: number) => ScheduleRepository.findScheduleById({ id }));
-
-export const generateMetadata = async ({ params }: PageProps) => {
-  const parsed = querySchema.safeParse(params);
-  if (!parsed.success) {
-    notFound();
-  }
-
-  const schedule = await getSchedule(parsed.data.schedule);
-
-  if (!schedule) {
-    notFound();
-  }
-
+export const generateMetadata = async () => {
   return await _generateMetadata(
-    (t) => (schedule.name ? `${schedule.name} | ${t("availability")}` : t("availability")),
-    () => ""
+    (t) => t("availability"),
+    () => "",
+    undefined,
+    undefined,
+    "/availability"
   );
 };
 
 const Page = async ({ params }: PageProps) => {
-  const parsed = querySchema.safeParse(params);
+  const parsed = querySchema.safeParse(await params);
   if (!parsed.success) {
     notFound();
   }
-  // const scheduleId = Number(params.schedule);
+  const scheduleId = parsed.data.schedule;
 
-  // const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
-  // const userId = session?.user?.id;
-  // if (!userId) {
-  //   notFound();
-  // }
+  const [availabilityCaller, travelSchedulesCaller] = await Promise.all([
+    createRouterCaller(availabilityRouter),
+    createRouterCaller(travelSchedulesRouter),
+  ]);
 
-  // let userData, schedule, travelSchedules;
+  const [scheduleData, travelSchedulesData] = await Promise.all([
+    availabilityCaller.schedule.get({ scheduleId }),
+    travelSchedulesCaller.get(),
+  ]);
 
-  // try {
-  //   userData = await UserRepository.getTimeZoneAndDefaultScheduleId({
-  //     userId,
-  //   });
-  //   if (!userData?.timeZone || !userData?.defaultScheduleId) {
-  //     throw new Error("timeZone and defaultScheduleId not found");
-  //   }
-  // } catch (e) {
-  //   notFound();
-  // }
-
-  // try {
-  //   schedule = await ScheduleRepository.findDetailedScheduleById({
-  //     scheduleId,
-  //     isManagedEventType: false,
-  //     userId,
-  //     timeZone: userData.timeZone,
-  //     defaultScheduleId: userData.defaultScheduleId,
-  //   });
-  // } catch (e) {}
-
-  // try {
-  //   travelSchedules = await TravelScheduleRepository.findTravelSchedulesByUserId(userId);
-  // } catch (e) {}
+  if (!scheduleData) {
+    notFound();
+  }
 
   return (
-    <AvailabilitySettingsWebWrapper
-
-    // scheduleFetched={schedule} travelSchedules={travelSchedules}
-    />
+    <AvailabilitySettingsWebWrapper scheduleData={scheduleData} travelSchedulesData={travelSchedulesData} />
   );
 };
 

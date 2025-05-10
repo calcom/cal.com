@@ -434,7 +434,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     }
 
     describe("get individual booking", () => {
-      it("should should get a seated booking with split name responses", async () => {
+      it("should get a seated booking with split name responses", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings/${bookingWithSplitName.uid}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -457,7 +457,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should should get a seated booking with split name responses", async () => {
+      it("should get a seated booking with split name responses", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings/${seatedBookingWithSplitName.uid}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)

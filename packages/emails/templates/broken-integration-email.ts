@@ -1,4 +1,4 @@
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";

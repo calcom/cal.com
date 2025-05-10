@@ -351,6 +351,64 @@ describe("Bookings Endpoints 2024-04-15", () => {
         });
     });
 
+    it("should create a booking with split name", async () => {
+      const bookingStart = "2040-05-21T11:30:00.000Z";
+      const bookingEnd = "2040-05-21T12:30:00.000Z";
+      const bookingEventTypeId = eventTypeId;
+      const bookingTimeZone = "Europe/London";
+      const bookingLanguage = "en";
+      const bookingHashedLink = "";
+      const bookingMetadata = {
+        timeFormat: "12",
+        meetingType: "organizer-phone",
+      };
+      const bookingResponses = {
+        name: { firstName: "John", lastName: "Doe" },
+        email: "tester@example.com",
+        location: {
+          value: "link",
+          optionValue: "",
+        },
+        notes: "test",
+      };
+
+      const body: CreateBookingInput_2024_04_15 = {
+        start: bookingStart,
+        end: bookingEnd,
+        eventTypeId: bookingEventTypeId,
+        timeZone: bookingTimeZone,
+        language: bookingLanguage,
+        metadata: bookingMetadata,
+        hashedLink: bookingHashedLink,
+        responses: bookingResponses,
+      };
+
+      return request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .expect(201)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<Awaited<ReturnType<typeof handleNewBooking>>> =
+            response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseBody.data.userPrimaryEmail).toBeDefined();
+          expect(responseBody.data.userPrimaryEmail).toEqual(userEmail);
+          expect(responseBody.data.id).toBeDefined();
+          expect(responseBody.data.uid).toBeDefined();
+          expect(responseBody.data.startTime).toEqual(bookingStart);
+          expect(responseBody.data.eventTypeId).toEqual(bookingEventTypeId);
+          expect(responseBody.data.user.timeZone).toEqual(bookingTimeZone);
+          expect(responseBody.data.metadata).toEqual(bookingMetadata);
+          expect(responseBody.data.responses).toEqual({
+            ...bookingResponses,
+            name: `${bookingResponses.name.firstName} ${bookingResponses.name.lastName}`,
+          });
+
+          createdBooking = responseBody.data;
+        });
+    });
+
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
       await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);

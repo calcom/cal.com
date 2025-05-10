@@ -1,6 +1,6 @@
+import type { TFunction } from "i18next";
 import type { DateArray, ParticipationRole, EventStatus, ParticipationStatus } from "ics";
 import { createEvent } from "ics";
-import type { TFunction } from "next-i18next";
 import { RRule } from "rrule";
 
 import { getRichDescription } from "@calcom/lib/CalEventParser";
@@ -30,6 +30,7 @@ export type ICSCalendarEvent = Pick<
   | "team"
   | "type"
   | "hideCalendarEventDetails"
+  | "hideOrganizerEmail"
 >;
 
 const toICalDateArray = (date: string): DateArray => {

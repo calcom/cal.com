@@ -1,7 +1,7 @@
 import { InternalTeamBilling } from "@calcom/ee/billing/teams/internal-team-billing";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 type HasActiveTeamPlanOptions = {
   ctx: {

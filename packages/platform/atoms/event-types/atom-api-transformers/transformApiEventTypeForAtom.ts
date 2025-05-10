@@ -32,7 +32,7 @@ import {
   EventTypeMetaDataSchema,
 } from "@calcom/prisma/zod-utils";
 
-import type { BookerPlatformWrapperAtomProps } from "../../booker/BookerPlatformWrapper";
+import type { BookerPlatformWrapperAtomProps } from "../../booker/types";
 
 export function transformApiEventTypeForAtom(
   eventType: Omit<EventTypeOutput_2024_06_14, "ownerId"> & { bannerUrl?: string },

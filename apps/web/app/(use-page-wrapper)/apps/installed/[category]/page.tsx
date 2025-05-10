@@ -11,15 +11,18 @@ const querySchema = z.object({
   category: z.nativeEnum(AppCategories),
 });
 
-export const generateMetadata = async () => {
+export const generateMetadata = async ({ params }: { params: Promise<{ category: string }> }) => {
   return await _generateMetadata(
     (t) => t("installed_apps"),
-    (t) => t("manage_your_connected_apps")
+    (t) => t("manage_your_connected_apps"),
+    undefined,
+    undefined,
+    `/apps/installed/${(await params).category}`
   );
 };
 
 const InstalledAppsWrapper = async ({ params }: PageProps) => {
-  const parsedParams = querySchema.safeParse(params);
+  const parsedParams = querySchema.safeParse(await params);
 
   if (!parsedParams.success) {
     redirect("/apps/installed/calendar");
