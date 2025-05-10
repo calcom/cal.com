@@ -180,6 +180,67 @@ describe("Bookings Endpoints 2024-08-13", () => {
         });
     });
 
+    it("should return same booking if already confirmed", async () => {
+      const status = "ACCEPTED";
+      createdBooking1 = await bookingsRepositoryFixture.create({
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+        startTime: new Date(Date.UTC(2050, 0, 7, 13, 0, 0)),
+        endTime: new Date(Date.UTC(2050, 0, 7, 14, 0, 0)),
+        title: "peer coding",
+        uid: "peer-coding-one",
+        eventType: {
+          connect: {
+            id: eventTypeId,
+          },
+        },
+        location: "via 10, rome, italy",
+        customInputs: {},
+        metadata: {},
+        responses: {
+          name: "Bob",
+          email: "bob@gmail.com",
+        },
+        attendees: {
+          create: {
+            email: "bob@gmail.com",
+            name: "Bob",
+            locale: "it",
+            timeZone: "Europe/Rome",
+          },
+        },
+        status,
+      });
+      expect(createdBooking1.status).toEqual("ACCEPTED");
+
+      return request(app.getHttpServer())
+        .post(`/v2/bookings/${createdBooking1.uid}/confirm`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: GetBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+          if (responseDataIsBooking(responseBody.data)) {
+            const data: BookingOutput_2024_08_13 = responseBody.data;
+            expect(data.uid).toBeDefined();
+            expect(data.status).toEqual("accepted");
+
+            const dbBooking = await bookingsRepositoryFixture.getByUid(data.uid);
+            expect(dbBooking?.status).toEqual("ACCEPTED");
+          } else {
+            throw new Error(
+              "Invalid response data - expected booking but received array of possibly recurring bookings"
+            );
+          }
+        });
+    });
+
     it("should decline a booking", async () => {
       const status = "PENDING";
       createdBooking2 = await bookingsRepositoryFixture.create({
