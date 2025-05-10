@@ -1,3 +1,4 @@
+import { getCachedCalendar } from "@calcom/app-store/_utils/getCachedCalendar";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
 import logger from "@calcom/lib/logger";
@@ -13,7 +14,8 @@ export const getCalendarsEventsWithTimezones = async (
   withCredentials: CredentialForCalendarService[],
   dateFrom: string,
   dateTo: string,
-  selectedCalendars: SelectedCalendar[]
+  selectedCalendars: SelectedCalendar[],
+  shouldServeCache?: boolean
 ): Promise<(EventBusyDate & { timeZone: string })[][]> => {
   const calendarCredentials = withCredentials
     .filter((credential) => credential.type === "google_calendar")
@@ -22,7 +24,7 @@ export const getCalendarsEventsWithTimezones = async (
 
   const calendarAndCredentialPairs = await Promise.all(
     calendarCredentials.map(async (credential) => {
-      const calendar = await getCalendar(credential);
+      const calendar = shouldServeCache ? await getCachedCalendar(credential) : await getCalendar(credential);
       return [calendar, credential] as const;
     })
   );
@@ -88,7 +90,7 @@ const getCalendarsEvents = async (
 
   const calendarAndCredentialPairs = await Promise.all(
     calendarCredentials.map(async (credential) => {
-      const calendar = await getCalendar(credential);
+      const calendar = shouldServeCache ? await getCachedCalendar(credential) : await getCalendar(credential);
       return [calendar, credential] as const;
     })
   );
