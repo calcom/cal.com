@@ -13,8 +13,11 @@ import TurnstileCaptcha from "@calcom/features/auth/Turnstile";
 import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
-import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
-import { CLOUDFLARE_SITE_ID, CLOUDFLARE_USE_TURNSTILE_IN_BOOKER } from "@calcom/lib/constants";
+import {
+  CLOUDFLARE_SITE_ID,
+  CLOUDFLARE_USE_TURNSTILE_IN_BOOKER,
+  PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM,
+} from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
@@ -90,6 +93,7 @@ const BookerComponent = ({
     extraDays,
     columnViewExtraDays,
     isMobile,
+    isTablet,
     layout,
     hideEventTypeDetails,
     isEmbed,
@@ -123,12 +127,12 @@ const BookerComponent = ({
   const nextSlots =
     Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 1], "day")) + addonDays;
 
-  const animationScope = useBookerResizeAnimation(layout, bookerState);
+  const animationScope = useBookerResizeAnimation(layout, bookerState, isTablet);
 
   const timeslotsRef = useRef<HTMLDivElement>(null);
   const isQuickAvailabilityCheckFeatureEnabled = useIsQuickAvailabilityCheckFeatureEnabled();
 
-  const StickyOnDesktop = isMobile ? "div" : StickyBox;
+  const StickyOnDesktop = isMobile || isTablet ? "div" : StickyBox;
 
   const { bookerFormErrorRef, key, formEmail, bookingForm, errors: formErrors } = bookerForm;
 
@@ -325,7 +329,7 @@ const BookerComponent = ({
           ref={animationScope}
           data-testid="booker-container"
           className={classNames(
-            ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
+            ...getBookerSizeClassNames(layout, isTablet, bookerState, hideEventTypeDetails),
             `bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row`,
             // We remove border only when the content covers entire viewport. Because in embed, it can almost never be the case that it covers entire viewport, we show the border there
             (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md",
@@ -381,11 +385,11 @@ const BookerComponent = ({
             <StickyOnDesktop key="meta" className={classNames("relative z-10 flex [grid-area:meta]")}>
               <BookerSection
                 area="meta"
-                className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
+                className="max-w-screen border-subtle flex w-full flex-col md:border-b lg:w-[var(--booker-meta-width)] lg:border-b-0">
                 {!hideEventTypeDetails && orgBannerUrl && (
                   <img
                     loading="eager"
-                    className="-mb-9 h-16 object-cover object-top ltr:rounded-tl-md rtl:rounded-tr-md sm:h-auto"
+                    className="-mb-9 h-16 rounded-t-md object-cover object-top lg:h-auto lg:ltr:rounded-tr-none lg:rtl:rounded-tl-none"
                     alt="org banner"
                     src={orgBannerUrl}
                   />
