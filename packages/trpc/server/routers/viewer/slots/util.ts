@@ -657,6 +657,8 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
   });
   let foundAFutureLimitViolation = false;
   function _mapWithinBoundsSlotsToDate() {
+    // This should never happen. Just for type safety, we already check in the upper scope
+    if (!eventType) throw new TRPCError({ code: "NOT_FOUND" });
     return Object.entries(slotsMappedToDate).reduce((withinBoundsSlotsMappedToDate, [date, slots]) => {
       // Computation Optimization: If a future limit violation has been found, we just consider all slots to be out of bounds beyond that slot.
       // We can't do the same for periodType=RANGE because it can start from a day other than today and today will hit the violation then.
