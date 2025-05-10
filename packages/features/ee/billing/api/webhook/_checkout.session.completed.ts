@@ -10,8 +10,8 @@ const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
     throw new HttpCode(400, "Missing required payment details");
   }
 
-  const teamId = session.metadata?.teamId ? Number(session.metadata.teamId) : null;
-  const userId = session.metadata?.userId ? Number(session.metadata.userId) : null;
+  const teamId = session.metadata?.teamId ? Number(session.metadata.teamId) : undefined;
+  const userId = session.metadata?.userId ? Number(session.metadata.userId) : undefined;
 
   if (!teamId && !userId) {
     throw new HttpCode(400, "Team id and user id, but at least one is required");
@@ -35,14 +35,14 @@ async function saveToCreditBalance({
   teamId,
   nrOfCredits,
 }: {
-  userId: number;
-  teamId: number;
+  userId?: number;
+  teamId?: number;
   nrOfCredits: number;
 }) {
   const creditBalance = await prisma.creditBalance.findUnique({
     where: {
       teamId,
-      userId,
+      userId: !teamId ? userId : undefined,
     },
     select: {
       id: true,
@@ -61,7 +61,7 @@ async function saveToCreditBalance({
   await prisma.creditBalance.create({
     data: {
       teamId: teamId,
-      userId: userId,
+      userId: !teamId ? userId : undefined,
       additionalCredits: nrOfCredits,
     },
   });
