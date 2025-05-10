@@ -40,7 +40,7 @@ describe("Organizations Teams Routing Forms Responses", () => {
   let user: User;
   let apiKeyString: string;
 
-  let routingFormId: string;
+  const routingFormId = `routing-forms-responses-form-${randomString()}`;
   const routingFormResponses = [
     {
       formFillerId: `${randomString()}`,
@@ -113,7 +113,8 @@ describe("Organizations Teams Routing Forms Responses", () => {
       },
     });
 
-    const routingForm = await routingFormsRepositoryFixture.create({
+    await routingFormsRepositoryFixture.create({
+      id: routingFormId,
       name: "Test Routing Form",
       description: null,
       position: 0,
@@ -144,7 +145,6 @@ describe("Organizations Teams Routing Forms Responses", () => {
         create: routingFormResponses,
       },
     });
-    routingFormId = routingForm.id;
 
     app = moduleRef.createNestApplication();
     bootstrap(app as NestExpressApplication);

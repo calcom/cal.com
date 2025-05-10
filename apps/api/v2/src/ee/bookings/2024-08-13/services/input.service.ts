@@ -683,6 +683,104 @@ export class InputBookingsService_2024_08_13 {
     };
   }
 
+  ensureDateRanges(input: GetBookingsInput_2024_08_13): GetBookingsInput_2024_08_13 {
+    const query = { ...input };
+
+    // Convert status time based filters into date filters to reduce confusion and just work with date statuses
+    if (query.status) {
+      // Past bookings: from one month ago or user defined to now
+      if (query.status.includes("past") && query.status.includes("upcoming")) {
+        if (!query.afterStart) {
+          query.afterStart = this.getOneMonthAgo();
+        }
+        if (!query.beforeEnd) {
+          query.beforeEnd = this.getOneMonthAhead();
+        }
+      } else if (query.status.includes("past")) {
+        if (!query.afterStart) {
+          query.afterStart = this.getOneMonthAgo();
+        }
+        if (!query.beforeEnd) {
+          const now = DateTime.now().setZone("utc").toISO() || undefined;
+          query.beforeEnd = now;
+        }
+      } else if (query.status.includes("upcoming")) {
+        // Upcoming bookings: from now to one month ahead or user defined
+        if (!query.afterStart) {
+          const now = DateTime.now().setZone("utc").toISO() || undefined;
+          query.afterStart = now;
+        }
+        if (!query.beforeEnd) {
+          query.beforeEnd = this.getOneMonthAhead();
+        }
+      }
+      // Remove time-based statuses since we've converted them to date filters
+      query.status = query.status.filter((status) => status !== "past" && status !== "upcoming");
+    }
+
+    // If no date filters at all, set default range
+    if (this.hasNoDateFilters(query)) {
+      query.afterStart = this.getOneMonthAgo();
+      query.beforeEnd = this.getOneMonthAhead();
+      return query;
+    }
+
+    // Handle start and end filters
+    if (query.afterStart && !query.beforeEnd) {
+      const afterStart = DateTime.fromISO(query.afterStart, { zone: "utc" });
+      query.beforeEnd = this.getOneMonthAhead(afterStart);
+    }
+    if (query.beforeEnd && !query.afterStart) {
+      const beforeEnd = DateTime.fromISO(query.beforeEnd, { zone: "utc" });
+      query.afterStart = this.getOneMonthAgo(beforeEnd);
+    }
+
+    // Handle created at filters
+    if (query.beforeCreatedAt && !query.afterCreatedAt) {
+      const beforeCreatedAt = DateTime.fromISO(query.beforeCreatedAt, { zone: "utc" });
+      query.afterCreatedAt = this.getOneMonthAgo(beforeCreatedAt);
+    }
+    if (query.afterCreatedAt && !query.beforeCreatedAt) {
+      const afterCreatedAt = DateTime.fromISO(query.afterCreatedAt, { zone: "utc" });
+      query.beforeCreatedAt = this.getOneMonthAhead(afterCreatedAt);
+    }
+
+    // Handle updated at filters
+    if (query.beforeUpdatedAt && !query.afterUpdatedAt) {
+      const beforeUpdatedAt = DateTime.fromISO(query.beforeUpdatedAt, { zone: "utc" });
+      query.afterUpdatedAt = this.getOneMonthAgo(beforeUpdatedAt);
+    }
+    if (query.afterUpdatedAt && !query.beforeUpdatedAt) {
+      const afterUpdatedAt = DateTime.fromISO(query.afterUpdatedAt, { zone: "utc" });
+      query.beforeUpdatedAt = this.getOneMonthAhead(afterUpdatedAt);
+    }
+
+    return query;
+  }
+
+  getOneMonthAgo(fromDate?: DateTime) {
+    const date = (fromDate || DateTime.now().setZone("utc")).minus({ months: 1 });
+    const adjusted = date.set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+    return adjusted.toISO() || undefined;
+  }
+
+  getOneMonthAhead(fromDate?: DateTime) {
+    const date = (fromDate || DateTime.now().setZone("utc")).plus({ months: 1 });
+    const adjusted = date.set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
+    return adjusted.toISO() || undefined;
+  }
+
+  hasNoDateFilters(query: GetBookingsInput_2024_08_13) {
+    return (
+      !query.afterStart &&
+      !query.beforeEnd &&
+      !query.afterCreatedAt &&
+      !query.beforeCreatedAt &&
+      !query.afterUpdatedAt &&
+      !query.beforeUpdatedAt
+    );
+  }
+
   async createCancelBookingRequest(
     request: Request,
     bookingUid: string,
