@@ -149,6 +149,59 @@ const _getUser = async (where: Prisma.UserWhereInput) => {
   return findUsersForAvailabilityCheck({ where });
 };
 
+type GetUser = Awaited<ReturnType<typeof _getUser>>;
+
+export type GetUserAvailabilityInitialData = {
+  user?: GetUser;
+  eventType?: EventType;
+  currentSeats?: CurrentSeats;
+  rescheduleUid?: string | null;
+  currentBookings?: (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
+    eventType: Pick<
+      PrismaEventType,
+      "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
+    > | null;
+    _count?: {
+      seatsReferences: number;
+    };
+  })[];
+  outOfOfficeDays?: (Pick<OutOfOfficeEntry, "id" | "start" | "end"> & {
+    user: Pick<User, "id" | "name">;
+    toUser: Pick<User, "id" | "username" | "name"> | null;
+    reason: Pick<OutOfOfficeReason, "id" | "emoji" | "reason"> | null;
+  })[];
+  busyTimesFromLimitsBookings: EventBusyDetails[];
+  busyTimesFromLimits?: Map<number, EventBusyDetails[]>;
+  eventTypeForLimits?: {
+    id: number;
+    bookingLimits?: unknown;
+    durationLimits?: unknown;
+  } | null;
+  teamBookingLimits?: Map<number, EventBusyDetails[]>;
+  teamForBookingLimits?: {
+    id: number;
+    bookingLimits?: unknown;
+    includeManagedEventsInLimits: boolean;
+  } | null;
+};
+
+export type GetAvailabilityUser = NonNullable<GetUserAvailabilityInitialData["user"]>;
+
+type GetUserAvailabilityQuery = {
+  withSource?: boolean;
+  username?: string;
+  userId?: number;
+  dateFrom: string;
+  dateTo: string;
+  eventTypeId?: number;
+  afterEventBuffer?: number;
+  beforeEventBuffer?: number;
+  duration?: number;
+  returnDateOverrides: boolean;
+  bypassBusyCalendarTimes: boolean;
+  shouldServeCache?: boolean;
+};
+
 const _getCurrentSeats = async (
   eventType: {
     id?: number;
@@ -203,6 +256,10 @@ const _getCurrentSeats = async (
     };
   });
 };
+
+export type CurrentSeats = Awaited<ReturnType<typeof _getCurrentSeats>>;
+
+type GetUserAvailabilityResult = ReturnType<typeof _getUserAvailability>;
 
 const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseAndEverythingElse(
   query: GetUserAvailabilityQuery,
@@ -582,62 +639,7 @@ export const getPeriodStartDatesBetween = withReporting(
 );
 export const getUsersAvailability = withReporting(_getUsersAvailability, "getUsersAvailability");
 
-// Move type definitions after function declarations
 export type EventType = Awaited<ReturnType<typeof getEventType>>;
-export type GetUser = Awaited<ReturnType<typeof getUser>>;
-export type CurrentSeats = Awaited<ReturnType<typeof getCurrentSeats>>;
-type GetUserAvailabilityResult = ReturnType<typeof _getUserAvailability>;
-
-export type GetUserAvailabilityInitialData = {
-  user?: GetUser;
-  eventType?: EventType;
-  currentSeats?: CurrentSeats;
-  rescheduleUid?: string | null;
-  currentBookings?: (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
-    eventType: Pick<
-      PrismaEventType,
-      "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
-    > | null;
-    _count?: {
-      seatsReferences: number;
-    };
-  })[];
-  outOfOfficeDays?: (Pick<OutOfOfficeEntry, "id" | "start" | "end"> & {
-    user: Pick<User, "id" | "name">;
-    toUser: Pick<User, "id" | "username" | "name"> | null;
-    reason: Pick<OutOfOfficeReason, "id" | "emoji" | "reason"> | null;
-  })[];
-  busyTimesFromLimitsBookings: EventBusyDetails[];
-  busyTimesFromLimits?: Map<number, EventBusyDetails[]>;
-  eventTypeForLimits?: {
-    id: number;
-    bookingLimits?: unknown;
-    durationLimits?: unknown;
-  } | null;
-  teamBookingLimits?: Map<number, EventBusyDetails[]>;
-  teamForBookingLimits?: {
-    id: number;
-    bookingLimits?: unknown;
-    includeManagedEventsInLimits: boolean;
-  } | null;
-};
-
-export type GetAvailabilityUser = NonNullable<GetUserAvailabilityInitialData["user"]>;
-
-type GetUserAvailabilityQuery = {
-  withSource?: boolean;
-  username?: string;
-  userId?: number;
-  dateFrom: string;
-  dateTo: string;
-  eventTypeId?: number;
-  afterEventBuffer?: number;
-  beforeEventBuffer?: number;
-  duration?: number;
-  returnDateOverrides: boolean;
-  bypassBusyCalendarTimes: boolean;
-  shouldServeCache?: boolean;
-};
 
 interface GetUserAvailabilityParamsDTO {
   availability: (DateOverride | WorkingHours)[];
