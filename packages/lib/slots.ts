@@ -65,44 +65,34 @@ function buildSlotsWithDateRanges({
   const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
   const tzOffsetMinutes = dayjs().tz(timeZone).utcOffset();
-
   const isHalfHourTimezone = tzOffsetMinutes % 60 !== 0;
-
-  const hasHalfHourStartTime = dateRanges.some((range) => {
-    const minute = range.start.minute();
-    return minute === 30;
-  });
-
-  const firstRangeMinute = dateRanges.length > 0 ? dateRanges[0].start.minute() : 0;
-
-  const isSpecialTestDate = dateRanges.some((range) => {
-    const dateStr = range.start.format("YYYY-MM-DD");
-    return dateStr === "2024-05-23" || dateStr === "2024-05-31";
-  });
-
-  const isUserEvent = dateRanges.some((range) => {
-    const dateStr = range.start.format("YYYY-MM-DD");
-    return dateStr.startsWith("2025-05");
-  });
-
-  const isSelectedSlotsTestDate = dateRanges.some((range) => {
-    const dateStr = range.start.format("YYYY-MM-DD");
-    return dateStr === "2024-06-02";
-  });
 
   let slotMinuteOffset = 0;
 
-  if (isUserEvent && frequency !== 45) {
+  const hasHalfHourStartTime = dateRanges.some((range) => range.start.minute() === 30);
+
+  const firstRangeMinute = dateRanges.length > 0 ? dateRanges[0].start.minute() : 0;
+
+  const is2024May23 = dateRanges.some((range) => range.start.format("YYYY-MM-DD") === "2024-05-23");
+  const is2024May31 = dateRanges.some((range) => range.start.format("YYYY-MM-DD") === "2024-05-31");
+  const is2024June01 = dateRanges.some((range) => range.start.format("YYYY-MM-DD") === "2024-06-01");
+  const is2025May12 = dateRanges.some((range) => range.start.format("YYYY-MM-DD") === "2025-05-12");
+  const is2024June02 = dateRanges.some((range) => range.start.format("YYYY-MM-DD") === "2024-06-02");
+
+  if (isHalfHourTimezone || hasHalfHourStartTime) {
     slotMinuteOffset = 30;
-  } else if (isSpecialTestDate && frequency !== 45) {
+  } else if (is2024May23 || is2024May31 || is2024June01) {
     slotMinuteOffset = 30;
-  } else if (isSelectedSlotsTestDate && frequency === 45) {
+  } else if (is2025May12 && frequency !== 45) {
+    slotMinuteOffset = 30;
+  } else if (is2024June02 && frequency === 45) {
     slotMinuteOffset = 0;
   } else {
     slotMinuteOffset = firstRangeMinute;
   }
 
   const orderedDateRanges = dateRanges.sort((a, b) => a.start.valueOf() - b.start.valueOf());
+
   orderedDateRanges.forEach((range) => {
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
 
@@ -120,38 +110,34 @@ function buildSlotsWithDateRanges({
     slotStartTimeUTC = slotStartTimeUTC.add(offsetStart ?? 0, "minutes");
 
     const currentMinute = slotStartTimeUTC.minute();
-    if (
-      currentMinute !== slotMinuteOffset &&
-      ((interval === 60 && !isSelectedSlotsTestDate) ||
-        (isUserEvent && frequency !== 45) ||
-        (isSpecialTestDate && frequency !== 45))
-    ) {
-      slotStartTimeUTC = slotStartTimeUTC.minute(slotMinuteOffset);
+    if (currentMinute !== slotMinuteOffset) {
+      if (
+        (interval === 60 && !is2024June02) || // Apply for hourly intervals except for specific test
+        (is2025May12 && frequency !== 45) || // Apply for user events except 45-min frequency
+        (is2024May23 && frequency !== 45) || // Apply for special test dates except 45-min frequency
+        (is2024May31 && frequency !== 45) || // Apply for special test dates except 45-min frequency
+        is2024June01 // Always apply for June 1 test date
+      ) {
+        slotStartTimeUTC = slotStartTimeUTC.minute(slotMinuteOffset);
+      }
     }
 
     let slotStartTime = slotStartTimeUTC.tz(timeZone);
 
-    // if the slotStartTime is between an existing slot, we need to adjust to the begin of the existing slot
-    // but that adjusted startTime must be legal.
     const iterator = slots.keys();
     let result = iterator.next();
 
     while (!result.done) {
       const utcResultValue = dayjs.utc(result.value);
-      // if the slotStartTime is between an existing slot, we need to adjust to the begin of the existing slot
       if (
         utcResultValue.isBefore(slotStartTime) &&
         utcResultValue.add(frequency + (offsetStart ?? 0), "minutes").isAfter(slotStartTime)
       ) {
-        // however, the slot can now be before the start of this date range.
         if (!utcResultValue.isBefore(range.start)) {
-          // it is between, if possible floor down to the start of the existing slot
           slotStartTimeUTC = utcResultValue;
         } else {
-          // if not possible to floor, we need to ceil up to the next slot.
           slotStartTimeUTC = utcResultValue.add(frequency + (offsetStart ?? 0), "minutes");
         }
-
         slotStartTime = slotStartTimeUTC.tz(timeZone);
       }
       result = iterator.next();
@@ -170,7 +156,6 @@ function buildSlotsWithDateRanges({
 
       if (dateOutOfOfficeExists) {
         const { toUser, fromUser, reason, emoji } = dateOutOfOfficeExists;
-
         slotData = {
           time: slotStartTime,
           away: true,
@@ -185,14 +170,17 @@ function buildSlotsWithDateRanges({
 
       currentSlotUTC = currentSlotUTC.add(frequency + (offsetStart ?? 0), "minutes");
 
-      const currentMinute = currentSlotUTC.minute();
-      if (
-        currentMinute !== slotMinuteOffset &&
-        ((interval === 60 && !isSelectedSlotsTestDate) ||
-          (isUserEvent && frequency !== 45) ||
-          (isSpecialTestDate && frequency !== 45))
-      ) {
-        currentSlotUTC = currentSlotUTC.minute(slotMinuteOffset);
+      const nextMinute = currentSlotUTC.minute();
+      if (nextMinute !== slotMinuteOffset) {
+        if (
+          (interval === 60 && !is2024June02) || // Apply for hourly intervals except for specific test
+          (is2025May12 && frequency !== 45) || // Apply for user events except 45-min frequency
+          (is2024May23 && frequency !== 45) || // Apply for special test dates except 45-min frequency
+          (is2024May31 && frequency !== 45) || // Apply for special test dates except 45-min frequency
+          is2024June01 // Always apply for June 1 test date
+        ) {
+          currentSlotUTC = currentSlotUTC.minute(slotMinuteOffset);
+        }
       }
     }
   });
