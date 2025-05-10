@@ -6,6 +6,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { getHumanReadableLocationValue } from "@calcom/lib/location";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { ApiKey } from "@calcom/prisma/client";

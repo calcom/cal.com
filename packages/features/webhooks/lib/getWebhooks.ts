@@ -1,3 +1,4 @@
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import defaultPrisma from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
