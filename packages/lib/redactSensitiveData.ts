@@ -1,3 +1,5 @@
+import logger from "./logger";
+
 /**
  * Creates a replacer function with the redaction keys captured in a closure.
  * This avoids the need for explicit 'bind'.
