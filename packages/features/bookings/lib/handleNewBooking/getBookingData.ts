@@ -85,7 +85,7 @@ const _getBookingData = async <T extends z.ZodType>({
 // Export the function wrapped with withReporting
 export const getBookingData = withReporting(_getBookingData, "getBookingData");
 
-export type AwaitedBookingData = Awaited<ReturnType<typeof getBookingData>>;
+export type AwaitedBookingData = Awaited<ReturnType<typeof _getBookingData>>;
 export type RescheduleReason = AwaitedBookingData["rescheduleReason"];
 export type NoEmail = AwaitedBookingData["noEmail"];
 export type AdditionalNotes = AwaitedBookingData["notes"];
