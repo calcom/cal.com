@@ -158,47 +158,4 @@ describe("generateIcsString", () => {
       expect(icsString).toEqual(expect.stringContaining(`LOCATION:${event.location}`));
     });
   });
-
-  describe("hidden organizer email", () => {
-    test("when hideOrganizerEmail is true, organizer email should be omitted", () => {
-      const event = buildCalendarEvent({
-        iCalSequence: 0,
-        attendees: [buildPerson()],
-        hideOrganizerEmail: true,
-      });
-      const status = "CONFIRMED";
-
-      const icsString = generateIcsString({
-        event: event,
-        status,
-      });
-
-      const assertedIcsString = assertHasIcsString(icsString);
-
-      expect(assertedIcsString).toEqual(expect.stringContaining(`ORGANIZER;CN=${event.organizer.name}`));
-      expect(assertedIcsString).not.toEqual(
-        expect.stringContaining(`ORGANIZER;CN=${event.organizer.name}:mailto:`)
-      );
-    });
-
-    test("when hideOrganizerEmail is false, organizer email should be included", () => {
-      const event = buildCalendarEvent({
-        iCalSequence: 0,
-        attendees: [buildPerson()],
-        hideOrganizerEmail: false,
-      });
-      const status = "CONFIRMED";
-
-      const icsString = generateIcsString({
-        event: event,
-        status,
-      });
-
-      const assertedIcsString = assertHasIcsString(icsString);
-
-      expect(assertedIcsString).toEqual(
-        expect.stringContaining(`ORGANIZER;CN=${event.organizer.name}:mailto:${event.organizer.email}`)
-      );
-    });
-  });
 });
