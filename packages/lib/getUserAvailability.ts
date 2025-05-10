@@ -144,6 +144,8 @@ const _getEventType = async (id: number) => {
   };
 };
 
+export const getEventType = withReporting(_getEventType, "getEventType");
+
 export type EventType = Awaited<ReturnType<typeof getEventType>>;
 
 const _getUser = async (where: Prisma.UserWhereInput) => {
@@ -260,6 +262,8 @@ const _getCurrentSeats = async (
   });
 };
 
+export const getCurrentSeats = withReporting(_getCurrentSeats, "getCurrentSeats");
+
 export type CurrentSeats = Awaited<ReturnType<typeof _getCurrentSeats>>;
 
 type GetUserAvailabilityResult = ReturnType<typeof _getUserAvailability>;
@@ -304,13 +308,13 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   }
 
   let eventType: EventType | null = initialData?.eventType || null;
-  if (!eventType && eventTypeId) eventType = await _getEventType(eventTypeId);
+  if (!eventType && eventTypeId) eventType = await getEventType(eventTypeId);
 
   /* Current logic is if a booking is in a time slot mark it as busy, but seats can have more than one attendee so grab
     current bookings with a seats event type and display them on the calendar, even if they are full */
   let currentSeats: CurrentSeats | null = initialData?.currentSeats || null;
   if (!currentSeats && eventType?.seatsPerTimeSlot) {
-    currentSeats = await _getCurrentSeats(eventType, dateFrom, dateTo);
+    currentSeats = await getCurrentSeats(eventType, dateFrom, dateTo);
   }
 
   const userSchedule = user.schedules.filter(
@@ -416,12 +420,12 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   });
 
   const detailedBusyTimes: EventBusyDetails[] = [
-    ...busyTimes.map((busyTime: EventBusyDetails) => ({
-      ...busyTime,
-      start: dayjs(busyTime.start).toISOString(),
-      end: dayjs(busyTime.end).toISOString(),
-      title: busyTime.title,
-      source: query.withSource ? busyTime.source : undefined,
+    ...busyTimes.map((a) => ({
+      ...a,
+      start: dayjs(a.start).toISOString(),
+      end: dayjs(a.end).toISOString(),
+      title: a.title,
+      source: query.withSource ? a.source : undefined,
     })),
     ...busyTimesFromLimits,
     ...busyTimesFromTeamLimits,
@@ -610,6 +614,11 @@ const _getPeriodStartDatesBetween = (
   return dates;
 };
 
+export const getPeriodStartDatesBetween = withReporting(
+  _getPeriodStartDatesBetween,
+  "getPeriodStartDatesBetween"
+);
+
 const _getUsersAvailability = async ({ users, query, initialData }: GetUsersAvailabilityProps) => {
   return await Promise.all(
     users.map((user) =>
@@ -632,15 +641,7 @@ const _getUsersAvailability = async ({ users, query, initialData }: GetUsersAvai
   );
 };
 
-// Export all functions wrapped with withReporting
-export const getEventType = withReporting(_getEventType, "getEventType");
-
-export const getCurrentSeats = withReporting(_getCurrentSeats, "getCurrentSeats");
 export const getUserAvailability = withReporting(_getUserAvailability, "getUserAvailability");
-export const getPeriodStartDatesBetween = withReporting(
-  _getPeriodStartDatesBetween,
-  "getPeriodStartDatesBetween"
-);
 export const getUsersAvailability = withReporting(_getUsersAvailability, "getUsersAvailability");
 
 interface GetUserAvailabilityParamsDTO {
