@@ -55,7 +55,6 @@ const availabilitySchema = z
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
-// Define all functions with underscore prefix
 const _getEventType = async (id: number) => {
   const eventType = await prisma.eventType.findUnique({
     where: { id },
@@ -145,9 +144,13 @@ const _getEventType = async (id: number) => {
   };
 };
 
+export type EventType = Awaited<ReturnType<typeof getEventType>>;
+
 const _getUser = async (where: Prisma.UserWhereInput) => {
   return findUsersForAvailabilityCheck({ where });
 };
+
+const getUser = withReporting(_getUser, "getUser");
 
 type GetUser = Awaited<ReturnType<typeof _getUser>>;
 
@@ -261,6 +264,7 @@ export type CurrentSeats = Awaited<ReturnType<typeof _getCurrentSeats>>;
 
 type GetUserAvailabilityResult = ReturnType<typeof _getUserAvailability>;
 
+/** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
 const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseAndEverythingElse(
   query: GetUserAvailabilityQuery,
   initialData?: GetUserAvailabilityInitialData
@@ -293,7 +297,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   if (username) where.username = username;
   if (userId) where.id = userId;
 
-  const user = initialData?.user || (await _getUser(where));
+  const user = initialData?.user || (await getUser(where));
 
   if (!user) {
     throw new HttpError({ statusCode: 404, message: "No user found in getUserAvailability" });
@@ -630,7 +634,7 @@ const _getUsersAvailability = async ({ users, query, initialData }: GetUsersAvai
 
 // Export all functions wrapped with withReporting
 export const getEventType = withReporting(_getEventType, "getEventType");
-export const getUser = withReporting(_getUser, "getUser");
+
 export const getCurrentSeats = withReporting(_getCurrentSeats, "getCurrentSeats");
 export const getUserAvailability = withReporting(_getUserAvailability, "getUserAvailability");
 export const getPeriodStartDatesBetween = withReporting(
@@ -638,8 +642,6 @@ export const getPeriodStartDatesBetween = withReporting(
   "getPeriodStartDatesBetween"
 );
 export const getUsersAvailability = withReporting(_getUsersAvailability, "getUsersAvailability");
-
-export type EventType = Awaited<ReturnType<typeof getEventType>>;
 
 interface GetUserAvailabilityParamsDTO {
   availability: (DateOverride | WorkingHours)[];
