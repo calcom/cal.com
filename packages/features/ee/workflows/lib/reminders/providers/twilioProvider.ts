@@ -20,26 +20,35 @@ function createTwilioClient() {
   throw new Error("Twilio credentials are missing from the .env file");
 }
 
-function getDefaultSender(whatsapp = false) {
+function getDefaultSender(isWhatsapp = false) {
   let defaultSender = process.env.TWILIO_PHONE_NUMBER;
-  if (whatsapp) {
+  if (isWhatsapp) {
     defaultSender = `whatsapp:+${process.env.TWILIO_WHATSAPP_PHONE_NUMBER}`;
   }
   return defaultSender || "";
 }
 
-function getSMSNumber(phone: string, whatsapp = false) {
-  return whatsapp ? `whatsapp:${phone}` : phone;
+function getSMSNumber(phone: string, isWhatsapp = false) {
+  return isWhatsapp ? `whatsapp:${phone}` : phone;
 }
 
-export const sendSMS = async (
-  phoneNumber: string,
-  body: string,
-  sender: string,
-  userId?: number | null,
-  teamId?: number | null,
-  whatsapp = false
-) => {
+export const sendSMS = async ({
+  phoneNumber,
+  body,
+  sender,
+  bookingUid,
+  userId,
+  teamId,
+  isWhatsapp = false,
+}: {
+  phoneNumber: string;
+  body: string;
+  sender: string;
+  bookingUid?: string | null;
+  userId?: number | null;
+  teamId?: number | null;
+  isWhatsapp?: boolean;
+}) => {
   log.silly("sendSMS", JSON.stringify({ phoneNumber, body, sender, userId, teamId }));
 
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
@@ -51,8 +60,8 @@ export const sendSMS = async (
 
   if (testMode) {
     setTestSMS({
-      to: getSMSNumber(phoneNumber, whatsapp),
-      from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
+      to: getSMSNumber(phoneNumber, isWhatsapp),
+      from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender || getDefaultSender(),
       message: body,
     });
     console.log(
@@ -74,22 +83,41 @@ export const sendSMS = async (
   const response = await twilio.messages.create({
     body: body,
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
-    to: getSMSNumber(phoneNumber, whatsapp),
-    from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
+    to: getSMSNumber(phoneNumber, isWhatsapp),
+    from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender || getDefaultSender(),
+    statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
   });
 
   return response;
 };
 
-export const scheduleSMS = async (
-  phoneNumber: string,
-  body: string,
-  scheduledDate: Date,
-  sender: string,
-  userId?: number | null,
-  teamId?: number | null,
-  whatsapp = false
-) => {
+const getStatusCallbackUrl = (userId?: number | null, teamId?: number | null, bookingUid?: string | null) => {
+  const query = new URLSearchParams();
+  if (userId) query.append("userId", String(userId));
+  if (teamId) query.append("teamId", String(teamId));
+  if (bookingUid) query.append("bookingUid", bookingUid);
+  return `${WEBAPP_URL}/api/twilio/webhook${query.toString() ? `?${query.toString()}` : ""}`;
+};
+
+export const scheduleSMS = async ({
+  phoneNumber,
+  body,
+  scheduledDate,
+  sender,
+  bookingUid,
+  userId,
+  teamId,
+  isWhatsapp = false,
+}: {
+  phoneNumber: string;
+  body: string;
+  scheduledDate: Date;
+  sender: string;
+  bookingUid?: string | null;
+  userId?: number | null;
+  teamId?: number | null;
+  isWhatsapp?: boolean;
+}) => {
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
 
   if (isSMSSendingLocked) {
@@ -99,8 +127,8 @@ export const scheduleSMS = async (
 
   if (testMode) {
     setTestSMS({
-      to: getSMSNumber(phoneNumber, whatsapp),
-      from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
+      to: getSMSNumber(phoneNumber, isWhatsapp),
+      from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender || getDefaultSender(),
       message: body,
     });
     console.log(
@@ -117,14 +145,14 @@ export const scheduleSMS = async (
       rateLimitingType: "smsMonth",
     });
   }
-
   const response = await twilio.messages.create({
-    body: body,
+    body,
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
-    to: getSMSNumber(phoneNumber, whatsapp),
+    to: getSMSNumber(phoneNumber, isWhatsapp),
     scheduleType: "fixed",
     sendAt: scheduledDate,
-    from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
+    from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender || getDefaultSender(),
+    statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
   });
 
   return response;
@@ -156,6 +184,12 @@ export const verifyNumber = async (phoneNumber: string, code: string) => {
       return "failed";
     }
   }
+};
+
+export const getMessageBody = async (referenceId: string) => {
+  const twilio = createTwilioClient();
+  const message = await twilio.messages(referenceId).fetch();
+  return message.body;
 };
 
 async function isLockedForSMSSending(userId?: number | null, teamId?: number | null) {
@@ -197,6 +231,19 @@ async function isLockedForSMSSending(userId?: number | null, teamId?: number | n
     });
     return user?.smsLockState === SMSLockState.LOCKED;
   }
+}
+
+export async function getCountryCodeForNumber(phoneNumber: string) {
+  const twilio = createTwilioClient();
+  const { countryCode } = await twilio.lookups.v2.phoneNumbers(phoneNumber).fetch();
+  return countryCode;
+}
+
+export async function getPriceForSMS(smsSid: string) {
+  const twilio = createTwilioClient();
+  const message = await twilio.messages(smsSid).fetch();
+  if (message.price == null || message.price === "null") return null;
+  return Math.abs(parseFloat(message.price));
 }
 
 export async function validateWebhookRequest({

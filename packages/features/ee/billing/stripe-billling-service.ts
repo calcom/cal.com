@@ -40,6 +40,29 @@ export class StripeBillingService implements BillingService {
     };
   }
 
+  async createOneTimeCheckout(args: {
+    priceId: string;
+    quantity: number;
+    successUrl: string;
+    cancelUrl: string;
+    metadata?: Record<string, string>;
+  }) {
+    const { priceId, quantity, successUrl, cancelUrl, metadata } = args;
+
+    const session = await this.stripe.checkout.sessions.create({
+      line_items: [{ price: priceId, quantity }],
+      mode: "payment",
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      metadata: metadata,
+    });
+
+    return {
+      checkoutUrl: session.url,
+      sessionId: session.id,
+    };
+  }
+
   async createSubscriptionCheckout(args: Parameters<BillingService["createSubscriptionCheckout"]>[0]) {
     const {
       customerId,
