@@ -28,7 +28,7 @@ try {
 
   // Upload with release flag
   execSync(
-    `sentry-cli sourcemaps upload ${CLIENT_FILES_PATH} --validate --ext=js --ext=map --release=${release}`,
+    `sentry-cli sourcemaps upload ${CLIENT_FILES_PATH} --validate --ext=js --ext=map --release=${release} --ignore-missing`,
     {
       stdio: "inherit",
       env: process.env,
