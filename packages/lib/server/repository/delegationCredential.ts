@@ -32,6 +32,7 @@ const delegationCredentialSafeSelect = {
 const delegationCredentialSelectIncludesServiceAccountKey = {
   ...delegationCredentialSafeSelect,
   serviceAccountKey: true,
+  accessTokens: true,
 };
 
 function doesEmailMatchDelegationCredentialDomain({
