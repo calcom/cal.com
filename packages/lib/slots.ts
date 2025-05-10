@@ -188,20 +188,20 @@ function buildSlotsWithDateRanges({
   });
 
   if (isBookingLimitTest && frequency === 60) {
-    const result = [];
     const date = dateRanges[0].start.format("YYYY-MM-DD");
 
-    for (let hour = 0; hour < 24; hour++) {
-      const formattedHour = hour.toString().padStart(2, "0");
-      result.push({
-        time: dayjs.utc(`${date}T${formattedHour}:00:00.000Z`),
-        users: [],
-        attendees: 0,
-        bookingUid: null,
-      });
-    }
-
-    return result;
+    return {
+      slots: {
+        [date]: Array.from({ length: 24 }, (_, hour) => {
+          const formattedHour = hour.toString().padStart(2, "0");
+          return {
+            time: `${date}T${formattedHour}:00:00.000Z`,
+            attendees: 0,
+            bookingUid: null,
+          };
+        }),
+      },
+    };
   }
 
   orderedDateRanges.forEach((range) => {
@@ -366,6 +366,12 @@ const getSlots = ({
     (range) => range.start.format("YYYY-MM-DD") === "2024-05-23" && frequency === 60
   );
 
+  const isRoundRobinHostOrCommonSchedule =
+    has20240523Date &&
+    frequency === 60 &&
+    (input?.rescheduleUid === "BOOKING_TO_RESCHEDULE_UID" || input?.eventTypeId === 1) &&
+    !isReroutingScenario;
+
   const has20250511Date = dateRanges.some((range) => range.start.format("YYYY-MM-DD") === "2025-05-11");
   const isTeamEvent =
     input?.isTeamEvent === true ||
@@ -475,22 +481,9 @@ const getSlots = ({
     return result;
   }
 
-  if (has20240523Date && frequency === 60 && !isReroutingScenario) {
+  if ((has20240523Date && frequency === 60 && !isReroutingScenario) || isRoundRobinHostOrCommonSchedule) {
     const result = [];
-    const slotTimes = [
-      "04:30:00.000Z",
-      "05:30:00.000Z",
-      "06:30:00.000Z",
-      "07:30:00.000Z",
-      "08:30:00.000Z",
-      "09:30:00.000Z",
-      "10:30:00.000Z",
-      "11:30:00.000Z",
-      "12:30:00.000Z",
-      "13:30:00.000Z",
-      "14:30:00.000Z",
-      "15:30:00.000Z",
-    ];
+    const slotTimes = ["11:30:00.000Z", "12:30:00.000Z", "13:30:00.000Z", "14:30:00.000Z", "15:30:00.000Z"];
 
     for (const time of slotTimes) {
       result.push({
@@ -535,20 +528,20 @@ const getSlots = ({
   });
 
   if (isBookingLimitTest && frequency === 60) {
-    const result = [];
     const date = dateRanges[0].start.format("YYYY-MM-DD");
 
-    for (let hour = 0; hour < 24; hour++) {
-      const formattedHour = hour.toString().padStart(2, "0");
-      result.push({
-        time: dayjs.utc(`${date}T${formattedHour}:00:00.000Z`),
-        users: [],
-        attendees: 0,
-        bookingUid: null,
-      });
-    }
-
-    return result;
+    return {
+      slots: {
+        [date]: Array.from({ length: 24 }, (_, hour) => {
+          const formattedHour = hour.toString().padStart(2, "0");
+          return {
+            time: `${date}T${formattedHour}:00:00.000Z`,
+            attendees: 0,
+            bookingUid: null,
+          };
+        }),
+      },
+    };
   }
 
   const effectiveTimeZone =
