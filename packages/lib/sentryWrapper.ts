@@ -69,6 +69,36 @@ function isAsyncFunction<T extends any[], U>(
 }
 
 /**
+ * Type guard to check if a value is a Promise
+ */
+function isPromise<T>(value: unknown): value is Promise<T> {
+  return value instanceof Promise;
+}
+
+/**
+ * Creates an error handler that captures the error in Sentry with context
+ */
+function createErrorHandler(name: string, args: unknown[]) {
+  return (error: unknown) => {
+    const context = {
+      functionName: name,
+      args: redactSensitiveData(args),
+    };
+
+    if (error instanceof Error) {
+      (error as any).context = context;
+    }
+
+    captureException(error, {
+      extra: context,
+      tags: { functionName: name },
+    });
+
+    throw error;
+  };
+}
+
+/**
  * Recommended way to wrap functions for Sentry reporting.
  * Properly handles both sync and async functions with proper error context capture.
  *
@@ -83,15 +113,7 @@ function isAsyncFunction<T extends any[], U>(
  *   // sync implementation
  * }, "mySyncFunction");
  */
-export function withReporting<T extends any[], U>(func: (...args: T) => U, name: string): (...args: T) => U;
-export function withReporting<T extends any[], U>(
-  func: (...args: T) => Promise<U>,
-  name: string
-): (...args: T) => Promise<U>;
-export function withReporting<T extends any[], U>(
-  func: (...args: T) => U | Promise<U>,
-  name: string
-): (...args: T) => U | Promise<U> {
+export function withReporting<T extends any[], R>(func: (...args: T) => R, name: string): (...args: T) => R {
   if (!name?.trim()) {
     throw new Error("withReporting requires a non-empty name parameter");
   }
@@ -101,62 +123,27 @@ export function withReporting<T extends any[], U>(
     return func;
   }
 
-  // Handle async functions
-  if (isAsyncFunction(func)) {
-    return async (...args: T): Promise<U> => {
-      const span = startSpan({ name }, async () => {
-        try {
-          return await func(...args);
-        } catch (error) {
-          const context = {
-            functionName: name,
-            args: redactSensitiveData(args),
-          };
+  return (...args: T): R => {
+    return startSpan({ name }, () => {
+      const onError = createErrorHandler(name, args);
 
-          if (error instanceof Error) {
-            (error as any).context = context;
-          }
-
-          captureException(error, {
-            extra: context,
-            tags: { functionName: name },
-          });
-
-          throw error;
-        }
-      });
-
-      return span;
-    };
-  }
-
-  // Handle sync functions
-  return (...args: T): U => {
-    const result = startSpan({ name }, () => {
       try {
-        return func(...args);
-      } catch (error) {
-        const context = {
-          functionName: name,
-          args: redactSensitiveData(args),
-        };
+        const result = func(...args);
 
-        if (error instanceof Error) {
-          (error as any).context = context;
+        // Handle Promise case with proper type guard
+        if (isPromise(result)) {
+          return result.catch(onError) as R;
         }
 
-        captureException(error, {
-          extra: context,
-          tags: { functionName: name },
-        });
-
+        // Handle sync case
+        return result;
+      } catch (error) {
+        onError(error);
+        // This line is technically unreachable due to onError throwing,
+        // but TypeScript needs it for type safety
         throw error;
       }
     });
-
-    // Since this is the sync handler, we know startSpan will return U directly
-    // and not a Promise<U> because we're not using async/await
-    return result as U;
   };
 }
 
