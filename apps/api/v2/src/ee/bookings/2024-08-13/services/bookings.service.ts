@@ -197,68 +197,6 @@ export class BookingsService_2024_08_13 {
     return await this.organizationsTeamsRepository.findOrgTeamBySlug(organization.id, teamSlug);
   }
 
-  // async validateBookingFieldResponse(
-  //   field: z.infer<typeof eventTypeBookingFieldSchema>,
-  //   value: string | undefined
-  // ) {
-  //   switch (field.type) {
-  //     case "phone":
-  //       if (!value || !isValidPhoneNumber(value)) {
-  //         throw new Error("Invalid phone number");
-  //       }
-  //       return value;
-  //     case "email":
-  //       if (!value || !isEmail(value)) {
-  //         throw new Error("Invalid email address");
-  //       }
-  //       return value;
-  //     case "url":
-  //       if (!value || !isValidUrl(value)) {
-  //         throw new Error(`Invalid ${field.name} value, expected a URL`);
-  //       }
-  //       return value;
-  //     case "number":
-  //       if (!value || isNaN(Number(value))) {
-  //         throw new Error(`Invalid ${field.name} value, expected a number`);
-  //       }
-  //       return Number(value);
-  //     case "select":
-  //     case "multiselect":
-  //       if (!field.options?.some((option) => option.value === value)) {
-  //         throw new Error(`Invalid ${field.name} value, expected one of ${field.options?.map((option) => option.value).join(", ")}`);
-  //       }
-  //       return value;
-  //     case "text":
-  //     case "textarea":
-  //       if (!value) {
-  //         throw new Error(`Invalid ${field.name} value, expected a string`);
-  //       }
-  //       return value;
-  //     case "boolean":
-  //       return Boolean(value);
-  //     case "address":
-  //       // Add address validation if needed
-  //       return value;
-  //     case "multiemail":
-  //       if (!value) {
-  //         throw new Error(`Invalid ${field.name} value, expected a string`);
-  //       }
-  //       const emails = value.split(",").map((email) => email.trim());
-  //       if (!emails.every(isEmail)) {
-  //         throw new Error("Invalid email address in multiemail field");
-  //       }
-  //       return emails;
-  //     case "checkbox":
-  //       return value ? value.split(",") : [];
-  //     case "radio":
-  //     case "radioInput":
-  //       if (!value) {
-  //         throw new Error("Radio field cannot be empty");
-  //       }
-  //       return value;
-  //   }
-  // }
-
   async validateBookingFieldResponse(
     field: z.infer<typeof eventTypeBookingFieldSchema>,
     value: string | undefined
