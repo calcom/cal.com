@@ -19,7 +19,7 @@ export const useBookerLayout = (event: Pick<BookerEvent, "profile"> | undefined 
   const [_layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const isEmbed = useIsEmbed();
   const isMobile = useMediaQuery("(max-width: 768px)");
-  const isTablet = useMediaQuery("(max-width: 1024px)");
+  const isTablet = useMediaQuery("(max-width: 1024px)") && !isMobile;
   const embedUiConfig = useEmbedUiConfig();
   // In Embed we give preference to embed configuration for the layout.If that's not set, we use the App configuration for the event layout
   // But if it's mobile view, there is only one layout supported which is 'mobile'
@@ -63,7 +63,7 @@ export const useBookerLayout = (event: Pick<BookerEvent, "profile"> | undefined 
     // mobile supports showing the Form without Dialog
     mobile: !isEmbed,
     // We don't show Dialog in month_view currently. Can be easily toggled though as it supports no-dialog Form
-    month_view: false,
+    month_view: isTablet, // Show in dialog only on tablet screen size
     // week_view doesn't support no-dialog Form
     // When it's supported, disable it for embed
     week_view: true,

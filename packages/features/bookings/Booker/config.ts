@@ -1,5 +1,4 @@
-import { cubicBezier, useAnimate } from "framer-motion";
-import { useReducedMotion } from "framer-motion";
+import { cubicBezier, useAnimate, useReducedMotion } from "framer-motion";
 import { useEffect } from "react";
 
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
@@ -123,8 +122,37 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
   },
 };
 
+/** ResizeAnimationConfig override for tablet screen size */
+export const resizeAnimationConfigTablet: Partial<ResizeAnimationConfig> = {
+  month_view: {
+    default: {
+      width: "var(--booker-main-width))",
+      minHeight: "450px",
+      height: "auto",
+      gridTemplateAreas: `
+      "meta meta"
+      "main main"
+      `,
+      gridTemplateColumns: "var(--booker-meta-width) var(--booker-main-width)",
+      gridTemplateRows: "minmax(min-content,max-content) minmax(450px,1fr)",
+    },
+    selecting_time: {
+      width: "calc(var(--booker-main-width) + var(--booker-timeslots-width))",
+      minHeight: "450px",
+      height: "auto",
+      gridTemplateAreas: `
+      "meta meta"
+      "main timeslots"
+      `,
+      gridTemplateColumns: "1fr var(--booker-timeslots-width)",
+      gridTemplateRows: "minmax(min-content,max-content) minmax(450px,1fr)",
+    },
+  },
+};
+
 export const getBookerSizeClassNames = (
   layout: BookerLayout,
+  isTablet: boolean,
   bookerState: BookerState,
   hideEventTypeDetails = false
 ) => {
@@ -145,7 +173,13 @@ export const getBookerSizeClassNames = (
     // of a multi occurence event. Also makes form less wide, which also looks better.
     layout === BookerLayouts.MONTH_VIEW &&
       bookerState === "booking" &&
+      !isTablet &&
       `[--booker-main-width:420px] ${getBookerMetaClass("lg:[--booker-meta-width:340px]")}`,
+    // Booking opens in dialog on tablet, keep the grid size
+    layout === BookerLayouts.MONTH_VIEW &&
+      bookerState === "booking" &&
+      isTablet &&
+      `[--booker-main-width:480px]`,
     // Smaller meta when not in booking view.
     layout === BookerLayouts.MONTH_VIEW &&
       bookerState !== "booking" &&
@@ -163,13 +197,16 @@ export const getBookerSizeClassNames = (
  * Based on that ref this hook animates the size of the booker element with framer motion.
  * It also takes into account the prefers-reduced-motion setting, to not animate when that's set.
  */
-export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerState) => {
+export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerState, isTablet: boolean) => {
   const prefersReducedMotion = useReducedMotion();
   const [animationScope, animate] = useAnimate();
   const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
   ``;
   useEffect(() => {
-    const animationConfig = resizeAnimationConfig[layout][state] || resizeAnimationConfig[layout].default;
+    const animationConfig =
+      isTablet && resizeAnimationConfigTablet[layout]
+        ? resizeAnimationConfigTablet[layout]?.[state] || resizeAnimationConfigTablet[layout]?.default
+        : resizeAnimationConfig[layout][state] || resizeAnimationConfig[layout].default;
 
     if (!animationScope.current) return;
 
@@ -211,7 +248,7 @@ export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerStat
         ease: cubicBezier(0.4, 0, 0.2, 1),
       });
     }
-  }, [animate, isEmbed, animationScope, layout, prefersReducedMotion, state]);
+  }, [animate, isEmbed, animationScope, layout, prefersReducedMotion, state, isTablet]);
 
   return animationScope;
 };
