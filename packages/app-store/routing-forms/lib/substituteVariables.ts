@@ -21,7 +21,7 @@ export const substituteVariables = (
       }
       const identifier = getFieldIdentifier(field);
       if (identifier.toLowerCase() === variable.toLowerCase()) {
-        eventTypeUrl = eventTypeUrl.replace(`{${variable}}`, slugify(response[key].value.toString() || ""));
+        eventTypeUrl = eventTypeUrl.replace(`{${variable}}`, slugify(response[key].label.toString() || ""));
       }
     }
   });
