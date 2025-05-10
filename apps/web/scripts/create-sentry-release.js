@@ -13,15 +13,26 @@ try {
     process.exit(0);
   }
 
+  // Get the current commit SHA
   const release = execSync("git rev-parse HEAD").toString().trim();
+
+  // Get repository name from git remote
+  const remoteUrl = execSync("git remote get-url origin").toString().trim();
+  // Handle both SSH and HTTPS URLs, and different git hosting services
+  const repoMatch = remoteUrl.match(/(?:[:/])([^/]+\/[^/]+?)(?:\.git)?$/);
+  const repo = repoMatch ? repoMatch[1] : null;
 
   // Add release
   execSync(`sentry-cli releases new ${release}`, { stdio: "inherit" });
 
   // Set the current commit for this release
-  execSync(`sentry-cli releases set-commits ${release} --commit ${release}`, {
-    stdio: "inherit",
-  });
+  if (!repo) {
+    console.log("Could not determine repository name from git remote, skipping set-commits");
+  } else {
+    execSync(`sentry-cli releases set-commits ${release} --repo ${repo} --commit "${release}"`, {
+      stdio: "inherit",
+    });
+  }
 
   // Inject Debug IDs
   execSync(`sentry-cli sourcemaps inject ${CLIENT_FILES_PATH}`, { stdio: "inherit" });
