@@ -1,9 +1,11 @@
+import { AppRouterI18nProvider } from "app/AppRouterI18nProvider";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
 import { headers, cookies } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { loadTranslations } from "@calcom/lib/server/i18n";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 
@@ -54,6 +56,17 @@ const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
 const ServerPage = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(legacyCtx);
+
+  const locale = props.eventData?.interfaceLanguage;
+  if (locale) {
+    const ns = "common";
+    const translations = await loadTranslations(locale, ns);
+    return (
+      <AppRouterI18nProvider translations={translations} locale={locale} ns={ns}>
+        <LegacyPage {...props} />
+      </AppRouterI18nProvider>
+    );
+  }
 
   return <LegacyPage {...props} />;
 };
