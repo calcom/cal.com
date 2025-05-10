@@ -1,5 +1,7 @@
 import { startSpan, captureException } from "@sentry/nextjs";
 
+import { redactSensitiveData } from "./redactSensitiveData";
+
 /*
 WHEN TO USE
 We ran a script that performs a simple mathematical calculation within a loop of 1000000 iterations.
@@ -58,23 +60,101 @@ const monitorCallbackSync = <T extends (...args: any[]) => any>(
 };
 
 /**
+ * Type guard to check if a function returns a Promise
+ */
+function isAsyncFunction<T extends any[], U>(
+  func: (...args: T) => U | Promise<U>
+): func is (...args: T) => Promise<U> {
+  return func.constructor.name === "AsyncFunction";
+}
+
+/**
  * Recommended way to wrap functions for Sentry reporting.
- * Provides better type safety and a more functional approach.
+ * Properly handles both sync and async functions with proper error context capture.
  *
  * @example
- * const myFunction = withReporting(async (arg1: string, arg2: number) => {
- *   // function implementation
- * }, "myFunction");
+ * // Async function
+ * const myAsyncFunction = withReporting(async (arg1: string, arg2: number) => {
+ *   // async implementation
+ * }, "myAsyncFunction");
  *
- * // Usage
- * await myFunction("hello", 42);
+ * // Sync function
+ * const mySyncFunction = withReporting((arg1: string, arg2: number) => {
+ *   // sync implementation
+ * }, "mySyncFunction");
  */
-export const withReporting =
-  <T extends any[], U>(func: (...args: T) => U, name: string): ((...args: T) => U) =>
-  (...args) =>
-    !process.env.NEXT_PUBLIC_SENTRY_DSN || !process.env.SENTRY_TRACES_SAMPLE_RATE
-      ? func(...args)
-      : startSpan({ name }, () => func(...args));
+export function withReporting<T extends any[], U>(func: (...args: T) => U, name: string): (...args: T) => U;
+export function withReporting<T extends any[], U>(
+  func: (...args: T) => Promise<U>,
+  name: string
+): (...args: T) => Promise<U>;
+export function withReporting<T extends any[], U>(
+  func: (...args: T) => U | Promise<U>,
+  name: string
+): (...args: T) => U | Promise<U> {
+  if (!name?.trim()) {
+    throw new Error("withReporting requires a non-empty name parameter");
+  }
+
+  // Early return if Sentry is not configured
+  if (!process.env.NEXT_PUBLIC_SENTRY_DSN || !process.env.SENTRY_TRACES_SAMPLE_RATE) {
+    return func;
+  }
+
+  // Handle async functions
+  if (isAsyncFunction(func)) {
+    return async (...args: T): Promise<U> => {
+      const span = startSpan({ name }, async () => {
+        try {
+          return await func(...args);
+        } catch (error) {
+          const context = {
+            functionName: name,
+            args: redactSensitiveData(args),
+          };
+
+          if (error instanceof Error) {
+            (error as any).context = context;
+          }
+
+          captureException(error, {
+            extra: context,
+            tags: { functionName: name },
+          });
+
+          throw error;
+        }
+      });
+
+      return span;
+    };
+  }
+
+  // Handle sync functions
+  return (...args: T): U => {
+    return startSpan({ name }, () => {
+      try {
+        return func(...args);
+      } catch (error) {
+        const context = {
+          functionName: name,
+          args: redactSensitiveData(args),
+        };
+
+        if (error instanceof Error) {
+          (error as any).context = context;
+        }
+
+        captureException(error, {
+          extra: context,
+          tags: { functionName: name },
+        });
+
+        throw error;
+      }
+    });
+  };
+}
 
 export default monitorCallbackAsync;
 export { monitorCallbackSync };
