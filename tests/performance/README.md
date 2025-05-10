@@ -1,0 +1,91 @@
+# Cal.com Booking Flow Performance Test Suite
+
+This directory contains performance tests for Cal.com's booking flow using [Grafana k6](https://k6.io/). The tests are designed to measure the performance of the booking flow under various load conditions, including high-volume scenarios with tens of thousands of requests per minute.
+
+## Prerequisites
+
+- [k6](https://k6.io/docs/getting-started/installation/) installed on your machine
+- Cal.com running locally or a deployed instance to test against
+
+## Test Structure
+
+The test suite is organized into the following directories:
+
+- `smoke/`: Simple tests with minimal load to verify functionality
+- `load/`: Tests that simulate expected normal load (thousands of requests per minute)
+- `stress/`: Tests that simulate heavy load to find breaking points (tens of thousands of requests per minute)
+- `spike/`: Tests that simulate sudden spikes in traffic (rapid increase to tens of thousands of requests per minute)
+- `utils/`: Shared utilities and helper functions
+
+## Running Tests
+
+### Setting the Base URL
+
+By default, tests will run against `http://localhost:3000`. To test against a different environment, set the `BASE_URL` environment variable:
+
+```bash
+BASE_URL=https://your-cal-instance.com k6 run tests/performance/smoke/booking_flow.js
+```
+
+### Running Smoke Tests
+
+```bash
+# Run booking flow smoke test
+k6 run tests/performance/smoke/booking.js
+```
+
+### Running Load Tests
+
+```bash
+# Run booking flow load test (thousands of requests per minute)
+k6 run tests/performance/load/booking.js
+```
+
+### Running Stress Tests
+
+```bash
+# Run booking flow stress test (tens of thousands of requests per minute)
+k6 run tests/performance/stress/booking.js
+```
+
+### Running Spike Tests
+
+```bash
+# Run booking flow spike test (rapid spike to tens of thousands of requests per minute)
+k6 run tests/performance/spike/booking.js
+```
+
+## Test Scenarios
+
+The test suite focuses specifically on the booking flow, which is the most critical user journey in Cal.com:
+
+1. **Booking Page View**: Tests the performance of loading and viewing booking pages
+2. **Time Slot Selection**: Tests the performance of selecting available time slots
+3. **Booking Form Submission**: Tests the performance of submitting booking forms
+
+## Load Parameters
+
+The tests are configured to handle tens of thousands of requests per minute during peak times:
+
+- **Load Tests**: Up to 2,000 concurrent virtual users
+- **Stress Tests**: Up to 4,000 concurrent virtual users
+- **Spike Tests**: Rapid spike to 5,000 concurrent virtual users
+
+## Thresholds
+
+Performance thresholds are defined in `utils/config.js` and vary by test type:
+
+- **Smoke Tests**: Strictest thresholds to catch any performance regressions
+- **Load Tests**: Moderate thresholds for normal operating conditions
+- **Stress Tests**: More lenient thresholds for heavy load conditions
+- **Spike Tests**: Most lenient thresholds for sudden traffic spikes
+
+## Adding New Tests
+
+To add a new test:
+
+1. Create a new JS file in the appropriate directory (smoke, load, stress, or spike)
+2. Import necessary helpers from `utils/helpers.js`
+3. Define test options including VUs, duration, and thresholds
+4. Implement the test scenario using k6 and helper functions
+
