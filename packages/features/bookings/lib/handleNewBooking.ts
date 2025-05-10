@@ -2063,7 +2063,7 @@ async function handler(
 
       if (hashedLink.maxUsageCount && hashedLink.maxUsageCount > 0) {
         if (hashedLink.usageCount >= hashedLink.maxUsageCount) {
-        throw new HttpError({ statusCode: 410, message: "Link has expired" });
+          throw new HttpError({ statusCode: 410, message: "Link has expired" });
         }
 
         try {
@@ -2088,12 +2088,6 @@ async function handler(
             },
           });
         }
-      } else {
-        await prisma.hashedLink.delete({
-          where: {
-            id: hashedLink.id,
-          },
-        });
       }
     }
   } catch (error) {
