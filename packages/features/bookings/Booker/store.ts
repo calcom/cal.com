@@ -76,6 +76,7 @@ export type BookerStore = {
    * The booker component supports different layouts,
    * this value tracks the current layout.
    */
+  initialLayout: BookerLayout | null;
   layout: BookerLayout;
   setLayout: (layout: BookerLayout) => void;
   /**
@@ -177,6 +178,7 @@ export type BookerStore = {
 export const useBookerStore = createWithEqualityFn<BookerStore>((set, get) => ({
   state: "loading",
   setState: (state: BookerState) => set({ state }),
+  initialLayout: null,
   layout: BookerLayouts.MONTH_VIEW,
   setLayout: (layout: BookerLayout) => {
     // If we switch to a large layout and don't have a date selected yet,
@@ -187,7 +189,7 @@ export const useBookerStore = createWithEqualityFn<BookerStore>((set, get) => ({
     if (!get().isPlatform || get().allowUpdatingUrlParams) {
       updateQueryParam("layout", layout);
     }
-    return set({ layout });
+    return set({ layout, initialLayout: layout });
   },
   selectedDate: getQueryParam("date") || null,
   setSelectedDate: (selectedDate: string | null, omitUpdatingParams = false) => {
@@ -337,6 +339,7 @@ export const useBookerStore = createWithEqualityFn<BookerStore>((set, get) => ({
       bookingUid,
       bookingData,
       layout: layout || BookerLayouts.MONTH_VIEW,
+      initialLayout: get().layout !== layout ? layout : null,
       isTeamEvent: isTeamEvent || false,
       durationConfig,
       timezone,
