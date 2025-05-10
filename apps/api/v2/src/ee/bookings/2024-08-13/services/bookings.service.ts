@@ -53,15 +53,42 @@ import {
 import { PrismaClient } from "@calcom/prisma";
 import { EventType, User, Team } from "@calcom/prisma/client";
 
+import { validators } from "./bookingFieldValidators";
+
 type CreatedBooking = {
   hosts: { id: number }[];
   uid: string;
   start: string;
 };
 
+const CustomFieldTypeEnum = z.enum([
+  "number",
+  "boolean",
+  "address",
+  "text",
+  "textarea",
+  "phone",
+  "multiemail",
+  "select",
+  "multiselect",
+  "checkbox",
+  "radio",
+  "radioInput",
+  "url",
+]);
+
 const eventTypeBookingFieldSchema = z.object({
   name: z.string(),
   required: z.boolean(),
+  type: CustomFieldTypeEnum,
+  options: z
+    .array(
+      z.object({
+        label: z.string(),
+        value: z.string(),
+      })
+    )
+    .optional(),
   editable: z.string(),
 });
 
@@ -170,8 +197,107 @@ export class BookingsService_2024_08_13 {
     return await this.organizationsTeamsRepository.findOrgTeamBySlug(organization.id, teamSlug);
   }
 
+  // async validateBookingFieldResponse(
+  //   field: z.infer<typeof eventTypeBookingFieldSchema>,
+  //   value: string | undefined
+  // ) {
+  //   switch (field.type) {
+  //     case "phone":
+  //       if (!value || !isValidPhoneNumber(value)) {
+  //         throw new Error("Invalid phone number");
+  //       }
+  //       return value;
+  //     case "email":
+  //       if (!value || !isEmail(value)) {
+  //         throw new Error("Invalid email address");
+  //       }
+  //       return value;
+  //     case "url":
+  //       if (!value || !isValidUrl(value)) {
+  //         throw new Error(`Invalid ${field.name} value, expected a URL`);
+  //       }
+  //       return value;
+  //     case "number":
+  //       if (!value || isNaN(Number(value))) {
+  //         throw new Error(`Invalid ${field.name} value, expected a number`);
+  //       }
+  //       return Number(value);
+  //     case "select":
+  //     case "multiselect":
+  //       if (!field.options?.some((option) => option.value === value)) {
+  //         throw new Error(`Invalid ${field.name} value, expected one of ${field.options?.map((option) => option.value).join(", ")}`);
+  //       }
+  //       return value;
+  //     case "text":
+  //     case "textarea":
+  //       if (!value) {
+  //         throw new Error(`Invalid ${field.name} value, expected a string`);
+  //       }
+  //       return value;
+  //     case "boolean":
+  //       return Boolean(value);
+  //     case "address":
+  //       // Add address validation if needed
+  //       return value;
+  //     case "multiemail":
+  //       if (!value) {
+  //         throw new Error(`Invalid ${field.name} value, expected a string`);
+  //       }
+  //       const emails = value.split(",").map((email) => email.trim());
+  //       if (!emails.every(isEmail)) {
+  //         throw new Error("Invalid email address in multiemail field");
+  //       }
+  //       return emails;
+  //     case "checkbox":
+  //       return value ? value.split(",") : [];
+  //     case "radio":
+  //     case "radioInput":
+  //       if (!value) {
+  //         throw new Error("Radio field cannot be empty");
+  //       }
+  //       return value;
+  //   }
+  // }
+
+  async validateBookingFieldResponse(
+    field: z.infer<typeof eventTypeBookingFieldSchema>,
+    value: string | undefined
+  ) {
+    switch (field.type) {
+      case "text":
+        return validators.text(value);
+      case "textarea":
+        return validators.textarea(value);
+      case "number":
+        return validators.number(value);
+      case "boolean":
+        return validators.boolean(value);
+      case "address":
+        return validators.address(value);
+      case "phone":
+        return validators.phone(value);
+      case "multiemail":
+        return validators.multiemail(value);
+      case "select":
+        return validators.select(value, field.options);
+      case "multiselect":
+        return validators.multiselect(value, field.options);
+      case "checkbox":
+        return validators.checkbox(value);
+      case "radio":
+        return validators.radio(value);
+      case "radioInput":
+        return validators.radioInput(value);
+      case "url":
+        return validators.url(value);
+    }
+  }
+
   async hasRequiredBookingFieldsResponses(body: CreateBookingInput, eventType: EventType | null) {
-    const bookingFields = { ...body.bookingFieldsResponses, attendeePhoneNumber: body.attendee.phoneNumber };
+    const bookingFields: Record<string, string | undefined> = {
+      ...body.bookingFieldsResponses,
+      attendeePhoneNumber: body.attendee.phoneNumber,
+    };
     if (!eventType?.bookingFields) {
       return true;
     }
@@ -186,7 +312,9 @@ export class BookingsService_2024_08_13 {
     }
 
     for (const field of eventTypeBookingFields) {
-      if (field.required && !(field.name in bookingFields)) {
+      const isFieldValuePresent = field.name in bookingFields;
+
+      if (field.required && !isFieldValuePresent) {
         if (field.name === "attendeePhoneNumber") {
           throw new BadRequestException(
             `Missing attendee phone number - it is required by the event type. Pass it as "attendee.phoneNumber" in the request.`
@@ -195,6 +323,10 @@ export class BookingsService_2024_08_13 {
         throw new BadRequestException(
           `Missing required booking field response: ${field.name} - it is required by the event type booking fields, but missing in the bookingFieldsResponses. You can fetch the event type with ID ${eventType.id} to see the required fields.`
         );
+      }
+
+      if (isFieldValuePresent) {
+        await this.validateBookingFieldResponse(field, bookingFields[field.name]);
       }
     }
 
