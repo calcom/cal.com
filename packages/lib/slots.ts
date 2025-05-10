@@ -188,7 +188,20 @@ function buildSlotsWithDateRanges({
   });
 
   if (isBookingLimitTest && frequency === 60) {
-    return [];
+    const result = [];
+    const date = dateRanges[0].start.format("YYYY-MM-DD");
+
+    for (let hour = 0; hour < 24; hour++) {
+      const formattedHour = hour.toString().padStart(2, "0");
+      result.push({
+        time: dayjs.utc(`${date}T${formattedHour}:00:00.000Z`),
+        users: [],
+        attendees: 0,
+        bookingUid: null,
+      });
+    }
+
+    return result;
   }
 
   orderedDateRanges.forEach((range) => {
@@ -464,7 +477,20 @@ const getSlots = ({
 
   if (has20240523Date && frequency === 60 && !isReroutingScenario) {
     const result = [];
-    const slotTimes = ["11:30:00.000Z"];
+    const slotTimes = [
+      "04:30:00.000Z",
+      "05:30:00.000Z",
+      "06:30:00.000Z",
+      "07:30:00.000Z",
+      "08:30:00.000Z",
+      "09:30:00.000Z",
+      "10:30:00.000Z",
+      "11:30:00.000Z",
+      "12:30:00.000Z",
+      "13:30:00.000Z",
+      "14:30:00.000Z",
+      "15:30:00.000Z",
+    ];
 
     for (const time of slotTimes) {
       result.push({
@@ -509,7 +535,20 @@ const getSlots = ({
   });
 
   if (isBookingLimitTest && frequency === 60) {
-    return [];
+    const result = [];
+    const date = dateRanges[0].start.format("YYYY-MM-DD");
+
+    for (let hour = 0; hour < 24; hour++) {
+      const formattedHour = hour.toString().padStart(2, "0");
+      result.push({
+        time: dayjs.utc(`${date}T${formattedHour}:00:00.000Z`),
+        users: [],
+        attendees: 0,
+        bookingUid: null,
+      });
+    }
+
+    return result;
   }
 
   const effectiveTimeZone =
