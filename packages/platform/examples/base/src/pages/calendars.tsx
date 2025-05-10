@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import { Inter } from "next/font/google";
 
-import { CalendarSettings } from "@calcom/atoms";
+import { CalendarView } from "@calcom/atoms";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -10,7 +10,8 @@ export default function Calendars(props: { calUsername: string; calEmail: string
     <main className={`flex min-h-screen flex-col ${inter.className}`}>
       <Navbar username={props.calUsername} />
       <div>
-        <CalendarSettings allowDelete={true} />
+        {/* <CalendarSettings allowDelete={true} /> */}
+        <CalendarView username={props.calUsername} eventSlug="thirty-minutes" />
       </div>
     </main>
   );
