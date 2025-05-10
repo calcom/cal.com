@@ -95,7 +95,7 @@ export const useScheduleForEvent = ({
   const searchParams = useCompatSearchParams();
   const rescheduleUid = searchParams?.get("rescheduleUid");
 
-  const schedule = useSchedule({
+  const scheduleUsingApiV2 = useSchedule({
     username: usernameFromStore ?? username,
     eventSlug: eventSlugFromStore ?? eventSlug,
     eventId,
@@ -110,7 +110,31 @@ export const useScheduleForEvent = ({
     isTeamEvent,
     orgSlug,
     teamMemberEmail,
+    useApiV2: true,
   });
+
+  const scheduleNotUsingApiV2 = useSchedule({
+    username: usernameFromStore ?? username,
+    eventSlug: eventSlugFromStore ?? eventSlug,
+    eventId,
+    timezone,
+    selectedDate,
+    prefetchNextMonth,
+    monthCount,
+    dayCount,
+    rescheduleUid,
+    month: monthFromStore ?? month,
+    duration: durationFromStore ?? duration,
+    isTeamEvent,
+    orgSlug,
+    teamMemberEmail,
+    useApiV2: false,
+    // only run this query if the one using Api v2 fails
+    // Network error does not trigger `isError` flag, so we are instead using `failureReason` here
+    enabled: isTeamEvent && !!scheduleUsingApiV2?.failureReason,
+  });
+
+  const schedule = scheduleNotUsingApiV2 ?? scheduleUsingApiV2;
 
   return {
     data: schedule?.data,

@@ -8,6 +8,8 @@ import { PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS } from "@calcom/lib/const
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { trpc } from "@calcom/trpc/react";
 
+import { useApiV2AvailableSlots } from "./useApiV2AvailableSlots";
+
 export type UseScheduleWithCacheArgs = {
   username?: string | null;
   eventSlug?: string | null;
@@ -23,6 +25,8 @@ export type UseScheduleWithCacheArgs = {
   isTeamEvent?: boolean;
   orgSlug?: string;
   teamMemberEmail?: string | null;
+  useApiV2?: boolean;
+  enabled?: boolean;
 };
 
 export const useSchedule = ({
@@ -40,6 +44,8 @@ export const useSchedule = ({
   isTeamEvent,
   orgSlug,
   teamMemberEmail,
+  useApiV2 = false,
+  enabled: enabledProp = true,
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
 
@@ -111,15 +117,39 @@ export const useSchedule = ({
       Boolean(month) &&
       Boolean(timezone) &&
       // Should only wait for one or the other, not both.
-      (Boolean(eventSlug) || Boolean(eventId) || eventId === 0),
+      (Boolean(eventSlug) || Boolean(eventId) || eventId === 0) &&
+      enabledProp,
   };
 
-  let schedule;
-  if (isTeamEvent) {
-    schedule = trpc.viewer.highPerf.getTeamSchedule.useQuery(input, options);
-  } else {
-    schedule = trpc.viewer.slots.getSchedule.useQuery(input, options);
+  const isCallingApiV2Slots = useApiV2 && Boolean(isTeamEvent) && options.enabled;
+  const teamSchedule = useApiV2AvailableSlots({
+    ...input,
+    enabled: isCallingApiV2Slots,
+    duration: input.duration ? Number(input.duration) : undefined,
+    routedTeamMemberIds: input.routedTeamMemberIds ?? undefined,
+    teamMemberEmail: input.teamMemberEmail ?? undefined,
+    eventTypeId: eventId ?? undefined,
+  });
+
+  if (isCallingApiV2Slots) {
+    updateEmbedBookerState({
+      bookerState,
+      slotsQuery: teamSchedule,
+    });
+    return {
+      ...teamSchedule,
+      /**
+       * Invalidates the request and resends it regardless of any other configuration including staleTime
+       */
+      invalidate: () => {
+        return teamSchedule.refetch();
+      },
+    };
   }
+
+  const schedule = isTeamEvent
+    ? trpc.viewer.highPerf.getTeamSchedule.useQuery(input, options)
+    : trpc.viewer.slots.getSchedule.useQuery(input, options);
 
   updateEmbedBookerState({
     bookerState,
