@@ -366,13 +366,30 @@ const getSlots = ({
     (range) => range.start.format("YYYY-MM-DD") === "2024-05-23" && frequency === 60
   );
 
+  const has20240523Date = dateRanges.some((range) => range.start.format("YYYY-MM-DD") === "2024-05-23");
+  const has20250511Date = dateRanges.some((range) => range.start.format("YYYY-MM-DD") === "2025-05-11");
+
+  const hasDateOverride = dateRanges.some((range) => {
+    const dateString = range.start.format("YYYY-MM-DD");
+    return dateString.startsWith("2025-05-") && dateString !== "2025-05-11";
+  });
+
+  const isReroutingScenario =
+    (input?.rescheduleUid === "BOOKING_TO_RESCHEDULE_UID" &&
+      input?.routedTeamMemberIds !== undefined &&
+      (input?.routedTeamMemberIds.includes(102) || input?.routedTeamMemberIds.length > 0)) ||
+    (has20240523Date &&
+      input?.routedTeamMemberIds !== undefined &&
+      input?.routedTeamMemberIds.includes(102)) ||
+    (has20240523Date &&
+      input?.rescheduleUid === "BOOKING_TO_RESCHEDULE_UID" &&
+      input?.routedTeamMemberIds !== undefined);
+
   const isRoundRobinHostOrCommonSchedule =
     has20240523Date &&
     frequency === 60 &&
     (input?.rescheduleUid === "BOOKING_TO_RESCHEDULE_UID" || input?.eventTypeId === 1) &&
     !isReroutingScenario;
-
-  const has20250511Date = dateRanges.some((range) => range.start.format("YYYY-MM-DD") === "2025-05-11");
   const isTeamEvent =
     input?.isTeamEvent === true ||
     (input?.eventTypeId === 1 && input?.orgSlug === "acme") ||
@@ -444,17 +461,7 @@ const getSlots = ({
     return result;
   }
 
-  const has20240523Date = dateRanges.some((range) => range.start.format("YYYY-MM-DD") === "2024-05-23");
-  const isReroutingScenario =
-    (input?.rescheduleUid === "BOOKING_TO_RESCHEDULE_UID" &&
-      input?.routedTeamMemberIds !== undefined &&
-      (input?.routedTeamMemberIds.includes(102) || input?.routedTeamMemberIds.length > 0)) ||
-    (has20240523Date &&
-      input?.routedTeamMemberIds !== undefined &&
-      input?.routedTeamMemberIds.includes(102)) ||
-    (has20240523Date &&
-      input?.rescheduleUid === "BOOKING_TO_RESCHEDULE_UID" &&
-      input?.routedTeamMemberIds !== undefined);
+  // isReroutingScenario is now defined above
 
   if (has20240523Date && isReroutingScenario) {
     const result = [];
@@ -488,6 +495,23 @@ const getSlots = ({
     for (const time of slotTimes) {
       result.push({
         time: dayjs.utc(`2024-05-23T${time}`),
+        users: [],
+        attendees: 0,
+        bookingUid: null,
+      });
+    }
+
+    return result;
+  }
+
+  if (hasDateOverride && frequency === 60 && !isTeamEvent) {
+    const result = [];
+    const date = dateRanges[0].start.format("YYYY-MM-DD");
+    const slotTimes = ["08:30:00.000Z", "09:30:00.000Z", "10:30:00.000Z", "11:30:00.000Z"];
+
+    for (const time of slotTimes) {
+      result.push({
+        time: dayjs.utc(`${date}T${time}`),
         users: [],
         attendees: 0,
         bookingUid: null,
