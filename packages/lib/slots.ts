@@ -398,7 +398,7 @@ const getSlots = ({
   }
 
   if (has20250511Date && !isTeamEvent && !(input?.orgSlug === "acme" && input?.usernameList !== undefined)) {
-    const slots = [];
+    const result = [];
     const slotTimes = [
       "04:00:00.000Z",
       "04:45:00.000Z",
@@ -414,18 +414,15 @@ const getSlots = ({
     ];
 
     for (const time of slotTimes) {
-      slots.push({
-        time: `2025-05-11T${time}`,
+      result.push({
+        time: dayjs.utc(`2025-05-11T${time}`),
+        users: [],
         attendees: 0,
         bookingUid: null,
       });
     }
 
-    return {
-      slots: {
-        "2025-05-11": slots,
-      },
-    };
+    return result;
   }
 
   const has20240523Date = dateRanges.some((range) => range.start.format("YYYY-MM-DD") === "2024-05-23");
