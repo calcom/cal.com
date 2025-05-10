@@ -7,6 +7,7 @@ export const ZUpdateInternalNotesPresetsInputSchema = z.object({
       id: z.number(),
       name: z.string(),
       cancellationReason: z.string().optional(),
+      rejectionReason: z.string().optional(),
     })
   ),
 });

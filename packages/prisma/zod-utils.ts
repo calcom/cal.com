@@ -270,6 +270,14 @@ export const bookingConfirmPatchBodySchema = z.object({
   reason: z.string().optional(),
   emailsEnabled: z.boolean().default(true),
   platformClientParams: PlatformClientParamsSchema.optional(),
+  internalNote: z
+    .object({
+      id: z.number(),
+      name: z.string(),
+      rejectionReason: z.string().optional().nullable(),
+    })
+    .optional()
+    .nullable(),
 });
 
 export const bookingCancelSchema = z.object({
