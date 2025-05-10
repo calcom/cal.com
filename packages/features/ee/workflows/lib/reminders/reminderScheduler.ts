@@ -9,7 +9,7 @@ import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/t
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
-import { getTranslation } from "@calcom/lib/server";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
