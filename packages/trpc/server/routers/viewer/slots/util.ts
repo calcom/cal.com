@@ -592,7 +592,7 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
     timeZone: input.timeZone,
   });
 
-  function mapSlotsToDate() {
+  function _mapSlotsToDate() {
     return availableTimeSlots.reduce(
       (
         r: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
@@ -605,7 +605,7 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
         const dateString = formatter.format(time.toDate());
 
         r[dateString] = r[dateString] || [];
-        if (eventType.onlyShowFirstAvailableSlot && r[dateString].length > 0) {
+        if (eventType?.onlyShowFirstAvailableSlot && r[dateString].length > 0) {
           return r;
         }
         r[dateString].push({
@@ -628,7 +628,8 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
       Object.create(null)
     );
   }
-  const slotsMappedToDate = withReporting(mapSlotsToDate, "mapSlotsToDate");
+  const mapSlotsToDate = withReporting(_mapSlotsToDate, "mapSlotsToDate");
+  const slotsMappedToDate = mapSlotsToDate();
 
   loggerWithEventDetails.debug({ slotsMappedToDate });
 
@@ -655,7 +656,7 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
     bookerUtcOffset,
   });
   let foundAFutureLimitViolation = false;
-  const withinBoundsSlotsMappedToDate = function mapWithinBoundsSlotsToDate() {
+  function _mapWithinBoundsSlotsToDate() {
     return Object.entries(slotsMappedToDate).reduce((withinBoundsSlotsMappedToDate, [date, slots]) => {
       // Computation Optimization: If a future limit violation has been found, we just consider all slots to be out of bounds beyond that slot.
       // We can't do the same for periodType=RANGE because it can start from a day other than today and today will hit the violation then.
@@ -685,7 +686,9 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
       withinBoundsSlotsMappedToDate[date] = filteredSlots;
       return withinBoundsSlotsMappedToDate;
     }, {} as typeof slotsMappedToDate);
-  };
+  }
+  const mapWithinBoundsSlotsToDate = withReporting(_mapWithinBoundsSlotsToDate, "mapWithinBoundsSlotsToDate");
+  const withinBoundsSlotsMappedToDate = mapWithinBoundsSlotsToDate();
 
   // We only want to run this on single targeted events and not dynamic
   if (!Object.keys(withinBoundsSlotsMappedToDate).length && input.usernameList?.length === 1) {
@@ -908,7 +911,7 @@ const _getBusyTimesFromLimitsForUsers = async (
       if (!limit) continue;
 
       const unit = intervalLimitKeyToUnit(key);
-      const periodStartDates = await getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
+      const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
 
       for (const periodStart of periodStartDates) {
         if (globalLimitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
@@ -1020,7 +1023,7 @@ const _getBusyTimesFromTeamLimitsForUsers = async (
     if (!limit) continue;
 
     const unit = intervalLimitKeyToUnit(key);
-    const periodStartDates = await getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
+    const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
 
     for (const periodStart of periodStartDates) {
       if (globalLimitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
@@ -1188,9 +1191,24 @@ const calculateHostsAndAvailabilities = async ({
     );
   }
 
-  const users = getUsersWithCredentials({
-    hosts,
-  });
+  function _enrichUsersWithData() {
+    return usersWithCredentials.map((currentUser) => {
+      return {
+        ...currentUser,
+        currentBookings: currentBookingsAllUsers
+          .filter(
+            (b) => b.userId === currentUser.id || b.attendees?.some((a) => a.email === currentUser.email)
+          )
+          .map((bookings) => {
+            const { attendees: _attendees, ...bookingWithoutAttendees } = bookings;
+            return bookingWithoutAttendees;
+          }),
+        outOfOfficeDays: outOfOfficeDaysAllUsers.filter((o) => o.user.id === currentUser.id),
+      };
+    });
+  }
+  const enrichUsersWithData = withReporting(_enrichUsersWithData, "enrichUsersWithData");
+  const users = enrichUsersWithData();
 
   const premappedUsersAvailability = await getUsersAvailability({
     users,
@@ -1242,27 +1260,6 @@ const calculateHostsAndAvailabilities = async ({
   };
 };
 
-// Convert enrichUsersWithData to use withReporting
-const _enrichUsersWithData = (usersWithCredentials: ReturnType<typeof getUsersWithCredentials>) => {
-  return usersWithCredentials.map((currentUser) => {
-    return {
-      ...currentUser,
-      credentials: currentUser.credentials.map((credential) => {
-        const calendar = getCalendar(credential);
-        return {
-          ...credential,
-          ...(calendar && {
-            integration: calendar,
-          }),
-        };
-      }),
-    };
-  });
-};
-
-export const enrichUsersWithData = withReporting(_enrichUsersWithData, "enrichUsersWithData");
-
-// Convert the anonymous function to a named function with withReporting
 const _checkBookingLimits = async (
   user: { id: number; email: string },
   bookingLimits: IntervalLimit | null,
@@ -1281,7 +1278,7 @@ const _checkBookingLimits = async (
     if (!limit) continue;
 
     const unit = intervalLimitKeyToUnit(key);
-    const periodStartDates = await getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
+    const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
 
     for (const periodStart of periodStartDates) {
       if (limitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
@@ -1299,7 +1296,7 @@ const _checkBookingLimits = async (
           });
         } catch (_) {
           limitManager.addBusyTime(periodStart, unit, timeZone);
-          const allPeriods = await getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
+          const allPeriods = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
           if (allPeriods.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))) {
             break;
           }
@@ -1346,7 +1343,7 @@ const _checkDurationLimits = async (
     if (!limit) continue;
 
     const unit = intervalLimitKeyToUnit(key);
-    const periodStartDates = await getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
+    const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
 
     for (const periodStart of periodStartDates) {
       if (limitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
@@ -1367,7 +1364,7 @@ const _checkDurationLimits = async (
         });
         if (totalYearlyDuration + selectedDuration > limit) {
           limitManager.addBusyTime(periodStart, unit, timeZone);
-          const allPeriods = await getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
+          const allPeriods = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
           if (allPeriods.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))) {
             break;
           }
@@ -1413,7 +1410,7 @@ const _checkTeamBookingLimits = async (
     if (!limit) continue;
 
     const unit = intervalLimitKeyToUnit(key);
-    const periodStartDates = await getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
+    const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
 
     for (const periodStart of periodStartDates) {
       if (limitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
@@ -1432,7 +1429,7 @@ const _checkTeamBookingLimits = async (
           });
         } catch (_) {
           limitManager.addBusyTime(periodStart, unit, timeZone);
-          const allPeriods = await getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
+          const allPeriods = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
           if (allPeriods.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))) {
             return;
           }
