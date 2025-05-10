@@ -341,4 +341,20 @@ export class SelectedCalendarRepository {
       data,
     });
   }
+
+  async findAllSelectedCalendarsForUsers(userIds: number[], eventTypeId?: number): Promise<any[]> {
+    const whereClause: Prisma.SelectedCalendarWhereInput = {
+      userId: {
+        in: userIds,
+      },
+    };
+
+    if (eventTypeId) {
+      whereClause.OR = [{ eventTypeId: eventTypeId }, { eventTypeId: null }];
+    }
+
+    return prisma.selectedCalendar.findMany({
+      where: whereClause,
+    });
+  }
 }

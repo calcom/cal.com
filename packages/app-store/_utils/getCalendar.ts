@@ -26,7 +26,10 @@ const isCalendarService = (x: unknown): x is CalendarApp =>
 export const getCalendar = async (
   credential: CredentialForCalendarService | null
 ): Promise<Calendar | null> => {
-  if (!credential || !credential.key) return null;
+  if (!credential || !credential.key) {
+    log.warn("No credential provided for calendar service");
+    return null;
+  }
   let { type: calendarType } = credential;
   if (calendarType?.endsWith("_other_calendar")) {
     calendarType = calendarType.split("_other_calendar")[0];
