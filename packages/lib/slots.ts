@@ -70,13 +70,16 @@ function buildSlotsWithDateRanges({
   const is45MinInterval = frequency === 45;
   const isISTTimezone = timeZone === "Asia/Kolkata" || timeZone === "Asia/Calcutta" || timeZone === "+5:30";
 
+  const isISTSchedule =
+    dateRanges.length > 0 && (dateRanges.some((range) => range.start.minute() === 30) || isISTTimezone);
+
   let slotMinuteOffset = 0;
 
   if (is45MinInterval) {
     slotMinuteOffset = 0;
   } else if (offsetStart && offsetStart > 0) {
     slotMinuteOffset = offsetStart;
-  } else if (isHalfHourTimezone || isISTTimezone) {
+  } else if (isHalfHourTimezone || isISTTimezone || isISTSchedule) {
     slotMinuteOffset = 30;
   } else {
     slotMinuteOffset = dateRanges.length > 0 ? dateRanges[0].start.minute() : 0;
