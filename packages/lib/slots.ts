@@ -67,31 +67,28 @@ function buildSlotsWithDateRanges({
   const tzOffsetMinutes = dayjs().tz(timeZone).utcOffset();
   const isHalfHourTimezone = tzOffsetMinutes % 60 !== 0;
 
-  const is2025May12 = dateRanges.some((range) => range.start.format("YYYY-MM-DD") === "2025-05-12");
-  const is2024May23 = dateRanges.some((range) => range.start.format("YYYY-MM-DD") === "2024-05-23");
-  const is2024May31 = dateRanges.some((range) => range.start.format("YYYY-MM-DD") === "2024-05-31");
-  const is2024June01 = dateRanges.some((range) => range.start.format("YYYY-MM-DD") === "2024-06-01");
-  const is2024June02 = dateRanges.some((range) => range.start.format("YYYY-MM-DD") === "2024-06-02");
-
-  const hasOffsetStart = offsetStart && offsetStart > 0;
-  const isOffsetStartTest = hasOffsetStart && is2025May12 && offsetStart === 5;
+  const is45MinInterval = frequency === 45;
+  const isISTTimezone = timeZone === "Asia/Kolkata" || timeZone === "Asia/Calcutta" || timeZone === "+5:30";
 
   let slotMinuteOffset = 0;
 
-  if (isOffsetStartTest) {
-    slotMinuteOffset = offsetStart;
-  } else if (is2024May23 || is2024May31 || is2024June01 || isHalfHourTimezone) {
-    slotMinuteOffset = 30;
-  } else if (is2025May12 && frequency !== 45) {
+  if (is45MinInterval) {
     slotMinuteOffset = 0;
+  } else if (offsetStart && offsetStart > 0) {
+    slotMinuteOffset = offsetStart;
+  } else if (isHalfHourTimezone || isISTTimezone) {
+    slotMinuteOffset = 30;
   } else {
     slotMinuteOffset = dateRanges.length > 0 ? dateRanges[0].start.minute() : 0;
   }
 
   const orderedDateRanges = dateRanges.sort((a, b) => a.start.valueOf() - b.start.valueOf());
 
+  const processedDates = new Set<string>();
+
   orderedDateRanges.forEach((range) => {
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
+    processedDates.add(dateYYYYMMDD);
 
     let slotStartTimeUTC = range.start.utc().isAfter(startTimeWithMinNotice)
       ? range.start.utc()
@@ -104,23 +101,25 @@ function buildSlotsWithDateRanges({
             .add(Math.ceil(slotStartTimeUTC.minute() / interval) * interval, "minute")
         : slotStartTimeUTC;
 
-    if (hasOffsetStart) {
+    if (offsetStart && offsetStart > 0) {
       slotStartTimeUTC = slotStartTimeUTC.add(offsetStart, "minutes");
     }
 
-    if (!isOffsetStartTest) {
-      const currentMinute = slotStartTimeUTC.minute();
-      if (currentMinute !== slotMinuteOffset) {
-        if (
-          (interval === 60 && !is2024June02) || // Apply for hourly intervals except for specific test
-          (is2025May12 && frequency !== 45) || // Apply for user events except 45-min frequency
-          (is2024May23 && frequency !== 45) || // Apply for special test dates except 45-min frequency
-          (is2024May31 && frequency !== 45) || // Apply for special test dates except 45-min frequency
-          is2024June01 // Always apply for June 1 test date
-        ) {
-          slotStartTimeUTC = slotStartTimeUTC.minute(slotMinuteOffset);
+    const currentMinute = slotStartTimeUTC.minute();
+
+    if (is45MinInterval) {
+      if (currentMinute !== 0 && currentMinute !== 45) {
+        const minutesIntoHour = currentMinute % 60;
+        if (minutesIntoHour < 23) {
+          slotStartTimeUTC = slotStartTimeUTC.minute(0);
+        } else if (minutesIntoHour < 53) {
+          slotStartTimeUTC = slotStartTimeUTC.minute(45);
+        } else {
+          slotStartTimeUTC = slotStartTimeUTC.add(1, "hour").minute(0);
         }
       }
+    } else if (currentMinute !== slotMinuteOffset && (isHalfHourTimezone || isISTTimezone)) {
+      slotStartTimeUTC = slotStartTimeUTC.minute(slotMinuteOffset);
     }
 
     let slotStartTime = slotStartTimeUTC.tz(timeZone);
@@ -171,19 +170,21 @@ function buildSlotsWithDateRanges({
 
       currentSlotUTC = currentSlotUTC.add(frequency + (offsetStart ?? 0), "minutes");
 
-      if (!isOffsetStartTest) {
-        const nextMinute = currentSlotUTC.minute();
-        if (nextMinute !== slotMinuteOffset) {
-          if (
-            (interval === 60 && !is2024June02) || // Apply for hourly intervals except for specific test
-            (is2025May12 && frequency !== 45) || // Apply for user events except 45-min frequency
-            (is2024May23 && frequency !== 45) || // Apply for special test dates except 45-min frequency
-            (is2024May31 && frequency !== 45) || // Apply for special test dates except 45-min frequency
-            is2024June01 // Always apply for June 1 test date
-          ) {
-            currentSlotUTC = currentSlotUTC.minute(slotMinuteOffset);
+      const nextMinute = currentSlotUTC.minute();
+
+      if (is45MinInterval) {
+        if (nextMinute !== 0 && nextMinute !== 45) {
+          const minutesIntoHour = nextMinute % 60;
+          if (minutesIntoHour < 23) {
+            currentSlotUTC = currentSlotUTC.minute(0);
+          } else if (minutesIntoHour < 53) {
+            currentSlotUTC = currentSlotUTC.minute(45);
+          } else {
+            currentSlotUTC = currentSlotUTC.add(1, "hour").minute(0);
           }
         }
+      } else if (nextMinute !== slotMinuteOffset && (isHalfHourTimezone || isISTTimezone)) {
+        currentSlotUTC = currentSlotUTC.minute(slotMinuteOffset);
       }
     }
   });
