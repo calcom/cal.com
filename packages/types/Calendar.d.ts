@@ -1,15 +1,12 @@
 import type { calendar_v3 } from "@googleapis/calendar";
-import type {
-  BookingSeat,
-  DestinationCalendar,
-  Prisma,
-  SelectedCalendar as _SelectedCalendar,
-} from "@prisma/client";
+import type { BookingSeat, DestinationCalendar, Prisma, SelectedCalendar as _SelectedCalendar } from "@prisma/client";
 import type { Dayjs } from "dayjs";
 import type { TFunction } from "i18next";
 import type { Time } from "ical.js";
 import type { Frequency } from "rrule";
 import type z from "zod";
+
+
 
 import type { bookingResponse } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { Calendar } from "@calcom/features/calendars/weeklyview";
@@ -17,7 +14,10 @@ import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
+
+
 import type { Ensure } from "./utils";
+
 
 export type { VideoCallData } from "./VideoApiAdapter";
 
@@ -57,6 +57,10 @@ export type EventBusyDate = {
   start: Date | string;
   end: Date | string;
   source?: string | null;
+};
+
+export type EventBusyData = EventBusyDate & {
+  title?: string;
 };
 
 export type EventBusyDetails = EventBusyDate & {
@@ -270,6 +274,12 @@ export interface Calendar {
   ): Promise<NewCalendarEventType | NewCalendarEventType[]>;
 
   deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<unknown>;
+
+  getEventList?(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<EventBusyData[]>;
 
   getAvailability(
     dateFrom: string,
