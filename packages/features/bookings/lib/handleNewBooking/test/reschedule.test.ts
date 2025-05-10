@@ -185,6 +185,7 @@ describe("handleNewBooking", () => {
           const createdBooking = await handleNewBooking({
             bookingData: mockBookingData,
           });
+          await new Promise(setImmediate); // Flush domain event handlers
 
           const previousBooking = await prismaMock.booking.findUnique({
             where: {
@@ -812,6 +813,7 @@ describe("handleNewBooking", () => {
             const createdBooking = await handleNewBooking({
               bookingData: mockBookingData,
             });
+            await new Promise(setImmediate); // Flush domain event handlers
             expect(createdBooking.responses).toEqual(
               expect.objectContaining({
                 email: booker.email,
@@ -1292,6 +1294,7 @@ describe("handleNewBooking", () => {
               // Fake the request to be from organizer
               userId: organizer.id,
             });
+            await new Promise(setImmediate); // Flush domain event handlers
 
             /**
              *  Booking Time should be new time

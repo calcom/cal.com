@@ -650,6 +650,7 @@ describe("handleNewBooking", () => {
           const createdBooking = await handleNewBooking({
             bookingData: mockBookingData,
           });
+          await new Promise(setImmediate); // Flush domain event handlers
           expect(createdBooking.responses).toEqual(
             expect.objectContaining({
               email: booker.email,
@@ -2760,6 +2761,7 @@ describe("handleNewBooking", () => {
         const createdBooking = await handleNewBooking({
           bookingData: mockBookingData,
         });
+        await new Promise(setImmediate); // Flush domain event handlers
         expect(createdBooking.responses).toEqual(
           expect.objectContaining({
             email: booker.email,
