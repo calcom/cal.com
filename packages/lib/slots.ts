@@ -112,7 +112,7 @@ function buildSlotsWithDateRanges({
 
     slotStartTimeUTC = slotStartTimeUTC.add(offsetStart ?? 0, "minutes");
 
-    if (shouldApplyHalfHourOffset) {
+    if (interval === 60) {
       const currentMinute = slotStartTimeUTC.minute();
       if (currentMinute !== slotMinuteOffset) {
         slotStartTimeUTC = slotStartTimeUTC.minute(slotMinuteOffset);
@@ -175,7 +175,7 @@ function buildSlotsWithDateRanges({
 
       currentSlotUTC = currentSlotUTC.add(frequency + (offsetStart ?? 0), "minutes");
 
-      if (shouldApplyHalfHourOffset) {
+      if (interval === 60) {
         const currentMinute = currentSlotUTC.minute();
         if (currentMinute !== slotMinuteOffset) {
           currentSlotUTC = currentSlotUTC.minute(slotMinuteOffset);
