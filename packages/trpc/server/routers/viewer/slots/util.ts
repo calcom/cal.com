@@ -1135,7 +1135,7 @@ const _getBusyTimesFromTeamLimitsForUsers = async (
       bookingLimits,
       dateFrom,
       dateTo,
-      imitManager,
+      limitManager,
       rescheduleUid,
       teamId,
       user,
