@@ -25,6 +25,7 @@ import {
   Label,
   BooleanToggleGroupField,
 } from "@calcom/ui/components/form";
+import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -122,18 +123,55 @@ export const FormBuilder = function FormBuilder({
     remove(index);
   };
 
+  const toggleGroupOptions = [
+    { value: "email", label: t("email"), iconLeft: <Icon name="mail" /> },
+    { value: "phone", label: t("phone"), iconLeft: <Icon name="phone-call" /> },
+  ];
+
+  const [emailBaseBooking, setEmailBaseBooking] = useState<boolean>(true);
+
   return (
     <div>
       <div>
-        <div className="text-default text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
-          {title}
-          {LockedIcon}
-        </div>
-        <p className="text-subtle mt-0.5 max-w-[280px] break-words text-sm sm:max-w-[500px]">{description}</p>
+        {title && (
+          <header className={classNames("flex w-full max-w-full items-center truncate")}>
+            {LockedIcon && <div className="ltr:mr-4">{LockedIcon}</div>}
+            <div className={classNames("hidden w-full truncate ltr:mr-4 rtl:ml-4 md:block")}>
+              {title && (
+                <h3
+                  className={classNames(
+                    "font-cal text-emphasis max-w-28 sm:max-w-72 md:max-w-80 inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
+                    description ? "text-base" : "text-xl"
+                  )}>
+                  {title}
+                </h3>
+              )}
+              {description && (
+                <p className="text-default hidden text-sm md:block" data-testid="subtitle">
+                  {description}
+                </p>
+              )}
+            </div>
+            <div>
+              <ToggleGroup
+                className="hidden h-fit md:block"
+                defaultValue={emailBaseBooking ? "email" : "phone"}
+                onValueChange={(value) => {
+                  if (!value) return;
+                  setEmailBaseBooking(value === "email");
+                }}
+                options={toggleGroupOptions}
+              />
+            </div>
+          </header>
+        )}
         <ul ref={parent} className="border-subtle divide-subtle mt-4 divide-y rounded-md border">
           {fields.map((field, index) => {
             let options = field.options ?? null;
             const sources = [...(field.sources || [])];
+            if (field.name === "email" || field.name === "phone") {
+              field.required = emailBaseBooking;
+            }
             const isRequired = shouldConsiderRequired ? shouldConsiderRequired(field) : field.required;
             if (!options && field.getOptionsAt) {
               const {
