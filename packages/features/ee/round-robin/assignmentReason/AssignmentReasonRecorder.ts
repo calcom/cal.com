@@ -14,6 +14,11 @@ export enum RRReassignmentType {
 }
 
 export default class AssignmentReasonRecorder {
+  /**
+   * We should use decorators to wrap the methods with withReporting
+   * but we can't don't have support for static methods in decorators
+   * so this is a workaround to wrap the methods with withReporting.
+   */
   static routingFormRoute = withReporting(
     AssignmentReasonRecorder._routingFormRoute,
     "AssignmentReasonRecorder.routingFormRoute"
@@ -151,8 +156,11 @@ export default class AssignmentReasonRecorder {
       },
     });
   }
-
-  static async roundRobinReassignment({
+  static roundRobinReassignment = withReporting(
+    AssignmentReasonRecorder._roundRobinReassignment,
+    "AssignmentReasonRecorder.roundRobinReassignment"
+  );
+  static async _roundRobinReassignment({
     bookingId,
     reassignById,
     reassignReason,
