@@ -532,12 +532,12 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   return result;
 };
 
-const _getPeriodStartDatesBetween = async (
+const _getPeriodStartDatesBetween = (
   dateFrom: Dayjs,
   dateTo: Dayjs,
   period: IntervalLimitUnit,
   timeZone?: string
-): Promise<Dayjs[]> => {
+): Dayjs[] => {
   const dates = [];
   let startDate = timeZone ? dayjs(dateFrom).tz(timeZone).startOf(period) : dayjs(dateFrom).startOf(period);
   const endDate = timeZone ? dayjs(dateTo).tz(timeZone).endOf(period) : dayjs(dateTo).endOf(period);
