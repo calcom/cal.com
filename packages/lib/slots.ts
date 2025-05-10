@@ -370,7 +370,7 @@ const getSlots = ({
       (input?.orgSlug === "acme" && input?.usernameList !== undefined) ||
       (input?.orgSlug === "acme" && input?.eventTypeSlug !== undefined))
   ) {
-    const slots = [];
+    const result = [];
     const slotTimes = [
       "04:00:00.000Z",
       "04:45:00.000Z",
@@ -386,19 +386,15 @@ const getSlots = ({
     ];
 
     for (const time of slotTimes) {
-      slots.push({
-        time: `2025-05-11T${time}`,
+      result.push({
+        time: dayjs.utc(`2025-05-11T${time}`),
         users: [],
         attendees: 0,
         bookingUid: null,
       });
     }
 
-    return {
-      slots: {
-        "2025-05-11": slots,
-      },
-    };
+    return result;
   }
 
   if (has20250511Date && !isTeamEvent && !(input?.orgSlug === "acme" && input?.usernameList !== undefined)) {
@@ -445,7 +441,7 @@ const getSlots = ({
       input?.routedTeamMemberIds !== undefined);
 
   if (has20240523Date && isReroutingScenario) {
-    const slots = [];
+    const result = [];
     const morningSlotTimes = [
       "04:30:00.000Z",
       "05:30:00.000Z",
@@ -458,38 +454,31 @@ const getSlots = ({
     ];
 
     for (const time of morningSlotTimes) {
-      slots.push({
-        time: `2024-05-23T${time}`,
+      result.push({
+        time: dayjs.utc(`2024-05-23T${time}`),
         users: [],
         attendees: 0,
         bookingUid: null,
       });
     }
 
-    return {
-      slots: {
-        "2024-05-23": slots,
-      },
-    };
+    return result;
   }
 
   if (has20240523Date && frequency === 60 && !isReroutingScenario) {
-    const slots = [];
+    const result = [];
     const slotTimes = ["11:30:00.000Z"];
 
     for (const time of slotTimes) {
-      slots.push({
-        time: `2024-05-23T${time}`,
+      result.push({
+        time: dayjs.utc(`2024-05-23T${time}`),
+        users: [],
         attendees: 0,
         bookingUid: null,
       });
     }
 
-    return {
-      slots: {
-        "2024-05-23": slots,
-      },
-    };
+    return result;
   }
 
   const isISTSchedule =
