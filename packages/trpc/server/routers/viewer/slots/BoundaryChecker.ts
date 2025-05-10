@@ -1,5 +1,6 @@
 import type dayjs from "@calcom/dayjs";
 import { isTimeOutOfBounds, isTimeViolatingFutureLimit } from "@calcom/lib/isOutOfBounds";
+import { monitorCallbackSync } from "@calcom/lib/sentryWrapper";
 import { PeriodType } from "@calcom/prisma/client";
 
 type PeriodLimits = {
@@ -23,35 +24,37 @@ export class BoundaryChecker {
     periodType: PeriodType;
     minimumBookingNotice: number | undefined;
   }): Record<string, { time: string; attendees?: number; bookingUid?: string }[]> {
-    let foundAFutureLimitViolation = false;
+    return monitorCallbackSync(function mapWithinBoundsSlotsToDate() {
+      let foundAFutureLimitViolation = false;
 
-    return Object.entries(slotsMappedToDate).reduce((withinBoundsSlotsMappedToDate, [date, slots]) => {
-      if (foundAFutureLimitViolation && BoundaryChecker.doesRangeStartFromToday(periodType)) {
-        return withinBoundsSlotsMappedToDate;
-      }
-
-      const filteredSlots = slots.filter((slot) => {
-        const isFutureLimitViolationForTheSlot = isTimeViolatingFutureLimit({
-          time: slot.time,
-          periodLimits,
-        });
-
-        if (isFutureLimitViolationForTheSlot) {
-          foundAFutureLimitViolation = true;
+      return Object.entries(slotsMappedToDate).reduce((withinBoundsSlotsMappedToDate, [date, slots]) => {
+        if (foundAFutureLimitViolation && BoundaryChecker.doesRangeStartFromToday(periodType)) {
+          return withinBoundsSlotsMappedToDate;
         }
 
-        return (
-          !isFutureLimitViolationForTheSlot && !isTimeOutOfBounds({ time: slot.time, minimumBookingNotice })
-        );
-      });
+        const filteredSlots = slots.filter((slot) => {
+          const isFutureLimitViolationForTheSlot = isTimeViolatingFutureLimit({
+            time: slot.time,
+            periodLimits,
+          });
 
-      if (!filteredSlots.length) {
+          if (isFutureLimitViolationForTheSlot) {
+            foundAFutureLimitViolation = true;
+          }
+
+          return (
+            !isFutureLimitViolationForTheSlot && !isTimeOutOfBounds({ time: slot.time, minimumBookingNotice })
+          );
+        });
+
+        if (!filteredSlots.length) {
+          return withinBoundsSlotsMappedToDate;
+        }
+
+        withinBoundsSlotsMappedToDate[date] = filteredSlots;
         return withinBoundsSlotsMappedToDate;
-      }
-
-      withinBoundsSlotsMappedToDate[date] = filteredSlots;
-      return withinBoundsSlotsMappedToDate;
-    }, {} as typeof slotsMappedToDate);
+      }, {} as typeof slotsMappedToDate);
+    });
   }
 
   /**
