@@ -67,7 +67,6 @@ export class PaymentService implements IAbstractPaymentService {
       }
       return await response.json();
     } catch (error) {
-      log.error(`BTCPay server API request failed: ${endpoint}`, safeStringify(error));
       throw error;
     }
   }
@@ -86,7 +85,7 @@ export class PaymentService implements IAbstractPaymentService {
           title: true,
         },
       });
-      if (!booking || booking === null || !this.credentials?.storeId) {
+      if (!booking || !this.credentials?.storeId) {
         throw new Error("BTCPay server: Booking or store ID not found");
       }
 

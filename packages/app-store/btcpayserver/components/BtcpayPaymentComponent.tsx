@@ -61,7 +61,6 @@ export const BtcpayPaymentComponent = (props: IPaymentComponentProps) => {
           title="BTCPay Payment"
           className="h-[1000px] w-full rounded-md border-0"
           onLoad={() => setIframeLoaded(true)}
-          onError={() => console.error("Failed to load iframe")}
         />
       </div>
 
@@ -76,22 +75,6 @@ export const BtcpayPaymentComponent = (props: IPaymentComponentProps) => {
         </Button>
 
         <Button onClick={handleOpenInNewTab}>Open in New Tab</Button>
-      </div>
-
-      <div className="mt-4 flex items-center text-sm">
-        Powered by&nbsp;
-        <img
-          title="BTCPay Server"
-          src="/app-store/btcpayserver/btcpay.svg"
-          alt="BTCPay Server"
-          className="h-8 dark:hidden"
-        />
-        <img
-          title="BTCPay Server"
-          src="/app-store/btcpayserver/btcpay.svg"
-          alt="BTCPay Server"
-          className="hidden h-8 dark:block"
-        />
       </div>
     </div>
   );
@@ -116,35 +99,37 @@ function PaymentChecker(props: PaymentCheckerProps) {
     const sp = searchParams;
     const interval = setInterval(() => {
       (async () => {
-        if (props.booking.status === "ACCEPTED") {
-          return;
-        }
-        const { booking: bookingResult } = await utils.viewer.bookings.find.fetch({
-          bookingUid: props.booking.uid,
-        });
-
-        if (bookingResult?.paid) {
-          showToast("Payment successful", "success");
-
-          const params: {
-            uid: string;
-            email: string | null;
-            location: string;
-          } = {
-            uid: props.booking.uid,
-            email: sp.get("email"),
-            location: t("web_conferencing_details_to_follow"),
-          };
-
-          bookingSuccessRedirect({
-            successRedirectUrl: props.eventType.successRedirectUrl,
-            query: params,
-            booking: props.booking,
-            forwardParamsSuccessRedirect: props.eventType.forwardParamsSuccessRedirect,
+        try {
+          if (props.booking.status === "ACCEPTED") {
+            return;
+          }
+          const { booking: bookingResult } = await utils.viewer.bookings.find.fetch({
+            bookingUid: props.booking.uid,
           });
-        }
+
+          if (bookingResult?.paid) {
+            showToast("Payment successful", "success");
+
+            const params: {
+              uid: string;
+              email: string | null;
+              location: string;
+            } = {
+              uid: props.booking.uid,
+              email: sp.get("email"),
+              location: t("web_conferencing_details_to_follow"),
+            };
+
+            bookingSuccessRedirect({
+              successRedirectUrl: props.eventType.successRedirectUrl,
+              query: params,
+              booking: props.booking,
+              forwardParamsSuccessRedirect: props.eventType.forwardParamsSuccessRedirect,
+            });
+          }
+        } catch (e) {}
       })();
-    }, 1000);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, [

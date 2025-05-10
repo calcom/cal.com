@@ -15,7 +15,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     const session = await getServerSession({ req });
     if (!session?.user?.id) return { redirect: { permanent: false, destination: "/auth/login" } };
 
-    const credentials = await prisma.credential.findFirst({
+    const credential = await prisma.credential.findFirst({
       where: {
         type: "btcpayserver_payment",
         userId: session?.user.id,
@@ -23,15 +23,14 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     });
 
     let props: IBTCPaySetupProps | undefined;
-    if (credentials?.key) {
-      const keyParsing = btcpayCredentialKeysSchema.safeParse(credentials.key);
+    if (credential?.key) {
+      const keyParsing = btcpayCredentialKeysSchema.safeParse(credential.key);
       if (keyParsing.success) {
         props = keyParsing.data;
       }
     }
     return { props: props ?? {} };
   } catch (error) {
-    console.error("Error in BTCPay server getServerSideProps:", error);
     return {
       props: {},
     };
