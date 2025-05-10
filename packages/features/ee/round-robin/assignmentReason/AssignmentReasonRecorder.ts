@@ -18,11 +18,15 @@ export default class AssignmentReasonRecorder {
     routingFormResponseId,
     organizerId,
     teamId,
+    isRerouting,
+    reroutedByEmail,
   }: {
     bookingId: number;
     routingFormResponseId: number;
     organizerId: number;
     teamId: number;
+    isRerouting: boolean;
+    reroutedByEmail?: string | null;
   }) {
     // Get the routing form data
     const routingFormResponse = await prisma.app_RoutingForms_FormResponse.findFirst({
@@ -106,8 +110,10 @@ export default class AssignmentReasonRecorder {
     await prisma.assignmentReason.create({
       data: {
         bookingId: bookingId,
-        reasonEnum: AssignmentReasonEnum.ROUTING_FORM_ROUTING,
-        reasonString: attributeValues.join(", "),
+        reasonEnum: isRerouting ? AssignmentReasonEnum.REROUTED : AssignmentReasonEnum.ROUTING_FORM_ROUTING,
+        reasonString: `${
+          isRerouting && reroutedByEmail ? `Rerouted by ${reroutedByEmail}` : ""
+        } ${attributeValues.join(", ")}`,
       },
     });
   }
