@@ -6,7 +6,7 @@ import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 
-const scopes = ["crm.objects.contacts.read", "crm.objects.contacts.write"];
+const scopes = ["crm.objects.contacts.read", "crm.objects.contacts.write", "crm.objects.owners.read"];
 
 const hubspotClient = new hubspot.Client();
 
