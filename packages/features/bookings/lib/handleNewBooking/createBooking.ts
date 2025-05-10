@@ -130,7 +130,6 @@ const _createBooking = async ({
   }
 };
 
-// Export the function wrapped with withReporting
 export const createBooking = withReporting(_createBooking, "createBooking");
 
 async function saveBooking(

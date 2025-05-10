@@ -268,7 +268,7 @@ const _getBusyTimesFromTeamLimits = async (
   return limitManager.getBusyTimes();
 };
 
-export const getBusyTimesFromLimits = withReporting(_getBusyTimesFromLimits, "_getBusyTimesFromLimits");
+export const getBusyTimesFromLimits = withReporting(_getBusyTimesFromLimits, "getBusyTimesFromLimits");
 
 export const getBusyTimesFromBookingLimits = withReporting(
   _getBusyTimesFromBookingLimits,
@@ -277,5 +277,5 @@ export const getBusyTimesFromBookingLimits = withReporting(
 
 export const getBusyTimesFromTeamLimits = withReporting(
   _getBusyTimesFromTeamLimits,
-  "_getBusyTimesFromTeamLimits"
+  "getBusyTimesFromTeamLimits"
 );

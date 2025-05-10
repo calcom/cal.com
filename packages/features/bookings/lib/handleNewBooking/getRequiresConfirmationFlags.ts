@@ -69,7 +69,6 @@ const _determineRequiresConfirmation = async (
   return requiresConfirmation;
 };
 
-// Export the function wrapped with withReporting
 export const determineRequiresConfirmation = withReporting(
   _determineRequiresConfirmation,
   "determineRequiresConfirmation"

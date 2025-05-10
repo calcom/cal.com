@@ -26,5 +26,4 @@ const _refreshCredentials = async (
   return buildAllCredentials({ delegationCredentials, existingCredentials: refreshedDbCredentials });
 };
 
-// Export the function wrapped with withReporting
 export const refreshCredentials = withReporting(_refreshCredentials, "refreshCredentials");

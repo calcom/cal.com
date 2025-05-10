@@ -362,4 +362,4 @@ export async function getBusyTimesForLimitChecks(params: {
   return busyTimes;
 }
 
-export default withReporting(getBusyTimes, "getBusyTimes");
+export default withReporting(_getBusyTimes, "getBusyTimes");

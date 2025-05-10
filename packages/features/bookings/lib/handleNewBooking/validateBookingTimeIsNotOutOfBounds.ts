@@ -57,7 +57,6 @@ const _validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBookingTim
   if (timeOutOfBounds) throw new HttpError({ statusCode: 400, message: ErrorCode.BookingTimeOutOfBounds });
 };
 
-// Export the function wrapped with withReporting
 export const validateBookingTimeIsNotOutOfBounds = withReporting(
   _validateBookingTimeIsNotOutOfBounds,
   "validateBookingTimeIsNotOutOfBounds"

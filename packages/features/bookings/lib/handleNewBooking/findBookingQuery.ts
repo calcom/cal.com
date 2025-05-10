@@ -49,5 +49,4 @@ const _findBookingQuery = async (bookingId: number) => {
   return foundBooking;
 };
 
-// Export the function wrapped with withReporting
 export const findBookingQuery = withReporting(_findBookingQuery, "findBookingQuery");

@@ -218,4 +218,4 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   };
 };
 
-export const getRoutedUrl = withReporting(_getRoutedUrl, "_getRoutedUrl");
+export const getRoutedUrl = withReporting(_getRoutedUrl, "getRoutedUrl");

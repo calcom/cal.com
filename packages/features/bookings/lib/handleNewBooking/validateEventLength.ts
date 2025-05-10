@@ -28,5 +28,4 @@ const _validateEventLength = ({
   }
 };
 
-// Export the function wrapped with withReporting
 export const validateEventLength = withReporting(_validateEventLength, "validateEventLength");
