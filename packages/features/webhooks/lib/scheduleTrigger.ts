@@ -6,6 +6,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { getHumanReadableLocationValue } from "@calcom/lib/location";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { ApiKey } from "@calcom/prisma/client";
@@ -304,7 +305,7 @@ export async function scheduleTrigger({
   }
 }
 
-export async function deleteWebhookScheduledTriggers({
+async function _deleteWebhookScheduledTriggers({
   booking,
   appId,
   triggerEvent,
@@ -360,6 +361,11 @@ export async function deleteWebhookScheduledTriggers({
     console.error("Error deleting webhookScheduledTriggers ", error);
   }
 }
+
+export const deleteWebhookScheduledTriggers = withReporting(
+  _deleteWebhookScheduledTriggers,
+  "deleteWebhookScheduledTriggers"
+);
 
 export async function updateTriggerForExistingBookings(
   webhook: Webhook,

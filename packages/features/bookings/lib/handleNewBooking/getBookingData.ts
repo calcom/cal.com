@@ -4,6 +4,7 @@ import type z from "zod";
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod/custom/booking";
 
 import type { TgetBookingDataSchema } from "../getBookingDataSchema";
@@ -12,7 +13,8 @@ import { handleCustomInputs } from "./handleCustomInputs";
 
 type ReqBodyWithEnd = TgetBookingDataSchema & { end: string };
 
-export async function getBookingData<T extends z.ZodType>({
+// Define the function with underscore prefix
+const _getBookingData = async <T extends z.ZodType>({
   reqBody,
   eventType,
   schema,
@@ -20,7 +22,7 @@ export async function getBookingData<T extends z.ZodType>({
   reqBody: Record<string, any>;
   eventType: getEventTypeResponse;
   schema: T;
-}) {
+}) => {
   const parsedBody = await schema.parseAsync(reqBody);
   const parsedBodyWithEnd = (body: TgetBookingDataSchema): body is ReqBodyWithEnd => {
     // Use the event length to auto-set the event end time.
@@ -78,9 +80,11 @@ export async function getBookingData<T extends z.ZodType>({
     // So TS doesn't complain about unknown properties
     customInputs: undefined,
   };
-}
+};
 
-export type AwaitedBookingData = Awaited<ReturnType<typeof getBookingData>>;
+export const getBookingData = withReporting(_getBookingData, "getBookingData");
+
+export type AwaitedBookingData = Awaited<ReturnType<typeof _getBookingData>>;
 export type RescheduleReason = AwaitedBookingData["rescheduleReason"];
 export type NoEmail = AwaitedBookingData["noEmail"];
 export type AdditionalNotes = AwaitedBookingData["notes"];
