@@ -1176,124 +1176,141 @@ export const insightsRouter = router({
 
       return eventTypeList;
     }),
-  recentRatings: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
-    const { teamId, startDate, endDate, eventTypeId, isAll, userId, memberUserId } = input;
-    if (!teamId) {
-      return [];
-    }
-    const user = ctx.user;
+  recentRatings: userBelongsToTeamProcedure
+    .input(
+      rawDataInputSchema.extend({
+        limit: z.number().optional(),
+        offset: z.number().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { teamId, startDate, endDate, eventTypeId, isAll, userId, memberUserId, limit, offset } = input;
+      if (!teamId) {
+        return { rows: [], meta: { totalRowCount: 0 } };
+      }
+      const user = ctx.user;
 
-    const r = await buildBaseWhereCondition({
-      teamId,
-      eventTypeId: eventTypeId ?? undefined,
-      memberUserId: memberUserId ?? undefined,
-      userId: userId ?? undefined,
-      isAll: isAll ?? false,
-      ctx: {
-        userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-        userOrganizationId: ctx.user.organizationId,
-        insightsDb: ctx.insightsDb,
-      },
-    });
-
-    let { whereCondition: bookingWhere } = r;
-
-    bookingWhere = {
-      ...bookingWhere,
-      teamId,
-      eventTypeId,
-      createdAt: {
-        gte: dayjs(startDate).startOf("day").toDate(),
-        lte: dayjs(endDate).endOf("day").toDate(),
-      },
-      ratingFeedback: { not: null },
-    };
-
-    if (isAll && user.isOwnerAdminOfParentTeam) {
-      delete bookingWhere.teamId;
-      const teamsFromOrg = await ctx.insightsDb.team.findMany({
-        where: {
-          parentId: user?.organizationId,
-        },
-        select: {
-          id: true,
+      const r = await buildBaseWhereCondition({
+        teamId,
+        eventTypeId: eventTypeId ?? undefined,
+        memberUserId: memberUserId ?? undefined,
+        userId: userId ?? undefined,
+        isAll: isAll ?? false,
+        ctx: {
+          userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
+          userOrganizationId: ctx.user.organizationId,
+          insightsDb: ctx.insightsDb,
         },
       });
-      const usersFromTeam = await ctx.insightsDb.membership.findMany({
-        where: {
-          teamId: {
-            in: teamsFromOrg.map((t) => t.id),
+
+      let { whereCondition: bookingWhere } = r;
+
+      bookingWhere = {
+        ...bookingWhere,
+        teamId,
+        eventTypeId,
+        createdAt: {
+          gte: dayjs(startDate).startOf("day").toDate(),
+          lte: dayjs(endDate).endOf("day").toDate(),
+        },
+        ratingFeedback: { not: null },
+      };
+
+      if (isAll && user.isOwnerAdminOfParentTeam) {
+        delete bookingWhere.teamId;
+        const teamsFromOrg = await ctx.insightsDb.team.findMany({
+          where: {
+            parentId: user?.organizationId,
           },
-          accepted: true,
+          select: {
+            id: true,
+          },
+        });
+        const usersFromTeam = await ctx.insightsDb.membership.findMany({
+          where: {
+            teamId: {
+              in: teamsFromOrg.map((t) => t.id),
+            },
+            accepted: true,
+          },
+          select: {
+            userId: true,
+          },
+        });
+
+        bookingWhere["OR"] = [
+          ...(bookingWhere.OR || []),
+          {
+            teamId: {
+              in: teamsFromOrg.map((t) => t.id),
+            },
+            isTeamBooking: true,
+          },
+          {
+            userId: {
+              in: usersFromTeam.map((u) => u.userId),
+            },
+            isTeamBooking: false,
+          },
+        ];
+      }
+
+      const totalCount = await ctx.insightsDb.bookingTimeStatus.count({
+        where: bookingWhere,
+      });
+
+      const bookingsFromTeam = await ctx.insightsDb.bookingTimeStatus.findMany({
+        where: bookingWhere,
+        orderBy: {
+          endTime: "desc",
         },
         select: {
           userId: true,
+          rating: true,
+          ratingFeedback: true,
         },
+        skip: offset ?? 0,
+        take: limit ?? 10,
       });
 
-      bookingWhere["OR"] = [
-        ...(bookingWhere.OR || []),
-        {
-          teamId: {
-            in: teamsFromOrg.map((t) => t.id),
-          },
-          isTeamBooking: true,
-        },
-        {
-          userId: {
-            in: usersFromTeam.map((u) => u.userId),
-          },
-          isTeamBooking: false,
-        },
-      ];
-    }
+      const userIds = bookingsFromTeam.reduce((userIds: number[], booking) => {
+        if (!!booking.userId && !userIds.includes(booking.userId)) {
+          userIds.push(booking.userId);
+        }
+        return userIds;
+      }, []);
 
-    const bookingsFromTeam = await ctx.insightsDb.bookingTimeStatus.findMany({
-      where: bookingWhere,
-      orderBy: {
-        endTime: "desc",
-      },
-      select: {
-        userId: true,
-        rating: true,
-        ratingFeedback: true,
-      },
-      take: 10,
-    });
-
-    const userIds = bookingsFromTeam.reduce((userIds: number[], booking) => {
-      if (!!booking.userId && !userIds.includes(booking.userId)) {
-        userIds.push(booking.userId);
+      if (userIds.length === 0) {
+        return { rows: [], meta: { totalRowCount: 0 } };
       }
-      return userIds;
-    }, []);
-
-    if (userIds.length === 0) {
-      return [];
-    }
-    const usersFromTeam = await ctx.insightsDb.user.findMany({
-      where: {
-        id: {
-          in: userIds,
+      const usersFromTeam = await ctx.insightsDb.user.findMany({
+        where: {
+          id: {
+            in: userIds,
+          },
         },
-      },
-      select: userSelect,
-    });
+        select: userSelect,
+      });
 
-    const userHashMap = buildHashMapForUsers(usersFromTeam);
+      const userHashMap = buildHashMapForUsers(usersFromTeam);
 
-    const result = bookingsFromTeam.map((booking) => ({
-      userId: booking.userId,
-      // We know with 100% certainty that userHashMap.get(...) will retrieve a user
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      user: userHashMap.get(booking.userId)!,
-      emailMd5: md5(user?.email),
-      rating: booking.rating,
-      feedback: booking.ratingFeedback,
-    }));
+      const result = bookingsFromTeam.map((booking) => ({
+        userId: booking.userId,
+        // We know with 100% certainty that userHashMap.get(...) will retrieve a user
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        user: userHashMap.get(booking.userId)!,
+        emailMd5: md5(user?.email),
+        rating: booking.rating,
+        feedback: booking.ratingFeedback,
+      }));
 
-    return result;
-  }),
+      return {
+        rows: result,
+        meta: {
+          totalRowCount: totalCount,
+        },
+      };
+    }),
   membersWithMostNoShow: userBelongsToTeamProcedure
     .input(rawDataInputSchema)
     .query(async ({ ctx, input }) => {
