@@ -60,15 +60,6 @@ const monitorCallbackSync = <T extends (...args: any[]) => any>(
 };
 
 /**
- * Type guard to check if a function returns a Promise
- */
-function isAsyncFunction<T extends any[], U>(
-  func: (...args: T) => U | Promise<U>
-): func is (...args: T) => Promise<U> {
-  return func.constructor.name === "AsyncFunction";
-}
-
-/**
  * Type guard to check if a value is a Promise
  */
 function isPromise<T>(value: unknown): value is Promise<T> {
