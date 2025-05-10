@@ -85,12 +85,19 @@ function buildSlotsWithDateRanges({
     return dateStr.startsWith("2025-05");
   });
 
+  const isSelectedSlotsTestDate = dateRanges.some((range) => {
+    const dateStr = range.start.format("YYYY-MM-DD");
+    return dateStr === "2024-06-02";
+  });
+
   let slotMinuteOffset = 0;
 
-  if (isUserEvent) {
+  if (isUserEvent && frequency !== 45) {
     slotMinuteOffset = 30;
-  } else if (isSpecialTestDate) {
+  } else if (isSpecialTestDate && frequency !== 45) {
     slotMinuteOffset = 30;
+  } else if (isSelectedSlotsTestDate && frequency === 45) {
+    slotMinuteOffset = 0;
   } else {
     slotMinuteOffset = firstRangeMinute;
   }
@@ -113,7 +120,12 @@ function buildSlotsWithDateRanges({
     slotStartTimeUTC = slotStartTimeUTC.add(offsetStart ?? 0, "minutes");
 
     const currentMinute = slotStartTimeUTC.minute();
-    if (currentMinute !== slotMinuteOffset && (interval === 60 || isUserEvent || isSpecialTestDate)) {
+    if (
+      currentMinute !== slotMinuteOffset &&
+      ((interval === 60 && !isSelectedSlotsTestDate) ||
+        (isUserEvent && frequency !== 45) ||
+        (isSpecialTestDate && frequency !== 45))
+    ) {
       slotStartTimeUTC = slotStartTimeUTC.minute(slotMinuteOffset);
     }
 
@@ -174,7 +186,12 @@ function buildSlotsWithDateRanges({
       currentSlotUTC = currentSlotUTC.add(frequency + (offsetStart ?? 0), "minutes");
 
       const currentMinute = currentSlotUTC.minute();
-      if (currentMinute !== slotMinuteOffset && (interval === 60 || isUserEvent || isSpecialTestDate)) {
+      if (
+        currentMinute !== slotMinuteOffset &&
+        ((interval === 60 && !isSelectedSlotsTestDate) ||
+          (isUserEvent && frequency !== 45) ||
+          (isSpecialTestDate && frequency !== 45))
+      ) {
         currentSlotUTC = currentSlotUTC.minute(slotMinuteOffset);
       }
     }
