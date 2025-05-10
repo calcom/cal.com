@@ -235,13 +235,6 @@ const nextConfig = {
       config.externals.push("formidable");
     }
 
-    config.plugins.push(
-      new webpack.DefinePlugin({
-        __SENTRY_DEBUG__: false,
-        __SENTRY_TRACING__: false,
-      })
-    );
-
     config.plugins.push(new webpack.DefinePlugin({ "process.env.BUILD_ID": JSON.stringify(buildId) }));
 
     config.resolve.fallback = {

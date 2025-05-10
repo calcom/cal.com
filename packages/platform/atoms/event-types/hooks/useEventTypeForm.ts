@@ -131,6 +131,7 @@ export const useEventTypeForm = ({
       },
       isRRWeightsEnabled: eventType.isRRWeightsEnabled,
       maxLeadThreshold: eventType.maxLeadThreshold,
+      includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
       useEventLevelSelectedCalendars: eventType.useEventLevelSelectedCalendars,
       customReplyToEmail: eventType.customReplyToEmail || null,
     };

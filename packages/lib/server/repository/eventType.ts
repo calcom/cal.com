@@ -706,6 +706,7 @@ export class EventTypeRepository {
       },
       secondaryEmailId: true,
       maxLeadThreshold: true,
+      includeNoShowInRRCalculation: true,
       useEventLevelSelectedCalendars: true,
     });
 
@@ -843,6 +844,7 @@ export class EventTypeRepository {
         rrSegmentQueryValue: true,
         isRRWeightsEnabled: true,
         maxLeadThreshold: true,
+        includeNoShowInRRCalculation: true,
         useEventLevelSelectedCalendars: true,
         team: {
           select: {

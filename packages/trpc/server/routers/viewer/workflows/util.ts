@@ -44,6 +44,7 @@ export const bookingSelect = {
   title: true,
   uid: true,
   metadata: true,
+  smsReminderNumber: true,
   attendees: {
     select: {
       name: true,
@@ -620,10 +621,6 @@ export async function scheduleBookingReminders(
 
   //create reminders for all bookings for each workflow step
   const promiseSteps = workflowSteps.map(async (step) => {
-    // we do not have attendees phone number (user is notified about that when setting this action)
-    if (step.action == WorkflowActions.SMS_ATTENDEE || step.action == WorkflowActions.WHATSAPP_ATTENDEE)
-      return;
-
     const promiseScheduleReminders = bookings.map(async (booking) => {
       const defaultLocale = "en";
       const bookingInfo = {
@@ -742,6 +739,44 @@ export async function scheduleBookingReminders(
           teamId: teamId,
           verifiedAt: step?.verifiedAt ?? null,
         });
+      } else if (booking.smsReminderNumber) {
+        if (step.action === WorkflowActions.SMS_ATTENDEE) {
+          await scheduleSMSReminder({
+            evt: bookingInfo,
+            reminderPhone: booking.smsReminderNumber,
+            triggerEvent: trigger,
+            action: step.action,
+            timeSpan: {
+              time,
+              timeUnit,
+            },
+            message: step.reminderBody || "",
+            workflowStepId: step.id,
+            template: step.template,
+            sender: step.sender,
+            userId: userId,
+            teamId: teamId,
+            verifiedAt: step?.verifiedAt ?? null,
+          });
+        } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE) {
+          await scheduleWhatsappReminder({
+            evt: bookingInfo,
+            reminderPhone: booking.smsReminderNumber,
+            triggerEvent: trigger,
+            action: step.action,
+            timeSpan: {
+              time,
+              timeUnit,
+            },
+            message: step.reminderBody || "",
+            workflowStepId: step.id,
+            template: step.template,
+            sender: step.sender,
+            userId: userId,
+            teamId: teamId,
+            verifiedAt: step?.verifiedAt ?? null,
+          });
+        }
       }
     });
     await Promise.all(promiseScheduleReminders);
