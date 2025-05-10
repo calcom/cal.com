@@ -101,8 +101,14 @@ export class CreditService {
     }
 
     if (userId) {
-      const team = await this.getTeamWithAvailableCredits(userId);
-      return team.availableCredits > 0;
+      //todo: check if user maybe has available credits
+      const teamWithAvailableCredits = await this.getTeamWithAvailableCredits(userId);
+
+      if (teamWithAvailableCredits && teamWithAvailableCredits?.availableCredits > 0) return true;
+
+      const userCredits = await this.getAllCredits({ userId });
+
+      return userCredits.additionalCredits > 0;
     }
 
     return false;
