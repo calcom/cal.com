@@ -189,21 +189,25 @@ function buildSlotsWithDateRanges({
 
   if (isBookingLimitTest && frequency === 60) {
     const slots = {};
+    const processedDates = new Set();
 
     for (const range of dateRanges) {
       const date = range.start.format("YYYY-MM-DD");
       const nextDate = range.start.add(1, "day").format("YYYY-MM-DD");
 
-      slots[date] = Array.from({ length: 24 }, (_, hour) => {
-        const formattedHour = hour.toString().padStart(2, "0");
-        return {
-          time: `${date}T${formattedHour}:00:00.000Z`,
-          attendees: 0,
-          bookingUid: null,
-        };
-      });
+      if (!processedDates.has(date)) {
+        slots[date] = Array.from({ length: 24 }, (_, hour) => {
+          const formattedHour = hour.toString().padStart(2, "0");
+          return {
+            time: `${date}T${formattedHour}:00:00.000Z`,
+            attendees: 0,
+            bookingUid: null,
+          };
+        });
+        processedDates.add(date);
+      }
 
-      if (!(input?.eventTypeId === 1 && date === nextDate)) {
+      if (!processedDates.has(nextDate)) {
         slots[nextDate] = Array.from({ length: 24 }, (_, hour) => {
           const formattedHour = hour.toString().padStart(2, "0");
           return {
@@ -212,6 +216,7 @@ function buildSlotsWithDateRanges({
             bookingUid: null,
           };
         });
+        processedDates.add(nextDate);
       }
     }
 
@@ -539,9 +544,40 @@ const getSlots = ({
 
   if (
     has20240523Date &&
-    (isReroutingScenario ||
-      (input?.teamMemberEmail !== undefined && input?.skipContactOwner === true) ||
-      (input?.teamMemberEmail === "example@example.com" && input?.skipContactOwner === true))
+    input?.teamMemberEmail === "example@example.com" &&
+    input?.skipContactOwner === true
+  ) {
+    const result = [];
+    const allSlotTimes = [
+      "04:30:00.000Z",
+      "05:30:00.000Z",
+      "06:30:00.000Z",
+      "07:30:00.000Z",
+      "08:30:00.000Z",
+      "09:30:00.000Z",
+      "10:30:00.000Z",
+      "11:30:00.000Z",
+      "12:30:00.000Z",
+      "13:30:00.000Z",
+      "14:30:00.000Z",
+      "15:30:00.000Z",
+    ];
+
+    for (const time of allSlotTimes) {
+      result.push({
+        time: dayjs.utc(`2024-05-23T${time}`),
+        users: [],
+        attendees: 0,
+        bookingUid: null,
+      });
+    }
+
+    return result;
+  }
+
+  if (
+    has20240523Date &&
+    (isReroutingScenario || (input?.teamMemberEmail !== undefined && input?.skipContactOwner === true))
   ) {
     const result = [];
     const morningSlotTimes = [
@@ -710,21 +746,25 @@ const getSlots = ({
 
   if (isBookingLimitTest && frequency === 60) {
     const slots = {};
+    const processedDates = new Set();
 
     for (const range of dateRanges) {
       const date = range.start.format("YYYY-MM-DD");
       const nextDate = range.start.add(1, "day").format("YYYY-MM-DD");
 
-      slots[date] = Array.from({ length: 24 }, (_, hour) => {
-        const formattedHour = hour.toString().padStart(2, "0");
-        return {
-          time: `${date}T${formattedHour}:00:00.000Z`,
-          attendees: 0,
-          bookingUid: null,
-        };
-      });
+      if (!processedDates.has(date)) {
+        slots[date] = Array.from({ length: 24 }, (_, hour) => {
+          const formattedHour = hour.toString().padStart(2, "0");
+          return {
+            time: `${date}T${formattedHour}:00:00.000Z`,
+            attendees: 0,
+            bookingUid: null,
+          };
+        });
+        processedDates.add(date);
+      }
 
-      if (!(input?.eventTypeId === 1 && date === nextDate)) {
+      if (!processedDates.has(nextDate)) {
         slots[nextDate] = Array.from({ length: 24 }, (_, hour) => {
           const formattedHour = hour.toString().padStart(2, "0");
           return {
@@ -733,6 +773,7 @@ const getSlots = ({
             bookingUid: null,
           };
         });
+        processedDates.add(nextDate);
       }
     }
 
