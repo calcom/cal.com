@@ -45,12 +45,21 @@ function createReplacer(): (key: string, value: unknown) => unknown {
 
     // Handle Error objects specially to preserve their structure
     if (value instanceof Error) {
-      return {
+      const errorObj: Record<string, unknown> = {
         name: value.name,
         message: value.message,
-        ...(value.stack && { stack: value.stack }),
-        ...(value.cause && { cause: value.cause }),
       };
+
+      if (value.stack) {
+        errorObj.stack = value.stack;
+      }
+
+      // Handle cause property safely
+      if ("cause" in value && value.cause !== undefined) {
+        errorObj.cause = value.cause;
+      }
+
+      return errorObj;
     }
 
     return value;
