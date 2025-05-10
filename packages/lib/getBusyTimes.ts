@@ -9,8 +9,8 @@ import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
-import { withReporting } from "@calcom/lib/withReporting";
 import prisma from "@calcom/prisma";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
