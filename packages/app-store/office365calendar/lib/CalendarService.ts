@@ -59,7 +59,7 @@ interface BodyValue {
 }
 
 const MICROSOFT_WEBHOOK_URL = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/office365calendar/webhook`;
-const MICROSOFT_SUBSCRIPTION_TTL = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
+export const MICROSOFT_SUBSCRIPTION_TTL = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
 
 export default class Office365CalendarService implements Calendar {
   private url = "";
@@ -396,7 +396,6 @@ export default class Office365CalendarService implements Calendar {
 
     this.log.debug("[Cache Miss] Fetching availability", { dateFrom, dateTo, calendarIds });
     const data = await this.fetchAvailability(dateFrom, dateTo, calendarIds);
-    await this.setAvailabilityInCache(cacheArgs, data);
     return data;
   }
 
@@ -409,12 +408,14 @@ export default class Office365CalendarService implements Calendar {
   ): Promise<EventBusyDate[]> {
     this.log.debug("Getting availability", { dateFrom, dateTo, selectedCalendars });
 
-    const selectedCalendarIds = selectedCalendars
-      .filter((e) => e.integration === this.integrationName)
-      .map((e) => e.externalId);
-
+    const selectedCalendarIds = selectedCalendars.reduce((calendarIds, calendar) => {
+      if (calendar.integration === this.integrationName && calendar.externalId)
+        calendarIds.push(calendar.externalId);
+      return calendarIds;
+    }, [] as string[]);
     if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
-      return [];
+      // Only calendars of other integrations selected
+      return Promise.resolve([]);
     }
 
     const getCalIds = async () => {
@@ -461,7 +462,7 @@ export default class Office365CalendarService implements Calendar {
       }
     } catch (error) {
       this.log.error("Error getting availability", { error, selectedCalendars });
-      throw error;
+      return Promise.reject([]);
     }
   }
 
@@ -713,32 +714,6 @@ export default class Office365CalendarService implements Calendar {
       );
       await this.setAvailabilityInCache(parsedArgs, data);
     }
-  }
-
-  async createSelectedCalendar(
-    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId">
-  ) {
-    return await SelectedCalendarRepository.create({
-      ...data,
-      integration: this.integrationName,
-      credentialId: this.credential.id,
-    });
-  }
-
-  async upsertSelectedCalendar(
-    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId" | "userId">
-  ) {
-    if (!this.credential.userId) {
-      this.log.error("upsertSelectedCalendar failed. userId is missing.");
-      return;
-    }
-    return await SelectedCalendarRepository.upsert({
-      ...data,
-      eventTypeId: data.eventTypeId ?? null,
-      integration: this.integrationName,
-      credentialId: this.credential.id,
-      userId: this.credential.userId,
-    });
   }
 
   async upsertSelectedCalendarsForEventTypeIds(

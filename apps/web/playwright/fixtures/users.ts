@@ -97,6 +97,7 @@ export const createTeamEventType = async (
     seatsPerTimeSlot?: number;
     managedEventUnlockedFields?: Record<string, boolean>;
     assignAllTeamMembers?: boolean;
+    locations?: [{ type?: string; address?: string }];
   }
 ) => {
   return await prisma.eventType.create({
@@ -127,7 +128,10 @@ export const createTeamEventType = async (
       slug: scenario?.teamEventSlug ?? `${teamEventSlug}-team-id-${team.id}`,
       length: scenario?.teamEventLength ?? 30,
       seatsPerTimeSlot: scenario?.seatsPerTimeSlot,
-      locations: [{ type: "integrations:daily" }],
+      locations:
+        scenario?.locations && scenario?.locations.length > 0
+          ? scenario?.locations
+          : [{ type: "integrations:daily" }],
       metadata:
         scenario?.schedulingType === SchedulingType.MANAGED
           ? {
