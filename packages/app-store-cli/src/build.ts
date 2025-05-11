@@ -4,6 +4,7 @@ import fs from "fs";
 import { debounce } from "lodash";
 import path from "path";
 import prettier from "prettier";
+import { configMetadata } from "@calcom/prisma/zod/configType";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
@@ -30,6 +31,24 @@ type App = Partial<AppMeta> & {
   name: string;
   path: string;
 };
+
+function validateAppConfig(app: App) {
+  const configPath = path.join(APP_STORE_PATH, app.path, "config.json");
+  if (fs.existsSync(configPath)) {
+    try {
+      const configContent = fs.readFileSync(configPath, "utf8");
+      const configJson = JSON.parse(configContent);
+      configMetadata.parse(configJson);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(` Error validating ${app.name}/config.json: ${error.message}`);
+      } else {
+        console.error(`Error validating ${app.name}/config.json`);
+      }
+      process.exit(1);
+    }
+  }
+}
 function generateFiles() {
   const browserOutput = [`import dynamic from "next/dynamic"`];
   const metadataOutput = [];
@@ -63,8 +82,11 @@ function generateFiles() {
         });
       }
     }
-  });
-
+  })
+        
+  forEachAppDir((app) => {
+    validateAppConfig(app);
+  })
   function forEachAppDir(callback: (arg: App) => void, filter: (arg: App) => boolean = () => true) {
     for (let i = 0; i < appDirs.length; i++) {
       const configPath = path.join(APP_STORE_PATH, appDirs[i].path, "config.json");
@@ -181,34 +203,41 @@ function generateFiles() {
     }
 
     function createExportObject() {
-      output.push(`export const ${objectName} = {`);
+    output.push(`export const ${objectName} = {`);
 
-      forEachAppDir((app) => {
-        const chosenConfig = getChosenImportConfig(importConfig, app);
+    forEachAppDir((app) => {
+      const chosenConfig = getChosenImportConfig(importConfig, app);
 
-        if (fileToBeImportedExists(app, chosenConfig)) {
-          if (!lazyImport) {
-            const key = entryObjectKeyGetter(app);
-            output.push(`"${key}": ${getLocalImportName(app, chosenConfig)},`);
+      if (fileToBeImportedExists(app, chosenConfig)) {
+        if (!lazyImport) {
+          const keyResult = entryObjectKeyGetter(app, chosenConfig.importName);
+          
+          // Check if the result includes a colon (meaning it's a full assignment expression)
+          if (typeof keyResult === 'string' && keyResult.includes(':')) {
+            output.push(`${keyResult},`);
           } else {
-            const key = entryObjectKeyGetter(app);
-            if (chosenConfig.fileToBeImported.endsWith(".tsx")) {
-              output.push(
-                `"${key}": dynamic(() => import("${getModulePath(
-                  app.path,
-                  chosenConfig.fileToBeImported
-                )}")),`
-              );
-            } else {
-              output.push(`"${key}": import("${getModulePath(app.path, chosenConfig.fileToBeImported)}"),`);
-            }
+            // Original code for normal key assignment
+            output.push(`"${keyResult}": ${getLocalImportName(app, chosenConfig)},`);
+          }
+        } else {
+          // Existing lazy loading code
+          const key = entryObjectKeyGetter(app);
+          if (chosenConfig.fileToBeImported.endsWith(".tsx")) {
+            output.push(
+              `"${key}": dynamic(() => import("${getModulePath(
+                app.path,
+                chosenConfig.fileToBeImported
+              )}")),`
+            );
+          } else {
+            output.push(`"${key}": import("${getModulePath(app.path, chosenConfig.fileToBeImported)}"),`);
           }
         }
-      }, filter);
+      }
+    }, filter);
 
-      output.push(`};`);
-    }
-
+    output.push(`};`);
+  }
     function getChosenImportConfig(importConfig: ImportConfig, app: { path: string }) {
       let chosenConfig;
 
@@ -235,6 +264,7 @@ function generateFiles() {
   );
 
   metadataOutput.push(
+    `import { configMetadata } from "@calcom/prisma/zod/configType";`,
     ...getExportedObject("appStoreMetadata", {
       // Try looking for config.json and if it's not found use _metadata.ts to generate appStoreMetadata
       importConfig: [
@@ -247,14 +277,27 @@ function generateFiles() {
           importName: "metadata",
         },
       ],
+       entryObjectKeyGetter: (app, importName) => {
+        const key = app.name;
+        // If this is a config.json file, we validate the config.json file
+        if (importName === "default" && app.path) {
+          const configPath = path.join(APP_STORE_PATH, app.path, "config.json");
+          if (fs.existsSync(configPath)) {
+            return `"${key}": configMetadata.parse(${getVariableName(app.name)}_config_json)`;
+          }
+        }
+        // Otherwise return normal reference
+        return key;
+    },
     })
   );
 
   bookerMetadataOutput.push(
+    // Add import statement
+    `import { configMetadata } from "@calcom/prisma/zod/configType";`,
     ...getExportedObject(
       "appStoreMetadata",
       {
-        // Try looking for config.json and if it's not found use _metadata.ts to generate appStoreMetadata
         importConfig: [
           {
             fileToBeImported: "config.json",
@@ -265,10 +308,22 @@ function generateFiles() {
             importName: "metadata",
           },
         ],
+        // Same customization as for metadataOutput
+        entryObjectKeyGetter: (app, importName) => {
+          const key = app.name;
+          if (importName === "default" && app.path) {
+            const configPath = path.join(APP_STORE_PATH, app.path, "config.json");
+            if (fs.existsSync(configPath)) {
+              return `"${key}": configMetadata.parse(${getVariableName(app.name)}_config_json)`;
+            }
+          }
+          return key;
+        },
       },
       isBookerApp
     )
   );
+
   schemasOutput.push(
     ...getExportedObject("appDataSchemas", {
       // Import path must have / even for windows and not \
