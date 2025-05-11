@@ -55,8 +55,6 @@ const translateEvent = (event: CalendarEvent) => {
 };
 
 const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenantId): VideoApiAdapter => {
-  const oAuthManagerHelper = oAuthManagerHelperModule.oAuthManagerHelper;
-  
   const auth = new OAuthManager({
     providerName: "office365_video",
     tokenUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
@@ -65,17 +63,17 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
     scopes: OFFICE365_VIDEO_SCOPES,
     tokenGetter: async () => {
       const appKeys = await getO365VideoAppKeys();
-      const tokenObject = await oAuthManagerHelper.getTokenObjectFromCredential(credential, appKeys.client_id);
+      const tokenObject = await oAuthManagerHelperModule.oAuthManagerHelper.getTokenObjectFromCredential(credential, appKeys.client_id);
       return tokenObject;
     },
     tokenSetter: async (tokenObject) => {
-      await oAuthManagerHelper.updateTokenObject(credential, tokenObject);
+      await oAuthManagerHelperModule.oAuthManagerHelper.updateTokenObject(credential, tokenObject);
     },
     tokenExpireHandler: async (tokenObject) => {
-      await oAuthManagerHelper.markTokenAsExpired(credential);
+      await oAuthManagerHelperModule.oAuthManagerHelper.markTokenAsExpired(credential);
     },
     tokenInvalidHandler: async () => {
-      await oAuthManagerHelper.invalidateCredential(credential);
+      await oAuthManagerHelperModule.oAuthManagerHelper.invalidateCredential(credential);
     },
   });
 
