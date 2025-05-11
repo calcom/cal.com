@@ -536,9 +536,21 @@ export async function getBookings({
                 jsonObjectFrom(
                   eb
                     .selectFrom("Attendee")
-                    .select(["Attendee.email"])
+                    .select(["Attendee.email", "Attendee.name"])
                     .whereRef("BookingSeat.attendeeId", "=", "Attendee.id")
-                    .where("Attendee.email", "=", user.email)
+                    .where((qb) => {
+                      const isOwner = eb.exists(
+                        eb
+                          .selectFrom("Booking")
+                          .select("Booking.id")
+                          .whereRef("Booking.id", "=", "BookingSeat.bookingId")
+                          .where("Booking.userId", "=", user.id)
+                      );
+                      return eb.or([
+                        isOwner,
+                        eb.and([eb.not(isOwner), qb("Attendee.email", "=", user.email)]),
+                      ]);
+                    })
                 ).as("attendee"),
               ])
               .whereRef("BookingSeat.bookingId", "=", "Booking.id")
@@ -637,7 +649,11 @@ export async function getBookings({
   const bookings = await Promise.all(
     plainBookings.map(async (booking) => {
       // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
-      if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
+      if (
+        booking.seatsReferences.length &&
+        !booking.eventType?.seatsShowAttendees &&
+        booking.user?.id !== user.id
+      ) {
         booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
       }
 

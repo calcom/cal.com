@@ -106,8 +106,15 @@ async function handler(input: CancelBookingInput) {
     });
   }
 
-  // If the booking is a seated event and there is no seatReferenceUid we should validate that logged in user is host
-  if (bookingToDelete.eventType?.seatsPerTimeSlot && !seatReferenceUid) {
+  const seatsToCancel = Array.isArray(seatReferenceUid)
+    ? seatReferenceUid
+    : seatReferenceUid
+    ? [seatReferenceUid]
+    : [];
+
+  // For seated events, require host permissions when canceling multiple seats or the entire booking
+  // Only individual attendees can cancel their own seats without being a host
+  if (bookingToDelete.eventType?.seatsPerTimeSlot && seatsToCancel.length !== 1) {
     const userIsHost = bookingToDelete.eventType.hosts.find((host) => {
       if (host.user.id === userId) return true;
     });
@@ -276,7 +283,7 @@ async function handler(input: CancelBookingInput) {
   // If it's just an attendee of a booking then just remove them from that booking
   const result = await cancelAttendeeSeat(
     {
-      seatReferenceUid: seatReferenceUid,
+      seatReferenceUid: seatsToCancel,
       bookingToDelete,
     },
     dataForWebhooks,
