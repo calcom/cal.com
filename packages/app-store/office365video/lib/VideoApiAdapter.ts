@@ -41,15 +41,23 @@ const getO365VideoAppKeys = async () => {
 };
 
 // Get the Microsoft Graph API endpoint for the user
-const getUserEndpoint = () => {
-  return Promise.resolve("https://graph.microsoft.com/v1.0/me");
+const getUserEndpoint = async (credential: CredentialForCalendarServiceWithTenantId) => {
+  const tokenObject = await oAuthManagerHelperModule.oAuthManagerHelper.getTokenObjectFromCredential(credential);
+  const graphApiUrl = `https://graph.microsoft.com/v1.0/users/${credential.tenantId}/`;
+  return graphApiUrl;
 };
 
 // Function to translate Cal.com event to Microsoft Teams meeting format
 const translateEvent = (event: CalendarEvent) => {
   return {
-    startDateTime: event.startTime,
-    endDateTime: event.endTime,
+    start: {
+      dateTime: event.startTime,
+      timeZone: "UTC",
+    },
+    end: {
+      dateTime: event.endTime,
+      timeZone: "UTC",
+    },
     subject: event.title,
   };
 };
@@ -96,7 +104,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
       // Create a Teams meeting using the Microsoft Graph API
-      const url = `${await getUserEndpoint()}/onlineMeetings`;
+      const url = `${await getUserEndpoint(credential)}/onlineMeetings`;
       
       const resultString = await auth
         .requestRaw({
