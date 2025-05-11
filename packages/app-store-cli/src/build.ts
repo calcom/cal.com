@@ -4,7 +4,7 @@ import fs from "fs";
 import { debounce } from "lodash";
 import path from "path";
 import prettier from "prettier";
-import { configMetadata } from "@calcom/prisma/zod/configType";
+import { parseconfigMetadata } from "@calcom/prisma/zod/configType";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
@@ -38,7 +38,7 @@ function validateAppConfig(app: App) {
     try {
       const configContent = fs.readFileSync(configPath, "utf8");
       const configJson = JSON.parse(configContent);
-      configMetadata.parse(configJson);
+      parseconfigMetadata(configJson);
     } catch (error) {
       if (error instanceof Error) {
         console.error(` Error validating ${app.name}/config.json: ${error.message}`);
@@ -264,7 +264,7 @@ function generateFiles() {
   );
 
   metadataOutput.push(
-    `import { configMetadata } from "@calcom/prisma/zod/configType";`,
+    `import { parseconfigMetadata } from "@calcom/prisma/zod/configType";`,
     ...getExportedObject("appStoreMetadata", {
       // Try looking for config.json and if it's not found use _metadata.ts to generate appStoreMetadata
       importConfig: [
@@ -283,7 +283,7 @@ function generateFiles() {
         if (importName === "default" && app.path) {
           const configPath = path.join(APP_STORE_PATH, app.path, "config.json");
           if (fs.existsSync(configPath)) {
-            return `"${key}": configMetadata.parse(${getVariableName(app.name)}_config_json)`;
+            return `"${key}": parseconfigMetadata(${getVariableName(app.name)}_config_json)`;
           }
         }
         // Otherwise return normal reference
@@ -294,7 +294,7 @@ function generateFiles() {
 
   bookerMetadataOutput.push(
     // Add import statement
-    `import { configMetadata } from "@calcom/prisma/zod/configType";`,
+    `import { parseconfigMetadata } from "@calcom/prisma/zod/configType";`,
     ...getExportedObject(
       "appStoreMetadata",
       {
@@ -314,7 +314,7 @@ function generateFiles() {
           if (importName === "default" && app.path) {
             const configPath = path.join(APP_STORE_PATH, app.path, "config.json");
             if (fs.existsSync(configPath)) {
-              return `"${key}": configMetadata.parse(${getVariableName(app.name)}_config_json)`;
+              return `"${key}": parseconfigMetadata(${getVariableName(app.name)}_config_json)`;
             }
           }
           return key;
