@@ -18,16 +18,15 @@ import { test } from "@calcom/web/playwright/lib/fixtures";
 export const testUserEmail = process.env.E2E_TEST_OUTLOOK_CALENDAR_EMAIL;
 const integration = "office365_calendar";
 const appSlug = "office365-calendar";
-let qaTestScheduleId = -1;
-let qaTestSelectedCalendarId = "";
-let qaTestDestinationCalendarId = -1;
-let qaTestTeamId = -1;
-let qaTestTeamEventId = -1;
+let testScheduleId = -1;
+let testSelectedCalendarId = "";
+let testDestinationCalendarId = -1;
+let testTeamId = -1;
 const client_id = process.env.E2E_TEST_OUTLOOK_CALENDAR_CLIENT_ID;
-const client_secret = process.env.E2E_TEST_OUTLOOK_CALENDAR_CLIENT_SECRET;
+const client_secret = process.env.E2E_TEST_OUTLOOK_CALENDAR_CLIENT_KEY;
 const tenant_id = process.env.E2E_TEST_OUTLOOK_CALENDAR_TENANT_ID;
 
-export async function setUpQAUserForIntegrationTest(
+export async function setUpTestUserForIntegrationTest(
   users: ReturnType<typeof createUsersFixture>,
   testTeamSlug: string,
   testTeamEventSlug: string
@@ -77,7 +76,7 @@ export async function setUpQAUserForIntegrationTest(
       integration: integration,
       credentialId: qaOutlookCredential?.id,
     });
-    qaTestSelectedCalendarId = selectedCalendar.id;
+    testSelectedCalendarId = selectedCalendar.id;
     destinationCalendar = await DestinationCalendarRepository.upsert({
       where: {
         userId: testUser.id,
@@ -92,7 +91,7 @@ export async function setUpQAUserForIntegrationTest(
         primaryEmail: testUserEmail,
       },
     });
-    qaTestDestinationCalendarId = destinationCalendar.id;
+    testDestinationCalendarId = destinationCalendar.id;
   }
 
   // Create new Availability in default test timezone:Europe/London and set it as default for qa user
@@ -113,7 +112,7 @@ export async function setUpQAUserForIntegrationTest(
     },
   });
   await prisma.user.update({ where: { id: testUser.id }, data: { defaultScheduleId: testSchedule.id } });
-  qaTestScheduleId = testSchedule.id; //saving to delete after test
+  testScheduleId = testSchedule.id; //saving to delete after test
 
   const testTeam = await prisma.team.create({
     data: {
@@ -121,7 +120,7 @@ export async function setUpQAUserForIntegrationTest(
       slug: testTeamSlug,
     },
   });
-  qaTestTeamId = testTeam.id;
+  testTeamId = testTeam.id;
   await prisma.membership.create({
     data: {
       createdAt: new Date(),
@@ -141,13 +140,12 @@ export async function setUpQAUserForIntegrationTest(
     },
   });
 
-  const teamEvent = await createTeamEventType(testUser, testTeam, {
+  await createTeamEventType(testUser, testTeam, {
     schedulingType: SchedulingType.COLLECTIVE,
     teamEventLength: 120,
     teamEventSlug: testTeamEventSlug,
     locations: [{ type: "inPerson", address: "123 Happy lane" }],
   });
-  qaTestTeamEventId = teamEvent.id;
 
   return {
     credentialId: qaOutlookCredential?.id,
@@ -289,32 +287,32 @@ export async function deleteOutlookCalendarEvents(events: NewCalendarEventType[]
   }
 }
 
-export async function undoIntegrationTestChangesForQAUser() {
-  if (qaTestScheduleId !== -1) {
+export async function cleanUpIntegrationTestChangesForTestUser() {
+  if (testScheduleId !== -1) {
     await prisma.schedule.delete({
       where: {
-        id: qaTestScheduleId,
+        id: testScheduleId,
       },
     });
   }
-  if (qaTestSelectedCalendarId !== "") {
+  if (testSelectedCalendarId !== "") {
     await prisma.selectedCalendar.delete({
       where: {
-        id: qaTestSelectedCalendarId,
+        id: testSelectedCalendarId,
       },
     });
   }
-  if (qaTestDestinationCalendarId !== -1) {
+  if (testDestinationCalendarId !== -1) {
     await prisma.destinationCalendar.delete({
       where: {
-        id: qaTestDestinationCalendarId,
+        id: testDestinationCalendarId,
       },
     });
   }
-  if (qaTestTeamId !== -1) {
+  if (testTeamId !== -1) {
     await prisma.team.delete({
       where: {
-        id: qaTestTeamId,
+        id: testTeamId,
       },
     });
   }

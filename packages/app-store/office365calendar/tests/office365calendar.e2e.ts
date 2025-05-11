@@ -13,9 +13,9 @@ import {
   createOutlookCalendarEvents,
   deleteOutlookCalendarEvents,
   outlookCalendarExternalId,
-  setUpQAUserForIntegrationTest as setUpTestUserForIntegrationTest,
+  setUpTestUserForIntegrationTest,
   setUpTestUserWithOutlookCalendar,
-  undoIntegrationTestChangesForQAUser,
+  cleanUpIntegrationTestChangesForTestUser,
 } from "./testUtils";
 
 test.afterEach(async ({ users }) => {
@@ -108,7 +108,7 @@ test.describe("Office365Calendar - Integration Tests", () => {
       await getTeamScheduleRespPromise3;
       expect(await page.locator('[data-testid="time"]').count()).toBe(4);
 
-      await undoIntegrationTestChangesForQAUser();
+      await cleanUpIntegrationTestChangesForTestUser();
     });
   });
 });
