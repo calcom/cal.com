@@ -13,7 +13,7 @@ import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapt
 
 import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
 import { OAuthManager } from "../../_utils/oauth/OAuthManager";
-import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
+import * as oAuthManagerHelperModule from "../../_utils/oauth/oAuthManagerHelper";
 import { OFFICE365_VIDEO_SCOPES } from "../api/add";
 import config from "../config.json";
 
@@ -36,80 +36,65 @@ const o365VideoAppKeysSchema = z.object({
 });
 
 const getO365VideoAppKeys = async () => {
-  return getParsedAppKeysFromSlug(config.slug, o365VideoAppKeysSchema);
+  const appKeys = await getParsedAppKeysFromSlug(config.slug);
+  return o365VideoAppKeysSchema.parse(appKeys);
 };
 
-const getUserEndpoint = async () => {
-  return "https://graph.microsoft.com/v1.0/me";
+// Get the Microsoft Graph API endpoint for the user
+const getUserEndpoint = () => {
+  return Promise.resolve("https://graph.microsoft.com/v1.0/me");
 };
 
+// Function to translate Cal.com event to Microsoft Teams meeting format
 const translateEvent = (event: CalendarEvent) => {
   return {
-    subject: event.title,
     startDateTime: event.startTime,
     endDateTime: event.endTime,
+    subject: event.title,
   };
 };
 
 const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenantId): VideoApiAdapter => {
-  const auth = oAuthManagerHelper({
-    providerName: "office365-video",
-    tokenObjectFromCredential: {
-      scope: OFFICE365_VIDEO_SCOPES.join(" "),
-      token_type: credential.key.token_type,
-      access_token: credential.key.access_token,
-      refresh_token: credential.key.refresh_token,
-      expiry_date: credential.key.expiry_date,
+  const oAuthManagerHelper = oAuthManagerHelperModule.oAuthManagerHelper;
+  
+  const auth = new OAuthManager({
+    providerName: "office365_video",
+    tokenUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+    clientId: "",
+    clientSecret: "",
+    scopes: OFFICE365_VIDEO_SCOPES,
+    tokenGetter: async () => {
+      const appKeys = await getO365VideoAppKeys();
+      const tokenObject = await oAuthManagerHelper.getTokenObjectFromCredential(credential, appKeys.client_id);
+      return tokenObject;
     },
-    refreshAccessToken: async ({ refreshToken }) => {
-      try {
-        const { client_id, client_secret } = await getO365VideoAppKeys();
-        const appConfig = {
-          clientId: client_id,
-          clientSecret: client_secret,
-          redirectURI: "https://api.cal.com/v1/auth/office365video/callback",
-        };
-        const oAuth = new OAuthManager();
-        return oAuth.refreshAccessToken(refreshToken, appConfig);
-      } catch (error) {
-        if (error instanceof Error) {
-          if (error.message.includes("invalid_grant")) {
-            throw new CalendarAppDelegationCredentialInvalidGrantError(error.message);
-          }
-          if (error.message.includes("invalid_client")) {
-            throw new CalendarAppDelegationCredentialConfigurationError(error.message);
-          }
-        }
-        throw error;
-      }
+    tokenSetter: async (tokenObject) => {
+      await oAuthManagerHelper.updateTokenObject(credential, tokenObject);
     },
-    getTokens: async ({ code }) => {
-      try {
-        const { client_id, client_secret } = await getO365VideoAppKeys();
-        const appConfig = {
-          clientId: client_id,
-          clientSecret: client_secret,
-          redirectURI: "https://api.cal.com/v1/auth/office365video/callback",
-        };
-        const oAuth = new OAuthManager();
-        return oAuth.getTokens(code, appConfig);
-      } catch (error) {
-        if (error instanceof Error) {
-          if (error.message.includes("invalid_grant")) {
-            throw new CalendarAppDelegationCredentialInvalidGrantError(error.message);
-          }
-          if (error.message.includes("invalid_client")) {
-            throw new CalendarAppDelegationCredentialConfigurationError(error.message);
-          }
-        }
-        throw error;
-      }
+    tokenExpireHandler: async (tokenObject) => {
+      await oAuthManagerHelper.markTokenAsExpired(credential);
+    },
+    tokenInvalidHandler: async () => {
+      await oAuthManagerHelper.invalidateCredential(credential);
     },
   });
 
   return {
     getAvailability: () => {
       return Promise.resolve([]);
+    },
+    updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
+      try {
+        return await this.createMeeting(event);
+      } catch (error) {
+        throw new HttpError({ statusCode: 500, message: "Internal Server Error" });
+      }
+    },
+    deleteMeeting: async (uid: string): Promise<void> => {
+      return Promise.resolve();
+    },
+    getMeeting: async (uid: string): Promise<VideoCallData> => {
+      return Promise.resolve({} as VideoCallData);
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
       // Create a Teams meeting using the Microsoft Graph API
