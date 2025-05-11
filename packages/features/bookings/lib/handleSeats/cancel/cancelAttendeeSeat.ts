@@ -51,8 +51,9 @@ async function cancelAttendeeSeat(
     ? [seatReferenceUid]
     : [];
 
-  // Return if there are no attendees or if user is trying to delete all attendees
+  // Return if there are no attendees or if user is trying to delete all attendees but not the owner
   if (
+    seatsToCancel.length === 0 ||
     !bookingToDelete?.attendees.length ||
     bookingToDelete.attendees.length < 2 ||
     seatsToCancel.length >= bookingToDelete.attendees.length
