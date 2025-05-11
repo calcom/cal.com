@@ -6,6 +6,8 @@ import { dbReadResponseSchema, fieldTypesSchemaMap } from "@calcom/features/form
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
 
+import { isFieldVisible } from "./fieldVisibility";
+
 // eslint-disable-next-line @typescript-eslint/ban-types
 type View = ALL_VIEWS | (string & {});
 type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
@@ -155,6 +157,9 @@ function preprocess<T extends z.ZodType>({
           currentView === "ALL_VIEWS" ? true : views ? views.find((view) => view.id === currentView) : true;
         let hidden = bookingField.hidden;
         const numOptions = bookingField.options?.length ?? 0;
+        if (!isFieldVisible(bookingField, responses)) {
+          continue;
+        }
         if (bookingField.hideWhenJustOneOption) {
           hidden = hidden || numOptions <= 1;
         }
