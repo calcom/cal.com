@@ -4,11 +4,11 @@ import fs from "fs";
 import { debounce } from "lodash";
 import path from "path";
 import prettier from "prettier";
-import { parseconfigMetadata } from "@calcom/prisma/zod/configType";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
 import prettierConfig from "@calcom/config/prettier-preset";
+import { parseconfigMetadata } from "@calcom/prisma/zod/configType";
 import type { AppMeta } from "@calcom/types/App";
 
 import { APP_STORE_PATH } from "./constants";
@@ -82,11 +82,11 @@ function generateFiles() {
         });
       }
     }
-  })
-        
+  });
+
   forEachAppDir((app) => {
     validateAppConfig(app);
-  })
+  });
   function forEachAppDir(callback: (arg: App) => void, filter: (arg: App) => boolean = () => true) {
     for (let i = 0; i < appDirs.length; i++) {
       const configPath = path.join(APP_STORE_PATH, appDirs[i].path, "config.json");
@@ -203,41 +203,41 @@ function generateFiles() {
     }
 
     function createExportObject() {
-    output.push(`export const ${objectName} = {`);
+      output.push(`export const ${objectName} = {`);
 
-    forEachAppDir((app) => {
-      const chosenConfig = getChosenImportConfig(importConfig, app);
+      forEachAppDir((app) => {
+        const chosenConfig = getChosenImportConfig(importConfig, app);
 
-      if (fileToBeImportedExists(app, chosenConfig)) {
-        if (!lazyImport) {
-          const keyResult = entryObjectKeyGetter(app, chosenConfig.importName);
-          
-          // Check if the result includes a colon (meaning it's a full assignment expression)
-          if (typeof keyResult === 'string' && keyResult.includes(':')) {
-            output.push(`${keyResult},`);
+        if (fileToBeImportedExists(app, chosenConfig)) {
+          if (!lazyImport) {
+            const keyResult = entryObjectKeyGetter(app, chosenConfig.importName);
+
+            // Check if the result includes a colon (meaning it's a full assignment expression)
+            if (typeof keyResult === "string" && keyResult.includes(":")) {
+              output.push(`${keyResult},`);
+            } else {
+              // Original code for normal key assignment
+              output.push(`"${keyResult}": ${getLocalImportName(app, chosenConfig)},`);
+            }
           } else {
-            // Original code for normal key assignment
-            output.push(`"${keyResult}": ${getLocalImportName(app, chosenConfig)},`);
-          }
-        } else {
-          // Existing lazy loading code
-          const key = entryObjectKeyGetter(app);
-          if (chosenConfig.fileToBeImported.endsWith(".tsx")) {
-            output.push(
-              `"${key}": dynamic(() => import("${getModulePath(
-                app.path,
-                chosenConfig.fileToBeImported
-              )}")),`
-            );
-          } else {
-            output.push(`"${key}": import("${getModulePath(app.path, chosenConfig.fileToBeImported)}"),`);
+            // Existing lazy loading code
+            const key = entryObjectKeyGetter(app);
+            if (chosenConfig.fileToBeImported.endsWith(".tsx")) {
+              output.push(
+                `"${key}": dynamic(() => import("${getModulePath(
+                  app.path,
+                  chosenConfig.fileToBeImported
+                )}")),`
+              );
+            } else {
+              output.push(`"${key}": import("${getModulePath(app.path, chosenConfig.fileToBeImported)}"),`);
+            }
           }
         }
-      }
-    }, filter);
+      }, filter);
 
-    output.push(`};`);
-  }
+      output.push(`};`);
+    }
     function getChosenImportConfig(importConfig: ImportConfig, app: { path: string }) {
       let chosenConfig;
 
@@ -277,7 +277,7 @@ function generateFiles() {
           importName: "metadata",
         },
       ],
-       entryObjectKeyGetter: (app, importName) => {
+      entryObjectKeyGetter: (app, importName) => {
         const key = app.name;
         // If this is a config.json file, we validate the config.json file
         if (importName === "default" && app.path) {
@@ -288,7 +288,7 @@ function generateFiles() {
         }
         // Otherwise return normal reference
         return key;
-    },
+      },
     })
   );
 
@@ -316,6 +316,9 @@ function generateFiles() {
             if (fs.existsSync(configPath)) {
               return `"${key}": parseconfigMetadata(${getVariableName(app.name)}_config_json)`;
             }
+          }
+          if (importName === "metadata") {
+            return `"${key}": ${getVariableName(app.name)}__metadata_ts`;
           }
           return key;
         },
