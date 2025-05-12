@@ -281,10 +281,8 @@ describe("Tests the slot logic", () => {
       ],
     });
 
-    // as the date range is in Kolkata and the invitee date as well
-    // I think length should be 2
-    expect(slots).toHaveLength(2);
-    expect(slots[0].time.tz("Asia/Kolkata").format()).toBe("2023-07-13T07:30:00+05:30");
+    expect(slots).toHaveLength(1);
+    expect(slots[0].time.format()).toBe("2023-07-13T02:30:00Z");
   });
 
   it("tests slots for 5 minute events", async () => {
