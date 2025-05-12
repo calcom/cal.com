@@ -12,14 +12,20 @@ import {
   callWebhook,
   createOutlookCalendarEvents,
   deleteOutlookCalendarEvents,
-  outlookCalendarExternalId,
   setUpTestUserForIntegrationTest,
   setUpTestUserWithOutlookCalendar,
-  cleanUpIntegrationTestChangesForTestUser,
 } from "./testUtils";
 
-test.afterEach(async ({ users }) => {
+test.beforeEach(async ({ features }) => {
+  const calendar_cache = features.get("calendar-cache");
+  if (!calendar_cache?.enabled) {
+    features.toggleFeature("calendar-cache");
+  }
+});
+
+test.afterEach(async ({ users, features }) => {
   await users.deleteAll();
+  features.reset();
 });
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -32,14 +38,22 @@ test.describe("Office365Calendar - Integration Tests", () => {
       page,
       users,
     }) => {
-      const teamEventSlug = "e2e-test-team-event";
-      const teamSlug = "e2e-test-team";
-      const { credentialId, destinationCalendar, selectedCalendarId, externalId, userId } =
-        await setUpTestUserForIntegrationTest(users, teamSlug, teamEventSlug);
+      const {
+        credentialId,
+        destinationCalendar,
+        selectedCalendarId,
+        externalId,
+        user,
+        teamSlug,
+        teamEventSlug,
+      } = await setUpTestUserForIntegrationTest(users);
 
       const { outlookCalEventsCreated, expectedCacheKey, expectedCacheValue } =
-        await createOutlookCalendarEvents(credentialId, destinationCalendar, userId);
+        await createOutlookCalendarEvents(credentialId!, destinationCalendar, user);
 
+      // The Microsoft Graph API '/subscription' endpoint triggers webhook validation.
+      // Webhook validation and receiving notification through webhook requires 'https'.
+      // Hence updating directly DB with subscription id and expiration.
       const outlookSubscriptionId = uuidv4();
       const outlookSubscriptionExpiration = new Date(Date.now() + MICROSOFT_SUBSCRIPTION_TTL).toISOString();
       SelectedCalendarRepository.updateById(selectedCalendarId!, {
@@ -58,7 +72,7 @@ test.describe("Office365Calendar - Integration Tests", () => {
 
       // Expect CalendarCache to be created in prisma
       const calendarCache = await prisma.calendarCache.findFirstOrThrow({
-        where: { key: expectedCacheKey, credentialId, userId },
+        where: { key: expectedCacheKey, credentialId, userId: user.id },
       });
       expect(calendarCache).toBeTruthy();
       const actualCacheValue = calendarCache.value as EventBusyDate[];
@@ -107,8 +121,6 @@ test.describe("Office365Calendar - Integration Tests", () => {
       await page.waitForLoadState("domcontentloaded");
       await getTeamScheduleRespPromise3;
       expect(await page.locator('[data-testid="time"]').count()).toBe(4);
-
-      await cleanUpIntegrationTestChangesForTestUser();
     });
   });
 });
@@ -119,19 +131,18 @@ test.describe("Office365Calendar", () => {
       page,
       users,
     }) => {
-      const credential = await setUpTestUserWithOutlookCalendar(users);
+      const { credential, teamSlug, teamEventSlug, externalId } = await setUpTestUserWithOutlookCalendar(
+        users
+      );
       const [testUser] = users.get();
 
       // Simulate cacheKey and cacheValue to be set in Calendar-Cache table
-      // Example, If Current time is "2025-05-06T12:00:00.000Z" , May6th
-      // timeMin - "2025-05-01T00:00:00.000Z"
-      // timeMax - "2025-07-01T00:00:00.000Z"
       const now = new Date();
       const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
       const cacheKey = JSON.stringify({
         timeMin: getTimeMin(),
         timeMax: getTimeMax(),
-        items: [{ id: outlookCalendarExternalId }],
+        items: [{ id: externalId }],
       });
       // Mock Busy time - 1st, 2nd, 3rd Days of next month 9AM - 1PM (UTC:0)
       // start - "2025-06-01T09:00:00.000Z"
@@ -165,17 +176,13 @@ test.describe("Office365Calendar", () => {
         },
       });
 
-      // Visit Team page with cal.cache=true
-      const team = await testUser.getFirstTeamMembership();
-      await page.goto(`/team/${team.team.slug}?cal.cache=true`);
-      await page.waitForLoadState("domcontentloaded");
       await testUser.apiLogin();
 
-      // Click first event type and wait for response from getTeamSchedule
+      // Visit TeamEvent page with cal.cache=true
       const getTeamScheduleRespPromise1 = page.waitForResponse(
         (response) => response.url().includes("getTeamSchedule") && response.status() === 200
       );
-      await page.click('[data-testid="event-type-link"]');
+      await page.goto(`/team/${teamSlug}/${teamEventSlug}?cal.cache=true`);
       await page.waitForLoadState("domcontentloaded");
       await getTeamScheduleRespPromise1;
 

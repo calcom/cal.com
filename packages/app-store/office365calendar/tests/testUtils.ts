@@ -1,48 +1,31 @@
+import { v4 as uuidv4 } from "uuid";
+
 import Office365CalendarService from "@calcom/app-store/office365calendar/lib/CalendarService";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
-import { TimeZoneEnum } from "@calcom/web/playwright/fixtures/types";
-import { createTeamEventType, type createUsersFixture } from "@calcom/web/playwright/fixtures/users";
+import { type createUsersFixture } from "@calcom/web/playwright/fixtures/users";
 import { test } from "@calcom/web/playwright/lib/fixtures";
 
-export const testUserEmail = process.env.E2E_TEST_OUTLOOK_CALENDAR_EMAIL;
 const integration = "office365_calendar";
 const appSlug = "office365-calendar";
-let testScheduleId = -1;
-let testSelectedCalendarId = "";
-let testDestinationCalendarId = -1;
-let testTeamId = -1;
 const client_id = process.env.E2E_TEST_OUTLOOK_CALENDAR_CLIENT_ID;
 const client_secret = process.env.E2E_TEST_OUTLOOK_CALENDAR_CLIENT_KEY;
 const tenant_id = process.env.E2E_TEST_OUTLOOK_CALENDAR_TENANT_ID;
+const testUserEmail = process.env.E2E_TEST_OUTLOOK_CALENDAR_EMAIL;
+const testUserPassword = process.env.E2E_TEST_OUTLOOK_CALENDAR_PASSWORD;
 
-export async function setUpTestUserForIntegrationTest(
-  users: ReturnType<typeof createUsersFixture>,
-  testTeamSlug: string,
-  testTeamEventSlug: string
-) {
-  let qaOutlookCredential: CredentialForCalendarServiceWithTenantId | undefined = undefined;
+export async function setUpTestUserForIntegrationTest(users: ReturnType<typeof createUsersFixture>) {
+  let outlookCredential: CredentialForCalendarServiceWithTenantId | undefined = undefined;
   let destinationCalendar;
   let selectedCalendar;
 
-  //Check for global feature and skip if false
-  const featuresRepository = new FeaturesRepository();
-  const isCalendarCacheEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("calendar-cache");
-  test.skip(!isCalendarCacheEnabled, "Calendar Cache is not enabled globally");
-
-  // test.skip(!!APP_CREDENTIAL_SHARING_ENABLED, "Credential sharing enabled");
-
-  // Configure the app with real OAuth credentials
+  // Configure the app with test outlook account from env
   if (client_id && client_secret) {
     await prisma.app.update({
       where: {
@@ -56,115 +39,88 @@ export async function setUpTestUserForIntegrationTest(
     test.skip(!client_id || !client_secret, "Outlook App keys not found");
   }
 
-  const testUser = await users.create();
+  const teamEventSlug = `test-team-event-${uuidv4()}`;
+  const testUser = await users.create(null, {
+    hasTeam: true,
+    teamRole: MembershipRole.ADMIN,
+    teamEventSlug,
+    schedulingType: SchedulingType.ROUND_ROBIN,
+    teamEventLength: 120,
+    assignAllTeamMembers: true,
+  });
+  const membership = await testUser.getFirstTeamMembership();
+  const teamId = membership.team.id;
+  const teamSlug = membership.team.slug;
 
-  qaOutlookCredential = await fetchTokensAndCreateCredential(testUser.id);
+  outlookCredential = await fetchTokensAndCreateCredential(testUser.id);
 
-  test.skip(!qaOutlookCredential?.id, "Outlook QA credential not found");
+  test.skip(!outlookCredential?.id, "Outlook QA credential not found");
 
-  const outlookCalendarService = new Office365CalendarService(qaOutlookCredential!);
+  const outlookCalendarService = new Office365CalendarService(outlookCredential!);
   const calendars = await outlookCalendarService.listCalendars();
   const primaryCalendar = calendars.find((calendar) => calendar.primary);
 
   test.skip(!primaryCalendar || !primaryCalendar.externalId, "Primary Calendar not found");
 
-  if (primaryCalendar && qaOutlookCredential) {
-    selectedCalendar = await SelectedCalendarRepository.createIfNotExists({
-      userId: testUser.id,
-      externalId: primaryCalendar.externalId,
-      eventTypeId: null,
-      integration: integration,
-      credentialId: qaOutlookCredential?.id,
-    });
-    testSelectedCalendarId = selectedCalendar.id;
-    destinationCalendar = await DestinationCalendarRepository.upsert({
-      where: {
-        userId: testUser.id,
+  if (primaryCalendar && outlookCredential) {
+    selectedCalendar = await prisma.selectedCalendar.create({
+      data: {
+        user: {
+          connect: {
+            id: testUser.id,
+          },
+        },
+        integration,
         externalId: primaryCalendar.externalId,
-        eventTypeId: undefined,
+        credential: {
+          connect: {
+            id: outlookCredential.id,
+          },
+        },
       },
-      update: {},
-      create: {
-        integration: integration,
+    });
+
+    destinationCalendar = await prisma.destinationCalendar.create({
+      data: {
+        user: {
+          connect: {
+            id: testUser.id,
+          },
+        },
+        integration,
         externalId: primaryCalendar.externalId,
-        credentialId: qaOutlookCredential?.id,
         primaryEmail: testUserEmail,
+        credential: {
+          connect: {
+            id: outlookCredential.id,
+          },
+        },
       },
     });
-    testDestinationCalendarId = destinationCalendar.id;
+
+    // Set feature 'calendar-cache' for the team
+    await prisma.teamFeatures.create({
+      data: {
+        teamId: teamId,
+        featureId: "calendar-cache",
+        assignedBy: testUser.username ?? testUser.email,
+      },
+    });
   }
 
-  // Create new Availability in default test timezone:Europe/London and set it as default for qa user
-  const testSchedule = await prisma.schedule.create({
-    data: {
-      name: "Working Hours",
-      timeZone: TimeZoneEnum.UK,
-      availability: {
-        createMany: {
-          data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
-        },
-      },
-      user: {
-        connect: {
-          id: testUser.id,
-        },
-      },
-    },
-  });
-  await prisma.user.update({ where: { id: testUser.id }, data: { defaultScheduleId: testSchedule.id } });
-  testScheduleId = testSchedule.id; //saving to delete after test
-
-  const testTeam = await prisma.team.create({
-    data: {
-      name: "E2E_TEST_TEAM",
-      slug: testTeamSlug,
-    },
-  });
-  testTeamId = testTeam.id;
-  await prisma.membership.create({
-    data: {
-      createdAt: new Date(),
-      teamId: testTeam.id,
-      userId: testUser.id,
-      role: MembershipRole.ADMIN,
-      accepted: true,
-    },
-  });
-
-  // Set feature 'calendar-cache' for the team
-  await prisma.teamFeatures.create({
-    data: {
-      teamId: testTeam.id,
-      featureId: "calendar-cache",
-      assignedBy: testUser.username ?? testUser.email,
-    },
-  });
-
-  await createTeamEventType(testUser, testTeam, {
-    schedulingType: SchedulingType.COLLECTIVE,
-    teamEventLength: 120,
-    teamEventSlug: testTeamEventSlug,
-    locations: [{ type: "inPerson", address: "123 Happy lane" }],
-  });
-
   return {
-    credentialId: qaOutlookCredential?.id,
+    credentialId: outlookCredential?.id,
     destinationCalendar: destinationCalendar,
     selectedCalendarId: selectedCalendar?.id,
     externalId: selectedCalendar?.externalId,
-    userId: testUser.id,
-    teamEventSlug: testTeamEventSlug,
-    teamSlug: testTeamSlug,
+    user: testUser,
+    teamEventSlug,
+    teamSlug,
   };
 }
 
-export async function createOutlookCalendarEvents(
-  credentialId: number | undefined,
-  destinationCalendar: any,
-  userId: number | undefined
-) {
-  if (!credentialId)
-    return { outlookCalEventsCreated: [], expectedCacheKey: undefined, expectedCacheValue: undefined };
+// Creates events in actual Microsoft Outlook Calendar
+export async function createOutlookCalendarEvents(credentialId: number, destinationCalendar: any, user: any) {
   const qaRefreshedOutlookCredential = {
     ...(await prisma.credential.findFirstOrThrow({
       where: {
@@ -179,15 +135,13 @@ export async function createOutlookCalendarEvents(
 
   const tFunction = await getTranslation("en", "common");
   const baseEvent = {
-    title: "E2E_TEST_TEAM_EVENT between QA Example and QA Example",
-    startTime: "2025-05-12T04:30:00Z",
-    endTime: "2025-05-12T04:45:00Z",
+    title: "E2E_TEST_TEAM_EVENT",
     type: "e2e-test-team-event",
     organizer: {
-      id: userId,
-      name: "QA Example",
-      email: "qa@example.com",
-      username: "qa",
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      username: user.username,
       timeZone: "Europe/London",
       language: {
         translate: tFunction,
@@ -235,6 +189,7 @@ export async function createOutlookCalendarEvents(
   return { outlookCalEventsCreated, expectedCacheKey, expectedCacheValue: busyEvents };
 }
 
+// Invokes office365Calendar/webhook to trigger fetchAvailabilityAndSetCache()
 export async function callWebhook(
   outlookSubscriptionId: string,
   outlookSubscriptionExpiration: string,
@@ -270,6 +225,7 @@ export async function callWebhook(
   return webhookResponse;
 }
 
+// Deletes the events on actual Microsoft Outlook Calendar
 export async function deleteOutlookCalendarEvents(events: NewCalendarEventType[], credentialId: number) {
   const qaRefreshedOutlookCredential = {
     ...(await prisma.credential.findFirstOrThrow({
@@ -287,60 +243,26 @@ export async function deleteOutlookCalendarEvents(events: NewCalendarEventType[]
   }
 }
 
-export async function cleanUpIntegrationTestChangesForTestUser() {
-  if (testScheduleId !== -1) {
-    await prisma.schedule.delete({
-      where: {
-        id: testScheduleId,
-      },
-    });
-  }
-  if (testSelectedCalendarId !== "") {
-    await prisma.selectedCalendar.delete({
-      where: {
-        id: testSelectedCalendarId,
-      },
-    });
-  }
-  if (testDestinationCalendarId !== -1) {
-    await prisma.destinationCalendar.delete({
-      where: {
-        id: testDestinationCalendarId,
-      },
-    });
-  }
-  if (testTeamId !== -1) {
-    await prisma.team.delete({
-      where: {
-        id: testTeamId,
-      },
-    });
-  }
-}
-
+// Uses ROPC flow to fetch tokens directly using password.
+// For this the test user must be configured with ROPC flow in azure portal.
+// Skips the test if credentials are not available or if any error fetching the tokens.
 async function fetchTokensAndCreateCredential(userId: number) {
-  const email = process.env.E2E_TEST_OUTLOOK_CALENDAR_EMAIL;
-  const password = process.env.E2E_TEST_OUTLOOK_CALENDAR_PASSWORD;
-
-  test.skip(!email || !password, "Not able to install outlook calendar");
+  test.skip(!testUserEmail || !testUserPassword, "Not able to install outlook calendar");
 
   let credential: CredentialForCalendarServiceWithTenantId | undefined = undefined;
 
   try {
-    if (email && password && client_id && client_secret && tenant_id) {
+    if (testUserEmail && testUserPassword && client_id && client_secret && tenant_id) {
       const scopes = ["User.Read", "Calendars.Read", "Calendars.ReadWrite", "offline_access"];
-
       const tokenEndpoint = `https://login.microsoftonline.com/${tenant_id}/oauth2/v2.0/token`;
-
       const body = new URLSearchParams({
         client_id,
         scope: scopes.join(" "),
-        username: email,
-        password,
+        username: testUserEmail,
+        password: testUserPassword,
         grant_type: "password",
         client_secret,
       });
-
       const response = await fetch(tokenEndpoint, {
         method: "POST",
         headers: {
@@ -348,7 +270,6 @@ async function fetchTokensAndCreateCredential(userId: number) {
         },
         body: body.toString(),
       });
-
       const data = await response.json();
 
       if (data["access_token"]) {
@@ -382,17 +303,21 @@ async function fetchTokensAndCreateCredential(userId: number) {
   }
 }
 
-export const outlookCalendarExternalId = "mock_outlook_external_id_1";
 export async function setUpTestUserWithOutlookCalendar(users: ReturnType<typeof createUsersFixture>) {
-  const integration = "office365_calendar";
   const email = "testCal@outlook.com";
-  const appSlug = "office365-calendar";
+  const externalId = "mock_outlook_external_id_1";
 
+  const teamEventSlug = `test-team-event-${uuidv4()}`;
   const testUser = await users.create(null, {
     hasTeam: true,
+    teamRole: MembershipRole.ADMIN,
+    teamEventSlug,
     schedulingType: SchedulingType.ROUND_ROBIN,
     teamEventLength: 120,
+    assignAllTeamMembers: true,
   });
+  const membership = await testUser.getFirstTeamMembership();
+  const teamSlug = membership.team.slug;
 
   const credential = await prisma.credential.create({
     data: {
@@ -427,7 +352,7 @@ export async function setUpTestUserWithOutlookCalendar(users: ReturnType<typeof 
         },
       },
       integration,
-      externalId: outlookCalendarExternalId,
+      externalId: externalId,
       credential: {
         connect: {
           id: credential.id,
@@ -444,7 +369,7 @@ export async function setUpTestUserWithOutlookCalendar(users: ReturnType<typeof 
         },
       },
       integration,
-      externalId: outlookCalendarExternalId,
+      externalId: externalId,
       primaryEmail: email,
       credential: {
         connect: {
@@ -454,5 +379,5 @@ export async function setUpTestUserWithOutlookCalendar(users: ReturnType<typeof 
     },
   });
 
-  return credential;
+  return { credential, teamSlug, teamEventSlug, externalId };
 }
