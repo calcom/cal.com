@@ -402,7 +402,7 @@ class EventsInsights {
         endTime: true,
         paid: true,
         userEmail: true,
-        username: true,
+        userUsername: true,
         rating: true,
         ratingFeedback: true,
         noShowHost: true,
