@@ -8,6 +8,7 @@ import { getEventName } from "@calcom/lib/event";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -100,7 +101,7 @@ const eventTypeDisableHostEmail = (metadata?: EventTypeMetadata) => {
   return !!metadata?.disableStandardEmails?.all?.host;
 };
 
-export const sendScheduledEmailsAndSMS = async (
+const _sendScheduledEmailsAndSMS = async (
   calEvent: CalendarEvent,
   eventNameObject?: EventNameObjectType,
   hostEmailDisabled?: boolean,
@@ -146,6 +147,11 @@ export const sendScheduledEmailsAndSMS = async (
   const successfullyScheduledSms = new EventSuccessfullyScheduledSMS(calEvent);
   await successfullyScheduledSms.sendSMSToAttendees();
 };
+
+export const sendScheduledEmailsAndSMS = withReporting(
+  _sendScheduledEmailsAndSMS,
+  "sendScheduledEmailsAndSMS"
+);
 
 // for rescheduled round robin booking that assigned new members
 export const sendRoundRobinScheduledEmailsAndSMS = async ({
@@ -247,7 +253,7 @@ export const sendRoundRobinCancelledEmailsAndSMS = async (
   await Promise.all(emailsAndSMSToSend);
 };
 
-export const sendRescheduledEmailsAndSMS = async (
+const _sendRescheduledEmailsAndSMS = async (
   calEvent: CalendarEvent,
   eventTypeMetadata?: EventTypeMetadata
 ) => {
@@ -278,6 +284,10 @@ export const sendRescheduledEmailsAndSMS = async (
   const successfullyReScheduledSms = new EventSuccessfullyReScheduledSMS(calEvent);
   await successfullyReScheduledSms.sendSMSToAttendees();
 };
+export const sendRescheduledEmailsAndSMS = withReporting(
+  _sendRescheduledEmailsAndSMS,
+  "sendRescheduledEmailsAndSMS"
+);
 
 export const sendRescheduledSeatEmailAndSMS = async (
   calEvent: CalendarEvent,
@@ -372,10 +382,7 @@ export const sendCancelledSeatEmailsAndSMS = async (
   await cancelledSeatSMS.sendSMSToAttendee(cancelledAttendee);
 };
 
-export const sendOrganizerRequestEmail = async (
-  calEvent: CalendarEvent,
-  eventTypeMetadata?: EventTypeMetadata
-) => {
+const _sendOrganizerRequestEmail = async (calEvent: CalendarEvent, eventTypeMetadata?: EventTypeMetadata) => {
   if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
   const calendarEvent = formatCalEvent(calEvent);
 
@@ -392,7 +399,12 @@ export const sendOrganizerRequestEmail = async (
   await Promise.all(emailsToSend);
 };
 
-export const sendAttendeeRequestEmailAndSMS = async (
+export const sendOrganizerRequestEmail = withReporting(
+  _sendOrganizerRequestEmail,
+  "sendOrganizerRequestEmail"
+);
+
+const _sendAttendeeRequestEmailAndSMS = async (
   calEvent: CalendarEvent,
   attendee: Person,
   eventTypeMetadata?: EventTypeMetadata
@@ -404,6 +416,11 @@ export const sendAttendeeRequestEmailAndSMS = async (
   const eventRequestSms = new EventRequestSMS(calendarEvent);
   await eventRequestSms.sendSMSToAttendee(attendee);
 };
+
+export const sendAttendeeRequestEmailAndSMS = withReporting(
+  _sendAttendeeRequestEmailAndSMS,
+  "sendAttendeeRequestEmailAndSMS"
+);
 
 export const sendDeclinedEmailsAndSMS = async (
   calEvent: CalendarEvent,
