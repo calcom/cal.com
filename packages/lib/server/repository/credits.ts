@@ -85,7 +85,7 @@ export class CreditsRepository {
     }
   }
 
-  static async findCreditBalanceWithExpenseLogs({ teamId, userId }: { teamId?: number; userId?: number }) {
+  static async findCreditBalanceWithExpenseLogs({ teamId }: { teamId?: number }) {
     return await prisma.creditBalance.findUnique({
       where: {
         teamId,

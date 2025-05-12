@@ -420,6 +420,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       .filter((step) => step.id <= 0)
       .map(async (newStep) => {
         if (!hasPaidPlan) {
+          if (newStep.template === WorkflowTemplates.CUSTOM) {
+            throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
+          }
           // on free plans always use predefined templates
           const { emailBody, emailSubject } = await getEmailTemplateText(newStep.template, {
             locale: ctx.user.locale,

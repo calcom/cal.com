@@ -45,7 +45,7 @@ export default function BillingCredits() {
     return null;
   }
 
-  if (isLoading) return <BillingCreditsSkeleton />;
+  if (isLoading && teamId) return <BillingCreditsSkeleton />;
   if (!creditsData) return null;
 
   const onSubmit = (data: { quantity: number }) => {

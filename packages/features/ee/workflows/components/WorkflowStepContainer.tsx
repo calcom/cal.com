@@ -51,6 +51,7 @@ import {
   isWhatsappAction,
   getTemplateBodyForAction,
   shouldScheduleEmailReminder,
+  isSMSOrWhatsappAction,
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
@@ -367,7 +368,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     const selectedAction = {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: step.action,
-      needsCredits: false,
+      needsCredits: isSMSOrWhatsappAction(step.action),
       creditsTeamId: teamId ?? creditsTeamId,
     };
 
