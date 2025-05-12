@@ -16,7 +16,7 @@ import {
   getDelegationCredentialOrRegularCredential,
   enrichUsersWithDelegationCredentials,
   enrichHostsWithDelegationCredentials,
-  enrichUserWithDelegationCredentialsWithoutOrgId,
+  enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
   enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
 } from "./server";
 
@@ -520,7 +520,7 @@ describe("enrichHostsWithDelegationCredentials", () => {
   });
 });
 
-describe("enrichUserWithDelegationCredentialsWithoutOrgId", () => {
+describe("enrichUserWithDelegationCredentialsIncludeServiceAccountKey", () => {
   const mockUserWithCredentials = {
     ...mockUser,
     credentials: [buildRegularGoogleCalendarCredential()],
@@ -535,7 +535,7 @@ describe("enrichUserWithDelegationCredentialsWithoutOrgId", () => {
       DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential());
 
-    const result = await enrichUserWithDelegationCredentialsWithoutOrgId({
+    const result = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
       user: mockUserWithCredentials,
     });
 
@@ -559,7 +559,7 @@ describe("enrichUserWithDelegationCredentialsWithoutOrgId", () => {
       DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(null);
 
-    const result = await enrichUserWithDelegationCredentialsWithoutOrgId({
+    const result = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
       user: mockUserWithCredentials,
     });
 
@@ -578,7 +578,7 @@ describe("enrichUserWithDelegationCredentialsWithoutOrgId", () => {
       DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential({ enabled: false }));
 
-    const result = await enrichUserWithDelegationCredentialsWithoutOrgId({
+    const result = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
       user: mockUserWithCredentials,
     });
 
