@@ -38,6 +38,7 @@ test.describe("Office365Calendar - Integration Tests", () => {
       page,
       users,
     }) => {
+      // Install Outlook Calendar using test account.
       const {
         credentialId,
         destinationCalendar,
@@ -48,6 +49,7 @@ test.describe("Office365Calendar - Integration Tests", () => {
         teamEventSlug,
       } = await setUpTestUserForIntegrationTest(users);
 
+      // Creates actual events in installed outlook calendar.
       const { outlookCalEventsCreated, expectedCacheKey, expectedCacheValue } =
         await createOutlookCalendarEvents(credentialId!, destinationCalendar, user);
 
