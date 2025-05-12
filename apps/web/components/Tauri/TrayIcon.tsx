@@ -65,7 +65,7 @@ function bookingMenuItem(t: ReturnType<typeof useLocale>["t"], router: RouterIns
 export function TrayIconComponent() {
   const user = useMeQuery().data;
 
-  const query = trpc.viewer.bookings.get.useInfiniteQuery(
+  const query = trpc.viewer.bookings.get.useQuery(
     {
       limit: 10,
       filters: {
@@ -75,17 +75,13 @@ export function TrayIconComponent() {
     {
       // first render has status `undefined`
       enabled: true,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
   );
-  const upcoming10Today = query.data?.pages.map((page) =>
-    page.bookings.filter((booking: BookingOutput) => {
-      return (
-        dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") ===
-        dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
-      );
-    })
-  )[0];
+  const upcoming10Today = query.data?.bookings.filter(
+    (booking) =>
+      dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") ===
+      dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
+  );
 
   const router = useRouter();
   const { t } = useLocale();
@@ -102,7 +98,7 @@ export function TrayIconComponent() {
     }
 
     if (typeof window !== "undefined" && "__TAURIFY__" in window && user?.id) {
-      updateTray().catch(console.error);
+      updateTray();
     }
   }, [t, router, upcoming10Today, user]);
 
