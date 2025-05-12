@@ -70,9 +70,7 @@ function buildSlotsWithDateRanges({
       .toString()
       .padStart(2, "0")}`;
 
-    let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
-      ? range.start.utc()
-      : startTimeWithMinNotice;
+    let slotStartTime = startTimeWithMinNotice.isBefore(range.start) ? range.start : startTimeWithMinNotice;
 
     slotStartTime =
       slotStartTime.minute() % interval !== 0
@@ -96,10 +94,13 @@ function buildSlotsWithDateRanges({
         // however, the slot can now be before the start of this date range.
         if (!utcResultValue.isBefore(range.start)) {
           // it is between, if possible floor down to the start of the existing slot
-          slotStartTime = utcResultValue;
+          slotStartTime = slotStartTime.set("millisecond", utcResultValue.valueOf());
         } else {
           // if not possible to floor, we need to ceil up to the next slot.
-          slotStartTime = utcResultValue.add(frequency + (offsetStart ?? 0), "minutes");
+          slotStartTime = slotStartTime.set(
+            "millisecond",
+            utcResultValue.add(frequency + (offsetStart ?? 0), "minutes").valueOf()
+          );
         }
       }
       result = iterator.next();

@@ -257,8 +257,8 @@ describe("Tests the slot logic", () => {
       eventLength: 15,
       offsetStart: 0,
       dateRanges: [
-        { start: dayjs("2023-07-13T07:00:00.000Z"), end: dayjs("2023-07-13T15:00:00.000Z") },
-        { start: dayjs("2023-07-13T18:30:00.000Z"), end: dayjs("2023-07-13T20:59:59.000Z") },
+        { start: dayjs.utc("2023-07-13T07:00:00.000Z"), end: dayjs.utc("2023-07-13T15:00:00.000Z") },
+        { start: dayjs.utc("2023-07-13T18:30:00.000Z"), end: dayjs.utc("2023-07-13T20:59:59.000Z") },
       ],
       minimumBookingNotice: 120,
       frequency: 15,
@@ -282,7 +282,7 @@ describe("Tests the slot logic", () => {
     });
 
     expect(slots).toHaveLength(1);
-    expect(slots[0].time.format()).toBe("2023-07-13T02:30:00Z");
+    expect(slots[0].time.format()).toBe("2023-07-13T08:00:00+05:30");
   });
 
   it("tests slots for 5 minute events", async () => {
