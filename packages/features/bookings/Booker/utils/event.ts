@@ -134,7 +134,7 @@ export const useScheduleForEvent = ({
     enabled: isTeamEvent && !!scheduleUsingApiV2?.failureReason,
   });
 
-  const schedule = scheduleNotUsingApiV2 ?? scheduleUsingApiV2;
+  const schedule = scheduleUsingApiV2?.isSuccess ? scheduleUsingApiV2 : scheduleNotUsingApiV2;
 
   return {
     data: schedule?.data,
