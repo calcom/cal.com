@@ -1,4 +1,3 @@
-import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import {
   isAttendeeAction,
   isSMSAction,
@@ -10,7 +9,7 @@ import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/t
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
-import { getTranslation } from "@calcom/lib/server";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -157,6 +156,8 @@ const processWorkflowStep = async (
       seatReferenceUid,
       includeCalendarEvent: step.includeCalendarEvent,
       verifiedAt: step.verifiedAt,
+      userId: workflow.userId,
+      teamId: workflow.teamId,
     });
   } else if (isWhatsappAction(step.action)) {
     const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
@@ -261,6 +262,8 @@ export async function cancelScheduledMessagesAndScheduleEmails({
   teamId?: number;
   userId?: number;
 }) {
+  const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
+
   let userIdsWithNoCredits: number[] = userId ? [userId] : [];
 
   if (teamId) {

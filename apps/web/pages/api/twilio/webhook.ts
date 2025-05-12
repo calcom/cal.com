@@ -1,11 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import { IS_SMS_CREDITS_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import { defaultHandler } from "@calcom/lib/server";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import prisma from "@calcom/prisma";
 
 const InputSchema = z.object({
@@ -73,7 +72,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!parsedUserId && !parsedTeamId) {
     return res.status(401).send("Team or user id is required");
   }
-
+  const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
   const creditService = new CreditService();
 
   if (countryCode === "US" || countryCode === "CA") {

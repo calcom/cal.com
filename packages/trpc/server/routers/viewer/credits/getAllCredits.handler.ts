@@ -1,4 +1,3 @@
-import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -32,6 +31,7 @@ export const getAllCreditsHandler = async ({ ctx, input }: GetAllCreditsOptions)
       return null;
     }
   }
+  const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
 
   const creditService = new CreditService();
 

@@ -8,7 +8,7 @@ import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-
 import { cancelScheduledMessagesAndScheduleEmails } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
