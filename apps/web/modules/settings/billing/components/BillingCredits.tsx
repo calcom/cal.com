@@ -91,7 +91,9 @@ export default function BillingCredits() {
             <></>
           )}
 
-          <Label>{t("additional_credits")}</Label>
+          <Label>
+            {creditsData.credits.totalMonthlyCredits ? t("additional_credits") : t("available_credits")}
+          </Label>
           <div className="mt-2 text-sm">{creditsData.credits.additionalCredits}</div>
           <div className="-mx-6 mb-6 mt-6">
             <hr className="border-subtle mb-3 mt-3" />
