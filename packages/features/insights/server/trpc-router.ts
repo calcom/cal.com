@@ -8,7 +8,6 @@ import {
   routingFormResponsesInputSchema,
   routingFormStatsInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
-import { randomString } from "@calcom/lib/random";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
@@ -1533,7 +1532,7 @@ export const insightsRouter = router({
       return result;
     }),
   rawData: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
-    const { startDate, endDate, teamId, userId, memberUserId, isAll } = input;
+    const { startDate, endDate, teamId, userId, memberUserId, isAll, limit, offset } = input;
 
     const eventTypeList = await getEventTypeList({
       prisma: ctx.prisma,
@@ -1552,8 +1551,7 @@ export const insightsRouter = router({
 
     const isOrgAdminOrOwner = ctx.user.isOwnerAdminOfParentTeam;
     try {
-      // Get the data
-      const csvData = await EventsInsights.getCsvData({
+      return await EventsInsights.getCsvData({
         startDate,
         endDate,
         teamId,
@@ -1563,14 +1561,9 @@ export const insightsRouter = router({
         isOrgAdminOrOwner,
         eventTypeId,
         organizationId: ctx.user.organizationId || null,
+        limit,
+        offset,
       });
-
-      const csvAsString = EventsInsights.objectToCsv(csvData);
-      const downloadAs = `Insights-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(endDate).format(
-        "YYYY-MM-DD"
-      )}-${randomString(10)}.csv`;
-
-      return { data: csvAsString, filename: downloadAs };
     } catch (e) {
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
     }

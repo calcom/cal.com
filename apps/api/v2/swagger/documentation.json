@@ -3282,6 +3282,64 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/bookings/{bookingUid}/references": {
+      "get": {
+        "operationId": "OrganizationsTeamsBookingsController_getBookingReferences",
+        "summary": "Get 'Booking References' for a booking",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingReferencesOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Bookings"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/connect": {
       "post": {
         "operationId": "OrganizationsConferencingController_connectTeamApp",
@@ -7448,6 +7506,56 @@
         ]
       }
     },
+    "/v2/bookings/{bookingUid}/references": {
+      "get": {
+        "operationId": "BookingsController_2024_08_13_getBookingReferences",
+        "summary": "Get 'Booking References' for a booking",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-08-13"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingReferencesOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
     "/v2/calendars/ics-feed/save": {
       "post": {
         "operationId": "CalendarsController_createIcsFeed",
@@ -7697,7 +7805,7 @@
     "/v2/calendars/{calendar}/save": {
       "get": {
         "operationId": "CalendarsController_save",
-        "summary": "Save an oAuth calendar credentials",
+        "summary": "Save Google or Outlook calendar credentials",
         "parameters": [
           {
             "name": "state",
@@ -7741,7 +7849,7 @@
     "/v2/calendars/{calendar}/credentials": {
       "post": {
         "operationId": "CalendarsController_syncCredentials",
-        "summary": "Sync credentials",
+        "summary": "Save Apple calendar credentials",
         "parameters": [
           {
             "name": "calendar",
@@ -7764,6 +7872,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCalendarCredentialsInput"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": ""
@@ -9305,6 +9423,410 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/request": {
+      "post": {
+        "operationId": "OrgTeamsVerifiedResourcesController_requestEmailVerificationCode",
+        "summary": "Request Email Verification Code",
+        "description": "Sends a verification code to the email.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestEmailVerificationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestEmailVerificationOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organization Team Verified Resources"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/verification-code/request": {
+      "post": {
+        "operationId": "OrgTeamsVerifiedResourcesController_requestPhoneVerificationCode",
+        "summary": "Request Phone Number Verification Code",
+        "description": "Sends a verification code to the phone number.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestPhoneVerificationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestPhoneVerificationOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organization Team Verified Resources"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/verify": {
+      "post": {
+        "operationId": "OrgTeamsVerifiedResourcesController_verifyEmail",
+        "summary": "Verify an email for an org team.",
+        "description": "Use code to verify an email",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyEmailInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamVerifiedEmailOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organization Team Verified Resources"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/verification-code/verify": {
+      "post": {
+        "operationId": "OrgTeamsVerifiedResourcesController_verifyPhoneNumber",
+        "summary": "Verify a phone number for an org team.",
+        "description": "Use code to verify a phone number",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyPhoneInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamVerifiedPhoneOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organization Team Verified Resources"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails": {
+      "get": {
+        "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedEmails",
+        "summary": "Get list of verified emails of an org team.",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamVerifiedEmailsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organization Team Verified Resources"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones": {
+      "get": {
+        "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedPhoneNumbers",
+        "summary": "Get list of verified phone numbers of an org team.",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamVerifiedPhonesOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organization Team Verified Resources"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/{id}": {
+      "get": {
+        "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedEmailById",
+        "summary": "Get verified email of an org team by id.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamVerifiedEmailOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organization Team Verified Resources"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/{id}": {
+      "get": {
+        "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedPhoneById",
+        "summary": "Get verified phone number of an org team by id.",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamVerifiedPhoneOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organization Team Verified Resources"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/stripe/connect": {
       "get": {
         "operationId": "OrganizationsStripeController_getTeamStripeConnectUrl",
@@ -9942,7 +10464,7 @@
       "get": {
         "operationId": "SlotsController_2024_09_04_getAvailableSlots",
         "summary": "Find out when is an event type ready to be booked.",
-        "description": "\n      There are 4 ways to get available slots for event type of an individual user:\n      \n      1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      3. By event type slug + username + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.\n\n      And 3 ways to get available slots for team event type:\n\n      1. By team event type id. Example '/v2/slots?teamEventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      3. By team event type slug + team slug + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked.\n      Optional parameters are:\n      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.\n      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.\n      - slotFormat: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use \"range\" as value.\n      ",
+        "description": "\n      There are 4 ways to get available slots for event type of an individual user:\n\n      1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      3. By event type slug + username + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.\n\n      And 3 ways to get available slots for team event type:\n\n      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      3. By team event type slug + team slug + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked.\n      Optional parameters are:\n      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.\n      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.\n      - slotFormat: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use \"range\" as value.\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -9958,7 +10480,7 @@
             "name": "start",
             "required": true,
             "in": "query",
-            "description": "\n      Time starting from which available slots should be checked.\n    \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to start of day or specify hours:\n      2024-08-13 (will have hours 00:00:00 aka at very beginning of the date) or you can specify hours manually like 2024-08-13T09:00:00Z.",
+            "description": "\n      Time starting from which available slots should be checked.\n\n      Must be in UTC timezone as ISO 8601 datestring.\n\n      You can pass date without hours which defaults to start of day or specify hours:\n      2024-08-13 (will have hours 00:00:00 aka at very beginning of the date) or you can specify hours manually like 2024-08-13T09:00:00Z.",
             "example": "2050-09-05",
             "schema": {}
           },
@@ -9966,7 +10488,7 @@
             "name": "end",
             "required": true,
             "in": "query",
-            "description": "\n    Time until which available slots should be checked.\n    \n    Must be in UTC timezone as ISO 8601 datestring.\n    \n    You can pass date without hours which defaults to end of day or specify hours:\n    2024-08-20 (will have hours 23:59:59 aka at the very end of the date) or you can specify hours manually like 2024-08-20T18:00:00Z.",
+            "description": "\n    Time until which available slots should be checked.\n\n    Must be in UTC timezone as ISO 8601 datestring.\n\n    You can pass date without hours which defaults to end of day or specify hours:\n    2024-08-20 (will have hours 23:59:59 aka at the very end of the date) or you can specify hours manually like 2024-08-20T18:00:00Z.",
             "example": "2050-09-06",
             "schema": {}
           },
@@ -10014,7 +10536,7 @@
             "name": "usernames",
             "required": false,
             "in": "query",
-            "description": "The usernames for which available slots should be checked separated by a comma.\n    \n    Checking slots by usernames is used mainly for dynamic events where there is no specific event but we just want to know when 2 or more people are available.\n    \n    Must contain at least 2 usernames.",
+            "description": "The usernames for which available slots should be checked separated by a comma.\n\n    Checking slots by usernames is used mainly for dynamic events where there is no specific event but we just want to know when 2 or more people are available.\n\n    Must contain at least 2 usernames.",
             "example": "alice,bob",
             "schema": {}
           },
@@ -10288,6 +10810,7 @@
       },
       "delete": {
         "operationId": "SlotsController_2024_09_04_deleteReservedSlot",
+        "summary": "Delete a reserved slot",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -11091,7 +11614,7 @@
       },
       "patch": {
         "operationId": "TeamsMembershipsController_updateTeamMembership",
-        "summary": "Create a membership",
+        "summary": "Update membership",
         "parameters": [
           {
             "name": "Authorization",
@@ -11189,6 +11712,766 @@
         },
         "tags": [
           "Teams / Memberships"
+        ]
+      }
+    },
+    "/v2/teams/{teamId}/verified-resources/emails/verification-code/request": {
+      "post": {
+        "operationId": "TeamsVerifiedResourcesController_requestEmailVerificationCode",
+        "summary": "Request Email Verification Code",
+        "description": "Sends a verification code to the Email.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestEmailVerificationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestEmailVerificationOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams Verified Resources"
+        ]
+      }
+    },
+    "/v2/teams/{teamId}/verified-resources/phones/verification-code/request": {
+      "post": {
+        "operationId": "TeamsVerifiedResourcesController_requestPhoneVerificationCode",
+        "summary": "Request Phone Number Verification Code",
+        "description": "Sends a verification code to the phone number.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestPhoneVerificationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestPhoneVerificationOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams Verified Resources"
+        ]
+      }
+    },
+    "/v2/teams/{teamId}/verified-resources/emails/verification-code/verify": {
+      "post": {
+        "operationId": "TeamsVerifiedResourcesController_verifyEmail",
+        "summary": "Verify an email for a team.",
+        "description": "Use code to verify an email",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyEmailInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamVerifiedEmailOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams Verified Resources"
+        ]
+      }
+    },
+    "/v2/teams/{teamId}/verified-resources/phones/verification-code/verify": {
+      "post": {
+        "operationId": "TeamsVerifiedResourcesController_verifyPhoneNumber",
+        "summary": "Verify a phone number for an org team.",
+        "description": "Use code to verify a phone number",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyPhoneInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamVerifiedPhoneOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams Verified Resources"
+        ]
+      }
+    },
+    "/v2/teams/{teamId}/verified-resources/emails": {
+      "get": {
+        "operationId": "TeamsVerifiedResourcesController_getVerifiedEmails",
+        "summary": "Get list of verified emails of a team.",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamVerifiedEmailsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams Verified Resources"
+        ]
+      }
+    },
+    "/v2/teams/{teamId}/verified-resources/phones": {
+      "get": {
+        "operationId": "TeamsVerifiedResourcesController_getVerifiedPhoneNumbers",
+        "summary": "Get list of verified phone numbers of a team.",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamVerifiedPhonesOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams Verified Resources"
+        ]
+      }
+    },
+    "/v2/teams/{teamId}/verified-resources/emails/{id}": {
+      "get": {
+        "operationId": "TeamsVerifiedResourcesController_getVerifiedEmailById",
+        "summary": "Get verified email of a team by id.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamVerifiedEmailOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams Verified Resources"
+        ]
+      }
+    },
+    "/v2/teams/{teamId}/verified-resources/phones/{id}": {
+      "get": {
+        "operationId": "TeamsVerifiedResourcesController_getVerifiedPhoneById",
+        "summary": "Get verified phone number of a team by id.",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamVerifiedPhoneOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams Verified Resources"
+        ]
+      }
+    },
+    "/v2/verified-resources/emails/verification-code/request": {
+      "post": {
+        "operationId": "UserVerifiedResourcesController_requestEmailVerificationCode",
+        "summary": "Request Email Verification Code",
+        "description": "Sends a verification code to the email.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestEmailVerificationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestEmailVerificationOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Verified Resources"
+        ]
+      }
+    },
+    "/v2/verified-resources/phones/verification-code/request": {
+      "post": {
+        "operationId": "UserVerifiedResourcesController_requestPhoneVerificationCode",
+        "summary": "Request Phone Number Verification Code",
+        "description": "Sends a verification code to the phone number.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestPhoneVerificationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestPhoneVerificationOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Verified Resources"
+        ]
+      }
+    },
+    "/v2/verified-resources/emails/verification-code/verify": {
+      "post": {
+        "operationId": "UserVerifiedResourcesController_verifyEmail",
+        "summary": "Verify an email.",
+        "description": "Use code to verify an email",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyEmailInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserVerifiedEmailOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Verified Resources"
+        ]
+      }
+    },
+    "/v2/verified-resources/phones/verification-code/verify": {
+      "post": {
+        "operationId": "UserVerifiedResourcesController_verifyPhoneNumber",
+        "summary": "Verify a phone number.",
+        "description": "Use code to verify a phone number",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyPhoneInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserVerifiedPhoneOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Verified Resources"
+        ]
+      }
+    },
+    "/v2/verified-resources/emails": {
+      "get": {
+        "operationId": "UserVerifiedResourcesController_getVerifiedEmails",
+        "summary": "Get list of verified emails.",
+        "parameters": [
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserVerifiedEmailsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Verified Resources"
+        ]
+      }
+    },
+    "/v2/verified-resources/phones": {
+      "get": {
+        "operationId": "UserVerifiedResourcesController_getVerifiedPhoneNumbers",
+        "summary": "Get list of verified phone numbers.",
+        "parameters": [
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserVerifiedPhonesOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Verified Resources"
+        ]
+      }
+    },
+    "/v2/verified-resources/emails/{id}": {
+      "get": {
+        "operationId": "UserVerifiedResourcesController_getVerifiedEmailById",
+        "summary": "Get verified email by id.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserVerifiedEmailOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Verified Resources"
+        ]
+      }
+    },
+    "/v2/verified-resources/phones/{id}": {
+      "get": {
+        "operationId": "UserVerifiedResourcesController_getVerifiedPhoneById",
+        "summary": "Get verified phone number by id.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserVerifiedPhoneOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Verified Resources"
         ]
       }
     },
@@ -13337,6 +14620,7 @@
           },
           "enabledLayouts": {
             "type": "array",
+            "description": "Array of valid layouts - month, week or column",
             "items": {
               "type": "string",
               "enum": [
@@ -13624,6 +14908,10 @@
             "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
             "example": "https://masterchief.com/argentina/flan/video/9129412"
           },
+          "hideOrganizerEmail": {
+            "type": "boolean",
+            "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
           "locations": {
             "type": "array",
             "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
@@ -13776,7 +15064,6 @@
               "discord-video",
               "demodesk-video",
               "campfire-video",
-              "around-video"
             ],
             "example": "cal-video"
           },
@@ -15270,6 +16557,10 @@
           "hideCalendarEventDetails": {
             "type": "boolean"
           },
+          "hideOrganizerEmail": {
+            "type": "boolean",
+            "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
           "ownerId": {
             "type": "number",
             "example": 10
@@ -15603,6 +16894,10 @@
             "type": "string",
             "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
             "example": "https://masterchief.com/argentina/flan/video/9129412"
+          },
+          "hideOrganizerEmail": {
+            "type": "boolean",
+            "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
           },
           "locations": {
             "type": "array",
@@ -16153,7 +17448,7 @@
           },
           "slug": {
             "type": "string",
-            "description": "Team slug",
+            "description": "Team slug in kebab-case - if not provided will be generated automatically based on name.",
             "example": "caltel"
           },
           "logoUrl": {
@@ -17408,6 +18703,10 @@
             "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
             "example": "https://masterchief.com/argentina/flan/video/9129412"
           },
+          "hideOrganizerEmail": {
+            "type": "boolean",
+            "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
           "schedulingType": {
             "type": "string",
             "enum": [
@@ -17823,6 +19122,10 @@
           },
           "hideCalendarEventDetails": {
             "type": "boolean"
+          },
+          "hideOrganizerEmail": {
+            "type": "boolean",
+            "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
           },
           "teamId": {
             "type": "number"
@@ -18254,6 +19557,10 @@
             "type": "string",
             "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
             "example": "https://masterchief.com/argentina/flan/video/9129412"
+          },
+          "hideOrganizerEmail": {
+            "type": "boolean",
+            "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
           },
           "hosts": {
             "type": "array",
@@ -19352,7 +20659,7 @@
           },
           "slug": {
             "type": "string",
-            "description": "Team slug",
+            "description": "Team slug in kebab-case - if not provided will be generated automatically based on name.",
             "example": "caltel"
           },
           "logoUrl": {
@@ -20176,6 +21483,21 @@
           "data"
         ]
       },
+      "CreateCalendarCredentialsInput": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ]
+      },
       "DeleteCalendarCredentialsInputBodyDto": {
         "type": "object",
         "properties": {
@@ -20265,6 +21587,11 @@
             "description": "Name of the organization",
             "example": "CalTeam"
           },
+          "slug": {
+            "type": "string",
+            "description": "Organization slug in kebab-case - if not provided will be generated automatically based on name.",
+            "example": "cal-tel"
+          },
           "metadata": {
             "type": "object",
             "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
@@ -20286,6 +21613,9 @@
           "name": {
             "type": "string",
             "minLength": 1
+          },
+          "slug": {
+            "type": "string"
           },
           "metadata": {
             "type": "object",
@@ -20332,6 +21662,9 @@
           "name": {
             "type": "string",
             "minLength": 1
+          },
+          "slug": {
+            "type": "string"
           },
           "metadata": {
             "type": "object",
@@ -20964,7 +22297,6 @@
               "discord-video",
               "demodesk-video",
               "campfire-video",
-              "around-video"
             ]
           }
         },
@@ -21103,10 +22435,20 @@
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
           },
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 30,
-            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          "attendee": {
+            "description": "The attendee's details.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Attendee"
+              }
+            ]
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values for custom booking fields added by you.",
+            "example": {
+              "customField": "customValue"
+            }
           },
           "eventTypeId": {
             "type": "number",
@@ -21132,14 +22474,6 @@
             "type": "string",
             "description": "The organization slug. Optional, only used when booking with eventTypeSlug + username or eventTypeSlug + teamSlug.",
             "example": "acme-corp"
-          },
-          "attendee": {
-            "description": "The attendee's details.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Attendee"
-              }
-            ]
           },
           "guests": {
             "description": "An optional list of guest emails attending the event.",
@@ -21194,12 +22528,10 @@
               "key": "value"
             }
           },
-          "bookingFieldsResponses": {
-            "type": "object",
-            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
-            "example": {
-              "customField": "customValue"
-            }
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
           }
         },
         "required": [
@@ -21215,10 +22547,20 @@
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
           },
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 30,
-            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          "attendee": {
+            "description": "The attendee's details.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Attendee"
+              }
+            ]
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values for custom booking fields added by you.",
+            "example": {
+              "customField": "customValue"
+            }
           },
           "eventTypeId": {
             "type": "number",
@@ -21244,14 +22586,6 @@
             "type": "string",
             "description": "The organization slug. Optional, only used when booking with eventTypeSlug + username or eventTypeSlug + teamSlug.",
             "example": "acme-corp"
-          },
-          "attendee": {
-            "description": "The attendee's details.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Attendee"
-              }
-            ]
           },
           "guests": {
             "description": "An optional list of guest emails attending the event.",
@@ -21306,12 +22640,10 @@
               "key": "value"
             }
           },
-          "bookingFieldsResponses": {
-            "type": "object",
-            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
-            "example": {
-              "customField": "customValue"
-            }
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
           },
           "instant": {
             "type": "boolean",
@@ -21333,10 +22665,20 @@
             "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
             "example": "2024-08-13T09:00:00Z"
           },
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 30,
-            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          "attendee": {
+            "description": "The attendee's details.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Attendee"
+              }
+            ]
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values for custom booking fields added by you.",
+            "example": {
+              "customField": "customValue"
+            }
           },
           "eventTypeId": {
             "type": "number",
@@ -21362,14 +22704,6 @@
             "type": "string",
             "description": "The organization slug. Optional, only used when booking with eventTypeSlug + username or eventTypeSlug + teamSlug.",
             "example": "acme-corp"
-          },
-          "attendee": {
-            "description": "The attendee's details.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Attendee"
-              }
-            ]
           },
           "guests": {
             "description": "An optional list of guest emails attending the event.",
@@ -21424,12 +22758,10 @@
               "key": "value"
             }
           },
-          "bookingFieldsResponses": {
-            "type": "object",
-            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
-            "example": {
-              "customField": "customValue"
-            }
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 30,
+            "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
           },
           "recurrenceCount": {
             "type": "number",
@@ -22918,6 +24250,49 @@
           "data"
         ]
       },
+      "BookingReference": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "The type of the booking reference"
+          },
+          "externalUid": {
+            "type": "string",
+            "description": "The external uid of the booking reference"
+          },
+          "id": {
+            "type": "number",
+            "description": "The id of the booking reference"
+          }
+        },
+        "required": [
+          "type",
+          "externalUid",
+          "id"
+        ]
+      },
+      "BookingReferencesOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "object",
+            "description": "The status of the request, always 'success' for successful responses",
+            "example": "success"
+          },
+          "data": {
+            "description": "Booking References",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingReference"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "CreateTeamMembershipInput": {
         "type": "object",
         "properties": {
@@ -23395,6 +24770,395 @@
           },
           "data": {
             "$ref": "#/components/schemas/DestinationCalendarsOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "RequestEmailVerificationInput": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email to verify.",
+            "example": "acme@example.com"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "RequestEmailVerificationOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "RequestPhoneVerificationInput": {
+        "type": "object",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "description": "Phone number to verify.",
+            "example": "+372 5555 6666"
+          }
+        },
+        "required": [
+          "phone"
+        ]
+      },
+      "RequestPhoneVerificationOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "VerifyEmailInput": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email to verify.",
+            "example": "example@acme.com"
+          },
+          "code": {
+            "type": "string",
+            "description": "verification code sent to the email to verify",
+            "example": "1ABG2C"
+          }
+        },
+        "required": [
+          "email",
+          "code"
+        ]
+      },
+      "WorkingHours": {
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "startTime": {
+            "type": "number"
+          },
+          "endTime": {
+            "type": "number"
+          },
+          "userId": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "days",
+          "startTime",
+          "endTime"
+        ]
+      },
+      "AvailabilityModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "userId": {
+            "type": "number",
+            "nullable": true
+          },
+          "eventTypeId": {
+            "type": "number",
+            "nullable": true
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "startTime": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "endTime": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "date": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "scheduleId": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "days",
+          "startTime",
+          "endTime"
+        ]
+      },
+      "ScheduleOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isManaged": {
+            "type": "boolean"
+          },
+          "workingHours": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkingHours"
+            }
+          },
+          "schedule": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AvailabilityModel"
+            }
+          },
+          "availability": {
+            "items": {
+              "type": "array"
+            },
+            "type": "array"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "dateOverrides": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isLastSchedule": {
+            "type": "boolean"
+          },
+          "readOnly": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "isManaged",
+          "workingHours",
+          "schedule",
+          "availability",
+          "timeZone",
+          "isDefault",
+          "isLastSchedule",
+          "readOnly"
+        ]
+      },
+      "UserVerifiedEmailOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "VerifyPhoneInput": {
+        "type": "object",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "description": "phone number to verify.",
+            "example": "+37255556666"
+          },
+          "code": {
+            "type": "string",
+            "description": "verification code sent to the phone number to verify",
+            "example": "1ABG2C"
+          }
+        },
+        "required": [
+          "phone",
+          "code"
+        ]
+      },
+      "UserVerifiedPhoneOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UserVerifiedEmailsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UserVerifiedPhonesOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "TeamVerifiedEmailOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "TeamVerifiedPhoneOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "TeamVerifiedEmailsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "TeamVerifiedPhonesOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
           }
         },
         "required": [

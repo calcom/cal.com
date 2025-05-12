@@ -1,16 +1,19 @@
-import { Prisma as PrismaClientType } from "@prisma/client";
+import type { Booking, Prisma, Prisma as PrismaClientType } from "@prisma/client";
+import type { Kysely } from "kysely";
+import { type SelectQueryBuilder } from "kysely";
+import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
 
 import dayjs from "@calcom/dayjs";
-import { makeWhereClause } from "@calcom/features/data-table/lib/server";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
+import type { DB } from "@calcom/kysely";
+import kysely from "@calcom/kysely";
 import { parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
-import { bookingMinimalSelect } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
-import { type BookingStatus } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -25,6 +28,8 @@ type GetOptions = {
   };
   input: TGetInputSchema;
 };
+
+type InputByStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfirmed";
 
 const log = logger.getSubLogger({ prefix: ["bookings.get"] });
 
@@ -41,6 +46,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     ctx: {
       user: { id: user.id, email: user.email, orgId: user?.profile?.organizationId },
       prisma: prisma,
+      kysely: kysely,
     },
     bookingListingByStatus: bookingListingByStatus,
     take,
@@ -55,108 +61,36 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   };
 };
 
+type BookingsUnionQuery = SelectQueryBuilder<
+  DB,
+  "Booking",
+  Pick<Booking, "id" | "createdAt" | "updatedAt" | "startTime" | "endTime">
+>;
+
 export async function getBookings({
   user,
   prisma,
-  passedBookingsStatusFilter,
+  kysely,
+  bookingListingByStatus,
+  sort,
   filters,
-  orderBy,
   take,
   skip,
 }: {
   user: { id: number; email: string; orgId?: number | null };
   filters: TGetInputSchema["filters"];
   prisma: PrismaClient;
-  passedBookingsStatusFilter: Prisma.BookingWhereInput;
-  orderBy: Prisma.BookingOrderByWithAggregationInput;
+  kysely: Kysely<DB>;
+  bookingListingByStatus: InputByStatus[];
+  sort?: {
+    sortStart?: "asc" | "desc";
+    sortEnd?: "asc" | "desc";
+    sortCreated?: "asc" | "desc";
+    sortUpdated?: "asc" | "desc";
+  };
   take: number;
   skip: number;
 }) {
-  const bookingSelect = {
-    ...bookingMinimalSelect,
-    uid: true,
-    responses: true,
-    /**
-     * Who uses it -
-     * 1. We need to be able to decide which booking can have a 'Reroute' action
-     */
-    routedFromRoutingFormReponse: {
-      select: {
-        id: true,
-      },
-    },
-    recurringEventId: true,
-    location: true,
-    eventType: {
-      select: {
-        slug: true,
-        id: true,
-        title: true,
-        eventName: true,
-        price: true,
-        recurringEvent: true,
-        currency: true,
-        metadata: true,
-        disableGuests: true,
-        seatsShowAttendees: true,
-        seatsShowAvailabilityCount: true,
-        eventTypeColor: true,
-        allowReschedulingPastBookings: true,
-        disableCancelling: true,
-        disableRescheduling: true,
-        schedulingType: true,
-        length: true,
-        team: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-        },
-      },
-    },
-    status: true,
-    paid: true,
-    payment: {
-      select: {
-        paymentOption: true,
-        amount: true,
-        currency: true,
-        success: true,
-      },
-    },
-    user: {
-      select: {
-        id: true,
-        name: true,
-        email: true,
-      },
-    },
-    fromReschedule: true,
-    rescheduled: true,
-    references: true,
-    isRecorded: true,
-    seatsReferences: {
-      where: {
-        attendee: {
-          email: user.email,
-        },
-      },
-      select: {
-        referenceUid: true,
-        attendee: {
-          select: {
-            email: true,
-          },
-        },
-      },
-    },
-    assignmentReason: {
-      orderBy: { createdAt: PrismaClientType.SortOrder.desc },
-      take: 1,
-    },
-  };
-
   const membershipIdsWhereUserIsAdminOwner = (
     await prisma.membership.findMany({
       where: {
@@ -191,11 +125,12 @@ export async function getBookings({
     getUserIdsAndEmailsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner, user.orgId),
   ]);
 
+  const bookingQueries: { query: BookingsUnionQuery; tables: (keyof DB)[] }[] = [];
+
   // If user is organization owner/admin, contains organization members emails and ids (organization plan)
   // If user is only team owner/admin, contain team members emails and ids (teams plan)
   const [userIdsWhereUserIsAdminOrOwner, userEmailsWhereUserIsAdminOrOwner] =
     userIdsAndEmailsWhereUserIsAdminOrOwner;
-  const orConditions = [];
 
   // If userIds filter is provided
   if (!!filters?.userIds && filters.userIds.length > 0) {
@@ -213,145 +148,413 @@ export async function getBookings({
       });
     }
 
-    // Filtered view: Booking must match one of the specified users or their attendees
-    const usersFilter = { in: [...filters.userIds] };
-    const attendeesEmailFilter = { in: attendeeEmailsFromUserIdsFilter };
-
     // 1. Booking created by one of the filtered users
-    orConditions.push({ userId: usersFilter });
-    // 2. Attendee email matches one of the filtered users' emails
-    orConditions.push({ attendees: { some: { email: attendeesEmailFilter } } });
-    // 3. Seat reference attendee email matches one of the filtered users' emails
-    orConditions.push({ seatsReferences: { some: { attendee: { email: attendeesEmailFilter } } } });
-  } else {
-    // Filter by emails for auth user.
-    const userEmailFilter = { equals: user.email };
-    // Auth user is ORG_OWNER/ADMIN or TEAM_OWNER/ADMIN, filter by emails of members of the organization or team
-    const userEmailsFilterWhereUserIsOrgAdminOrOwner = userEmailsWhereUserIsAdminOrOwner?.length
-      ? { in: userEmailsWhereUserIsAdminOrOwner }
-      : undefined;
+    bookingQueries.push({
+      query: kysely
+        .selectFrom("Booking")
+        .select("Booking.id")
+        .select("Booking.startTime")
+        .select("Booking.endTime")
+        .select("Booking.createdAt")
+        .select("Booking.updatedAt")
+        .where("userId", "in", filters.userIds),
+      tables: ["Booking"],
+    });
 
+    // 2. Attendee email matches one of the filtered users' emails
+    if (attendeeEmailsFromUserIdsFilter?.length) {
+      bookingQueries.push({
+        query: kysely
+          .selectFrom("Booking")
+          .select("Booking.id")
+          .select("Booking.startTime")
+          .select("Booking.endTime")
+          .select("Booking.createdAt")
+          .select("Booking.updatedAt")
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter),
+        tables: ["Booking", "Attendee"],
+      });
+    }
+
+    // 3. Seat reference attendee email matches one of the filtered users' emails
+    if (attendeeEmailsFromUserIdsFilter?.length) {
+      bookingQueries.push({
+        query: kysely
+          .selectFrom("Booking")
+          .select("Booking.id")
+          .select("Booking.startTime")
+          .select("Booking.endTime")
+          .select("Booking.createdAt")
+          .select("Booking.updatedAt")
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .innerJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
+          .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter),
+        tables: ["Booking", "Attendee", "BookingSeat"],
+      });
+    }
+  } else {
     // 1. Current user created bookings
-    orConditions.push({ userId: { equals: user.id } });
+    bookingQueries.push({
+      query: kysely
+        .selectFrom("Booking")
+        .select("Booking.id")
+        .select("Booking.startTime")
+        .select("Booking.endTime")
+        .select("Booking.createdAt")
+        .select("Booking.updatedAt")
+        .where("Booking.userId", "=", user.id),
+      tables: ["Booking"],
+    });
     // 2. Current user is an attendee
-    orConditions.push({ attendees: { some: { email: userEmailFilter } } });
+    bookingQueries.push({
+      query: kysely
+        .selectFrom("Booking")
+        .select("Booking.id")
+        .select("Booking.startTime")
+        .select("Booking.endTime")
+        .select("Booking.createdAt")
+        .select("Booking.updatedAt")
+        .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+        .where("Attendee.email", "=", user.email),
+      tables: ["Booking", "Attendee"],
+    });
     // 3. Current user is an attendee via seats reference
-    orConditions.push({ seatsReferences: { some: { attendee: { email: userEmailFilter } } } });
+    bookingQueries.push({
+      query: kysely
+        .selectFrom("Booking")
+        .select("Booking.id")
+        .select("Booking.startTime")
+        .select("Booking.endTime")
+        .select("Booking.createdAt")
+        .select("Booking.updatedAt")
+        .innerJoin("BookingSeat", "BookingSeat.bookingId", "Booking.id")
+        .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+        .where("Attendee.email", "=", user.email),
+      tables: ["Booking", "Attendee", "BookingSeat"],
+    });
     // 4. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees
     // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees
-    userEmailsFilterWhereUserIsOrgAdminOrOwner &&
-      orConditions.push({ attendees: { some: { email: userEmailsFilterWhereUserIsOrgAdminOrOwner } } });
+    userEmailsWhereUserIsAdminOrOwner?.length &&
+      bookingQueries.push({
+        query: kysely
+          .selectFrom("Booking")
+          .select("Booking.id")
+          .select("Booking.startTime")
+          .select("Booking.endTime")
+          .select("Booking.createdAt")
+          .select("Booking.updatedAt")
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner),
+        tables: ["Booking", "Attendee"],
+      });
     // 5. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees via seatsReference
     // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees via seatsReference
-    userEmailsFilterWhereUserIsOrgAdminOrOwner &&
-      orConditions.push({
-        seatsReferences: { some: { attendee: { email: userEmailsFilterWhereUserIsOrgAdminOrOwner } } },
+    userEmailsWhereUserIsAdminOrOwner?.length &&
+      bookingQueries.push({
+        query: kysely
+          .selectFrom("Booking")
+          .select("Booking.id")
+          .select("Booking.startTime")
+          .select("Booking.endTime")
+          .select("Booking.createdAt")
+          .select("Booking.updatedAt")
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .innerJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
+          .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner),
+        tables: ["Booking", "Attendee", "BookingSeat"],
       });
+
     // 6. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN, get booking created for an event type within the organization
     // - If Current user is TEAM_OWNER/ADMIN, get bookings created for an event type within the team
     eventTypeIdsWhereUserIsAdminOrOwner?.length &&
-      orConditions.push({ eventTypeId: { in: eventTypeIdsWhereUserIsAdminOrOwner } });
+      bookingQueries.push({
+        query: kysely
+          .selectFrom("Booking")
+          .select("Booking.id")
+          .select("Booking.startTime")
+          .select("Booking.endTime")
+          .select("Booking.createdAt")
+          .select("Booking.updatedAt")
+          .innerJoin("EventType", "EventType.id", "Booking.eventTypeId")
+          .where("Booking.eventTypeId", "in", eventTypeIdsWhereUserIsAdminOrOwner),
+        tables: ["Booking", "EventType"],
+      });
+
     // 7. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN, get bookings created by users within the same organization
     // - If Current user is TEAM_OWNER/ADMIN, get bookings created by users within the same organization
     userIdsWhereUserIsAdminOrOwner?.length &&
-      orConditions.push({ userId: { in: userIdsWhereUserIsAdminOrOwner } });
-  }
-
-  const andConditions = [];
-
-  // 1. Apply mandatory status filter
-  andConditions.push(passedBookingsStatusFilter);
-
-  // 2. Filter by Event Type IDs derived from Team IDs (if provided)
-  if (eventTypeIdsFromTeamIdsFilter && eventTypeIdsFromTeamIdsFilter.length > 0) {
-    andConditions.push({ eventTypeId: { in: eventTypeIdsFromTeamIdsFilter } });
-  }
-
-  // 3. Filter by specific Event Type IDs (if provided)
-  // If both teamIds filter and eventTypeIds filter are provided, filter 2. ensures the event-types are within the teams
-  if (eventTypeIdsFromEventTypeIdsFilter && eventTypeIdsFromEventTypeIdsFilter.length > 0) {
-    andConditions.push({ eventTypeId: { in: eventTypeIdsFromEventTypeIdsFilter } });
-  }
-
-  // 4. Filter by Attendee Email (if provided)
-  if (filters?.attendeeEmail) {
-    if (typeof filters.attendeeEmail === "string") {
-      // Simple string match (exact)
-      andConditions.push({ attendees: { some: { email: filters.attendeeEmail.trim() } } });
-    } else if (isTextFilterValue(filters.attendeeEmail)) {
-      // Complex text filter (contains, startsWith, etc.) using makeWhereClause
-      andConditions.push({
-        attendees: {
-          some: makeWhereClause({
-            columnName: "email",
-            filterValue: filters.attendeeEmail,
-          }),
-        },
+      bookingQueries.push({
+        query: kysely
+          .selectFrom("Booking")
+          .select("Booking.id")
+          .select("Booking.startTime")
+          .select("Booking.endTime")
+          .select("Booking.createdAt")
+          .select("Booking.updatedAt")
+          .where("Booking.userId", "in", userIdsWhereUserIsAdminOrOwner),
+        tables: ["Booking"],
       });
+  }
+
+  const queriesWithFilters = bookingQueries.map(({ query, tables }) => {
+    // 1. Apply mandatory status filter
+    let fullQuery = addStatusesQueryFilters(query, bookingListingByStatus);
+
+    // 2. Filter by Event Type IDs derived from Team IDs (if provided)
+    if (eventTypeIdsFromTeamIdsFilter && eventTypeIdsFromTeamIdsFilter.length > 0) {
+      fullQuery = fullQuery.where("Booking.eventTypeId", "in", eventTypeIdsFromTeamIdsFilter);
     }
-  }
 
-  // 5. Filter by Attendee Name (if provided)
-  if (filters?.attendeeName) {
-    if (typeof filters.attendeeName === "string") {
-      // Simple string match (exact)
-      andConditions.push({ attendees: { some: { name: filters.attendeeName.trim() } } });
-    } else if (isTextFilterValue(filters.attendeeName)) {
-      // Complex text filter (contains, startsWith, etc.) using makeWhereClause
-      andConditions.push({
-        attendees: {
-          some: makeWhereClause({
-            columnName: "name",
-            filterValue: filters.attendeeName,
-          }),
-        },
-      });
+    // 3. Filter by specific Event Type IDs (if provided)
+    // If both teamIds filter and eventTypeIds filter are provided, filter 2. ensures the event-types are within the teams
+    if (eventTypeIdsFromEventTypeIdsFilter && eventTypeIdsFromEventTypeIdsFilter.length > 0) {
+      fullQuery = fullQuery.where("Booking.eventTypeId", "in", eventTypeIdsFromEventTypeIdsFilter);
     }
-  }
 
-  // 6. Date Range Filters
-  if (filters?.afterStartDate) {
-    andConditions.push({ startTime: { gte: dayjs.utc(filters.afterStartDate).toDate() } });
-  }
-  if (filters?.beforeEndDate) {
-    andConditions.push({ endTime: { lte: dayjs.utc(filters.beforeEndDate).toDate() } });
-  }
-  if (filters?.afterUpdatedDate) {
-    andConditions.push({ updatedAt: { gte: dayjs.utc(filters.afterUpdatedDate).toDate() } });
-  }
-  if (filters?.beforeUpdatedDate) {
-    andConditions.push({ updatedAt: { lte: dayjs.utc(filters.beforeUpdatedDate).toDate() } });
-  }
-  if (filters?.afterCreatedDate) {
-    andConditions.push({ createdAt: { gte: dayjs.utc(filters.afterCreatedDate).toDate() } });
-  }
-  if (filters?.beforeCreatedDate) {
-    andConditions.push({ createdAt: { lte: dayjs.utc(filters.beforeCreatedDate).toDate() } });
-  }
+    // 4. Filter by Attendee Name (if provided)
+    if (filters?.attendeeName) {
+      if (typeof filters.attendeeName === "string") {
+        // Simple string match (exact)
+        fullQuery = fullQuery
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .where("Attendee.name", "=", filters.attendeeName.trim());
+      } else if (isTextFilterValue(filters.attendeeName)) {
+        // TODO: write makeWhereClause equivalent for kysely
+        fullQuery = addAdvancedAttendeeWhereClause(
+          fullQuery,
+          "name",
+          filters.attendeeName.data.operator,
+          filters.attendeeName.data.operand,
+          tables.includes("Attendee")
+        );
+      }
+    }
 
-  const whereClause = {
-    OR: orConditions,
-    AND: andConditions,
-  };
+    // 5. Filter by Attendee Email (if provided)
+    if (filters?.attendeeEmail) {
+      if (typeof filters.attendeeEmail === "string") {
+        // Simple string match (exact)
+        fullQuery = fullQuery
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .where("Attendee.email", "=", filters.attendeeEmail.trim());
+      } else if (isTextFilterValue(filters.attendeeEmail)) {
+        // TODO: write makeWhereClause equivalent for kysely
+        fullQuery = addAdvancedAttendeeWhereClause(
+          fullQuery,
+          "email",
+          filters.attendeeEmail.data.operator,
+          filters.attendeeEmail.data.operand,
+          tables.includes("Attendee")
+        );
+      }
+    }
 
-  log.info(`Get bookings where clause for user ${user.id}`, JSON.stringify(whereClause));
+    // 6. Booking Start/End Time Range Filters
+    if (filters?.afterStartDate) {
+      fullQuery = fullQuery.where("Booking.startTime", ">=", dayjs.utc(filters.afterStartDate).toDate());
+    }
+    if (filters?.beforeEndDate) {
+      fullQuery = fullQuery.where("Booking.endTime", "<=", dayjs.utc(filters.beforeEndDate).toDate());
+    }
 
-  const [plainBookings, totalCount] = await Promise.all([
-    prisma.booking.findMany({
-      where: whereClause,
-      select: bookingSelect,
-      orderBy,
-      take,
-      skip,
-    }),
-    prisma.booking.count({
-      where: whereClause,
-    }),
-  ]);
+    return fullQuery;
+  });
+
+  const queryUnion = queriesWithFilters.reduce((acc, query) => {
+    return acc.union(query);
+  });
+
+  const orderBy = getOrderBy(bookingListingByStatus, sort);
+
+  const getBookingsUnionCompiled = kysely
+    .selectFrom(queryUnion.as("union_subquery"))
+    .selectAll("union_subquery")
+    .$if(Boolean(filters?.afterUpdatedDate), (eb) =>
+      eb.where("union_subquery.updatedAt", ">=", dayjs.utc(filters.afterUpdatedDate).toDate())
+    )
+    .$if(Boolean(filters?.beforeUpdatedDate), (eb) =>
+      eb.where("union_subquery.updatedAt", "<=", dayjs.utc(filters.beforeUpdatedDate).toDate())
+    )
+    .$if(Boolean(filters?.afterCreatedDate), (eb) =>
+      eb.where("union_subquery.createdAt", ">=", dayjs.utc(filters.afterCreatedDate).toDate())
+    )
+    .$if(Boolean(filters?.beforeCreatedDate), (eb) =>
+      eb.where("union_subquery.createdAt", "<=", dayjs.utc(filters.beforeCreatedDate).toDate())
+    )
+    .orderBy(orderBy.key, orderBy.order)
+    .limit(take)
+    .offset(skip)
+    .compile();
+
+  const bookingsFromUnion = (await kysely.executeQuery(getBookingsUnionCompiled)).rows;
+
+  log.debug(`Get bookings for user ${user.id} SQL:`, getBookingsUnionCompiled.sql);
+
+  const totalCount = Number(
+    (
+      await kysely
+        .selectFrom(queryUnion.as("union_subquery"))
+        .select(({ fn }) => fn.countAll().as("bookingCount"))
+        .executeTakeFirst()
+    )?.bookingCount ?? 0
+  );
+
+  const plainBookings = !(bookingsFromUnion?.length === 0)
+    ? await kysely
+        .selectFrom("Booking")
+        .where(
+          "id",
+          "in",
+          bookingsFromUnion.map((booking) => booking.id)
+        )
+        .select((eb) => [
+          "Booking.id",
+          "Booking.title",
+          "Booking.userPrimaryEmail",
+          "Booking.description",
+          "Booking.customInputs",
+          "Booking.startTime",
+          "Booking.createdAt",
+          "Booking.updatedAt",
+          "Booking.endTime",
+          "Booking.metadata",
+          "Booking.uid",
+          eb
+            .cast<Prisma.JsonValue>( // Target TypeScript type
+              eb.ref("Booking.responses"), // Source column
+              "jsonb" // Target SQL type
+            )
+            .as("responses"),
+          "Booking.recurringEventId",
+          "Booking.location",
+          eb
+            .cast<BookingStatus>(
+              eb
+                .case()
+                .when("Booking.status", "=", "cancelled")
+                .then(BookingStatus["CANCELLED"])
+                .when("Booking.status", "=", "accepted")
+                .then(BookingStatus["ACCEPTED"])
+                .when("Booking.status", "=", "rejected")
+                .then(BookingStatus["REJECTED"])
+                .when("Booking.status", "=", "pending")
+                .then(BookingStatus["PENDING"])
+                .when("Booking.status", "=", "awaiting_host")
+                .then(BookingStatus["AWAITING_HOST"])
+                .else(BookingStatus["PENDING"])
+                .end(), // End of CASE expression
+              "varchar"
+            )
+            .as("status"),
+          "Booking.paid",
+          "Booking.fromReschedule",
+          "Booking.rescheduled",
+          "Booking.isRecorded",
+          jsonObjectFrom(
+            eb
+              .selectFrom("App_RoutingForms_FormResponse")
+              .select("id")
+              .whereRef("App_RoutingForms_FormResponse.routedToBookingUid", "=", "Booking.uid")
+          ).as("routedFromRoutingFormReponse"),
+          jsonObjectFrom(
+            eb
+              .selectFrom("EventType")
+              .select((eb) => [
+                "EventType.slug",
+                "EventType.id",
+                "EventType.title",
+                "EventType.eventName",
+                "EventType.price",
+                "EventType.recurringEvent",
+                "EventType.currency",
+                "EventType.metadata",
+                "EventType.disableGuests",
+                "EventType.seatsShowAttendees",
+                "EventType.seatsShowAvailabilityCount",
+                "EventType.eventTypeColor",
+                "EventType.customReplyToEmail",
+                "EventType.allowReschedulingPastBookings",
+                "EventType.hideOrganizerEmail",
+                "EventType.disableCancelling",
+                "EventType.disableRescheduling",
+                eb
+                  .cast<SchedulingType>(
+                    eb
+                      .case()
+                      .when("EventType.schedulingType", "=", "roundRobin")
+                      .then(SchedulingType["ROUND_ROBIN"])
+                      .when("EventType.schedulingType", "=", "collective")
+                      .then(SchedulingType["COLLECTIVE"])
+                      .when("EventType.schedulingType", "=", "managed")
+                      .then(SchedulingType["MANAGED"])
+                      .else(SchedulingType["ROUND_ROBIN"]) // Ensure ELSE provides a value within SchedulingTypeLiteral for cast safety
+                      .end(),
+                    "varchar" // Or 'text' - use the actual SQL data type
+                  )
+                  .as("schedulingType"),
+                "EventType.length",
+                jsonObjectFrom(
+                  eb
+                    .selectFrom("Team")
+                    .select(["Team.id", "Team.name", "Team.slug"])
+                    .whereRef("EventType.teamId", "=", "Team.id")
+                ).as("team"),
+              ])
+              .whereRef("EventType.id", "=", "Booking.eventTypeId")
+          ).as("eventType"),
+          jsonArrayFrom(
+            eb
+              .selectFrom("BookingReference")
+              .selectAll()
+              .whereRef("BookingReference.bookingId", "=", "Booking.id")
+          ).as("references"),
+          jsonArrayFrom(
+            eb
+              .selectFrom("Payment")
+              .select(["Payment.paymentOption", "Payment.amount", "Payment.currency", "Payment.success"])
+              .whereRef("Payment.bookingId", "=", "Booking.id")
+          ).as("payment"),
+          jsonObjectFrom(
+            eb
+              .selectFrom("users")
+              .select(["users.id", "users.name", "users.email"])
+              .whereRef("Booking.userId", "=", "users.id")
+          ).as("user"),
+          jsonArrayFrom(
+            eb.selectFrom("Attendee").selectAll().whereRef("Attendee.bookingId", "=", "Booking.id")
+          ).as("attendees"),
+          jsonArrayFrom(
+            eb
+              .selectFrom("BookingSeat")
+              .select((eb) => [
+                "BookingSeat.referenceUid",
+                jsonObjectFrom(
+                  eb
+                    .selectFrom("Attendee")
+                    .select(["Attendee.email"])
+                    .whereRef("BookingSeat.attendeeId", "=", "Attendee.id")
+                    .where("Attendee.email", "=", user.email)
+                ).as("attendee"),
+              ])
+              .whereRef("BookingSeat.bookingId", "=", "Booking.id")
+          ).as("seatsReferences"),
+          jsonArrayFrom(
+            eb
+              .selectFrom("AssignmentReason")
+              .selectAll()
+              .whereRef("AssignmentReason.bookingId", "=", "Booking.id")
+              .orderBy("AssignmentReason.createdAt", "desc")
+              .limit(1)
+          ).as("assignmentReason"),
+        ])
+        .orderBy(orderBy.key, orderBy.order)
+        .execute()
+    : [];
 
   const [
     recurringInfoBasic,
@@ -657,4 +860,153 @@ async function getUserIdsAndEmailsWhereUserIsAdminOrOwner(
     },
   });
   return [users.map((user) => user.id), users.map((user) => user.email)];
+}
+
+function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputByStatus[]) {
+  if (statuses?.length) {
+    return query.where(({ eb, or, and }) =>
+      or(
+        statuses.map((status) => {
+          if (status === "upcoming") {
+            return and([
+              eb("Booking.endTime", ">=", new Date()),
+              or([
+                and([eb("Booking.recurringEventId", "is not", null), eb("Booking.status", "=", "accepted")]),
+                and([
+                  eb("Booking.recurringEventId", "is", null),
+                  eb("Booking.status", "not in", ["cancelled", "rejected"]),
+                ]),
+              ]),
+            ]);
+          }
+
+          if (status === "recurring") {
+            return and([
+              eb("Booking.endTime", ">=", new Date()),
+              eb("Booking.recurringEventId", "is not", null),
+              eb("Booking.status", "not in", ["cancelled", "rejected"]),
+            ]);
+          }
+
+          if (status === "past") {
+            return and([
+              eb("Booking.endTime", "<=", new Date()),
+              eb("Booking.status", "not in", ["cancelled", "rejected"]),
+            ]);
+          }
+
+          if (status === "cancelled") {
+            return eb("Booking.status", "in", ["cancelled", "rejected"]);
+          }
+
+          if (status === "unconfirmed") {
+            return and([eb("Booking.endTime", ">=", new Date()), eb("Booking.status", "=", "pending")]);
+          }
+          return and([]);
+        })
+      )
+    );
+  }
+
+  return query;
+}
+
+function addAdvancedAttendeeWhereClause(
+  query: BookingsUnionQuery,
+  key: "name" | "email",
+  operator:
+    | "endsWith"
+    | "startsWith"
+    | "equals"
+    | "notEquals"
+    | "contains"
+    | "notContains"
+    | "isEmpty"
+    | "isNotEmpty",
+  operand: string,
+  isAttendeeTableJoined: boolean
+) {
+  let fullQuery = query.$if(!isAttendeeTableJoined, (eb) =>
+    eb.innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+  ) as SelectQueryBuilder<
+    DB,
+    "Booking" | "Attendee",
+    Pick<Booking, "id" | "createdAt" | "updatedAt" | "startTime" | "endTime">
+  >;
+
+  switch (operator) {
+    case "endsWith":
+      fullQuery = fullQuery.where(`Attendee.${key}`, "like", `%${operand}`);
+      break;
+
+    case "startsWith":
+      fullQuery = fullQuery.where(`Attendee.${key}`, "like", `${operand}%`);
+      break;
+
+    case "equals":
+      fullQuery = fullQuery.where(`Attendee.${key}`, "=", `${operand}`);
+      break;
+
+    case "notEquals":
+      fullQuery = fullQuery.where(`Attendee.${key}`, "!=", `${operand}`);
+      break;
+
+    case "contains":
+      fullQuery = fullQuery.where(`Attendee.${key}`, "like", `%${operand}%`);
+      break;
+
+    case "notContains":
+      fullQuery = fullQuery.where(`Attendee.${key}`, "not like", `%${operand}%`);
+      break;
+
+    case "isEmpty":
+      fullQuery = fullQuery.where(`Attendee.${key}`, "=", "");
+      break;
+
+    case "isNotEmpty":
+      fullQuery = fullQuery.where(`Attendee.${key}`, "!=", "");
+      break;
+
+    default:
+      break;
+  }
+
+  return fullQuery;
+}
+
+function getOrderBy(
+  bookingListingByStatus: InputByStatus[],
+  sort?: {
+    sortStart?: "asc" | "desc";
+    sortEnd?: "asc" | "desc";
+    sortCreated?: "asc" | "desc";
+    sortUpdated?: "asc" | "desc";
+  }
+): { key: "startTime" | "endTime" | "createdAt" | "updatedAt"; order: "desc" | "asc" } {
+  const bookingListingOrderby = {
+    upcoming: { startTime: "asc" },
+    recurring: { startTime: "asc" },
+    past: { startTime: "desc" },
+    cancelled: { startTime: "desc" },
+    unconfirmed: { startTime: "asc" },
+  } as const;
+
+  if (bookingListingByStatus?.length === 1 && !sort) {
+    return { key: "startTime", order: bookingListingOrderby[bookingListingByStatus[0]].startTime };
+  }
+
+  if (sort?.sortStart) {
+    return { key: "startTime", order: sort.sortStart };
+  }
+  if (sort?.sortEnd) {
+    return { key: "endTime", order: sort.sortEnd };
+  }
+  if (sort?.sortCreated) {
+    return { key: "createdAt", order: sort.sortCreated };
+  }
+  if (sort?.sortUpdated) {
+    return { key: "updatedAt", order: sort.sortUpdated };
+  }
+
+  return { key: "startTime", order: "asc" };
 }

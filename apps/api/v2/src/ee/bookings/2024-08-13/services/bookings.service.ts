@@ -1,11 +1,13 @@
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { CalendarLink } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
+import { ErrorsBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/errors.service";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
 import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
+import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
@@ -15,7 +17,7 @@ import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-eve
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { ConflictException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
 import { z } from "zod";
@@ -77,6 +79,7 @@ export class BookingsService_2024_08_13 {
     private readonly bookingSeatRepository: BookingSeatRepository,
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
     private readonly prismaReadService: PrismaReadService,
+    private readonly kyselyReadService: KyselyReadService,
     private readonly billingService: BillingService,
     private readonly usersService: UsersService,
     private readonly usersRepository: UsersRepository,
@@ -85,34 +88,19 @@ export class BookingsService_2024_08_13 {
     private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
     private readonly organizationsRepository: OrganizationsRepository,
     private readonly teamsRepository: TeamsRepository,
-    private readonly teamsEventTypesRepository: TeamsEventTypesRepository
+    private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
+    private readonly errorsBookingsService: ErrorsBookingsService_2024_08_13
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput) {
+    let bookingTeamEventType = false;
     try {
       const eventType = await this.getBookedEventType(body);
+      if (eventType?.team) {
+        bookingTeamEventType = true;
+      }
       if (!eventType) {
-        if (body.username && body.eventTypeSlug && !body.organizationSlug) {
-          throw new NotFoundException(
-            `Event type with slug ${body.eventTypeSlug} belonging to user ${body.username} not found.`
-          );
-        }
-        if (body.username && body.eventTypeSlug && body.organizationSlug) {
-          throw new NotFoundException(
-            `Event type with slug ${body.eventTypeSlug} belonging to user ${body.username} within organization ${body.organizationSlug} not found.`
-          );
-        }
-        if (body.teamSlug && body.eventTypeSlug && !body.organizationSlug) {
-          throw new NotFoundException(
-            `Event type with slug ${body.eventTypeSlug} belonging to team ${body.teamSlug} not found.`
-          );
-        }
-        if (body.teamSlug && body.eventTypeSlug && body.organizationSlug) {
-          throw new NotFoundException(
-            `Event type with slug ${body.eventTypeSlug} belonging to team ${body.teamSlug} within organization ${body.organizationSlug} not found.`
-          );
-        }
-        throw new NotFoundException(`Event type with id ${body.eventTypeId} not found.`);
+        this.errorsBookingsService.handleEventTypeToBeBookedNotFound(body);
       }
 
       body.eventTypeId = eventType.id;
@@ -138,12 +126,7 @@ export class BookingsService_2024_08_13 {
 
       return await this.createRegularBooking(request, body, eventType);
     } catch (error) {
-      if (error instanceof Error) {
-        if (error.message === "no_available_users_found_error") {
-          throw new BadRequestException("User either already has booking at this time or is not available");
-        }
-      }
-      throw error;
+      this.errorsBookingsService.handleBookingError(error, bookingTeamEventType);
     }
   }
 
@@ -223,6 +206,12 @@ export class BookingsService_2024_08_13 {
     body: CreateInstantBookingInput_2024_08_13,
     eventType: EventTypeWithOwnerAndTeam
   ) {
+    if (!eventType.team?.id) {
+      throw new BadRequestException(
+        "Instant bookings are only supported for team event types, not individual user event types."
+      );
+    }
+
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
     const booking = await handleInstantMeeting(bookingRequest);
 
@@ -313,29 +302,37 @@ export class BookingsService_2024_08_13 {
     eventType: EventTypeWithOwnerAndTeam
   ) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
-    const booking = await handleNewBooking({
-      bookingData: bookingRequest.body,
-      userId: bookingRequest.userId,
-      hostname: bookingRequest.headers?.host || "",
-      platformClientId: bookingRequest.platformClientId,
-      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
-      platformCancelUrl: bookingRequest.platformCancelUrl,
-      platformBookingUrl: bookingRequest.platformBookingUrl,
-      platformBookingLocation: bookingRequest.platformBookingLocation,
-    });
+    try {
+      const booking = await handleNewBooking({
+        bookingData: bookingRequest.body,
+        userId: bookingRequest.userId,
+        hostname: bookingRequest.headers?.host || "",
+        platformClientId: bookingRequest.platformClientId,
+        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+        platformCancelUrl: bookingRequest.platformCancelUrl,
+        platformBookingUrl: bookingRequest.platformBookingUrl,
+        platformBookingLocation: bookingRequest.platformBookingLocation,
+      });
 
-    if (!booking.uid) {
-      throw new Error("Booking missing uid");
+      if (!booking.uid) {
+        throw new Error("Booking missing uid");
+      }
+
+      const databaseBooking =
+        await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(booking.uid);
+      if (!databaseBooking) {
+        throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
+      }
+
+      return this.outputService.getOutputCreateSeatedBooking(databaseBooking, booking.seatReferenceUid || "");
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "booking_seats_full_error") {
+          throw new ConflictException("No more seats left at this seated booking.");
+        }
+      }
+      throw error;
     }
-
-    const databaseBooking = await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(
-      booking.uid
-    );
-    if (!databaseBooking) {
-      throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
-    }
-
-    return this.outputService.getOutputCreateSeatedBooking(databaseBooking, booking.seatReferenceUid || "");
   }
 
   async getBooking(uid: string) {
@@ -390,6 +387,7 @@ export class BookingsService_2024_08_13 {
       ctx: {
         user,
         prisma: this.prismaReadService.prisma as unknown as PrismaClient,
+        kysely: this.kyselyReadService.kysely,
       },
       sort: this.inputService.transformGetBookingsSort(queryParams),
     });
@@ -697,17 +695,28 @@ export class BookingsService_2024_08_13 {
 
     const profile = this.usersService.getUserMainProfile(user);
 
-    const reassigned = await roundRobinManualReassignment({
-      bookingId: booking.id,
-      newUserId,
-      orgId: profile?.organizationId || null,
-      reassignReason: body.reason,
-      reassignedById,
-      emailsEnabled,
-      platformClientParams,
-    });
+    try {
+      const reassigned = await roundRobinManualReassignment({
+        bookingId: booking.id,
+        newUserId,
+        orgId: profile?.organizationId || null,
+        reassignReason: body.reason,
+        reassignedById,
+        emailsEnabled,
+        platformClientParams,
+      });
 
-    return this.outputService.getOutputReassignedBooking(reassigned);
+      return this.outputService.getOutputReassignedBooking(reassigned);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "invalid_round_robin_host") {
+          throw new BadRequestException(
+            `User with id=${newUserId} is not a valid Round Robin host - the user to which you reassign this booking must be one of the booking hosts. Fetch the booking using following endpoint and select id of one of the hosts: https://cal.com/docs/api-reference/v2/bookings/get-a-booking`
+          );
+        }
+      }
+      throw error;
+    }
   }
 
   async confirmBooking(bookingUid: string, requestUser: UserWithProfile) {
