@@ -1271,9 +1271,34 @@ export class EventTypeRepository {
       eventType.hosts = Array.isArray(eventType.hosts) ? eventType.hosts : [];
       eventType.users = Array.isArray(eventType.users) ? eventType.users : [];
 
+      const restructuredHosts = eventType.hosts.map((host: any) => {
+        const userData = {
+          ...host.user,
+          id: host.user.id,
+          email: host.user.email,
+          username: host.user.username,
+          timeZone: host.user.timeZone,
+          bufferTime: host.user.bufferTime,
+          startTime: host.user.startTime,
+          endTime: host.user.endTime,
+          timeFormat: host.user.timeFormat,
+          defaultScheduleId: host.user.defaultScheduleId,
+          schedules: host.user.schedules || [],
+          availability: host.user.availability || [],
+          selectedCalendars: host.user.selectedCalendars || [],
+          travelSchedules: host.user.travelSchedules || [],
+          credentials: host.user.credentials || [],
+        };
+
+        return {
+          isFixed: host.isFixed,
+          user: userData,
+        };
+      });
+
       return {
         ...eventType,
-        hosts: hostsWithSelectedCalendars(eventType.hosts),
+        hosts: hostsWithSelectedCalendars(restructuredHosts),
         users: usersWithSelectedCalendars(eventType.users),
         metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
         rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue),
