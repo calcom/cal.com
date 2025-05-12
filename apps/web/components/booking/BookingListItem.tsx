@@ -58,15 +58,24 @@ type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
+type LoggedInUser = {
+  userId: number | undefined;
+  userTimeZone: string | undefined;
+  userTimeFormat: number | null | undefined;
+  userEmail: string | undefined;
+  userIsOrgAdminOrOwner: boolean | undefined;
+  teamsWhereUserIsAdminOrOwner:
+    | {
+        id: number;
+        teamId: number;
+      }[]
+    | undefined;
+};
+
 type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
   recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
-  loggedInUser: {
-    userId: number | undefined;
-    userTimeZone: string | undefined;
-    userTimeFormat: number | null | undefined;
-    userEmail: string | undefined;
-  };
+  loggedInUser: LoggedInUser;
   isToday: boolean;
 };
 
@@ -210,33 +219,58 @@ function BookingListItem(booking: BookingItemProps) {
     return booking.seatsReferences[0].referenceUid;
   };
 
-  const pendingActions: ActionType[] = [
-    {
-      id: "reject",
-      label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("reject_all") : t("reject"),
-      onClick: () => {
-        setRejectionDialogIsOpen(true);
-      },
-      icon: "ban",
-      disabled: mutation.isPending,
-    },
-    // For bookings with payment, only confirm if the booking is paid for
-    ...((isPending && !paymentAppData.enabled) ||
-    (paymentAppData.enabled && !!paymentAppData.price && booking.paid)
-      ? [
-          {
-            id: "confirm",
-            bookingId: booking.id,
-            label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
-            onClick: () => {
-              bookingConfirm(true);
-            },
-            icon: "check" as const,
-            disabled: mutation.isPending,
+  const checkIfUserIsAuthorizedToConfirmBooking = (booking: BookingItem, loggedInUser: LoggedInUser) => {
+    const isUserOwner = booking?.user?.id === loggedInUser.userId;
+    const isUserTeamEventHost = booking?.eventType?.hosts?.some(
+      (host) => host.userId === loggedInUser.userId
+    );
+    const isUserTeamAdminOrOwner = loggedInUser?.teamsWhereUserIsAdminOrOwner?.some(
+      (team) =>
+        team.teamId === booking.eventType?.team?.id || team.teamId === booking.eventType?.parent?.teamId
+    );
+    return isUserOwner || isUserTeamEventHost || loggedInUser.userIsOrgAdminOrOwner || isUserTeamAdminOrOwner;
+  };
+
+  const pendingActions: ActionType[] = checkIfUserIsAuthorizedToConfirmBooking(booking, booking.loggedInUser)
+    ? [
+        {
+          id: "reject",
+          label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("reject_all") : t("reject"),
+          onClick: () => {
+            setRejectionDialogIsOpen(true);
           },
-        ]
-      : []),
-  ];
+          icon: "ban",
+          disabled: mutation.isPending,
+        },
+        // For bookings with payment, only confirm if the booking is paid for
+        ...((isPending && !paymentAppData.enabled) ||
+        (paymentAppData.enabled && !!paymentAppData.price && booking.paid)
+          ? [
+              {
+                id: "confirm",
+                bookingId: booking.id,
+                label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
+                onClick: () => {
+                  bookingConfirm(true);
+                },
+                icon: "check" as const,
+                disabled: mutation.isPending,
+              },
+            ]
+          : []),
+      ]
+    : [
+        {
+          id: "cancel",
+          label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel_event"),
+          /* When cancelling we need to let the UI and the API know if the intention is to
+                 cancel all remaining bookings or just that booking instance. */
+          href: `/booking/${booking.uid}?cancel=true${
+            isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
+          }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}`,
+          icon: "x" as const,
+        },
+      ];
 
   const editBookingActions: ActionType[] = [
     ...(isBookingInPast && !booking.eventType.allowReschedulingPastBookings

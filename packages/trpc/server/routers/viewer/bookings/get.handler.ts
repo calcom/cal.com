@@ -480,6 +480,18 @@ export async function getBookings({
                 "EventType.customReplyToEmail",
                 "EventType.allowReschedulingPastBookings",
                 "EventType.hideOrganizerEmail",
+                jsonArrayFrom(
+                  eb
+                    .selectFrom("Host")
+                    .select(["Host.userId"])
+                    .whereRef("Host.eventTypeId", "=", "EventType.id")
+                ).as("hosts"),
+                jsonObjectFrom(
+                  eb
+                    .selectFrom("EventType as ParentEventType")
+                    .select(["ParentEventType.id", "ParentEventType.teamId"])
+                    .whereRef("ParentEventType.id", "=", "EventType.parentId")
+                ).as("parent"),
                 "EventType.disableCancelling",
                 "EventType.disableRescheduling",
                 eb
