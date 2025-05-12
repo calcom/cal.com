@@ -254,8 +254,8 @@ export class CreditService {
     userId,
     remainingCredits,
   }: {
-    teamId?: number;
-    userId?: number;
+    teamId?: number | null;
+    userId?: number | null;
     remainingCredits: number;
   }) {
     let warningLimit = 0;
@@ -389,7 +389,7 @@ export class CreditService {
     return credits || null;
   }
 
-  async getAllCredits({ userId, teamId }: { userId?: number; teamId?: number }) {
+  async getAllCredits({ userId, teamId }: { userId?: number | null; teamId?: number | null }) {
     if (teamId) {
       return this.getAllCreditsForTeam(teamId);
     }

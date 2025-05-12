@@ -29,7 +29,13 @@ export class CreditsRepository {
     }
   }
 
-  static async findCreditBalanceWithTeamOrUser({ teamId, userId }: { teamId?: number; userId?: number }) {
+  static async findCreditBalanceWithTeamOrUser({
+    teamId,
+    userId,
+  }: {
+    teamId?: number | null;
+    userId?: number | null;
+  }) {
     const select = {
       id: true,
       additionalCredits: true,
@@ -110,8 +116,8 @@ export class CreditsRepository {
     data,
   }: {
     id?: string;
-    teamId?: number;
-    userId?: number;
+    teamId?: number | null;
+    userId?: number | null;
     data: Prisma.CreditBalanceUncheckedUpdateInput;
   }) {
     if (!id && !teamId) return null;

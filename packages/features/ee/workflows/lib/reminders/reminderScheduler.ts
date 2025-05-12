@@ -259,8 +259,8 @@ export async function cancelScheduledMessagesAndScheduleEmails({
   teamId,
   userId,
 }: {
-  teamId?: number;
-  userId?: number;
+  teamId?: number | null;
+  userId?: number | null;
 }) {
   const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
 

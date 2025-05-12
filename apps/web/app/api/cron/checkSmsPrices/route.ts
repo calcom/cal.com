@@ -87,10 +87,10 @@ async function postHandler(req: NextRequest) {
           return;
         }
 
-        const availableCredits = await creditService.getAllCredits(
-          updatedLog.creditBalance.teamId,
-          updateLog.creditBalanace.userId
-        );
+        const availableCredits = await creditService.getAllCredits({
+          teamId: updatedLog.creditBalance.teamId,
+          userId: updatedLog.creditBalance.userId,
+        });
 
         const remainingMonthlyCredits = Math.max(0, availableCredits.totalRemainingMonthlyCredits);
 
