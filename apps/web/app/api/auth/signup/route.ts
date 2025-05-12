@@ -1,8 +1,9 @@
-import type { NextApiResponse } from "next";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { parseRequestData } from "app/api/parseRequestData";
+import { NextResponse, type NextRequest } from "next/server";
 
 import calcomSignupHandler from "@calcom/feature-auth/signup/handlers/calcomHandler";
 import selfHostedSignupHandler from "@calcom/feature-auth/signup/handlers/selfHostedHandler";
-import { type RequestWithUsernameStatus } from "@calcom/features/auth/signup/username";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import getIP from "@calcom/lib/getIP";
@@ -11,12 +12,12 @@ import logger from "@calcom/lib/logger";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 
-async function ensureSignupIsEnabled(req: RequestWithUsernameStatus) {
+async function ensureSignupIsEnabled(body: Record<string, string>) {
   const { token } = signupSchema
     .pick({
       token: true,
     })
-    .parse(req.body);
+    .parse(body);
 
   // Still allow signups if there is a team invite
   if (token) return;
@@ -32,26 +33,17 @@ async function ensureSignupIsEnabled(req: RequestWithUsernameStatus) {
   }
 }
 
-function ensureReqIsPost(req: RequestWithUsernameStatus) {
-  if (req.method !== "POST") {
-    throw new HttpError({
-      statusCode: 405,
-      message: "Method not allowed",
-    });
-  }
-}
-
-export default async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
+async function handler(req: NextRequest) {
   const remoteIp = getIP(req);
   // Use a try catch instead of returning res every time
   try {
+    const body = await parseRequestData(req);
     await checkCfTurnstileToken({
-      token: req.headers["cf-access-token"] as string,
+      token: req.headers.get("cf-access-token") as string,
       remoteIp,
     });
 
-    ensureReqIsPost(req);
-    await ensureSignupIsEnabled(req);
+    await ensureSignupIsEnabled(body);
 
     /**
      * Im not sure its worth merging these two handlers. They are different enough to be separate.
@@ -61,15 +53,17 @@ export default async function handler(req: RequestWithUsernameStatus, res: NextA
      * @zomars: We need to be able to test this with E2E. They way it's done RN it will never run on CI.
      */
     if (IS_PREMIUM_USERNAME_ENABLED) {
-      return await calcomSignupHandler(req, res);
+      return await calcomSignupHandler(body);
     }
 
-    return await selfHostedSignupHandler(req, res);
+    return await selfHostedSignupHandler(body);
   } catch (e) {
     if (e instanceof HttpError) {
-      return res.status(e.statusCode).json({ message: e.message });
+      return NextResponse.json({ message: e.message }, { status: e.statusCode });
     }
     logger.error(e);
-    return res.status(500).json({ message: "Internal server error" });
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }
+
+export const POST = defaultResponderForAppDir(handler);
