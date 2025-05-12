@@ -1,5 +1,6 @@
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { scheduleNoShowTriggers } from "@calcom/features/bookings/lib/handleNewBooking/scheduleNoShowTriggers";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -232,6 +233,19 @@ export const Handler = async ({ ctx, input }: Options) => {
     false,
     eventTypeMetadata
   );
+
+  await scheduleNoShowTriggers({
+    booking: {
+      startTime: updatedBooking.startTime,
+      id: updatedBooking.id,
+      location: updatedBooking.location,
+    },
+    triggerForUser: { id: user.id },
+    organizerUser: { id: user.id },
+    eventTypeId: eventType?.id,
+    teamId: eventType?.teamId,
+    orgId: user.organizationId,
+  });
 
   return { isBookingAlreadyAcceptedBySomeoneElse, meetingUrl: locationVideoCallUrl };
 };
