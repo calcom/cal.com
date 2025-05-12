@@ -20,6 +20,67 @@ const tenant_id = process.env.E2E_TEST_OUTLOOK_CALENDAR_TENANT_ID;
 const testUserEmail = process.env.E2E_TEST_OUTLOOK_CALENDAR_EMAIL;
 const testUserPassword = process.env.E2E_TEST_OUTLOOK_CALENDAR_PASSWORD;
 
+// Uses ROPC flow to fetch tokens directly using password.
+// For this the test user must be configured with ROPC flow in azure portal.
+// Skips the test if credentials are not available or if any error fetching the tokens.
+async function fetchTokensAndCreateCredential(userId: number) {
+  test.skip(!testUserEmail || !testUserPassword, "Not able to install outlook calendar");
+
+  let credential: CredentialForCalendarServiceWithTenantId | undefined = undefined;
+
+  try {
+    if (testUserEmail && testUserPassword && client_id && client_secret && tenant_id) {
+      const scopes = ["User.Read", "Calendars.Read", "Calendars.ReadWrite", "offline_access"];
+      const tokenEndpoint = `https://login.microsoftonline.com/${tenant_id}/oauth2/v2.0/token`;
+      const body = new URLSearchParams({
+        client_id,
+        scope: scopes.join(" "),
+        username: testUserEmail,
+        password: testUserPassword,
+        grant_type: "password",
+        client_secret,
+      });
+      const response = await fetch(tokenEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: body.toString(),
+      });
+      const data = await response.json();
+
+      if (data["access_token"]) {
+        credential = {
+          ...(await prisma.credential.create({
+            data: {
+              type: integration,
+              key: data,
+              user: {
+                connect: {
+                  id: userId,
+                },
+              },
+              app: {
+                connect: {
+                  slug: appSlug,
+                },
+              },
+            },
+            select: credentialForCalendarServiceSelect,
+          })),
+          delegatedTo: null,
+        } as CredentialForCalendarServiceWithTenantId;
+      } else {
+        test.skip(true, "Not able to install outlook calendar");
+      }
+      return credential;
+    }
+  } catch (err) {
+    test.skip(true, "Not able to install outlook calendar");
+  }
+}
+
+// Install Outlook Calendar for test user
 export async function setUpTestUserForIntegrationTest(users: ReturnType<typeof createUsersFixture>) {
   let outlookCredential: CredentialForCalendarServiceWithTenantId | undefined = undefined;
   let destinationCalendar;
@@ -121,7 +182,7 @@ export async function setUpTestUserForIntegrationTest(users: ReturnType<typeof c
 
 // Creates events in actual Microsoft Outlook Calendar
 export async function createOutlookCalendarEvents(credentialId: number, destinationCalendar: any, user: any) {
-  const qaRefreshedOutlookCredential = {
+  const refreshedOutlookCredential = {
     ...(await prisma.credential.findFirstOrThrow({
       where: {
         id: credentialId,
@@ -131,7 +192,7 @@ export async function createOutlookCalendarEvents(credentialId: number, destinat
     delegatedTo: null,
   } as CredentialForCalendarServiceWithTenantId;
 
-  const outlookCalendarService = new Office365CalendarService(qaRefreshedOutlookCredential);
+  const outlookCalendarService = new Office365CalendarService(refreshedOutlookCredential);
 
   const tFunction = await getTranslation("en", "common");
   const baseEvent = {
@@ -227,7 +288,7 @@ export async function callWebhook(
 
 // Deletes the events on actual Microsoft Outlook Calendar
 export async function deleteOutlookCalendarEvents(events: NewCalendarEventType[], credentialId: number) {
-  const qaRefreshedOutlookCredential = {
+  const refreshedOutlookCredential = {
     ...(await prisma.credential.findFirstOrThrow({
       where: {
         id: credentialId,
@@ -237,72 +298,13 @@ export async function deleteOutlookCalendarEvents(events: NewCalendarEventType[]
     delegatedTo: null,
   } as CredentialForCalendarServiceWithTenantId;
 
-  const outlookCalendarService = new Office365CalendarService(qaRefreshedOutlookCredential);
+  const outlookCalendarService = new Office365CalendarService(refreshedOutlookCredential);
   for (const event of events) {
     await outlookCalendarService.deleteEvent(event.id);
   }
 }
 
-// Uses ROPC flow to fetch tokens directly using password.
-// For this the test user must be configured with ROPC flow in azure portal.
-// Skips the test if credentials are not available or if any error fetching the tokens.
-async function fetchTokensAndCreateCredential(userId: number) {
-  test.skip(!testUserEmail || !testUserPassword, "Not able to install outlook calendar");
-
-  let credential: CredentialForCalendarServiceWithTenantId | undefined = undefined;
-
-  try {
-    if (testUserEmail && testUserPassword && client_id && client_secret && tenant_id) {
-      const scopes = ["User.Read", "Calendars.Read", "Calendars.ReadWrite", "offline_access"];
-      const tokenEndpoint = `https://login.microsoftonline.com/${tenant_id}/oauth2/v2.0/token`;
-      const body = new URLSearchParams({
-        client_id,
-        scope: scopes.join(" "),
-        username: testUserEmail,
-        password: testUserPassword,
-        grant_type: "password",
-        client_secret,
-      });
-      const response = await fetch(tokenEndpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: body.toString(),
-      });
-      const data = await response.json();
-
-      if (data["access_token"]) {
-        credential = {
-          ...(await prisma.credential.create({
-            data: {
-              type: integration,
-              key: data,
-              user: {
-                connect: {
-                  id: userId,
-                },
-              },
-              app: {
-                connect: {
-                  slug: appSlug,
-                },
-              },
-            },
-            select: credentialForCalendarServiceSelect,
-          })),
-          delegatedTo: null,
-        } as CredentialForCalendarServiceWithTenantId;
-      } else {
-        test.skip(true, "Not able to install outlook calendar");
-      }
-      return credential;
-    }
-  } catch (err) {
-    test.skip(true, "Not able to install outlook calendar");
-  }
-}
-
+// For Non-Integration Tests
 export async function setUpTestUserWithOutlookCalendar(users: ReturnType<typeof createUsersFixture>) {
   const email = "testCal@outlook.com";
   const externalId = "mock_outlook_external_id_1";

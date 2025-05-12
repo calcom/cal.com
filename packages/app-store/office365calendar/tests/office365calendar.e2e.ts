@@ -78,8 +78,15 @@ test.describe("Office365Calendar - Integration Tests", () => {
       });
       expect(calendarCache).toBeTruthy();
       const actualCacheValue = calendarCache.value as EventBusyDate[];
+
+      // Deduplicate actualCacheValue based on start and end properties (from parallel test executions)
+      const uniqueActualCacheValue = Array.from(
+        new Map(actualCacheValue.map((item) => [`${item.start}-${item.end}`, item])).values()
+      );
+
+      // Compare deduplicated actualCacheValue with expectedCacheValue
       expect(
-        actualCacheValue.map((item) => ({
+        uniqueActualCacheValue.map((item) => ({
           start: new Date(item.start),
           end: new Date(item.end),
         }))
