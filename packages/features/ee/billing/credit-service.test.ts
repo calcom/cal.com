@@ -154,6 +154,8 @@ describe("CreditService", () => {
           },
         });
 
+        vi.spyOn(CreditService.prototype, "getTeamWithAvailableCredits").mockResolvedValue(null);
+
         vi.spyOn(EmailManager, "sendCreditBalanceLowWarningEmails").mockResolvedValue();
 
         vi.spyOn(CreditService.prototype, "getAllCreditsForTeam").mockResolvedValue({
@@ -259,15 +261,7 @@ describe("CreditService", () => {
       });
 
       it("should return team with available credits when userId is provided", async () => {
-        vi.mocked(MembershipRepository.findAllAcceptedMemberships).mockResolvedValue([
-          {
-            id: 1,
-            teamId: 1,
-            userId: 1,
-            role: "MEMBER",
-            accepted: true,
-          },
-        ]);
+        vi.mocked(MembershipRepository.findAllAcceptedMemberships).mockResolvedValue([{ teamId: 1 }]);
 
         vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
           id: "1",
@@ -276,10 +270,10 @@ describe("CreditService", () => {
           warningSentAt: null,
         });
 
-        vi.spyOn(CreditService.prototype, "getAllCreditsForTeam").mockResolvedValue({
-          totalMonthlyCredits: 500,
-          totalRemainingMonthlyCredits: 100,
-          additionalCredits: 50,
+        vi.spyOn(CreditService.prototype, "getTeamWithAvailableCredits").mockResolvedValue({
+          teamId: 1,
+          availableCredits: 150,
+          creditType: CreditType.MONTHLY,
         });
 
         const result = await creditService.getUserOrTeamToCharge({
@@ -297,5 +291,149 @@ describe("CreditService", () => {
     });
   });
 
-  // describe("User credits", () => {});
+  describe("User credits", () => {
+    describe("hasAvailableCredits", () => {
+      it("should return true if user has not yet reached limit", async () => {
+        vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
+          id: "1",
+          additionalCredits: 10,
+          limitReachedAt: null,
+          warningSentAt: null,
+        });
+
+        const hasAvailableCredits = await creditService.hasAvailableCredits({ userId: 1 });
+        expect(hasAvailableCredits).toBe(true);
+      });
+
+      it("should return false if user limit reached this month", async () => {
+        vi.setSystemTime(new Date("2024-06-20T11:59:59Z"));
+
+        vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
+          id: "1",
+          additionalCredits: 0,
+          limitReachedAt: dayjs().subtract(1, "week").toDate(),
+          warningSentAt: null,
+        });
+
+        vi.spyOn(CreditService.prototype, "getTeamWithAvailableCredits").mockResolvedValue(null);
+
+        const result = await creditService.hasAvailableCredits({ userId: 1 });
+        expect(result).toBe(false);
+      });
+    });
+
+    describe("chargeCredits", () => {
+      it("should create expense log and send low balance warning email for user", async () => {
+        vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
+          id: "1",
+          additionalCredits: 10,
+          limitReachedAt: null,
+          warningSentAt: null,
+        });
+
+        vi.mocked(CreditsRepository.findCreditBalanceWithTeamOrUser).mockResolvedValue({
+          id: "1",
+          additionalCredits: 10,
+          limitReachedAt: null,
+          warningSentAt: null,
+          user: {
+            id: 1,
+            name: "user-name",
+            email: "user@example.com",
+            locale: "en",
+          },
+          team: null,
+        });
+
+        vi.spyOn(CreditService.prototype, "getTeamWithAvailableCredits").mockResolvedValue(null);
+
+        vi.spyOn(EmailManager, "sendCreditBalanceLowWarningEmails").mockResolvedValue();
+
+        vi.spyOn(CreditService.prototype, "getAllCredits").mockResolvedValue({
+          totalMonthlyCredits: 0,
+          totalRemainingMonthlyCredits: 0,
+          additionalCredits: 10,
+        });
+
+        await creditService.chargeCredits({
+          userId: 1,
+          credits: 5,
+          bookingUid: "booking-123",
+          smsSid: "sms-123",
+        });
+
+        expect(CreditsRepository.createCreditExpenseLog).toHaveBeenCalledWith(
+          expect.objectContaining({
+            bookingUid: "booking-123",
+            creditBalanceId: "1",
+            creditType: CreditType.ADDITIONAL,
+            credits: 5,
+            smsSid: "sms-123",
+          })
+        );
+
+        expect(EmailManager.sendCreditBalanceLowWarningEmails).toHaveBeenCalled();
+      });
+
+      it("should create expense log and send limit reached email for user", async () => {
+        vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
+          id: "1",
+          additionalCredits: 0,
+          limitReachedAt: null,
+          warningSentAt: null,
+        });
+
+        vi.spyOn(EmailManager, "sendCreditBalanceLimitReachedEmails").mockResolvedValue();
+
+        vi.spyOn(CreditService.prototype, "getTeamWithAvailableCredits").mockResolvedValue(null);
+
+        vi.spyOn(CreditService.prototype, "getAllCredits").mockResolvedValue({
+          totalMonthlyCredits: 0,
+          totalRemainingMonthlyCredits: 0,
+          additionalCredits: 2,
+        });
+
+        await creditService.chargeCredits({
+          userId: 1,
+          credits: 5,
+          bookingUid: "booking-123",
+          smsSid: "sms-123",
+        });
+
+        expect(CreditsRepository.createCreditExpenseLog).toHaveBeenCalledWith(
+          expect.objectContaining({
+            bookingUid: "booking-123",
+            creditBalanceId: "1",
+            creditType: CreditType.ADDITIONAL,
+            credits: 5,
+            smsSid: "sms-123",
+          })
+        );
+
+        expect(EmailManager.sendCreditBalanceLimitReachedEmails).toHaveBeenCalled();
+      });
+    });
+
+    describe("getUserOrTeamToCharge", () => {
+      it("should return user with remaining credits when userId is provided", async () => {
+        vi.spyOn(CreditService.prototype, "getTeamWithAvailableCredits").mockResolvedValue(null);
+
+        vi.spyOn(CreditService.prototype, "getAllCredits").mockResolvedValue({
+          totalMonthlyCredits: 0,
+          totalRemainingMonthlyCredits: 0,
+          additionalCredits: 10,
+        });
+        const result = await creditService.getUserOrTeamToCharge({
+          credits: 2,
+          userId: 1,
+        });
+
+        expect(result).toEqual({
+          userId: 1,
+          remainingCredits: 8,
+          creditType: CreditType.ADDITIONAL,
+        });
+      });
+    });
+  });
 });

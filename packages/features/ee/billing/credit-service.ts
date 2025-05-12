@@ -182,7 +182,6 @@ export class CreditService {
 
     if (userId) {
       const team = await this.getTeamWithAvailableCredits(userId);
-
       if (team) {
         return { ...team, remainingCredits: team.availableCredits - credits };
       }
@@ -267,7 +266,7 @@ export class CreditService {
       const billingService = new StripeBillingService();
       const teamMonthlyPrice = await billingService.getPrice(process.env.STRIPE_TEAM_MONTHLY_PRICE_ID || "");
       const pricePerSeat = teamMonthlyPrice.unit_amount ?? 0;
-      warningLimit = pricePerSeat * 0.2;
+      warningLimit = (pricePerSeat / 2) * 0.2;
     }
 
     if (remainingCredits < warningLimit) {
