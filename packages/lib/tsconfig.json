@@ -3,6 +3,7 @@
   "compilerOptions": {
     "target": "es5",
     "jsx": "preserve",
+    "experimentalDecorators": true,
     "resolveJsonModule": true
   },
   "include": [".", "../types/next-auth.d.ts", "../types/window.d.ts", "../trpc/types/router.d.ts"],
