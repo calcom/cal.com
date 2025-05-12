@@ -50,6 +50,7 @@ type EventType = Pick<
   | "isRRWeightsEnabled"
   | "rescheduleWithSameRoundRobinHost"
   | "teamId"
+  | "includeNoShowInRRCalculation"
 >;
 
 type InputProps = {

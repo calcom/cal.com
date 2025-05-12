@@ -216,7 +216,9 @@ describe("scanWorkflowBody", () => {
         passthrough: true,
       }),
     });
-    expect(prismaMock.workflowStep.update).not.toHaveBeenCalled();
+    expect(prismaMock.workflowStep.update).toHaveBeenCalled();
+    expect(scheduleWorkflowNotifications).toHaveBeenCalled();
+
     expect(lockUser).not.toHaveBeenCalled();
   });
 });
