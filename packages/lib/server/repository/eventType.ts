@@ -778,13 +778,16 @@ export class EventTypeRepository {
     });
   }
 
-  static async findForSlots({ id }: { id: number }) {
+  static async findForSlots({ id, useSql = true }: { id: number; useSql?: boolean }) {
     const measureExecutionTime = async <T>(fn: () => Promise<T>): Promise<[T, number]> => {
       const start = performance.now();
       const result = await fn();
       const end = performance.now();
       return [result, end - start];
     };
+
+    const prismaQueryTime = 0;
+    const sqlQueryTime = 0;
 
     try {
       const executePrismaQuery = async () => {
@@ -1243,11 +1246,18 @@ export class EventTypeRepository {
       const [prismaResult, prismaTime] = await measureExecutionTime(executePrismaQuery);
       const [rawSQLResult, rawSQLTime] = await measureExecutionTime(executeRawSQLQuery);
 
+      const improvement = ((prismaTime - rawSQLTime) / prismaTime) * 100;
       log.info("Performance comparison", {
-        prismaQueryTime: `${prismaTime.toFixed(2)}ms`,
-        rawSQLQueryTime: `${rawSQLTime.toFixed(2)}ms`,
-        improvement: `${(((prismaTime - rawSQLTime) / prismaTime) * 100).toFixed(2)}%`,
+        prismaQueryTime: prismaTime.toFixed(2),
+        rawSQLQueryTime: rawSQLTime.toFixed(2),
+        improvement: improvement.toFixed(2),
       });
+
+      console.log(
+        `Performance: Prisma=${prismaTime.toFixed(2)}ms, SQL=${rawSQLTime.toFixed(
+          2
+        )}ms, Improvement=${improvement.toFixed(2)}%`
+      );
 
       const eventType = rawSQLResult;
 
@@ -1272,27 +1282,28 @@ export class EventTypeRepository {
       eventType.users = Array.isArray(eventType.users) ? eventType.users : [];
 
       const restructuredHosts = eventType.hosts.map((host: any) => {
-        const userData = {
-          ...host.user,
-          id: host.user.id,
-          email: host.user.email,
-          username: host.user.username,
-          timeZone: host.user.timeZone,
-          bufferTime: host.user.bufferTime,
-          startTime: host.user.startTime,
-          endTime: host.user.endTime,
-          timeFormat: host.user.timeFormat,
-          defaultScheduleId: host.user.defaultScheduleId,
-          schedules: host.user.schedules || [],
-          availability: host.user.availability || [],
-          selectedCalendars: host.user.selectedCalendars || [],
-          travelSchedules: host.user.travelSchedules || [],
-          credentials: host.user.credentials || [],
-        };
-
+        // This is needed for the withSelectedCalendars function to work properly
         return {
           isFixed: host.isFixed,
-          user: userData,
+          createdAt: host.createdAt,
+          priority: host.priority,
+          weight: host.weight,
+          user: {
+            ...host.user,
+            id: host.user.id,
+            email: host.user.email,
+            username: host.user.username,
+            name: host.user.name || "",
+            timeZone: host.user.timeZone || "UTC",
+            bufferTime: host.user.bufferTime || 0,
+            startTime: host.user.startTime || 0,
+            endTime: host.user.endTime || 0,
+            timeFormat: host.user.timeFormat || null,
+            defaultScheduleId: host.user.defaultScheduleId || null,
+            schedules: host.user.schedules || [],
+            availability: host.user.availability || [],
+            selectedCalendars: host.user.selectedCalendars || [],
+          },
         };
       });
 
