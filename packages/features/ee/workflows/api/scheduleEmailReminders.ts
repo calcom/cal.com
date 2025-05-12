@@ -10,6 +10,7 @@ import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -378,7 +379,14 @@ export async function handler(req: NextRequest) {
           });
         }
       } catch (error) {
-        logger.error(`Error scheduling Email with error ${error}`);
+        logger.error(`Error scheduling Email with error ${error}`, {
+          reminderId: reminder.id,
+          scheduledDate: reminder.scheduledDate,
+          isMandatoryReminder: reminder.isMandatoryReminder,
+          workflowStepId: reminder?.workflowStep?.id,
+          bookingUid: reminder.booking?.uid,
+          fullError: safeStringify(error),
+        });
       }
     } else if (reminder.isMandatoryReminder) {
       try {
@@ -459,7 +467,14 @@ export async function handler(req: NextRequest) {
           });
         }
       } catch (error) {
-        logger.error(`Error scheduling Email with error ${error}`);
+        logger.error(`Error scheduling Email with error ${error}`, {
+          reminderId: reminder.id,
+          scheduledDate: reminder.scheduledDate,
+          isMandatoryReminder: reminder.isMandatoryReminder,
+          workflowStepId: reminder?.workflowStep?.id,
+          bookingUid: reminder.booking?.uid,
+          fullError: safeStringify(error),
+        });
       }
     }
   }
