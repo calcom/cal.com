@@ -6,6 +6,7 @@ import {
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma from "@calcom/prisma";
 import { SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -177,7 +178,7 @@ const processWorkflowStep = async (
   }
 };
 
-export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) => {
+const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) => {
   const {
     workflows,
     smsReminderNumber,
@@ -232,7 +233,7 @@ export interface SendCancelledRemindersArgs {
   hideBranding?: boolean;
 }
 
-export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
+const _sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
   const { smsReminderNumber, evt, workflows, hideBranding } = args;
 
   if (!workflows.length) return;
@@ -241,7 +242,7 @@ export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) =
     if (workflow.trigger !== WorkflowTriggerEvents.EVENT_CANCELLED) continue;
 
     for (const step of workflow.steps) {
-      processWorkflowStep(workflow, step, {
+      await processWorkflowStep(workflow, step, {
         smsReminderNumber,
         hideBranding,
         calendarEvent: evt,
@@ -249,3 +250,10 @@ export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) =
     }
   }
 };
+
+// Export functions wrapped with withReporting
+export const scheduleWorkflowReminders = withReporting(
+  _scheduleWorkflowReminders,
+  "scheduleWorkflowReminders"
+);
+export const sendCancelledReminders = withReporting(_sendCancelledReminders, "sendCancelledReminders");
