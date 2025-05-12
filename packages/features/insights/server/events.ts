@@ -63,7 +63,7 @@ function buildSqlCondition(condition: any): string {
 
 class EventsInsights {
   static countGroupedByStatusForRanges = async (
-    whereConditional: Prisma.BookingTimeStatusWhereInput,
+    whereConditional: Prisma.BookingTimeStatusDenormalizedWhereInput,
     startDate: Dayjs,
     endDate: Dayjs,
     timeView: "week" | "month" | "year" | "day"
@@ -95,9 +95,9 @@ class EventsInsights {
         "timeStatus",
         "noShowHost"
       FROM
-        "BookingTimeStatus"
+        "BookingTimeStatusDenormalized"
       JOIN
-        "Attendee" "a" ON "a"."bookingId" = "BookingTimeStatus"."id"
+        "Attendee" "a" ON "a"."bookingId" = "BookingTimeStatusDenormalized"."id"
       WHERE
         "createdAt" BETWEEN ${formattedStartDate}::timestamp AND ${formattedEndDate}::timestamp
         AND ${Prisma.raw(whereClause)}
@@ -185,8 +185,8 @@ class EventsInsights {
     return aggregate;
   };
 
-  static getTotalNoShowGuests = async (where: Prisma.BookingTimeStatusWhereInput) => {
-    const bookings = await prisma.bookingTimeStatus.findMany({
+  static getTotalNoShowGuests = async (where: Prisma.BookingTimeStatusDenormalizedWhereInput) => {
+    const bookings = await prisma.bookingTimeStatusDenormalized.findMany({
       where,
       select: {
         id: true,
@@ -206,8 +206,8 @@ class EventsInsights {
     return totalNoShowGuests;
   };
 
-  static countGroupedByStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
-    const data = await prisma.bookingTimeStatus.groupBy({
+  static countGroupedByStatus = async (where: Prisma.BookingTimeStatusDenormalizedWhereInput) => {
+    const data = await prisma.bookingTimeStatusDenormalized.groupBy({
       where,
       by: ["timeStatus", "noShowHost"],
       _count: {
@@ -237,8 +237,8 @@ class EventsInsights {
     );
   };
 
-  static getAverageRating = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
-    return await prisma.bookingTimeStatus.aggregate({
+  static getAverageRating = async (whereConditional: Prisma.BookingTimeStatusDenormalizedWhereInput) => {
+    return await prisma.bookingTimeStatusDenormalized.aggregate({
       _avg: {
         rating: true,
       },
@@ -251,8 +251,8 @@ class EventsInsights {
     });
   };
 
-  static getTotalCSAT = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
-    const result = await prisma.bookingTimeStatus.findMany({
+  static getTotalCSAT = async (whereConditional: Prisma.BookingTimeStatusDenormalizedWhereInput) => {
+    const result = await prisma.bookingTimeStatusDenormalized.findMany({
       where: {
         ...whereConditional,
         rating: {
@@ -385,11 +385,11 @@ class EventsInsights {
     const limit = props.limit ?? 100; // Default batch size
     const offset = props.offset ?? 0;
 
-    const totalCountPromise = prisma.bookingTimeStatus.count({
+    const totalCountPromise = prisma.bookingTimeStatusDenormalized.count({
       where: whereConditional,
     });
 
-    const csvDataPromise = prisma.bookingTimeStatus.findMany({
+    const csvDataPromise = prisma.bookingTimeStatusDenormalized.findMany({
       select: {
         id: true,
         uid: true,
@@ -402,7 +402,7 @@ class EventsInsights {
         endTime: true,
         paid: true,
         userEmail: true,
-        username: true,
+        userUsername: true,
         rating: true,
         ratingFeedback: true,
         noShowHost: true,
@@ -496,7 +496,7 @@ class EventsInsights {
     } = props;
 
     // Obtain the where conditional
-    let whereConditional: Prisma.BookingTimeStatusWhereInput = {};
+    let whereConditional: Prisma.BookingTimeStatusDenormalizedWhereInput = {};
 
     if (startDate && endDate) {
       whereConditional.createdAt = {
