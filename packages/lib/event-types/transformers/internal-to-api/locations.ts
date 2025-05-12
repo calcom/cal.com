@@ -31,7 +31,7 @@ const internalToApiIntegrationsMapping: Record<string, OutputIntegration_2024_06
   "integrations:roam_video": "roam-video",
   "integrations:riverside_video": "riverside-video",
   "integrations:ping_video": "ping-video",
-  "integrations:office365_video": "office365-video",
+  "integrations:office365_video": "msteams",
   "integrations:mirotalk_video": "mirotalk-video",
   "integrations:jitsi": "jitsi",
   "integrations:jelly_video": "jelly-video",

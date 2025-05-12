@@ -51,7 +51,7 @@ export const supportedIntegrations = [
   "roam-video",
   "riverside-video",
   "ping-video",
-  "office365-video",
+  "msteams",
   "mirotalk-video",
   "jitsi",
   "jelly-video",

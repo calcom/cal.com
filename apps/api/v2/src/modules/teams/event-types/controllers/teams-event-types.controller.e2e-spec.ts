@@ -515,7 +515,7 @@ describe("Organizations Event Types Endpoints", () => {
         locations: [
           {
             type: "integration",
-            integration: "office365-video",
+            integration: "msteams",
           },
         ],
       };

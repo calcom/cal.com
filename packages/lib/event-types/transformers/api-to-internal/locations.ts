@@ -14,7 +14,7 @@ import type {
 export const apiToInternalintegrationsMapping = {
   "cal-video": "integrations:daily",
   "google-meet": "integrations:google:meet",
-  "office365-video": "integrations:office365_video",
+  msteams: "integrations:office365_video",
   zoom: "integrations:zoom",
   "whereby-video": "integrations:whereby_video",
   "whatsapp-video": "integrations:whatsapp_video",
