@@ -87,7 +87,7 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
     storeId: z.string().trim(),
     serverUrl: z.string().trim(),
     apiKey: z.string().trim(),
-    webhookSecret: z.string().trim(),
+    webhookSecret: z.string().optional(),
   });
   const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "payment", appId: "btcpayserver" });
   const [btcPayPaymentAppCredentials] = integrations.data?.items || [];
@@ -130,7 +130,6 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
       apiKey: props?.apiKey || "",
       webhookSecret: props?.webhookSecret || "",
     };
-    reset(_keyData);
     setKeyData(_keyData);
   }, [props]);
 
@@ -141,11 +140,7 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
         serverUrl &&
         storeId &&
         apiKey &&
-        webhookSecret &&
-        (keyData?.serverUrl !== serverUrl ||
-          keyData?.storeId !== storeId ||
-          keyData?.apiKey !== apiKey ||
-          keyData?.webhookSecret !== webhookSecret)
+        (keyData?.serverUrl !== serverUrl || keyData?.storeId !== storeId || keyData?.apiKey !== apiKey)
       ) {
         setUpdatable(true);
       } else {
@@ -155,27 +150,51 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
     return () => subscription.unsubscribe();
   }, [watch, keyData]);
 
-  const validateCredentials = async (data: z.infer<typeof settingsSchema>) => {
+  const configureBTCPayWebhook = async (data: z.infer<typeof settingsSchema>) => {
     setValidating(true);
+    const specificEvents = ["InvoiceSettled", "InvoiceProcessing"];
+    const serverUrl = data.serverUrl.endsWith("/") ? data.serverUrl.slice(0, -1) : data.serverUrl;
+    const endpoint = `${serverUrl}/api/v1/stores/${data.storeId}/webhooks`;
+    const webhookUrl = `${WEBAPP_URL}/api/integrations/btcpayserver/webhook`;
+    const requestBody = {
+      enabled: true,
+      automaticRedelivery: true,
+      url: webhookUrl,
+      authorizedEvents: {
+        everything: false,
+        specificEvents: specificEvents,
+      },
+      secret: null,
+    };
+
     try {
-      const serverUrl = data.serverUrl.endsWith("/") ? data.serverUrl.slice(0, -1) : data.serverUrl;
-      const response = await fetch(`${serverUrl}/api/v1/stores/${data.storeId}`, {
-        method: "GET",
+      const response = await fetch(endpoint, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `token ${data.apiKey}`,
         },
+        body: JSON.stringify(requestBody),
       });
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to validate BTCPay server credentials");
+        const errorBody = await response.text();
+        showToast(`Failed to configure webhook: ${errorBody}`, "error");
+        return false;
       }
+      const webhookResponse = await response.json();
+      saveKeysMutation.mutate({
+        credentialId,
+        key: btcpayCredentialKeysSchema.parse({
+          ...data,
+          webhookSecret: webhookResponse.secret,
+        }),
+      });
       return true;
     } catch (error) {
       if (error instanceof Error) {
-        showToast(error.message || "Failed to validate BTCPay server credentials", "error");
+        showToast(error.message || "Failed to configure BTCPay webhook", "error");
       } else {
-        showToast("An unknown error occurred while trying to validate BTCPay server credentials", "error");
+        showToast("An unknown error occurred while configuring BTCPay webhook", "error");
       }
       return false;
     } finally {
@@ -188,16 +207,11 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
     setLoading(true);
 
     try {
-      const isValid = await validateCredentials(data);
+      const isValid = await configureBTCPayWebhook(data);
       if (!isValid) {
         setLoading(false);
         return;
       }
-
-      saveKeysMutation.mutate({
-        credentialId,
-        key: btcpayCredentialKeysSchema.parse(data),
-      });
     } catch (error: unknown) {
       let message = "";
       if (error instanceof Error) {
@@ -233,12 +247,6 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
       <div className="bg-default flex h-screen items-center justify-center">
         {showContent ? (
           <div className="flex w-full w-full max-w-[43em] flex-col items-center justify-center space-y-4 p-4 lg:space-y-5">
-            <div className="rounded bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-              <Icon name="info" className="mb-0.5 inline-flex h-4 w-4" /> Connect to an existing BTCPay
-              account to receive lightning payments for your paid bookings. Webhook payload url is:{" "}
-              {webhookUri}
-            </div>
-
             <form className="w-full space-y-4" onSubmit={onSubmit}>
               <div className="bg-default border-subtle overflow-auto rounded border">
                 <div className="border-subtle flex items-center justify-between border-b-[1px] p-4 md:p-5">
@@ -295,24 +303,6 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
                     {errors.apiKey && (
                       <p data-testid="required" className="py-2 text-xs text-red-500">
                         {errors.apiKey?.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="w-full">
-                    <KeyField
-                      {...register("webhookSecret", { required: true })}
-                      id="webhookSecret"
-                      name="webhookSecret"
-                      containerClassName="w-full"
-                      label="Webhook Secret"
-                      autoComplete="off"
-                      autoCorrect="off"
-                      defaultValue={keyData?.webhookSecret || ""}
-                    />
-                    {errors.webhookSecret && (
-                      <p data-testid="required" className="py-2 text-xs text-red-500">
-                        {errors.webhookSecret?.message}
                       </p>
                     )}
                   </div>

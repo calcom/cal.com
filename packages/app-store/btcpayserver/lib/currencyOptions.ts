@@ -1,1 +1,20 @@
-export const currencyOptions = [{ label: "SATS", value: "BTC", unit: "sats" }];
+export const currencyOptions = [
+  { label: "USD", value: "USD", unit: "USD" },
+  { label: "SATS", value: "BTC", unit: "SATS" },
+];
+
+const zeroDecimalCurrencies = ["SATS", "BTC"];
+
+export const convertToSmallestCurrencyUnit = (amount: number, currency: string) => {
+  if (zeroDecimalCurrencies.includes(currency.toUpperCase())) {
+    return amount;
+  }
+  return Math.round(amount * 100);
+};
+
+export const convertFromSmallestToPresentableCurrencyUnit = (amount: number, currency: string) => {
+  if (zeroDecimalCurrencies.includes(currency.toUpperCase())) {
+    return amount;
+  }
+  return amount / 100;
+};

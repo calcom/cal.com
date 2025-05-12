@@ -11,6 +11,7 @@ import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 import appConfig from "../config.json";
 import { btcpayCredentialKeysSchema } from "./btcpayCredentialKeysSchema";
+import { convertFromSmallestToPresentableCurrencyUnit } from "./currencyOptions";
 
 const log = logger.getSubLogger({ prefix: ["payment-service:btcpayserver"] });
 
@@ -106,8 +107,8 @@ export class PaymentService implements IAbstractPaymentService {
         receipt: {
           enabled: true,
         },
-        amount: payment.amount,
-        currency: "SATS",
+        amount: convertFromSmallestToPresentableCurrencyUnit(payment.amount, payment.currency),
+        currency: payment.currency === "BTC" ? "SATS" : payment.currency,
         additionalSearchTerms: [`cal-booking-${bookingId}`, bookerName, bookerEmail],
       };
       const invoiceResponse = (await this.BTCPayApiCall(

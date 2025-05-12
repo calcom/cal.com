@@ -7,7 +7,11 @@ import { Select } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { SatSymbol } from "@calcom/ui/components/icon";
 
-import { currencyOptions } from "../lib/currencyOptions";
+import {
+  currencyOptions,
+  convertToSmallestCurrencyUnit,
+  convertFromSmallestToPresentableCurrencyUnit,
+} from "../lib/currencyOptions";
 import { BTCPayPaymentOptions as paymentOptions } from "../zod";
 
 type Option = { value: string; label: string };
@@ -43,6 +47,13 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
     }
   }, [currency, selectedCurrency, setAppData, requirePayment]);
 
+  const disableDecimalPlace = (value: number) => {
+    const nValue = Math.floor(value);
+    const sValue = nValue.toString();
+    const ret = parseInt(sValue);
+    return ret;
+  };
+
   return (
     <>
       {recurringEventDefined ? (
@@ -50,23 +61,26 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
       ) : (
         requirePayment && (
           <>
-            <div className="mt-2 block items-center sm:flex">
+            <div className="mt-4 block items-center justify-start sm:flex sm:space-x-2">
               <TextField
-                label="Amount"
-                labelSrOnly
+                label={t("price")}
+                className="block w-full rounded-sm border-gray-300 pl-2 pr-12 text-sm"
                 addOnLeading={<SatSymbol className="h-4 w-4" />}
                 addOnSuffix={selectedCurrency.unit || selectedCurrency.value}
+                addOnClassname="h-[38px]"
+                step="1"
+                min="1"
                 type="number"
                 required
-                className="block w-full rounded-sm border-gray-300 pl-2 pr-12 text-sm"
                 placeholder="Price"
                 onChange={(e) => {
-                  setAppData("price", Number(e.target.value));
-                  if (currency) {
-                    setAppData("currency", currency);
-                  }
+                  setAppData("price", convertToSmallestCurrencyUnit(Number(e.target.value), currency));
                 }}
-                value={price && price > 0 ? price : undefined}
+                value={
+                  price && price > 0
+                    ? disableDecimalPlace(convertFromSmallestToPresentableCurrencyUnit(price, currency))
+                    : undefined
+                }
               />
             </div>
 
