@@ -405,8 +405,6 @@ export default function Success(props: PageProps) {
     return isRecurringBooking ? t("meeting_is_scheduled_recurring") : t("meeting_is_scheduled");
   })();
 
-  console.log("isRoundRobin", isRoundRobin, eventName);
-
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
       {!isEmbed && !isFeedbackMode && (
