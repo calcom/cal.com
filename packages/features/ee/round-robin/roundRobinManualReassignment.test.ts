@@ -255,9 +255,9 @@ describe("roundRobinManualReassignment test", () => {
     const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
     eventManagerSpy.mockResolvedValue({ referencesToCreate: [] });
 
-    const sendRoundRobinCancelledEmailsAndSMSSpy = vi.spyOn(
+    const sendRoundRobinReassignedEmailsAndSMSSpy = vi.spyOn(
       await import("@calcom/emails"),
-      "sendRoundRobinCancelledEmailsAndSMS"
+      "sendRoundRobinReassignedEmailsAndSMS"
     );
 
     const users = testUsers;
@@ -319,6 +319,6 @@ describe("roundRobinManualReassignment test", () => {
       orgId: null,
     });
 
-    expect(sendRoundRobinCancelledEmailsAndSMSSpy).toHaveBeenCalledTimes(1);
+    expect(sendRoundRobinReassignedEmailsAndSMSSpy).toHaveBeenCalledTimes(1);
   });
 });
