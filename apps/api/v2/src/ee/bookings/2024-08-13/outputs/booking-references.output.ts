@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsEnum, IsNumber, IsString } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
@@ -12,9 +12,16 @@ export class BookingReference {
 
   @IsString()
   @ApiProperty({
-    description: "The external uid of the booking reference",
+    description: "The event uid of the booking",
   })
-  externalUid!: string;
+  eventUid!: string;
+
+  @IsString()
+  @ApiProperty({
+    description: "The id of the calendar the event is created in",
+    nullable: true,
+  })
+  destinationCalendarId!: string | null;
 
   @IsNumber()
   @ApiProperty({
