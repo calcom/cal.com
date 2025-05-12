@@ -1,4 +1,4 @@
-import { AppRouterI18nProvider } from "app/AppRouterI18nProvider";
+import { CustomI18nProvider } from "app/CustomI18nProvider";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps as _PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
@@ -44,9 +44,9 @@ const ServerPage = async ({ params, searchParams }: _PageProps) => {
     const ns = "common";
     const translations = await loadTranslations(eventLocale, ns);
     return (
-      <AppRouterI18nProvider translations={translations} locale={eventLocale} ns={ns}>
+      <CustomI18nProvider translations={translations} locale={eventLocale} ns={ns}>
         <OldPage {...props} />
-      </AppRouterI18nProvider>
+      </CustomI18nProvider>
     );
   }
 

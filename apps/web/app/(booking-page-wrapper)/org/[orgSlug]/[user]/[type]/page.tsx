@@ -1,4 +1,4 @@
-import { AppRouterI18nProvider } from "app/AppRouterI18nProvider";
+import { CustomI18nProvider } from "app/CustomI18nProvider";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
@@ -76,18 +76,18 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
 
   if ((props as TeamTypePageProps)?.teamId) {
     return eventLocale ? (
-      <AppRouterI18nProvider translations={translations} locale={eventLocale} ns={ns}>
+      <CustomI18nProvider translations={translations} locale={eventLocale} ns={ns}>
         <TeamTypePage {...(props as TeamTypePageProps)} />
-      </AppRouterI18nProvider>
+      </CustomI18nProvider>
     ) : (
       <TeamTypePage {...(props as TeamTypePageProps)} />
     );
   }
 
   return eventLocale ? (
-    <AppRouterI18nProvider translations={translations} locale={eventLocale} ns={ns}>
+    <CustomI18nProvider translations={translations} locale={eventLocale} ns={ns}>
       <UserTypePage {...(props as UserTypePageProps)} />
-    </AppRouterI18nProvider>
+    </CustomI18nProvider>
   ) : (
     <UserTypePage {...(props as UserTypePageProps)} />
   );

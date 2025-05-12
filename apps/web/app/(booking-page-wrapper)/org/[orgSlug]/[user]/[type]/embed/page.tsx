@@ -1,4 +1,4 @@
-import { AppRouterI18nProvider } from "app/AppRouterI18nProvider";
+import { CustomI18nProvider } from "app/CustomI18nProvider";
 import withEmbedSsrAppDir from "app/WithEmbedSSR";
 import type { PageProps as ServerPageProps } from "app/_types";
 import { cookies, headers } from "next/headers";
@@ -31,18 +31,18 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
 
   if ((props as TeamTypePageProps)?.teamId) {
     return eventLocale ? (
-      <AppRouterI18nProvider translations={translations} locale={eventLocale} ns={ns}>
+      <CustomI18nProvider translations={translations} locale={eventLocale} ns={ns}>
         <TeamTypePage {...(props as TeamTypePageProps)} />
-      </AppRouterI18nProvider>
+      </CustomI18nProvider>
     ) : (
       <TeamTypePage {...(props as TeamTypePageProps)} />
     );
   }
 
   return eventLocale ? (
-    <AppRouterI18nProvider translations={translations} locale={eventLocale} ns={ns}>
+    <CustomI18nProvider translations={translations} locale={eventLocale} ns={ns}>
       <UserTypePage {...(props as UserTypePageProps)} />
-    </AppRouterI18nProvider>
+    </CustomI18nProvider>
   ) : (
     <UserTypePage {...(props as UserTypePageProps)} />
   );
