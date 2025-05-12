@@ -355,7 +355,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     const selectedAction = {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: step.action,
-      needsTeamsUpgrade: false,
+      needsCredits: false,
+      creditsTeamId: teamId,
     };
 
     const selectedTemplate = {
@@ -494,12 +495,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         defaultValue={selectedAction}
                         options={actionOptions?.map((option) => ({
                           ...option,
+                          creditsTeamId: teamId,
                         }))}
-                        isOptionDisabled={(option: {
-                          label: string;
-                          value: WorkflowActions;
-                          needsTeamsUpgrade: boolean;
-                        }) => option.needsTeamsUpgrade}
                       />
                     );
                   }}
