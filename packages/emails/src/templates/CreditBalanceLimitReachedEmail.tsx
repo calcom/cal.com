@@ -41,23 +41,21 @@ export const CreditBalanceLimitReachedEmail = (
     );
   }
 
-  if (user) {
-    return (
-      <V2BaseEmailHtml subject={user.t("action_required_user_out_of_credits")}>
-        <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-          <> {user.t("hi_user_name", { name: user.name })},</>
-        </p>
-        <p style={{ fontWeight: 400, lineHeight: "24px", marginBottom: "20px" }}>
-          <>{user.t("credit_limit_reached_message_user")}</>
-        </p>
-        <div style={{ textAlign: "center", marginTop: "24px" }}>
-          <CallToAction
-            label={user.t("buy_credits")}
-            href={`${WEBAPP_URL}/settings/teams/${user.id}/credits`}
-            endIconName="linkIcon"
-          />
-        </div>
-      </V2BaseEmailHtml>
-    );
-  }
+  return (
+    <V2BaseEmailHtml subject={user.t("action_required_user_out_of_credits")}>
+      <p style={{ fontWeight: 400, lineHeight: "24px" }}>
+        <> {user.t("hi_user_name", { name: user.name })},</>
+      </p>
+      <p style={{ fontWeight: 400, lineHeight: "24px", marginBottom: "20px" }}>
+        <>{user.t("credit_limit_reached_message_user")}</>
+      </p>
+      <div style={{ textAlign: "center", marginTop: "24px" }}>
+        <CallToAction
+          label={user.t("buy_credits")}
+          href={`${WEBAPP_URL}/settings/teams/${user.id}/credits`}
+          endIconName="linkIcon"
+        />
+      </div>
+    </V2BaseEmailHtml>
+  );
 };

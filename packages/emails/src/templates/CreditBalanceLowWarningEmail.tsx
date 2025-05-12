@@ -50,23 +50,21 @@ export const CreditBalanceLowWarningEmail = (
     );
   }
 
-  if (user) {
-    return (
-      <V2BaseEmailHtml subject={user.t("user_credits_low_warning")}>
-        <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-          <> {user.t("hi_user_name", { name: user.name })},</>
-        </p>
-        <p style={{ fontWeight: 400, lineHeight: "24px", marginBottom: "20px" }}>
-          <>{user.t("low_credits_warning_message_user")}</>
-        </p>
-        <div style={{ textAlign: "center", marginTop: "24px" }}>
-          <CallToAction
-            label={user.t("buy_credits")}
-            href={`${WEBAPP_URL}/settings/teams/${user.id}/billing`}
-            endIconName="linkIcon"
-          />
-        </div>
-      </V2BaseEmailHtml>
-    );
-  }
+  return (
+    <V2BaseEmailHtml subject={user.t("user_credits_low_warning")}>
+      <p style={{ fontWeight: 400, lineHeight: "24px" }}>
+        <> {user.t("hi_user_name", { name: user.name })},</>
+      </p>
+      <p style={{ fontWeight: 400, lineHeight: "24px", marginBottom: "20px" }}>
+        <>{user.t("low_credits_warning_message_user")}</>
+      </p>
+      <div style={{ textAlign: "center", marginTop: "24px" }}>
+        <CallToAction
+          label={user.t("buy_credits")}
+          href={`${WEBAPP_URL}/settings/teams/${user.id}/billing`}
+          endIconName="linkIcon"
+        />
+      </div>
+    </V2BaseEmailHtml>
+  );
 };

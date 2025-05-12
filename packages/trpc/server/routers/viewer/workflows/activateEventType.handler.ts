@@ -47,6 +47,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       ],
     },
     select: {
+      teamId: true,
       children: {
         select: {
           id: true,
@@ -85,6 +86,12 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
           verifiedAt: true,
         },
       },
+      trigger: true,
+      time: true,
+      timeUnit: true,
+      isActiveOnAll: true,
+      teamId: true,
+      userId: true,
       team: {
         select: {
           isOrganization: true,
@@ -223,6 +230,14 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
           },
         },
         select: {
+          metadata: true,
+          userId: true,
+          smsReminderNumber: true,
+          userPrimaryEmail: true,
+          startTime: true,
+          endTime: true,
+          title: true,
+          uid: true,
           attendees: {
             select: {
               name: true,
@@ -259,6 +274,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               email: true,
               timeZone: true,
               locale: true,
+              timeFormat: true,
             },
           },
         },
