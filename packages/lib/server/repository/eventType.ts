@@ -2,7 +2,7 @@ import type { EventType as PrismaEventType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
-import { prisma, availabilityUserSelect } from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
@@ -779,131 +779,373 @@ export class EventTypeRepository {
   }
 
   static async findForSlots({ id }: { id: number }) {
-    const eventType = await prisma.eventType.findUnique({
-      where: {
-        id,
-      },
-      select: {
-        id: true,
-        slug: true,
-        minimumBookingNotice: true,
-        length: true,
-        offsetStart: true,
-        seatsPerTimeSlot: true,
-        timeZone: true,
-        slotInterval: true,
-        beforeEventBuffer: true,
-        afterEventBuffer: true,
-        bookingLimits: true,
-        durationLimits: true,
-        assignAllTeamMembers: true,
-        schedulingType: true,
-        periodType: true,
-        periodStartDate: true,
-        periodEndDate: true,
-        onlyShowFirstAvailableSlot: true,
-        allowReschedulingPastBookings: true,
-        hideOrganizerEmail: true,
-        periodCountCalendarDays: true,
-        rescheduleWithSameRoundRobinHost: true,
-        periodDays: true,
-        metadata: true,
-        assignRRMembersUsingSegment: true,
-        rrSegmentQueryValue: true,
-        isRRWeightsEnabled: true,
-        maxLeadThreshold: true,
-        includeNoShowInRRCalculation: true,
-        useEventLevelSelectedCalendars: true,
-        team: {
-          select: {
-            id: true,
-            bookingLimits: true,
-            includeManagedEventsInLimits: true,
-            parentId: true,
-            rrResetInterval: true,
-          },
-        },
-        parent: {
-          select: {
-            team: {
-              select: {
-                id: true,
-                bookingLimits: true,
-                includeManagedEventsInLimits: true,
-              },
-            },
-          },
-        },
-        schedule: {
-          select: {
-            id: true,
-            availability: {
-              select: {
-                date: true,
-                startTime: true,
-                endTime: true,
-                days: true,
-              },
-            },
-            timeZone: true,
-          },
-        },
-        availability: {
-          select: {
-            date: true,
-            startTime: true,
-            endTime: true,
-            days: true,
-          },
-        },
-        hosts: {
-          select: {
-            isFixed: true,
-            createdAt: true,
-            weight: true,
-            priority: true,
-            user: {
-              select: {
-                credentials: { select: credentialForCalendarServiceSelect },
-                ...availabilityUserSelect,
-              },
-            },
-            schedule: {
-              select: {
-                availability: {
-                  select: {
-                    date: true,
-                    startTime: true,
-                    endTime: true,
-                    days: true,
-                  },
-                },
-                timeZone: true,
-                id: true,
-              },
-            },
-          },
-        },
-        users: {
-          select: {
-            credentials: { select: credentialForCalendarServiceSelect },
-            ...availabilityUserSelect,
-          },
-        },
-      },
-    });
+    try {
+      const eventTypeQuery = Prisma.sql`
+        WITH 
+        event_type AS (
+          SELECT 
+            et.id, et.slug, et."minimumBookingNotice", et.length, et."offsetStart", 
+            et."seatsPerTimeSlot", et."timeZone", et."slotInterval", et."beforeEventBuffer", 
+            et."afterEventBuffer", et."bookingLimits", et."durationLimits", et."assignAllTeamMembers", 
+            et."schedulingType", et."periodType", et."periodStartDate", et."periodEndDate", 
+            et."onlyShowFirstAvailableSlot", et."allowReschedulingPastBookings", et."hideOrganizerEmail", 
+            et."periodCountCalendarDays", et."rescheduleWithSameRoundRobinHost", et."periodDays", 
+            et.metadata, et."assignRRMembersUsingSegment", et."rrSegmentQueryValue", et."isRRWeightsEnabled", 
+            et."maxLeadThreshold", et."includeNoShowInRRCalculation", et."useEventLevelSelectedCalendars"
+          FROM "EventType" et
+          WHERE et.id = ${id}
+        ),
+        team_data AS (
+          SELECT 
+            t.id, t."bookingLimits", t."includeManagedEventsInLimits", t."parentId", t."rrResetInterval"
+          FROM "Team" t
+          JOIN event_type et ON t.id = et."teamId"
+        ),
+        parent_team_data AS (
+          SELECT 
+            pt.id, pt."bookingLimits", pt."includeManagedEventsInLimits"
+          FROM "Team" pt
+          JOIN "EventType" pet ON pet.id = (SELECT "parentId" FROM "EventType" WHERE id = ${id})
+          JOIN "Team" t ON t.id = pet."teamId"
+          WHERE pet.id = (SELECT "parentId" FROM "EventType" WHERE id = ${id})
+        ),
+        schedule_data AS (
+          SELECT 
+            s.id, s."timeZone",
+            COALESCE(
+              (
+                SELECT jsonb_agg(
+                  jsonb_build_object(
+                    'date', a.date,
+                    'startTime', a."startTime",
+                    'endTime', a."endTime",
+                    'days', a.days
+                  )
+                )
+                FROM "Availability" a
+                WHERE a."scheduleId" = s.id
+              ),
+              '[]'::jsonb
+            ) AS availability
+          FROM "Schedule" s
+          JOIN event_type et ON s.id = et."scheduleId"
+        ),
+        availability_data AS (
+          SELECT 
+            jsonb_agg(
+              jsonb_build_object(
+                'date', a.date,
+                'startTime', a."startTime",
+                'endTime', a."endTime",
+                'days', a.days
+              )
+            ) AS availability
+          FROM "Availability" a
+          JOIN event_type et ON a."eventTypeId" = et.id
+        ),
+        hosts_data AS (
+          SELECT 
+            jsonb_agg(
+              jsonb_build_object(
+                'isFixed', h."isFixed",
+                'createdAt', h."createdAt",
+                'weight', h.weight,
+                'priority', h.priority,
+                'user', (
+                  SELECT jsonb_build_object(
+                    'id', u.id,
+                    'timeZone', u."timeZone",
+                    'email', u.email,
+                    'bufferTime', u."bufferTime",
+                    'startTime', u."startTime",
+                    'username', u.username,
+                    'endTime', u."endTime",
+                    'timeFormat', u."timeFormat",
+                    'defaultScheduleId', u."defaultScheduleId",
+                    'schedules', (
+                      SELECT COALESCE(
+                        jsonb_agg(
+                          jsonb_build_object(
+                            'id', s.id,
+                            'timeZone', s."timeZone",
+                            'availability', (
+                              SELECT COALESCE(
+                                jsonb_agg(
+                                  jsonb_build_object(
+                                    'date', a.date,
+                                    'startTime', a."startTime",
+                                    'endTime', a."endTime",
+                                    'days', a.days
+                                  )
+                                ),
+                                '[]'::jsonb
+                              )
+                              FROM "Availability" a
+                              WHERE a."scheduleId" = s.id
+                            )
+                          )
+                        ),
+                        '[]'::jsonb
+                      )
+                      FROM "Schedule" s
+                      WHERE s."userId" = u.id
+                    ),
+                    'availability', (
+                      SELECT COALESCE(
+                        jsonb_agg(
+                          jsonb_build_object(
+                            'date', a.date,
+                            'startTime', a."startTime",
+                            'endTime', a."endTime",
+                            'days', a.days
+                          )
+                        ),
+                        '[]'::jsonb
+                      )
+                      FROM "Availability" a
+                      WHERE a."userId" = u.id AND a."eventTypeId" IS NULL
+                    ),
+                    'selectedCalendars', (
+                      SELECT COALESCE(
+                        jsonb_agg(
+                          jsonb_build_object(
+                            'integration', sc.integration,
+                            'externalId', sc."externalId",
+                            'credentialId', sc."credentialId",
+                            'eventTypeId', sc."eventTypeId"
+                          )
+                        ),
+                        '[]'::jsonb
+                      )
+                      FROM "SelectedCalendar" sc
+                      WHERE sc."userId" = u.id
+                    ),
+                    'travelSchedules', (
+                      SELECT COALESCE(
+                        jsonb_agg(
+                          jsonb_build_object(
+                            'id', ts.id,
+                            'startDate', ts."startDate",
+                            'endDate', ts."endDate",
+                            'timeZone', ts."timeZone"
+                          )
+                        ),
+                        '[]'::jsonb
+                      )
+                      FROM "TravelSchedule" ts
+                      WHERE ts."userId" = u.id
+                    ),
+                    'credentials', (
+                      SELECT COALESCE(
+                        jsonb_agg(
+                          jsonb_build_object(
+                            'id', c.id,
+                            'type', c.type,
+                            'userId', c."userId",
+                            'user', jsonb_build_object('email', uc.email),
+                            'teamId', c."teamId",
+                            'key', c.key,
+                            'invalid', c.invalid,
+                            'delegationCredentialId', c."delegationCredentialId",
+                            'appId', c."appId"
+                          )
+                        ),
+                        '[]'::jsonb
+                      )
+                      FROM "Credential" c
+                      LEFT JOIN "users" uc ON c."userId" = uc.id
+                      WHERE c."userId" = u.id
+                    )
+                  )
+                  FROM "users" u
+                  WHERE u.id = h."userId"
+                ),
+                'schedule', (
+                  SELECT jsonb_build_object(
+                    'id', s.id,
+                    'timeZone', s."timeZone",
+                    'availability', (
+                      SELECT COALESCE(
+                        jsonb_agg(
+                          jsonb_build_object(
+                            'date', a.date,
+                            'startTime', a."startTime",
+                            'endTime', a."endTime",
+                            'days', a.days
+                          )
+                        ),
+                        '[]'::jsonb
+                      )
+                      FROM "Availability" a
+                      WHERE a."scheduleId" = s.id
+                    )
+                  )
+                  FROM "Schedule" s
+                  WHERE s.id = h."scheduleId"
+                )
+              )
+            ) AS hosts
+          FROM "Host" h
+          WHERE h."eventTypeId" = ${id}
+        ),
+        users_data AS (
+          SELECT 
+            jsonb_agg(
+              jsonb_build_object(
+                'id', u.id,
+                'timeZone', u."timeZone",
+                'email', u.email,
+                'bufferTime', u."bufferTime",
+                'startTime', u."startTime",
+                'username', u.username,
+                'endTime', u."endTime",
+                'timeFormat', u."timeFormat",
+                'defaultScheduleId', u."defaultScheduleId",
+                'schedules', (
+                  SELECT COALESCE(
+                    jsonb_agg(
+                      jsonb_build_object(
+                        'id', s.id,
+                        'timeZone', s."timeZone",
+                        'availability', (
+                          SELECT COALESCE(
+                            jsonb_agg(
+                              jsonb_build_object(
+                                'date', a.date,
+                                'startTime', a."startTime",
+                                'endTime', a."endTime",
+                                'days', a.days
+                              )
+                            ),
+                            '[]'::jsonb
+                          )
+                          FROM "Availability" a
+                          WHERE a."scheduleId" = s.id
+                        )
+                      )
+                    ),
+                    '[]'::jsonb
+                  )
+                  FROM "Schedule" s
+                  WHERE s."userId" = u.id
+                ),
+                'availability', (
+                  SELECT COALESCE(
+                    jsonb_agg(
+                      jsonb_build_object(
+                        'date', a.date,
+                        'startTime', a."startTime",
+                        'endTime', a."endTime",
+                        'days', a.days
+                      )
+                    ),
+                    '[]'::jsonb
+                  )
+                  FROM "Availability" a
+                  WHERE a."userId" = u.id AND a."eventTypeId" IS NULL
+                ),
+                'selectedCalendars', (
+                  SELECT COALESCE(
+                    jsonb_agg(
+                      jsonb_build_object(
+                        'integration', sc.integration,
+                        'externalId', sc."externalId",
+                        'credentialId', sc."credentialId",
+                        'eventTypeId', sc."eventTypeId"
+                      )
+                    ),
+                    '[]'::jsonb
+                  )
+                  FROM "SelectedCalendar" sc
+                  WHERE sc."userId" = u.id
+                ),
+                'travelSchedules', (
+                  SELECT COALESCE(
+                    jsonb_agg(
+                      jsonb_build_object(
+                        'id', ts.id,
+                        'startDate', ts."startDate",
+                        'endDate', ts."endDate",
+                        'timeZone', ts."timeZone"
+                      )
+                    ),
+                    '[]'::jsonb
+                  )
+                  FROM "TravelSchedule" ts
+                  WHERE ts."userId" = u.id
+                ),
+                'credentials', (
+                  SELECT COALESCE(
+                    jsonb_agg(
+                      jsonb_build_object(
+                        'id', c.id,
+                        'type', c.type,
+                        'userId', c."userId",
+                        'user', jsonb_build_object('email', uc.email),
+                        'teamId', c."teamId",
+                        'key', c.key,
+                        'invalid', c.invalid,
+                        'delegationCredentialId', c."delegationCredentialId",
+                        'appId', c."appId"
+                      )
+                    ),
+                    '[]'::jsonb
+                  )
+                  FROM "Credential" c
+                  LEFT JOIN "users" uc ON c."userId" = uc.id
+                  WHERE c."userId" = u.id
+                )
+              )
+            ) AS users
+          FROM "users" u
+          JOIN "_EventTypeToUser" etu ON etu."B" = u.id
+          WHERE etu."A" = ${id}
+        )
+        SELECT 
+          et.*,
+          (SELECT row_to_json(t) FROM team_data t) AS team,
+          (SELECT jsonb_build_object('team', row_to_json(pt)) FROM parent_team_data pt) AS parent,
+          (SELECT row_to_json(s) FROM schedule_data s) AS schedule,
+          (SELECT availability FROM availability_data) AS availability,
+          (SELECT hosts FROM hosts_data) AS hosts,
+          (SELECT users FROM users_data) AS users
+        FROM event_type et;
+      `;
 
-    if (!eventType) {
-      return eventType;
+      const eventTypeResult = await prisma.$queryRaw<any[]>(eventTypeQuery);
+      const eventType = eventTypeResult.length > 0 ? eventTypeResult[0] : null;
+
+      if (!eventType) {
+        return eventType;
+      }
+
+      if (typeof eventType.metadata === "string") {
+        eventType.metadata = JSON.parse(eventType.metadata);
+      }
+      if (typeof eventType.rrSegmentQueryValue === "string") {
+        eventType.rrSegmentQueryValue = JSON.parse(eventType.rrSegmentQueryValue);
+      }
+      if (typeof eventType.bookingLimits === "string") {
+        eventType.bookingLimits = JSON.parse(eventType.bookingLimits);
+      }
+      if (typeof eventType.durationLimits === "string") {
+        eventType.durationLimits = JSON.parse(eventType.durationLimits);
+      }
+
+      eventType.hosts = Array.isArray(eventType.hosts) ? eventType.hosts : [];
+      eventType.users = Array.isArray(eventType.users) ? eventType.users : [];
+
+      return {
+        ...eventType,
+        hosts: hostsWithSelectedCalendars(eventType.hosts),
+        users: usersWithSelectedCalendars(eventType.users),
+        metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+        rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue),
+      };
+    } catch (error) {
+      log.error("Error in findForSlots raw SQL query", { error, id });
+      throw error;
     }
-
-    return {
-      ...eventType,
-      hosts: hostsWithSelectedCalendars(eventType.hosts),
-      users: usersWithSelectedCalendars(eventType.users),
-      metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-      rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue),
-    };
   }
 
   static getSelectedCalendarsFromUser<TSelectedCalendar extends { eventTypeId: number | null }>({
