@@ -51,7 +51,6 @@ export class CreditService {
       return null;
     }
 
-    //continue here
     await this.createExpenseLog({
       bookingUid,
       smsSid,
@@ -274,9 +273,9 @@ export class CreditService {
 
       if (
         creditBalance?.limitReachedAt &&
-        dayjs(creditBalance?.limitReachedAt).isAfter(dayjs().startOf("month"))
+        (!teamId || dayjs(creditBalance?.limitReachedAt).isAfter(dayjs().startOf("month")))
       ) {
-        return; // team/user has already reached limit this month
+        return; // user has limit already reached or team has already reached limit this month
       }
 
       const teamWithAdmins = creditBalance?.team
@@ -325,12 +324,11 @@ export class CreditService {
       }
       if (
         creditBalance?.warningSentAt &&
-        dayjs(creditBalance?.warningSentAt).isAfter(dayjs().startOf("month"))
+        (!teamId || dayjs(creditBalance?.warningSentAt).isAfter(dayjs().startOf("month")))
       ) {
-        return; // team/user has already sent warning email this month
+        return; // user has already received a warning or team has already sent warning email this month
       }
 
-      // team balance below 20% of total monthly credits
       await sendCreditBalanceLowWarningEmails({
         balance: remainingCredits,
         team: teamWithAdmins,
