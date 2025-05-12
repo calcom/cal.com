@@ -13,7 +13,13 @@ import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import { TimeUnit, WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import {
+  MembershipRole,
+  TimeUnit,
+  WorkflowActions,
+  WorkflowTemplates,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -85,6 +91,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     { teamId },
     { enabled: !!teamId }
   );
+
+  const { data: userTeams } = trpc.viewer.teams.list.useQuery({}, { enabled: !teamId });
+
+  const creditsTeamId = userTeams?.find(
+    (team) => team.accepted && (team.role === MembershipRole.ADMIN || team.role === MembershipRole.OWNER)
+  )?.id;
 
   const { hasActiveTeamPlan } = useHasActiveTeamPlan();
 
@@ -356,7 +368,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: step.action,
       needsCredits: false,
-      creditsTeamId: teamId,
+      creditsTeamId: teamId ?? creditsTeamId,
     };
 
     const selectedTemplate = {
@@ -495,7 +507,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         defaultValue={selectedAction}
                         options={actionOptions?.map((option) => ({
                           ...option,
-                          creditsTeamId: teamId,
+                          creditsTeamId: teamId ?? creditsTeamId,
                         }))}
                       />
                     );
