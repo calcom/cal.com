@@ -46,8 +46,12 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         },
       ],
     },
-    include: {
-      children: true,
+    select: {
+      children: {
+        select: {
+          id: true,
+        },
+      },
     },
   });
 
@@ -67,8 +71,20 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         },
       ],
     },
-    include: {
-      steps: true,
+    select: {
+      steps: {
+        select: {
+          id: true,
+          action: true,
+          sendTo: true,
+          numberRequired: true,
+          template: true,
+          sender: true,
+          emailSubject: true,
+          reminderBody: true,
+          verifiedAt: true,
+        },
+      },
       team: {
         select: {
           isOrganization: true,
@@ -206,8 +222,15 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
             gte: new Date(),
           },
         },
-        include: {
-          attendees: true,
+        select: {
+          attendees: {
+            select: {
+              name: true,
+              email: true,
+              timeZone: true,
+              locale: true,
+            },
+          },
           eventType: {
             select: {
               schedulingType: true,
@@ -230,7 +253,14 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               hideOrganizerEmail: true,
             },
           },
-          user: true,
+          user: {
+            select: {
+              name: true,
+              email: true,
+              timeZone: true,
+              locale: true,
+            },
+          },
         },
       });
 
