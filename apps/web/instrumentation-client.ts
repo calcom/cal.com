@@ -18,7 +18,7 @@ Sentry.init({
   // replaysOnErrorSampleRate: parseFloat(process.env.SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE ?? "0.0") || 0.0,
 
   // Setting this option to true will print useful information to the console while you're setting up Sentry.
-  debug: false,
+  debug: !!process.env.SENTRY_DEBUG,
   beforeSend(event) {
     event.tags = {
       ...event.tags,

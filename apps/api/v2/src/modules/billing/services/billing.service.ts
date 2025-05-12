@@ -1,10 +1,13 @@
 import { AppConfig } from "@/config/type";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { BILLING_QUEUE, INCREMENT_JOB, IncrementJobDataType } from "@/modules/billing/billing.processor";
 import { BillingRepository } from "@/modules/billing/billing.repository";
 import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
 import { PlatformPlan } from "@/modules/billing/types";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { StripeService } from "@/modules/stripe/stripe.service";
+import { UsersRepository } from "@/modules/users/users.repository";
 import { InjectQueue } from "@nestjs/bull";
 import {
   BadRequestException,
@@ -30,6 +33,9 @@ export class BillingService implements OnModuleDestroy {
     private readonly billingRepository: BillingRepository,
     private readonly configService: ConfigService<AppConfig>,
     private readonly billingConfigService: BillingConfigService,
+    private readonly usersRepository: UsersRepository,
+    private readonly oAuthClientRepository: OAuthClientRepository,
+    private readonly bookingsRepository: BookingsRepository_2024_08_13,
     @InjectQueue(BILLING_QUEUE) private readonly billingQueue: Queue
   ) {
     this.webAppUrl = this.configService.get("app.baseUrl", { infer: true }) ?? "https://app.cal.com";
@@ -119,7 +125,7 @@ export class BillingService implements OnModuleDestroy {
     return url;
   }
 
-  async setSubscriptionForTeam(teamId: number, subscriptionId: string, plan: PlatformPlan) {
+  async setPerBookingSubscriptionForTeam(teamId: number, subscriptionId: string, plan: PlatformPlan) {
     const billingCycleStart = DateTime.now().get("day");
     const billingCycleEnd = DateTime.now().plus({ month: 1 }).get("day");
 
@@ -129,6 +135,25 @@ export class BillingService implements OnModuleDestroy {
       billingCycleEnd,
       plan,
       subscriptionId
+    );
+  }
+
+  async setPerActiveUserSubscriptionForTeam(
+    teamId: number,
+    subscriptionId: string,
+    plan: PlatformPlan,
+    priceId: string
+  ) {
+    const billingCycleStart = DateTime.now().get("day");
+    const billingCycleEnd = DateTime.now().plus({ month: 1 }).get("day");
+
+    return this.billingRepository.updateTeamBilling(
+      teamId,
+      billingCycleStart,
+      billingCycleEnd,
+      plan,
+      subscriptionId,
+      priceId
     );
   }
 
@@ -204,9 +229,19 @@ export class BillingService implements OnModuleDestroy {
       this.logger.log("Webhook received but not pertaining to Platform, discarding.");
       return;
     }
+    const isPriceIdPresent = Boolean(checkoutSession.metadata?.priceId);
 
-    if (checkoutSession.mode === "subscription") {
-      await this.setSubscriptionForTeam(
+    if (checkoutSession.mode === "subscription" && isPriceIdPresent) {
+      await this.setPerActiveUserSubscriptionForTeam(
+        teamId,
+        checkoutSession.subscription as string,
+        PlatformPlan[plan.toUpperCase() as keyof typeof PlatformPlan],
+        checkoutSession.metadata?.priceId
+      );
+    }
+
+    if (checkoutSession.mode === "subscription" && !isPriceIdPresent) {
+      await this.setPerBookingSubscriptionForTeam(
         teamId,
         checkoutSession.subscription as string,
         PlatformPlan[plan.toUpperCase() as keyof typeof PlatformPlan]
@@ -218,6 +253,67 @@ export class BillingService implements OnModuleDestroy {
     }
 
     return;
+  }
+
+  async handleStripeSubscriptionForActiveManagedUsers(event: Stripe.Event) {
+    const invoice = event.data.object as Stripe.Invoice;
+    const subscriptionId = this.getSubscriptionIdFromInvoice(invoice);
+
+    if (!subscriptionId) {
+      throw new NotFoundException("No subscription found for team");
+    }
+
+    const teamWithBilling = await this.billingRepository.getBillingForTeamBySubscriptionId(subscriptionId);
+
+    if (teamWithBilling?.plan === "PER_ACTIVE_USER") {
+      const activeManagedUsersCount = await this.getActiveManagedUsersCount(
+        subscriptionId,
+        new Date(invoice.period_start * 1000),
+        new Date(invoice.period_end * 1000)
+      );
+
+      await this.stripeService.getStripe().subscriptions.update(subscriptionId, {
+        items: [
+          {
+            quantity: activeManagedUsersCount > 0 ? activeManagedUsersCount : 1,
+          },
+        ],
+      });
+    }
+  }
+
+  async getActiveManagedUsersCount(subscriptionId: string, invoiceStart: Date, invoiceEnd: Date) {
+    const managedUsersEmails = await this.usersRepository.getOrgsManagedUserEmailsBySubscriptionId(
+      subscriptionId
+    );
+
+    if (!managedUsersEmails) return 0;
+
+    if (!invoiceStart || !invoiceEnd) {
+      this.logger.log("Invoice period start or end date is null");
+      return 0;
+    }
+
+    const activeManagedUserEmailsAsHost = await this.usersRepository.getActiveManagedUsersAsHost(
+      subscriptionId,
+      invoiceStart,
+      invoiceEnd
+    );
+
+    const activeHostEmails = activeManagedUserEmailsAsHost.map((email) => email.email);
+    const notActiveHostEmails = managedUsersEmails
+      .filter((email) => !activeHostEmails.includes(email.email))
+      .map((email) => email.email);
+
+    if (notActiveHostEmails.length === 0) return activeManagedUserEmailsAsHost.length;
+
+    const activeManagedUserEmailsAsAttendee = await this.usersRepository.getActiveManagedUsersAsAttendee(
+      notActiveHostEmails,
+      invoiceStart,
+      invoiceEnd
+    );
+
+    return activeManagedUserEmailsAsAttendee.length + activeManagedUserEmailsAsHost.length;
   }
 
   async updateStripeSubscriptionForTeam(teamId: number, plan: PlatformPlan) {
@@ -263,7 +359,7 @@ export class BillingService implements OnModuleDestroy {
         proration_behavior: "create_prorations",
       });
 
-    await this.setSubscriptionForTeam(
+    await this.setPerBookingSubscriptionForTeam(
       teamId,
       teamWithBilling?.platformBilling?.subscriptionId,
       PlatformPlan[plan.toUpperCase() as keyof typeof PlatformPlan]
