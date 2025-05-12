@@ -15,6 +15,14 @@
     {
       "path": "/api/tasks/cleanup",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/credentials",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/selected-calendars",
+      "schedule": "*/5 * * * *"
     }
   ],
   "functions": {
