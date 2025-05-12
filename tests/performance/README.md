@@ -60,8 +60,6 @@ k6 run tests/performance/spike/booking.js
 The test suite focuses specifically on the booking flow, which is the most critical user journey in Cal.com:
 
 1. **Booking Page View**: Tests the performance of loading and viewing booking pages
-2. **Time Slot Selection**: Tests the performance of selecting available time slots
-3. **Booking Form Submission**: Tests the performance of submitting booking forms
 
 ## Load Parameters
 
