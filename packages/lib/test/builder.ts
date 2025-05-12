@@ -275,6 +275,7 @@ type UserPayload = Prisma.UserGetPayload<{
     movedToProfileId: true;
     isPlatformManaged: true;
     smsLockState: true;
+    bookingLimits: true;
   };
 }>;
 export const buildUser = <T extends Partial<UserPayload>>(
@@ -329,6 +330,7 @@ export const buildUser = <T extends Partial<UserPayload>>(
     priority: user?.priority ?? 2,
     weight: user?.weight ?? 100,
     isPlatformManaged: false,
+    bookingLimits: null,
     ...user,
   };
 };
