@@ -125,7 +125,7 @@ export const FormBuilder = function FormBuilder({
 
   const toggleGroupOptions = [
     { value: "email", label: t("email"), iconLeft: <Icon name="mail" /> },
-    { value: "phone", label: t("phone"), iconLeft: <Icon name="phone-call" /> },
+    { value: "phone", label: t("phone"), iconLeft: <Icon name="phone" /> },
   ];
 
   const [emailBaseBooking, setEmailBaseBooking] = useState<boolean>(true);
@@ -253,12 +253,9 @@ export const FormBuilder = function FormBuilder({
                       <FieldLabel field={field} />
                     </div>
                     <div className="flex items-center space-x-2">
-                      {field.hidden ? (
-                        // Hidden field can't be required, so we don't need to show the Optional badge
-                        <Badge variant="grayWithoutHover">{t("hidden")}</Badge>
-                      ) : (
-                        <Badge variant="grayWithoutHover" data-testid={isRequired ? "required" : "optional"}>
-                          {isRequired ? t("required") : t("optional")}
+                      {field.required && (
+                        <Badge variant="blue" data-testid="required">
+                          {t("required")}
                         </Badge>
                       )}
                       {Object.entries(groupedBySourceLabel).map(([sourceLabel, sources], key) => (
@@ -286,11 +283,19 @@ export const FormBuilder = function FormBuilder({
                         tooltip={t("show_on_booking_page")}
                       />
                     )}
-                    {isUserField && (
+                    <Button
+                      dataisUserField-testid="edit-field-action"
+                      color="secondary"
+                      onClick={() => {
+                        editField(index, field);
+                      }}>
+                      {t("edit")}
+                    </Button>
+                    {!field.required && (
                       <Button
                         data-testid="delete-field-action"
-                        color="destructive"
-                        disabled={!isUserField}
+                        color="secondary"
+                        disabled={isUserField}
                         variant="icon"
                         onClick={() => {
                           removeField(index);
@@ -298,14 +303,6 @@ export const FormBuilder = function FormBuilder({
                         StartIcon="trash-2"
                       />
                     )}
-                    <Button
-                      data-testid="edit-field-action"
-                      color="secondary"
-                      onClick={() => {
-                        editField(index, field);
-                      }}>
-                      {t("edit")}
-                    </Button>
                   </div>
                 )}
               </li>
