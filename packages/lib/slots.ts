@@ -109,7 +109,7 @@ function buildSlotsWithDateRanges({
     // add slot event length and - 1 second to avoid end time being equal to next start time.
     while (!slotStartTime.add(eventLength * 60 - 1, "seconds").isAfter(range.end)) {
       let slotData: SlotData = {
-        time: slotStartTime,
+        time: slotStartTime.utc(),
       };
 
       const dateOutOfOfficeExists = datesOutOfOffice?.[dateYYYYMMDD];
