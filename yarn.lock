@@ -3650,7 +3650,7 @@ __metadata:
     prisma-kysely: ^1.8.0
     ts-node: ^10.9.1
     zod: ^3.22.4
-    zod-prisma: ^0.5.4
+    zod-prisma: 0.5.4
   languageName: unknown
   linkType: soft
 
@@ -22008,6 +22008,7 @@ __metadata:
     vitest: ^2.1.1
     vitest-fetch-mock: ^0.3.0
     vitest-mock-extended: ^2.0.2
+    zod-prisma: 0.5.4
   languageName: unknown
   linkType: soft
 
@@ -48540,7 +48541,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod-prisma@npm:^0.5.4":
+"zod-prisma@npm:0.5.4":
   version: 0.5.4
   resolution: "zod-prisma@npm:0.5.4"
   dependencies:
@@ -48557,6 +48558,26 @@ __metadata:
   bin:
     zod-prisma: bin/cli.js
   checksum: b6c33b603b31e2b6bab501117b81c661f711a231dac7130a34d236619bf2222593cb71f05d5bb1ed2826a3b059ba92e0e60c966fd92c3e626926115e92419abd
+  languageName: node
+  linkType: hard
+
+"zod-prisma@patch:zod-prisma@npm%3A0.5.4#./.yarn/patches/zod-prisma-npm-0.5.4-2a452c7691.patch::locator=calcom-monorepo%40workspace%3A.":
+  version: 0.5.4
+  resolution: "zod-prisma@patch:zod-prisma@npm%3A0.5.4#./.yarn/patches/zod-prisma-npm-0.5.4-2a452c7691.patch::version=0.5.4&hash=54ec6d&locator=calcom-monorepo%40workspace%3A."
+  dependencies:
+    "@prisma/generator-helper": ~3.8.1
+    parenthesis: ^3.1.8
+    ts-morph: ^13.0.2
+  peerDependencies:
+    decimal.js: ^10.0.0
+    prisma: ^3.0.0
+    zod: ^3.0.0
+  peerDependenciesMeta:
+    decimal.js:
+      optional: true
+  bin:
+    zod-prisma: bin/cli.js
+  checksum: 2ae85bf6bf02100326626e30c0c544570beb49e993aabc50b86bb293facc21f48b31d1515c281ed898a232291a19fc2d1f50e02a4a7a4da96bb3817d9b30e0e5
   languageName: node
   linkType: hard
 

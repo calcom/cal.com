@@ -1,0 +1,64 @@
+diff --git a/dist/zod-prisma.cjs.development.js b/dist/zod-prisma.cjs.development.js
+index fb04fd45d6e6d9407ed9ab0b13533b05f3ae4d08..3f03f515ffc6050c0ad7f55a47f646d4a89ef1dd 100644
+--- a/dist/zod-prisma.cjs.development.js
++++ b/dist/zod-prisma.cjs.development.js
+@@ -13,6 +13,9 @@ var path__default = /*#__PURE__*/_interopDefaultLegacy(path);
+ 
+ var version = "0.5.4";
+ 
++// Add output validation schema for Prisma v6 compatibility
++const outputSchema = zod.z.string().min(1, "Output path is required for zod-prisma generator in Prisma v6");
++
+ const configBoolean = /*#__PURE__*/zod.z.enum(['true', 'false']).transform(arg => JSON.parse(arg));
+ const configSchema = /*#__PURE__*/zod.z.object({
+   relationModel: /*#__PURE__*/configBoolean.default('true').or( /*#__PURE__*/zod.z.literal('default')),
+@@ -122,7 +125,7 @@ const getZodConstructor = (field, getRelatedModelName = name => name.toString())
+       // TODO: Proper type for bytes fields
+ 
+       case 'Bytes':
+-        zodType = 'z.unknown()';
++        zodType = 'z.instanceof(Uint8Array)';
+         break;
+     }
+   } else if (field.kind === 'enum') {
+@@ -293,19 +296,35 @@ generatorHelper.generatorHandler({
+   onManifest() {
+     return {
+       version,
++      requiresGenerators: ['prisma-client'], // Add explicit dependency on prisma-client generator
+       prettyName: 'Zod Schemas',
+       defaultOutput: 'zod'
+     };
+   },
+ 
+   onGenerate(options) {
++    // Validate output path for Prisma v6 compatibility
++    const outputResult = outputSchema.safeParse(options.generator.output?.value);
++    if (!outputResult.success) {
++      throw new Error('The zod-prisma generator requires an output path to be specified in your schema.prisma file. Please add output = "./path/to/output" to your generator block.');
++    }
++
++    // Validate schema path for Yarn PnP compatibility
++    if (!options.schemaPath) {
++      throw new Error('Schema path not found. Please ensure your schema.prisma file is properly configured.');
++    }
++
+     const project = new tsMorph.Project();
+     const models = options.dmmf.datamodel.models;
+-    const {
+-      schemaPath
+-    } = options;
++    const { schemaPath } = options;
+     const outputPath = options.generator.output.value;
+-    const clientPath = options.otherGenerators.find(each => each.provider.value === 'prisma-client-js').output.value;
++    
++    // Update client path lookup for Prisma v6 and Yarn PnP compatibility
++    const clientPath = options.otherGenerators.find(each => each.provider.value === 'prisma-client')?.output?.value;
++    if (!clientPath) {
++      throw new Error('Could not find prisma-client generator output path. Please ensure prisma-client generator is configured correctly.');
++    }
++
+     const results = configSchema.safeParse(options.generator.config);
+     if (!results.success) throw new Error('Incorrect config provided. Please check the values you provided and try again.');
+     const config = results.data;
+``` 
