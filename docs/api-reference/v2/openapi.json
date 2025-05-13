@@ -15979,118 +15979,6 @@
         },
         "required": ["status", "data"]
       },
-      "ConferencingAppsOutputDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number",
-            "description": "Id of the conferencing app credentials"
-          },
-          "type": {
-            "type": "string",
-            "example": "google_video",
-            "description": "Type of conferencing app"
-          },
-          "userId": {
-            "type": "number",
-            "description": "Id of the user associated to the conferencing app"
-          },
-          "invalid": {
-            "type": "boolean",
-            "nullable": true,
-            "example": true,
-            "description": "Whether if the connection is working or not."
-          }
-        },
-        "required": ["id", "type", "userId"]
-      },
-      "ConferencingAppOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ConferencingAppsOutputDto"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "GetConferencingAppsOauthUrlResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          }
-        },
-        "required": ["status"]
-      },
-      "ConferencingAppsOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ConferencingAppsOutputDto"
-            }
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "SetDefaultConferencingAppOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          }
-        },
-        "required": ["status"]
-      },
-      "DefaultConferencingAppsOutputDto": {
-        "type": "object",
-        "properties": {
-          "appSlug": {
-            "type": "string"
-          },
-          "appLink": {
-            "type": "string"
-          }
-        }
-      },
-      "GetDefaultConferencingAppOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/DefaultConferencingAppsOutputDto"
-          }
-        },
-        "required": ["status"]
-      },
-      "DisconnectConferencingAppOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          }
-        },
-        "required": ["status"]
-      },
       "OrgTeamOutputDto": {
         "type": "object",
         "properties": {
@@ -16992,14 +16880,14 @@
           "type": {
             "type": "string"
           },
-          "value": {
+          "option": {
             "type": "string"
           },
-          "valueId": {
+          "optionId": {
             "type": "string"
           }
         },
-        "required": ["id", "name", "type", "value", "valueId"]
+        "required": ["id", "name", "type", "option", "optionId"]
       },
       "NumberAttribute": {
         "type": "object",
@@ -17013,14 +16901,14 @@
           "type": {
             "type": "string"
           },
-          "value": {
+          "option": {
             "type": "number"
           },
-          "valueId": {
+          "optionId": {
             "type": "string"
           }
         },
-        "required": ["id", "name", "type", "value", "valueId"]
+        "required": ["id", "name", "type", "option", "optionId"]
       },
       "SingleSelectAttribute": {
         "type": "object",
@@ -17034,26 +16922,26 @@
           "type": {
             "type": "string"
           },
-          "value": {
+          "option": {
             "type": "string"
           },
-          "valueId": {
+          "optionId": {
             "type": "string"
           }
         },
-        "required": ["id", "name", "type", "value", "valueId"]
+        "required": ["id", "name", "type", "option", "optionId"]
       },
-      "MultiSelectAttributeValue": {
+      "MultiSelectAttributeOption": {
         "type": "object",
         "properties": {
-          "valueId": {
+          "optionId": {
             "type": "string"
           },
-          "value": {
+          "option": {
             "type": "string"
           }
         },
-        "required": ["valueId", "value"]
+        "required": ["optionId", "option"]
       },
       "MultiSelectAttribute": {
         "type": "object",
@@ -17067,14 +16955,14 @@
           "type": {
             "type": "string"
           },
-          "values": {
+          "options": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/MultiSelectAttributeValue"
+              "$ref": "#/components/schemas/MultiSelectAttributeOption"
             }
           }
         },
-        "required": ["id", "name", "type", "values"]
+        "required": ["id", "name", "type", "options"]
       },
       "MembershipUserOutputDto": {
         "type": "object",
@@ -19416,6 +19304,118 @@
           }
         },
         "required": ["status", "data"]
+      },
+      "ConferencingAppsOutputDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Id of the conferencing app credentials"
+          },
+          "type": {
+            "type": "string",
+            "example": "google_video",
+            "description": "Type of conferencing app"
+          },
+          "userId": {
+            "type": "number",
+            "description": "Id of the user associated to the conferencing app"
+          },
+          "invalid": {
+            "type": "boolean",
+            "nullable": true,
+            "example": true,
+            "description": "Whether if the connection is working or not."
+          }
+        },
+        "required": ["id", "type", "userId"]
+      },
+      "ConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ConferencingAppsOutputDto"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetConferencingAppsOauthUrlResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          }
+        },
+        "required": ["status"]
+      },
+      "ConferencingAppsOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConferencingAppsOutputDto"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "SetDefaultConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          }
+        },
+        "required": ["status"]
+      },
+      "DefaultConferencingAppsOutputDto": {
+        "type": "object",
+        "properties": {
+          "appSlug": {
+            "type": "string"
+          },
+          "appLink": {
+            "type": "string"
+          }
+        }
+      },
+      "GetDefaultConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DefaultConferencingAppsOutputDto"
+          }
+        },
+        "required": ["status"]
+      },
+      "DisconnectConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          }
+        },
+        "required": ["status"]
       },
       "GoogleServiceAccountKeyInput": {
         "type": "object",
