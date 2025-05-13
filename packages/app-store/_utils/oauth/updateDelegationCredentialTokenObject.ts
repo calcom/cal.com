@@ -1,0 +1,63 @@
+import type z from "zod";
+
+import prisma from "@calcom/prisma";
+
+import type { OAuth2UniversalSchemaWithCalcomBackwardCompatibility } from "./universalSchema";
+
+export const updateDelegationCredentialTokenObject = async ({
+  delegationCredentialId,
+  tokenObject,
+}: {
+  delegationCredentialId: string;
+  tokenObject: z.infer<typeof OAuth2UniversalSchemaWithCalcomBackwardCompatibility>;
+}): Promise<void> => {
+  const existingToken = await prisma.delegationCredentialAccesssToken.findFirst({
+    where: {
+      delegationCredentialId,
+      userId: null,
+    },
+  });
+
+  if (existingToken) {
+    await prisma.delegationCredentialAccesssToken.update({
+      where: { id: existingToken.id, userId: null },
+      data: { key: tokenObject },
+    });
+  } else {
+    await prisma.delegationCredentialAccesssToken.create({
+      data: {
+        key: tokenObject,
+        delegationCredentialId,
+        userId: null,
+      },
+    });
+  }
+};
+
+export const updateUserDelegationCredentialTokenObject = async ({
+  delegationCredentialId,
+  userId,
+  tokenObject,
+}: {
+  delegationCredentialId: string;
+  userId: number;
+  tokenObject: z.infer<typeof OAuth2UniversalSchemaWithCalcomBackwardCompatibility>;
+}) => {
+  const { key } = await prisma.delegationCredentialAccesssToken.upsert({
+    where: {
+      delegationCredentialId_userId: {
+        delegationCredentialId,
+        userId,
+      },
+    },
+    create: {
+      key: tokenObject,
+      delegationCredentialId,
+      userId,
+    },
+    update: {
+      key: tokenObject,
+    },
+  });
+  return key;
+};

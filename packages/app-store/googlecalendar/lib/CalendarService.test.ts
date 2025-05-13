@@ -266,6 +266,7 @@ const defaultDelegatedCredential = {
     client_id: "service-client-id",
     private_key: "service-private-key",
   },
+  key: null,
 } as const;
 
 async function createDelegationCredentialForCalendarService({

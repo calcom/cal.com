@@ -8,6 +8,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
 import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
+import type { DelegationCredentialAccesssToken } from "@calcom/prisma/client";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
 import { UserRepository } from "../server/repository/user";
@@ -22,6 +23,22 @@ export { buildNonDelegationCredentials, buildNonDelegationCredential } from "./c
 const GOOGLE_WORKSPACE_SLUG = "google";
 const OFFICE365_WORKSPACE_SLUG = "office365";
 const WORKSPACE_PLATFORM_SLUGS = [GOOGLE_WORKSPACE_SLUG, OFFICE365_WORKSPACE_SLUG] as const;
+
+// Slugs that support per-user access tokens
+const WORKSPACE_PLATFORM_SLUGS_PER_USER_ACCESS_TOKENS = [GOOGLE_WORKSPACE_SLUG] as const;
+
+function getDelegationAccessToken(delegationCredential: DelegationCredential, user: User) {
+  if (
+    WORKSPACE_PLATFORM_SLUGS_PER_USER_ACCESS_TOKENS.includes(
+      delegationCredential.workspacePlatform
+        .slug as (typeof WORKSPACE_PLATFORM_SLUGS_PER_USER_ACCESS_TOKENS)[number]
+    )
+  ) {
+    return delegationCredential.accessTokens?.find((token) => token.userId === user.id)?.key ?? null;
+  }
+  return delegationCredential.accessTokens?.[0]?.key ?? null;
+}
+
 type WORKSPACE_PLATFORM_SLUGS_TYPE = (typeof WORKSPACE_PLATFORM_SLUGS)[number];
 
 const log = logger.getSubLogger({ prefix: ["lib/delegationCredential/server"] });
@@ -31,6 +48,7 @@ interface DelegationCredential {
     slug: string;
   };
   serviceAccountKey: ServiceAccountKey | null;
+  accessTokens?: DelegationCredentialAccesssToken[];
 }
 
 interface DelegationCredentialWithSensitiveServiceAccountKey extends DelegationCredential {
@@ -98,6 +116,8 @@ const _buildCommonUserCredential = ({
     delegatedTo: delegationCredential.serviceAccountKey
       ? {
           serviceAccountKey: delegationCredential.serviceAccountKey,
+          id: delegationCredential.id,
+          key: getDelegationAccessToken(delegationCredential, user),
         }
       : null,
   };
@@ -155,6 +175,7 @@ const _buildDelegatedCalendarCredentialWithServiceAccountKey = ({
     ...credential,
     delegatedTo: {
       serviceAccountKey: delegationCredential.serviceAccountKey,
+      id: delegationCredential.id,
     },
   };
 };
