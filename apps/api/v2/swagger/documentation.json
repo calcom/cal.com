@@ -1689,6 +1689,7 @@
             "description": "The number of items to return",
             "example": 10,
             "schema": {
+              "default": 100,
               "type": "number"
             }
           },
@@ -1699,6 +1700,7 @@
             "description": "The number of items to skip",
             "example": 0,
             "schema": {
+              "default": 0,
               "type": "number"
             }
           },
@@ -5603,6 +5605,7 @@
             "description": "The number of items to return",
             "example": 10,
             "schema": {
+              "default": 100,
               "type": "number"
             }
           },
@@ -5613,6 +5616,7 @@
             "description": "The number of items to skip",
             "example": 0,
             "schema": {
+              "default": 0,
               "type": "number"
             }
           }
@@ -6978,6 +6982,7 @@
             "description": "The number of items to return",
             "example": 10,
             "schema": {
+              "default": 100,
               "type": "number"
             }
           },
@@ -6988,6 +6993,7 @@
             "description": "The number of items to skip",
             "example": 0,
             "schema": {
+              "default": 0,
               "type": "number"
             }
           },
@@ -18340,10 +18346,10 @@
           "type": {
             "type": "string"
           },
-          "value": {
+          "option": {
             "type": "string"
           },
-          "valueId": {
+          "optionId": {
             "type": "string"
           }
         },
@@ -18351,8 +18357,8 @@
           "id",
           "name",
           "type",
-          "value",
-          "valueId"
+          "option",
+          "optionId"
         ]
       },
       "NumberAttribute": {
@@ -18367,10 +18373,10 @@
           "type": {
             "type": "string"
           },
-          "value": {
+          "option": {
             "type": "number"
           },
-          "valueId": {
+          "optionId": {
             "type": "string"
           }
         },
@@ -18378,8 +18384,8 @@
           "id",
           "name",
           "type",
-          "value",
-          "valueId"
+          "option",
+          "optionId"
         ]
       },
       "SingleSelectAttribute": {
@@ -18394,10 +18400,10 @@
           "type": {
             "type": "string"
           },
-          "value": {
+          "option": {
             "type": "string"
           },
-          "valueId": {
+          "optionId": {
             "type": "string"
           }
         },
@@ -18405,23 +18411,23 @@
           "id",
           "name",
           "type",
-          "value",
-          "valueId"
+          "option",
+          "optionId"
         ]
       },
-      "MultiSelectAttributeValue": {
+      "MultiSelectAttributeOption": {
         "type": "object",
         "properties": {
-          "valueId": {
+          "optionId": {
             "type": "string"
           },
-          "value": {
+          "option": {
             "type": "string"
           }
         },
         "required": [
-          "valueId",
-          "value"
+          "optionId",
+          "option"
         ]
       },
       "MultiSelectAttribute": {
@@ -18436,10 +18442,10 @@
           "type": {
             "type": "string"
           },
-          "values": {
+          "options": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/MultiSelectAttributeValue"
+              "$ref": "#/components/schemas/MultiSelectAttributeOption"
             }
           }
         },
@@ -18447,7 +18453,7 @@
           "id",
           "name",
           "type",
-          "values"
+          "options"
         ]
       },
       "MembershipUserOutputDto": {
@@ -24190,6 +24196,60 @@
           "data"
         ]
       },
+      "PaginationMetaDto": {
+        "type": "object",
+        "properties": {
+          "totalItems": {
+            "type": "number",
+            "minimum": 0,
+            "description": "The total number of items available across all pages, matching the query criteria.",
+            "example": 123
+          },
+          "remainingItems": {
+            "type": "number",
+            "minimum": 0,
+            "description": "The number of items remaining to be fetched *after* the current page. Calculated as: `totalItems - (skip + itemsPerPage)`.",
+            "example": 103
+          },
+          "itemsPerPage": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The maximum number of items requested per page.",
+            "example": 10
+          },
+          "currentPage": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The current page number being returned.",
+            "example": 2
+          },
+          "totalPages": {
+            "type": "number",
+            "minimum": 0,
+            "description": "The total number of pages available.",
+            "example": 13
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a subsequent page available after the current one.",
+            "example": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a preceding page available before the current one.",
+            "example": true
+          }
+        },
+        "required": [
+          "totalItems",
+          "remainingItems",
+          "itemsPerPage",
+          "currentPage",
+          "totalPages",
+          "hasNextPage",
+          "hasPreviousPage"
+        ]
+      },
       "GetBookingsOutput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -24221,13 +24281,17 @@
             },
             "description": "Array of booking data, which can contain either BookingOutput objects or RecurringBookingOutput objects"
           },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetaDto"
+          },
           "error": {
             "type": "object"
           }
         },
         "required": [
           "status",
-          "data"
+          "data",
+          "pagination"
         ]
       },
       "RescheduleBookingInput_2024_08_13": {

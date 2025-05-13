@@ -139,7 +139,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
 
       let allEventTypes = [];
 
-      //get all event types of of team or user
+      //get all event types of team or user
       if (eventTypeWorkflow.teamId) {
         allEventTypes = await prisma.eventType.findMany({
           where: {
@@ -193,7 +193,14 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       // activate workflow and schedule reminders for existing bookings
       const bookingsForReminders = await prisma.booking.findMany({
         where: {
-          eventTypeId: eventTypeId,
+          OR: [
+            { eventTypeId },
+            {
+              eventType: {
+                parentId: eventTypeId,
+              },
+            },
+          ],
           status: BookingStatus.ACCEPTED,
           startTime: {
             gte: new Date(),
@@ -352,6 +359,44 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               teamId: eventTypeWorkflow.teamId,
               verifiedAt: step.verifiedAt,
             });
+          } else if (booking.smsReminderNumber) {
+            if (step.action === WorkflowActions.SMS_ATTENDEE) {
+              await scheduleSMSReminder({
+                evt: bookingInfo,
+                reminderPhone: booking.smsReminderNumber,
+                triggerEvent: eventTypeWorkflow.trigger,
+                action: step.action,
+                timeSpan: {
+                  time: eventTypeWorkflow.time,
+                  timeUnit: eventTypeWorkflow.timeUnit,
+                },
+                message: step.reminderBody || "",
+                workflowStepId: step.id,
+                template: step.template,
+                sender: step.sender,
+                userId: booking.userId,
+                teamId: eventTypeWorkflow.teamId,
+                verifiedAt: step.verifiedAt,
+              });
+            } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE) {
+              await scheduleWhatsappReminder({
+                evt: bookingInfo,
+                reminderPhone: booking.smsReminderNumber,
+                triggerEvent: eventTypeWorkflow.trigger,
+                action: step.action,
+                timeSpan: {
+                  time: eventTypeWorkflow.time,
+                  timeUnit: eventTypeWorkflow.timeUnit,
+                },
+                message: step.reminderBody || "",
+                workflowStepId: step.id,
+                template: step.template,
+                sender: step.sender,
+                userId: booking.userId,
+                teamId: eventTypeWorkflow.teamId,
+                verifiedAt: step.verifiedAt,
+              });
+            }
           }
         }
       }
