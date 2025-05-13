@@ -451,7 +451,7 @@ export const sendCancelledEmailsAndSMS = async (
   const calendarEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
   const calEventLength = calendarEvent.length;
-  const eventDuration = dayjs(calEvent.endTime).diff(dayjs(calEvent.startTime), "minutes");
+  const eventDuration = dayjs(calEvent.endTime).diff(calEvent.startTime, "minutes");
 
   if (typeof calEventLength !== "number") {
     logger.error(
