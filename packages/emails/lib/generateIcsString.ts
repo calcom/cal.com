@@ -30,6 +30,7 @@ export type ICSCalendarEvent = Pick<
   | "team"
   | "type"
   | "hideCalendarEventDetails"
+  | "hideOrganizerEmail"
 >;
 
 const toICalDateArray = (date: string): DateArray => {

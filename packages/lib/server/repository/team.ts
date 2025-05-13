@@ -250,6 +250,7 @@ export class TeamRepository {
     try {
       await prisma.membership.create({
         data: {
+          createdAt: new Date(),
           teamId: verificationToken.teamId,
           userId: userId,
           role: MembershipRole.MEMBER,
@@ -299,5 +300,43 @@ export class TeamRepository {
     const teamsBilling = await TeamBilling.findAndInitMany(teamIds);
     const teamBillingPromises = teamsBilling.map((teamBilling) => teamBilling.updateQuantity());
     await Promise.allSettled(teamBillingPromises);
+  }
+
+  static async findTeamWithAdmins(teamId: number) {
+    return await prisma.team.findUnique({
+      where: { id: teamId },
+      select: {
+        name: true,
+        members: {
+          where: { role: { in: ["ADMIN", "OWNER"] }, accepted: true },
+          select: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+                locale: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  static async findTeamWithMembers(teamId: number) {
+    return await prisma.team.findUnique({
+      where: { id: teamId },
+      select: {
+        members: {
+          select: {
+            accepted: true,
+          },
+        },
+        id: true,
+        metadata: true,
+        parentId: true,
+        isOrganization: true,
+      },
+    });
   }
 }

@@ -132,6 +132,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventTypeRaw.metadata),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
     customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
+    hideOrganizerEmail: eventTypeRaw.hideOrganizerEmail,
     bookingFields: eventTypeRaw.bookingFields.map((field) => {
       return {
         ...field,
@@ -150,28 +151,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor || null,
     slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
-
-  if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
-    await handleSeatsEventTypeOnBooking(
-      eventType,
-      bookingInfo,
-      seatReferenceUid,
-      session?.user.id === eventType.userId
-    );
-  }
-
-  const payment = await prisma.payment.findFirst({
-    where: {
-      bookingId: bookingInfo.id,
-    },
-    select: {
-      success: true,
-      refunded: true,
-      currency: true,
-      amount: true,
-      paymentOption: true,
-    },
-  });
 
   const userId = session?.user?.id;
 
@@ -192,6 +171,23 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   };
 
   const isLoggedInUserHost = checkIfUserIsHost(userId);
+
+  if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
+    await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, isLoggedInUserHost);
+  }
+
+  const payment = await prisma.payment.findFirst({
+    where: {
+      bookingId: bookingInfo.id,
+    },
+    select: {
+      success: true,
+      refunded: true,
+      currency: true,
+      amount: true,
+      paymentOption: true,
+    },
+  });
 
   if (!isLoggedInUserHost) {
     // Removing hidden fields from responses

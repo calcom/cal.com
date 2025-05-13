@@ -114,6 +114,8 @@ describe("handleChildrenEventTypes", () => {
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
         autoTranslateDescriptionEnabled,
+        includeNoShowInRRCalculation,
+        instantMeetingScheduleId,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -137,11 +139,11 @@ describe("handleChildrenEventTypes", () => {
           users: { connect: [{ id: 4 }] },
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
-          instantMeetingScheduleId: undefined,
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
           eventTypeColor: undefined,
+          customReplyToEmail: null,
           userId: 4,
           rrSegmentQueryValue: undefined,
           assignRRMembersUsingSegment: false,
@@ -169,6 +171,9 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        assignRRMembersUsingSegment,
+        includeNoShowInRRCalculation,
+        instantMeetingScheduleId,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -190,8 +195,8 @@ describe("handleChildrenEventTypes", () => {
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
-          assignRRMembersUsingSegment: undefined,
           useEventLevelSelectedCalendars: undefined,
+          customReplyToEmail: null,
           rrSegmentQueryValue: undefined,
           locations: [],
           scheduleId: null,
@@ -273,6 +278,9 @@ describe("handleChildrenEventTypes", () => {
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
         autoTranslateDescriptionEnabled,
+        includeNoShowInRRCalculation,
+        instantMeetingScheduleId,
+        assignRRMembersUsingSegment,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -299,12 +307,12 @@ describe("handleChildrenEventTypes", () => {
           durationLimits: undefined,
           recurringEvent: undefined,
           eventTypeColor: undefined,
+          customReplyToEmail: null,
           instantMeetingScheduleId: undefined,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
           userId: 4,
           workflows: undefined,
-          hashedLink: undefined,
           rrSegmentQueryValue: undefined,
           assignRRMembersUsingSegment: false,
         },
@@ -329,6 +337,11 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        includeNoShowInRRCalculation,
+        instantMeetingScheduleId,
+        assignRRMembersUsingSegment,
+        rrSegmentQueryValue,
+        useEventLevelSelectedCalendars,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -351,16 +364,13 @@ describe("handleChildrenEventTypes", () => {
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
-          assignRRMembersUsingSegment: undefined,
-          useEventLevelSelectedCalendars: undefined,
-          rrSegmentQueryValue: undefined,
+          customReplyToEmail: null,
           locations: [],
           hashedLink: {
             deleteMany: {},
           },
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
-          instantMeetingScheduleId: undefined,
         },
         where: {
           userId_parentId: {
@@ -392,6 +402,9 @@ describe("handleChildrenEventTypes", () => {
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
         autoTranslateDescriptionEnabled,
+        includeNoShowInRRCalculation,
+        instantMeetingScheduleId,
+        assignRRMembersUsingSegment,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -414,10 +427,14 @@ describe("handleChildrenEventTypes", () => {
         schedulingType: SchedulingType.MANAGED,
         requiresBookerEmailVerification: false,
         lockTimeZoneToggleOnBookingPage: false,
+        lockedTimeZone: "Europe/London",
         useEventTypeDestinationCalendarEmail: false,
         workflows: [],
         parentId: 1,
         locations: [],
+        instantMeetingScheduleId: null,
+        assignRRMembersUsingSegment: false,
+        includeNoShowInRRCalculation: false,
         ...evType,
       };
 
@@ -444,7 +461,7 @@ describe("handleChildrenEventTypes", () => {
           durationLimits: undefined,
           recurringEvent: undefined,
           eventTypeColor: undefined,
-          instantMeetingScheduleId: undefined,
+          customReplyToEmail: null,
           locations: [],
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
@@ -456,27 +473,24 @@ describe("handleChildrenEventTypes", () => {
           workflows: {
             create: [{ workflowId: 11 }],
           },
-          hashedLink: undefined,
           rrSegmentQueryValue: undefined,
           assignRRMembersUsingSegment: false,
           useEventLevelSelectedCalendars: false,
         },
       });
-      const { profileId, ...rest } = evType;
+      const { profileId, rrSegmentQueryValue, ...rest } = evType;
       if ("workflows" in rest) delete rest.workflows;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
           locations: [],
-          assignRRMembersUsingSegment: undefined,
           useEventLevelSelectedCalendars: undefined,
-          rrSegmentQueryValue: undefined,
+          customReplyToEmail: null,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
           hashedLink: {
             deleteMany: {},
           },
-          instantMeetingScheduleId: undefined,
         },
         where: {
           userId_parentId: {

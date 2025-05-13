@@ -127,6 +127,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     disableRescheduling: false,
     seatsShowAvailabilityCount: null,
     maxLeadThreshold: null,
+    includeNoShowInRRCalculation: false,
     schedulingType: null,
     scheduleId: null,
     bookingLimits: null,
@@ -150,6 +151,8 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     autoTranslateDescriptionEnabled: false,
     useEventLevelSelectedCalendars: false,
     allowReschedulingPastBookings: false,
+    hideOrganizerEmail: false,
+    customReplyToEmail: null,
     ...eventType,
   };
 };

@@ -87,6 +87,7 @@ export const useEventTypeForm = ({
       slotInterval: eventType.slotInterval,
       minimumBookingNotice: eventType.minimumBookingNotice,
       allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
+      hideOrganizerEmail: eventType.hideOrganizerEmail,
       metadata: eventType.metadata,
       hosts: eventType.hosts.sort((a, b) => sortHosts(a, b, eventType.isRRWeightsEnabled)),
       successRedirectUrl: eventType.successRedirectUrl || "",
@@ -126,7 +127,9 @@ export const useEventTypeForm = ({
       },
       isRRWeightsEnabled: eventType.isRRWeightsEnabled,
       maxLeadThreshold: eventType.maxLeadThreshold,
+      includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
       useEventLevelSelectedCalendars: eventType.useEventLevelSelectedCalendars,
+      customReplyToEmail: eventType.customReplyToEmail || null,
     };
   }, [eventType, periodDates]);
 
@@ -280,6 +283,7 @@ export const useEventTypeForm = ({
       durationLimits,
       recurringEvent,
       eventTypeColor,
+      customReplyToEmail,
       locations,
       metadata,
       customInputs,
@@ -357,6 +361,7 @@ export const useEventTypeForm = ({
       onlyShowFirstAvailableSlot,
       durationLimits,
       eventTypeColor,
+      customReplyToEmail,
       seatsPerTimeSlot,
       seatsShowAttendees,
       seatsShowAvailabilityCount,

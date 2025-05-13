@@ -61,7 +61,7 @@ export class SlotsController_2024_09_04 {
     summary: "Find out when is an event type ready to be booked.",
     description: `
       There are 4 ways to get available slots for event type of an individual user:
-      
+
       1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'
 
       2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'
@@ -72,7 +72,7 @@ export class SlotsController_2024_09_04 {
 
       And 3 ways to get available slots for team event type:
 
-      1. By team event type id. Example '/v2/slots?teamEventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'
+      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'
 
       2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'
 
@@ -109,9 +109,9 @@ export class SlotsController_2024_09_04 {
     name: "usernames",
     required: false,
     description: `The usernames for which available slots should be checked separated by a comma.
-    
+
     Checking slots by usernames is used mainly for dynamic events where there is no specific event but we just want to know when 2 or more people are available.
-    
+
     Must contain at least 2 usernames.`,
     example: "alice,bob",
   })
@@ -154,9 +154,9 @@ export class SlotsController_2024_09_04 {
     required: true,
     description: `
     Time until which available slots should be checked.
-    
+
     Must be in UTC timezone as ISO 8601 datestring.
-    
+
     You can pass date without hours which defaults to end of day or specify hours:
     2024-08-20 (will have hours 23:59:59 aka at the very end of the date) or you can specify hours manually like 2024-08-20T18:00:00Z.`,
     example: "2050-09-06",
@@ -166,9 +166,9 @@ export class SlotsController_2024_09_04 {
     required: true,
     description: `
       Time starting from which available slots should be checked.
-    
+
       Must be in UTC timezone as ISO 8601 datestring.
-      
+
       You can pass date without hours which defaults to start of day or specify hours:
       2024-08-13 (will have hours 00:00:00 aka at very beginning of the date) or you can specify hours manually like 2024-08-13T09:00:00Z.`,
     example: "2050-09-05",
@@ -300,6 +300,9 @@ export class SlotsController_2024_09_04 {
   }
 
   @Delete("/reservations/:uid")
+  @ApiOperation({
+    summary: "Delete a reserved slot",
+  })
   @HttpCode(HttpStatus.OK)
   @DocsResponse({
     status: 200,

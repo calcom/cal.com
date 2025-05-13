@@ -266,11 +266,13 @@ export const roundRobinManualReassignment = async ({
       name: eventType.team?.name || "",
       id: eventType.team?.id || 0,
     },
+    hideOrganizerEmail: eventType.hideOrganizerEmail,
     customInputs: isPrismaObjOrUndefined(booking.customInputs),
     ...getCalEventResponses({
       bookingFields: eventType.bookingFields ?? null,
       booking,
     }),
+    customReplyToEmail: eventType?.customReplyToEmail,
     location: bookingLocation,
     ...(platformClientParams ? platformClientParams : {}),
   };
@@ -421,6 +423,8 @@ async function handleWorkflowsUpdate({
           template: true,
           workflow: {
             select: {
+              userId: true,
+              teamId: true,
               trigger: true,
               time: true,
               timeUnit: true,
@@ -466,6 +470,8 @@ async function handleWorkflowsUpdate({
         includeCalendarEvent: workflowStep.includeCalendarEvent,
         workflowStepId: workflowStep.id,
         verifiedAt: workflowStep.verifiedAt,
+        userId: workflow.userId,
+        teamId: workflow.teamId,
       });
     }
 

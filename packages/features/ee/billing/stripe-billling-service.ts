@@ -40,6 +40,29 @@ export class StripeBillingService implements BillingService {
     };
   }
 
+  async createOneTimeCheckout(args: {
+    priceId: string;
+    quantity: number;
+    successUrl: string;
+    cancelUrl: string;
+    metadata?: Record<string, string>;
+  }) {
+    const { priceId, quantity, successUrl, cancelUrl, metadata } = args;
+
+    const session = await this.stripe.checkout.sessions.create({
+      line_items: [{ price: priceId, quantity }],
+      mode: "payment",
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      metadata: metadata,
+    });
+
+    return {
+      checkoutUrl: session.url,
+      sessionId: session.id,
+    };
+  }
+
   async createSubscriptionCheckout(args: Parameters<BillingService["createSubscriptionCheckout"]>[0]) {
     const {
       customerId,
@@ -117,6 +140,18 @@ export class StripeBillingService implements BillingService {
     if (!subscriptionQuantity) throw new Error("Subscription not found");
     await this.stripe.subscriptions.update(subscriptionId, {
       items: [{ quantity: membershipCount, id: subscriptionItemId }],
+    });
+  }
+
+  async handleEndTrial(subscriptionId: string) {
+    const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
+
+    if (subscription.status !== "trialing") {
+      return; // Do nothing if not in trial
+    }
+
+    await this.stripe.subscriptions.update(subscriptionId, {
+      trial_end: "now",
     });
   }
 

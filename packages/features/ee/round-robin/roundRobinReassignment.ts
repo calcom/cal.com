@@ -318,6 +318,8 @@ export const roundRobinReassignment = async ({
       bookingFields: eventType?.bookingFields ?? null,
       booking,
     }),
+    hideOrganizerEmail: eventType.hideOrganizerEmail,
+    customReplyToEmail: eventType?.customReplyToEmail,
     location: bookingLocation,
     ...(platformClientParams ? platformClientParams : {}),
   };
@@ -458,6 +460,8 @@ export const roundRobinReassignment = async ({
             template: true,
             workflow: {
               select: {
+                userId: true,
+                teamId: true,
                 trigger: true,
                 time: true,
                 timeUnit: true,
@@ -504,6 +508,8 @@ export const roundRobinReassignment = async ({
           includeCalendarEvent: workflowStep.includeCalendarEvent,
           workflowStepId: workflowStep.id,
           verifiedAt: workflowStep.verifiedAt,
+          userId: workflow.userId,
+          teamId: workflow.teamId,
         });
       }
 
