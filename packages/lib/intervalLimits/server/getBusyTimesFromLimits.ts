@@ -5,7 +5,7 @@ import type { EventType } from "@calcom/lib/getUserAvailability";
 import { getPeriodStartDatesBetween } from "@calcom/lib/getUserAvailability";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
-import { getTotalBookingDuration } from "@calcom/lib/server/queries";
+import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 
