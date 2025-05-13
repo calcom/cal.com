@@ -269,8 +269,8 @@ describe("EmbedElement", () => {
           },
           getSkeletonData: vi.fn(),
         });
-        expect(element.classList.contains("dark")).toBe(true);
-        expect(element.classList.contains("light")).toBe(false);
+        expect(element.classList.contains("cal-element-embed-dark")).toBe(true);
+        expect(element.classList.contains("cal-element-embed-light")).toBe(false);
       });
 
       it("should update theme class when system preference changes as long as embed theme is not set", () => {
@@ -279,8 +279,8 @@ describe("EmbedElement", () => {
         });
         getColorSchemeDarkQuery().dispatchEvent(buildMediaQueryListEvent({ type: "change", matches: true }));
 
-        expect(element.classList.contains("dark")).toBe(true);
-        expect(element.classList.contains("light")).toBe(false);
+        expect(element.classList.contains("cal-element-embed-dark")).toBe(true);
+        expect(element.classList.contains("cal-element-embed-light")).toBe(false);
       });
 
       it("should not update theme on system color scheme change when embed theme is set", () => {
@@ -291,7 +291,7 @@ describe("EmbedElement", () => {
           getSkeletonData: vi.fn(),
         });
         getColorSchemeDarkQuery().dispatchEvent(buildMediaQueryListEvent({ type: "change", matches: true }));
-        expect(element.classList.contains("light")).toBe(true);
+        expect(element.classList.contains("cal-element-embed-light")).toBe(true);
       });
     });
 

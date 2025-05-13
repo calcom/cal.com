@@ -32,7 +32,7 @@ function detectColorScheme() {
 }
 
 function getClassBasedOnTheme(theme: EmbedThemeConfig | undefined | null) {
-  return theme ?? "light";
+  return theme === "dark" ? "cal-element-embed-dark" : "cal-element-embed-light";
 }
 
 export function isThemePreferenceProvided(theme: EmbedThemeConfig | undefined | null) {

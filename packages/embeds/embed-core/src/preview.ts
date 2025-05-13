@@ -164,12 +164,12 @@ function makePreviewPageUseSystemPreference() {
   function handleColorSchemeChange(e: MediaQueryListEvent) {
     if (e.matches) {
       // Dark color scheme
-      document.body.classList.remove("light");
-      document.body.classList.add("dark");
+      document.body.classList.remove("cal-element-embed-light");
+      document.body.classList.add("cal-element-embed-dark");
     } else {
       // Light color scheme
-      document.body.classList.add("light");
-      document.body.classList.remove("dark");
+      document.body.classList.add("cal-element-embed-light");
+      document.body.classList.remove("cal-element-embed-dark");
     }
   }
 

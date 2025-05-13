@@ -148,7 +148,7 @@ export const addAppCssVars = () => {
     --cal-brand-text: hsla(0, 0%, 100%, 1); /* white */
   }
   
-  ${calElements.map((element) => `${element}.dark`).join(",")} {
+  ${calElements.map((element) => `${element}.cal-element-embed-dark`).join(",")} {
   /* Background Standard */
   --cal-bg-emphasis: hsla(0, 0%, 25%, 1); /* stone-700 */
   --cal-bg: hsla(0, 0%, 6%, 1); /* stone-950 */
