@@ -153,7 +153,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
       required: !!field.required,
       hidden: !!field.hidden,
       label: field.label,
-      placeholder: "placeholder" in field ? field.placeholder : "",
+      placeholder: "placeholder" in field ? field.placeholder : undefined,
       disableOnPrefill: !!field.disableOnPrefill,
     };
   }
@@ -164,7 +164,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
       required: !!field.required,
       hidden: !!field.hidden,
       label: field.label,
-      placeholder: "placeholder" in field ? field.placeholder : "",
+      placeholder: "placeholder" in field ? field.placeholder : undefined,
       disableOnPrefill: !!field.disableOnPrefill,
     };
   }
@@ -175,7 +175,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
       required: !!field.required,
       hidden: !!field.hidden,
       label: field.label,
-      placeholder: "placeholder" in field ? field.placeholder : "",
+      placeholder: "placeholder" in field ? field.placeholder : undefined,
       disableOnPrefill: !!field.disableOnPrefill,
     };
   }
@@ -186,7 +186,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
       required: !!field.required,
       hidden: !!field.hidden,
       label: field.label,
-      placeholder: "placeholder" in field ? field.placeholder : "",
+      placeholder: "placeholder" in field ? field.placeholder : undefined,
       disableOnPrefill: !!field.disableOnPrefill,
     };
   }
