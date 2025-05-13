@@ -1790,6 +1790,13 @@ describe("Event types Endpoints", () => {
           title: "first created coding class",
           slug: "first-created-coding-class",
           lengthInMinutes: 60,
+          locations: [
+            {
+              type: "address",
+              address: "via volturno 10, Roma",
+              public: true,
+            },
+          ],
         };
 
         return request(app.getHttpServer())
@@ -1802,6 +1809,7 @@ describe("Event types Endpoints", () => {
             const createdEventType = responseBody.data;
             expect(createdEventType).toHaveProperty("id");
             expect(createdEventType.title).toEqual(body.title);
+            expect(createdEventType.locations).toEqual(body.locations);
             firstCreatedEventType = responseBody.data;
           });
       });
