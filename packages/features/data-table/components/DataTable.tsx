@@ -163,7 +163,7 @@ export function DataTable<TData>({
                       }}
                       className={classNames(
                         "relative flex shrink-0 items-center",
-                        "bg-subtle",
+                        "bg-muted",
                         column.getIsPinned() && "top-0 z-20 sm:sticky"
                       )}>
                       <TableHeadLabel header={header} />
