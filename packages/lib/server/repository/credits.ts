@@ -120,8 +120,6 @@ export class CreditsRepository {
     userId?: number | null;
     data: Prisma.CreditBalanceUncheckedUpdateInput;
   }) {
-    if (!id && !teamId) return null;
-
     if (id) {
       return prisma.creditBalance.update({
         where: { id },
