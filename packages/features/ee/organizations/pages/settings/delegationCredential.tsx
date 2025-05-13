@@ -458,6 +458,41 @@ function DelegationCredentialList() {
   );
 }
 
+function MembersThatWillBeAffectedOnDisablingDelegationCredential({
+  delegationCredentialId,
+}: {
+  delegationCredentialId: string;
+}) {
+  const { t } = useLocale();
+  const { data: affectedMembers, isLoading: isLoadingAffectedMembers } =
+    trpc.viewer.delegationCredential.getAffectedMembersForDisable.useQuery({ id: delegationCredentialId });
+
+  return (
+    <div className="mt-4">
+      <strong>{t("members_affected_by_disabling_delegation_credential")}</strong>
+      {isLoadingAffectedMembers ? (
+        <div>{t("loading")}</div>
+      ) : affectedMembers?.length ? (
+        <>
+          <ul className="list-disc space-y-1 p-1 pl-5 sm:w-80">
+            {affectedMembers.slice(0, 5).map((m) => (
+              <li className="text-muted text-sm" key={m.email}>
+                {m.name ? `${m.name} (${m.email})` : m.email}
+              </li>
+            ))}
+          </ul>
+          {affectedMembers.length > 5 && (
+            <p className="mt-2 text-sm text-gray-500">
+              {t("and_count_more", { count: affectedMembers.length - 5 })}
+            </p>
+          )}
+        </>
+      ) : (
+        <div className="mt-2">{t("no_members_affected_by_disabling_delegation_credential")}</div>
+      )}
+    </div>
+  );
+}
 const ToggleDelegationDialog = ({
   delegation,
   onConfirm,
@@ -468,51 +503,33 @@ const ToggleDelegationDialog = ({
   onClose: () => void;
 }) => {
   const { t } = useLocale();
-  const delegationId = delegation?.id ?? null;
-  const { data: affectedMembers, isLoading: isLoadingAffectedMembers } =
-    trpc.viewer.delegationCredential.getAffectedMembersForDisable.useQuery(
-      // enabled property ensures that the query is not run if the delegationId is falsy
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      { id: delegationId! },
-      { enabled: !!(delegation?.enabled && !!delegationId) }
-    );
 
   if (!delegation) {
     return null;
   }
+
+  const isDisablingDelegation = delegation.enabled;
+
   return (
     <Dialog
       name="toggle-delegation"
       open={!!delegation}
       onOpenChange={(open) => (!open ? onClose() : undefined)}>
       <ConfirmationDialogContent
-        title={t(delegation.enabled ? "disable_delegation_credential" : "enable_delegation_credential")}
-        confirmBtnText={t(delegation.enabled ? "disable" : "enable")}
+        title={t(isDisablingDelegation ? "disable_delegation_credential" : "enable_delegation_credential")}
+        confirmBtnText={t(isDisablingDelegation ? "disable" : "enable")}
         cancelBtnText={t("cancel")}
-        variety={delegation.enabled ? "danger" : "success"}
+        variety={isDisablingDelegation ? "danger" : "success"}
         onConfirm={onConfirm}>
         <p className="mt-5">
           {t(
-            delegation.enabled
+            isDisablingDelegation
               ? "disable_delegation_credential_description"
               : "enable_delegation_credential_description"
           )}
         </p>
-        {delegation.enabled && (
-          <div className="mt-4">
-            <strong>{t("members_affected_by_disabling_delegation_credential")}</strong>
-            {isLoadingAffectedMembers ? (
-              <div>{t("loading")}</div>
-            ) : affectedMembers?.length ? (
-              <ul className="mt-2 list-inside list-disc">
-                {affectedMembers.map((m) => (
-                  <li key={m.email}>{m.name ? `${m.name} (${m.email})` : m.email}</li>
-                ))}
-              </ul>
-            ) : (
-              <div className="mt-2">{t("no_members_affected_by_disabling_delegation_credential")}</div>
-            )}
-          </div>
+        {isDisablingDelegation && (
+          <MembersThatWillBeAffectedOnDisablingDelegationCredential delegationCredentialId={delegation.id} />
         )}
       </ConfirmationDialogContent>
     </Dialog>
