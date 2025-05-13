@@ -10,7 +10,6 @@ datasource db {
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["views"]
-  output          = "../../node_modules/.prisma/client"
 }
 
 generator zod {
