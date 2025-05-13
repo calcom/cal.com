@@ -5,6 +5,7 @@ import { Injectable } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { PlatformAuthorizationToken } from "@prisma/client";
 import { DateTime } from "luxon";
+import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
 export class TokensRepository {
@@ -74,7 +75,12 @@ export class TokensRepository {
     const [accessToken, refreshToken] = await this.dbWrite.prisma.$transaction([
       this.dbWrite.prisma.accessToken.create({
         data: {
-          secret: this.jwtService.signAccessToken({ clientId, ownerId, expiresAt: accessExpiry.valueOf() }),
+          secret: this.jwtService.signAccessToken({
+            clientId,
+            ownerId,
+            expiresAt: accessExpiry.valueOf(),
+            jti: uuidv4(),
+          }),
           expiresAt: accessExpiry,
           client: { connect: { id: clientId } },
           owner: { connect: { id: ownerId } },
@@ -82,7 +88,12 @@ export class TokensRepository {
       }),
       this.dbWrite.prisma.refreshToken.create({
         data: {
-          secret: this.jwtService.signRefreshToken({ clientId, ownerId, expiresAt: refreshExpiry.valueOf() }),
+          secret: this.jwtService.signRefreshToken({
+            clientId,
+            ownerId,
+            expiresAt: refreshExpiry.valueOf(),
+            jti: uuidv4(),
+          }),
           expiresAt: refreshExpiry,
           client: { connect: { id: clientId } },
           owner: { connect: { id: ownerId } },
@@ -140,6 +151,7 @@ export class TokensRepository {
             ownerId: tokenUserId,
             expiresAt: accessExpiry.valueOf(),
             userId: tokenUserId,
+            jti: uuidv4(),
           }),
           expiresAt: accessExpiry,
           client: { connect: { id: clientId } },
@@ -155,6 +167,7 @@ export class TokensRepository {
             ownerId: tokenUserId,
             expiresAt: refreshExpiry.valueOf(),
             userId: tokenUserId,
+            jti: uuidv4(),
           }),
           expiresAt: refreshExpiry,
           client: { connect: { id: clientId } },
