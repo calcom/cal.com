@@ -1,3 +1,4 @@
+import { EMBED_DARK_THEME_CLASS, EMBED_LIGHT_THEME_CLASS } from "./constants";
 import type { EmbedThemeConfig, AllPossibleLayouts, BookerLayouts, EmbedPageType } from "./types";
 import {
   getThemeClassForEmbed,
@@ -199,7 +200,7 @@ export class EmbedElement extends HTMLElement {
 
   public prefersDarkThemeChangedHandler(e: MediaQueryListEvent) {
     const isDarkPreferred = e.matches;
-    const allPossibleThemeClasses = ["cal-element-embed-dark", "cal-element-embed-light"];
+    const allPossibleThemeClasses = [EMBED_DARK_THEME_CLASS, EMBED_LIGHT_THEME_CLASS];
     if (isThemePreferenceProvided(this.theme)) {
       // User has provided a theme preference, so we stick to that and don't react to system theme change
       return;

@@ -1,3 +1,5 @@
+import { EMBED_DARK_THEME_CLASS, EMBED_LIGHT_THEME_CLASS } from "./constants";
+
 // We can't import @calcom/lib/constants here yet as this file is compiled using Vite
 const WEBAPP_URL = process.env.EMBED_PUBLIC_WEBAPP_URL || "";
 if (!WEBAPP_URL) {
@@ -164,12 +166,12 @@ function makePreviewPageUseSystemPreference() {
   function handleColorSchemeChange(e: MediaQueryListEvent) {
     if (e.matches) {
       // Dark color scheme
-      document.body.classList.remove("cal-element-embed-light");
-      document.body.classList.add("cal-element-embed-dark");
+      document.body.classList.remove(EMBED_LIGHT_THEME_CLASS);
+      document.body.classList.add(EMBED_DARK_THEME_CLASS);
     } else {
       // Light color scheme
-      document.body.classList.add("cal-element-embed-light");
-      document.body.classList.remove("cal-element-embed-dark");
+      document.body.classList.add(EMBED_LIGHT_THEME_CLASS);
+      document.body.classList.remove(EMBED_DARK_THEME_CLASS);
     }
   }
 
