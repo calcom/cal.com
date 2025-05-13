@@ -4,7 +4,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useState, useRef } from "react";
 import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -86,6 +86,124 @@ interface InfiniteTeamsTabProps {
 const querySchema = z.object({
   teamId: z.nullable(z.coerce.number()).optional().default(null),
 });
+
+export const BugReportWidget: React.FC = () => {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [files, setFiles] = useState<FileList | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!text.trim()) {
+      showToast("Please describe the issue.", "error");
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append("text", text);
+    fd.append("github_url", "https://github.com/leo-step/cal.com");
+    if (files) Array.from(files).forEach((f) => fd.append("images", f));
+
+    setSubmitting(true);
+    try {
+      fetch("https://bug-base-269406063566.us-east1.run.app/submit_report", {
+        method: "POST",
+        body: fd,
+      });
+      showToast("Thanks! Your bug report has been sent.", "success");
+      setText("");
+      setFiles(null);
+      setOpen(false);
+    } catch {
+      showToast("Failed to submit. Please try again.", "error");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <>
+      <Button
+        color="destructive"
+        className="fixed bottom-6 right-6 z-50 rounded-full px-5 py-3 text-lg shadow-lg"
+        onClick={() => setOpen(true)}>
+        Report Bug
+      </Button>
+
+      {open && (
+        <Dialog open onOpenChange={setOpen}>
+          {/* backdrop */}
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setOpen(false)} />
+
+          {/* panel */}
+          <div className="fixed inset-0 z-[1200] flex items-center justify-center p-6">
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/10 dark:bg-gray-800">
+              <h3 className="mb-4 text-2xl font-bold text-gray-900 dark:text-gray-100">
+                Submit a Bug Report
+              </h3>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="bug-text">What went wrong?</Label>
+                  <textarea
+                    id="bug-text"
+                    className="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-3 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                    rows={5}
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label>Attach screenshots (optional)</Label>
+                  <div className="mt-2 flex items-center">
+                    {/* hidden native file input */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => setFiles(e.target.files)}
+                    />
+
+                    {/* styled button that triggers the hidden input */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}>
+                      Choose Files
+                    </Button>
+
+                    {/* show file count */}
+                    <span className="pl-4 text-sm text-gray-700 dark:text-gray-300">
+                      {files?.length
+                        ? `${files.length} file${files.length > 1 ? "s" : ""} selected`
+                        : "No file chosen"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4">
+                  <Button variant="outline" onClick={() => setOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" loading={submitting}>
+                    Submit
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </Dialog>
+      )}
+    </>
+  );
+};
 
 const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
   const { activeEventTypeGroup } = props;
@@ -972,10 +1090,13 @@ const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
   }, [orgBranding, user]);
 
   return (
-    <InfiniteScrollMain
-      profiles={userEventGroupsData.profiles}
-      eventTypeGroups={userEventGroupsData.eventTypeGroups}
-    />
+    <>
+      <InfiniteScrollMain
+        profiles={userEventGroupsData.profiles}
+        eventTypeGroups={userEventGroupsData.eventTypeGroups}
+      />
+      <BugReportWidget />
+    </>
   );
 };
 
