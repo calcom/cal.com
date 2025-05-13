@@ -100,8 +100,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const { locale, direction, isEmbed, embedColorScheme } = await getInitialProps();
 
-  console.log("headers", h);
-
   const ns = "common";
   const translations = await loadTranslations(locale, ns);
 
