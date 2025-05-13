@@ -169,7 +169,7 @@ export const roundRobinManualReassignment = async ({
       host: newUser.name || "Nameless",
       location: bookingLocation || "integrations:daily",
       bookingFields: { ...responses },
-      eventDuration: eventType.length,
+      eventDuration: dayjs(booking.endTime).diff(dayjs(booking.startTime), "minutes"),
       t: newUserT,
     });
 
