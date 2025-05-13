@@ -12,7 +12,6 @@ import type { Option } from "@calcom/ui/components/form/checkbox/MultiSelectChec
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
-// Define a more specific type for seat options
 type SeatOption = Option & {
   data: {
     referenceUid: string | null;

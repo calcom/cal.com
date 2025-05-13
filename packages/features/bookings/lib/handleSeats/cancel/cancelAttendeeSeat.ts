@@ -44,14 +44,13 @@ async function cancelAttendeeSeat(
   const { seatReferenceUid } = input.data;
   const bookingToDelete = data.bookingToDelete;
 
-  // Normalize to array format for consistent processing
   const seatsToCancel = Array.isArray(seatReferenceUid)
     ? Array.from(new Set(seatReferenceUid))
     : seatReferenceUid
     ? [seatReferenceUid]
     : [];
 
-  // Return if there are no attendees or if user is trying to delete all attendees but not the owner
+  // Return if there are no attendees or if user is trying to delete all attendees
   if (
     seatsToCancel.length === 0 ||
     !bookingToDelete?.attendees.length ||
