@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -165,7 +166,7 @@ export class BookingRepository {
     });
   }
 
-  static async findAllExistingBookingsForEventTypeBetween({
+  private static async _findAllExistingBookingsForEventTypeBetween({
     eventTypeId,
     seatedEvent = false,
     startDate,
@@ -276,6 +277,11 @@ export class BookingRepository {
 
     return [...resultOne, ...resultTwoWithOrganizersRemoved, ...resultThree];
   }
+
+  static findAllExistingBookingsForEventTypeBetween = withReporting(
+    BookingRepository._findAllExistingBookingsForEventTypeBetween,
+    "findAllExistingBookingsForEventTypeBetween"
+  );
 
   static async getAllBookingsForRoundRobin({
     users,
