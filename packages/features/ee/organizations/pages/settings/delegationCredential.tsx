@@ -468,6 +468,15 @@ const ToggleDelegationDialog = ({
   onClose: () => void;
 }) => {
   const { t } = useLocale();
+  const delegationId = delegation?.id ?? null;
+  const { data: affectedMembers, isLoading: isLoadingAffectedMembers } =
+    trpc.viewer.delegationCredential.getAffectedMembersForDisable.useQuery(
+      // enabled property ensures that the query is not run if the delegationId is falsy
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      { id: delegationId! },
+      { enabled: !!(delegation?.enabled && !!delegationId) }
+    );
+
   if (!delegation) {
     return null;
   }
@@ -489,6 +498,22 @@ const ToggleDelegationDialog = ({
               : "enable_delegation_credential_description"
           )}
         </p>
+        {delegation.enabled && (
+          <div className="mt-4">
+            <strong>{t("members_affected_by_disabling_delegation_credential")}</strong>
+            {isLoadingAffectedMembers ? (
+              <div>{t("loading")}</div>
+            ) : affectedMembers?.length ? (
+              <ul className="mt-2 list-inside list-disc">
+                {affectedMembers.map((m) => (
+                  <li key={m.email}>{m.name ? `${m.name} (${m.email})` : m.email}</li>
+                ))}
+              </ul>
+            ) : (
+              <div className="mt-2">{t("no_members_affected_by_disabling_delegation_credential")}</div>
+            )}
+          </div>
+        )}
       </ConfirmationDialogContent>
     </Dialog>
   );
