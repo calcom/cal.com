@@ -264,7 +264,6 @@ function generateFiles() {
   );
 
   metadataOutput.push(
-    `import { parseconfigMetadata } from "@calcom/prisma/zod/configType";`,
     ...getExportedObject("appStoreMetadata", {
       // Try looking for config.json and if it's not found use _metadata.ts to generate appStoreMetadata
       importConfig: [
@@ -277,27 +276,14 @@ function generateFiles() {
           importName: "metadata",
         },
       ],
-      entryObjectKeyGetter: (app, importName) => {
-        const key = app.name;
-        // If this is a config.json file, we validate the config.json file
-        if (importName === "default" && app.path) {
-          const configPath = path.join(APP_STORE_PATH, app.path, "config.json");
-          if (fs.existsSync(configPath)) {
-            return `"${key}": parseconfigMetadata(${getVariableName(app.name)}_config_json)`;
-          }
-        }
-        // Otherwise return normal reference
-        return key;
-      },
     })
   );
 
   bookerMetadataOutput.push(
-    // Add import statement
-    `import { parseconfigMetadata } from "@calcom/prisma/zod/configType";`,
     ...getExportedObject(
       "appStoreMetadata",
       {
+        // Try looking for config.json and if it's not found use _metadata.ts to generate appStoreMetadata
         importConfig: [
           {
             fileToBeImported: "config.json",
@@ -308,20 +294,6 @@ function generateFiles() {
             importName: "metadata",
           },
         ],
-        // Same customization as for metadataOutput
-        entryObjectKeyGetter: (app, importName) => {
-          const key = app.name;
-          if (importName === "default" && app.path) {
-            const configPath = path.join(APP_STORE_PATH, app.path, "config.json");
-            if (fs.existsSync(configPath)) {
-              return `"${key}": parseconfigMetadata(${getVariableName(app.name)}_config_json)`;
-            }
-          }
-          if (importName === "metadata") {
-            return `"${key}": ${getVariableName(app.name)}__metadata_ts`;
-          }
-          return key;
-        },
       },
       isBookerApp
     )
