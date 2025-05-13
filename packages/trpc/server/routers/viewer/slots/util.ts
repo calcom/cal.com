@@ -39,7 +39,7 @@ import {
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { getTotalBookingDuration } from "@calcom/lib/server/queries";
+import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
 import { BookingRepository as BookingRepo } from "@calcom/lib/server/repository/booking";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
