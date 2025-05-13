@@ -9,4 +9,10 @@ export * from "./isRecurringEvent";
 export * from "./isEventTypeColor";
 export * from "./schedules";
 export * from "./event-types";
-export { CreditType } from "@calcom/prisma/enums";
+
+export const CreditType = {
+  MONTHLY: "MONTHLY",
+  ADDITIONAL: "ADDITIONAL",
+} as const;
+
+export type CreditType = (typeof CreditType)[keyof typeof CreditType];
