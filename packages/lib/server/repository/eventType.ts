@@ -1,6 +1,7 @@
 import type { EventType as PrismaEventType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
+import { enrichUserWithDelegationCredentialsWithoutOrgId } from "@calcom/lib/delegationCredential/server";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -1135,88 +1136,37 @@ export class EventTypeRepository {
       eventType.hosts = Array.isArray(eventType.hosts) ? eventType.hosts : [];
       eventType.users = Array.isArray(eventType.users) ? eventType.users : [];
 
-      const restructuredHosts = eventType.hosts.map((host: any) => {
-        const credentials = (host.user.credentials || []).map((credential: any) => ({
-          id: credential.id || -1,
-          type: credential.type || "",
-          key: credential.key || {},
-          userId: credential.userId || host.user.id,
-          user: credential.user || { email: host.user.email },
-          teamId: credential.teamId || null,
-          appId: credential.appId || null,
-          invalid: credential.invalid || false,
-          delegationCredentialId: credential.delegationCredentialId || null,
-          delegatedTo: {
-            serviceAccountKey: {
-              client_email: credential.delegatedTo?.serviceAccountKey?.client_email || "",
-              tenant_id: credential.delegatedTo?.serviceAccountKey?.tenant_id || "",
-              client_id: credential.delegatedTo?.serviceAccountKey?.client_id || "client_id",
-              private_key: credential.delegatedTo?.serviceAccountKey?.private_key || "private_key",
-            },
-          },
-          delegatedToId: credential.delegatedToId || null,
-        }));
+      const restructuredHosts = await Promise.all(
+        eventType.hosts.map(async (host: any) => {
+          const baseUser = {
+            ...host.user,
+            id: host.user.id,
+            email: host.user.email,
+            username: host.user.username || "",
+            timeZone: host.user.timeZone || "UTC",
+            bufferTime: host.user.bufferTime || 0,
+            startTime: host.user.startTime || 0,
+            endTime: host.user.endTime || 0,
+            timeFormat: host.user.timeFormat || null,
+            defaultScheduleId: host.user.defaultScheduleId || null,
+            schedules: host.user.schedules || [],
+            availability: host.user.availability || [],
+            selectedCalendars: host.user.selectedCalendars || [],
+            credentials: host.user.credentials || [],
+          };
 
-        const user = {
-          ...host.user,
-          id: host.user.id,
-          email: host.user.email,
-          username: host.user.username || "",
-          name: host.user.name || "",
-          timeZone: host.user.timeZone || "UTC",
-          bufferTime: host.user.bufferTime || 0,
-          startTime: host.user.startTime || 0,
-          endTime: host.user.endTime || 0,
-          timeFormat: host.user.timeFormat || null,
-          defaultScheduleId: host.user.defaultScheduleId || null,
-          schedules: host.user.schedules || [],
-          availability: host.user.availability || [],
-          selectedCalendars: host.user.selectedCalendars || [],
-          credentials,
-          locale: host.user.locale || null,
-          theme: host.user.theme || null,
-          brandColor: host.user.brandColor || null,
-          darkBrandColor: host.user.darkBrandColor || null,
-          hideBranding: host.user.hideBranding || false,
-          plan: host.user.plan || null,
-          avatarUrl: host.user.avatarUrl || null,
-          away: host.user.away || false,
-          destinationCalendar: host.user.destinationCalendar || null,
-          travelSchedules: host.user.travelSchedules || [],
-          bookings: [],
-          completedOnboarding: true,
-          weekStart: "Monday",
-          organizationId: null,
-          allowDynamicBooking: true,
-          verified: true,
-          role: "USER",
-          disableImpersonation: false,
-          identityProvider: "CAL",
-          trialEndsAt: null,
-          createdDate: new Date(),
-          movedToProfileId: null,
-          invitedTo: null,
-          metadata: {},
-          bio: null,
-          phoneNumber: null,
-          appTheme: null,
-          isPlatformManaged: false,
-          allowSEOIndexing: true,
-          receiveMonthlyDigestEmail: true,
-          defaultBookerLayouts: {},
-          brandColors: {},
-          verifiedNumbers: [],
-          secondaryEmailId: null,
-          secondaryEmail: null,
-        };
+          const userWithSelectedCalendars = withSelectedCalendars(baseUser);
 
-        const transformedUser = withSelectedCalendars(user);
+          const enrichedUser = await enrichUserWithDelegationCredentialsWithoutOrgId({
+            user: userWithSelectedCalendars,
+          });
 
-        return {
-          isFixed: host.isFixed || false,
-          user: transformedUser,
-        };
-      });
+          return {
+            isFixed: host.isFixed || false,
+            user: enrichedUser,
+          };
+        })
+      );
 
       return {
         ...eventType,
