@@ -3,8 +3,6 @@
   "private": true,
   "sideEffects": false,
   "version": "0.0.0",
-  "main": "",
-  "types": "",
   "license": "MIT",
   "scripts": {
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
