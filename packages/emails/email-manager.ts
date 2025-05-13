@@ -8,6 +8,7 @@ import { getEventName } from "@calcom/lib/event";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -46,6 +47,8 @@ import type { IBookingRedirect } from "./templates/booking-redirect-notification
 import BrokenIntegrationEmail from "./templates/broken-integration-email";
 import type { ChangeOfEmailVerifyLink } from "./templates/change-account-email-verify";
 import ChangeOfEmailVerifyEmail from "./templates/change-account-email-verify";
+import CreditBalanceLimitReachedEmail from "./templates/credit-balance-limit-reached-email";
+import CreditBalanceLowWarningEmail from "./templates/credit-balance-low-warning-email";
 import DisabledAppEmail from "./templates/disabled-app-email";
 import type { Feedback } from "./templates/feedback-email";
 import FeedbackEmail from "./templates/feedback-email";
@@ -98,7 +101,7 @@ const eventTypeDisableHostEmail = (metadata?: EventTypeMetadata) => {
   return !!metadata?.disableStandardEmails?.all?.host;
 };
 
-export const sendScheduledEmailsAndSMS = async (
+const _sendScheduledEmailsAndSMS = async (
   calEvent: CalendarEvent,
   eventNameObject?: EventNameObjectType,
   hostEmailDisabled?: boolean,
@@ -144,6 +147,11 @@ export const sendScheduledEmailsAndSMS = async (
   const successfullyScheduledSms = new EventSuccessfullyScheduledSMS(calEvent);
   await successfullyScheduledSms.sendSMSToAttendees();
 };
+
+export const sendScheduledEmailsAndSMS = withReporting(
+  _sendScheduledEmailsAndSMS,
+  "sendScheduledEmailsAndSMS"
+);
 
 // for rescheduled round robin booking that assigned new members
 export const sendRoundRobinScheduledEmailsAndSMS = async ({
@@ -245,7 +253,7 @@ export const sendRoundRobinCancelledEmailsAndSMS = async (
   await Promise.all(emailsAndSMSToSend);
 };
 
-export const sendRescheduledEmailsAndSMS = async (
+const _sendRescheduledEmailsAndSMS = async (
   calEvent: CalendarEvent,
   eventTypeMetadata?: EventTypeMetadata
 ) => {
@@ -276,6 +284,10 @@ export const sendRescheduledEmailsAndSMS = async (
   const successfullyReScheduledSms = new EventSuccessfullyReScheduledSMS(calEvent);
   await successfullyReScheduledSms.sendSMSToAttendees();
 };
+export const sendRescheduledEmailsAndSMS = withReporting(
+  _sendRescheduledEmailsAndSMS,
+  "sendRescheduledEmailsAndSMS"
+);
 
 export const sendRescheduledSeatEmailAndSMS = async (
   calEvent: CalendarEvent,
@@ -370,10 +382,7 @@ export const sendCancelledSeatEmailsAndSMS = async (
   await cancelledSeatSMS.sendSMSToAttendee(cancelledAttendee);
 };
 
-export const sendOrganizerRequestEmail = async (
-  calEvent: CalendarEvent,
-  eventTypeMetadata?: EventTypeMetadata
-) => {
+const _sendOrganizerRequestEmail = async (calEvent: CalendarEvent, eventTypeMetadata?: EventTypeMetadata) => {
   if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
   const calendarEvent = formatCalEvent(calEvent);
 
@@ -390,7 +399,12 @@ export const sendOrganizerRequestEmail = async (
   await Promise.all(emailsToSend);
 };
 
-export const sendAttendeeRequestEmailAndSMS = async (
+export const sendOrganizerRequestEmail = withReporting(
+  _sendOrganizerRequestEmail,
+  "sendOrganizerRequestEmail"
+);
+
+const _sendAttendeeRequestEmailAndSMS = async (
   calEvent: CalendarEvent,
   attendee: Person,
   eventTypeMetadata?: EventTypeMetadata
@@ -402,6 +416,11 @@ export const sendAttendeeRequestEmailAndSMS = async (
   const eventRequestSms = new EventRequestSMS(calendarEvent);
   await eventRequestSms.sendSMSToAttendee(attendee);
 };
+
+export const sendAttendeeRequestEmailAndSMS = withReporting(
+  _sendAttendeeRequestEmailAndSMS,
+  "sendAttendeeRequestEmailAndSMS"
+);
 
 export const sendDeclinedEmailsAndSMS = async (
   calEvent: CalendarEvent,
@@ -740,4 +759,50 @@ export const sendAdminOrganizationNotification = async (input: OrganizationNotif
 
 export const sendBookingRedirectNotification = async (bookingRedirect: IBookingRedirect) => {
   await sendEmail(() => new BookingRedirectEmailNotification(bookingRedirect));
+};
+
+export const sendCreditBalanceLowWarningEmails = async (input: {
+  team: {
+    name: string;
+    id: number;
+    adminAndOwners: {
+      name: string;
+      email: string;
+      t: TFunction;
+    }[];
+  };
+  balance: number;
+}) => {
+  const { team, balance } = input;
+  if (!team.adminAndOwners.length) return;
+  const emailsToSend: Promise<unknown>[] = [];
+
+  for (const admin of team.adminAndOwners) {
+    emailsToSend.push(sendEmail(() => new CreditBalanceLowWarningEmail(admin, balance, team)));
+  }
+
+  await Promise.all(emailsToSend);
+};
+
+export const sendCreditBalanceLimitReachedEmails = async ({
+  team,
+}: {
+  team: {
+    name: string;
+    id: number;
+    adminAndOwners: {
+      name: string;
+      email: string;
+      t: TFunction;
+    }[];
+  };
+}) => {
+  if (!team.adminAndOwners.length) return;
+  const emailsToSend: Promise<unknown>[] = [];
+
+  for (const admin of team.adminAndOwners) {
+    emailsToSend.push(sendEmail(() => new CreditBalanceLimitReachedEmail(admin, team)));
+  }
+
+  await Promise.all(emailsToSend);
 };
