@@ -19,7 +19,7 @@ import {
   checkInputEmailIsValid,
 } from "./utils";
 
-vi.mock("@calcom/lib/server/queries", () => {
+vi.mock("@calcom/lib/server/queries/teams", () => {
   return {
     isTeamAdmin: vi.fn(),
   };
