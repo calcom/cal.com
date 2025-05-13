@@ -106,13 +106,6 @@ export class InputEventTypesService_2024_06_14 {
   }
 
   transformInputCreateEventType(inputEventType: CreateEventTypeInput_2024_06_14) {
-    const defaultLocations: CreateEventTypeInput_2024_06_14["locations"] = [
-      {
-        type: "integration",
-        integration: "cal-video",
-      },
-    ];
-
     const {
       lengthInMinutes,
       lengthInMinutesOptions,
@@ -132,10 +125,11 @@ export class InputEventTypesService_2024_06_14 {
     } = inputEventType;
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
 
+    const locationsTransformed = locations?.length ? this.transformInputLocations(locations) : undefined;
     const eventType = {
       ...rest,
       length: lengthInMinutes,
-      locations: this.transformInputLocations(locations || defaultLocations),
+      locations: locationsTransformed,
       bookingFields: this.transformInputBookingFields(bookingFields),
       bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
       durationLimits: bookingLimitsDuration
