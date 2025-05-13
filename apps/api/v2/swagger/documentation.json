@@ -10583,7 +10583,7 @@
             "schema": {}
           },
           {
-            "name": "slotFormat",
+            "name": "format",
             "required": false,
             "in": "query",
             "description": "Format of slot times in response. Use 'range' to get start and end times. Use 'time' or omit this query parameter to get only start time.",
