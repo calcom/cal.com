@@ -127,10 +127,11 @@ export function TimezoneSelectComponent({
       }}
       onInputChange={handleInputChange}
       {...props}
-      formatOptionLabel={(option) => (
-        <p className="truncate">{(option as ITimezoneOption).value.replace(/_/g, " ")}</p>
-      )}
-      getOptionLabel={(option) => handleOptionLabel(option as ITimezoneOption, additionalTimezones)}
+      formatOptionLabel={(option) => {
+        const label = handleOptionLabel(option as ITimezoneOption);
+        return <p className="truncate">{label}</p>;
+      }}
+      getOptionLabel={(option) => handleOptionLabel(option as ITimezoneOption)}
       classNames={{
         ...timezoneClassNames,
         input: (state) =>
