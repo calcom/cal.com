@@ -96,6 +96,8 @@ Step 6: Enable Delegation Credential(To Be taken By Cal.com organization Owner/A
 
 - Delegation Credential: A Delegation Credential service account key along with user's email becomes the Delegation Credential which is an alternative to regular Credential in DB.
 - Delegation User Credential: A Delegation User Credential is a Credential record in DB that uses DelegationCredential record to actually access the user's calendar. A Credential record with delegationCredentialId set is a Delegation User Credential.
+- In-DB Delegation Credential: Another name for Delegation User Credential. This is used to build the CalendarCache records.
+- In-Memory Delegation Credential: It is a Credential like object but only in-memory and has id=-1. This is used to to connect with the third party Calendar. We might want to move away from In-Memory Delegation Credential to use In-DB Delegation Credential in future.
 
 ### How Delegation Credential works
 
@@ -137,6 +139,7 @@ Disabling effectively stops generating in-memory delegation user credentials. So
 ### Impact of enabling Delegation Credential
 - Existing calendar-cache records are re-used as we identify the relevant record by userId and key of CalendarCache record.
   - Any updates to those calendar-cache records keep on working by using the non-delegation credential attached with the SelectedCalendar record.
+  - In case there is an error while watching the SelectedCalendar using non-delegation credential, we will delete the SelectedCalendar record and create a new one using Delegation User Credential.
 - For any new members, we create Credential records and SelectedCalendar records through cron jobs and thus their calendar-cache records will also be created.
 
 ### Notes when testing locally
@@ -145,9 +148,3 @@ Disabling effectively stops generating in-memory delegation user credentials. So
 - You could use Acme org and login as <owner1-acme@example.com>
 - Make sure to change the email of the user above to your workspace owner's email(other member's email might also work). This is necessary otherwise you won't be able to enable Delegation Credential for the organization.
   - Note: After changing the email, you would have to logout and login again
-
-
-
-## TODO
-- Test what happens when credential expires that was used in CalendarCache/SelectedCalendar
-  - It seems that if refresh token is valid then it would still be refreshed but if it becomes invalid then it ends up causing the calendar-cache updates to break because it isn't able to renew the access token. How do you fix it?

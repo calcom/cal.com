@@ -125,6 +125,14 @@ export class SelectedCalendarRepository {
     });
   }
 
+  static async deleteById({ id }: { id: string }) {
+    return await prisma.selectedCalendar.delete({
+      where: {
+        id,
+      },
+    });
+  }
+
   static async createIfNotExists(data: Prisma.SelectedCalendarUncheckedCreateInput) {
     const conflictingCalendar = await SelectedCalendarRepository.findConflicting(data);
 

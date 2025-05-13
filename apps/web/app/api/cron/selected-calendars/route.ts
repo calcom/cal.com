@@ -28,6 +28,49 @@ const validateRequest = (req: NextRequest) => {
   }
 };
 
+type DelegationUserCredential = Awaited<
+  ReturnType<typeof CredentialRepository.findAllDelegationByTypeIncludeUserAndTake>
+>[number];
+
+async function getDelegationUserCredentialsToProcess(delegationUserCredentials: DelegationUserCredential[]) {
+  const delegationUserCredentialsToProcess = await Promise.all(
+    delegationUserCredentials
+      .filter(
+        (delegationUserCredential): delegationUserCredential is Ensure<DelegationUserCredential, "user"> =>
+          delegationUserCredential.user !== null
+      )
+      .map(async (delegationUserCredential) => {
+        // Consider existing SelectedCalendars for this user, regardless of credentialId as we want to reuse the existing SelectedCalendar(which has their googleChannel related column set) after Delegation Credential has been enabled
+        const selectedCalendar = await SelectedCalendarRepository.findFirst({
+          where: {
+            userId: delegationUserCredential.user.id,
+            externalId: delegationUserCredential.user.email,
+          },
+        });
+
+        if (selectedCalendar) {
+          if (!selectedCalendar.error) {
+            log.info(`Found a reusable SelectedCalendar for ${delegationUserCredential.user.id}`);
+            return null;
+          } else {
+            log.error(
+              `SelectedCalendar for ${delegationUserCredential.user.id} has an error: '${selectedCalendar.error}', so deleting it and creating a new one`
+            );
+
+            // Delete the SelectedCalendar
+            await SelectedCalendarRepository.deleteById({ id: selectedCalendar.id });
+            return delegationUserCredential;
+          }
+        }
+        return delegationUserCredential;
+      })
+  );
+
+  return delegationUserCredentialsToProcess.filter(
+    (credential): credential is Ensure<DelegationUserCredential, "user"> => credential !== null
+  );
+}
+
 async function handleCreateSelectedCalendars() {
   // These are in DB delegation user credentials in contrast to in-memory delegation user credentials that are used elsewhere
   const allDelegationUserCredentials = await CredentialRepository.findAllDelegationByTypeIncludeUserAndTake({
@@ -57,35 +100,9 @@ async function handleCreateSelectedCalendars() {
   for (const [delegationCredentialId, delegationUserCredentials] of Object.entries(
     groupedDelegationUserCredentials
   )) {
-    // First, create an array of promises that check if each credential should be processed
-    const checkedDelegationUserCredentials = await Promise.all(
-      delegationUserCredentials.map(async (delegationUserCredential) => {
-        if (!delegationUserCredential.user) {
-          log.error(`Credential ${delegationUserCredential.id} has no user`);
-          return null;
-        }
-
-        // Get all selectedCalendars for this user, regardless of credentialId as we want to reuse the existing SelectedCalendar(which has their googleChannel related column set) after Delegation Credential has been enabled
-        const hasSelectedCalendarForUserEmail = !!(await SelectedCalendarRepository.findFirst({
-          where: {
-            userId: delegationUserCredential.user.id,
-            externalId: delegationUserCredential.user.email,
-          },
-        }));
-
-        if (hasSelectedCalendarForUserEmail) {
-          log.info(`Found a reusable SelectedCalendar for ${delegationUserCredential.user.id}`);
-          return null;
-        }
-        return delegationUserCredential;
-      })
+    const delegationUserCredentialsToProcess = await getDelegationUserCredentialsToProcess(
+      delegationUserCredentials
     );
-
-    const delegationUserCredentialsToProcess = checkedDelegationUserCredentials.filter(
-      (credential): credential is Ensure<(typeof delegationUserCredentials)[number], "user"> =>
-        credential !== null
-    );
-
     log.info(
       `Found ${delegationUserCredentialsToProcess.length} delegationUserCredentials to process for delegationCredentialId: ${delegationCredentialId}`
     );
