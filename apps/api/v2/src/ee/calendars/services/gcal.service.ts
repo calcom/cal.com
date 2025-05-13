@@ -13,10 +13,11 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Prisma } from "@prisma/client";
 import { Request } from "express";
-import { OAuth2Client } from "googleapis-common";
+import { OAuth2Client, JWT } from "googleapis-common";
 import { z } from "zod";
 
 import { SUCCESS_STATUS, GOOGLE_CALENDAR_TYPE } from "@calcom/platform-constants";
+import { DelegationCredentialRepository, OAuth2UniversalSchema } from "@calcom/platform-libraries/app-store";
 
 const CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",
@@ -207,41 +208,114 @@ export class GoogleCalendarService implements OAuthCalendarApp {
   async getEventDetails(userId: number, eventUid: string) {
     const bookingReference =
       await this.bookingReferencesRepository.getBookingReferencesIncludeSensitiveCredentials(eventUid);
-    console.log("bookingReferencesssssss: ", bookingReference);
 
-    await this.checkIfCalendarConnected(userId);
+    if (!bookingReference) {
+      throw new NotFoundException("Booking reference not found");
+    }
 
-    const credentials = await this.credentialRepository.findCredentialByTypeAndUserId(
-      "google_calendar",
-      userId
+    const ownerUserEmail = bookingReference?.booking?.user?.email;
+
+    // Get authenticated calendar instance
+    const calendar = await this.getAuthorizedCalendarInstance(
+      ownerUserEmail,
+      bookingReference.credential?.key,
+      bookingReference.delegationCredential
     );
 
-    if (!credentials || credentials.invalid) {
-      throw new UnauthorizedException("Invalid Google Calendar credentials");
+    try {
+      const event = await calendar.events.get({
+        calendarId: bookingReference?.externalCalendarId ?? "primary",
+        eventId: bookingReference?.uid,
+      });
+
+      if (!event.data) {
+        throw new NotFoundException("Meeting not found");
+      }
+
+      return {
+        eventDetails: event.data,
+        rescheduleHistory: event.data.originalStartTime
+          ? {
+              originalStart: event.data.originalStartTime,
+              currentStart: event.data.start,
+            }
+          : null,
+      };
+    } catch (error) {
+      // this.logger.error(`Failed to get Google Calendar event: ${error.message}`, {
+      //   userId,
+      //   eventUid,
+      //   calendarId: bookingReference?.externalCalendarId,
+      // });
+      throw new NotFoundException("Failed to retrieve meeting details");
+    }
+  }
+
+  /**
+   * Gets an authorized Google Calendar instance
+   * Tries delegation credentials first, falls back to direct OAuth
+   */
+  async getAuthorizedCalendarInstance(
+    userEmail?: string,
+    oAuthCredentials?: Prisma.JsonValue | undefined,
+    delegationCredential?: { id: string } | null
+  ): Promise<calendar_v3.Calendar> {
+    if (userEmail && delegationCredential?.id) {
+      const delegatedCalendar = await this.getDelegatedCalendarInstance(delegationCredential, userEmail);
+      if (delegatedCalendar) {
+        return delegatedCalendar;
+      }
     }
 
+    // Fall back to direct OAuth authentication
+    if (!oAuthCredentials) {
+      throw new UnauthorizedException("No valid credentials available for Google Calendar");
+    }
+    const parsedOAuthCredentials = OAuth2UniversalSchema.parse(oAuthCredentials);
     const oAuth2Client = await this.getOAuthClient(this.redirectUri);
-    oAuth2Client.setCredentials(credentials.key as any);
+    oAuth2Client.setCredentials(parsedOAuthCredentials);
 
-    const calendar = new calendar_v3.Calendar({ auth: oAuth2Client });
+    return new calendar_v3.Calendar({ auth: oAuth2Client });
+  }
 
-    const event = await calendar.events.get({
-      calendarId: bookingReference?.externalCalendarId ?? "primary",
-      eventId: bookingReference?.uid,
-    });
+  async getDelegatedCalendarInstance(
+    delegationCredential: { id: string },
+    emailToImpersonate: string
+  ): Promise<calendar_v3.Calendar | null> {
+    try {
+      const oauthClientIdAliasRegex = /\+[a-zA-Z0-9]{25}/;
+      const cleanEmail = emailToImpersonate.replace(oauthClientIdAliasRegex, "");
 
-    if (!event.data) {
-      throw new NotFoundException("Meeting not found");
+      const serviceAccountCreds =
+        await DelegationCredentialRepository.findByIdIncludeSensitiveServiceAccountKey({
+          id: delegationCredential.id,
+        });
+
+      if (
+        !serviceAccountCreds?.serviceAccountKey?.client_email ||
+        !serviceAccountCreds?.serviceAccountKey?.private_key
+      ) {
+        this.logger.error("Missing service account credentials for delegation", {
+          delegationCredentialId: delegationCredential.id,
+        });
+        return null;
+      }
+
+      const authClient = new JWT({
+        email: serviceAccountCreds.serviceAccountKey.client_email,
+        key: serviceAccountCreds.serviceAccountKey.private_key,
+        scopes: ["https://www.googleapis.com/auth/calendar"],
+        subject: cleanEmail,
+      });
+
+      await authClient.authorize();
+      return new calendar_v3.Calendar({ auth: authClient });
+    } catch (error) {
+      // this.logger.error(`Failed to get delegated calendar: ${error.message}`, {
+      //   delegationId: delegationCredential.id,
+      //   email: emailToImpersonate
+      // });
+      return null;
     }
-
-    return {
-      eventDetails: event.data,
-      rescheduleHistory: event.data.originalStartTime
-        ? {
-            originalStart: event.data.originalStartTime,
-            currentStart: event.data.start,
-          }
-        : null,
-    };
   }
 }

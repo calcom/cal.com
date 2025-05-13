@@ -33,6 +33,16 @@ export class BookingReferencesRepository_2024_08_13 {
       include: {
         credential: true,
         delegationCredential: true,
+        booking: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
+          },
+        },
       },
     });
   }
