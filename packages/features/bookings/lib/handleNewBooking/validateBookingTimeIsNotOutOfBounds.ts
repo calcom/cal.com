@@ -4,6 +4,7 @@ import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { EventType } from "@calcom/prisma/client";
 
 type ValidateBookingTimeEventType = Pick<
@@ -19,7 +20,8 @@ type ValidateBookingTimeEventType = Pick<
   | "title"
 >;
 
-export const validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBookingTimeEventType>(
+// Define the function with underscore prefix
+const _validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBookingTimeEventType>(
   reqBodyStartTime: string,
   reqBodyTimeZone: string,
   eventType: T,
@@ -54,3 +56,8 @@ export const validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBook
 
   if (timeOutOfBounds) throw new HttpError({ statusCode: 400, message: ErrorCode.BookingTimeOutOfBounds });
 };
+
+export const validateBookingTimeIsNotOutOfBounds = withReporting(
+  _validateBookingTimeIsNotOutOfBounds,
+  "validateBookingTimeIsNotOutOfBounds"
+);
