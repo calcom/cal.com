@@ -1153,6 +1153,14 @@ export class EventTypeRepository {
             availability: host.user.availability || [],
             selectedCalendars: host.user.selectedCalendars || [],
             credentials: host.user.credentials || [],
+            name: host.user.name || "",
+            locale: host.user.locale || null,
+            destinationCalendar: host.user.destinationCalendar || null,
+            hideBranding: host.user.hideBranding || false,
+            theme: host.user.theme || null,
+            brandColor: host.user.brandColor || null,
+            darkBrandColor: host.user.darkBrandColor || null,
+            travelSchedules: host.user.travelSchedules || [],
           };
 
           const userWithSelectedCalendars = withSelectedCalendars(baseUser);
