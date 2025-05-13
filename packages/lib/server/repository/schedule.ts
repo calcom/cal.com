@@ -6,7 +6,7 @@ import {
   transformAvailabilityForAtom,
   transformDateOverridesForAtom,
   transformWorkingHoursForAtom,
-} from "../../schedules";
+} from "../../schedules/transformers";
 
 export class ScheduleRepository {
   static async findScheduleById({ id }: { id: number }) {
