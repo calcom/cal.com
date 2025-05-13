@@ -288,7 +288,7 @@ function DataTableBody<TData>({
 
   return (
     <TableBody
-      className="border-subtle relative grid border"
+      className="border-subtle relative grid border-t"
       data-testid={testId}
       style={{ height: tableHeight }}>
       {rowsToRender.map(({ row, virtualItem }) => (
