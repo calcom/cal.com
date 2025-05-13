@@ -7,7 +7,6 @@ import React from "react";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 import { IconSprites } from "@calcom/ui/components/icon";
-import { NotificationSoundHandler } from "@calcom/web/components/notification-sound-handler";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -101,6 +100,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const { locale, direction, isEmbed, embedColorScheme } = await getInitialProps();
 
+  console.log("headers", h);
+
   const ns = "common";
   const translations = await loadTranslations(locale, ns);
 
@@ -152,13 +153,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           ]}
         />
 
-        <Providers>
+        <Providers isEmbed={isEmbed}>
           <AppRouterI18nProvider translations={translations} locale={locale} ns={ns}>
             {children}
           </AppRouterI18nProvider>
         </Providers>
-        {!isEmbed && <NotificationSoundHandler />}
-        <NotificationSoundHandler />
       </body>
     </html>
   );
