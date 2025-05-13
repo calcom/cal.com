@@ -59,6 +59,8 @@ import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
 
+import { useCurrentEmail } from "~/bookings/hooks/useCurrentEmail";
+
 import type { PageProps } from "./bookings-single-view.getServerSideProps";
 
 const stringToBoolean = z
@@ -178,13 +180,8 @@ export default function Success(props: PageProps) {
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
   const [comment, setComment] = useState("");
   const parsedRating = rating ? parseInt(rating, 10) : 3;
-  const currentUserEmail =
-    searchParams?.get("rescheduledBy") ??
-    searchParams?.get("cancelledBy") ??
-    session?.user?.email ??
-    isSuccessBookingPage
-      ? email
-      : undefined;
+
+  const currentUserEmail = useCurrentEmail(querySchema);
 
   const defaultRating = isNaN(parsedRating) ? 3 : parsedRating > 5 ? 5 : parsedRating < 1 ? 1 : parsedRating;
   const [rateValue, setRateValue] = useState<number>(defaultRating);
