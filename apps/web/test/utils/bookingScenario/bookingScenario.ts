@@ -1276,7 +1276,7 @@ export const TestData = {
         },
       ];
 
-      // Generate dateoverride for each day in thes first two weeks
+      // Generate dateoverride for each day in the first two weeks
       for (let i = 0; i < 15; i++) {
         const dateString = date.toISOString().split("T")[0];
         availability.push({
