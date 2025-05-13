@@ -2,9 +2,12 @@ import { v4 as uuidv4 } from "uuid";
 
 import Office365CalendarService from "@calcom/app-store/office365calendar/lib/CalendarService";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
+import { SERVICE_ACCOUNT_ENCRYPTION_KEY } from "@calcom/lib/constants";
+import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
@@ -18,26 +21,21 @@ const client_id = process.env.E2E_TEST_OUTLOOK_CALENDAR_CLIENT_ID;
 const client_secret = process.env.E2E_TEST_OUTLOOK_CALENDAR_CLIENT_KEY;
 const tenant_id = process.env.E2E_TEST_OUTLOOK_CALENDAR_TENANT_ID;
 const testUserEmail = process.env.E2E_TEST_OUTLOOK_CALENDAR_EMAIL;
-const testUserPassword = process.env.E2E_TEST_OUTLOOK_CALENDAR_PASSWORD;
+let existingAppKeys: Prisma.JsonValue;
+let workspacePlatformId = -1;
 
-// Uses ROPC flow to fetch tokens directly using password.
-// For this the test user must be configured with ROPC flow in azure portal.
+// Uses 'client_credentials' grant and creates DelegatedCredential
 // Skips the test if credentials are not available or if any error fetching the tokens.
-async function fetchTokensAndCreateCredential(userId: number) {
-  test.skip(!testUserEmail || !testUserPassword, "Not able to install outlook calendar");
-
+async function fetchTokensAndCreateCredential(userId: number, orgId: number) {
   let credential: CredentialForCalendarServiceWithTenantId | undefined = undefined;
 
   try {
-    if (testUserEmail && testUserPassword && client_id && client_secret && tenant_id) {
-      const scopes = ["User.Read", "Calendars.Read", "Calendars.ReadWrite", "offline_access"];
+    if (testUserEmail && client_id && client_secret && tenant_id) {
       const tokenEndpoint = `https://login.microsoftonline.com/${tenant_id}/oauth2/v2.0/token`;
       const body = new URLSearchParams({
         client_id,
-        scope: scopes.join(" "),
-        username: testUserEmail,
-        password: testUserPassword,
-        grant_type: "password",
+        scope: "https://graph.microsoft.com/.default",
+        grant_type: "client_credentials",
         client_secret,
       });
       const response = await fetch(tokenEndpoint, {
@@ -50,6 +48,47 @@ async function fetchTokensAndCreateCredential(userId: number) {
       const data = await response.json();
 
       if (data["access_token"]) {
+        const platformSlug = `office365`;
+        const workspacePlatform = await prisma.workspacePlatform.create({
+          data: {
+            slug: platformSlug,
+            name: `e2e-test-platform`,
+            description: "",
+            enabled: true,
+            defaultServiceAccountKey: {
+              tenant_id,
+              client_id,
+              private_key: client_secret,
+            },
+          },
+        });
+        workspacePlatformId = workspacePlatform.id;
+
+        const delegationCredential = await prisma.delegationCredential.create({
+          data: {
+            workspacePlatform: {
+              connect: {
+                id: workspacePlatform.id,
+              },
+            },
+            serviceAccountKey: {
+              tenant_id,
+              client_id,
+              encrypted_credentials: symmetricEncrypt(
+                JSON.stringify({ private_key: client_secret }),
+                SERVICE_ACCOUNT_ENCRYPTION_KEY!
+              ),
+            },
+            enabled: true,
+            organization: {
+              connect: {
+                id: orgId,
+              },
+            },
+            domain: testUserEmail.split("@")[1],
+          },
+        });
+
         credential = {
           ...(await prisma.credential.create({
             data: {
@@ -65,10 +104,21 @@ async function fetchTokensAndCreateCredential(userId: number) {
                   slug: appSlug,
                 },
               },
+              delegationCredential: {
+                connect: {
+                  id: delegationCredential.id,
+                },
+              },
             },
             select: credentialForCalendarServiceSelect,
           })),
-          delegatedTo: null,
+          delegatedTo: {
+            serviceAccountKey: {
+              tenant_id,
+              client_id,
+              private_key: client_secret,
+            },
+          },
         } as CredentialForCalendarServiceWithTenantId;
       } else {
         test.skip(true, "Not able to install outlook calendar");
@@ -86,8 +136,14 @@ export async function setUpTestUserForIntegrationTest(users: ReturnType<typeof c
   let destinationCalendar;
   let selectedCalendar;
 
-  // Configure the app with test outlook account from env
   if (client_id && client_secret) {
+    // to restore the keys after test
+    const app = await prisma.app.findFirst({
+      where: {
+        slug: appSlug,
+      },
+    });
+    if (app) existingAppKeys = app.keys;
     await prisma.app.update({
       where: {
         slug: appSlug,
@@ -100,20 +156,28 @@ export async function setUpTestUserForIntegrationTest(users: ReturnType<typeof c
     test.skip(!client_id || !client_secret, "Outlook App keys not found");
   }
 
-  const teamEventSlug = `test-team-event-${uuidv4()}`;
-  const testUser = await users.create(null, {
-    hasTeam: true,
-    teamRole: MembershipRole.ADMIN,
-    teamEventSlug,
-    schedulingType: SchedulingType.ROUND_ROBIN,
-    teamEventLength: 120,
-    assignAllTeamMembers: true,
-  });
-  const membership = await testUser.getFirstTeamMembership();
-  const teamId = membership.team.id;
-  const teamSlug = membership.team.slug;
+  const orgSlug = `e2e-org-${uuidv4()}`;
+  const testUser = await users.create(
+    { email: testUserEmail, roleInOrganization: MembershipRole.ADMIN },
+    {
+      isOrg: true,
+      orgRequestedSlug: orgSlug,
+      isOrgVerified: true,
+      isDnsSetup: true,
+      hasTeam: true,
+      hasSubteam: true,
+      teamRole: MembershipRole.ADMIN,
+      schedulingType: SchedulingType.ROUND_ROBIN,
+      assignAllTeamMembers: true,
+      assignAllTeamMembersForSubTeamEvents: true,
+    }
+  );
+  const { team: org } = await testUser.getOrgMembership();
+  const { team } = await testUser.getFirstTeamMembership();
+  const teamEvent = await testUser.getFirstTeamEvent(team.id);
+  const teamEventSlug = teamEvent.slug;
 
-  outlookCredential = await fetchTokensAndCreateCredential(testUser.id);
+  outlookCredential = await fetchTokensAndCreateCredential(testUser.id, org.id);
 
   test.skip(!outlookCredential?.id, "Outlook QA credential not found");
 
@@ -159,10 +223,9 @@ export async function setUpTestUserForIntegrationTest(users: ReturnType<typeof c
       },
     });
 
-    // Set feature 'calendar-cache' for the team
     await prisma.teamFeatures.create({
       data: {
-        teamId: teamId,
+        teamId: team.id,
         featureId: "calendar-cache",
         assignedBy: testUser.username ?? testUser.email,
       },
@@ -174,10 +237,37 @@ export async function setUpTestUserForIntegrationTest(users: ReturnType<typeof c
     destinationCalendar: destinationCalendar,
     selectedCalendarId: selectedCalendar?.id,
     externalId: selectedCalendar?.externalId,
-    user: testUser,
     teamEventSlug,
-    teamSlug,
+    teamSlug: team.slug,
+    orgSlug,
+    testUser,
   };
+}
+
+export async function createCacheKeyAndValue(externalId: string) {
+  const now = new Date();
+  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const cacheKey = JSON.stringify({
+    timeMin: getTimeMin(),
+    timeMax: getTimeMax(),
+    items: [{ id: externalId }],
+  });
+  // Create Busy time - 1st, 2nd, 3rd Days of next month 8AM - 1PM (UTC:0)
+  const busyEvents = [
+    {
+      start: new Date(Date.UTC(nextMonth.getFullYear(), nextMonth.getMonth(), 1, 8, 0, 0)).toISOString(),
+      end: new Date(Date.UTC(nextMonth.getFullYear(), nextMonth.getMonth(), 1, 13, 0, 0)).toISOString(),
+    },
+    {
+      start: new Date(Date.UTC(nextMonth.getFullYear(), nextMonth.getMonth(), 2, 8, 0, 0)).toISOString(),
+      end: new Date(Date.UTC(nextMonth.getFullYear(), nextMonth.getMonth(), 2, 13, 0, 0)).toISOString(),
+    },
+    {
+      start: new Date(Date.UTC(nextMonth.getFullYear(), nextMonth.getMonth(), 3, 8, 0, 0)).toISOString(),
+      end: new Date(Date.UTC(nextMonth.getFullYear(), nextMonth.getMonth(), 3, 13, 0, 0)).toISOString(),
+    },
+  ];
+  return { cacheKey, cacheValue: busyEvents };
 }
 
 // Creates events in actual Microsoft Outlook Calendar
@@ -189,7 +279,13 @@ export async function createOutlookCalendarEvents(credentialId: number, destinat
       },
       select: credentialForCalendarServiceSelect,
     })),
-    delegatedTo: null,
+    delegatedTo: {
+      serviceAccountKey: {
+        tenant_id,
+        client_id,
+        private_key: client_secret,
+      },
+    },
   } as CredentialForCalendarServiceWithTenantId;
 
   const outlookCalendarService = new Office365CalendarService(refreshedOutlookCredential);
@@ -215,31 +311,12 @@ export async function createOutlookCalendarEvents(credentialId: number, destinat
     destinationCalendar: [destinationCalendar],
   };
 
-  const now = new Date();
-  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-  const expectedCacheKey = JSON.stringify({
-    timeMin: getTimeMin(),
-    timeMax: getTimeMax(),
-    items: [{ id: destinationCalendar.externalId }],
-  });
-  // Create Busy time - 1st, 2nd, 3rd Days of next month 8AM - 1PM (UTC:0)
-  const busyEvents = [
-    {
-      start: new Date(Date.UTC(nextMonth.getFullYear(), nextMonth.getMonth(), 1, 8, 0, 0)).toISOString(),
-      end: new Date(Date.UTC(nextMonth.getFullYear(), nextMonth.getMonth(), 1, 13, 0, 0)).toISOString(),
-    },
-    {
-      start: new Date(Date.UTC(nextMonth.getFullYear(), nextMonth.getMonth(), 2, 8, 0, 0)).toISOString(),
-      end: new Date(Date.UTC(nextMonth.getFullYear(), nextMonth.getMonth(), 2, 13, 0, 0)).toISOString(),
-    },
-    {
-      start: new Date(Date.UTC(nextMonth.getFullYear(), nextMonth.getMonth(), 3, 8, 0, 0)).toISOString(),
-      end: new Date(Date.UTC(nextMonth.getFullYear(), nextMonth.getMonth(), 3, 13, 0, 0)).toISOString(),
-    },
-  ];
+  const { cacheKey: expectedCacheKey, cacheValue: expectedCacheValue } = await createCacheKeyAndValue(
+    destinationCalendar.externalId
+  );
 
   const outlookCalEventsCreated: NewCalendarEventType[] = [];
-  for (const event of busyEvents) {
+  for (const event of expectedCacheValue) {
     outlookCalEventsCreated.push(
       await outlookCalendarService.createEvent(
         { ...baseEvent, startTime: event.start, endTime: event.end },
@@ -247,7 +324,7 @@ export async function createOutlookCalendarEvents(credentialId: number, destinat
       )
     );
   }
-  return { outlookCalEventsCreated, expectedCacheKey, expectedCacheValue: busyEvents };
+  return { outlookCalEventsCreated, expectedCacheKey, expectedCacheValue };
 }
 
 // Invokes office365Calendar/webhook to trigger fetchAvailabilityAndSetCache()
@@ -295,12 +372,39 @@ export async function deleteOutlookCalendarEvents(events: NewCalendarEventType[]
       },
       select: credentialForCalendarServiceSelect,
     })),
-    delegatedTo: null,
+    delegatedTo: {
+      serviceAccountKey: {
+        tenant_id,
+        client_id,
+        private_key: client_secret,
+      },
+    },
   } as CredentialForCalendarServiceWithTenantId;
 
   const outlookCalendarService = new Office365CalendarService(refreshedOutlookCredential);
   for (const event of events) {
     await outlookCalendarService.deleteEvent(event.id);
+  }
+}
+
+export async function cleanUpAfterIntegrationTest() {
+  // This makes sure the test account credentials (client_id,client_secret) are not left in db after tests are run.
+  // If left, may result in manual usage and creation of events in outlook calendar that will affect this tests, w.r.t unexpected number of events while fetching availability.
+  // The test account is intended to be used only by E2E tests.
+  await prisma.app.update({
+    where: {
+      slug: appSlug,
+    },
+    data: {
+      keys: existingAppKeys ?? {},
+    },
+  });
+  if (workspacePlatformId !== -1) {
+    await prisma.workspacePlatform.delete({
+      where: {
+        id: workspacePlatformId,
+      },
+    });
   }
 }
 

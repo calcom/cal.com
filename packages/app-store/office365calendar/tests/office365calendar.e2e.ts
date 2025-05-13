@@ -2,14 +2,16 @@ import { expect } from "@playwright/test";
 import { v4 as uuidv4 } from "uuid";
 
 import { MICROSOFT_SUBSCRIPTION_TTL } from "@calcom/app-store/office365calendar/lib/CalendarService";
-import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import { prisma } from "@calcom/prisma";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import { test } from "@calcom/web/playwright/lib/fixtures";
+import { doOnOrgDomain } from "@calcom/web/playwright/lib/testUtils";
 
 import {
   callWebhook,
+  cleanUpAfterIntegrationTest,
+  createCacheKeyAndValue,
   createOutlookCalendarEvents,
   deleteOutlookCalendarEvents,
   setUpTestUserForIntegrationTest,
@@ -33,6 +35,9 @@ const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
 const CACHING_TIME = ONE_MONTH_IN_MS;
 
 test.describe("Office365Calendar - Integration Tests", () => {
+  test.afterAll(async () => {
+    await cleanUpAfterIntegrationTest();
+  });
   test.describe("Calendar Cache - Integration", () => {
     test("On visiting TeamEvent Page, outlook calendar busy slots are fetched from Calendar-Cache", async ({
       page,
@@ -44,14 +49,15 @@ test.describe("Office365Calendar - Integration Tests", () => {
         destinationCalendar,
         selectedCalendarId,
         externalId,
-        user,
         teamSlug,
         teamEventSlug,
+        orgSlug,
+        testUser,
       } = await setUpTestUserForIntegrationTest(users);
 
       // Creates actual events in installed outlook calendar.
       const { outlookCalEventsCreated, expectedCacheKey, expectedCacheValue } =
-        await createOutlookCalendarEvents(credentialId!, destinationCalendar, user);
+        await createOutlookCalendarEvents(credentialId!, destinationCalendar, testUser);
 
       // The Microsoft Graph API '/subscription' endpoint triggers webhook validation.
       // Webhook validation and receiving notification through webhook requires 'https'.
@@ -74,28 +80,27 @@ test.describe("Office365Calendar - Integration Tests", () => {
 
       // Expect CalendarCache to be created in prisma
       const calendarCache = await prisma.calendarCache.findFirstOrThrow({
-        where: { key: expectedCacheKey, credentialId, userId: user.id },
+        where: { key: expectedCacheKey, credentialId, userId: testUser.id },
       });
       expect(calendarCache).toBeTruthy();
       const actualCacheValue = calendarCache.value as EventBusyDate[];
 
-      // Deduplicate actualCacheValue based on start and end properties (from parallel test executions)
       const uniqueActualCacheValue = Array.from(
         new Map(actualCacheValue.map((item) => [`${item.start}-${item.end}`, item])).values()
       );
 
-      // Compare deduplicated actualCacheValue with expectedCacheValue
-      expect(
-        uniqueActualCacheValue.map((item) => ({
-          start: new Date(item.start),
-          end: new Date(item.end),
-        }))
-      ).toEqual(
-        expectedCacheValue?.map((item) => ({
-          start: new Date(item.start),
-          end: new Date(item.end),
-        }))
-      );
+      const actualMapped = uniqueActualCacheValue.map((item) => ({
+        start: new Date(item.start),
+        end: new Date(item.end),
+      }));
+      const expectedMapped = expectedCacheValue?.map((item) => ({
+        start: new Date(item.start),
+        end: new Date(item.end),
+      }));
+
+      // Compare ignoring order
+      expect(actualMapped).toEqual(expect.arrayContaining(expectedMapped));
+      expect(expectedMapped).toEqual(expect.arrayContaining(actualMapped));
 
       // Now CalendarCache contains busy slots (or events).
       // Delete actual events in real outlook calendar.
@@ -103,33 +108,43 @@ test.describe("Office365Calendar - Integration Tests", () => {
       // Practically the outlook calendar and CalendarCache should be in sync, but this step is done only to test cache functionality (.i.e. to verify that cached data is fetched).
       await deleteOutlookCalendarEvents(outlookCalEventsCreated, credentialId!);
 
-      // Visit Booking page with 'cal.cache=true' and verify cached slots are fetched and not actual from Graph APIs
-      // Wait for response from 'getTeamSchedule' on visiting Booking page.
-      const getTeamScheduleRespPromise1 = page.waitForResponse(
-        (response) => response.url().includes("getTeamSchedule") && response.status() === 200
-      );
-      await page.goto(`/team/${teamSlug}/${teamEventSlug}?cal.cache=true`);
-      await page.waitForLoadState("domcontentloaded");
-      await getTeamScheduleRespPromise1;
-      // Click on next month and wait for response from 'getTeamSchedule'
-      const getTeamScheduleRespPromise2 = page.waitForResponse(
-        (response) => response.url().includes("getTeamSchedule") && response.status() === 200
-      );
-      await page.click('[data-testid="incrementMonth"]');
-      await page.waitForLoadState("domcontentloaded");
-      await getTeamScheduleRespPromise2;
-      // Verify that the first working day of next month has only one slot (as per cached).
-      expect(await page.locator('[data-testid="time"]').count()).toBe(1);
+      await testUser.apiLogin();
+      await doOnOrgDomain(
+        {
+          orgSlug: orgSlug,
+          page,
+        },
+        async ({ page, goToUrlWithErrorHandling }) => {
+          // Visit Booking page with 'cal.cache=true' and verify cached slots are fetched and not actual from Graph APIs
+          // Wait for response from 'getTeamSchedule' on visiting Booking page.
+          const getTeamScheduleRespPromise1 = page.waitForResponse(
+            (response) => response.url().includes("getTeamSchedule") && response.status() === 200
+          );
+          await goToUrlWithErrorHandling(`/team/${teamSlug}/${teamEventSlug}?cal.cache=true`);
+          await page.waitForLoadState("domcontentloaded");
+          await getTeamScheduleRespPromise1;
 
-      // Visit same page without 'cal.cache=true' and verify actual slots are fetched and not from cache.
-      // Actual Events were deleted, so no busy slots, all slots available.
-      const getTeamScheduleRespPromise3 = page.waitForResponse(
-        (response) => response.url().includes("getTeamSchedule") && response.status() === 200
+          // Click on next month and wait for response from 'getTeamSchedule'
+          const getTeamScheduleRespPromise2 = page.waitForResponse(
+            (response) => response.url().includes("getTeamSchedule") && response.status() === 200
+          );
+          await page.click('[data-testid="incrementMonth"]');
+          await page.waitForLoadState("domcontentloaded");
+          await getTeamScheduleRespPromise2;
+          // Verify that the first working day of next month has only 6 slots (as per cached). //30min event
+          expect(await page.locator('[data-testid="time"]').count()).toBe(6);
+
+          // Visit same page without 'cal.cache=true' and verify actual slots are fetched and not from cache.
+          // Actual Events were deleted, so no busy slots, all slots available.
+          const getTeamScheduleRespPromise3 = page.waitForResponse(
+            (response) => response.url().includes("getTeamSchedule") && response.status() === 200
+          );
+          await goToUrlWithErrorHandling(page.url().replace("cal.cache=true", ""));
+          await page.waitForLoadState("domcontentloaded");
+          await getTeamScheduleRespPromise3;
+          expect(await page.locator('[data-testid="time"]').count()).toBe(16);
+        }
       );
-      await page.goto(page.url().replace("cal.cache=true", ""));
-      await page.waitForLoadState("domcontentloaded");
-      await getTeamScheduleRespPromise3;
-      expect(await page.locator('[data-testid="time"]').count()).toBe(4);
     });
   });
 });
@@ -146,31 +161,7 @@ test.describe("Office365Calendar", () => {
       const [testUser] = users.get();
 
       // Simulate cacheKey and cacheValue to be set in Calendar-Cache table
-      const now = new Date();
-      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-      const cacheKey = JSON.stringify({
-        timeMin: getTimeMin(),
-        timeMax: getTimeMax(),
-        items: [{ id: externalId }],
-      });
-      // Mock Busy time - 1st, 2nd, 3rd Days of next month 9AM - 1PM (UTC:0)
-      // start - "2025-06-01T09:00:00.000Z"
-      // end - "2025-06-01T15:00:00.000Z" , similarly for 2nd , 3rd june
-      const cacheValue = [
-        {
-          start: new Date(Date.UTC(nextMonth.getFullYear(), nextMonth.getMonth(), 1, 9, 0, 0)).toISOString(),
-          end: new Date(Date.UTC(nextMonth.getFullYear(), nextMonth.getMonth(), 1, 13, 0, 0)).toISOString(),
-        },
-        {
-          start: new Date(Date.UTC(nextMonth.getFullYear(), nextMonth.getMonth(), 2, 9, 0, 0)).toISOString(),
-          end: new Date(Date.UTC(nextMonth.getFullYear(), nextMonth.getMonth(), 2, 13, 0, 0)).toISOString(),
-        },
-        {
-          start: new Date(Date.UTC(nextMonth.getFullYear(), nextMonth.getMonth(), 3, 9, 0, 0)).toISOString(),
-          end: new Date(Date.UTC(nextMonth.getFullYear(), nextMonth.getMonth(), 3, 13, 0, 0)).toISOString(),
-        },
-      ];
-      // Create Cache to test
+      const { cacheKey, cacheValue } = await createCacheKeyAndValue(externalId);
       await prisma.calendarCache.create({
         data: {
           key: cacheKey,
