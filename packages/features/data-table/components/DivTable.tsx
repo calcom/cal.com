@@ -95,12 +95,12 @@ const DivTableCaption = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HT
 DivTableCaption.displayName = "DivTableCaption";
 
 export {
-  DivTable,
-  DivTableHeader,
-  DivTableBody,
-  DivTableFooter,
-  DivTableHead,
-  DivTableRow,
-  DivTableCell,
-  DivTableCaption,
+  DivTable as Table,
+  DivTableHeader as TableHeader,
+  DivTableBody as TableBody,
+  DivTableFooter as TableFooter,
+  DivTableHead as TableHead,
+  DivTableRow as TableRow,
+  DivTableCell as TableCell,
+  DivTableCaption as TableCaption,
 };
