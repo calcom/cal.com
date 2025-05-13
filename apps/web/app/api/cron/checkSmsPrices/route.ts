@@ -59,6 +59,7 @@ async function postHandler(req: NextRequest) {
                 id: true,
                 additionalCredits: true,
                 teamId: true,
+                userId: true,
               },
             },
             creditType: true,
@@ -81,18 +82,22 @@ async function postHandler(req: NextRequest) {
           });
         }
 
-        if (!updatedLog.creditBalance.teamId) {
-          logger.error(`teamId missing for expense log ${log.id}`);
+        if (!updatedLog.creditBalance.teamId && !updatedLog.creditBalance.userId) {
+          logger.error(`teamId or userId missing for expense log ${log.id}`);
           return;
         }
 
-        const teamCredits = await creditService.getAllCreditsForTeam(updatedLog.creditBalance.teamId);
+        const availableCredits = await creditService.getAllCredits({
+          teamId: updatedLog.creditBalance.teamId,
+          userId: updatedLog.creditBalance.userId,
+        });
 
-        const remainingMonthlyCredits = Math.max(0, teamCredits.totalRemainingMonthlyCredits);
+        const remainingMonthlyCredits = Math.max(0, availableCredits.totalRemainingMonthlyCredits);
 
         await creditService.handleLowCreditBalance({
-          teamId: updatedLog.creditBalance.teamId ?? 0,
-          remainingCredits: remainingMonthlyCredits + teamCredits.additionalCredits,
+          userId: updatedLog.creditBalance.userId,
+          teamId: updatedLog.creditBalance.teamId,
+          remainingCredits: remainingMonthlyCredits + availableCredits.additionalCredits,
         });
 
         pricesUpdated++;

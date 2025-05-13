@@ -15,17 +15,26 @@ type GetAllCreditsOptions = {
 export const getAllCreditsHandler = async ({ ctx, input }: GetAllCreditsOptions) => {
   const { teamId } = input;
 
-  const adminMembership = await MembershipRepository.getAdminMembership(ctx.user.id, teamId);
+  if (teamId) {
+    const adminMembership = await MembershipRepository.getAdminOrOwnerMembership(ctx.user.id, teamId);
 
-  if (!adminMembership) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-    });
+    if (!adminMembership) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+      });
+    }
+  } else {
+    //if user is part of team, don't return any credits if teamId is not given
+    const membership = await MembershipRepository.findAllAcceptedMemberships(ctx.user.id);
+
+    if (membership.length > 0) {
+      return null;
+    }
   }
   const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
 
   const creditService = new CreditService();
 
-  const teamCredits = await creditService.getAllCreditsForTeam(teamId);
-  return { teamCredits };
+  const credits = await creditService.getAllCredits({ userId: ctx.user.id, teamId });
+  return { credits };
 };
