@@ -17,6 +17,13 @@ vi.mock("@calcom/lib/constants", async () => {
   };
 });
 
+vi.mock("@calcom/prisma/enums", () => ({
+  CreditType: {
+    MONTHLY: "MONTHLY",
+    ADDITIONAL: "ADDITIONAL",
+  },
+}));
+
 vi.mock("@calcom/lib/server/repository/credits");
 vi.mock("@calcom/lib/server/repository/membership");
 vi.mock("@calcom/lib/server/repository/team");
