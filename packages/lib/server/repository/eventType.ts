@@ -1136,6 +1136,27 @@ export class EventTypeRepository {
       eventType.users = Array.isArray(eventType.users) ? eventType.users : [];
 
       const restructuredHosts = eventType.hosts.map((host: any) => {
+        const credentials = (host.user.credentials || []).map((credential: any) => ({
+          id: credential.id || -1,
+          type: credential.type || "",
+          key: credential.key || {},
+          userId: credential.userId || host.user.id,
+          user: credential.user || { email: host.user.email },
+          teamId: credential.teamId || null,
+          appId: credential.appId || null,
+          invalid: credential.invalid || false,
+          delegationCredentialId: credential.delegationCredentialId || null,
+          delegatedTo: {
+            serviceAccountKey: {
+              client_email: credential.delegatedTo?.serviceAccountKey?.client_email || "",
+              tenant_id: credential.delegatedTo?.serviceAccountKey?.tenant_id || "",
+              client_id: credential.delegatedTo?.serviceAccountKey?.client_id || "client_id",
+              private_key: credential.delegatedTo?.serviceAccountKey?.private_key || "private_key",
+            },
+          },
+          delegatedToId: credential.delegatedToId || null,
+        }));
+
         const user = {
           ...host.user,
           id: host.user.id,
@@ -1151,6 +1172,7 @@ export class EventTypeRepository {
           schedules: host.user.schedules || [],
           availability: host.user.availability || [],
           selectedCalendars: host.user.selectedCalendars || [],
+          credentials,
           locale: host.user.locale || null,
           theme: host.user.theme || null,
           brandColor: host.user.brandColor || null,
@@ -1159,21 +1181,6 @@ export class EventTypeRepository {
           plan: host.user.plan || null,
           avatarUrl: host.user.avatarUrl || null,
           away: host.user.away || false,
-          credentials: (host.user.credentials || []).map((credential: any) => ({
-            ...credential,
-            id: credential.id || -1,
-            type: credential.type || "",
-            key: credential.key || {},
-            userId: credential.userId || host.user.id,
-            user: credential.user || { email: host.user.email },
-            teamId: credential.teamId || null,
-            team: credential.team || null,
-            appId: credential.appId || null,
-            invalid: credential.invalid || false,
-            delegationCredentialId: credential.delegationCredentialId || null,
-            delegatedTo: credential.delegatedTo || null,
-            delegatedToId: credential.delegatedToId || null,
-          })),
           destinationCalendar: host.user.destinationCalendar || null,
           travelSchedules: host.user.travelSchedules || [],
           bookings: [],
@@ -1201,10 +1208,6 @@ export class EventTypeRepository {
           verifiedNumbers: [],
           secondaryEmailId: null,
           secondaryEmail: null,
-          isFixed: host.isFixed || false,
-          priority: host.priority || null,
-          weight: host.weight || null,
-          createdAt: host.createdAt || null,
         };
 
         const transformedUser = withSelectedCalendars(user);
