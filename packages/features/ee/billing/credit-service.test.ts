@@ -1,3 +1,4 @@
+import Stripe from "stripe";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
@@ -10,6 +11,8 @@ import { CreditType } from "@calcom/prisma/enums";
 import { CreditService } from "./credit-service";
 import { StripeBillingService } from "./stripe-billling-service";
 import { InternalTeamBilling } from "./teams/internal-team-billing";
+
+vi.mock("stripe");
 
 vi.mock("@calcom/lib/constants", async () => {
   const actual = (await vi.importActual("@calcom/lib/constants")) as typeof import("@calcom/lib/constants");
@@ -29,10 +32,19 @@ vi.mock("../workflows/lib/reminders/reminderScheduler", () => ({
 
 describe("CreditService", () => {
   let creditService: CreditService;
+  let stripeMock: any;
 
   beforeEach(() => {
-    creditService = new CreditService();
     vi.restoreAllMocks();
+
+    stripeMock = {
+      prices: {
+        list: vi.fn().mockResolvedValue({ data: [] }),
+        retrieve: vi.fn().mockResolvedValue({ id: "price_123", unit_amount: 1000 }),
+      },
+    };
+    (Stripe as any).mockImplementation(() => stripeMock);
+    creditService = new CreditService();
   });
 
   describe("Team credits", () => {
