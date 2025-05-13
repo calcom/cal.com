@@ -496,7 +496,7 @@ export const getPublicEvent = async (
     // Sets user data on profile object for easier access
     profile: getProfileFromEvent(eventWithUserProfiles),
     subsetOfUsers: users,
-    users: fetchAllUsers ? users : undefined,
+    users: fetchAllUsers ? users : [],
     entity: {
       fromRedirectOfNonOrgLink,
       considerUnpublished:
