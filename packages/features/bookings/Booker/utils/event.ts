@@ -71,6 +71,7 @@ export const useScheduleForEvent = ({
   orgSlug,
   teamMemberEmail,
   isTeamEvent,
+  useApiV2 = true,
 }: {
   prefetchNextMonth?: boolean;
   username?: string | null;
@@ -85,6 +86,7 @@ export const useScheduleForEvent = ({
   teamMemberEmail?: string | null;
   fromRedirectOfNonOrgLink?: boolean;
   isTeamEvent?: boolean;
+  useApiV2?: boolean;
 } = {}) => {
   const { timezone } = useBookerTime();
   const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStore(
@@ -95,7 +97,7 @@ export const useScheduleForEvent = ({
   const searchParams = useCompatSearchParams();
   const rescheduleUid = searchParams?.get("rescheduleUid");
 
-  const schedule = useSchedule({
+  const scheduleUsingApiV2 = useSchedule({
     username: usernameFromStore ?? username,
     eventSlug: eventSlugFromStore ?? eventSlug,
     eventId,
@@ -110,7 +112,31 @@ export const useScheduleForEvent = ({
     isTeamEvent,
     orgSlug,
     teamMemberEmail,
+    useApiV2: useApiV2,
   });
+
+  const scheduleNotUsingApiV2 = useSchedule({
+    username: usernameFromStore ?? username,
+    eventSlug: eventSlugFromStore ?? eventSlug,
+    eventId,
+    timezone,
+    selectedDate,
+    prefetchNextMonth,
+    monthCount,
+    dayCount,
+    rescheduleUid,
+    month: monthFromStore ?? month,
+    duration: durationFromStore ?? duration,
+    isTeamEvent,
+    orgSlug,
+    teamMemberEmail,
+    useApiV2: false,
+    // only run this query if the one using Api v2 fails
+    // Network error does not trigger `isError` flag, so we are instead using `failureReason` here
+    enabled: isTeamEvent && !!scheduleUsingApiV2?.failureReason,
+  });
+
+  const schedule = scheduleUsingApiV2?.isSuccess ? scheduleUsingApiV2 : scheduleNotUsingApiV2;
 
   return {
     data: schedule?.data,
