@@ -182,7 +182,9 @@ export default function Success(props: PageProps) {
     searchParams?.get("rescheduledBy") ??
     searchParams?.get("cancelledBy") ??
     session?.user?.email ??
-    undefined;
+    isSuccessBookingPage
+      ? email
+      : undefined;
 
   const defaultRating = isNaN(parsedRating) ? 3 : parsedRating > 5 ? 5 : parsedRating < 1 ? 1 : parsedRating;
   const [rateValue, setRateValue] = useState<number>(defaultRating);
@@ -556,7 +558,7 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="font-medium">{t("rescheduled_by")}</div>
                             <div className="col-span-2 mb-6 last:mb-0">
-                              <p className="break-words">{previousBooking?.rescheduledBy}</p>
+                              <p className="break-words">{previousBooking?.rescheduledBy ?? t("unknown")}</p>
                               <Link className="text-sm underline" href={`/booking/${previousBooking?.uid}`}>
                                 {t("original_booking")}
                               </Link>
