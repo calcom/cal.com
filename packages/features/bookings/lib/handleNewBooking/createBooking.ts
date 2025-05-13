@@ -343,4 +343,4 @@ function buildNewBookingData(params: CreateBookingParams) {
   }
 }
 
-export type Booking = Prisma.PromiseReturnType<typeof createBooking>;
+export type Booking = Awaited<ReturnType<typeof createBooking>>;

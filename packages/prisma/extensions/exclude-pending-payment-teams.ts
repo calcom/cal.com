@@ -1,5 +1,11 @@
 import { Prisma } from "@prisma/client";
-import type { DefaultArgs, InternalArgs } from "@prisma/client/runtime/library";
+
+type TeamFindArgs =
+  | Prisma.TeamFindUniqueArgs
+  | Prisma.TeamFindFirstArgs
+  | Prisma.TeamFindManyArgs
+  | Prisma.TeamFindUniqueOrThrowArgs
+  | Prisma.TeamFindFirstOrThrowArgs;
 
 export function excludePendingPaymentsExtension() {
   return Prisma.defineExtension({
@@ -25,15 +31,7 @@ export function excludePendingPaymentsExtension() {
   });
 }
 
-async function excludePendingPayments(
-  args:
-    | Prisma.TeamFindUniqueArgs<InternalArgs & DefaultArgs>
-    | Prisma.TeamFindFirstArgs<InternalArgs & DefaultArgs>
-    | Prisma.TeamFindManyArgs<InternalArgs & DefaultArgs>
-    | Prisma.TeamFindUniqueOrThrowArgs<InternalArgs & DefaultArgs>
-    | Prisma.TeamFindFirstOrThrowArgs<InternalArgs & DefaultArgs>,
-  query: <T>(args: T) => Promise<unknown>
-) {
+async function excludePendingPayments(args: TeamFindArgs, query: <T>(args: T) => Promise<unknown>) {
   args.where = args.where || {};
   if (args.where.pendingPayment === undefined) {
     args.where.pendingPayment = false;

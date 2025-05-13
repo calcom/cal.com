@@ -101,7 +101,7 @@ async function getBooking(prisma: PrismaClient, uid: string, isSeatedEvent?: boo
   return booking;
 }
 
-export type GetBookingType = Prisma.PromiseReturnType<typeof getBooking>;
+export type GetBookingType = Awaited<ReturnType<typeof getBooking>>;
 
 export const getBookingWithResponses = <
   T extends Prisma.BookingGetPayload<{

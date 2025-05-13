@@ -22,7 +22,7 @@ export const ZGetInputSchema = z.object({
 
 export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;
 
-const { include: includedFields } = Prisma.validator<Prisma.WorkflowDefaultArgs>()({
+const { include: includedFields } = Prisma.validator<Prisma.WorkflowInclude>()({
   include: {
     activeOn: {
       select: {

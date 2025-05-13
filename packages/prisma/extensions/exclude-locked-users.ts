@@ -1,5 +1,4 @@
 import { Prisma } from "@prisma/client";
-import type { DefaultArgs, InternalArgs } from "@prisma/client/runtime/library";
 
 export function excludeLockedUsersExtension() {
   return Prisma.defineExtension({
@@ -33,15 +32,14 @@ function safeJSONStringify(x: any) {
   }
 }
 
-async function excludeLockedUsers(
-  args:
-    | Prisma.UserFindUniqueArgs<InternalArgs & DefaultArgs>
-    | Prisma.UserFindFirstArgs<InternalArgs & DefaultArgs>
-    | Prisma.UserFindManyArgs<InternalArgs & DefaultArgs>
-    | Prisma.UserFindUniqueOrThrowArgs<InternalArgs & DefaultArgs>
-    | Prisma.UserFindFirstOrThrowArgs<InternalArgs & DefaultArgs>,
-  query: <T>(args: T) => Promise<unknown>
-) {
+type UserFindArgs =
+  | Prisma.UserFindUniqueArgs
+  | Prisma.UserFindFirstArgs
+  | Prisma.UserFindManyArgs
+  | Prisma.UserFindUniqueOrThrowArgs
+  | Prisma.UserFindFirstOrThrowArgs;
+
+async function excludeLockedUsers(args: UserFindArgs, query: <T>(args: T) => Promise<unknown>) {
   args.where = args.where || {};
   const whereString = safeJSONStringify(args.where);
   const shouldIncludeLocked = whereString.includes('"locked":');
