@@ -1,4 +1,4 @@
-import type { DestinationCalendar } from "@prisma/client";
+import type { AssignmentReason, DestinationCalendar } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import short, { uuid } from "short-uuid";
@@ -1263,6 +1263,8 @@ async function handler(
     })
   );
 
+  let routingAssignmentReason: AssignmentReason | undefined = undefined;
+
   try {
     if (!isDryRun) {
       booking = await createBooking({
@@ -1311,7 +1313,7 @@ async function handler(
             routingFormResponseId,
           });
         } else if (routingFormResponseId && teamId) {
-          await AssignmentReasonRecorder.routingFormRoute({
+          routingAssignmentReason = await AssignmentReasonRecorder.routingFormRoute({
             bookingId: booking.id,
             routingFormResponseId,
             organizerId: organizerUser.id,
@@ -1847,6 +1849,7 @@ async function handler(
     status: "ACCEPTED",
     smsReminderNumber: booking?.smsReminderNumber || undefined,
     rescheduledBy: reqBody.rescheduledBy,
+    ...(routingAssignmentReason && { routingReason: routingAssignmentReason.reasonString }),
   };
 
   if (bookingRequiresPayment) {
