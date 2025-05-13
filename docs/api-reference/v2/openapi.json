@@ -16992,14 +16992,14 @@
           "type": {
             "type": "string"
           },
-          "value": {
+          "option": {
             "type": "string"
           },
-          "valueId": {
+          "optionId": {
             "type": "string"
           }
         },
-        "required": ["id", "name", "type", "value", "valueId"]
+        "required": ["id", "name", "type", "option", "optionId"]
       },
       "NumberAttribute": {
         "type": "object",
@@ -17013,14 +17013,14 @@
           "type": {
             "type": "string"
           },
-          "value": {
+          "option": {
             "type": "number"
           },
-          "valueId": {
+          "optionId": {
             "type": "string"
           }
         },
-        "required": ["id", "name", "type", "value", "valueId"]
+        "required": ["id", "name", "type", "option", "optionId"]
       },
       "SingleSelectAttribute": {
         "type": "object",
@@ -17034,26 +17034,26 @@
           "type": {
             "type": "string"
           },
-          "value": {
+          "option": {
             "type": "string"
           },
-          "valueId": {
+          "optionId": {
             "type": "string"
           }
         },
-        "required": ["id", "name", "type", "value", "valueId"]
+        "required": ["id", "name", "type", "option", "optionId"]
       },
-      "MultiSelectAttributeValue": {
+      "MultiSelectAttributeOption": {
         "type": "object",
         "properties": {
-          "valueId": {
+          "optionId": {
             "type": "string"
           },
-          "value": {
+          "option": {
             "type": "string"
           }
         },
-        "required": ["valueId", "value"]
+        "required": ["optionId", "option"]
       },
       "MultiSelectAttribute": {
         "type": "object",
@@ -17067,14 +17067,14 @@
           "type": {
             "type": "string"
           },
-          "values": {
+          "options": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/MultiSelectAttributeValue"
+              "$ref": "#/components/schemas/MultiSelectAttributeOption"
             }
           }
         },
-        "required": ["id", "name", "type", "values"]
+        "required": ["id", "name", "type", "options"]
       },
       "MembershipUserOutputDto": {
         "type": "object",

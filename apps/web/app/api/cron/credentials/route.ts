@@ -8,6 +8,7 @@ import { NextResponse } from "next/server";
 
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 
@@ -42,7 +43,7 @@ async function handleCreateCredentials() {
       log.info(
         `Skipping credential creation for workspace platform ${workspacePlatform.slug} - only google is supported`
       );
-      return;
+      continue;
     }
 
     // We can't know by looking at a Credential record in DB, if it has access to the `user.email` calendar in Google Calendar.
@@ -55,15 +56,15 @@ async function handleCreateCredentials() {
       });
 
     const existingCredentialUserIds = new Set(existingCredentials.map((cred) => cred.userId));
-
-    const membersNeedingCredentials = organization.delegatedMembers.filter(
+    const delegatedMembers = organization.delegatedMembers;
+    const membersNeedingCredentials = delegatedMembers.filter(
       (member) => !existingCredentialUserIds.has(member.userId)
     );
 
     const toProcessMembers = membersNeedingCredentials.slice(0, batchSizeToCreateCredentials);
 
     log.info(
-      `Creating credentials for ${toProcessMembers.length} members in organization ${organization.id}`
+      `Creating credentials for ${toProcessMembers.length} members out of ${delegatedMembers.length} delegated members in organization ${organization.id}`
     );
 
     const credentialCreationPromises = toProcessMembers.map(async (member) => {
@@ -80,17 +81,23 @@ async function handleCreateCredentials() {
         });
         log.info(`Created credential for member ${member.userId}`);
       } catch (error) {
-        log.error(`Error creating credential for member ${member.userId}:`, error);
+        log.error(`Error creating credential for member ${member.userId}:`, safeStringify(error));
         throw error;
       }
     });
     const results = await Promise.allSettled(credentialCreationPromises);
     const successCount = results.filter((r) => r.status === "fulfilled").length;
     const failureCount = results.filter((r) => r.status === "rejected").length;
-
+    log.info(
+      `Created ${successCount} credentials for delegationCredentialId: ${delegationCredential.id} and ${failureCount} failures`
+    );
     totalSuccess += successCount;
     totalFailures += failureCount;
   }
+
+  log.info(
+    `Completed creating credentials for all delegation credentials. Total Success: ${totalSuccess}, Total Failures: ${totalFailures}`
+  );
 
   return {
     executedAt: new Date().toISOString(),
