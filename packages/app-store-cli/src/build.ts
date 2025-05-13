@@ -13,6 +13,7 @@ import type { AppMeta } from "@calcom/types/App";
 
 import { APP_STORE_PATH } from "./constants";
 import { getAppName } from "./utils/getAppName";
+import { ConfigMetadata } from "../../types/config";
 
 const isInWatchMode = process.argv[2] === "--watch";
 
@@ -32,23 +33,7 @@ type App = Partial<AppMeta> & {
   path: string;
 };
 
-function validateAppConfig(app: App) {
-  const configPath = path.join(APP_STORE_PATH, app.path, "config.json");
-  if (fs.existsSync(configPath)) {
-    try {
-      const configContent = fs.readFileSync(configPath, "utf8");
-      const configJson = JSON.parse(configContent);
-      parseconfigMetadata(configJson);
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error(` Error validating ${app.name}/config.json: ${error.message}`);
-      } else {
-        console.error(`Error validating ${app.name}/config.json`);
-      }
-      process.exit(1);
-    }
-  }
-}
+
 function generateFiles() {
   const browserOutput = [`import dynamic from "next/dynamic"`];
   const metadataOutput = [];
@@ -84,9 +69,7 @@ function generateFiles() {
     }
   });
 
-  forEachAppDir((app) => {
-    validateAppConfig(app);
-  });
+
   function forEachAppDir(callback: (arg: App) => void, filter: (arg: App) => boolean = () => true) {
     for (let i = 0; i < appDirs.length; i++) {
       const configPath = path.join(APP_STORE_PATH, appDirs[i].path, "config.json");
@@ -95,6 +78,10 @@ function generateFiles() {
 
       if (fs.existsSync(configPath)) {
         app = JSON.parse(fs.readFileSync(configPath).toString());
+        const bool: ConfigMetadata = parseconfigMetadata(app);
+        if (!bool) {
+          throw Error("Config.json Validation Error");
+        }
       } else if (fs.existsSync(metadataPath)) {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         app = require(metadataPath).metadata;
