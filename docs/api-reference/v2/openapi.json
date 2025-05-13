@@ -12916,7 +12916,7 @@
           "integration": {
             "type": "string",
             "example": "cal-video",
-            "enum": ["cal-video", "google-meet", "msteams", "zoom"]
+            "enum": ["cal-video", "google-meet", "office365-video", "zoom"]
           }
         },
         "required": ["type", "integration"]
@@ -14194,7 +14194,7 @@
               "roam-video",
               "riverside-video",
               "ping-video",
-              "msteams",
+              "office365-video",
               "mirotalk-video",
               "jitsi",
               "jelly-video",
@@ -16992,14 +16992,14 @@
           "type": {
             "type": "string"
           },
-          "option": {
+          "value": {
             "type": "string"
           },
-          "optionId": {
+          "valueId": {
             "type": "string"
           }
         },
-        "required": ["id", "name", "type", "option", "optionId"]
+        "required": ["id", "name", "type", "value", "valueId"]
       },
       "NumberAttribute": {
         "type": "object",
@@ -17013,14 +17013,14 @@
           "type": {
             "type": "string"
           },
-          "option": {
+          "value": {
             "type": "number"
           },
-          "optionId": {
+          "valueId": {
             "type": "string"
           }
         },
-        "required": ["id", "name", "type", "option", "optionId"]
+        "required": ["id", "name", "type", "value", "valueId"]
       },
       "SingleSelectAttribute": {
         "type": "object",
@@ -17034,26 +17034,26 @@
           "type": {
             "type": "string"
           },
-          "option": {
+          "value": {
             "type": "string"
           },
-          "optionId": {
+          "valueId": {
             "type": "string"
           }
         },
-        "required": ["id", "name", "type", "option", "optionId"]
+        "required": ["id", "name", "type", "value", "valueId"]
       },
-      "MultiSelectAttributeOption": {
+      "MultiSelectAttributeValue": {
         "type": "object",
         "properties": {
-          "optionId": {
+          "valueId": {
             "type": "string"
           },
-          "option": {
+          "value": {
             "type": "string"
           }
         },
-        "required": ["optionId", "option"]
+        "required": ["valueId", "value"]
       },
       "MultiSelectAttribute": {
         "type": "object",
@@ -17067,14 +17067,14 @@
           "type": {
             "type": "string"
           },
-          "options": {
+          "values": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/MultiSelectAttributeOption"
+              "$ref": "#/components/schemas/MultiSelectAttributeValue"
             }
           }
         },
-        "required": ["id", "name", "type", "options"]
+        "required": ["id", "name", "type", "values"]
       },
       "MembershipUserOutputDto": {
         "type": "object",
@@ -20604,7 +20604,7 @@
               "roam-video",
               "riverside-video",
               "ping-video",
-              "msteams",
+              "office365-video",
               "mirotalk-video",
               "jitsi",
               "jelly-video",

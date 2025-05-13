@@ -42,7 +42,7 @@ const integrationsValues = [
   "roam-video",
   "riverside-video",
   "ping-video",
-  "msteams",
+  "office365-video",
   "mirotalk-video",
   "jitsi",
   "jelly-video",
