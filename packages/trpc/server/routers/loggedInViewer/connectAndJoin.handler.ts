@@ -240,9 +240,9 @@ export const Handler = async ({ ctx, input }: Options) => {
       id: updatedBooking.id,
       location: updatedBooking.location,
     },
-    triggerForUser: { id: user.id },
+    triggerForUser: !eventType?.teamId || (eventType?.teamId && eventType?.parentId),
     organizerUser: { id: user.id },
-    eventTypeId: eventType?.id,
+    eventTypeId: eventType?.id ?? null,
     teamId: eventType?.teamId,
     orgId: user.organizationId,
   });
