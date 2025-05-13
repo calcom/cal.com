@@ -11,3 +11,13 @@ export {
   TableHeader,
   TableRow,
 } from "./TableNew";
+export {
+  DivTable,
+  DivTableBody,
+  DivTableCaption,
+  DivTableCell,
+  DivTableFooter,
+  DivTableHead,
+  DivTableHeader,
+  DivTableRow,
+} from "./DivTable";
