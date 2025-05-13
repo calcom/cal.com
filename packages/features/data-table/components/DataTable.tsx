@@ -155,7 +155,7 @@ export function DataTable<TData>({
                         width: `var(--header-${kebabCase(header?.id)}-size)`,
                       }}
                       className={classNames(
-                        "relative flex shrink-0 items-center",
+                        "bg-muted relative flex shrink-0 items-center",
                         column.getIsPinned() && "top-0 z-20 sm:sticky"
                       )}>
                       <TableHeadLabel header={header} />
@@ -270,9 +270,7 @@ function DataTableBody<TData>({
     return (
       <TableBody className="relative grid" data-testid={testId} style={{ height: tableHeight }}>
         <TableRow>
-          <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
-            {t("no_results")}
-          </TableCell>
+          <TableCell className="h-24 text-center">{t("no_results")}</TableCell>
         </TableRow>
       </TableBody>
     );
@@ -280,7 +278,7 @@ function DataTableBody<TData>({
 
   return (
     <TableBody
-      className="border-subtle relative grid overflow-hidden rounded-xl border"
+      className="border-subtle relative grid border-t"
       data-testid={testId}
       style={{ height: tableHeight }}>
       {rowsToRender.map(({ row, virtualItem }) => (
