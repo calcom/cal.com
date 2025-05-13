@@ -27,8 +27,7 @@ const BATCH_SIZE = 100; // Increased batch size for downloads
 
 export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
   const { t } = useLocale();
-  const { teamId, userId, memberUserIds, routingFormId, isAll, startDate, endDate, columnFilters } =
-    useInsightsParameters();
+  const { startDate, endDate, columnFilters, scope, selectedTeamId } = useInsightsParameters();
   const [isDownloading, setIsDownloading] = useState(false);
 
   const utils = trpc.useUtils();
@@ -40,17 +39,14 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
     total: number;
   }> => {
     const result = await utils.viewer.insights.routingFormResponsesForDownload.fetch({
-      teamId,
       startDate,
       endDate,
-      userId,
-      memberUserIds,
-      isAll: isAll,
-      routingFormId,
-      columnFilters,
       sorting,
       limit: BATCH_SIZE,
       offset,
+      scope,
+      selectedTeamId,
+      columnFilters,
     });
     return result;
   };
