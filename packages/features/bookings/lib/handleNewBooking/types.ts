@@ -8,7 +8,7 @@ import type { userSelect } from "@calcom/prisma";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
-type User = Omit<Prisma.UserGetPayload<typeof userSelect>, "selectedCalendars">;
+type User = Omit<Prisma.UserGetPayload<{ select: typeof userSelect }>, "selectedCalendars">;
 
 export type Invitee = {
   email: string;

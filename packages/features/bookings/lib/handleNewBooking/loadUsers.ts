@@ -124,7 +124,7 @@ export const findUsersByUsername = async ({
     await prisma.user.findMany({
       where,
       select: {
-        ...userSelect.select,
+        ...userSelect,
         credentials: {
           select: credentialForCalendarServiceSelect,
         },

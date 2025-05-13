@@ -62,7 +62,7 @@ type InstallStripeParams = InstallStripeParamsUnion & {
   page: Page;
 };
 
-const userWithEventTypes = PrismaType.validator<PrismaType.UserArgs>()({
+const userWithEventTypes = PrismaType.validator<PrismaType.UserDefaultArgs>()({
   include: userIncludes,
 });
 

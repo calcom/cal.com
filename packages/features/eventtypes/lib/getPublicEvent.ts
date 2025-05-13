@@ -530,7 +530,7 @@ export const getPublicEvent = async (
   };
 };
 
-const eventData = Prisma.validator<Prisma.EventTypeArgs>()({
+const eventData = Prisma.validator<Prisma.EventTypeDefaultArgs>()({
   select: getPublicEventSelect(true),
 });
 

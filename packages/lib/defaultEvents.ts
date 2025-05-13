@@ -9,7 +9,7 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-type User = Omit<Prisma.UserGetPayload<typeof userSelect>, "selectedCalendars"> & {
+type User = Omit<Prisma.UserGetPayload<{ select: typeof userSelect }>, "selectedCalendars"> & {
   allSelectedCalendars: SelectedCalendar[];
   userLevelSelectedCalendars: SelectedCalendar[];
 };

@@ -117,7 +117,7 @@ const _loadAndValidateUsers = async ({
         credentials: {
           select: credentialForCalendarServiceSelect,
         }, // Don't leak to client
-        ...userSelect.select,
+        ...userSelect,
       },
     });
     if (!eventTypeUser) {

@@ -24,15 +24,13 @@ export async function getStripeCustomerIdFromUserId(userId: number) {
 
   return customerId;
 }
-
-const userType = Prisma.validator<Prisma.UserArgs>()({
-  select: {
-    email: true,
-    metadata: true,
-  },
+const userType = Prisma.validator<Prisma.UserSelect>()({
+  email: true,
+  metadata: true,
 });
 
-type UserType = Prisma.UserGetPayload<typeof userType>;
+type UserType = Prisma.UserGetPayload<{ select: typeof userType }>;
+
 /** This will retrieve the customer ID from Stripe or create it if it doesn't exists yet. */
 export async function getStripeCustomerId(user: UserType): Promise<string> {
   let customerId: string | null = null;
