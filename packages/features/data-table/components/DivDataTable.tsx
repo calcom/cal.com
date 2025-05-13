@@ -420,7 +420,9 @@ function DivDataTableBody<TData>({
     return (
       <DivTableBody className="relative grid" data-testid={testId} style={{ height: tableHeight }}>
         <DivTableRow>
-          <DivTableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
+          <DivTableCell
+            className="h-24 text-center"
+            style={{ gridColumn: `span ${table.getAllColumns().length}` }}>
             {t("no_results")}
           </DivTableCell>
         </DivTableRow>
