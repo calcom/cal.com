@@ -3195,9 +3195,13 @@
   "view_form": "View Form",
   "sms_opt_out_message": "Text STOP to opt-out of SMS messages",
   "team_credits_low_warning": "Your team {{teamName}} is running low on credits",
+  "user_credits_low_warning": "You are running low on credits",
   "action_required_out_of_credits": "[Action Required] Your team {{teamName}} has run out of credits",
+  "action_required_user_out_of_credits": "[Action Required] You have run out of credits",
   "low_credits_warning_message": "Your Cal.com team {{teamName}} is running low on credits. To avoid any disruption in service, please purchase additional credits. If your balance runs out, SMS messages will stop sending and will be sent as emails instead.",
+  "low_credits_warning_message_user": "Your Cal.com account is running low on credits. To avoid any disruption in service, please purchase additional credits. If your balance runs out, SMS messages will stop sending and will be sent as emails instead.",
   "credit_limit_reached_message": "Your Cal.com team {{teamName}} has run out of credits. As a result, SMS messages are now being sent via email instead. To resume sending SMS, please purchase additional credits.",
+  "credit_limit_reached_message_user": "Your Cal.com account has run out of credits. As a result, SMS messages are now being sent via email instead. To resume sending SMS, please purchase additional credits.",
   "current_credit_balance": "Current balance: {{balance}} credits",
   "notification_about_your_booking": "Notification about your booking",
   "monthly_credits": "Monthly credits",
@@ -3211,5 +3215,8 @@
   "matching": "Matching",
   "event_redirect": "Event Redirect",
   "reset_form": "Reset Form",
+  "requires_credits": "Requires credits",
+  "requires_credits_tooltip": "You need enough credits in your account to use this feature",
+  "available_credits": "Available credits",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

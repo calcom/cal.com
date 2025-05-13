@@ -53,7 +53,7 @@ describe("reminderScheduler", () => {
 
       prismaMock.workflowReminder.updateMany.mockResolvedValue({ count: 1 });
 
-      await cancelScheduledMessagesAndScheduleEmails(1);
+      await cancelScheduledMessagesAndScheduleEmails({ teamId: 10 });
 
       expect(twilioProvider.cancelSMS).toHaveBeenCalledWith("sms-123");
 
@@ -62,6 +62,55 @@ describe("reminderScheduler", () => {
           to: ["attendee@example.com"],
           replyTo: "organizer@example.com",
           referenceUid: "uuid-123",
+        })
+      );
+
+      const callArgs = prismaMock.workflowReminder.findMany.mock.calls[0][0];
+      expect(callArgs.where.workflowStep.workflow.OR).toEqual([{ userId: { in: [] } }, { teamId: 10 }]);
+    });
+
+    it("should cancel SMS messages and schedule emails for user", async () => {
+      prismaMock.membership.findMany.mockResolvedValue([]);
+
+      const mockScheduledMessages = [
+        {
+          id: 1,
+          referenceId: "sms-456",
+          workflowStep: {
+            action: "SMS_ATTENDEE",
+          },
+          scheduledDate: new Date(),
+          uuid: "uuid-456",
+          booking: {
+            attendees: [
+              {
+                email: "user-attendee@example.com",
+                locale: "en",
+              },
+            ],
+            user: {
+              email: "user-organizer@example.com",
+            },
+          },
+        },
+      ];
+
+      prismaMock.workflowReminder.findMany.mockResolvedValue(mockScheduledMessages);
+
+      prismaMock.workflowReminder.updateMany.mockResolvedValue({ count: 1 });
+
+      await cancelScheduledMessagesAndScheduleEmails({ userId: 11 });
+
+      const callArgs = prismaMock.workflowReminder.findMany.mock.calls[0][0];
+      expect(callArgs.where.workflowStep.workflow.OR).toEqual([{ userId: { in: [11] } }]);
+
+      expect(twilioProvider.cancelSMS).toHaveBeenCalledWith("sms-456");
+
+      expect(sendOrScheduleWorkflowEmails).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: ["user-attendee@example.com"],
+          replyTo: "user-organizer@example.com",
+          referenceUid: "uuid-456",
         })
       );
 
