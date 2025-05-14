@@ -15,13 +15,14 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 //   }
 // })
 
-describe("getAllCredentials", () => {
+describe("getAllCredentialsIncludeServiceAccountKey", () => {
   test("Get an individual's credentials", async () => {
     vi.spyOn(UserRepository, "enrichUserWithItsProfile").mockReturnValue({
       profile: null,
     });
 
-    const getAllCredentials = (await import("./getAllCredentials")).getAllCredentials;
+    const getAllCredentialsIncludeServiceAccountKey = (await import("./getAllCredentials"))
+      .getAllCredentialsIncludeServiceAccountKey;
 
     const userCredential = {
       id: 1,
@@ -38,7 +39,7 @@ describe("getAllCredentials", () => {
       { type: "team-credential", teamId: 1, key: {} },
     ]);
 
-    const credentials = await getAllCredentials(
+    const credentials = await getAllCredentialsIncludeServiceAccountKey(
       {
         id: 1,
         username: "test",
@@ -65,7 +66,8 @@ describe("getAllCredentials", () => {
             profile: null,
           });
 
-          const getAllCredentials = (await import("./getAllCredentials")).getAllCredentials;
+          const getAllCredentialsIncludeServiceAccountKey = (await import("./getAllCredentials"))
+            .getAllCredentialsIncludeServiceAccountKey;
 
           const crmCredential = {
             id: 1,
@@ -101,7 +103,7 @@ describe("getAllCredentials", () => {
             },
           ]);
 
-          const credentials = await getAllCredentials(
+          const credentials = await getAllCredentialsIncludeServiceAccountKey(
             {
               id: 1,
               username: "test",
@@ -138,7 +140,8 @@ describe("getAllCredentials", () => {
             profile: null,
           });
 
-          const getAllCredentials = (await import("./getAllCredentials")).getAllCredentials;
+          const getAllCredentialsIncludeServiceAccountKey = (await import("./getAllCredentials"))
+            .getAllCredentialsIncludeServiceAccountKey;
 
           const crmCredential = {
             id: 1,
@@ -170,7 +173,7 @@ describe("getAllCredentials", () => {
             },
           ]);
 
-          const credentials = await getAllCredentials(
+          const credentials = await getAllCredentialsIncludeServiceAccountKey(
             {
               id: 1,
               username: "test",
@@ -204,7 +207,8 @@ describe("getAllCredentials", () => {
             profile: null,
           });
 
-          const getAllCredentials = (await import("./getAllCredentials")).getAllCredentials;
+          const getAllCredentialsIncludeServiceAccountKey = (await import("./getAllCredentials"))
+            .getAllCredentialsIncludeServiceAccountKey;
 
           const teamId = 1;
           const crmCredential = {
@@ -261,7 +265,7 @@ describe("getAllCredentials", () => {
 
           console.log(testEventType);
 
-          const credentials = await getAllCredentials(
+          const credentials = await getAllCredentialsIncludeServiceAccountKey(
             {
               id: 1,
               username: "test",
@@ -291,7 +295,8 @@ describe("getAllCredentials", () => {
           expect(credentials).toContainEqual(expect.objectContaining({ teamId, type: "salesforce_crm" }));
         });
         test("For an org user", async () => {
-          const getAllCredentials = (await import("./getAllCredentials")).getAllCredentials;
+          const getAllCredentialsIncludeServiceAccountKey = (await import("./getAllCredentials"))
+            .getAllCredentialsIncludeServiceAccountKey;
           const orgId = 3;
           vi.spyOn(UserRepository, "enrichUserWithItsProfile").mockReturnValue({
             profile: { organizationId: orgId },
@@ -357,7 +362,7 @@ describe("getAllCredentials", () => {
             },
           ]);
 
-          const credentials = await getAllCredentials(
+          const credentials = await getAllCredentialsIncludeServiceAccountKey(
             {
               id: 1,
               username: "test",
@@ -394,7 +399,8 @@ describe("getAllCredentials", () => {
       });
       describe("Default with _other_calendar credentials", () => {
         test("For users", async () => {
-          const getAllCredentials = (await import("./getAllCredentials")).getAllCredentials;
+          const getAllCredentialsIncludeServiceAccountKey = (await import("./getAllCredentials"))
+            .getAllCredentialsIncludeServiceAccountKey;
 
           const crmCredential = {
             id: 1,
@@ -430,7 +436,7 @@ describe("getAllCredentials", () => {
             },
           ]);
 
-          const credentials = await getAllCredentials(
+          const credentials = await getAllCredentialsIncludeServiceAccountKey(
             {
               id: 1,
               username: "test",
@@ -459,7 +465,8 @@ describe("getAllCredentials", () => {
           );
         });
         test("For teams", async () => {
-          const getAllCredentials = (await import("./getAllCredentials")).getAllCredentials;
+          const getAllCredentialsIncludeServiceAccountKey = (await import("./getAllCredentials"))
+            .getAllCredentialsIncludeServiceAccountKey;
 
           const crmCredential = {
             id: 1,
@@ -491,7 +498,7 @@ describe("getAllCredentials", () => {
             },
           ]);
 
-          const credentials = await getAllCredentials(
+          const credentials = await getAllCredentialsIncludeServiceAccountKey(
             {
               id: 1,
               username: "test",
@@ -517,7 +524,8 @@ describe("getAllCredentials", () => {
           );
         });
         test("For child of managed event type", async () => {
-          const getAllCredentials = (await import("./getAllCredentials")).getAllCredentials;
+          const getAllCredentialsIncludeServiceAccountKey = (await import("./getAllCredentials"))
+            .getAllCredentialsIncludeServiceAccountKey;
 
           const teamId = 1;
           const crmCredential = {
@@ -574,7 +582,7 @@ describe("getAllCredentials", () => {
 
           console.log(testEventType);
 
-          const credentials = await getAllCredentials(
+          const credentials = await getAllCredentialsIncludeServiceAccountKey(
             {
               id: 1,
               username: "test",
@@ -600,7 +608,8 @@ describe("getAllCredentials", () => {
           );
         });
         test("For an org user", async () => {
-          const getAllCredentials = (await import("./getAllCredentials")).getAllCredentials;
+          const getAllCredentialsIncludeServiceAccountKey = (await import("./getAllCredentials"))
+            .getAllCredentialsIncludeServiceAccountKey;
           const orgId = 3;
           vi.spyOn(UserRepository, "enrichUserWithItsProfile").mockReturnValue({
             profile: { organizationId: orgId },
@@ -666,7 +675,7 @@ describe("getAllCredentials", () => {
             },
           ]);
 
-          const credentials = await getAllCredentials(
+          const credentials = await getAllCredentialsIncludeServiceAccountKey(
             {
               id: 1,
               username: "test",

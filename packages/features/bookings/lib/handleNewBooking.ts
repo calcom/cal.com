@@ -25,7 +25,6 @@ import {
 } from "@calcom/emails";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
-import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
@@ -46,14 +45,14 @@ import {
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import EventManager from "@calcom/lib/EventManager";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
-import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
+import { getUsernameList } from "@calcom/lib/defaultEvents";
 import {
   enrichHostsWithDelegationCredentials,
   getFirstDelegationConferencingCredentialAppLocation,
 } from "@calcom/lib/delegationCredential/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { getEventName } from "@calcom/lib/event";
+import { getEventName, updateHostInEventName } from "@calcom/lib/event";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -64,7 +63,6 @@ import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import monitorCallbackAsync from "@calcom/lib/sentryWrapper";
 import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
@@ -83,7 +81,7 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
-import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
@@ -94,7 +92,7 @@ import type { Booking } from "./handleNewBooking/createBooking";
 import { ensureAvailableUsers } from "./handleNewBooking/ensureAvailableUsers";
 import { getBookingData } from "./handleNewBooking/getBookingData";
 import { getCustomInputsResponses } from "./handleNewBooking/getCustomInputsResponses";
-import { getEventTypesFromDB } from "./handleNewBooking/getEventTypesFromDB";
+import { getEventType } from "./handleNewBooking/getEventType";
 import type { getEventTypeResponse } from "./handleNewBooking/getEventTypesFromDB";
 import { getLocationValuesForDb } from "./handleNewBooking/getLocationValuesForDb";
 import { getRequiresConfirmationFlags } from "./handleNewBooking/getRequiresConfirmationFlags";
@@ -110,6 +108,7 @@ import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from 
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
+import { getBookingRequest } from "./requiresConfirmation/getBookingRequest";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -139,32 +138,13 @@ function getICalSequence(originalRescheduledBooking: BookingType | null) {
   return originalRescheduledBooking.iCalSequence + 1;
 }
 
-const getEventType = async ({
-  eventTypeId,
-  eventTypeSlug,
-}: {
-  eventTypeId: number;
-  eventTypeSlug?: string;
-}) => {
-  // handle dynamic user
-  const eventType =
-    !eventTypeId && !!eventTypeSlug ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
-
-  const isOrgTeamEvent = !!eventType?.team && !!eventType?.team?.parentId;
-
-  return {
-    ...eventType,
-    bookingFields: getBookingFieldsWithSystemFields({ ...eventType, isOrgTeamEvent }),
-  };
-};
-
 type BookingDataSchemaGetter =
   | typeof getBookingDataSchema
   | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
 
 type CreatedBooking = Booking & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number };
-
-const buildDryRunBooking = ({
+type ReturnTypeCreateBooking = Awaited<ReturnType<typeof createBooking>>;
+export const buildDryRunBooking = ({
   eventTypeId,
   organizerUser,
   eventName,
@@ -191,22 +171,27 @@ const buildDryRunBooking = ({
   allHostUsers: { id: number }[];
   isManagedEventType: boolean;
 }) => {
+  const sanitizedOrganizerUser = {
+    id: organizerUser.id,
+    name: organizerUser.name,
+    username: organizerUser.username,
+    email: organizerUser.email,
+    timeZone: organizerUser.timeZone,
+  };
   const booking = {
     id: -101,
     uid: "DRY_RUN_UID",
     iCalUID: "DRY_RUN_ICAL_UID",
     status: BookingStatus.ACCEPTED,
     eventTypeId: eventTypeId,
-    user: organizerUser,
-    userId: organizerUser.id,
+    user: sanitizedOrganizerUser,
+    userId: sanitizedOrganizerUser.id,
     title: eventName,
     startTime: new Date(startTime),
     endTime: new Date(endTime),
     createdAt: new Date(),
     updatedAt: new Date(),
     attendees: [],
-    references: [],
-    payment: [],
     oneTimePassword: null,
     smsReminderNumber: null,
     metadata: {},
@@ -217,25 +202,18 @@ const buildDryRunBooking = ({
     responses: null,
     location: null,
     paid: false,
-    destinationCalendar: null,
     cancellationReason: null,
     rejectionReason: null,
     dynamicEventSlugRef: null,
     dynamicGroupSlugRef: null,
-    rescheduledFrom: null,
     fromReschedule: null,
     recurringEventId: null,
-    seatsReferences: [],
-    workflowReminders: [],
     scheduledJobs: [],
-    rescheduledTo: null,
     rescheduledBy: null,
     destinationCalendarId: null,
     reassignReason: null,
     reassignById: null,
     rescheduled: false,
-    confirmed: false,
-    isRecurringEvent: false,
     isRecorded: false,
     iCalSequence: 0,
     rating: null,
@@ -243,7 +221,9 @@ const buildDryRunBooking = ({
     noShowHost: null,
     cancelledBy: null,
     creationSource: CreationSource.WEBAPP,
-  } as CreatedBooking;
+    references: [],
+    payment: [],
+  } satisfies ReturnTypeCreateBooking;
 
   /**
    * Troubleshooting data
@@ -346,7 +326,7 @@ async function handler(
 
   const isPlatformBooking = !!platformClientId;
 
-  const eventType = await monitorCallbackAsync(getEventType, {
+  const eventType = await getEventType({
     eventTypeId: rawBookingData.eventTypeId,
     eventTypeSlug: rawBookingData.eventTypeSlug,
   });
@@ -413,15 +393,63 @@ async function handler(
     });
   }
 
-  const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
+  const bookingSeat = reqBody.rescheduleUid ? await getSeatedBooking(reqBody.rescheduleUid) : null;
+  const rescheduleUid = bookingSeat ? bookingSeat.booking.uid : reqBody.rescheduleUid;
 
-  const isTeamEventType =
-    !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
+  let originalRescheduledBooking = rescheduleUid
+    ? await getOriginalRescheduledBooking(rescheduleUid, !!eventType.seatsPerTimeSlot)
+    : null;
 
   const paymentAppData = getPaymentAppData({
     ...eventType,
     metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
   });
+
+  const { userReschedulingIsOwner, isConfirmedByDefault } = await getRequiresConfirmationFlags({
+    eventType,
+    bookingStartTime: reqBody.start,
+    userId,
+    originalRescheduledBookingOrganizerId: originalRescheduledBooking?.user?.id,
+    paymentAppData,
+    bookerEmail,
+  });
+
+  // If a request already exists for the timeslot, return that request
+  if (!isConfirmedByDefault && !userReschedulingIsOwner) {
+    const requestedBooking = await getBookingRequest({
+      eventTypeId,
+      bookerEmail,
+      bookerPhoneNumber,
+      startTime: new Date(dayjs(reqBody.start).utc().format()),
+    });
+
+    if (requestedBooking) {
+      const bookingResponse = {
+        ...requestedBooking,
+        user: {
+          ...requestedBooking.user,
+          email: null,
+        },
+        paymentRequired: false,
+        seatReferenceUid: "",
+      };
+
+      return {
+        ...bookingResponse,
+        luckyUsers: bookingResponse.userId ? [bookingResponse.userId] : [],
+        isDryRun,
+        ...(isDryRun ? { troubleshooterData } : {}),
+        paymentUid: undefined,
+        paymentId: undefined,
+      };
+    }
+  }
+
+  const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
+
+  const isTeamEventType =
+    !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
+
   loggerWithEventDetails.info(
     `Booking eventType ${eventTypeId} started`,
     safeStringify({
@@ -502,22 +530,19 @@ async function handler(
     });
   }
 
-  const { qualifiedRRUsers, additionalFallbackRRUsers, fixedUsers } = await monitorCallbackAsync(
-    loadAndValidateUsers,
-    {
-      hostname,
-      forcedSlug,
-      isPlatform: isPlatformBooking,
-      eventType,
-      eventTypeId,
-      dynamicUserList,
-      logger: loggerWithEventDetails,
-      routedTeamMemberIds: routedTeamMemberIds ?? null,
-      contactOwnerEmail,
-      rescheduleUid: reqBody.rescheduleUid || null,
-      routingFormResponse,
-    }
-  );
+  const { qualifiedRRUsers, additionalFallbackRRUsers, fixedUsers } = await loadAndValidateUsers({
+    hostname,
+    forcedSlug,
+    isPlatform: isPlatformBooking,
+    eventType,
+    eventTypeId,
+    dynamicUserList,
+    logger: loggerWithEventDetails,
+    routedTeamMemberIds: routedTeamMemberIds ?? null,
+    contactOwnerEmail,
+    rescheduleUid: reqBody.rescheduleUid || null,
+    routingFormResponse,
+  });
 
   // We filter out users but ensure allHostUsers remain same.
   let users = [...qualifiedRRUsers, ...additionalFallbackRRUsers, ...fixedUsers];
@@ -530,18 +555,11 @@ async function handler(
     location,
   });
 
-  await monitorCallbackAsync(checkBookingAndDurationLimits, {
+  await checkBookingAndDurationLimits({
     eventType,
     reqBodyStart: reqBody.start,
     reqBodyRescheduleUid: reqBody.rescheduleUid,
   });
-
-  const bookingSeat = reqBody.rescheduleUid ? await getSeatedBooking(reqBody.rescheduleUid) : null;
-  const rescheduleUid = bookingSeat ? bookingSeat.booking.uid : reqBody.rescheduleUid;
-
-  let originalRescheduledBooking = rescheduleUid
-    ? await getOriginalRescheduledBooking(rescheduleUid, !!eventType.seatsPerTimeSlot)
-    : null;
 
   let luckyUserResponse;
   let isFirstSeat = true;
@@ -802,16 +820,7 @@ async function handler(
     : users[0];
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
-  const allCredentials = await getAllCredentials(organizerUser, eventType);
-
-  const { userReschedulingIsOwner, isConfirmedByDefault } = await getRequiresConfirmationFlags({
-    eventType,
-    bookingStartTime: reqBody.start,
-    userId,
-    originalRescheduledBookingOrganizerId: originalRescheduledBooking?.user?.id,
-    paymentAppData,
-    bookerEmail,
-  });
+  const allCredentials = await getAllCredentialsIncludeServiceAccountKey(organizerUser, eventType);
 
   // If the Organizer himself is rescheduling, the booker should be sent the communication in his timezone and locale.
   const attendeeInfoOnReschedule =
@@ -960,7 +969,7 @@ async function handler(
     // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
     host: organizerUser.name || "Nameless",
     location: bookingLocation,
-    eventDuration: eventType.length,
+    eventDuration: dayjs(reqBody.end).diff(reqBody.start, "minutes"),
     bookingFields: { ...responses },
     t: tOrganizer,
   };
@@ -1220,8 +1229,23 @@ async function handler(
     eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
     originalRescheduledBooking.userId !== evt.organizer.id;
 
-  const isLocationChanged =
-    !!originalRescheduledBooking && originalRescheduledBooking.location !== evt.location;
+  const isBookingRequestedReschedule =
+    !!originalRescheduledBooking &&
+    !!originalRescheduledBooking.rescheduled &&
+    originalRescheduledBooking.status === BookingStatus.CANCELLED;
+
+  if (
+    changedOrganizer &&
+    originalRescheduledBooking &&
+    originalRescheduledBooking?.user?.name &&
+    organizerUser?.name
+  ) {
+    evt.title = updateHostInEventName(
+      originalRescheduledBooking.title,
+      originalRescheduledBooking.user.name,
+      organizerUser.name
+    );
+  }
 
   let results: EventResult<AdditionalInformation & { url?: string; iCalUID?: string }>[] = [];
   let referencesToCreate: PartialReference[] = [];
@@ -1241,7 +1265,7 @@ async function handler(
 
   try {
     if (!isDryRun) {
-      booking = await monitorCallbackAsync(createBooking, {
+      booking = await createBooking({
         uid,
         rescheduledBy: reqBody.rescheduledBy,
         routingFormResponseId: routingFormResponseId,
@@ -1279,7 +1303,7 @@ async function handler(
       // If it's a round robin event, record the reason for the host assignment
       if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
         if (reqBody.crmOwnerRecordType && reqBody.crmAppSlug && contactOwnerEmail && routingFormResponseId) {
-          await monitorCallbackAsync(AssignmentReasonRecorder.CRMOwnership, {
+          await AssignmentReasonRecorder.CRMOwnership({
             bookingId: booking.id,
             crmAppSlug: reqBody.crmAppSlug,
             teamMemberEmail: contactOwnerEmail,
@@ -1287,7 +1311,7 @@ async function handler(
             routingFormResponseId,
           });
         } else if (routingFormResponseId && teamId) {
-          await monitorCallbackAsync(AssignmentReasonRecorder.routingFormRoute, {
+          await AssignmentReasonRecorder.routingFormRoute({
             bookingId: booking.id,
             routingFormResponseId,
             organizerId: organizerUser.id,
@@ -1348,6 +1372,7 @@ async function handler(
         allHostUsers: users,
         isManagedEventType,
       });
+
       booking = dryRunBooking;
       troubleshooterData = {
         ...troubleshooterData,
@@ -1362,13 +1387,13 @@ async function handler(
       err.message
     );
     if (err.code === "P2002") {
-      throw new HttpError({ statusCode: 409, message: "booking_conflict" });
+      throw new HttpError({ statusCode: 409, message: ErrorCode.BookingConflict });
     }
     throw err;
   }
 
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
-  const credentials = await monitorCallbackAsync(refreshCredentials, allCredentials);
+  const credentials = await refreshCredentials(allCredentials);
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
   const eventManager = !isDryRun
     ? new EventManager({ ...organizerUser, credentials }, apps)
@@ -1390,7 +1415,6 @@ async function handler(
       : [];
 
     if (changedOrganizer) {
-      evt.title = getEventName(eventNameObject);
       // location might changed and will be new created in eventManager.create (organizer default location)
       evt.videoCallData = undefined;
       // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
@@ -1411,7 +1435,8 @@ async function handler(
       originalRescheduledBooking.uid,
       undefined,
       changedOrganizer,
-      previousHostDestinationCalendar
+      previousHostDestinationCalendar,
+      isBookingRequestedReschedule
     );
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
@@ -1749,8 +1774,7 @@ async function handler(
         );
 
         if (!isDryRun) {
-          await monitorCallbackAsync(
-            sendScheduledEmailsAndSMS,
+          await sendScheduledEmailsAndSMS(
             {
               ...evt,
               additionalInformation,
@@ -1791,13 +1815,8 @@ async function handler(
       })
     );
     if (!isDryRun) {
-      await monitorCallbackAsync(sendOrganizerRequestEmail, { ...evt, additionalNotes }, eventType.metadata);
-      await monitorCallbackAsync(
-        sendAttendeeRequestEmailAndSMS,
-        { ...evt, additionalNotes },
-        attendeesList[0],
-        eventType.metadata
-      );
+      await sendOrganizerRequestEmail({ ...evt, additionalNotes }, eventType.metadata);
+      await sendAttendeeRequestEmailAndSMS({ ...evt, additionalNotes }, attendeesList[0], eventType.metadata);
     }
   }
 
@@ -1920,11 +1939,8 @@ async function handler(
 
   // We are here so, booking doesn't require payment and booking is also created in DB already, through createBooking call
   if (isConfirmedByDefault) {
-    const subscribersMeetingEnded = await monitorCallbackAsync(getWebhooks, subscriberOptionsMeetingEnded);
-    const subscribersMeetingStarted = await monitorCallbackAsync(
-      getWebhooks,
-      subscriberOptionsMeetingStarted
-    );
+    const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
+    const subscribersMeetingStarted = await getWebhooks(subscriberOptionsMeetingStarted);
 
     let deleteWebhookScheduledTriggerPromise: Promise<unknown> = Promise.resolve();
     const scheduleTriggerPromises = [];
@@ -1975,7 +1991,7 @@ async function handler(
     });
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-    await monitorCallbackAsync(handleWebhookTrigger, {
+    await handleWebhookTrigger({
       subscriberOptions,
       eventTrigger,
       webhookData,
@@ -1986,7 +2002,7 @@ async function handler(
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
     subscriberOptions.triggerEvent = eventTrigger;
     webhookData.status = "PENDING";
-    await monitorCallbackAsync(handleWebhookTrigger, {
+    await handleWebhookTrigger({
       subscriberOptions,
       eventTrigger,
       webhookData,
@@ -2050,7 +2066,7 @@ async function handler(
   }
 
   try {
-    await monitorCallbackAsync(scheduleWorkflowReminders, {
+    await scheduleWorkflowReminders({
       workflows,
       smsReminderNumber: smsReminderNumber || null,
       calendarEvent: evtWithMetadata,
@@ -2069,7 +2085,7 @@ async function handler(
 
   try {
     if (isConfirmedByDefault) {
-      await monitorCallbackAsync(scheduleNoShowTriggers, {
+      await scheduleNoShowTriggers({
         booking: { startTime: booking.startTime, id: booking.id, location: booking.location },
         triggerForUser,
         organizerUser: { id: organizerUser.id },

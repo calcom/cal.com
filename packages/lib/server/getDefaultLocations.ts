@@ -1,7 +1,7 @@
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
-import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeLocation } from "@calcom/prisma/zod/custom/eventtype";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -17,7 +17,8 @@ export async function getDefaultLocations(user: User): Promise<EventTypeLocation
   const defaultConferencingData = userMetadataSchema.parse(user.metadata)?.defaultConferencingApp;
 
   if (defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
-    const credentials = await getUsersCredentials(user);
+    // We are not returning the credential, so we are fine with the service account key
+    const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
 
     const foundApp = getApps(credentials, true).filter(
       (app) => app.slug === defaultConferencingData.appSlug
