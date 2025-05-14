@@ -13,14 +13,14 @@ type Permission = `${Resource}.${Action}`;
 ```
 
 ### Role Types
-1. **Default Roles** (MembershipRole)
+1. **Default Roles** (MembershipRole) (TODO) - We need to make a list of what permissions these get by default.
    - OWNER: Full access (`*.*`)
    - ADMIN: Extensive management permissions
    - MEMBER: Basic read permissions
 
 2. **Custom Roles**
    - Team-specific roles with granular permissions
-   - Can be assigned alongside default roles
+   - Can be assigned alongside default roles (For now - until we have a seeder or something)
 
 ## Usage Guide
 
