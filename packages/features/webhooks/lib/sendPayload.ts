@@ -91,6 +91,7 @@ export type EventPayloadType = CalendarEvent &
     rescheduledBy?: string;
     cancelledBy?: string;
     paymentData?: Payment;
+    routing_reason?: string;
   };
 
 export type WebhookPayloadType = EventPayloadType | OOOEntryPayloadType | BookingNoShowUpdatedPayload;
@@ -140,6 +141,7 @@ function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt
     location: location,
     status: data.status,
     cancellationReason: data.cancellationReason,
+    routing_reason: data.routing_reason,
     user: {
       username: data.organizer.username,
       name: data.organizer.name,

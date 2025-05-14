@@ -34,6 +34,7 @@ export const getWebhookPayloadForBooking = ({
     ...evt,
     ...eventTypeInfo,
     bookingId: booking.id,
+    routing_reason: booking.assignmentReason?.[0]?.reasonString,
   };
 
   return payload;
