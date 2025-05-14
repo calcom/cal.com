@@ -91,7 +91,7 @@ export type EventPayloadType = CalendarEvent &
     rescheduledBy?: string;
     cancelledBy?: string;
     paymentData?: Payment;
-    routing_reason?: string;
+    routing_reason?: string | null;
   };
 
 export type WebhookPayloadType = EventPayloadType | OOOEntryPayloadType | BookingNoShowUpdatedPayload;
