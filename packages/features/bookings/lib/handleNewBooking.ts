@@ -85,6 +85,10 @@ import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsFo
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
+import {
+  createCalendarSync,
+  getReferencesToCreateSupportingCalendarSync,
+} from "./handleNewBooking/calendarSync";
 import { checkBookingAndDurationLimits } from "./handleNewBooking/checkBookingAndDurationLimits";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
 import { createBooking } from "./handleNewBooking/createBooking";
@@ -2026,6 +2030,20 @@ async function handler(
 
   try {
     if (!isDryRun) {
+      const { calendarSync, calendarEventId } = await createCalendarSync({
+        results,
+        organizer: {
+          id: organizerUser.id,
+          organizationId: organizerOrganizationId ?? null,
+        },
+      });
+
+      const referencesToCreateSupportingCalendarSync = getReferencesToCreateSupportingCalendarSync({
+        referencesToCreate,
+        calendarSyncId: calendarSync?.id ?? null,
+        calendarEventId,
+      });
+
       await prisma.booking.update({
         where: {
           uid: booking.uid,
@@ -2035,14 +2053,18 @@ async function handler(
           metadata: { ...(typeof booking.metadata === "object" && booking.metadata), ...metadata },
           references: {
             createMany: {
-              data: referencesToCreate,
+              data: referencesToCreateSupportingCalendarSync,
             },
           },
         },
       });
     }
+    // TODO: Attach bookingReferenceId as well to calendarSync
   } catch (error) {
-    loggerWithEventDetails.error("Error while creating booking references", JSON.stringify({ error }));
+    loggerWithEventDetails.error(
+      "Error while updating booking references or calendarSyncs",
+      safeStringify(error)
+    );
   }
 
   const evtWithMetadata = {

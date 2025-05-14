@@ -1,5 +1,6 @@
 import type { NextApiRequest } from "next";
 
+import { CalendarSubscriptionRepository } from "@calcom/features/calendar-sync/calendarSubscription.repository";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
@@ -60,6 +61,15 @@ function getUniqueCalendarsByExternalId<
 const handleCalendarsToUnwatch = async () => {
   const calendarsToUnwatch = await SelectedCalendarRepository.getNextBatchToUnwatch(500);
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToUnwatch);
+  const calendarSubscriptions = await CalendarSubscriptionRepository.findMany({
+    where: {
+      integration: "google_calendar",
+      externalCalendarId: {
+        in: Object.keys(calendarsWithEventTypeIdsGroupedTogether),
+      },
+    },
+  });
+  const calendarSubscriptionMap = new Map(calendarSubscriptions.map((cs) => [cs.externalCalendarId, cs]));
   const result = await Promise.allSettled(
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
       async ([externalId, { eventTypeIds, credentialId, id }]) => {
@@ -76,7 +86,12 @@ const handleCalendarsToUnwatch = async () => {
 
         try {
           const cc = await CalendarCache.initFromCredentialId(credentialId);
-          await cc.unwatchCalendar({ calendarId: externalId, eventTypeIds });
+          const calendarSubscription = calendarSubscriptionMap.get(externalId);
+          await cc.unwatchCalendar({
+            calendarId: externalId,
+            eventTypeIds,
+            calendarSubscription: calendarSubscription ?? null,
+          });
         } catch (error) {
           let errorMessage = "Unknown error";
           if (error instanceof Error) {
@@ -97,6 +112,16 @@ const handleCalendarsToUnwatch = async () => {
 const handleCalendarsToWatch = async () => {
   const calendarsToWatch = await SelectedCalendarRepository.getNextBatchToWatch(500);
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToWatch);
+  const calendarSubscriptions = await CalendarSubscriptionRepository.findMany({
+    where: {
+      integration: "google_calendar",
+      externalCalendarId: {
+        in: Object.keys(calendarsWithEventTypeIdsGroupedTogether),
+      },
+    },
+  });
+
+  const calendarSubscriptionMap = new Map(calendarSubscriptions.map((cs) => [cs.externalCalendarId, cs]));
   const result = await Promise.allSettled(
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
       async ([externalId, { credentialId, eventTypeIds, id }]) => {
@@ -111,7 +136,12 @@ const handleCalendarsToWatch = async () => {
 
         try {
           const cc = await CalendarCache.initFromCredentialId(credentialId);
-          await cc.watchCalendar({ calendarId: externalId, eventTypeIds });
+          const calendarSubscription = calendarSubscriptionMap.get(externalId);
+          await cc.watchCalendar({
+            calendarId: externalId,
+            eventTypeIds,
+            calendarSubscription: calendarSubscription ?? null,
+          });
         } catch (error) {
           let errorMessage = "Unknown error";
           if (error instanceof Error) {
