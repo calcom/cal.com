@@ -82,7 +82,7 @@ export class SlotsController_2024_09_04 {
       Optional parameters are:
       - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.
       - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.
-      - slotFormat: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use "range" as value.
+      - format: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use "range" as value.
       `,
   })
   @ApiQuery({
@@ -99,7 +99,7 @@ export class SlotsController_2024_09_04 {
     example: "60",
   })
   @ApiQuery({
-    name: "slotFormat",
+    name: "format",
     required: false,
     description:
       "Format of slot times in response. Use 'range' to get start and end times. Use 'time' or omit this query parameter to get only start time.",
