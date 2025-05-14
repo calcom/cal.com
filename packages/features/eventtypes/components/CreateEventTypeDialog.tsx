@@ -95,9 +95,7 @@ export default function CreateEventTypeDialog({
     return (
       <DialogFooter showDivider>
         <DialogClose />
-        <Button type="submit" loading={isPending}>
-          {t("continue")}
-        </Button>
+        <Button loading={isPending}>{t("continue")}</Button>
       </DialogFooter>
     );
   };
