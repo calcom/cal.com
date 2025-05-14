@@ -86,7 +86,7 @@
     "uuid": "^8.3.2",
     "winston": "^3.13.0",
     "winston-transport": "^4.7.0",
-    "zod": "^4.5.0"
+    "zod": "^4.0.0-beta.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

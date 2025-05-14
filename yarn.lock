@@ -2588,7 +2588,7 @@ __metadata:
     uuid: ^8.3.2
     winston: ^3.13.0
     winston-transport: ^4.7.0
-    zod: ^3.22.4
+    zod: ^4.0.0-beta.1
   languageName: unknown
   linkType: soft
 
@@ -2617,7 +2617,7 @@ __metadata:
     typescript: ^4.9.4
     tzdata: ^1.0.30
     uuid: ^8.3.2
-    zod: ^3.22.4
+    zod: ^4.0.0-beta.1
   languageName: unknown
   linkType: soft
 
@@ -2946,7 +2946,7 @@ __metadata:
     "@sendgrid/mail": ^7.6.2
     libphonenumber-js: ^1.11.18
     twilio: ^3.80.1
-    zod: ^3.22.4
+    zod: ^4.0.0-beta.1
   languageName: unknown
   linkType: soft
 
@@ -3648,7 +3648,7 @@ __metadata:
     prisma: ^5.4.2
     prisma-kysely: ^1.7.1
     ts-node: ^10.9.1
-    zod: ^3.22.4
+    zod: ^4.0.0-beta.1
     zod-prisma: ^0.5.4
   languageName: unknown
   linkType: soft
@@ -3800,7 +3800,7 @@ __metadata:
     stripe: ^9.16.0
     ts-node: ^10.9.1
     uuid: ^8.3.2
-    zod: ^3.22.4
+    zod: ^4.0.0-beta.1
   languageName: unknown
   linkType: soft
 
@@ -3892,7 +3892,7 @@ __metadata:
     "@trpc/server": 11.0.0-next-beta.222
     superjson: 1.9.1
     typescript: ^5.8.2
-    zod: ^3.22.4
+    zod: ^4.0.0-beta.1
   languageName: unknown
   linkType: soft
 
@@ -4173,7 +4173,7 @@ __metadata:
     turndown: ^7.1.3
     typescript: ^4.9.4
     uuid: ^8.3.2
-    zod: ^3.22.4
+    zod: ^4.0.0-beta.1
   languageName: unknown
   linkType: soft
 
@@ -19648,6 +19648,13 @@ __metadata:
   version: 4.2.2
   resolution: "@xtuc/long@npm:4.2.2"
   checksum: 8ed0d477ce3bc9c6fe2bf6a6a2cc316bb9c4127c5a7827bae947fa8ec34c7092395c5a283cc300c05b5fa01cbbfa1f938f410a7bf75db7c7846fea41949989ec
+  languageName: node
+  linkType: hard
+
+"@zod/core@npm:0.11.6":
+  version: 0.11.6
+  resolution: "@zod/core@npm:0.11.6"
+  checksum: 1f169693cfc3cac4ada1af2b5f098dbad761af3cb04428a587bc77465be16481c9bd7fd8b14592b1a9b62392baac25a94fba6e51f4e49344e7d1782531b5c91d
   languageName: node
   linkType: hard
 
@@ -48348,6 +48355,15 @@ __metadata:
   version: 3.24.2
   resolution: "zod@npm:3.24.2"
   checksum: c02455c09678c5055c636d64f9fcda2424fea0aa46ac7d9681e7f41990bc55f488bcd84b9d7cfef0f6e906f51f55b245239d92a9f726248aa74c5b84edf00c2d
+  languageName: node
+  linkType: hard
+
+"zod@npm:^4.0.0-beta.1":
+  version: 4.0.0-beta.20250505T195954
+  resolution: "zod@npm:4.0.0-beta.20250505T195954"
+  dependencies:
+    "@zod/core": 0.11.6
+  checksum: 1cd906e8a2be29cc71a67ed79b31f625e23bd4174b35f1337b196d57dec35a44b3d629e622e7688506033de906a287925020223b16d774bbf48a2550a99c1264
   languageName: node
   linkType: hard
 
