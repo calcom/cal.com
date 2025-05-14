@@ -141,7 +141,7 @@ export default class AssignmentReasonRecorder {
     teamMemberEmail: string;
     recordType: string;
     routingFormResponseId: number;
-  }) {
+  }): Promise<AssignmentReason | undefined> {
     const appAssignmentReasonHandler = (await import("./appAssignmentReasonHandler")).default;
     const appHandler = appAssignmentReasonHandler[crmAppSlug];
     if (!appHandler) return;
@@ -150,13 +150,15 @@ export default class AssignmentReasonRecorder {
 
     if (!crmRoutingReason || !crmRoutingReason.assignmentReason) return;
 
-    await prisma.assignmentReason.create({
+    const assignmentReason = await prisma.assignmentReason.create({
       data: {
         bookingId,
         reasonEnum: crmRoutingReason.reasonEnum,
         reasonString: crmRoutingReason.assignmentReason,
       },
     });
+
+    return assignmentReason;
   }
   static roundRobinReassignment = withReporting(
     AssignmentReasonRecorder._roundRobinReassignment,
