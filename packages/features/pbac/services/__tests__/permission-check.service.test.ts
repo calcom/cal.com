@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import type { MembershipRole } from "@calcom/prisma/enums";
 

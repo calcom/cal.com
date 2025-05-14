@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import type { PermissionString } from "../../types/permission-registry";
 import { RoleService } from "../role.service";
@@ -268,6 +268,10 @@ describe("RoleService", () => {
     const membershipId = 123;
     const roleId = "role-id";
 
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
     it("should change user's role successfully", async () => {
       const mockRole = {
         id: roleId,
@@ -310,18 +314,20 @@ describe("RoleService", () => {
 
     it("should throw error if role does not exist", async () => {
       vi.mocked(prisma.role.findUnique).mockResolvedValueOnce(null);
+      vi.mocked(prisma.rolePermission.findMany).mockResolvedValueOnce([]);
 
       await expect(service.changeUserRole(membershipId, roleId)).rejects.toThrow("Role not found");
-      expect(prisma.membership.update).not.toHaveBeenCalled();
     });
 
     it("should verify role exists before updating membership", async () => {
       vi.mocked(prisma.role.findUnique).mockResolvedValueOnce(null);
+      vi.mocked(prisma.rolePermission.findMany).mockResolvedValueOnce([]);
 
       await expect(service.changeUserRole(membershipId, roleId)).rejects.toThrow("Role not found");
       expect(prisma.role.findUnique).toHaveBeenCalledWith({
         where: { id: roleId },
       });
+      // Since role doesn't exist, membership.update should not be called
       expect(prisma.membership.update).not.toHaveBeenCalled();
     });
 
