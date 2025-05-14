@@ -185,6 +185,7 @@ const nextConfig = {
     "formidable", // Dependencies of akismet
   ],
   env: {
+    // set by Taurify
     TAURI_PLATFORM: process.env.TAURI_PLATFORM,
   },
   experimental: {

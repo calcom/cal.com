@@ -10,7 +10,7 @@ import AppProviders from "@lib/app-providers-app-dir";
 
 let MaybeTaurifyTrayIconComponent: React.ComponentType | null = null;
 
-if (process.env.TAURI_PLATFORM) {
+if (typeof window !== "undefined" && process.env.TAURI_PLATFORM) {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   MaybeTaurifyTrayIconComponent = require("@components/Tauri/TrayIcon").TrayIconComponent;
 }
