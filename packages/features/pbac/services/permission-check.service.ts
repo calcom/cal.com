@@ -1,15 +1,25 @@
+import type { PrismaClient } from "@prisma/client";
+
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import type { PermissionString, Resource, CrudAction, CustomAction } from "../types/permission-registry";
 import type { RoleService } from "./role.service";
 
 export class PermissionCheckService {
-  constructor(private roleService: RoleService) {}
+  private prisma: PrismaClient;
+
+  constructor(private roleService: RoleService, prisma: PrismaClient) {
+    this.prisma = prisma;
+  }
 
   async hasPermission(
-    membership: { role: MembershipRole; customRoleId: string | null },
+    params: { membershipId: number } | { userId: number; teamId: number },
     permission: PermissionString
   ): Promise<boolean> {
+    // Get membership either directly or by userId+teamId
+    const membership = await this.getMembership(params);
+    if (!membership) return false;
+
     // First check if user has a custom role
     if (membership.customRoleId) {
       const hasCustomPermission = await this.checkCustomRolePermission(membership.customRoleId, permission);
@@ -18,6 +28,53 @@ export class PermissionCheckService {
 
     // Fall back to default role permissions
     return this.checkDefaultRolePermission(membership.role, permission);
+  }
+
+  async hasPermissions(
+    params: { membershipId: number } | { userId: number; teamId: number },
+    permissions: PermissionString[]
+  ): Promise<boolean> {
+    // Get membership either directly or by userId+teamId
+    const membership = await this.getMembership(params);
+    if (!membership) return false;
+
+    // Check all permissions (AND condition)
+    for (const permission of permissions) {
+      // Check custom role first
+      if (membership.customRoleId) {
+        const hasCustomPermission = await this.checkCustomRolePermission(membership.customRoleId, permission);
+        if (hasCustomPermission) continue;
+      }
+
+      // Fall back to default role permission
+      const hasDefaultPermission = this.checkDefaultRolePermission(membership.role, permission);
+      if (!hasDefaultPermission) return false;
+    }
+
+    return true;
+  }
+
+  private async getMembership(params: { membershipId: number } | { userId: number; teamId: number }) {
+    if ("membershipId" in params) {
+      return this.prisma.membership.findUnique({
+        where: { id: params.membershipId },
+        select: {
+          role: true,
+          customRoleId: true,
+        },
+      });
+    } else {
+      return this.prisma.membership.findFirst({
+        where: {
+          userId: params.userId,
+          teamId: params.teamId,
+        },
+        select: {
+          role: true,
+          customRoleId: true,
+        },
+      });
+    }
   }
 
   private checkDefaultRolePermission(role: MembershipRole, permission: PermissionString): boolean {

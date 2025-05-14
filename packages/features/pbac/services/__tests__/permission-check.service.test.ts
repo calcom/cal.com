@@ -15,66 +15,138 @@ const prisma = {
     findMany: vi.fn(),
   },
   membership: {
+    findUnique: vi.fn(),
     findFirst: vi.fn(),
   },
 } as unknown as PrismaClient;
 
 describe("PermissionCheckService", () => {
   const roleService = new RoleService(prisma);
-  const service = new PermissionCheckService(roleService);
+  const service = new PermissionCheckService(roleService, prisma);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   describe("hasPermission", () => {
-    it("should return true for admin role", async () => {
+    it("should check permission by membershipId", async () => {
       const membership = {
+        id: 1,
+        teamId: 1,
+        userId: 1,
+        accepted: true,
         role: "ADMIN" as MembershipRole,
         customRoleId: null,
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
 
-      const result = await service.hasPermission(membership, "eventType.create");
+      vi.mocked(prisma.membership.findUnique).mockResolvedValueOnce(membership);
+
+      const result = await service.hasPermission({ membershipId: 1 }, "eventType.create");
       expect(result).toBe(true);
     });
 
-    it("should check default role permissions", async () => {
+    it("should check permission by userId and teamId", async () => {
       const membership = {
+        id: 1,
+        teamId: 1,
+        userId: 1,
+        accepted: true,
         role: "MEMBER" as MembershipRole,
         customRoleId: null,
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
 
-      const result = await service.hasPermission(membership, "eventType.read");
+      vi.mocked(prisma.membership.findFirst).mockResolvedValueOnce(membership);
+
+      const result = await service.hasPermission({ userId: 1, teamId: 1 }, "eventType.read");
       expect(result).toBe(true);
+    });
+
+    it("should return false if membership not found", async () => {
+      vi.mocked(prisma.membership.findUnique).mockResolvedValueOnce(null);
+
+      const result = await service.hasPermission({ membershipId: 999 }, "eventType.create");
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("hasPermissions", () => {
+    it("should check multiple permissions (AND condition)", async () => {
+      const membership = {
+        id: 1,
+        teamId: 1,
+        userId: 1,
+        accepted: true,
+        role: "ADMIN" as MembershipRole,
+        customRoleId: null,
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      vi.mocked(prisma.membership.findUnique).mockResolvedValueOnce(membership);
+
+      const result = await service.hasPermissions({ membershipId: 1 }, ["eventType.create", "team.invite"]);
+      expect(result).toBe(true);
+    });
+
+    it("should return false if any permission is missing", async () => {
+      const membership = {
+        id: 1,
+        teamId: 1,
+        userId: 1,
+        accepted: true,
+        role: "MEMBER" as MembershipRole,
+        customRoleId: null,
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      vi.mocked(prisma.membership.findFirst).mockResolvedValueOnce(membership);
+
+      const result = await service.hasPermissions({ userId: 1, teamId: 1 }, [
+        "eventType.read",
+        "eventType.create",
+      ]);
+      expect(result).toBe(false);
     });
 
     it("should check custom role permissions", async () => {
       const membership = {
+        id: 1,
+        teamId: 1,
+        userId: 1,
+        accepted: true,
         role: "MEMBER" as MembershipRole,
         customRoleId: "custom-role-id",
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
 
-      vi.mocked(prisma.role.findUnique).mockResolvedValueOnce({
+      const customRole = {
         id: "custom-role-id",
-        name: "Custom Role",
-        teamId: 1,
-      } as any);
-
-      vi.mocked(prisma.rolePermission.findMany).mockResolvedValueOnce([
-        { resource: "eventType", action: "create" },
-        { resource: "eventType", action: "read" },
-      ] as any);
-
-      const result = await service.hasPermission(membership, "eventType.create");
-      expect(result).toBe(true);
-    });
-
-    it("should return false for non-existent membership", async () => {
-      const membership = {
-        role: "MEMBER" as MembershipRole,
-        customRoleId: null,
+        permissions: [
+          { resource: "eventType", action: "create" },
+          { resource: "eventType", action: "read" },
+        ],
       };
 
-      vi.mocked(prisma.role.findUnique).mockResolvedValueOnce(null);
+      vi.mocked(prisma.membership.findUnique).mockResolvedValueOnce(membership);
+      vi.mocked(prisma.role.findUnique).mockResolvedValue(customRole as any);
+      vi.mocked(prisma.rolePermission.findMany).mockResolvedValue(customRole.permissions as any);
 
-      const result = await service.hasPermission(membership, "eventType.create");
-      expect(result).toBe(false);
+      const result = await service.hasPermissions({ membershipId: 1 }, [
+        "eventType.create",
+        "eventType.read",
+      ]);
+      expect(result).toBe(true);
     });
   });
 

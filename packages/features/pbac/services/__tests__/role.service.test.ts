@@ -263,4 +263,97 @@ describe("RoleService", () => {
       });
     });
   });
+
+  describe("changeUserRole", () => {
+    const membershipId = 123;
+    const roleId = "role-id";
+
+    it("should change user's role successfully", async () => {
+      const mockRole = {
+        id: roleId,
+        name: "Test Role",
+        teamId: 1,
+      };
+
+      const mockPermissions = [
+        { roleId, resource: "eventType", action: "create" },
+        { roleId, resource: "eventType", action: "read" },
+      ];
+
+      const mockUpdatedMembership = {
+        id: membershipId,
+        customRoleId: roleId,
+        customRole: {
+          ...mockRole,
+          permissions: mockPermissions,
+        },
+      };
+
+      vi.mocked(prisma.role.findUnique).mockResolvedValueOnce(mockRole as any);
+      vi.mocked(prisma.rolePermission.findMany).mockResolvedValueOnce(mockPermissions as any);
+      vi.mocked(prisma.membership.update).mockResolvedValueOnce(mockUpdatedMembership as any);
+
+      const result = await service.changeUserRole(membershipId, roleId);
+      expect(result).toEqual(mockUpdatedMembership);
+      expect(prisma.membership.update).toHaveBeenCalledWith({
+        where: { id: membershipId },
+        data: { customRoleId: roleId },
+        include: {
+          customRole: {
+            include: {
+              permissions: true,
+            },
+          },
+        },
+      });
+    });
+
+    it("should throw error if role does not exist", async () => {
+      vi.mocked(prisma.role.findUnique).mockResolvedValueOnce(null);
+
+      await expect(service.changeUserRole(membershipId, roleId)).rejects.toThrow("Role not found");
+      expect(prisma.membership.update).not.toHaveBeenCalled();
+    });
+
+    it("should verify role exists before updating membership", async () => {
+      vi.mocked(prisma.role.findUnique).mockResolvedValueOnce(null);
+
+      await expect(service.changeUserRole(membershipId, roleId)).rejects.toThrow("Role not found");
+      expect(prisma.role.findUnique).toHaveBeenCalledWith({
+        where: { id: roleId },
+      });
+      expect(prisma.membership.update).not.toHaveBeenCalled();
+    });
+
+    it("should include role permissions in response", async () => {
+      const mockRole = {
+        id: roleId,
+        name: "Test Role",
+        teamId: 1,
+      };
+
+      const mockPermissions = [
+        { roleId, resource: "eventType", action: "create" },
+        { roleId, resource: "eventType", action: "read" },
+        { roleId, resource: "team", action: "invite" },
+      ];
+
+      const mockUpdatedMembership = {
+        id: membershipId,
+        customRoleId: roleId,
+        customRole: {
+          ...mockRole,
+          permissions: mockPermissions,
+        },
+      };
+
+      vi.mocked(prisma.role.findUnique).mockResolvedValueOnce(mockRole as any);
+      vi.mocked(prisma.rolePermission.findMany).mockResolvedValueOnce(mockPermissions as any);
+      vi.mocked(prisma.membership.update).mockResolvedValueOnce(mockUpdatedMembership as any);
+
+      const result = await service.changeUserRole(membershipId, roleId);
+      expect(result.customRole!.permissions).toHaveLength(3);
+      expect(result.customRole!.permissions).toEqual(mockPermissions);
+    });
+  });
 });

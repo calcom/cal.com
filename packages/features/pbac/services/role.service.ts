@@ -69,6 +69,26 @@ export class RoleService {
     });
   }
 
+  async changeUserRole(membershipId: number, roleId: string) {
+    // Verify role exists first
+    const role = await this.getRole(roleId);
+    if (!role) {
+      throw new Error("Role not found");
+    }
+
+    return this.prisma.membership.update({
+      where: { id: membershipId },
+      data: { customRoleId: roleId },
+      include: {
+        customRole: {
+          include: {
+            permissions: true,
+          },
+        },
+      },
+    });
+  }
+
   async deleteRole(roleId: string) {
     return this.prisma.$transaction(async (tx) => {
       // Delete permissions first
