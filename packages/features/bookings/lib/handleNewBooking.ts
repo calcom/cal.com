@@ -929,7 +929,15 @@ async function handler(
 
   // Organizer or user owner of this event type it's not listed as a team member.
   const teamMemberPromises = users
-    .filter((user) => user.email !== organizerUser.email)
+    .filter((user) => {
+      if (user.email === organizerUser.email) return false;
+
+      // Skip non-fixed users in ROUND_ROBIN team event
+      if (isTeamEventType && eventType.schedulingType === SchedulingType.ROUND_ROBIN && !user.isFixed)
+        return false;
+
+      return true;
+    })
     .map(async (user) => {
       // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
       // push to teamDestinationCalendars if it's a team event but collective only
