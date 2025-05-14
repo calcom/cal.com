@@ -1852,7 +1852,7 @@ async function handler(
     status: "ACCEPTED",
     smsReminderNumber: booking?.smsReminderNumber || undefined,
     rescheduledBy: reqBody.rescheduledBy,
-    routing_reason: booking?.assignmentReason?.[0]?.reasonString,
+    routing_reason: booking?.reassignReason,
   };
 
   if (bookingRequiresPayment) {

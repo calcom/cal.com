@@ -18,9 +18,7 @@ export const getWebhookPayloadForBooking = ({
     id: number;
     eventTypeId: number | null;
     userId: number | null;
-    assignmentReason?: {
-      reasonString: string;
-    }[];
+    reassignReason?: string;
   };
   evt: CalendarEvent;
 }) => {
@@ -37,7 +35,7 @@ export const getWebhookPayloadForBooking = ({
     ...evt,
     ...eventTypeInfo,
     bookingId: booking.id,
-    routing_reason: booking.assignmentReason?.[0]?.reasonString,
+    routing_reason: booking.reassignReason,
   };
 
   return payload;
