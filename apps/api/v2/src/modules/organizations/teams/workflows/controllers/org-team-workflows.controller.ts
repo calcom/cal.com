@@ -1,6 +1,7 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
@@ -9,15 +10,27 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsRoutingFormInTeam } from "@/modules/auth/guards/routing-forms/is-routing-form-in-team.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
-import { GetRoutingFormResponsesParams } from "@/modules/organizations/routing-forms/inputs/get-routing-form-responses-params.input";
-import { UpdateRoutingFormResponseInput } from "@/modules/organizations/routing-forms/inputs/update-routing-form-response.input";
-import { UpdateRoutingFormResponseOutput } from "@/modules/organizations/routing-forms/outputs/update-routing-form-response.output";
-import { GetRoutingFormResponsesOutput } from "@/modules/organizations/teams/routing-forms/outputs/get-routing-form-responses.output";
-import { OrganizationsTeamsRoutingFormsResponsesService } from "@/modules/organizations/teams/routing-forms/services/organizations-teams-routing-forms-responses.service";
-import { Controller, Get, Patch, Param, ParseIntPipe, Query, UseGuards, Body } from "@nestjs/common";
+import { IsWorkflowInTeam } from "@/modules/auth/guards/workflows/is-workflow-in-team";
+import { UserWithProfile } from "@/modules/users/users.repository";
+import { CreateWorkflowDto } from "@/modules/workflows/inputs/create-workflow.input";
+import { GetWorkflowOutput, GetWorkflowsOutput } from "@/modules/workflows/outputs/workflow.output";
+import { TeamWorkflowsService } from "@/modules/workflows/services/team-workflows.service";
+import {
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Param,
+  ParseIntPipe,
+  Query,
+  UseGuards,
+  Body,
+  Delete,
+} from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams/:teamId/workflows",
@@ -35,34 +48,78 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 )
 @ApiHeader(API_KEY_HEADER)
 export class OrganizationsTeamsRoutingFormsResponsesController {
-  constructor(
-    private readonly organizationsTeamsRoutingFormsResponsesService: OrganizationsTeamsRoutingFormsResponsesService
-  ) {}
+  constructor(private readonly workflowsService: TeamWorkflowsService) {}
 
   @Get("/")
   @ApiOperation({ summary: "Get organization team workflows" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  async getRoutingFormResponses(
+  async getWorkflows(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Query() queryParams: GetRoutingFormResponsesParams
-  ): Promise<boolean> {
-    const { skip, take, ...filters } = queryParams;
+    @Query() queryParams: SkipTakePagination
+  ): Promise<GetWorkflowsOutput> {
+    const { skip, take } = queryParams;
 
-    return false;
+    const workflows = await this.workflowsService.getTeamWorkflows(teamId, skip ?? 0, take ?? 250);
+
+    return { data: workflows, status: SUCCESS_STATUS };
   }
 
-  @Patch("/:workflowId")
+  @Get("/:workflowId")
+  @UseGuards(IsWorkflowInTeam)
+  @ApiOperation({ summary: "Get organization team workflows" })
+  @Roles("TEAM_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  async getWorkflowById(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @Param("workflowId", ParseIntPipe) workflowId: number
+  ): Promise<GetWorkflowOutput> {
+    const workflow = await this.workflowsService.getTeamWorkflowById(teamId, workflowId);
+
+    return { data: workflow, status: SUCCESS_STATUS };
+  }
+
+  @Post("/")
   @ApiOperation({ summary: "Update workflows" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  async updateRoutingFormResponse(
+  async createWorkflow(
+    @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("workflowId") workflowId: number,
-    @Param("responseId", ParseIntPipe) responseId: number,
-    @Body() updateRoutingFormResponseInput: UpdateRoutingFormResponseInput
-  ): Promise<boolean> {
-    return false;
+    @Body() data: CreateWorkflowDto
+  ): Promise<Promise<GetWorkflowOutput>> {
+    const workflow = await this.workflowsService.createTeamWorkflow(user, teamId, data);
+    return { data: workflow, status: SUCCESS_STATUS };
+  }
+
+  @Patch("/:workflowId")
+  @UseGuards(IsWorkflowInTeam)
+  @ApiOperation({ summary: "Update workflows" })
+  @Roles("TEAM_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  async updateWorkflow(
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @Param("workflowId") workflowId: number,
+    @GetUser() user: UserWithProfile,
+    @Body() data: Partial<CreateWorkflowDto>
+  ): Promise<Promise<GetWorkflowOutput>> {
+    const workflow = await this.workflowsService.updateTeamWorkflow(user, teamId, workflowId, data);
+    return { data: workflow, status: SUCCESS_STATUS };
+  }
+
+  @Delete("/:workflowId")
+  @UseGuards(IsWorkflowInTeam)
+  @ApiOperation({ summary: "Update workflows" })
+  @Roles("TEAM_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  async deleteWorkflow(
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @Param("workflowId") workflowId: number
+  ): Promise<{ status: typeof SUCCESS_STATUS }> {
+    await this.workflowsService.deleteTeamWorkflow(teamId, workflowId);
+    return { status: SUCCESS_STATUS };
   }
 }

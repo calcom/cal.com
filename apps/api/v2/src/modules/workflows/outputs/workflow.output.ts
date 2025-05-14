@@ -93,16 +93,15 @@ export class WorkflowStepOutputDto {
   @IsEnum(RecipientType)
   recipient!: RecipientType; // Reflects the intended recipient logic
 
-  @ApiPropertyOptional({ description: "Verified Email ID if action is EMAIL_ADDRESS", example: 31214 })
+  @ApiPropertyOptional({ description: "Verified Email  if action is EMAIL_ADDRESS", example: 31214 })
   @Expose()
-  verifiedEmailId?: number;
+  email?: string;
 
   @ApiPropertyOptional({
-    description: "Verified Phone ID if action is SMS_NUMBER or WHATSAPP_NUMBER",
-    example: 3243434,
+    description: "Verified Phone if action is SMS_NUMBER or WHATSAPP_NUMBER",
   })
   @Expose()
-  verifiedPhoneId?: number;
+  phone?: string;
 
   @ApiProperty({ description: "Template type used", example: TemplateType.REMINDER, enum: TemplateType })
   @Expose()
@@ -251,4 +250,25 @@ export class GetWorkflowsOutput {
   @ValidateNested({ each: true })
   @Type(() => WorkflowOutput)
   data!: WorkflowOutput[];
+}
+
+export class GetWorkflowOutput {
+  @ApiProperty({
+    description: "Indicates the status of the response",
+    example: SUCCESS_STATUS,
+    enum: [SUCCESS_STATUS, ERROR_STATUS],
+  })
+  @Expose()
+  @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
+  status!: Status;
+
+  @ApiProperty({
+    description: "workflow",
+    type: [WorkflowOutput],
+  })
+  @Expose()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => WorkflowOutput)
+  data!: WorkflowOutput;
 }

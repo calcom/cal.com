@@ -1,5 +1,7 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { UserWithProfile } from "@/modules/users/users.repository";
+import { TeamsVerifiedResourcesRepository } from "@/modules/verified-resources/teams-verified-resources.repository";
 import {
   WorkflowActivationDto,
   WorkflowTriggerDto,
@@ -10,27 +12,35 @@ import {
   RecipientType,
   StepAction,
   TemplateType,
+  CreateWorkflowDto,
 } from "@/modules/workflows/inputs/create-workflow.input";
 import { WorkflowOutput } from "@/modules/workflows/outputs/workflow.output";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
-import { Workflow, WorkflowStep } from "@calcom/prisma/client";
+import { TUpdateInputSchema } from "@calcom/platform-libraries/workflows";
+import { updateWorkflow } from "@calcom/platform-libraries/workflows";
+import { PrismaClient } from "@calcom/prisma";
+import { TimeUnit, Workflow, WorkflowStep, WorkflowTriggerEvents } from "@calcom/prisma/client";
 
-type WorkflowType = Workflow & { activeOn: { eventTypeId: number }[]; steps: WorkflowStep[] };
+export type WorkflowType = Workflow & { activeOn: { eventTypeId: number }[]; steps: WorkflowStep[] };
 
 @Injectable()
-export class WorkflowRepository {
+export class WorkflowsRepository {
   constructor(
-    // Use separate read/write Prisma clients/services
     private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService
+    private readonly dbWrite: PrismaWriteService,
+    private readonly teamsVerifiedResourcesRepository: TeamsVerifiedResourcesRepository
   ) {}
 
-  async getById(teamId: number, id: number): Promise<WorkflowOutput | null> {
+  async deleteTeamWorkflowById(teamId: number, workflowId: number) {
+    return await this.dbWrite.prisma.workflow.delete({ where: { id: workflowId, teamId } });
+  }
+
+  async getTeamWorkflowById(teamId: number, id: number): Promise<WorkflowType> {
     const workflow = await this.dbRead.prisma.workflow.findUnique({
       where: {
         id: id,
-        teamId: teamId, // Ensure the workflow belongs to the correct team
+        teamId: teamId,
       },
       include: {
         steps: true,
@@ -42,88 +52,254 @@ export class WorkflowRepository {
       throw new NotFoundException(`Workflow with ID ${id} not found for team ${teamId}`);
     }
 
-    return this.toDto(workflow);
+    return workflow;
   }
 
-  private toDto(workflow: WorkflowType): WorkflowOutput {
+  async getTeamWorkflows(teamId: number, skip: number, take: number): Promise<WorkflowType[]> {
+    const workflows = await this.dbRead.prisma.workflow.findMany({
+      where: {
+        teamId: teamId,
+      },
+      include: {
+        steps: true,
+        activeOn: { select: { eventTypeId: true } },
+      },
+      skip,
+      take,
+    });
+
+    if (!workflows?.length) {
+      throw new NotFoundException(`team ${teamId} does not have any Workflows.`);
+    }
+
+    return workflows;
+  }
+
+  async createTeamWorkflowHusk(teamId: number) {
+    return this.dbWrite.prisma.workflow.create({
+      data: {
+        name: "",
+        trigger: WorkflowTriggerEvents.BEFORE_EVENT,
+        time: 24,
+        timeUnit: TimeUnit.HOUR,
+        teamId,
+      },
+      include: { activeOn: true, steps: true },
+    });
+  }
+
+  async createTeamWorkflow(user: UserWithProfile, teamId: number, data: Partial<CreateWorkflowDto>) {
+    const workflowHusk = await this.createTeamWorkflowHusk(teamId);
+
+    await updateWorkflow({
+      ctx: {
+        user: { ...user, locale: user?.locale ?? "en" },
+        prisma: this.dbWrite.prisma as unknown as PrismaClient,
+      },
+      input: await this.mapCreateDtoToZodUpdateSchema(data, workflowHusk.id, teamId, workflowHusk),
+    });
+
+    const workflow = await this.getTeamWorkflowById(teamId, workflowHusk.id);
+    return workflow;
+  }
+
+  async updateTeamWorkflow(
+    user: UserWithProfile,
+    teamId: number,
+    workflowId: number,
+    data: Partial<CreateWorkflowDto>
+  ) {
+    const currentWorkflow = await this.getTeamWorkflowById(teamId, workflowId);
+    await updateWorkflow({
+      ctx: {
+        user: { ...user, locale: user?.locale ?? "en" },
+        prisma: this.dbWrite.prisma as unknown as PrismaClient,
+      },
+      input: await this.mapCreateDtoToZodUpdateSchema(data, workflowId, teamId, currentWorkflow),
+    });
+
+    const workflow = await this.getTeamWorkflowById(teamId, workflowId);
+    return workflow;
+  }
+
+  public toDto(workflow: WorkflowType): WorkflowOutput {
     const activation: WorkflowActivationDto = {
       isActiveOnAll: workflow.isActiveOnAll,
-      // Map the IDs from the join table relation
+
       activeOnEventTypeIds: workflow.activeOn?.map((relation) => relation.eventTypeId) ?? [],
     };
 
     const trigger: WorkflowTriggerDto = {
-      type: workflow.trigger as WorkflowTriggerType, // Assuming enum names match
+      type: workflow.trigger as WorkflowTriggerType,
       offset:
         workflow.time !== null && workflow.timeUnit !== null
-          ? { value: workflow.time, unit: workflow.timeUnit as WorkflowTimeUnit } // Assuming enum names match
+          ? { value: workflow.time, unit: workflow.timeUnit as WorkflowTimeUnit }
           : undefined,
     };
 
     const steps: WorkflowStepDto[] = workflow.steps.map((step) => {
       const message: WorkflowMessageDto = {
         subject: step.emailSubject ?? "",
-        // Decide how to handle reminderBody -> text/html. Assuming text for simplicity.
-        text: step.reminderBody ?? undefined,
-        html: undefined, // Or store HTML if reminderBody contains it
+
+        text: "",
+        html: "",
       };
 
-      // Mapping recipient back is complex - requires logic based on action/sendTo
-      // This is a simplified example, likely needing refinement.
       let recipient: RecipientType;
-      let verifiedEmailId: number | undefined;
-      let verifiedPhoneId: number | undefined;
+      let email = "";
+      let phone = "";
 
-      // Basic reverse mapping logic (EXAMPLE ONLY - NEEDS YOUR ACTUAL LOGIC)
       switch (step.action as StepAction) {
         case StepAction.EMAIL_HOST:
           recipient = RecipientType.HOST;
+          message.html = step.reminderBody ?? "";
           break;
         case StepAction.EMAIL_ATTENDEE:
+          message.html = step.reminderBody ?? "";
           recipient = RecipientType.ATTENDEE;
           break;
         case StepAction.SMS_ATTENDEE:
+          message.text = step.reminderBody ?? "";
           recipient = RecipientType.ATTENDEE;
           break;
         case StepAction.WHATSAPP_ATTENDEE:
+          message.text = step.reminderBody ?? "";
+
           recipient = RecipientType.ATTENDEE;
           break;
         case StepAction.EMAIL_ADDRESS:
+          message.html = step.reminderBody ?? "";
           recipient = RecipientType.EMAIL;
-          // You'd need a way to get the ID back from 'sendTo' or another field
-          // verifiedEmailId = tryParseInt(step.sendTo); // Placeholder
+          email = step.sendTo ?? "";
           break;
         case StepAction.SMS_NUMBER:
         case StepAction.WHATSAPP_NUMBER:
+          message.text = step.reminderBody ?? "";
           recipient =
-            step.action === StepAction.SMS_NUMBER ? RecipientType.PHONE_NUMBER : RecipientType.PHONE_NUMBER; // Or distinct types if needed
-          // You'd need a way to get the ID back from 'sendTo' or another field
-          // verifiedPhoneId = tryParseInt(step.sendTo); // Placeholder
+            step.action === StepAction.SMS_NUMBER ? RecipientType.PHONE_NUMBER : RecipientType.PHONE_NUMBER;
+          phone = step.sendTo ?? "";
           break;
         default:
-          recipient = RecipientType.ATTENDEE; // Default guess
+          recipient = RecipientType.ATTENDEE;
       }
 
       return {
-        id: step.id, // Include the step ID generated by DB
+        id: step.id,
         stepNumber: step.stepNumber,
-        action: step.action as StepAction, // Assuming enum names match
-        recipient: recipient, // Map based on action/sendTo (NEEDS REFINEMENT)
-        verifiedEmailId: verifiedEmailId, // (NEEDS REFINEMENT)
-        verifiedPhoneId: verifiedPhoneId, // (NEEDS REFINEMENT)
-        template: step.template as TemplateType, // Assuming enum names match
+        action: step.action as StepAction,
+        recipient: recipient,
+        email,
+        phone,
+        template: step.template as TemplateType,
         includeCalendarEvent: step.includeCalendarEvent,
-        sender: step.sender ?? "Default Sender", // Provide default if null
+        sender: step.sender ?? "Default Sender",
         message: message,
       };
     });
 
     return {
-      id: workflow.id, // Include workflow ID
+      id: workflow.id,
       name: workflow.name,
       activation: activation,
       trigger: trigger,
       steps: steps,
     };
+  }
+
+  public async mapCreateDtoToZodUpdateSchema(
+    createDto: Partial<CreateWorkflowDto>,
+    workflowIdToUse: number,
+    teamId: number,
+    currentData: WorkflowType
+  ): Promise<TUpdateInputSchema> {
+    const mappedSteps = createDto?.steps
+      ? await Promise.all(
+          createDto.steps.map(async (stepDto: WorkflowStepDto) => {
+            let reminderBody: string | null = null;
+            let sendTo: string | null = null;
+
+            switch (stepDto.action) {
+              case StepAction.EMAIL_HOST:
+              case StepAction.EMAIL_ATTENDEE:
+              case StepAction.EMAIL_ADDRESS:
+                reminderBody = stepDto.message.html ?? null;
+                break;
+              case StepAction.SMS_ATTENDEE:
+              case StepAction.SMS_NUMBER:
+              case StepAction.WHATSAPP_ATTENDEE:
+              case StepAction.WHATSAPP_NUMBER:
+                reminderBody = stepDto.message.text ?? null;
+                break;
+            }
+
+            if (stepDto.action === StepAction.EMAIL_ADDRESS) {
+              if (stepDto.verifiedEmailId) {
+                const emailResource = await this.teamsVerifiedResourcesRepository.getTeamVerifiedEmailById(
+                  stepDto.verifiedEmailId,
+                  teamId
+                );
+                if (!emailResource?.email) {
+                  throw new BadRequestException("Invalid Verified Email Id.");
+                }
+                sendTo = emailResource.email;
+              }
+            } else if (
+              stepDto.action === StepAction.SMS_NUMBER ||
+              stepDto.action === StepAction.WHATSAPP_NUMBER
+            ) {
+              if (stepDto.verifiedPhoneId) {
+                const phoneResource =
+                  await this.teamsVerifiedResourcesRepository.getTeamVerifiedPhoneNumberById(
+                    stepDto.verifiedPhoneId,
+                    teamId
+                  );
+
+                if (!phoneResource?.phoneNumber) {
+                  throw new BadRequestException("Invalid Verified Phone Id.");
+                }
+
+                sendTo = phoneResource.phoneNumber;
+              }
+            }
+
+            const actionForZod = stepDto.action;
+            const templateForZod = stepDto.template;
+
+            return {
+              id: stepDto.id,
+              stepNumber: stepDto.stepNumber,
+              action: actionForZod,
+              workflowId: workflowIdToUse,
+              sendTo: sendTo,
+              reminderBody: reminderBody,
+              emailSubject: stepDto.message.subject ?? null,
+              template: templateForZod,
+              numberRequired: null,
+              sender: stepDto.sender ?? null,
+              senderName: stepDto.sender ?? null,
+              includeCalendarEvent: stepDto.includeCalendarEvent ?? false,
+            };
+          })
+        )
+      : currentData.steps.map((step) => ({ ...step, senderName: step.sender }));
+
+    const triggerForZod = createDto?.trigger?.type ?? currentData.trigger;
+    const timeUnitForZod = createDto?.trigger?.offset?.unit ?? currentData.timeUnit ?? null;
+
+    const updateData: TUpdateInputSchema = {
+      id: workflowIdToUse,
+      name: createDto.name ?? currentData.name,
+      activeOn:
+        createDto?.activation?.activeOnEventTypeIds ??
+        currentData?.activeOn.map((active) => active.eventTypeId) ??
+        [],
+      steps: mappedSteps,
+      trigger: triggerForZod,
+      time: createDto?.trigger?.offset?.value ?? currentData?.time ?? null,
+      timeUnit: timeUnitForZod,
+      isActiveOnAll: createDto?.activation?.isActiveOnAll ?? currentData.isActiveOnAll ?? false,
+    } as const satisfies TUpdateInputSchema;
+
+    return updateData;
   }
 }
