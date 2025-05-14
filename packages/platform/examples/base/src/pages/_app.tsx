@@ -52,12 +52,18 @@ export default function App({ Component, pageProps }: AppProps) {
   useEffect(() => {
     const randomEmailOne = generateRandomEmail();
     const randomEmailTwo = generateRandomEmail();
+    const randomEmailThree = generateRandomEmail();
+    const randomEmailFour = generateRandomEmail();
+    const randomEmailFive = generateRandomEmail();
+
     if (!seeding) {
       seeding = true;
       fetch("/api/managed-user", {
         method: "POST",
 
-        body: JSON.stringify({ emails: [randomEmailOne, randomEmailTwo] }),
+        body: JSON.stringify({
+          emails: [randomEmailOne, randomEmailTwo, randomEmailThree, randomEmailFour, randomEmailFive],
+        }),
       }).then(async (res) => {
         const data = await res.json();
         setAccessToken(data.accessToken);
@@ -129,7 +135,7 @@ export default function App({ Component, pageProps }: AppProps) {
             onDisplayBookerEmbed={() => {
               console.log("render booker embed");
             }}
-            bookerBannerUrl="https://i0.wp.com/mahala.co.uk/wp-content/uploads/2014/12/img_banner-thin_mountains.jpg?fit=800%2C258&ssl=1"
+            bannerUrl="https://i0.wp.com/mahala.co.uk/wp-content/uploads/2014/12/img_banner-thin_mountains.jpg?fit=800%2C258&ssl=1"
             bookerCustomClassNames={{
               bookerWrapper: "dark",
             }}
