@@ -21,7 +21,11 @@ describe("PermissionService", () => {
 
   describe("validatePermissions", () => {
     it("should validate multiple valid permissions", () => {
-      const permissions = ["eventType.create", "team.invite", "organization.billing"] as PermissionString[];
+      const permissions = [
+        "eventType.create",
+        "team.invite",
+        "organization.manageBilling",
+      ] as PermissionString[];
       expect(service.validatePermissions(permissions)).toBe(true);
     });
 

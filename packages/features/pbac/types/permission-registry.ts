@@ -1,25 +1,36 @@
-export type Resource =
-  | "booking"
-  | "eventType"
-  | "team"
-  | "organization"
-  | "insights"
-  | "availability"
-  | "workflow"
-  | "routingForm"
-  | "*";
-export type Action =
-  | "create"
-  | "read"
-  | "update"
-  | "delete"
-  | "manage"
-  | "invite"
-  | "remove"
-  | "billing"
-  | "override"
-  | "readRecordings"
-  | "*";
+export enum CrudAction {
+  Create = "create",
+  Read = "read",
+  Update = "update",
+  Delete = "delete",
+  All = "*", // Wildcard for all CRUD actions
+}
+
+export enum Resource {
+  EventType = "eventType",
+  Booking = "booking",
+  Team = "team",
+  Organization = "organization",
+  Insights = "insights",
+  Availability = "availability",
+  Workflow = "workflow",
+  RoutingForm = "routingForm",
+  All = "*", // Wildcard for all resources
+}
+
+export enum CustomAction {
+  Manage = "manage", // Full control over a resource
+  Invite = "invite", // Invite members to team/org
+  Remove = "remove", // Remove members from team/org
+  Override = "override", // Override availability
+  ReadRecordings = "readRecordings", // Access booking recordings
+  ManageBilling = "manageBilling", // Manage org billing
+  All = "*", // Wildcard for all custom actions
+}
+
+export type CrudScope = `${Resource}.${CrudAction}` | `${Resource}.*` | `*.*`;
+export type CustomScope = `${Resource}.${CustomAction}` | `${Resource}.*` | `*.*`;
+export type PermissionString = CrudScope | CustomScope;
 
 type PermissionDetails = {
   description: string;
@@ -27,85 +38,117 @@ type PermissionDetails = {
 };
 
 type ResourcePermissions = {
-  [K in Action]?: PermissionDetails;
+  [K in CrudAction | CustomAction]?: PermissionDetails;
 };
 
 export type PermissionRegistry = {
-  [K in Resource]?: ResourcePermissions;
+  [K in Resource]: ResourcePermissions;
 };
 
 // Keep in mind these are on a team/organization level, not a user level
 export const PERMISSION_REGISTRY: PermissionRegistry = {
-  eventType: {
-    create: { description: "Create event types", category: "event" },
-    read: { description: "View event types", category: "event" },
-    update: { description: "Update event types", category: "event" },
-    delete: { description: "Delete event types", category: "event" },
-    manage: { description: "All actions on event types", category: "event" },
+  [Resource.All]: {
+    [CrudAction.All]: { description: "All actions on all resources", category: "system" },
+    [CustomAction.All]: { description: "All custom actions on all resources", category: "system" },
   },
-  team: {
-    create: { description: "Create teams", category: "team" },
-    update: { description: "Update settings", category: "team" },
-    invite: { description: "Invite team members", category: "team" },
-    remove: { description: "Remove team members", category: "team" },
-    manage: { description: "All actions on teams", category: "team" },
+  [Resource.EventType]: {
+    [CrudAction.Create]: { description: "Create event types", category: "event" },
+    [CrudAction.Read]: { description: "View event types", category: "event" },
+    [CrudAction.Update]: { description: "Update event types", category: "event" },
+    [CrudAction.Delete]: { description: "Delete event types", category: "event" },
+    [CustomAction.Manage]: { description: "All actions on event types", category: "event" },
   },
-  organization: {
-    invite: { description: "Invite organization members", category: "org" },
-    remove: { description: "Remove organization members", category: "org" },
-    billing: { description: "Manage organization billing", category: "org" },
-    update: { description: "Edit organization settings", category: "org" },
-    manage: { description: "All actions on organizations", category: "org" },
+  [Resource.Team]: {
+    [CrudAction.Create]: { description: "Create teams", category: "team" },
+    [CrudAction.Update]: { description: "Update settings", category: "team" },
+    [CustomAction.Invite]: { description: "Invite team members", category: "team" },
+    [CustomAction.Remove]: { description: "Remove team members", category: "team" },
+    [CustomAction.Manage]: { description: "All actions on teams", category: "team" },
   },
-  booking: {
-    read: { description: "View bookings", category: "booking" },
-    readRecordings: { description: "View booking recordings", category: "booking" },
-    update: { description: "Update bookings", category: "booking" },
-    manage: { description: "All actions on bookings", category: "booking" },
+  [Resource.Organization]: {
+    [CustomAction.Invite]: { description: "Invite organization members", category: "org" },
+    [CustomAction.Remove]: { description: "Remove organization members", category: "org" },
+    [CustomAction.ManageBilling]: { description: "Manage organization billing", category: "org" },
+    [CrudAction.Update]: { description: "Edit organization settings", category: "org" },
+    [CustomAction.Manage]: { description: "All actions on organizations", category: "org" },
   },
-  insights: {
-    read: { description: "View team insights and analytics", category: "insights" },
-    manage: { description: "Manage team insights and analytics", category: "insights" },
+  [Resource.Booking]: {
+    [CrudAction.Read]: { description: "View bookings", category: "booking" },
+    [CustomAction.ReadRecordings]: { description: "View booking recordings", category: "booking" },
+    [CrudAction.Update]: { description: "Update bookings", category: "booking" },
+    [CustomAction.Manage]: { description: "All actions on bookings", category: "booking" },
   },
-  availability: {
-    read: { description: "View availability", category: "availability" },
-    update: { description: "Update own availability", category: "availability" },
-    override: { description: "Override team member availability", category: "availability" },
-    manage: { description: "Manage all availability settings", category: "availability" },
+  [Resource.Insights]: {
+    [CrudAction.Read]: { description: "View team insights and analytics", category: "insights" },
+    [CustomAction.Manage]: { description: "Manage team insights and analytics", category: "insights" },
   },
-  workflow: {
-    create: { description: "Create workflows", category: "workflow" },
-    read: { description: "View workflows", category: "workflow" },
-    update: { description: "Update workflows", category: "workflow" },
-    delete: { description: "Delete workflows", category: "workflow" },
-    manage: { description: "All actions on workflows", category: "workflow" },
+  [Resource.Availability]: {
+    [CrudAction.Read]: { description: "View availability", category: "availability" },
+    [CrudAction.Update]: { description: "Update own availability", category: "availability" },
+    [CustomAction.Override]: { description: "Override team member availability", category: "availability" },
+    [CustomAction.Manage]: { description: "Manage all availability settings", category: "availability" },
   },
-  routingForm: {
-    create: { description: "Create routing forms", category: "routing" },
-    read: { description: "View routing forms", category: "routing" },
-    update: { description: "Update routing forms", category: "routing" },
-    delete: { description: "Delete routing forms", category: "routing" },
-    manage: { description: "All actions on routing forms", category: "routing" },
+  [Resource.Workflow]: {
+    [CrudAction.Create]: { description: "Create workflows", category: "workflow" },
+    [CrudAction.Read]: { description: "View workflows", category: "workflow" },
+    [CrudAction.Update]: { description: "Update workflows", category: "workflow" },
+    [CrudAction.Delete]: { description: "Delete workflows", category: "workflow" },
+    [CustomAction.Manage]: { description: "All actions on workflows", category: "workflow" },
+  },
+  [Resource.RoutingForm]: {
+    [CrudAction.Create]: { description: "Create routing forms", category: "routing" },
+    [CrudAction.Read]: { description: "View routing forms", category: "routing" },
+    [CrudAction.Update]: { description: "Update routing forms", category: "routing" },
+    [CrudAction.Delete]: { description: "Delete routing forms", category: "routing" },
+    [CustomAction.Manage]: { description: "All actions on routing forms", category: "routing" },
   },
 };
 
-// Helper type for permission strings in the format "resource.action"
-export type PermissionString = `${Resource}.${Action}`;
+// Helper function to check if a permission matches a pattern (including wildcards)
+export const permissionMatches = (pattern: PermissionString, permission: PermissionString): boolean => {
+  // Handle full wildcard
+  if (pattern === "*.*") return true;
+
+  const [patternResource, patternAction] = pattern.split(".") as [
+    Resource | "*",
+    CrudAction | CustomAction | "*"
+  ];
+  const [permissionResource, permissionAction] = permission.split(".") as [
+    Resource,
+    CrudAction | CustomAction
+  ];
+
+  // Check if resource matches (either exact match or wildcard)
+  const resourceMatches = patternResource === "*" || patternResource === permissionResource;
+
+  // Check if action matches (either exact match or wildcard)
+  const actionMatches = patternAction === "*" || patternAction === permissionAction;
+
+  return resourceMatches && actionMatches;
+};
 
 // Helper function to create a permission string
-export const createPermissionString = (resource: Resource, action: Action): PermissionString => {
-  return `${resource}.${action}` as PermissionString;
+export const createPermissionString = (
+  resource: Resource | "*",
+  action: CrudAction | CustomAction | "*",
+  isCustom = false
+): PermissionString => {
+  const prefix = isCustom ? "custom:" : "";
+  return `${prefix}${resource}.${action}` as PermissionString;
 };
 
 // Helper function to get all permissions as an array
-export const getAllPermissions = (): Array<{ resource: Resource; action: Action } & PermissionDetails> => {
-  const permissions: Array<{ resource: Resource; action: Action } & PermissionDetails> = [];
+export const getAllPermissions = (): Array<
+  { resource: Resource; action: CrudAction | CustomAction } & PermissionDetails
+> => {
+  const permissions: Array<{ resource: Resource; action: CrudAction | CustomAction } & PermissionDetails> =
+    [];
 
   Object.entries(PERMISSION_REGISTRY).forEach(([resource, actions]) => {
     Object.entries(actions).forEach(([action, details]) => {
       permissions.push({
         resource: resource as Resource,
-        action: action as Action,
+        action: action as CrudAction | CustomAction,
         ...details,
       });
     });

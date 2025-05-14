@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 
-import type { PermissionString, Resource, Action } from "../types/permission-registry";
+import type { PermissionString, Resource, CrudAction, CustomAction } from "../types/permission-registry";
 import { PermissionService } from "./permission.service";
 
 export class RoleService {
@@ -36,7 +36,7 @@ export class RoleService {
       // Create permissions
       await tx.rolePermission.createMany({
         data: data.permissions.map((permission) => {
-          const [resource, action] = permission.split(".") as [Resource, Action];
+          const [resource, action] = permission.split(".") as [Resource, CrudAction | CustomAction];
           return { roleId: role.id, resource, action };
         }),
       });
@@ -124,7 +124,7 @@ export class RoleService {
       // Create new permissions
       await tx.rolePermission.createMany({
         data: permissions.map((permission) => {
-          const [resource, action] = permission.split(".") as [Resource, Action];
+          const [resource, action] = permission.split(".") as [Resource, CrudAction | CustomAction];
           return { roleId, resource, action };
         }),
       });

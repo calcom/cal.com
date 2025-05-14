@@ -1,6 +1,6 @@
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import type { PermissionString, Resource, Action } from "../types/permission-registry";
+import type { PermissionString, Resource, CrudAction, CustomAction } from "../types/permission-registry";
 import type { RoleService } from "./role.service";
 
 export class PermissionCheckService {
@@ -42,14 +42,17 @@ export class PermissionCheckService {
     const role = await this.roleService.getRole(roleId);
     if (!role) return false;
 
-    const [resource, action] = permission.split(".") as [Resource, Action];
+    const [resource, action] = permission.split(".") as [Resource, CrudAction | CustomAction];
     return role.permissions.some((p) => p.resource === resource && p.action === action);
   }
 
   private permissionMatches(pattern: PermissionString, permission: PermissionString): boolean {
     if (pattern === "*.*") return true;
-    const [patternResource, patternAction] = pattern.split(".") as [Resource, Action];
-    const [permissionResource, permissionAction] = permission.split(".") as [Resource, Action];
+    const [patternResource, patternAction] = pattern.split(".") as [Resource, CrudAction | CustomAction];
+    const [permissionResource, permissionAction] = permission.split(".") as [
+      Resource,
+      CrudAction | CustomAction
+    ];
 
     return (
       (patternResource === "*" || patternResource === permissionResource) &&

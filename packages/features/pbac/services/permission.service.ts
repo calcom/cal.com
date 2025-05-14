@@ -1,9 +1,9 @@
-import type { PermissionString, Resource, Action } from "../types/permission-registry";
+import type { PermissionString, Resource, CrudAction, CustomAction } from "../types/permission-registry";
 import { PERMISSION_REGISTRY, getAllPermissions } from "../types/permission-registry";
 
 export class PermissionService {
   validatePermission(permission: PermissionString): boolean {
-    const [resource, action] = permission.split(".") as [Resource, Action];
+    const [resource, action] = permission.split(".") as [Resource, CrudAction | CustomAction];
     return !!PERMISSION_REGISTRY[resource]?.[action];
   }
 
@@ -29,12 +29,12 @@ export class PermissionService {
 
     return Object.entries(resourcePermissions).map(([action, details]) => ({
       resource,
-      action: action as Action,
+      action: action as CrudAction | CustomAction,
       ...details,
     }));
   }
 
-  getPermissionsByAction(action: Action) {
+  getPermissionsByAction(action: CrudAction | CustomAction) {
     return getAllPermissions().filter((p) => p.action === action);
   }
 }
