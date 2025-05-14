@@ -173,11 +173,15 @@ export function SaveFilterSegmentButton() {
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button StartIcon="bookmark" color="secondary" disabled={!canSaveSegment}>
+        <Button
+          StartIcon="bookmark"
+          color="secondary"
+          disabled={!canSaveSegment}
+          data-testid="save-filter-segment-button">
           {t("save")}
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent data-testid="save-filter-segment-dialog">
         <DialogHeader title={t("save_segment")} />
         <Form form={form} handleSubmit={onSubmit}>
           {selectedSegment ? (
@@ -200,7 +204,7 @@ export function SaveFilterSegmentButton() {
             {saveMode === "create" && (
               <div>
                 <Label>{t("name")}</Label>
-                <Input {...form.register("name")} required />
+                <Input {...form.register("name")} data-testid="save-filter-segment-name" required />
               </div>
             )}
 
@@ -225,6 +229,7 @@ export function SaveFilterSegmentButton() {
                       }))}
                       onChange={(option) => setSelectedTeamId(parseInt(option?.value || "0"))}
                       placeholder={t("select_team")}
+                      data-testid="save-filter-segment-team-select"
                       required
                     />
                   </div>
