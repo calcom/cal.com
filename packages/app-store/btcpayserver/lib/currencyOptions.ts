@@ -1,6 +1,6 @@
 export const currencyOptions = [
-  { label: "USD", value: "USD", unit: "USD" },
   { label: "SATS", value: "BTC", unit: "SATS" },
+  { label: "USD", value: "USD", unit: "USD" },
 ];
 
 const zeroDecimalCurrencies = ["SATS", "BTC"];

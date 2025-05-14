@@ -5,7 +5,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
 import { Select } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
-import { SatSymbol } from "@calcom/ui/components/icon";
 
 import {
   currencyOptions,
@@ -37,15 +36,15 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
     value: paymentOptions[0].value,
   };
   const seatsEnabled = !!eventType.seatsPerTimeSlot;
-  const [requirePayment] = useState(getAppData("enabled"));
+  const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
 
   // make sure a currency is selected
   useEffect(() => {
-    if (!currency && requirePayment) {
-      setAppData("currency", selectedCurrency.value);
+    if (requirePayment && !getAppData("currency")) {
+      setAppData("currency", currencyOptions[0].value);
     }
-  }, [currency, selectedCurrency, setAppData, requirePayment]);
+  }, []);
 
   const disableDecimalPlace = (value: number) => {
     const nValue = Math.floor(value);
@@ -65,7 +64,6 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               <TextField
                 label={t("price")}
                 className="block w-full rounded-sm border-gray-300 pl-2 pr-12 text-sm"
-                addOnLeading={<SatSymbol className="h-4 w-4" />}
                 addOnSuffix={selectedCurrency.unit || selectedCurrency.value}
                 addOnClassname="h-[38px]"
                 step="1"

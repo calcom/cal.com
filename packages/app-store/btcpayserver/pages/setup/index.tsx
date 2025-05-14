@@ -158,7 +158,7 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
     const webhookUrl = `${WEBAPP_URL}/api/integrations/btcpayserver/webhook`;
     const requestBody = {
       enabled: true,
-      automaticRedelivery: true,
+      automaticRedelivery: false,
       url: webhookUrl,
       authorizedEvents: {
         everything: false,
