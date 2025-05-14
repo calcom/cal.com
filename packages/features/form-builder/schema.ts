@@ -128,6 +128,7 @@ const baseFieldSchema = z.object({
 
 export const variantsConfigSchema = z.object({
   variants: z.record(
+    z.string(),
     z.object({
       /**
        * Variant Fields schema for a variant of the main field.
@@ -184,6 +185,7 @@ export const fieldTypeConfigSchema = z
          */
         toggleLabel: z.string().optional(),
         variants: z.record(
+          z.string(),
           z.object({
             /**
              * That's how the variant would be labelled in App UI. This label represents the field in booking questions' list
@@ -446,5 +448,5 @@ export const dbReadResponseSchema = z.union([
     value: z.string(),
   }),
   // For variantsConfig case
-  z.record(z.string()),
+  z.record(z.string(), z.string()),
 ]);

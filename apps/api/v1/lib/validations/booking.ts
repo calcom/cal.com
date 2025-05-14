@@ -117,7 +117,7 @@ export const schemaBookingReadPublic = Booking.extend({
       })
     )
     .optional(),
-  responses: z.record(z.any()).nullable(),
+  responses: z.record(z.any(), z.any()).nullable(),
 }).pick({
   id: true,
   userId: true,

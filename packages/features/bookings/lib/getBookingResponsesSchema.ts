@@ -12,7 +12,7 @@ type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYST
 type CommonParams = { bookingFields: BookingFields; view: View };
 
 export const bookingResponse = dbReadResponseSchema;
-export const bookingResponsesDbSchema = z.record(dbReadResponseSchema);
+export const bookingResponsesDbSchema = z.record(z.string(), dbReadResponseSchema);
 
 const catchAllSchema = bookingResponsesDbSchema;
 
@@ -32,13 +32,13 @@ export const getBookingResponsesPartialSchema = ({ bookingFields, view }: Common
 // - Can happen when we are parsing the prefill query string
 // - Can happen when we are parsing a booking's responses (which was created before we added a new required field)
 export default function getBookingResponsesSchema({ bookingFields, view }: CommonParams) {
-  const schema = bookingResponses.and(z.record(z.any()));
+  const schema = bookingResponses.and(z.record(z.string(), z.any()));
   return preprocess({ schema, bookingFields, isPartialSchema: false, view });
 }
 
 // Should be used when we want to check if the optional fields are entered and valid as well
 export function getBookingResponsesSchemaWithOptionalChecks({ bookingFields, view }: CommonParams) {
-  const schema = bookingResponses.and(z.record(z.any()));
+  const schema = bookingResponses.and(z.record(z.string(), z.any()));
   return preprocess({ schema, bookingFields, isPartialSchema: false, view, checkOptional: true });
 }
 
@@ -60,7 +60,7 @@ function preprocess<T extends z.ZodType>({
 }): z.ZodType<z.infer<T>, z.infer<T>, z.infer<T>> {
   const preprocessed = z.preprocess(
     (responses) => {
-      const parsedResponses = z.record(z.any()).nullable().parse(responses) || {};
+      const parsedResponses = z.record(z.string(), z.any()).nullable().parse(responses) || {};
       const newResponses = {} as typeof parsedResponses;
       // if eventType has been deleted, we won't have bookingFields and thus we can't preprocess or validate them.
       if (!bookingFields) return parsedResponses;
