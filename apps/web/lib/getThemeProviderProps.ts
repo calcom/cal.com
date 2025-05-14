@@ -13,7 +13,7 @@ const enum ThemeSupport {
 }
 
 /**
- * Returns a unique indentifier that remains same as long as we land on the public page for same entity like event-type/routing-form/dynamic-group-booking etc
+ * Returns a unique identifier that remains the same as long as we land on the public page for the same entity like event-type/routing-form/dynamic-group-booking etc
  * The theme stays same for same identifier.
  */
 export function getUniqueIdentifierForBookingPage({ pathname }: { pathname: string }) {

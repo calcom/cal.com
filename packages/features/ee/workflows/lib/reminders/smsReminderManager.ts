@@ -3,6 +3,7 @@ import { bulkShortenLinks } from "@calcom/ee/workflows/lib/reminders/utils";
 import { SENDER_ID, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
@@ -12,10 +13,12 @@ import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
+import { isAttendeeAction } from "../actionHelperFunctions";
 import { getSenderId } from "../alphanumericSenderIdSupport";
 import { WorkflowOptOutContactRepository } from "../repository/workflowOptOutContact";
 import { WorkflowOptOutService } from "../service/workflowOptOutService";
 import type { ScheduleReminderArgs } from "./emailReminderManager";
+import { scheduleSmsOrFallbackEmail, sendSmsOrFallbackEmail } from "./messageDispatcher";
 import * as twilio from "./providers/twilioProvider";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
@@ -230,7 +233,23 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
     ) {
       try {
-        await twilio.sendSMS(reminderPhone, smsMessage, senderID, userId, teamId);
+        await sendSmsOrFallbackEmail({
+          twilioData: {
+            phoneNumber: reminderPhone,
+            body: smsMessage,
+            sender: senderID,
+            bookingUid: evt.uid,
+            userId,
+            teamId,
+          },
+          fallbackData: isAttendeeAction(action)
+            ? {
+                email: evt.attendees[0].email,
+                t: await getTranslation(evt.attendees[0].language.locale, "common"),
+                replyTo: evt.organizer.email,
+              }
+            : undefined,
+        });
       } catch (error) {
         log.error(`Error sending SMS with error ${error}`);
       }
@@ -239,22 +258,33 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
         triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) &&
       scheduledDate
     ) {
-      // Can only schedule at least 60 minutes in advance and at most 7 days in advance
+      // schedule at least 15 minutes in advance and at most 2 hours in advance
       if (
-        currentDate.isBefore(scheduledDate.subtract(1, "hour")) &&
-        !scheduledDate.isAfter(currentDate.add(7, "day"))
+        currentDate.isBefore(scheduledDate.subtract(15, "minute")) &&
+        !scheduledDate.isAfter(currentDate.add(2, "hour"))
       ) {
         try {
-          const scheduledSMS = await twilio.scheduleSMS(
-            reminderPhone,
-            smsMessage,
-            scheduledDate.toDate(),
-            senderID,
-            userId,
-            teamId
-          );
+          const scheduledNotification = await scheduleSmsOrFallbackEmail({
+            twilioData: {
+              phoneNumber: reminderPhone,
+              body: smsMessage,
+              scheduledDate: scheduledDate.toDate(),
+              sender: senderID,
+              bookingUid: evt.uid,
+              userId,
+              teamId,
+            },
+            fallbackData: isAttendeeAction(action)
+              ? {
+                  email: evt.attendees[0].email,
+                  t: await getTranslation(evt.attendees[0].language.locale, "common"),
+                  replyTo: evt.organizer.email,
+                  workflowStepId,
+                }
+              : undefined,
+          });
 
-          if (scheduledSMS) {
+          if (scheduledNotification?.sid) {
             await prisma.workflowReminder.create({
               data: {
                 bookingUid: uid,
@@ -262,7 +292,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
                 method: WorkflowMethods.SMS,
                 scheduledDate: scheduledDate.toDate(),
                 scheduled: true,
-                referenceId: scheduledSMS.sid,
+                referenceId: scheduledNotification.sid,
                 seatReferenceId: seatReferenceUid,
               },
             });
@@ -270,8 +300,8 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
         } catch (error) {
           log.error(`Error scheduling SMS with error ${error}`);
         }
-      } else if (scheduledDate.isAfter(currentDate.add(7, "day"))) {
-        // Write to DB and send to CRON if scheduled reminder date is past 7 days
+      } else if (scheduledDate.isAfter(currentDate.add(2, "hour"))) {
+        // Write to DB and send to CRON if scheduled reminder date is past 2 hours from now
         await prisma.workflowReminder.create({
           data: {
             bookingUid: uid,

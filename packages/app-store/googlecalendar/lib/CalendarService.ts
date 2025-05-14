@@ -826,7 +826,6 @@ export default class GoogleCalendarService implements Calendar {
       const primaryCalendar = this.filterPrimaryCalendar(cals);
       if (!primaryCalendar) return [];
       return [primaryCalendar.id];
-      return cals.reduce((c, cal) => (cal.id ? [...c, cal.id] : c), [] as string[]);
     };
 
     try {

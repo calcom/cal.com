@@ -167,7 +167,14 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 icon="user-plus"
                 title={t("salesforce_create_event_on_contact")}
                 labelFor="create-event-on-contact">
-                <Switch size="sm" labelOnLeading checked={createEventOnLeadCheckForContact} />
+                <Switch
+                  size="sm"
+                  labelOnLeading
+                  checked={createEventOnLeadCheckForContact}
+                  onCheckedChange={(checked) => {
+                    setAppData("createEventOnLeadCheckForContact", checked);
+                  }}
+                />
               </Section.SubSectionHeader>
             </Section.SubSection>
             <CreateContactUnderAccount />

@@ -577,7 +577,7 @@ export async function getCredentialForCalendarCache({ credentialId }: { credenti
     if (!delegationCredential) {
       credentialForCalendarService = null;
     } else {
-      // We preparare a credential that is in-db(in constrast with an in-memory credential used elsewhere where we generate CredentialForCalendarService)
+      // We prepare a credential that is in-db(in contrast with an in-memory credential used elsewhere where we generate CredentialForCalendarService)
       credentialForCalendarService = {
         ...delegationCredential,
         id: credential.id,

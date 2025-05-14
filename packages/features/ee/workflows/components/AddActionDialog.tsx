@@ -171,8 +171,8 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                       isOptionDisabled={(option: {
                         label: string;
                         value: WorkflowActions;
-                        needsTeamsUpgrade: boolean;
-                      }) => option.needsTeamsUpgrade}
+                        needsCredits: boolean;
+                      }) => option.needsCredits}
                     />
                   );
                 }}
