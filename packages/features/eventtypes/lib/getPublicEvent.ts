@@ -529,11 +529,9 @@ export const getPublicEvent = async (
   };
 };
 
-const eventData = Prisma.validator<Prisma.EventTypeArgs>()({
-  select: getPublicEventSelect(true),
-});
+const eventData = Prisma.validator<Prisma.EventTypeSelect>()(getPublicEventSelect(true));
 
-type Event = Prisma.EventTypeGetPayload<typeof eventData>;
+type Event = Prisma.EventTypeGetPayload<{ select: typeof eventData }>;
 
 type GetProfileFromEventInput = Omit<Event, "hosts"> & {
   hosts?: Event["hosts"];
