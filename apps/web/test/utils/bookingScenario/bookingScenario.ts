@@ -2371,7 +2371,6 @@ export const createDelegationCredential = async (orgId: number, type: "google" |
             id: orgId,
           },
         },
-        // @ts-expect-error - TODO: fix this
         serviceAccountKey: workspace.defaultServiceAccountKey,
       },
     });
@@ -2414,7 +2413,6 @@ export const createDelegationCredential = async (orgId: number, type: "google" |
             id: orgId,
           },
         },
-        // @ts-expect-error - TODO: fix this
         serviceAccountKey: workspace.defaultServiceAccountKey,
       },
     });
