@@ -3,7 +3,6 @@
   "version": "0.0.1",
   "description": "Platform API for Cal.com",
   "author": "Cal.com Inc.",
-  "private": false,
   "license": "UNLICENSED",
   "scripts": {
     "build": "yarn dev:build && nest build",
