@@ -7,6 +7,7 @@ import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
+import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
@@ -78,6 +79,7 @@ export class BookingsService_2024_08_13 {
     private readonly bookingSeatRepository: BookingSeatRepository,
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
     private readonly prismaReadService: PrismaReadService,
+    private readonly kyselyReadService: KyselyReadService,
     private readonly billingService: BillingService,
     private readonly usersService: UsersService,
     private readonly usersRepository: UsersRepository,
@@ -374,7 +376,7 @@ export class BookingsService_2024_08_13 {
       queryParams.attendeeEmail = await this.getAttendeeEmail(queryParams.attendeeEmail, user);
     }
 
-    const fetchedBookings: { bookings: { id: number }[] } = await getAllUserBookings({
+    const fetchedBookings: { bookings: { id: number }[]; totalCount: number } = await getAllUserBookings({
       bookingListingByStatus: queryParams.status || [],
       skip: queryParams.skip ?? 0,
       take: queryParams.take ?? 100,
@@ -385,6 +387,7 @@ export class BookingsService_2024_08_13 {
       ctx: {
         user,
         prisma: this.prismaReadService.prisma as unknown as PrismaClient,
+        kysely: this.kyselyReadService.kysely,
       },
       sort: this.inputService.transformGetBookingsSort(queryParams),
     });
@@ -429,7 +432,29 @@ export class BookingsService_2024_08_13 {
       }
     }
 
-    return formattedBookings;
+    const skip = Math.abs(queryParams?.skip ?? 0);
+    const take = Math.abs(queryParams?.take ?? 100);
+    const itemsPerPage = take;
+    const totalPages = itemsPerPage !== 0 ? Math.ceil(fetchedBookings.totalCount / itemsPerPage) : 0;
+    const currentPage = Math.floor(skip / itemsPerPage) + 1;
+    const hasNextPage = skip + itemsPerPage < fetchedBookings.totalCount;
+    const hasPreviousPage = skip > 0;
+    return {
+      bookings: formattedBookings,
+      pagination: {
+        totalItems: fetchedBookings.totalCount,
+        // clamp remainingItems between 0 and totalCount
+        remainingItems: Math.min(
+          Math.max(fetchedBookings.totalCount - (skip + take), 0),
+          fetchedBookings.totalCount
+        ),
+        itemsPerPage: itemsPerPage,
+        currentPage: currentPage,
+        totalPages: totalPages,
+        hasNextPage: hasNextPage,
+        hasPreviousPage: hasPreviousPage,
+      },
+    };
   }
 
   async getAttendeeEmail(queryParamsAttendeeEmail: string, user: { id: number }) {
