@@ -18,6 +18,9 @@ export const getWebhookPayloadForBooking = ({
     id: number;
     eventTypeId: number | null;
     userId: number | null;
+    assignmentReason?: {
+      reasonString: string;
+    }[];
   };
   evt: CalendarEvent;
 }) => {

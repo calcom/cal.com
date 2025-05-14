@@ -68,6 +68,9 @@ export async function handleConfirmation(args: {
     smsReminderNumber: string | null;
     userId: number | null;
     location: string | null;
+    assignmentReason?: {
+      reasonString: string;
+    }[];
   };
   paid?: boolean;
   emailsEnabled?: boolean;
