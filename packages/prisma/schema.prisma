@@ -169,6 +169,7 @@ model EventType {
   isRRWeightsEnabled                      Boolean                   @default(false)
   fieldTranslations                       EventTypeTranslation[]
   maxLeadThreshold                        Int?
+  includeNoShowInRRCalculation            Boolean                   @default(false)
   selectedCalendars                       SelectedCalendar[]
   allowReschedulingPastBookings           Boolean                   @default(false)
   hideOrganizerEmail                      Boolean                   @default(false)
@@ -389,6 +390,7 @@ model User {
   creationSource                 CreationSource?
   createdOrganizationOnboardings OrganizationOnboarding[]     @relation("CreatedOrganizationOnboardings")
   filterSegments                 FilterSegment[]
+  creditBalance                  CreditBalance?
   whitelistWorkflows             Boolean                      @default(false)
 
   @@unique([email])
@@ -505,6 +507,7 @@ model Team {
   bookingLimits                Json?
   includeManagedEventsInLimits Boolean                 @default(false)
   internalNotePresets          InternalNotePreset[]
+  creditBalance                CreditBalance?
   organizationOnboarding       OrganizationOnboarding?
 
   // note(Lauris): if a Team has parentId it is a team, if parentId is null it is an organization, but if parentId is null and managedOrganization is set,
@@ -515,6 +518,36 @@ model Team {
 
   @@unique([slug, parentId])
   @@index([parentId])
+}
+
+model CreditBalance {
+  id                String             @id @default(uuid())
+  team              Team?              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId            Int?               @unique
+  // user credit balances will be supported in the future
+  user              User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            Int?               @unique
+  additionalCredits Int                @default(0)
+  limitReachedAt    DateTime?
+  warningSentAt     DateTime?
+  expenseLogs       CreditExpenseLog[]
+}
+
+model CreditExpenseLog {
+  id              String        @id @default(uuid())
+  creditBalanceId String
+  creditBalance   CreditBalance @relation(fields: [creditBalanceId], references: [id], onDelete: Cascade)
+  bookingUid      String?
+  booking         Booking?      @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  credits         Int?
+  creditType      CreditType
+  date            DateTime
+  smsSid          String?
+}
+
+enum CreditType {
+  MONTHLY
+  ADDITIONAL
 }
 
 model OrganizationSettings {
@@ -714,6 +747,7 @@ model Booking {
   internalNote                 BookingInternalNote[]
   creationSource               CreationSource?
   tracking                     Tracking?
+  expenseLogs                  CreditExpenseLog[]
 
   @@index([eventTypeId])
   @@index([userId])
@@ -1780,6 +1814,7 @@ model PlatformBilling {
 
   customerId     String
   subscriptionId String?
+  priceId        String?
   plan           String  @default("none")
 
   billingCycleStart Int?
