@@ -113,13 +113,21 @@ export default class AssignmentReasonRecorder {
       }
     }
 
+    const reasonEnum = AssignmentReasonEnum.ROUTING_FORM_ROUTING;
+    const reasonString = attributeValues.join(", ");
+
     await prisma.assignmentReason.create({
       data: {
         bookingId: bookingId,
-        reasonEnum: AssignmentReasonEnum.ROUTING_FORM_ROUTING,
-        reasonString: attributeValues.join(", "),
+        reasonEnum,
+        reasonString,
       },
     });
+
+    return {
+      reasonEnum,
+      reasonString,
+    };
   }
 
   // Separate method to handle rerouting
@@ -148,13 +156,20 @@ export default class AssignmentReasonRecorder {
 
     if (!crmRoutingReason || !crmRoutingReason.assignmentReason) return;
 
+    const { reasonEnum, assignmentReason } = crmRoutingReason;
+
     await prisma.assignmentReason.create({
       data: {
         bookingId,
-        reasonEnum: crmRoutingReason.reasonEnum,
-        reasonString: crmRoutingReason.assignmentReason,
+        reasonEnum,
+        reasonString: assignmentReason,
       },
     });
+
+    return {
+      reasonEnum,
+      reasonString: assignmentReason,
+    };
   }
   static roundRobinReassignment = withReporting(
     AssignmentReasonRecorder._roundRobinReassignment,
@@ -180,6 +195,11 @@ export default class AssignmentReasonRecorder {
       },
     });
 
+    const reasonEnum =
+      reassignmentType === RRReassignmentType.MANUAL
+        ? AssignmentReasonEnum.REASSIGNED
+        : AssignmentReasonEnum.RR_REASSIGNED;
+
     const reasonString = `Reassigned by: ${reassignedBy?.username || "team member"}. ${
       reassignReason ? `Reason: ${reassignReason}` : ""
     }`;
@@ -187,12 +207,14 @@ export default class AssignmentReasonRecorder {
     await prisma.assignmentReason.create({
       data: {
         bookingId: bookingId,
-        reasonEnum:
-          reassignmentType === RRReassignmentType.MANUAL
-            ? AssignmentReasonEnum.REASSIGNED
-            : AssignmentReasonEnum.RR_REASSIGNED,
+        reasonEnum,
         reasonString,
       },
     });
+
+    return {
+      reasonEnum,
+      reasonString,
+    };
   }
 }
