@@ -102,7 +102,7 @@ export class CreditService {
     if (userId) {
       const teamWithAvailableCredits = await this.getTeamWithAvailableCredits(userId);
 
-      if (teamWithAvailableCredits?.availableCredits > 0) return true;
+      if (teamWithAvailableCredits && teamWithAvailableCredits?.availableCredits > 0) return true;
 
       const userCredits = await this.getAllCredits({ userId });
 
