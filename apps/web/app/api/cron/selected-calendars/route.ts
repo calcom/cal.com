@@ -20,7 +20,7 @@ import type { Ensure } from "@calcom/types/utils";
 import { defaultResponderForAppDir } from "../../defaultResponderForAppDir";
 
 const limitOnQueryingGoogleCalendar = 50;
-const log = logger.getSubLogger({ prefix: ["[api] selected-calendars/cron"] });
+const log = logger.getSubLogger({ prefix: ["[api]", "[delegation]", "[selected-calendars/cron]"] });
 const validateRequest = (req: NextRequest) => {
   const url = new URL(req.url);
   const apiKey = req.headers.get("authorization") || url.searchParams.get("apiKey");
@@ -55,15 +55,25 @@ async function getDelegationUserCredentialsToProcess(delegationUserCredentials: 
         });
 
         if (selectedCalendar) {
+          if (selectedCalendar.delegationCredentialId === delegationUserCredential.delegationCredentialId) {
+            // In case this SelectedCalendar has an error, we would let CalendarCache cron handle it
+            log.info(
+              `Found an existing SelectedCalendar for userId: ${delegationUserCredential.user.id} and delegationCredentialId: ${delegationUserCredential.delegationCredentialId}`
+            );
+            return null;
+          }
           if (!selectedCalendar.error) {
             log.info(`Found a reusable SelectedCalendar for userId: ${delegationUserCredential.user.id}`);
             return null;
           } else {
             log.error(
-              `SelectedCalendar for ${delegationUserCredential.user.id} has an error: '${selectedCalendar.error}', so deleting it and creating a new one`
+              `Found reusable Non-Delegation SelectedCalendar for ${delegationUserCredential.user.id} but it has an error: '${selectedCalendar.error}', so deleting it, new one will be created`
             );
 
-            // Delete the SelectedCalendar
+            // We found a SelectedCalendar attached to non-delegation credential, so we shouldn't reuse it as the non-delegation credential attached to it could be invalid
+            // So, we delete it so that SelectedCalendarRepository allow creating a similar one with Delegation Credential
+            // Also, we don't delete the possibly invalid credential due to false alarm and we would need that intact in case we disable Delegation Credential
+            // Because credential isn't deleted, the corresponding CalendarCache entry would still exist and thus we will end up having two CalendarCache entries for same key and userId with different credentialId
             await SelectedCalendarRepository.deleteById({ id: selectedCalendar.id });
             return delegationUserCredential;
           }
@@ -156,25 +166,25 @@ async function processDelegationUserCredential(
       return;
     }
 
-    const primaryCalendarId = await fetchPrimaryCalendarId({
+    const externalCalendarId = await fetchPrimaryCalendarId({
       googleCalendarService,
       delegationUserCredential,
     });
 
-    if (!primaryCalendarId) {
+    if (!externalCalendarId) {
       log.error(
-        `Primary calendar not found for delegationCredentialId: ${delegationUserCredential.delegationCredentialId}, credentialId: ${delegationUserCredential.id} and userId: ${delegationUserCredential.userId}`
+        `External calendar not found for delegationCredentialId: ${delegationUserCredential.delegationCredentialId}, credentialId: ${delegationUserCredential.id} and userId: ${delegationUserCredential.userId}`
       );
-      return;
+      throw new Error("externalCalendarId could not be determined");
     }
 
-    if (primaryCalendarId !== userEmail) {
+    if (externalCalendarId !== userEmail) {
       // We don't know the scenario when Delegation Credential allows access to an email that is not the primary calendar email
       // So log a warning for further investigation
       log.warn(
-        `Primary calendar id mismatch for delegationCredentialId: ${delegationUserCredential.delegationCredentialId}, credentialId: ${delegationUserCredential.id} and userId: ${delegationUserCredential.userId}`,
+        `External calendar id mismatch for delegationCredentialId: ${delegationUserCredential.delegationCredentialId}, credentialId: ${delegationUserCredential.id} and userId: ${delegationUserCredential.userId}`,
         safeStringify({
-          primaryCalendarId,
+          externalCalendarId,
           userEmail,
         })
       );
@@ -182,7 +192,7 @@ async function processDelegationUserCredential(
 
     await SelectedCalendarRepository.create({
       integration: "google_calendar",
-      externalId: primaryCalendarId,
+      externalId: externalCalendarId,
       userId: delegationUserCredential.user.id,
       delegationCredentialId: delegationUserCredential.delegationCredentialId,
       credentialId: delegationUserCredential.id,
@@ -201,6 +211,8 @@ export async function handleCreateSelectedCalendars() {
     type: "google_calendar",
     take: limitOnQueryingGoogleCalendar,
   });
+
+  log.info(`Found ${allDelegationUserCredentials.length} delegation user credentials to process`);
 
   if (!allDelegationUserCredentials.length) {
     const message = "No delegation credentials found";
@@ -224,6 +236,7 @@ export async function handleCreateSelectedCalendars() {
   for (const [delegationCredentialId, delegationUserCredentials] of Object.entries(
     groupedDelegationUserCredentials
   )) {
+    log.info(`Processing delegation user credentials for delegationCredentialId: ${delegationCredentialId}`);
     const delegationUserCredentialsToProcess = await getDelegationUserCredentialsToProcess(
       delegationUserCredentials
     );

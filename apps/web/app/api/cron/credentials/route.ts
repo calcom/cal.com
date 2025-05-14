@@ -14,7 +14,7 @@ import { DelegationCredentialRepository } from "@calcom/lib/server/repository/de
 
 import { defaultResponderForAppDir } from "../../defaultResponderForAppDir";
 
-const moduleLogger = logger.getSubLogger({ prefix: ["CreateCredentials"] });
+const moduleLogger = logger.getSubLogger({ prefix: ["[api]", "[delegation]", "[credentials/cron]"] });
 const batchSizeToCreateCredentials = 100;
 const validateRequest = (req: NextRequest) => {
   const url = new URL(req.url);
@@ -24,7 +24,7 @@ const validateRequest = (req: NextRequest) => {
   }
 };
 
-async function handleCreateCredentials() {
+export async function handleCreateCredentials() {
   const log = moduleLogger.getSubLogger({ prefix: ["CreateCredentials"] });
   const delegationCredentials = await DelegationCredentialRepository.findAllEnabledIncludeDelegatedMembers();
 

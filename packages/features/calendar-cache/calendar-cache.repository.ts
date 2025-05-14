@@ -111,6 +111,11 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
           key,
           expiresAt: { gte: new Date(Date.now()) },
         },
+        orderBy: {
+          // In case of multiple entries for same key and userId, we prefer the one with highest expiry, which will be the one that has been created most recently
+          // For better tracking we could also want to use updatedAt directly which doesn't exist yet in CalendarCache table
+          expiresAt: "desc",
+        },
       });
     } else {
       cached = await prisma.calendarCache.findUnique({

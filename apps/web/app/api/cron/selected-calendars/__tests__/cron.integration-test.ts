@@ -1,6 +1,9 @@
 import prismock from "../../../../../../../tests/libs/__mocks__/prisma";
+import "@calcom/lib/server/__mocks__/serviceAccountKey";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
+
+import { CalendarAppDelegationCredentialInvalidGrantError } from "@calcom/lib/CalendarAppError";
 
 import { handleCreateSelectedCalendars } from "../route";
 
@@ -14,28 +17,6 @@ vi.mock("@calcom/app-store/googlecalendar/lib/CalendarService", () => {
   };
 });
 
-// Mock decryptServiceAccountKey to always return the expected object
-vi.mock("@calcom/lib/server/serviceAccountKey", async (importOriginal) => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const actual = await importOriginal<any>();
-  return {
-    ...actual,
-    decryptServiceAccountKey: vi.fn((input) => {
-      // If input is a string, parse it; otherwise, return as is
-      if (typeof input === "string") {
-        try {
-          return JSON.parse(input);
-        } catch {
-          return input;
-        }
-      }
-      return input;
-    }),
-  };
-});
-
-// Helpers for test data setup
 type OrgParams = { id?: number };
 const createOrg = async ({ id = 1 }: OrgParams = {}) =>
   await prismock.team.create({ data: { id, name: `Org${id}`, isOrganization: true } });
@@ -56,18 +37,14 @@ const createWorkspacePlatform = async ({ id = 1 }: WorkspacePlatformParams = {})
     },
   });
 
-type DelegationCredentialParams = { id?: string; orgId?: number; domain?: string };
-const createDelegationCredential = async ({
-  id = "delegation-credential-1",
-  orgId = 1,
-  domain = "example.com",
-}: DelegationCredentialParams = {}) =>
+type DelegationCredentialParams = { id: string; orgId: number; domain: string };
+const createDelegationCredential = async ({ id, orgId, domain }: DelegationCredentialParams) =>
   await prismock.delegationCredential.create({
     data: {
       id,
       enabled: true,
-      domain,
-      organizationId: orgId,
+      domain: domain ?? "example.com",
+      organizationId: orgId ?? 1,
       workspacePlatformId: 1,
       serviceAccountKey: {
         client_email: "svc@example.com",
@@ -77,13 +54,13 @@ const createDelegationCredential = async ({
     },
   });
 
-type CredentialParams = { id?: number; userId?: number; delegationCredentialId?: string; key?: object };
-const createCredential = async ({
-  id = 1,
-  userId = 1,
-  delegationCredentialId = "delegation-credential-1",
-  key = {},
-}: CredentialParams = {}) =>
+type CredentialParams = {
+  id: number;
+  userId: number;
+  delegationCredentialId: string | null;
+  key?: object;
+};
+const createCredential = async ({ id, userId, delegationCredentialId, key = {} }: CredentialParams) =>
   await prismock.credential.create({
     data: {
       id,
@@ -100,7 +77,7 @@ type SelectedCalendarParams = {
   externalId?: string;
   error?: string | null;
   id?: string;
-  delegationCredentialId?: string;
+  delegationCredentialId?: string | null;
   credentialId?: number;
 };
 const createSelectedCalendar = async ({
@@ -108,7 +85,7 @@ const createSelectedCalendar = async ({
   externalId = "user1@example.com",
   error = null,
   id = `${userId}-sc`,
-  delegationCredentialId = "delegation-credential-1",
+  delegationCredentialId = null,
   credentialId = 1,
 }: SelectedCalendarParams = {}) =>
   await prismock.selectedCalendar.create({
@@ -122,6 +99,14 @@ const createSelectedCalendar = async ({
       error,
     },
   });
+
+// Helper to assert selected calendars in DB match expected (partial, order-insensitive)
+type PartialSelectedCalendar = Partial<Awaited<ReturnType<typeof prismock.selectedCalendar.create>>>;
+async function expectSelectedCalendars(expected: PartialSelectedCalendar[]) {
+  const actual = await prismock.selectedCalendar.findMany({});
+  expect(actual.length).toBe(expected.length);
+  expect(actual).toEqual(expect.arrayContaining(expected.map((exp) => expect.objectContaining(exp))));
+}
 
 describe("handleCreateSelectedCalendars integration", () => {
   beforeEach(() => {
@@ -153,15 +138,14 @@ describe("handleCreateSelectedCalendars integration", () => {
       domain: "example.com",
     });
     await createCredential({ id: 1, userId: user.id, delegationCredentialId: delegationCredential.id });
-    console.log({ credentials: await prismock.credential.findMany() });
     fetchPrimaryCalendarMock.mockResolvedValue({ id: "user1@example.com" });
 
     const result = await handleCreateSelectedCalendars();
     expect(result.success).toBe(1);
     expect(result.failures).toBe(0);
-    const scs = await prismock.selectedCalendar.findMany({});
-    expect(scs.length).toBe(1);
-    expect(scs[0].externalId).toBe("user1@example.com");
+    await expectSelectedCalendars([
+      { userId: user.id, externalId: "user1@example.com", delegationCredentialId: delegationCredential.id },
+    ]);
   });
 
   it("creates a Selected Calendar even if the user's primary calendar ID does not match their email address", async () => {
@@ -178,9 +162,9 @@ describe("handleCreateSelectedCalendars integration", () => {
 
     const result = await handleCreateSelectedCalendars();
     expect(result.success).toBe(1);
-    const scs = await prismock.selectedCalendar.findMany({});
-    expect(scs.length).toBe(1);
-    expect(scs[0].externalId).toBe("notuser@example.com");
+    await expectSelectedCalendars([
+      { userId: user.id, externalId: "notuser@example.com", delegationCredentialId: delegationCredential.id },
+    ]);
   });
 
   it("does not create duplicate Selected Calendars for users who already have a valid one", async () => {
@@ -203,8 +187,9 @@ describe("handleCreateSelectedCalendars integration", () => {
 
     const result = await handleCreateSelectedCalendars();
     expect(result.success).toBe(0);
-    const scs = await prismock.selectedCalendar.findMany({});
-    expect(scs.length).toBe(1);
+    await expectSelectedCalendars([
+      { userId: user.id, externalId: "user1@example.com", delegationCredentialId: delegationCredential.id },
+    ]);
   });
 
   it("replaces a Selected Calendar if the existing one has an error, ensuring users always have a working calendar connection", async () => {
@@ -216,20 +201,76 @@ describe("handleCreateSelectedCalendars integration", () => {
       orgId: 1,
       domain: "example.com",
     });
-    await createCredential({ id: 1, userId: user.id, delegationCredentialId: delegationCredential.id });
+    // Create a Delegation User Credential
+    await createCredential({
+      id: 2,
+      userId: user.id,
+      delegationCredentialId: delegationCredential.id,
+    });
+    // Create a Regular User Credential
+    const regularCredential = await createCredential({
+      id: 1,
+      userId: user.id,
+      delegationCredentialId: null,
+    });
+    // Create a SelectedCalendar attached to regular credential
     await createSelectedCalendar({
       userId: user.id,
       externalId: "user1@example.com",
       error: "some error" as unknown as null,
-      delegationCredentialId: delegationCredential.id,
-      credentialId: 1,
+      credentialId: regularCredential.id,
     });
     fetchPrimaryCalendarMock.mockResolvedValue({ id: "user1@example.com" });
 
     const result = await handleCreateSelectedCalendars();
     expect(result.success).toBe(1);
-    const scs = await prismock.selectedCalendar.findMany({});
-    expect(scs.length).toBe(1);
-    expect(scs[0].error).toBe(null);
+    await expectSelectedCalendars([
+      {
+        userId: user.id,
+        externalId: "user1@example.com",
+        delegationCredentialId: delegationCredential.id,
+        error: null,
+      },
+    ]);
+  });
+
+  describe("when GoogleCalendarService throws error", () => {
+    it("creates SelectedCalendar with user.email when CalendarAppDelegationCredentialInvalidGrantError is thrown", async () => {
+      await createOrg({ id: 1 });
+      await createWorkspacePlatform({ id: 1 });
+      const user = await createUser({ id: 1, email: "user1@example.com" });
+      const delegationCredential = await createDelegationCredential({
+        id: "delegation-credential-1",
+        orgId: 1,
+        domain: "example.com",
+      });
+      await createCredential({ id: 1, userId: user.id, delegationCredentialId: delegationCredential.id });
+      fetchPrimaryCalendarMock.mockRejectedValue(
+        new CalendarAppDelegationCredentialInvalidGrantError("some error")
+      );
+
+      const result = await handleCreateSelectedCalendars();
+      expect(result.success).toBe(1);
+      await expectSelectedCalendars([
+        { userId: user.id, externalId: "user1@example.com", delegationCredentialId: delegationCredential.id },
+      ]);
+    });
+
+    it("does not create SelectedCalendar when some other error than CalendarAppDelegationCredentialInvalidGrantError is thrown", async () => {
+      await createOrg({ id: 1 });
+      await createWorkspacePlatform({ id: 1 });
+      const user = await createUser({ id: 1, email: "user1@example.com" });
+      const delegationCredential = await createDelegationCredential({
+        id: "delegation-credential-1",
+        orgId: 1,
+        domain: "example.com",
+      });
+      await createCredential({ id: 1, userId: user.id, delegationCredentialId: delegationCredential.id });
+      fetchPrimaryCalendarMock.mockRejectedValue(new Error("some error"));
+
+      const result = await handleCreateSelectedCalendars();
+      expect(result.success).toBe(0);
+      await expectSelectedCalendars([]);
+    });
   });
 });
