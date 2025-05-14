@@ -57,8 +57,8 @@ describe("PermissionCheckService", () => {
       } as any);
 
       vi.mocked(prisma.rolePermission.findMany).mockResolvedValueOnce([
-        { permission: "eventType.create" },
-        { permission: "eventType.read" },
+        { resource: "eventType", action: "create" },
+        { resource: "eventType", action: "read" },
       ] as any);
 
       const result = await service.hasPermission(membership, "eventType.create");

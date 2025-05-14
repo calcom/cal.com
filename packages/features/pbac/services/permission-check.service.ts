@@ -39,9 +39,11 @@ export class PermissionCheckService {
   }
 
   private async checkCustomRolePermission(roleId: string, permission: PermissionString): Promise<boolean> {
-    const rolePermissions = await this.roleService.getRolePermissions(roleId);
+    const role = await this.roleService.getRole(roleId);
+    if (!role) return false;
+
     const [resource, action] = permission.split(".") as [Resource, Action];
-    return rolePermissions.some((p) => p.resource === resource && p.action === action);
+    return role.permissions.some((p) => p.resource === resource && p.action === action);
   }
 
   private permissionMatches(pattern: PermissionString, permission: PermissionString): boolean {

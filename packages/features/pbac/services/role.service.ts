@@ -23,22 +23,29 @@ export class RoleService {
       throw new Error("Invalid permissions provided");
     }
 
-    // Create role with permissions
-    return this.prisma.role.create({
-      data: {
-        name: data.name,
-        description: data.description,
-        teamId: data.teamId,
-        permissions: {
-          create: data.permissions.map((permission) => {
-            const [resource, action] = permission.split(".") as [Resource, Action];
-            return { resource, action };
-          }),
+    return this.prisma.$transaction(async (tx) => {
+      // Create role
+      const role = await tx.role.create({
+        data: {
+          name: data.name,
+          description: data.description,
+          teamId: data.teamId,
         },
-      },
-      include: {
-        permissions: true,
-      },
+      });
+
+      // Create permissions
+      await tx.rolePermission.createMany({
+        data: data.permissions.map((permission) => {
+          const [resource, action] = permission.split(".") as [Resource, Action];
+          return { roleId: role.id, resource, action };
+        }),
+      });
+
+      const permissions = await tx.rolePermission.findMany({
+        where: { roleId: role.id },
+      });
+
+      return { ...role, permissions };
     });
   }
 
@@ -63,8 +70,16 @@ export class RoleService {
   }
 
   async deleteRole(roleId: string) {
-    return this.prisma.role.delete({
-      where: { id: roleId },
+    return this.prisma.$transaction(async (tx) => {
+      // Delete permissions first
+      await tx.rolePermission.deleteMany({
+        where: { roleId },
+      });
+
+      // Then delete the role
+      return tx.role.delete({
+        where: { id: roleId },
+      });
     });
   }
 
@@ -100,25 +115,31 @@ export class RoleService {
       throw new Error("Invalid permissions provided");
     }
 
-    // Delete existing permissions
-    await this.prisma.rolePermission.deleteMany({
-      where: { roleId },
-    });
+    return this.prisma.$transaction(async (tx) => {
+      // Delete existing permissions
+      await tx.rolePermission.deleteMany({
+        where: { roleId },
+      });
 
-    // Create new permissions
-    return this.prisma.role.update({
-      where: { id: roleId },
-      data: {
-        permissions: {
-          create: permissions.map((permission) => {
-            const [resource, action] = permission.split(".") as [Resource, Action];
-            return { resource, action };
-          }),
-        },
-      },
-      include: {
-        permissions: true,
-      },
+      // Create new permissions
+      await tx.rolePermission.createMany({
+        data: permissions.map((permission) => {
+          const [resource, action] = permission.split(".") as [Resource, Action];
+          return { roleId, resource, action };
+        }),
+      });
+
+      const role = await tx.role.findUnique({
+        where: { id: roleId },
+      });
+
+      if (!role) return null;
+
+      const updatedPermissions = await tx.rolePermission.findMany({
+        where: { roleId },
+      });
+
+      return { ...role, permissions: updatedPermissions };
     });
   }
 }
