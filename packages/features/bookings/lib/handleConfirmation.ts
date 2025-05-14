@@ -68,6 +68,7 @@ export async function handleConfirmation(args: {
     smsReminderNumber: string | null;
     userId: number | null;
     location: string | null;
+    reassignReason?: string;
   };
   paid?: boolean;
   emailsEnabled?: boolean;
@@ -469,6 +470,7 @@ export async function handleConfirmation(args: {
       status: "ACCEPTED",
       smsReminderNumber: booking.smsReminderNumber || undefined,
       metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
+      routing_reason: booking.reassignReason,
       ...(platformClientParams ? platformClientParams : {}),
     };
 

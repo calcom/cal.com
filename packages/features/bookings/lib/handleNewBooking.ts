@@ -142,7 +142,12 @@ type BookingDataSchemaGetter =
   | typeof getBookingDataSchema
   | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
 
-type CreatedBooking = Booking & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number };
+type CreatedBooking = Booking & {
+  appsStatus?: AppsStatus[];
+  paymentUid?: string;
+  paymentId?: number;
+  assignmentReason?: { reasonString: string }[];
+};
 type ReturnTypeCreateBooking = Awaited<ReturnType<typeof createBooking>>;
 export const buildDryRunBooking = ({
   eventTypeId,
@@ -1885,6 +1890,7 @@ async function handler(
     status: "ACCEPTED",
     smsReminderNumber: booking?.smsReminderNumber || undefined,
     rescheduledBy: reqBody.rescheduledBy,
+    routing_reason: booking?.reassignReason,
   };
 
   if (bookingRequiresPayment) {
