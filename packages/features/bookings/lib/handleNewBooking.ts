@@ -1849,7 +1849,7 @@ async function handler(
     status: "ACCEPTED",
     smsReminderNumber: booking?.smsReminderNumber || undefined,
     rescheduledBy: reqBody.rescheduledBy,
-    ...(routingAssignmentReason && { routingReason: routingAssignmentReason.reasonString }),
+    ...(routingAssignmentReason ? { routingReason: routingAssignmentReason.reasonString } : {}),
   };
 
   if (bookingRequiresPayment) {
