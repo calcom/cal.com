@@ -3,13 +3,12 @@ import type { UnitTypeLongPlural } from "dayjs";
 import type { TFunction } from "i18next";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 import type {
-  AnyZodObject,
-  objectInputType,
-  objectOutputType,
-  ZodNullableDef,
-  ZodOptionalDef,
-  ZodRawShape,
-  ZodTypeAny,
+  // AnyZodObject,
+  // objectInputType,
+  // objectOutputType,
+  // ZodNullableDef,
+  // ZodOptionalDef,
+  ZodRawShape, // ZodTypeAny,
 } from "zod";
 
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
@@ -59,7 +58,7 @@ export const bookerLayouts = z
   .nullable();
 
 export const orgOnboardingInvitedMembersSchema = z.array(
-  z.object({ email: z.string().email, name: z.string().optional() })
+  z.object({ email: z.email(), name: z.string().optional() })
 );
 
 export const orgOnboardingTeamsSchema = z.array(
@@ -281,7 +280,7 @@ export const bookingCancelSchema = z.object({
   cancelSubsequentBookings: z.boolean().optional(),
   cancellationReason: z.string().optional(),
   seatReferenceUid: z.string().optional(),
-  cancelledBy: z.string().email.optional(),
+  cancelledBy: z.email().optional(),
   internalNote: z
     .object({
       id: z.number(),

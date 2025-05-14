@@ -85,7 +85,7 @@ export const AddNewTeamMembersForm = () => {
   const { register, handleSubmit, reset } = useForm<{ email: string }>();
 
   const onSubmit = handleSubmit((data) => {
-    const parsedEmail = z.string().email.safeParse(data.email);
+    const parsedEmail = z.email().safeParse(data.email);
     if (!parsedEmail.success) {
       return;
     }

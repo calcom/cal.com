@@ -442,7 +442,7 @@ const cardExamples: ((
 const inputSchema = z.object({
   customer: z.object({
     name: z.string().optional(),
-    email: z.string().email,
+    email: z.email(),
     username: z.string().optional(),
     timeZone: timeZoneSchema.optional(),
     emailVerified: z.boolean().optional(),
