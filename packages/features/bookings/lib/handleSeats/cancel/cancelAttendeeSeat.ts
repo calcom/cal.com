@@ -2,7 +2,7 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import { getAllDelegationCredentialsForUser } from "@calcom/lib/delegationCredential/server";
+import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { getDelegationCredentialOrFindRegularCredential } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -71,7 +71,8 @@ async function cancelAttendeeSeat(
   const attendee = bookingToDelete?.attendees.find((attendee) => attendee.id === seatReference.attendeeId);
   const bookingToDeleteUser = bookingToDelete.user ?? null;
   const delegationCredentials = bookingToDeleteUser
-    ? await getAllDelegationCredentialsForUser({
+    ? // We fetch delegation credentials with ServiceAccount key as CalendarService instance created later in the flow needs it
+      await getAllDelegationCredentialsForUserIncludeServiceAccountKey({
         user: { email: bookingToDeleteUser.email, id: bookingToDeleteUser.id },
       })
     : [];

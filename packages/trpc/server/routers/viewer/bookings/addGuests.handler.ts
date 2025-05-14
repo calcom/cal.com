@@ -2,7 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { sendAddGuestsEmails } from "@calcom/emails";
 import EventManager from "@calcom/lib/EventManager";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
@@ -157,7 +157,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     };
   }
 
-  const credentials = await getUsersCredentials(ctx.user);
+  const credentials = await getUsersCredentialsIncludeServiceAccountKey(ctx.user);
 
   const eventManager = new EventManager({
     ...user,
