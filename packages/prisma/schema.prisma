@@ -500,6 +500,7 @@ model Team {
   // Available for Organization only
   delegationCredentials  DelegationCredential[]
   domainWideDelegations  DomainWideDelegation[]
+  roles                  Role[] // Added for Role relation
 
   features TeamFeatures[]
 
@@ -584,6 +585,8 @@ model Membership {
   userId               Int
   accepted             Boolean           @default(false)
   role                 MembershipRole
+  customRoleId         String?
+  customRole           Role?             @relation(fields: [customRoleId], references: [id])
   team                 Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   disableImpersonation Boolean           @default(false)
@@ -596,6 +599,7 @@ model Membership {
   @@index([userId])
   @@index([accepted])
   @@index([role])
+  @@index([customRoleId])
 }
 
 model VerificationToken {
@@ -2202,4 +2206,31 @@ model WorkflowOptOutContact {
   updatedAt DateTime            @updatedAt
 
   @@unique([type, value])
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  name        String
+  description String?
+  teamId      Int? // null for organization roles
+  team        Team?            @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  permissions RolePermission[]
+  memberships Membership[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([name, teamId])
+  @@index([teamId])
+}
+
+model RolePermission {
+  id        String   @id @default(cuid())
+  roleId    String
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  resource  String
+  action    String
+  createdAt DateTime @default(now())
+
+  @@unique([roleId, resource, action])
+  @@index([roleId])
 }
