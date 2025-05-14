@@ -12,6 +12,7 @@ import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import type { WorkflowStep } from "@calcom/prisma/client";
 import {
   MembershipRole,
   TimeUnit,
