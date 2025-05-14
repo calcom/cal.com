@@ -4,6 +4,7 @@ import type { ZodSchema } from "zod";
 
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import { localStorage } from "@calcom/lib/webstorage";
 
 export const useCurrentEmail = (querySchema: ZodSchema) => {
   const { data: session } = useSession();
