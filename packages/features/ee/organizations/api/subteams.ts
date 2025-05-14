@@ -7,7 +7,7 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
 const querySchema = z.object({
-  org: z.string({ required_error: "org slug is required" }),
+  org: z.string({ error: "org slug is required" }),
 });
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
