@@ -4,8 +4,9 @@ import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { isEventPayload, type WebhookPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 
-export async function handleWebhookTrigger(args: {
+async function _handleWebhookTrigger(args: {
   subscriberOptions: GetSubscriberOptions;
   eventTrigger: string;
   webhookData: WebhookPayloadType;
@@ -32,3 +33,5 @@ export async function handleWebhookTrigger(args: {
     logger.error("Error while sending webhook", error);
   }
 }
+
+export const handleWebhookTrigger = withReporting(_handleWebhookTrigger, "handleWebhookTrigger");

@@ -4,6 +4,8 @@ import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { dataTableQueryParamsSerializer } from "@calcom/features/data-table/lib/serializers";
+import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/features/embed/RoutingFormEmbed";
 import { EmbedDialogProvider } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
@@ -391,6 +393,7 @@ export function FormActionsProvider({
 
 type FormActionType =
   | "preview"
+  | "incompleteBooking"
   | "edit"
   | "copyLink"
   | "toggle"
@@ -399,6 +402,7 @@ type FormActionType =
   | "duplicate"
   | "download"
   | "copyRedirectUrl"
+  | "viewResponses"
   | "create";
 
 type FormActionProps<T> = {
@@ -470,6 +474,9 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     edit: {
       href: `${appUrl}/form-edit/${routingForm?.id}`,
     },
+    incompleteBooking: {
+      href: `${appUrl}/incomplete-booking/${routingForm?.id}`,
+    },
     download: {
       href: `/api/integrations/routing-forms/responses/${routingForm?.id}`,
     },
@@ -479,6 +486,17 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     },
     create: {
       onClick: () => setNewFormDialogState?.({ action: "new", target: "" }),
+    },
+    viewResponses: {
+      href: `/insights/routing${
+        routingForm?.id
+          ? dataTableQueryParamsSerializer({
+              activeFilters: [
+                { f: "formId", v: { type: ColumnFilterType.SINGLE_SELECT, data: routingForm.id } },
+              ],
+            })
+          : ""
+      }`,
     },
     copyRedirectUrl: {
       onClick: () => {
