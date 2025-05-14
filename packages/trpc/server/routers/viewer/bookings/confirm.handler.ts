@@ -10,10 +10,11 @@ import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhoo
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";

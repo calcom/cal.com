@@ -157,17 +157,20 @@ export class SlotsController_2024_04_15 {
     @Query() query: GetAvailableSlotsInput_2024_04_15,
     @Req() req: ExpressRequest
   ): Promise<ApiResponse<{ slots: TimeSlots["slots"] | RangeSlots["slots"] }>> {
-    const isTeamEvent = await this.slotsService.checkIfIsTeamEvent(query.eventTypeId);
     try {
-      const availableSlots = await getAvailableSlots({
-        input: {
-          ...query,
-          isTeamEvent,
-        },
-        ctx: {
-          req,
-        },
-      });
+    const isTeamEvent =
+      query.isTeamEvent === undefined
+        ? await this.slotsService.checkIfIsTeamEvent(query.eventTypeId)
+        : query.isTeamEvent;
+    const availableSlots = await getAvailableSlots({
+      input: {
+        ...query,
+        isTeamEvent,
+      },
+      ctx: {
+        req,
+      },
+    });
 
       const { slots } = await this.slotsOutputService.getOutputSlots(
         availableSlots,

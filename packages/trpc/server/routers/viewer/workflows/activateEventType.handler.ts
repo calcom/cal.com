@@ -46,8 +46,13 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         },
       ],
     },
-    include: {
-      children: true,
+    select: {
+      teamId: true,
+      children: {
+        select: {
+          id: true,
+        },
+      },
     },
   });
 
@@ -67,8 +72,26 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         },
       ],
     },
-    include: {
-      steps: true,
+    select: {
+      steps: {
+        select: {
+          id: true,
+          action: true,
+          sendTo: true,
+          numberRequired: true,
+          template: true,
+          sender: true,
+          emailSubject: true,
+          reminderBody: true,
+          verifiedAt: true,
+        },
+      },
+      trigger: true,
+      time: true,
+      timeUnit: true,
+      isActiveOnAll: true,
+      teamId: true,
+      userId: true,
       team: {
         select: {
           isOrganization: true,
@@ -206,8 +229,23 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
             gte: new Date(),
           },
         },
-        include: {
-          attendees: true,
+        select: {
+          metadata: true,
+          userId: true,
+          smsReminderNumber: true,
+          userPrimaryEmail: true,
+          startTime: true,
+          endTime: true,
+          title: true,
+          uid: true,
+          attendees: {
+            select: {
+              name: true,
+              email: true,
+              timeZone: true,
+              locale: true,
+            },
+          },
           eventType: {
             select: {
               schedulingType: true,
@@ -230,7 +268,15 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               hideOrganizerEmail: true,
             },
           },
-          user: true,
+          user: {
+            select: {
+              name: true,
+              email: true,
+              timeZone: true,
+              locale: true,
+              timeFormat: true,
+            },
+          },
         },
       });
 
