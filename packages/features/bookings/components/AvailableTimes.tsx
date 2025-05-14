@@ -7,12 +7,12 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { OutOfOfficeInSlots } from "@calcom/features/bookings/Booker/components/OutOfOfficeInSlots";
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
-import type { BookerEvent } from "@calcom/features/bookings/types";
 import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import type { IOutOfOfficeData } from "@calcom/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
@@ -60,9 +60,7 @@ type SlotItemProps = {
   onTimeSelect?: TOnTimeSelect;
   onTentativeTimeSelect?: TOnTentativeTimeSelect;
   showAvailableSeatsCount?: boolean | null;
-  event: {
-    data?: Pick<BookerEvent, "length" | "bookingFields" | "price" | "currency" | "metadata"> | null;
-  };
+  eventType?: RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
   customClassNames?: string;
   confirmStepClassNames?: {
     confirmButton?: string;
@@ -84,7 +82,7 @@ const SlotItem = ({
   selectedSlots,
   onTimeSelect,
   showAvailableSeatsCount,
-  event,
+  eventType,
   customClassNames,
   loadingStates,
   renderConfirmNotVerifyEmailButtonCond,
@@ -100,13 +98,11 @@ const SlotItem = ({
 }: SlotItemProps) => {
   const { t } = useLocale();
 
-  const { data: eventData } = event;
-
   const isPaidEvent = useMemo(() => {
-    if (!eventData?.price) return false;
-    const paymentAppData = getPaymentAppData(eventData);
-    return eventData?.price > 0 && !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
-  }, [eventData]);
+    if (!eventType?.price) return false;
+    const paymentAppData = getPaymentAppData(eventType);
+    return eventType?.price > 0 && !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
+  }, [eventType]);
 
   const overlayCalendarToggled =
     getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");

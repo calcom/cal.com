@@ -368,7 +368,7 @@ const EmailEmbed = ({
               locale={i18n.language}
               browsingDate={month ? dayjs(month) : undefined}
               selected={dayjs(selectedDate)}
-              weekStart={weekdayToWeekIndex(event?.data?.subsetOfUsers?.[0]?.weekStart)}
+              weekStart={weekdayToWeekIndex(eventType?.users?.[0]?.weekStart)}
               eventSlug={eventType?.slug}
             />
           </CollapsibleContent>
@@ -392,7 +392,7 @@ const EmailEmbed = ({
                 handleSlotClick={handleSlotClick}
                 slots={slots}
                 showAvailableSeatsCount={eventType.seatsShowAvailabilityCount}
-                event={event}
+                eventType={eventType}
               />
             </div>
           ) : null}
@@ -898,7 +898,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     },
   ];
   const previewTab = tabs.find((tab) => tab.name === "Preview");
-
+  const x = eventTypeData;
   return (
     <DialogContent
       enableOverflow
