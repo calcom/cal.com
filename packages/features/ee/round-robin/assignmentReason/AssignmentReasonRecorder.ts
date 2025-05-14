@@ -4,6 +4,7 @@ import { acrossQueryValueCompatiblity } from "@calcom/lib/raqb/raqbUtils";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getUsersAttributes } from "@calcom/lib/service/attribute/server/getAttributes";
 import prisma from "@calcom/prisma";
+import type { AssignmentReason } from "@calcom/prisma/client";
 import { AssignmentReasonEnum } from "@calcom/prisma/enums";
 
 const { getAttributesQueryValue } = acrossQueryValueCompatiblity;
@@ -33,7 +34,7 @@ export default class AssignmentReasonRecorder {
     routingFormResponseId: number;
     organizerId: number;
     teamId: number;
-  }) {
+  }): Promise<AssignmentReason | undefined> {
     // Get the routing form data
     const routingFormResponse = await prisma.app_RoutingForms_FormResponse.findFirst({
       where: {
@@ -113,13 +114,14 @@ export default class AssignmentReasonRecorder {
       }
     }
 
-    await prisma.assignmentReason.create({
+    const assignmentReason = await prisma.assignmentReason.create({
       data: {
         bookingId: bookingId,
         reasonEnum: AssignmentReasonEnum.ROUTING_FORM_ROUTING,
         reasonString: attributeValues.join(", "),
       },
     });
+    return assignmentReason;
   }
 
   // Separate method to handle rerouting
@@ -139,7 +141,7 @@ export default class AssignmentReasonRecorder {
     teamMemberEmail: string;
     recordType: string;
     routingFormResponseId: number;
-  }) {
+  }): Promise<AssignmentReason | undefined> {
     const appAssignmentReasonHandler = (await import("./appAssignmentReasonHandler")).default;
     const appHandler = appAssignmentReasonHandler[crmAppSlug];
     if (!appHandler) return;
@@ -148,13 +150,15 @@ export default class AssignmentReasonRecorder {
 
     if (!crmRoutingReason || !crmRoutingReason.assignmentReason) return;
 
-    await prisma.assignmentReason.create({
+    const assignmentReason = await prisma.assignmentReason.create({
       data: {
         bookingId,
         reasonEnum: crmRoutingReason.reasonEnum,
         reasonString: crmRoutingReason.assignmentReason,
       },
     });
+
+    return assignmentReason;
   }
   static roundRobinReassignment = withReporting(
     AssignmentReasonRecorder._roundRobinReassignment,
