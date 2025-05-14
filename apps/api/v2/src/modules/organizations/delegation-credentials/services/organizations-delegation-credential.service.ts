@@ -12,7 +12,7 @@ import { UpdateDelegationCredentialInput } from "@/modules/organizations/delegat
 import { OrganizationsDelegationCredentialRepository } from "@/modules/organizations/delegation-credentials/organizations-delegation-credential.repository";
 import { InjectQueue } from "@nestjs/bull";
 import { Injectable, NotFoundException, Logger } from "@nestjs/common";
-import { User } from "@prisma/client";
+import { User } from "@calcom/prisma/client";
 import { Queue } from "bull";
 
 import { encryptServiceAccountKey } from "@calcom/platform-libraries";

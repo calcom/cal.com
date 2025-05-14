@@ -26,7 +26,7 @@ import {
   ApiResponse as DocsResponse,
   ApiQuery,
 } from "@nestjs/swagger";
-import { User } from "@prisma/client";
+import { User } from "@calcom/prisma/client";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";

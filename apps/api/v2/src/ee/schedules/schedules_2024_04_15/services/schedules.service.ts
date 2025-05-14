@@ -5,7 +5,7 @@ import { SchedulesRepository_2024_04_15 } from "@/ee/schedules/schedules_2024_04
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { Schedule } from "@prisma/client";
-import { User } from "@prisma/client";
+import { User } from "@calcom/prisma/client";
 
 import type { ScheduleWithAvailabilities } from "@calcom/platform-libraries-0.0.2";
 import { updateScheduleHandler } from "@calcom/platform-libraries-0.0.2";

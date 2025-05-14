@@ -13,7 +13,7 @@ import {
   UnauthorizedException,
   NotFoundException,
 } from "@nestjs/common";
-import { User } from "@prisma/client";
+import { User } from "@calcom/prisma/client";
 import { Prisma } from "@prisma/client";
 import { DateTime } from "luxon";
 import { z } from "zod";

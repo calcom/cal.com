@@ -1,6 +1,3 @@
-import type { User as UserType } from "@prisma/client";
-import { Prisma } from "@prisma/client";
-
 import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
@@ -17,6 +14,8 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
+import type { User as UserType } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
   BookerLayouts,
@@ -50,108 +49,105 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   defaultScheduleId: true,
 });
 
-const getPublicEventSelect = (fetchAllUsers: boolean) => {
-  return Prisma.validator<Prisma.EventTypeSelect>()({
-    id: true,
-    title: true,
-    description: true,
-    eventName: true,
-    slug: true,
-    isInstantEvent: true,
-    instantMeetingParameters: true,
-    aiPhoneCallConfig: true,
-    schedulingType: true,
-    length: true,
-    locations: true,
-    customInputs: true,
-    disableGuests: true,
-    metadata: true,
-    lockTimeZoneToggleOnBookingPage: true,
-    requiresConfirmation: true,
-    autoTranslateDescriptionEnabled: true,
-    fieldTranslations: {
-      select: {
-        translatedText: true,
-        targetLocale: true,
-        field: true,
-      },
+const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+  id: true,
+  title: true,
+  description: true,
+  eventName: true,
+  slug: true,
+  isInstantEvent: true,
+  instantMeetingParameters: true,
+  aiPhoneCallConfig: true,
+  schedulingType: true,
+  length: true,
+  locations: true,
+  customInputs: true,
+  disableGuests: true,
+  metadata: true,
+  lockTimeZoneToggleOnBookingPage: true,
+  requiresConfirmation: true,
+  autoTranslateDescriptionEnabled: true,
+  fieldTranslations: {
+    select: {
+      translatedText: true,
+      targetLocale: true,
+      field: true,
     },
-    requiresBookerEmailVerification: true,
-    recurringEvent: true,
-    price: true,
-    currency: true,
-    seatsPerTimeSlot: true,
-    disableCancelling: true,
-    disableRescheduling: true,
-    seatsShowAvailabilityCount: true,
-    bookingFields: true,
-    teamId: true,
-    team: {
-      select: {
-        parentId: true,
-        metadata: true,
-        brandColor: true,
-        darkBrandColor: true,
-        slug: true,
-        name: true,
-        logoUrl: true,
-        theme: true,
-        hideTeamProfileLink: true,
-        parent: {
-          select: {
-            slug: true,
-            name: true,
-            bannerUrl: true,
-            logoUrl: true,
-          },
+  },
+  requiresBookerEmailVerification: true,
+  recurringEvent: true,
+  price: true,
+  currency: true,
+  seatsPerTimeSlot: true,
+  disableCancelling: true,
+  disableRescheduling: true,
+  seatsShowAvailabilityCount: true,
+  bookingFields: true,
+  teamId: true,
+  team: {
+    select: {
+      parentId: true,
+      metadata: true,
+      brandColor: true,
+      darkBrandColor: true,
+      slug: true,
+      name: true,
+      logoUrl: true,
+      theme: true,
+      hideTeamProfileLink: true,
+      parent: {
+        select: {
+          slug: true,
+          name: true,
+          bannerUrl: true,
+          logoUrl: true,
         },
-        isPrivate: true,
       },
+      isPrivate: true,
     },
-    successRedirectUrl: true,
-    forwardParamsSuccessRedirect: true,
-    workflows: {
-      include: {
-        workflow: {
-          include: {
-            steps: true,
-          },
+  },
+  successRedirectUrl: true,
+  forwardParamsSuccessRedirect: true,
+  workflows: {
+    include: {
+      workflow: {
+        include: {
+          steps: true,
         },
       },
     },
-    hosts: {
-      select: {
-        user: {
-          select: userSelect,
-        },
-      },
-      ...(fetchAllUsers ? {} : { take: 3 }),
-    },
-    owner: {
-      select: userSelect,
-    },
-    schedule: {
-      select: {
-        id: true,
-        timeZone: true,
+  },
+  hosts: {
+    select: {
+      user: {
+        select: userSelect,
       },
     },
-    instantMeetingSchedule: {
-      select: {
-        id: true,
-        timeZone: true,
-      },
+  },
+  owner: {
+    select: userSelect,
+  },
+  schedule: {
+    select: {
+      id: true,
+      timeZone: true,
     },
-    periodType: true,
-    periodDays: true, // days if limiting future bookings
-    periodEndDate: true, //end date limit by range
-    periodStartDate: true, //start date limit by range
-    periodCountCalendarDays: true, // count calendar days? Or only business days based on periodDays
-    hidden: true,
-    assignAllTeamMembers: true,
-    rescheduleWithSameRoundRobinHost: true,
-  });
-};
+  },
+  instantMeetingSchedule: {
+    select: {
+      id: true,
+      timeZone: true,
+    },
+  },
+  periodType: true,
+  periodDays: true, // days if limiting future bookings
+  periodEndDate: true, //end date limit by range
+  periodStartDate: true, //start date limit by range
+  periodCountCalendarDays: true, // count calendar days? Or only business days based on periodDays
+  hidden: true,
+  assignAllTeamMembers: true,
+  rescheduleWithSameRoundRobinHost: true,
+});
 
 export async function isCurrentlyAvailable({
   prisma,
@@ -219,7 +215,37 @@ function isAvailableInTimeSlot(
   return isWithinPeriod;
 }
 
-// TODO: Convert it to accept a single parameter with structured data
+// Define a type for the users that are returned in subsetOfUsers
+type PublicEventUser = {
+  username: string | null;
+  name: string | null;
+  avatarUrl: string | null;
+  weekStart: string;
+  organizationId: number | null;
+  bookerUrl: string;
+  profile: UserProfile;
+};
+
+// Define the complete return type to help with inference
+type PublicEventResult =
+  | null
+  | (Omit<Event, "users" | "hosts"> & {
+      subsetOfUsers: PublicEventUser[];
+      users: PublicEventUser[];
+      // Other properties added in the return
+      profile: ReturnType<typeof getProfileFromEvent>;
+      entity: {
+        fromRedirectOfNonOrgLink: boolean;
+        considerUnpublished: boolean;
+        orgSlug: string | null;
+        teamSlug: string | null;
+        name: string | null;
+        hideProfileLink: boolean;
+        logoUrl?: string;
+      };
+    });
+
+// Add the return type to getPublicEvent
 export const getPublicEvent = async (
   username: string,
   eventSlug: string,
@@ -229,7 +255,7 @@ export const getPublicEvent = async (
   fromRedirectOfNonOrgLink: boolean,
   currentUserId?: number,
   fetchAllUsers = false
-) => {
+): Promise<PublicEventResult> => {
   const usernameList = getUsernameList(username);
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
   // In case of dynamic group event, we fetch user's data and use the default event.
@@ -292,7 +318,7 @@ export const getPublicEvent = async (
             metadata: undefined,
             bookerUrl: getBookerBaseUrlSync(user.profile?.organization?.slug ?? null),
           }))
-        : undefined,
+        : [],
       locations: privacyFilteredLocations(locations),
       profile: {
         weekStart: users[0].weekStart,
@@ -356,12 +382,14 @@ export const getPublicEvent = async (
       };
 
   // In case it's not a group event, it's either a single user or a team, and we query that data.
+  const _publicEventSelect = { ...publicEventSelect };
+  if (fetchAllUsers) _publicEventSelect.hosts.take = 3;
   let event = await prisma.eventType.findFirst({
     where: {
       slug: eventSlug,
       ...usersOrTeamQuery,
     },
-    select: getPublicEventSelect(fetchAllUsers),
+    select: _publicEventSelect,
   });
 
   // If no event was found, check for platform org user event
@@ -383,7 +411,7 @@ export const getPublicEvent = async (
           },
         },
       },
-      select: getPublicEventSelect(fetchAllUsers),
+      select: _publicEventSelect,
     });
   }
 
@@ -410,7 +438,7 @@ export const getPublicEvent = async (
         })
       : null,
     subsetOfHosts: hosts,
-    hosts: fetchAllUsers ? hosts : undefined,
+    hosts: fetchAllUsers ? hosts : [],
   };
 
   let users =
@@ -530,11 +558,7 @@ export const getPublicEvent = async (
   };
 };
 
-const eventData = Prisma.validator<Prisma.EventTypeDefaultArgs>()({
-  select: getPublicEventSelect(true),
-});
-
-type Event = Prisma.EventTypeGetPayload<typeof eventData>;
+type Event = Prisma.EventTypeGetPayload<{ select: typeof publicEventSelect }>;
 
 type GetProfileFromEventInput = Omit<Event, "hosts"> & {
   hosts?: Event["hosts"];
@@ -657,7 +681,15 @@ function mapHostsToUsers(host: {
   user: Pick<UserType, "username" | "name" | "weekStart" | "avatarUrl"> & {
     profile: UserProfile;
   };
-}) {
+}): {
+  username: string | null;
+  name: string | null;
+  avatarUrl: string | null;
+  weekStart: string;
+  organizationId: number | null;
+  bookerUrl: string;
+  profile: UserProfile;
+} {
   return {
     username: host.user.username,
     name: host.user.name,
