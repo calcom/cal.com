@@ -145,7 +145,7 @@ export class GetAvailableSlotsInput_2024_04_15 {
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
   @IsOptional()
-  @Min(1, { message: "routingFormResponseId must be a positive number" })
+  @Min(0, { message: "routingFormResponseId must be a positive number or 0 for dry run" })
   @ApiPropertyOptional()
   @ApiHideProperty()
   routingFormResponseId?: number;
