@@ -50,6 +50,7 @@ import {
   enrichHostsWithDelegationCredentials,
   getFirstDelegationConferencingCredentialAppLocation,
 } from "@calcom/lib/delegationCredential/server";
+import DubManager from "@calcom/lib/dubManager/dubManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getEventName, updateHostInEventName } from "@calcom/lib/event";
@@ -821,6 +822,7 @@ async function handler(
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
   const allCredentials = await getAllCredentialsIncludeServiceAccountKey(organizerUser, eventType);
+  console.log("allCredentials: ", JSON.stringify(allCredentials, null, 2));
 
   // If the Organizer himself is rescheduling, the booker should be sent the communication in his timezone and locale.
   const attendeeInfoOnReschedule =
@@ -2097,6 +2099,21 @@ async function handler(
     }
   } catch (error) {
     loggerWithEventDetails.error("Error while scheduling no show triggers", JSON.stringify({ error }));
+  }
+
+  const { dub_id } = rawBookingData;
+
+  debugger;
+  if (dub_id && !isDryRun) {
+    const dubCredential = allCredentials.find((cred) => cred.appId === "dubco");
+    if (dubCredential) {
+      try {
+        const dubManager = new DubManager(dubCredential);
+        await dubManager.trackLead({ clickId: dub_id, email: bookerEmail, name: fullName });
+      } catch (err) {
+        console.error("Error sending dub lead: ", err);
+      }
+    }
   }
 
   // TODO: Refactor better so this booking object is not passed

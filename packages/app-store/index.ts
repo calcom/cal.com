@@ -4,6 +4,7 @@ const appStore = {
   caldavcalendar: createCachedImport(() => import("./caldavcalendar")),
   closecom: createCachedImport(() => import("./closecom")),
   dailyvideo: createCachedImport(() => import("./dailyvideo")),
+  dubco: createCachedImport(() => import("./dubco")),
   googlecalendar: createCachedImport(() => import("./googlecalendar")),
   googlevideo: createCachedImport(() => import("./googlevideo")),
   hubspot: createCachedImport(() => import("./hubspot")),
