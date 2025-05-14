@@ -1,6 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { getAllDelegationCredentialsForUser } from "@calcom/lib/delegationCredential/server";
+import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { getDelegationCredentialOrFindRegularCredential } from "@calcom/lib/delegationCredential/server";
 import { deleteMeeting } from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
@@ -20,7 +20,8 @@ const lastAttendeeDeleteBooking = async (
   let deletedReferences = false;
   const bookingUser = originalRescheduledBooking?.user;
   const delegationCredentials = bookingUser
-    ? await getAllDelegationCredentialsForUser({
+    ? // We fetch delegation credentials with ServiceAccount key as CalendarService instance created later in the flow needs it
+      await getAllDelegationCredentialsForUserIncludeServiceAccountKey({
         user: { email: bookingUser.email, id: bookingUser.id },
       })
     : [];

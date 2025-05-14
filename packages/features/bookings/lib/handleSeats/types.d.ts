@@ -18,7 +18,7 @@ export type NewSeatedBookingObject = {
     bookerUrl: string;
   };
   invitee: Invitee;
-  allCredentials: Awaited<ReturnType<typeof getAllCredentials>>;
+  allCredentials: Awaited<ReturnType<typeof getAllCredentialsIncludeServiceAccountKey>>;
   organizerUser: OrganizerUser;
   originalRescheduledBooking: OriginalRescheduledBooking;
   bookerEmail: string;

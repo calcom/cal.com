@@ -10,9 +10,9 @@ import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAn
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
-import { isTeamAdmin } from "@calcom/lib/server/queries";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
+import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { UserRepository } from "@calcom/lib/server/repository/user";

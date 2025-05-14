@@ -5,7 +5,7 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
-import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { User } from "@calcom/prisma/client";
@@ -65,7 +65,7 @@ export async function getConnectedApps({
     sortByInstalledFirst,
     appId,
   } = input;
-  let credentials = await getUsersCredentials(user);
+  let credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
   let userTeams: TeamQuery[] = [];
 
   if (includeTeamInstalledApps || teamId) {

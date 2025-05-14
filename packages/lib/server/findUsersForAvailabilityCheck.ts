@@ -1,4 +1,4 @@
-import { enrichUserWithDelegationCredentialsWithoutOrgId } from "@calcom/lib/delegationCredential/server";
+import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -22,7 +22,7 @@ export async function findUsersForAvailabilityCheck({ where }: { where: Prisma.U
     return null;
   }
 
-  return await enrichUserWithDelegationCredentialsWithoutOrgId({
+  return await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
     user: withSelectedCalendars(user),
   });
 }

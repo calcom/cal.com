@@ -1,6 +1,6 @@
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
-import { getAllCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleBookingRequested } from "@calcom/features/bookings/lib/handleBookingRequested";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import EventManager from "@calcom/lib/EventManager";
@@ -26,7 +26,7 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
     status: BookingStatus.ACCEPTED,
   };
 
-  const allCredentials = await getAllCredentials(userWithCredentials, {
+  const allCredentials = await getAllCredentialsIncludeServiceAccountKey(userWithCredentials, {
     ...booking.eventType,
     metadata: booking.eventType?.metadata as EventTypeMetadata,
   });
