@@ -33,11 +33,13 @@ type DelegationUserCredential = Awaited<
   ReturnType<typeof CredentialRepository.findAllDelegationByTypeIncludeUserAndTake>
 >[number];
 
+type DelegationUserCredentialWithEnsuredUser = Ensure<DelegationUserCredential, "user">;
+
 async function getDelegationUserCredentialsToProcess(delegationUserCredentials: DelegationUserCredential[]) {
   const delegationUserCredentialsToProcess = await Promise.all(
     delegationUserCredentials
       .filter(
-        (delegationUserCredential): delegationUserCredential is Ensure<DelegationUserCredential, "user"> =>
+        (delegationUserCredential): delegationUserCredential is DelegationUserCredentialWithEnsuredUser =>
           delegationUserCredential.user !== null
       )
       .map(async (delegationUserCredential) => {
@@ -71,11 +73,129 @@ async function getDelegationUserCredentialsToProcess(delegationUserCredentials: 
   );
 
   return delegationUserCredentialsToProcess.filter(
-    (credential): credential is Ensure<DelegationUserCredential, "user"> => credential !== null
+    (credential): credential is DelegationUserCredentialWithEnsuredUser => credential !== null
   );
 }
 
-async function handleCreateSelectedCalendars() {
+async function getCalendarService(delegationUserCredential: DelegationUserCredentialWithEnsuredUser) {
+  const credentialForCalendarService = await findUniqueDelegationCalendarCredential({
+    userId: delegationUserCredential.user.id,
+    delegationCredentialId: delegationUserCredential.delegationCredentialId,
+  });
+
+  if (!credentialForCalendarService) {
+    log.error(
+      `Credential not found for delegationCredentialId: ${delegationUserCredential.delegationCredentialId} and userId: ${delegationUserCredential.user.id}`
+    );
+    return null;
+  }
+
+  if (
+    !credentialForCalendarService.delegatedTo ||
+    !credentialForCalendarService.delegatedTo.serviceAccountKey ||
+    !credentialForCalendarService.delegatedTo.serviceAccountKey.client_email
+  ) {
+    log.error(
+      `Invalid delegatedTo for delegationCredentialId: ${delegationUserCredential.delegationCredentialId}`,
+      safeStringify({
+        delegatedToSet: !!credentialForCalendarService.delegatedTo,
+        serviceAccountKeySet: !!credentialForCalendarService.delegatedTo?.serviceAccountKey,
+        clientEmailSet: !!credentialForCalendarService.delegatedTo?.serviceAccountKey?.client_email,
+      })
+    );
+    return null;
+  }
+
+  const googleCalendarService = new GoogleCalendarService(
+    credentialForCalendarService as CredentialForCalendarServiceWithEmail
+  );
+
+  return googleCalendarService;
+}
+
+async function fetchPrimaryCalendarId({
+  googleCalendarService,
+  delegationUserCredential,
+}: {
+  googleCalendarService: GoogleCalendarService;
+  delegationUserCredential: DelegationUserCredentialWithEnsuredUser;
+}) {
+  let primaryCalendarId;
+  const userEmail = delegationUserCredential.user.email;
+
+  try {
+    const primaryCalendar = await googleCalendarService.fetchPrimaryCalendar();
+    primaryCalendarId = primaryCalendar?.id;
+  } catch (error) {
+    log.error(
+      `Error fetching primary calendar for delegationCredentialId: ${delegationUserCredential.delegationCredentialId}, credentialId: ${delegationUserCredential.id} and userId: ${delegationUserCredential.userId}`,
+      safeStringify(error)
+    );
+
+    if (error instanceof CalendarAppDelegationCredentialInvalidGrantError) {
+      // It is known to happen in case john+test@acme.com is the user email and the actual email is john@acme.com. Google rejects the authorization for john+test@acme.com
+      log.info(
+        `Error seems to be that the email isn't present in the third party workspace, further attempts would fail too, so we assume the user's email as the primary calendar id to skip this user in future cron runs`
+      );
+      // If we are unable to fetch the primary calendar, we assume the user's email as the primary calendar id
+      // It ensures that this calendar is skipped in the future cron runs
+      primaryCalendarId = userEmail;
+    }
+  }
+
+  return primaryCalendarId;
+}
+
+async function processDelegationUserCredential(
+  delegationUserCredential: DelegationUserCredentialWithEnsuredUser
+) {
+  try {
+    const userEmail = delegationUserCredential.user.email;
+    const googleCalendarService = await getCalendarService(delegationUserCredential);
+    if (!googleCalendarService) {
+      return;
+    }
+
+    const primaryCalendarId = await fetchPrimaryCalendarId({
+      googleCalendarService,
+      delegationUserCredential,
+    });
+
+    if (!primaryCalendarId) {
+      log.error(
+        `Primary calendar not found for delegationCredentialId: ${delegationUserCredential.delegationCredentialId}, credentialId: ${delegationUserCredential.id} and userId: ${delegationUserCredential.userId}`
+      );
+      return;
+    }
+
+    if (primaryCalendarId !== userEmail) {
+      // We don't know the scenario when Delegation Credential allows access to an email that is not the primary calendar email
+      // So log a warning for further investigation
+      log.warn(
+        `Primary calendar id mismatch for delegationCredentialId: ${delegationUserCredential.delegationCredentialId}, credentialId: ${delegationUserCredential.id} and userId: ${delegationUserCredential.userId}`,
+        safeStringify({
+          primaryCalendarId,
+          userEmail,
+        })
+      );
+    }
+
+    await SelectedCalendarRepository.create({
+      integration: "google_calendar",
+      externalId: primaryCalendarId,
+      userId: delegationUserCredential.user.id,
+      delegationCredentialId: delegationUserCredential.delegationCredentialId,
+      credentialId: delegationUserCredential.id,
+    });
+
+    log.debug(`Created SelectedCalendar for user ${delegationUserCredential.userId}`);
+  } catch (error) {
+    log.error(`Error processing credential ${delegationUserCredential.id}:`, safeStringify(error));
+    throw error;
+  }
+}
+
+export async function handleCreateSelectedCalendars() {
   // These are in DB delegation user credentials in contrast to in-memory delegation user credentials that are used elsewhere
   const allDelegationUserCredentials = await CredentialRepository.findAllDelegationByTypeIncludeUserAndTake({
     type: "google_calendar",
@@ -112,96 +232,7 @@ async function handleCreateSelectedCalendars() {
     );
 
     const results = await Promise.allSettled(
-      delegationUserCredentialsToProcess.map(async (delegationUserCredential) => {
-        try {
-          const credentialForCalendarService = await findUniqueDelegationCalendarCredential({
-            userId: delegationUserCredential.user.id,
-            delegationCredentialId: delegationUserCredential.delegationCredentialId,
-          });
-
-          if (!credentialForCalendarService) {
-            log.error(
-              `Credential not found for delegationCredentialId: ${delegationUserCredential.delegationCredentialId} and userId: ${delegationUserCredential.user.id}`
-            );
-            return;
-          }
-
-          if (
-            !credentialForCalendarService.delegatedTo ||
-            !credentialForCalendarService.delegatedTo.serviceAccountKey ||
-            !credentialForCalendarService.delegatedTo.serviceAccountKey.client_email
-          ) {
-            log.error(
-              `Invalid delegatedTo for delegationCredentialId: ${delegationUserCredential.delegationCredentialId}`,
-              safeStringify({
-                delegatedToSet: !!credentialForCalendarService.delegatedTo,
-                serviceAccountKeySet: !!credentialForCalendarService.delegatedTo?.serviceAccountKey,
-                clientEmailSet: !!credentialForCalendarService.delegatedTo?.serviceAccountKey?.client_email,
-              })
-            );
-            return;
-          }
-
-          const googleCalendarService = new GoogleCalendarService(
-            credentialForCalendarService as CredentialForCalendarServiceWithEmail
-          );
-
-          let primaryCalendarId;
-          const userEmail = delegationUserCredential.user.email;
-
-          try {
-            const primaryCalendar = await googleCalendarService.fetchPrimaryCalendar();
-            primaryCalendarId = primaryCalendar?.id;
-          } catch (error) {
-            log.error(
-              `Error fetching primary calendar for delegationCredentialId: ${delegationUserCredential.delegationCredentialId}, credentialId: ${delegationUserCredential.id} and userId: ${delegationUserCredential.userId}`,
-              safeStringify(error)
-            );
-
-            if (error instanceof CalendarAppDelegationCredentialInvalidGrantError) {
-              // It is known to happen in case john+test@acme.com is the user email and the actual email is john@acme.com. Google rejects the authorization for john+test@acme.com
-              log.info(
-                `Error seems to be that the email isn't present in the third party workspace, further attempts would fail too, so we assume the user's email as the primary calendar id to skip this user in future cron runs`
-              );
-              // If we are unable to fetch the primary calendar, we assume the user's email as the primary calendar id
-              // It ensures that this calendar is skipped in the future cron runs
-              primaryCalendarId = userEmail;
-            }
-          }
-
-          if (!primaryCalendarId) {
-            log.error(
-              `Primary calendar not found for delegationCredentialId: ${delegationUserCredential.delegationCredentialId}, credentialId: ${delegationUserCredential.id} and userId: ${delegationUserCredential.userId}`
-            );
-            return;
-          }
-
-          if (primaryCalendarId !== userEmail) {
-            // We don't know the scenario when Delegation Credential allows access to an email that is not the primary calendar email
-            // So log a warning for further investigation
-            log.warn(
-              `Primary calendar id mismatch for delegationCredentialId: ${delegationUserCredential.delegationCredentialId}, credentialId: ${delegationUserCredential.id} and userId: ${delegationUserCredential.userId}`,
-              safeStringify({
-                primaryCalendarId,
-                userEmail,
-              })
-            );
-          }
-
-          await SelectedCalendarRepository.create({
-            integration: "google_calendar",
-            externalId: primaryCalendarId,
-            userId: delegationUserCredential.user.id,
-            delegationCredentialId: delegationUserCredential.delegationCredentialId,
-            credentialId: delegationUserCredential.id,
-          });
-
-          log.debug(`Created SelectedCalendar for user ${delegationUserCredential.userId}`);
-        } catch (error) {
-          log.error(`Error processing credential ${delegationUserCredential.id}:`, safeStringify(error));
-          throw error;
-        }
-      })
+      delegationUserCredentialsToProcess.map(processDelegationUserCredential)
     );
     const successCount = results.filter((r) => r.status === "fulfilled").length;
     const failureCount = results.filter((r) => r.status === "rejected").length;

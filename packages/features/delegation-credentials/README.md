@@ -111,7 +111,7 @@ Step 6: Enable Delegation Credential(To Be taken By Cal.com organization Owner/A
 
 ### Cron Jobs
 
-Cron jobs ensure that for each and every member of the organization that has Delegation Credential enabled, corresponding SelectedCalendar records are there. These crons currently run every 5 minutes, look at vercel.json for the up-to-date schedule.
+Cron jobs ensure that for each and every member of the organization that has Delegation Credential enabled, corresponding SelectedCalendar records are there. These crons currently run every 5 minutes and process a batch in one run to avoid overloading the DB and third party CalendarAPIs, look at vercel.json for the up-to-date schedule.
 
 - `credentials` cron job creates Delegation User Credential records for all the members of the organization who don't have Delegation User Credentials yet. It also ensures that on disabling Delegation Credential, the Delegation User Credentials are deleted which automatically deletes the SelectedCalendars through DB cascade.
 - `selected-calendars` cron job creates SelectedCalendar records for all the Delegation User Credentials of the organization who don't have Selected Calendars yet.

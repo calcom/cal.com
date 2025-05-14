@@ -586,6 +586,8 @@ export async function findUniqueDelegationCalendarCredential({
     UserRepository.findById({ id: userId }),
   ]);
 
+  console.log({ delegationCredential, user });
+
   if (!delegationCredential) {
     throw new Error("Delegation Credential not found");
   }
