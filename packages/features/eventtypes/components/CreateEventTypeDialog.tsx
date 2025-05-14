@@ -91,14 +91,15 @@ export default function CreateEventTypeDialog({
     showToast(err, "error");
   };
 
-  const SubmitButton = (isPending: boolean) => {
-    return (
-      <DialogFooter showDivider>
-        <DialogClose />
-        <Button loading={isPending}>{t("continue")}</Button>
-      </DialogFooter>
-    );
-  };
+  const SubmitButton = (isPending: boolean) => (
+    <DialogFooter showDivider>
+      <DialogClose />
+      <Button type="submit" loading={isPending}>
+        {t("continue")}
+      </Button>{" "}
+      {/* type="submit" added */}
+    </DialogFooter>
+  );
 
   const { form, createMutation, isManagedEventType } = useCreateEventType(onSuccessMutation, onErrorMutation);
 
