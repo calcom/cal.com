@@ -480,6 +480,8 @@ function FieldEditDialog({
   const variantsConfig = fieldForm.watch("variantsConfig");
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
+  const fieldName = fieldForm.getValues("name");
+  console.log("fieldTypes", fieldForm.getValues());
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
@@ -606,6 +608,24 @@ function FieldEditDialog({
                         }}
                         label={t("exclude_emails_that_contain")}
                         placeholder="gmail.com, hotmail.com, ..."
+                      />
+                    )}
+
+                    {fieldName === "attendeePhoneNumber" && (
+                      <Controller
+                        name="enableSMSNotification"
+                        control={fieldForm.control}
+                        render={({ field: { value, onChange } }) => {
+                          return (
+                            <BooleanToggleGroupField
+                              data-testid="field-enable-sms-notification"
+                              value={value}
+                              onValueChange={onChange}
+                              label={t("enable_sms_notification")}
+                              infoBadgeContent={t("enable_sms_notification_info")}
+                            />
+                          );
+                        }}
                       />
                     )}
 

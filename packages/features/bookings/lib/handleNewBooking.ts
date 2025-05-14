@@ -1014,6 +1014,8 @@ async function handler(
 
   const eventName = getEventName(eventNameObject);
 
+  console.log("event.bookingFields", eventType.bookingFields);
+
   let evt: CalendarEvent = new CalendarEventBuilder()
     .withBasicDetails({
       bookerUrl,
@@ -1067,6 +1069,11 @@ async function handler(
       platformRescheduleUrl,
       platformCancelUrl,
       platformBookingUrl,
+    })
+    .withEnableSMSNotification({
+      enableSMSNotification: !!eventType.bookingFields.find(
+        (field) => field.name === "attendeePhoneNumber" && field.enableSMSNotification
+      ),
     })
     .build();
 

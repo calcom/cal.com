@@ -176,6 +176,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const teamId = input.teamId || eventType.team?.id;
   const guestsField = bookingFields?.find((field) => field.name === "guests");
 
+  console.log("bookingFields", bookingFields);
   ensureUniqueBookingFields(bookingFields);
   ensureEmailOrPhoneNumberIsPresent(bookingFields);
 

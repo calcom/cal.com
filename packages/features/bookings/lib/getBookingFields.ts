@@ -136,6 +136,9 @@ export const ensureBookingInputsHaveSystemFields = ({
   });
 
   const isEmailFieldOptional = !!bookingFields.find((field) => field.name === "email" && !field.required);
+  const isAttendeePhoneNumberFieldSMSNotificationEnabled = !!bookingFields.find(
+    (field) => field.name === "attendeePhoneNumber" && field.enableSMSNotification
+  );
 
   // These fields should be added before other user fields
   const systemBeforeFields: typeof bookingFields = [
@@ -160,7 +163,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       type: "email",
       name: "email",
       required: !isEmailFieldOptional,
-      editable: isOrgTeamEvent ? "system-but-optional" : "system",
+      editable: "system-but-optional",
       sources: [
         {
           label: "Default",
@@ -169,7 +172,22 @@ export const ensureBookingInputsHaveSystemFields = ({
         },
       ],
     },
-
+    {
+      defaultLabel: "phone_number",
+      type: "phone",
+      name: "attendeePhoneNumber",
+      required: false,
+      hidden: true,
+      editable: "system-but-optional",
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
+      enableSMSNotification: isAttendeePhoneNumberFieldSMSNotificationEnabled,
+    },
     {
       defaultLabel: "location",
       type: "radioInput",
@@ -204,23 +222,6 @@ export const ensureBookingInputsHaveSystemFields = ({
       ],
     },
   ];
-  if (isOrgTeamEvent) {
-    systemBeforeFields.splice(2, 0, {
-      defaultLabel: "phone_number",
-      type: "phone",
-      name: "attendeePhoneNumber",
-      required: false,
-      hidden: true,
-      editable: "system-but-optional",
-      sources: [
-        {
-          label: "Default",
-          id: "default",
-          type: "default",
-        },
-      ],
-    });
-  }
 
   // These fields should be added after other user fields
   const systemAfterFields: typeof bookingFields = [
