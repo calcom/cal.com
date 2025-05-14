@@ -79,6 +79,10 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   teams: true,
 });
 
+type UserPayload = Prisma.UserGetPayload<{ select: typeof userSelect }> & {
+  profile: UserProfile;
+};
+
 export class UserRepository {
   static async findTeamsByUserId({ userId }: { userId: UserType["id"] }) {
     const teamMemberships = await prisma.membership.findMany({
@@ -128,7 +132,7 @@ export class UserRepository {
   }: {
     orgSlug: string | null;
     usernameList: string[];
-  }) {
+  }): Promise<UserPayload[]> {
     const { where, profiles } = await UserRepository._getWhereClauseForFindingUsersByUsername({
       orgSlug,
       usernameList,
@@ -161,7 +165,11 @@ export class UserRepository {
     });
   }
 
-  static async findPlatformMembersByUsernames({ usernameList }: { usernameList: string[] }) {
+  static async findPlatformMembersByUsernames({
+    usernameList,
+  }: {
+    usernameList: string[];
+  }): Promise<UserPayload[]> {
     return (
       await prisma.user.findMany({
         select: userSelect,
