@@ -16,7 +16,6 @@ import { INestApplication } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User, EventType } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -30,6 +29,7 @@ import { randomString } from "test/utils/randomString";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { slugify } from "@calcom/platform-libraries";
 import { ApiSuccessResponse } from "@calcom/platform-types";
+import { PlatformOAuthClient, Team, User, EventType } from "@calcom/prisma/client";
 
 const CLIENT_REDIRECT_URI = "http://localhost:4321";
 

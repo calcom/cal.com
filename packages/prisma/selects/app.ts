@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../client";
 
 export const safeAppSelect = Prisma.validator<Prisma.AppSelect>()({
   slug: true,

@@ -1,7 +1,8 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
-import { Prisma } from "@prisma/client";
+
+import { Prisma } from "@calcom/prisma/client";
 
 export class WebhookRepositoryFixture {
   private primaReadClient: PrismaReadService["prisma"];

@@ -1,9 +1,9 @@
-import type { Webhook } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
 import { v4 } from "uuid";
 
 import { updateTriggerForExistingBookings } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { prisma } from "@calcom/prisma";
+import type { Webhook } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 

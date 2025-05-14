@@ -1,8 +1,8 @@
-import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import { SERVICE_ACCOUNT_ENCRYPTION_KEY } from "@calcom/lib/constants";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
+import type { Prisma } from "@calcom/prisma/client";
 import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
 
 export type ServiceAccountKey = z.infer<typeof serviceAccountKeySchema>;

@@ -1,7 +1,7 @@
-import { Prisma } from "@prisma/client";
 import { v5 as uuidv5 } from "uuid";
 
-import { BookingStatus } from "@calcom/prisma/enums";
+import { Prisma } from "../client";
+import { BookingStatus } from "../enums";
 
 export function bookingIdempotencyKeyExtension() {
   return Prisma.defineExtension({

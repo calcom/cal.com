@@ -1,6 +1,5 @@
-import { Prisma } from "@prisma/client";
-
 import logger from "@calcom/lib/logger";
+import { Prisma } from "@calcom/prisma/client";
 
 import { IS_PRODUCTION } from "./constants";
 

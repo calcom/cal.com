@@ -13,8 +13,6 @@ import {
   UnauthorizedException,
   NotFoundException,
 } from "@nestjs/common";
-import { User } from "@calcom/prisma/client";
-import { Prisma } from "@prisma/client";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
@@ -25,6 +23,8 @@ import {
 } from "@calcom/platform-libraries";
 import { Calendar } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
+import { User } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class CalendarsService {

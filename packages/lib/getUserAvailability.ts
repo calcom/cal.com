@@ -1,11 +1,3 @@
-import type {
-  Booking,
-  Prisma,
-  OutOfOfficeEntry,
-  OutOfOfficeReason,
-  User,
-  EventType as PrismaEventType,
-} from "@prisma/client";
 import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
 
@@ -28,6 +20,14 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { findUsersForAvailabilityCheck } from "@calcom/lib/server/findUsersForAvailabilityCheck";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import prisma from "@calcom/prisma";
+import type {
+  Booking,
+  Prisma,
+  OutOfOfficeEntry,
+  OutOfOfficeReason,
+  User,
+  EventType as PrismaEventType,
+} from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";

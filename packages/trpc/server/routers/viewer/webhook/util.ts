@@ -1,7 +1,6 @@
-import type { Membership } from "@prisma/client";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { prisma } from "@calcom/prisma";
+import type { Membership } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 

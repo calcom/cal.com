@@ -3,8 +3,9 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
-import { PlatformAuthorizationToken } from "@prisma/client";
 import { DateTime } from "luxon";
+
+import { PlatformAuthorizationToken } from "@calcom/prisma/client";
 
 @Injectable()
 export class TokensRepository {

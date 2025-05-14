@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../client";
 
 export const baseEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   id: true,

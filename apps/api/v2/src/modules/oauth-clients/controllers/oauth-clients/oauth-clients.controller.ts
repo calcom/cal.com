@@ -37,10 +37,10 @@ import {
   ApiExcludeEndpoint,
   ApiHeader,
 } from "@nestjs/swagger";
-import { User, MembershipRole } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { CreateOAuthClientInput, UpdateOAuthClientInput, Pagination } from "@calcom/platform-types";
+import { User, MembershipRole } from "@calcom/prisma/client";
 
 @Controller({
   path: "/v2/oauth-clients",

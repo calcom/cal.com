@@ -1,6 +1,5 @@
-import type { Prisma } from "@prisma/client";
-
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 export class AttributeOptionRepository {
   static async findMany({ orgId }: { orgId: number }) {

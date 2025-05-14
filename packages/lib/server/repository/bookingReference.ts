@@ -1,6 +1,5 @@
-import { Prisma } from "@prisma/client";
-
 import { prisma } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import type { PartialReference } from "@calcom/types/EventManager";
 
 const bookingReferenceSelect = Prisma.validator<Prisma.BookingReferenceSelect>()({

@@ -1,10 +1,10 @@
-import type { App } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
 import type { TFunction } from "i18next";
 
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import type { PaymentAppData } from "@calcom/lib/getPaymentAppData";
 import type { userSelect } from "@calcom/prisma";
+import type { App } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 

@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../client";
 
 export const availabilityUserSelect = Prisma.validator<Prisma.UserSelect>()({
   id: true,
