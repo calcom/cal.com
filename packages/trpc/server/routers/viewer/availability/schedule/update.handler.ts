@@ -1,6 +1,6 @@
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { hasEditPermissionForUserID } from "@calcom/lib/hasEditPermissionForUser";
-import { transformScheduleToAvailabilityForAtom } from "@calcom/lib/schedules/transformers";
+import { transformScheduleToAvailabilityForAtom } from "@calcom/lib/schedules/transformers/for-atom";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
