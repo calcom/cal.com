@@ -188,7 +188,7 @@ const _buildDelegatedConferencingCredential = ({
 /**
  * Gets calendar as well as conferencing credentials(stored in-memory) for the user from the corresponding enabled DelegationCredential.
  */
-export async function getAllDelegationCredentialsForUserIncludeSensitiveServiceAccountKey({
+export async function getAllDelegationCredentialsForUserIncludeServiceAccountKey({
   user,
 }: {
   user: { email: string; id: number };
@@ -216,7 +216,7 @@ export async function getAllDelegationCredentialsForUserIncludeSensitiveServiceA
 }
 
 export async function getAllDelegationCredentialsForUser({ user }: { user: { email: string; id: number } }) {
-  const delegationCredentials = await getAllDelegationCredentialsForUserIncludeSensitiveServiceAccountKey({
+  const delegationCredentials = await getAllDelegationCredentialsForUserIncludeServiceAccountKey({
     user,
   });
   return delegationCredentials.map(({ delegatedTo: _1, ...rest }) => {
@@ -231,7 +231,7 @@ export async function getAllDelegatedCalendarCredentialsForUser({
 }: {
   user: { email: string; id: number };
 }) {
-  const delegationCredentials = await getAllDelegationCredentialsForUserIncludeSensitiveServiceAccountKey({
+  const delegationCredentials = await getAllDelegationCredentialsForUserIncludeServiceAccountKey({
     user,
   });
   const delegationCalendarCredentials = delegationCredentials.filter((credential) =>
@@ -348,7 +348,7 @@ export async function getAllDelegationCredentialsForUserByAppSlug({
   user: User;
   appSlug: string;
 }) {
-  const delegationCredentials = await getAllDelegationCredentialsForUserIncludeSensitiveServiceAccountKey({
+  const delegationCredentials = await getAllDelegationCredentialsForUserIncludeServiceAccountKey({
     user,
   });
   const appDelegationCredentials = delegationCredentials.filter((credential) => credential.appId === appSlug);
@@ -461,7 +461,7 @@ export const enrichUserWithDelegationCredentialsIncludeServiceAccountKey = async
 }: {
   user: TUser;
 }) => {
-  const delegationCredentials = await getAllDelegationCredentialsForUserIncludeSensitiveServiceAccountKey({
+  const delegationCredentials = await getAllDelegationCredentialsForUserIncludeServiceAccountKey({
     user,
   });
   const { credentials, ...restUser } = user;

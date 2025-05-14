@@ -2,7 +2,7 @@ import type { Attendee } from "@prisma/client";
 
 // eslint-disable-next-line no-restricted-imports
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { getAllDelegationCredentialsForUserIncludeSensitiveServiceAccountKey } from "@calcom/lib/delegationCredential/server";
+import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { getDelegationCredentialOrFindRegularCredential } from "@calcom/lib/delegationCredential/server";
 import { deleteMeeting } from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
@@ -22,7 +22,7 @@ const lastAttendeeDeleteBooking = async (
   const bookingUser = originalRescheduledBooking?.user;
   const delegationCredentials = bookingUser
     ? // We fetch delegation credentials with ServiceAccount key as CalendarService instance created later in the flow needs it
-      await getAllDelegationCredentialsForUserIncludeSensitiveServiceAccountKey({
+      await getAllDelegationCredentialsForUserIncludeServiceAccountKey({
         user: { email: bookingUser.email, id: bookingUser.id },
       })
     : [];
