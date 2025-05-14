@@ -1,5 +1,8 @@
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
-import { EventTypeWithOwnerAndTeam } from "@/ee/bookings/2024-08-13/services/bookings.service";
+import {
+  eventTypeBookingFieldsSchema,
+  EventTypeWithOwnerAndTeam,
+} from "@/ee/bookings/2024-08-13/services/bookings.service";
 import {
   bookingResponsesSchema,
   seatedBookingDataSchema,
@@ -159,6 +162,12 @@ export class InputBookingsService_2024_08_13 {
     this.isBookingLocationWithEventTypeLocations(inputLocation, eventType);
     const location = inputLocation ? this.transformLocation(inputLocation) : undefined;
 
+    const needsSmsReminderNumber = eventType.bookingFields
+      ? eventTypeBookingFieldsSchema
+          .parse(eventType.bookingFields)
+          .find((field) => field.name === "smsReminderNumber")
+      : undefined;
+
     return {
       start: startTime.toISO(),
       end: endTime.toISO(),
@@ -174,6 +183,7 @@ export class InputBookingsService_2024_08_13 {
         name: inputBooking.attendee.name,
         email: attendeeEmail ?? "",
         attendeePhoneNumber: inputBooking.attendee.phoneNumber,
+        smsReminderNumber: needsSmsReminderNumber ? inputBooking.attendee.phoneNumber : undefined,
         guests,
         location,
       },
