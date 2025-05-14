@@ -9,7 +9,7 @@ export const SizesExample: React.FC = () => (
     <div className="space-y-4 md:w-80">
       <div className="space-y-2">
         <h3 className="text-emphasis text-sm">Default Height</h3>
-        <TextAreaField name="deafult" placeholder="Default height textarea..." />
+        <TextAreaField name="default" placeholder="Default height textarea..." />
       </div>
 
       <div className="space-y-2">

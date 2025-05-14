@@ -301,4 +301,21 @@ export class TeamRepository {
     const teamBillingPromises = teamsBilling.map((teamBilling) => teamBilling.updateQuantity());
     await Promise.allSettled(teamBillingPromises);
   }
+
+  static async findTeamWithMembers(teamId: number) {
+    return await prisma.team.findUnique({
+      where: { id: teamId },
+      select: {
+        members: {
+          select: {
+            accepted: true,
+          },
+        },
+        id: true,
+        metadata: true,
+        parentId: true,
+        isOrganization: true,
+      },
+    });
+  }
 }
