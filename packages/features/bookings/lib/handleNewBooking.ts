@@ -68,6 +68,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
+import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 import {
@@ -1301,6 +1302,8 @@ async function handler(
     })
   );
 
+  let assignmentReason: { reasonEnum: AssignmentReasonEnum; reasonString: string } | undefined;
+
   try {
     if (!isDryRun) {
       booking = await createBooking({
@@ -1341,7 +1344,7 @@ async function handler(
       // If it's a round robin event, record the reason for the host assignment
       if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
         if (reqBody.crmOwnerRecordType && reqBody.crmAppSlug && contactOwnerEmail && routingFormResponseId) {
-          await AssignmentReasonRecorder.CRMOwnership({
+          assignmentReason = await AssignmentReasonRecorder.CRMOwnership({
             bookingId: booking.id,
             crmAppSlug: reqBody.crmAppSlug,
             teamMemberEmail: contactOwnerEmail,
@@ -1349,7 +1352,7 @@ async function handler(
             routingFormResponseId,
           });
         } else if (routingFormResponseId && teamId) {
-          await AssignmentReasonRecorder.routingFormRoute({
+          assignmentReason = await AssignmentReasonRecorder.routingFormRoute({
             bookingId: booking.id,
             routingFormResponseId,
             organizerId: organizerUser.id,
@@ -1885,6 +1888,7 @@ async function handler(
     status: "ACCEPTED",
     smsReminderNumber: booking?.smsReminderNumber || undefined,
     rescheduledBy: reqBody.rescheduledBy,
+    ...(assignmentReason ? { assignmentReason: [assignmentReason] } : {}),
   };
 
   if (bookingRequiresPayment) {
