@@ -123,7 +123,7 @@ const SessionPresenter = {
 /**
  * Create a NextAuth adapter for Prisma
  */
-export default function CalComAdapter(prismaClient: PrismaClient): Adapter {
+export default function CalComAdapter(prismaClient: PrismaClient) {
   // Helper to safely handle null user results
   const safeUserAdapter = (user: User | null) => {
     return user ? UserPresenter.toAdapter(user) : null;
@@ -252,5 +252,5 @@ export default function CalComAdapter(prismaClient: PrismaClient): Adapter {
     deleteSession: async (sessionToken) => {
       return;
     },
-  };
+  } satisfies Adapter;
 }
