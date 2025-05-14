@@ -67,7 +67,9 @@ export class SelectedCalendarRepository {
     const conflictingCalendar = await SelectedCalendarRepository.findConflicting(data);
 
     if (conflictingCalendar) {
-      throw new Error("Selected calendar already exists");
+      throw new Error(
+        `Selected calendar already exists for userId: ${data.userId}, integration: ${data.integration}, externalId: ${data.externalId}, eventTypeId: ${data.eventTypeId}`
+      );
     }
 
     return await prisma.selectedCalendar.create({

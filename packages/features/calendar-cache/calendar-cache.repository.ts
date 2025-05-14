@@ -91,7 +91,9 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     log.debug("Getting cached availability", safeStringify({ credentialId, userId, args }));
     const key = parseKeyForCache(args);
     let cached;
+    let usedInMemoryDelegationCredential = false;
     if (isInMemoryDelegationCredential({ credentialId })) {
+      usedInMemoryDelegationCredential = true;
       if (!userId) {
         log.warn("userId is not available when querying cache for in-memory delegation credential");
         return null;
@@ -121,7 +123,10 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         },
       });
     }
-    log.info("Got cached availability", safeStringify({ key, cached }));
+    log.info(
+      "Got cached availability",
+      safeStringify({ key, cached, credentialId, usedInMemoryDelegationCredential })
+    );
     return cached;
   }
   async upsertCachedAvailability({
