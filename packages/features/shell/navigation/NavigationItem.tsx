@@ -3,10 +3,10 @@ import { usePathname } from "next/navigation";
 import React, { Fragment } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SkeletonText } from "@calcom/ui/components/skeleton";
 import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
 import type { IconName } from "@calcom/ui/components/icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { useShouldDisplayNavigationItem } from "./useShouldDisplayNavigationItem";
@@ -70,7 +70,7 @@ export const NavigationItem: React.FC<{
                 }`
               : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
             isLocaleReady
-              ? "hover:bg-subtle taurify:[ todesktop:[&[aria-current='page']]:bg-emphasis taurify:hover:bg-transparent todesktop:hover:bg-transparent hover:text-emphasis"
+              ? "hover:bg-subtle taurify:[&[aria-current='page']]:bg-emphasis todesktop:[&[aria-current='page']]:bg-emphasis taurify:hover:bg-transparent todesktop:hover:bg-transparent hover:text-emphasis"
               : ""
           )}
           aria-current={current ? "page" : undefined}>

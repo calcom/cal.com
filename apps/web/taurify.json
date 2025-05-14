@@ -55,6 +55,6 @@
         "bundle": "dmg"
       }
     ],
-    "arch": "arm64"
+    "arch": "universal"
   }
 }

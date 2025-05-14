@@ -8,6 +8,13 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 
 import AppProviders from "@lib/app-providers-app-dir";
 
+let MaybeTaurifyTrayIconComponent: React.ComponentType | null = null;
+
+if (process.env.TAURI_PLATFORM) {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  MaybeTaurifyTrayIconComponent = require("@components/Tauri/TrayIcon").TrayIconComponent;
+}
+
 export type PageWrapperProps = Readonly<{
   children: React.ReactNode;
   requiresLicense: boolean;
@@ -41,6 +48,8 @@ function PageWrapper(props: PageWrapperProps) {
     <>
       <AppProviders {...providerProps}>
         <>
+          {MaybeTaurifyTrayIconComponent ? <MaybeTaurifyTrayIconComponent /> : null}
+
           <Script
             nonce={nonce}
             id="page-status"
