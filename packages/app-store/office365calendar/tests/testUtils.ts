@@ -168,13 +168,14 @@ export async function setUpTestUserForIntegrationTest(users: ReturnType<typeof c
       hasSubteam: true,
       teamRole: MembershipRole.ADMIN,
       schedulingType: SchedulingType.ROUND_ROBIN,
+      teamEventLength: 120,
       assignAllTeamMembers: true,
       assignAllTeamMembersForSubTeamEvents: true,
     }
   );
   const { team: org } = await testUser.getOrgMembership();
   const { team } = await testUser.getFirstTeamMembership();
-  const teamEvent = await testUser.getFirstTeamEvent(team.id);
+  const teamEvent = await testUser.getFirstTeamEvent(team.id, SchedulingType.ROUND_ROBIN);
   const teamEventSlug = teamEvent.slug;
 
   outlookCredential = await fetchTokensAndCreateCredential(testUser.id, org.id);

@@ -163,6 +163,7 @@ const createTeamAndAddUser = async (
     orgRequestedSlug,
     schedulingType,
     assignAllTeamMembersForSubTeamEvents,
+    teamEventLength,
   }: {
     user: { id: number; email: string; username: string | null; role?: MembershipRole };
     isUnpublished?: boolean;
@@ -175,6 +176,7 @@ const createTeamAndAddUser = async (
     orgRequestedSlug?: string;
     schedulingType?: SchedulingType;
     assignAllTeamMembersForSubTeamEvents?: boolean;
+    teamEventLength?: number;
   },
   workerInfo: WorkerInfo
 ) => {
@@ -204,6 +206,7 @@ const createTeamAndAddUser = async (
     await createTeamEventType(user, team, {
       schedulingType: schedulingType,
       assignAllTeamMembers: assignAllTeamMembersForSubTeamEvents,
+      teamEventLength: teamEventLength,
     });
     await createTeamWorkflow(user, team);
     data.children = { connect: [{ id: team.id }] };
@@ -555,6 +558,7 @@ export const createUsersFixture = (
               orgRequestedSlug: scenario.orgRequestedSlug,
               schedulingType: scenario.schedulingType,
               assignAllTeamMembersForSubTeamEvents: scenario.assignAllTeamMembersForSubTeamEvents,
+              teamEventLength: scenario.teamEventLength,
             },
             workerInfo
           );

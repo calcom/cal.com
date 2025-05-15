@@ -21,7 +21,7 @@ import {
 test.beforeEach(async ({ features }) => {
   const calendar_cache = features.get("calendar-cache");
   if (!calendar_cache?.enabled) {
-    features.toggleFeature("calendar-cache");
+    features.set("calendar-cache", true);
   }
 });
 
@@ -131,8 +131,8 @@ test.describe("Office365Calendar - Integration Tests", () => {
           await page.click('[data-testid="incrementMonth"]');
           await page.waitForLoadState("domcontentloaded");
           await getTeamScheduleRespPromise2;
-          // Verify that the first working day of next month has only 6 slots (as per cached). //30min event
-          expect(await page.locator('[data-testid="time"]').count()).toBe(6);
+          // Verify that the first working day of next month has only 1 slot (as per cached). //120min event
+          expect(await page.locator('[data-testid="time"]').count()).toBe(1);
 
           // Visit same page without 'cal.cache=true' and verify actual slots are fetched and not from cache.
           // Actual Events were deleted, so no busy slots, all slots available.
@@ -142,7 +142,7 @@ test.describe("Office365Calendar - Integration Tests", () => {
           await goToUrlWithErrorHandling(page.url().replace("cal.cache=true", ""));
           await page.waitForLoadState("domcontentloaded");
           await getTeamScheduleRespPromise3;
-          expect(await page.locator('[data-testid="time"]').count()).toBe(16);
+          expect(await page.locator('[data-testid="time"]').count()).toBe(4);
         }
       );
     });
