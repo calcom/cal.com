@@ -1,8 +1,6 @@
 /**/package.json @calcom/Foundation
 /apps/api/**/* @calcom/Platform @calcom/Foundation
 /apps/ui-playground/**/* @calcom/Consumer @calcom/Foundation
-/apps/web/components/**/* @calcom/Consumer @calcom/Foundation
-/apps/web/modules/**/* @calcom/Consumer @calcom/Foundation
 /apps/web/**/layout.tsx @calcom/Consumer @calcom/Foundation
 /apps/web/lib/**/* @calcom/Foundation
 /apps/web/middleware.ts @calcom/Foundation
