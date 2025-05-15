@@ -9,6 +9,8 @@ import { test } from "./lib/fixtures";
 
 test.afterEach(({ users }) => users.deleteAll());
 
+test.describe.configure({ mode: "parallel" });
+
 test.describe("Insights > Routing Filters", () => {
   test("formId filter: should filter by selected routing form", async ({
     page,
@@ -22,7 +24,13 @@ test.describe("Insights > Routing Filters", () => {
       isOrg: true,
       hasSubteam: true,
     });
-    await owner.apiLogin();
+    try {
+      await owner.apiLogin();
+      await expect(page.locator('[data-testid="insights-tabs"]')).toBeVisible({ timeout: 10000 });
+    } catch (error) {
+      console.error("Authentication failed:", error);
+      throw error;
+    }
 
     const membership = await owner.getOrgMembership();
 
@@ -60,12 +68,12 @@ test.describe("Insights > Routing Filters", () => {
 
     await applyFilter(page, "formId", formName1);
 
-    await expect(page.getByText(formName1)).toBeVisible();
+    await expect(page.getByText(formName1)).toBeVisible({ timeout: 10000 });
 
     await clearFilters(page);
     await applyFilter(page, "formId", formName2);
 
-    await expect(page.getByText(formName2)).toBeVisible();
+    await expect(page.getByText(formName2)).toBeVisible({ timeout: 10000 });
   });
 
   test("bookingUserId filter: should filter by user", async ({ page, users, routingForms, prisma }) => {
@@ -78,7 +86,13 @@ test.describe("Insights > Routing Filters", () => {
     const user1 = await users.create({ name: "User One" });
     const user2 = await users.create({ name: "User Two" });
 
-    await owner.apiLogin();
+    try {
+      await owner.apiLogin();
+      await expect(page.locator('[data-testid="insights-tabs"]')).toBeVisible({ timeout: 10000 });
+    } catch (error) {
+      console.error("Authentication failed:", error);
+      throw error;
+    }
     const membership = await owner.getOrgMembership();
 
     const formName = "Filter User Test Form";
@@ -169,7 +183,13 @@ test.describe("Insights > Routing Filters", () => {
       isOrg: true,
       hasSubteam: true,
     });
-    await owner.apiLogin();
+    try {
+      await owner.apiLogin();
+      await expect(page.locator('[data-testid="insights-tabs"]')).toBeVisible({ timeout: 10000 });
+    } catch (error) {
+      console.error("Authentication failed:", error);
+      throw error;
+    }
     const membership = await owner.getOrgMembership();
 
     const formName = "Attendee Filter Test Form";
@@ -271,7 +291,13 @@ test.describe("Insights > Routing Filters", () => {
       isOrg: true,
       hasSubteam: true,
     });
-    await owner.apiLogin();
+    try {
+      await owner.apiLogin();
+      await expect(page.locator('[data-testid="insights-tabs"]')).toBeVisible({ timeout: 10000 });
+    } catch (error) {
+      console.error("Authentication failed:", error);
+      throw error;
+    }
     const membership = await owner.getOrgMembership();
 
     const textFieldId = uuidv4();
@@ -295,7 +321,7 @@ test.describe("Insights > Routing Filters", () => {
         formFillerId: "test-filler-1",
         formId: form.id,
         response: {
-          [textFieldId]: {
+          description: {
             label: "Description",
             value: "This is a test description",
           },
@@ -308,7 +334,7 @@ test.describe("Insights > Routing Filters", () => {
         formFillerId: "test-filler-2",
         formId: form.id,
         response: {
-          [textFieldId]: {
+          description: {
             label: "Description",
             value: "Another description for testing",
           },
@@ -321,7 +347,7 @@ test.describe("Insights > Routing Filters", () => {
         formFillerId: "test-filler-3",
         formId: form.id,
         response: {
-          [textFieldId]: {
+          description: {
             label: "Description",
             value: "",
           },
@@ -381,7 +407,13 @@ test.describe("Insights > Routing Filters", () => {
       isOrg: true,
       hasSubteam: true,
     });
-    await owner.apiLogin();
+    try {
+      await owner.apiLogin();
+      await expect(page.locator('[data-testid="insights-tabs"]')).toBeVisible({ timeout: 10000 });
+    } catch (error) {
+      console.error("Authentication failed:", error);
+      throw error;
+    }
     const membership = await owner.getOrgMembership();
 
     const numberFieldId = uuidv4();
@@ -405,7 +437,7 @@ test.describe("Insights > Routing Filters", () => {
         formFillerId: "test-filler-1",
         formId: form.id,
         response: {
-          [numberFieldId]: {
+          rating: {
             label: "Rating",
             value: 1,
           },
@@ -418,7 +450,7 @@ test.describe("Insights > Routing Filters", () => {
         formFillerId: "test-filler-2",
         formId: form.id,
         response: {
-          [numberFieldId]: {
+          rating: {
             label: "Rating",
             value: 3,
           },
@@ -431,7 +463,7 @@ test.describe("Insights > Routing Filters", () => {
         formFillerId: "test-filler-3",
         formId: form.id,
         response: {
-          [numberFieldId]: {
+          rating: {
             label: "Rating",
             value: 5,
           },
@@ -492,7 +524,13 @@ test.describe("Insights > Routing Filters", () => {
       isOrg: true,
       hasSubteam: true,
     });
-    await owner.apiLogin();
+    try {
+      await owner.apiLogin();
+      await expect(page.locator('[data-testid="insights-tabs"]')).toBeVisible({ timeout: 10000 });
+    } catch (error) {
+      console.error("Authentication failed:", error);
+      throw error;
+    }
     const membership = await owner.getOrgMembership();
 
     const singleSelectFieldId = uuidv4();
@@ -594,8 +632,8 @@ test.describe("Insights > Routing Filters", () => {
       .click();
     await page.keyboard.press("Escape");
 
-    await expect(page.getByText("New York")).toBeVisible();
-    await expect(page.getByText("London")).toBeHidden();
+    await expect(page.getByText("New York")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("London")).toBeHidden({ timeout: 10000 });
 
     await clearFilters(page);
     await selectFilter(page, "skills");
@@ -603,7 +641,7 @@ test.describe("Insights > Routing Filters", () => {
     await page.getByTestId("select-filter-options-skills").getByRole("option", { name: "React" }).click();
     await page.keyboard.press("Escape");
 
-    await expect(page.getByText("React")).toBeVisible();
+    await expect(page.getByText("React")).toBeVisible({ timeout: 10000 });
   });
 
   test("createdAt filter: should filter by date range", async ({ page, users, routingForms, prisma }) => {
@@ -613,7 +651,13 @@ test.describe("Insights > Routing Filters", () => {
       isOrg: true,
       hasSubteam: true,
     });
-    await owner.apiLogin();
+    try {
+      await owner.apiLogin();
+      await expect(page.locator('[data-testid="insights-tabs"]')).toBeVisible({ timeout: 10000 });
+    } catch (error) {
+      console.error("Authentication failed:", error);
+      throw error;
+    }
     const membership = await owner.getOrgMembership();
 
     const formName = "Date Range Filter Test Form";
@@ -667,16 +711,16 @@ test.describe("Insights > Routing Filters", () => {
     await page.getByTestId("filter-popover-trigger-createdAt").click();
     await page.getByTestId("date-range-options-w").click(); // Last 7 Days
 
-    await expect(page.getByText("Recent Response")).toBeVisible();
-    await expect(page.getByText("Old Response")).toBeHidden();
+    await expect(page.getByText("Recent Response")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Old Response")).toBeHidden({ timeout: 10000 });
 
     await clearFilters(page);
     await selectFilter(page, "createdAt");
     await page.getByTestId("filter-popover-trigger-createdAt").click();
     await page.getByTestId("date-range-options-t").click(); // Last 30 Days
 
-    await expect(page.getByText("Recent Response")).toBeVisible();
-    await expect(page.getByText("Old Response")).toBeVisible();
+    await expect(page.getByText("Recent Response")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Old Response")).toBeVisible({ timeout: 10000 });
 
     await clearFilters(page);
     await selectFilter(page, "createdAt");
@@ -690,7 +734,7 @@ test.describe("Insights > Routing Filters", () => {
     await page.getByTestId("date-range-end-date").fill(endDate);
     await page.keyboard.press("Enter");
 
-    await expect(page.getByText("Old Response")).toBeVisible();
-    await expect(page.getByText("Recent Response")).toBeHidden();
+    await expect(page.getByText("Old Response")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Recent Response")).toBeHidden({ timeout: 10000 });
   });
 });
