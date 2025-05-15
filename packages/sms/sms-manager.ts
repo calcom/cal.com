@@ -44,12 +44,10 @@ const handleSendingSMS = async ({
   }
 
   try {
-    if (teamId) {
-      await checkSMSRateLimit({
-        identifier: `handleSendingSMS:team:${teamId}`,
-        rateLimitingType: "sms",
-      });
-    }
+    await checkSMSRateLimit({
+      identifier: teamId ? `handleSendingSMS:team:${teamId}` : `handleSendingSMS:user:${reminderPhone}`,
+      rateLimitingType: "sms",
+    });
 
     const smsOrFallbackEmail = await sendSmsOrFallbackEmail({
       twilioData: {
@@ -72,13 +70,34 @@ export default abstract class SMSManager {
   calEvent: CalendarEvent;
   isTeamEvent = false;
   teamId: number | undefined = undefined;
-  enableSMSNotification = false;
+  private _isSMSNotificationEnabled: boolean | null = null;
 
   constructor(calEvent: CalendarEvent) {
     this.calEvent = calEvent;
     this.teamId = this.calEvent?.team?.id;
     this.isTeamEvent = !!this.calEvent?.team?.id;
-    this.enableSMSNotification = !!this.calEvent.enableSMSNotification;
+  }
+
+  private async isSMSNotificationEnabled(): Promise<boolean> {
+    if (this._isSMSNotificationEnabled !== null) {
+      return this._isSMSNotificationEnabled;
+    }
+
+    if (!this.calEvent.eventTypeId) {
+      this._isSMSNotificationEnabled = false;
+      return false;
+    }
+
+    const eventType = await prisma.eventType.findUnique({
+      where: { id: this.calEvent.eventTypeId },
+      select: { bookingFields: true },
+    });
+
+    this._isSMSNotificationEnabled = !!eventType?.bookingFields?.find(
+      (field) => field.name === "attendeePhoneNumber" && field.enableSMSNotification
+    );
+
+    return this._isSMSNotificationEnabled;
   }
 
   getFormattedTime(
@@ -105,17 +124,23 @@ export default abstract class SMSManager {
     const attendeePhoneNumber = attendee.phoneNumber;
     const isPhoneOnlyBooking = attendeePhoneNumber && isSmsCalEmail(attendee.email);
 
-    if (!attendeePhoneNumber || !isPhoneOnlyBooking || !this.enableSMSNotification) return;
+    if (!attendeePhoneNumber || !isPhoneOnlyBooking || !(await this.isSMSNotificationEnabled())) return;
 
     const smsMessage = this.getMessage(attendee);
     const senderID = getSenderId(attendeePhoneNumber, SENDER_ID);
-    return handleSendingSMS({ reminderPhone: attendeePhoneNumber, smsMessage, senderID, teamId, bookingUid });
+    return handleSendingSMS({
+      reminderPhone: attendeePhoneNumber,
+      smsMessage,
+      senderID,
+      teamId,
+      bookingUid,
+    });
   }
 
   async sendSMSToAttendees() {
     const smsToSend: Promise<unknown>[] = [];
     console.log("sendSMSToAttendees", this.calEvent);
-    if (!this.enableSMSNotification) return;
+    if (!(await this.isSMSNotificationEnabled())) return;
 
     for (const attendee of this.calEvent.attendees) {
       smsToSend.push(this.sendSMSToAttendee(attendee, this.calEvent.uid));
