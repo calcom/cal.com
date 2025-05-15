@@ -320,15 +320,29 @@ export class TeamRepository {
   }
 
   static async getTeamOrThrow(teamId: number) {
-    const team = await prisma.team.findFirst({
+    const team = await prisma.team.findUnique({
       where: {
         id: teamId,
       },
-      include: {
-        organizationSettings: true,
+      select: {
+        ...teamSelect,
+        organizationSettings: {
+          select: {
+            allowSEOIndexing: true,
+            orgProfileRedirectsToVerifiedDomain: true,
+            orgAutoAcceptEmail: true,
+          },
+        },
         parent: {
-          include: {
-            organizationSettings: true,
+          select: {
+            ...teamSelect,
+            organizationSettings: {
+              select: {
+                allowSEOIndexing: true,
+                orgProfileRedirectsToVerifiedDomain: true,
+                orgAutoAcceptEmail: true,
+              },
+            },
           },
         },
       },
