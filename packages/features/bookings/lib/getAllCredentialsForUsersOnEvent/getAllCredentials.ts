@@ -1,6 +1,6 @@
 import type z from "zod";
 
-import { enrichUserWithDelegationCredentialsWithoutOrgId } from "@calcom/lib/delegationCredential/server";
+import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -19,7 +19,7 @@ export type EventType = {
  * Gets credentials from the user, team, and org if applicable
  *
  */
-export const getAllCredentials = async (
+export const getAllCredentialsIncludeServiceAccountKey = async (
   user: { id: number; username: string | null; email: string; credentials: CredentialPayload[] },
   eventType: EventType
 ) => {
@@ -120,7 +120,7 @@ export const getAllCredentials = async (
     }
   });
 
-  const userWithDelegationCredentials = await enrichUserWithDelegationCredentialsWithoutOrgId({
+  const userWithDelegationCredentials = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
     user: { ...user, credentials: allCredentials },
   });
 

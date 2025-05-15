@@ -256,27 +256,38 @@ const _sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
   }
 };
 
-const _cancelScheduledMessagesAndScheduleEmails = async (teamId: number) => {
-  const teamMembers = await prisma.membership.findMany({
-    where: {
-      teamId,
-      accepted: true,
-    },
-  });
+const _cancelScheduledMessagesAndScheduleEmails = async ({
+  teamId,
+  userId,
+}: {
+  teamId?: number | null;
+  userId?: number | null;
+}) => {
   const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
 
-  const creditService = new CreditService();
+  let userIdsWithNoCredits: number[] = userId ? [userId] : [];
 
-  const membersWithNoCredits = (
-    await Promise.all(
-      teamMembers.map(async (member) => {
-        const hasCredits = await creditService.hasAvailableCredits({ userId: member.userId });
-        return { member, hasCredits };
-      })
+  if (teamId) {
+    const teamMembers = await prisma.membership.findMany({
+      where: {
+        teamId,
+        accepted: true,
+      },
+    });
+
+    const creditService = new CreditService();
+
+    userIdsWithNoCredits = (
+      await Promise.all(
+        teamMembers.map(async (member) => {
+          const hasCredits = await creditService.hasAvailableCredits({ userId: member.userId });
+          return { userId: member.userId, hasCredits };
+        })
+      )
     )
-  )
-    .filter(({ hasCredits }) => !hasCredits)
-    .map(({ member }) => member);
+      .filter(({ hasCredits }) => !hasCredits)
+      .map(({ userId }) => userId);
+  }
 
   const scheduledMessages = await prisma.workflowReminder.findMany({
     where: {
@@ -285,12 +296,10 @@ const _cancelScheduledMessagesAndScheduleEmails = async (teamId: number) => {
           OR: [
             {
               userId: {
-                in: membersWithNoCredits.map((member) => member.userId),
+                in: userIdsWithNoCredits,
               },
             },
-            {
-              teamId,
-            },
+            ...(teamId ? [{ teamId }] : []),
           ],
         },
       },
