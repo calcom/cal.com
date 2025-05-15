@@ -395,7 +395,6 @@ describe("CreditService", () => {
         vi.spyOn(CreditService.prototype, "getMonthlyCredits").mockResolvedValue(500);
 
         const result = await creditService.getAllCreditsForTeam(1);
-        console.log(`tesult ${JSON.stringify(result)}`);
         expect(result).toEqual({
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: 420, // 500 - (50 + 30)
