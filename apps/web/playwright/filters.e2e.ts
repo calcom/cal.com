@@ -24,13 +24,11 @@ test.describe("Insights > Routing Filters", () => {
       isOrg: true,
       hasSubteam: true,
     });
-    try {
-      await owner.apiLogin();
-      await expect(page.locator('[data-testid="insights-tabs"]')).toBeVisible({ timeout: 10000 });
-    } catch (error) {
-      console.error("Authentication failed:", error);
-      throw error;
-    }
+    await owner.apiLogin();
+
+    await page.goto("/insights/routing");
+
+    await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
 
     const membership = await owner.getOrgMembership();
 
@@ -88,13 +86,11 @@ test.describe("Insights > Routing Filters", () => {
     const user1 = await users.create({ name: "User One" });
     const user2 = await users.create({ name: "User Two" });
 
-    try {
-      await owner.apiLogin();
-      await expect(page.locator('[data-testid="insights-tabs"]')).toBeVisible({ timeout: 10000 });
-    } catch (error) {
-      console.error("Authentication failed:", error);
-      throw error;
-    }
+    await owner.apiLogin();
+
+    await page.goto("/insights/routing");
+
+    await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
     const membership = await owner.getOrgMembership();
 
     const formName = "Filter User Test Form";
@@ -185,13 +181,11 @@ test.describe("Insights > Routing Filters", () => {
       isOrg: true,
       hasSubteam: true,
     });
-    try {
-      await owner.apiLogin();
-      await expect(page.locator('[data-testid="insights-tabs"]')).toBeVisible({ timeout: 10000 });
-    } catch (error) {
-      console.error("Authentication failed:", error);
-      throw error;
-    }
+    await owner.apiLogin();
+
+    await page.goto("/insights/routing");
+
+    await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
     const membership = await owner.getOrgMembership();
 
     const formName = "Attendee Filter Test Form";
@@ -311,13 +305,11 @@ test.describe("Insights > Routing Filters", () => {
       isOrg: true,
       hasSubteam: true,
     });
-    try {
-      await owner.apiLogin();
-      await expect(page.locator('[data-testid="insights-tabs"]')).toBeVisible({ timeout: 10000 });
-    } catch (error) {
-      console.error("Authentication failed:", error);
-      throw error;
-    }
+    await owner.apiLogin();
+
+    await page.goto("/insights/routing");
+
+    await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
     const membership = await owner.getOrgMembership();
 
     const textFieldId = uuidv4();
@@ -413,6 +405,19 @@ test.describe("Insights > Routing Filters", () => {
 
     await expect(page.getByText("This is a test description")).toBeHidden();
     await expect(page.getByText("Another description for testing")).toBeHidden();
+
+    await clearFilters(page);
+    await selectFilter(page, "description");
+    await page.getByTestId("filter-popover-trigger-description").click();
+    await page
+      .getByTestId("select-filter-options-description")
+      .getByRole("option", { name: "contains" })
+      .click();
+    await page.getByPlaceholder("Filter value").fill("TEST");
+    await page.keyboard.press("Enter");
+
+    await expect(page.getByText("This is a test description")).toBeVisible();
+    await expect(page.getByText("Another description for testing")).toBeVisible();
   });
 
   test("NUMBER field: should filter with different number operators", async ({
@@ -427,13 +432,11 @@ test.describe("Insights > Routing Filters", () => {
       isOrg: true,
       hasSubteam: true,
     });
-    try {
-      await owner.apiLogin();
-      await expect(page.locator('[data-testid="insights-tabs"]')).toBeVisible({ timeout: 10000 });
-    } catch (error) {
-      console.error("Authentication failed:", error);
-      throw error;
-    }
+    await owner.apiLogin();
+
+    await page.goto("/insights/routing");
+
+    await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
     const membership = await owner.getOrgMembership();
 
     const numberFieldId = uuidv4();
@@ -544,13 +547,11 @@ test.describe("Insights > Routing Filters", () => {
       isOrg: true,
       hasSubteam: true,
     });
-    try {
-      await owner.apiLogin();
-      await expect(page.locator('[data-testid="insights-tabs"]')).toBeVisible({ timeout: 10000 });
-    } catch (error) {
-      console.error("Authentication failed:", error);
-      throw error;
-    }
+    await owner.apiLogin();
+
+    await page.goto("/insights/routing");
+
+    await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
     const membership = await owner.getOrgMembership();
 
     const singleSelectFieldId = uuidv4();
@@ -671,13 +672,11 @@ test.describe("Insights > Routing Filters", () => {
       isOrg: true,
       hasSubteam: true,
     });
-    try {
-      await owner.apiLogin();
-      await expect(page.locator('[data-testid="insights-tabs"]')).toBeVisible({ timeout: 10000 });
-    } catch (error) {
-      console.error("Authentication failed:", error);
-      throw error;
-    }
+    await owner.apiLogin();
+
+    await page.goto("/insights/routing");
+
+    await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
     const membership = await owner.getOrgMembership();
 
     const formName = "Date Range Filter Test Form";
