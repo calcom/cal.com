@@ -173,6 +173,8 @@ export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerStat
 
     if (!animationScope.current) return;
 
+    const current = animationScope.current;
+
     const animatedProperties = {
       height: animationConfig?.height || "auto",
     };
@@ -192,25 +194,20 @@ export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerStat
     if (prefersReducedMotion || layout === "mobile" || isEmbed) {
       const styles = { ...nonAnimatedProperties, ...animatedProperties };
       Object.keys(styles).forEach((property) => {
-        if (!animationScope.current) return;
-
         if (property === "height") {
           // Change 100vh to 100% in embed, since 100vh in iframe will behave weird, because
           // the iframe will constantly grow. 100% will simply make sure it grows with the iframe.
-          animationScope.current.style.height =
+          current.style.height =
             animatedProperties.height === "100vh" && isEmbed ? "100%" : animatedProperties.height;
         } else {
-          animationScope.current.style[property] = styles[property as keyof typeof styles];
+          current.style[property] = styles[property as keyof typeof styles];
         }
       });
     } else {
       Object.keys(nonAnimatedProperties).forEach((property) => {
-        if (!animationScope.current) return;
-
-        animationScope.current.style[property] =
-          nonAnimatedProperties[property as keyof typeof nonAnimatedProperties];
+        current.style[property] = nonAnimatedProperties[property as keyof typeof nonAnimatedProperties];
       });
-      animate(animationScope.current, animatedProperties, {
+      animate(current, animatedProperties, {
         duration: 0.5,
         ease: cubicBezier(0.4, 0, 0.2, 1),
       });
