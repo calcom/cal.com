@@ -826,6 +826,8 @@ model SelectedCalendar {
   domainWideDelegationCredential   DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
   domainWideDelegationCredentialId String?
   error                            String?
+  attempts                         Int                   @default(0)
+  lastErrorAt                      DateTime?
 
   eventTypeId Int?
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])

@@ -12,6 +12,8 @@ export const schemaSelectedCalendarPublic = SelectedCalendar.omit({});
 export const schemaSelectedCalendarBodyParams = schemaSelectedCalendarBaseBodyParams
   .partial({
     userId: true,
+    attempts: true,
+    lastErrorAt: true,
   })
   .omit({
     // id will be set by the database

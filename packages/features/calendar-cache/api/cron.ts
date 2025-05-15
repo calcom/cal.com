@@ -10,6 +10,7 @@ import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 import { CalendarCache } from "../calendar-cache";
 
 const log = logger.getSubLogger({ prefix: ["CalendarCacheCron"] });
+const maxAttempts = 3; // Maximum number of retries before skipping calendar in future batches
 
 const validateRequest = (req: NextApiRequest) => {
   const apiKey = req.headers.authorization || req.query.apiKey;
@@ -69,6 +70,8 @@ const handleCalendarsToUnwatch = async () => {
           // FIXME: There could actually be multiple calendars with the same externalId and thus we need to technically update error for all of them
           await SelectedCalendarRepository.updateById(id, {
             error: "Missing credentialId",
+            attempts: { increment: 1 },
+            lastErrorAt: new Date(),
           });
           log.error("no credentialId for SelectedCalendar: ", id);
           return;
@@ -84,6 +87,8 @@ const handleCalendarsToUnwatch = async () => {
           }
           await SelectedCalendarRepository.updateById(id, {
             error: `Error unwatching calendar: ${errorMessage}`,
+            attempts: { increment: 1 },
+            lastErrorAt: new Date(),
           });
         }
       }
@@ -104,6 +109,8 @@ const handleCalendarsToWatch = async () => {
           // So we don't retry on next cron run
           await SelectedCalendarRepository.updateById(id, {
             error: "Missing credentialId",
+            attempts: { increment: 1 },
+            lastErrorAt: new Date(),
           });
           log.error("no credentialId for SelectedCalendar: ", id);
           return;
@@ -119,6 +126,8 @@ const handleCalendarsToWatch = async () => {
           }
           await SelectedCalendarRepository.updateById(id, {
             error: `Error watching calendar: ${errorMessage}`,
+            attempts: { increment: 1 },
+            lastErrorAt: new Date(),
           });
         }
       }

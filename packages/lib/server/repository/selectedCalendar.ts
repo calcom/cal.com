@@ -157,13 +157,24 @@ export class SelectedCalendarRepository {
         },
         // RN we only support google calendar subscriptions for now
         integration: "google_calendar",
-        // We skip retrying calendars that have errored
-        error: null,
-        OR: [
-          // Either is a calendar pending to be watched
-          { googleChannelExpiration: null },
-          // Or is a calendar that is about to expire
-          { googleChannelExpiration: { lt: tomorrowTimestamp } },
+        AND: [
+          {
+            OR: [
+              { error: null },
+              {
+                error: { not: null },
+                attempts: { lt: 10 }, // Default max attempts, will be configured in the cron job
+              },
+            ],
+          },
+          {
+            OR: [
+              // Either is a calendar pending to be watched
+              { googleChannelExpiration: null },
+              // Or is a calendar that is about to expire
+              { googleChannelExpiration: { lt: tomorrowTimestamp } },
+            ],
+          },
         ],
       },
     });
