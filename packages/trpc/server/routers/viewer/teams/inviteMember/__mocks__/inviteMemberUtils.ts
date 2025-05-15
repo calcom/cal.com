@@ -21,26 +21,6 @@ export const inviteMemberutilsScenarios = {
       //@ts-ignore
       inviteMemberUtilsMock.checkPermissions.mockResolvedValue(undefined),
   },
-  getTeamOrThrow: {
-    fakeReturnTeam: (team: { id: number } & Record<string, any>, forInput: { teamId: number }) => {
-      const fakedVal = {
-        organizationSettings: null,
-        parent: null,
-        parentId: null,
-        ...team,
-      };
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
-      inviteMemberUtilsMock.getTeamOrThrow.mockImplementation((teamId) => {
-        if (forInput.teamId === teamId) {
-          return fakedVal;
-        }
-        console.log("Mock Error: Unhandled input", { teamId });
-        throw new Error(`Mock Error: Unhandled input. teamId: ${teamId}`);
-      });
-      return fakedVal;
-    },
-  },
   getOrgState: {
     /**
      * `getOrgState` completely generates the return value from input without using any outside variable like DB, etc.

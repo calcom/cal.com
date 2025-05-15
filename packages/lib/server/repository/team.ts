@@ -318,4 +318,28 @@ export class TeamRepository {
       },
     });
   }
+
+  static async getTeamOrThrow(teamId: number) {
+    const team = await prisma.team.findFirst({
+      where: {
+        id: teamId,
+      },
+      include: {
+        organizationSettings: true,
+        parent: {
+          include: {
+            organizationSettings: true,
+          },
+        },
+      },
+    });
+
+    if (!team)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: `Team not found`,
+      });
+
+    return { ...team, metadata: teamMetadataSchema.parse(team.metadata) };
+  }
 }

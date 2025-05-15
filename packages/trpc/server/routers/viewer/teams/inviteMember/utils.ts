@@ -23,7 +23,6 @@ import { type User as UserType, type UserPassword, Prisma } from "@calcom/prisma
 import type { Profile as ProfileType } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -81,30 +80,6 @@ export function checkInputEmailIsValid(email: string) {
       code: "BAD_REQUEST",
       message: `Invite failed because ${email} is not a valid email address`,
     });
-}
-
-export async function getTeamOrThrow(teamId: number) {
-  const team = await prisma.team.findFirst({
-    where: {
-      id: teamId,
-    },
-    include: {
-      organizationSettings: true,
-      parent: {
-        include: {
-          organizationSettings: true,
-        },
-      },
-    },
-  });
-
-  if (!team)
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: `Team not found`,
-    });
-
-  return { ...team, metadata: teamMetadataSchema.parse(team.metadata) };
 }
 
 export async function getUniqueInvitationsOrThrowIfEmpty(invitations: Invitation[]) {

@@ -4,6 +4,7 @@ import {
   inviteMemberutilsScenarios as inviteMemberUtilsScenarios,
   default as inviteMemberUtilsMock,
 } from "./__mocks__/inviteMemberUtils";
+import { teamRepositoryMockScenarios } from "./__mocks__/team.repository";
 import { constantsScenarios } from "@calcom/lib/__mocks__/constants";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
@@ -123,9 +124,12 @@ describe("inviteMemberHandler", () => {
           parent: null,
         };
 
-        const retValueOfGetTeamOrThrowError = inviteMemberUtilsScenarios.getTeamOrThrow.fakeReturnTeam(team, {
-          teamId: input.teamId,
-        });
+        const retValueOfGetTeamOrThrowError = teamRepositoryMockScenarios.getTeamOrThrow.fakeReturnTeam(
+          team,
+          {
+            teamId: input.teamId,
+          }
+        );
 
         const allExpectedInvitations = [
           {
@@ -226,9 +230,12 @@ describe("inviteMemberHandler", () => {
           isOrganization: false,
         };
 
-        const retValueOfGetTeamOrThrowError = inviteMemberUtilsScenarios.getTeamOrThrow.fakeReturnTeam(team, {
-          teamId: input.teamId,
-        });
+        const retValueOfGetTeamOrThrowError = teamRepositoryMockScenarios.getTeamOrThrow.fakeReturnTeam(
+          team,
+          {
+            teamId: input.teamId,
+          }
+        );
 
         const allExpectedInvitations = [
           {
@@ -331,7 +338,7 @@ describe("inviteMemberHandler", () => {
         parent: null,
       };
 
-      inviteMemberUtilsScenarios.getTeamOrThrow.fakeReturnTeam(team, {
+      teamRepositoryMockScenarios.getTeamOrThrow.fakeReturnTeam(team, {
         teamId: input.teamId,
       });
 

@@ -6,6 +6,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
@@ -21,7 +22,6 @@ import {
   findUsersWithInviteStatus,
   getOrgConnectionInfo,
   getOrgState,
-  getTeamOrThrow,
   getUniqueInvitationsOrThrowIfEmpty,
   handleExistingUsersInvites,
   handleNewUsersInvites,
@@ -150,7 +150,7 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
   const { inviterName, orgSlug, invitations, language, creationSource, isDirectUserAction = true } = data;
   const myLog = log.getSubLogger({ prefix: ["inviteMembers"] });
   const translation = await getTranslation(language ?? "en", "common");
-  const team = "team" in data ? data.team : await getTeamOrThrow(data.teamId);
+  const team = "team" in data ? data.team : await TeamRepository.getTeamOrThrow(data.teamId);
   const isTeamAnOrg = team.isOrganization;
 
   const uniqueInvitations = await getUniqueInvitationsOrThrowIfEmpty(invitations);
@@ -244,7 +244,7 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
   const { user: inviter } = ctx;
   const { usernameOrEmail, role, isPlatform, creationSource } = input;
 
-  const team = await getTeamOrThrow(input.teamId);
+  const team = await TeamRepository.getTeamOrThrow(input.teamId);
   const requestedSlugForTeam = team?.metadata?.requestedSlug ?? null;
   const isTeamAnOrg = team.isOrganization;
   const organization = inviter.profile.organization;
