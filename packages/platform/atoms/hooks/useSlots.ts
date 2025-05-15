@@ -37,6 +37,7 @@ export const useSlots = (
   }: UseSlotsCallbacks & { isBookingDryRun?: boolean } = {}
 ) => {
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
+  const bookingUid = useBookerStore((state) => state.bookingUid);
   const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
     (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
     shallow
@@ -78,6 +79,7 @@ export const useSlots = (
           .add(selectedDuration || event.data.length, "minutes")
           .format(),
         _isDryRun: isBookingDryRun,
+        bookingUid: bookingUid || undefined,
       });
     }
   };

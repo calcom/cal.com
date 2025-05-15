@@ -69,6 +69,7 @@ export const BookerPlatformWrapper = (
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
   const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
+  const setBookingUid = useBookerStore((state) => state.setBookingUid);
   const setBookingData = useBookerStore((state) => state.setBookingData);
   const setOrg = useBookerStore((state) => state.setOrg);
   const bookingData = useBookerStore((state) => state.bookingData);
@@ -121,8 +122,21 @@ export const BookerPlatformWrapper = (
     };
   }, [onBookerStateChange, getStateValues, debouncedStateChange]);
 
+  const bookingUid = useMemo(() => {
+    if (props.bookingUid) {
+      setBookingUid(props.bookingUid);
+      return props.bookingUid;
+    }
+    if (typeof window !== "undefined") {
+      const queryParamsBookingUid = new URLSearchParams(window.location.search).get("bookingUid");
+      setBookingUid(queryParamsBookingUid);
+      return queryParamsBookingUid || undefined;
+    }
+    return undefined;
+  }, [props.bookingUid, typeof window !== "undefined" ? window.location.search : ""]);
+
   useGetBookingForReschedule({
-    uid: props.rescheduleUid ?? props.bookingUid ?? "",
+    uid: props.rescheduleUid ?? bookingUid ?? "",
     onSuccess: (data) => {
       setBookingData(data);
     },
@@ -211,7 +225,7 @@ export const BookerPlatformWrapper = (
     crmOwnerRecordType,
     eventId: event.data?.id,
     rescheduleUid: props.rescheduleUid ?? null,
-    bookingUid: props.bookingUid ?? null,
+    bookingUid: bookingUid ?? null,
     layout: layout,
     org: props.entity?.orgSlug,
     username,
@@ -510,7 +524,7 @@ export const BookerPlatformWrapper = (
         }
         rescheduleUid={props.rescheduleUid ?? null}
         rescheduledBy={props.rescheduledBy ?? null}
-        bookingUid={props.bookingUid ?? null}
+        bookingUid={bookingUid ?? null}
         isRedirect={false}
         confirmButtonDisabled={confirmButtonDisabled}
         fromUserNameRedirected=""

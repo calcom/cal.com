@@ -129,6 +129,7 @@ export type BookerStore = {
   rescheduleUid: string | null;
   rescheduledBy: string | null;
   bookingUid: string | null;
+  setBookingUid: (bookingUid: string | null) => void;
   bookingData: GetBookingType | null;
   setBookingData: (bookingData: GetBookingType | null | undefined) => void;
 
@@ -415,6 +416,7 @@ export const useBookerStore = createWithEqualityFn<BookerStore>((set, get) => ({
   rescheduleUid: null,
   bookingData: null,
   bookingUid: null,
+  setBookingUid: (bookingUid: string | null) => set({ bookingUid }),
   selectedTimeslot: getQueryParam("slot") || null,
   tentativeSelectedTimeslots: [],
   setTentativeSelectedTimeslots: (tentativeSelectedTimeslots: string[]) => {
