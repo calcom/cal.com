@@ -8,7 +8,7 @@ import { UserListTable } from "@calcom/features/users/components/UserTable/UserL
 import type { UserListTableProps } from "@calcom/features/users/components/UserTable/UserListTable";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-const MembersView = ({ org }: UserListTableProps) => {
+export const MembersView = ({ org }: UserListTableProps) => {
   const { t } = useLocale();
   const isOrgAdminOrOwner = org && checkAdminOrOwner(org.user.role);
   const canLoggedInUserSeeMembers =
