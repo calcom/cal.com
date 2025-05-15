@@ -35,6 +35,13 @@ export const ZUpdateInputSchema = z.object({
   allowSEOIndexing: z.boolean().optional(),
   orgProfileRedirectsToVerifiedDomain: z.boolean().optional(),
   disablePhoneOnlySMSNotifications: z.boolean().optional(),
+  calVideoSettings: z
+    .object({
+      enabled: z.boolean(),
+      disableRecordingForOrganizer: z.boolean().optional(),
+      disableTranscriptionForOrganizer: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;

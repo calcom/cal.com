@@ -150,6 +150,10 @@ export type FormValues = {
   secondaryEmailId?: number;
   isRRWeightsEnabled: boolean;
   maxLeadThreshold?: number;
+  calVideoSettings?: {
+    disableRecordingForOrganizer: boolean;
+    disableTranscriptionForOrganizer: boolean;
+  };
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
