@@ -122,21 +122,23 @@ export const BookerPlatformWrapper = (
     };
   }, [onBookerStateChange, getStateValues, debouncedStateChange]);
 
-  const bookingUid = useMemo(() => {
+  const effectiveBookingUid = useMemo(() => {
     if (props.bookingUid) {
-      setBookingUid(props.bookingUid);
       return props.bookingUid;
     }
     if (typeof window !== "undefined") {
       const queryParamsBookingUid = new URLSearchParams(window.location.search).get("bookingUid");
-      setBookingUid(queryParamsBookingUid);
       return queryParamsBookingUid || undefined;
     }
     return undefined;
   }, [props.bookingUid, typeof window !== "undefined" ? window.location.search : ""]);
 
+  useEffect(() => {
+    setBookingUid(effectiveBookingUid || null);
+  }, [effectiveBookingUid, setBookingUid]);
+
   useGetBookingForReschedule({
-    uid: props.rescheduleUid ?? bookingUid ?? "",
+    uid: props.rescheduleUid ?? effectiveBookingUid ?? "",
     onSuccess: (data) => {
       setBookingData(data);
     },
@@ -225,7 +227,7 @@ export const BookerPlatformWrapper = (
     crmOwnerRecordType,
     eventId: event.data?.id,
     rescheduleUid: props.rescheduleUid ?? null,
-    bookingUid: bookingUid ?? null,
+    bookingUid: effectiveBookingUid ?? null,
     layout: layout,
     org: props.entity?.orgSlug,
     username,
@@ -524,7 +526,7 @@ export const BookerPlatformWrapper = (
         }
         rescheduleUid={props.rescheduleUid ?? null}
         rescheduledBy={props.rescheduledBy ?? null}
-        bookingUid={bookingUid ?? null}
+        bookingUid={effectiveBookingUid ?? null}
         isRedirect={false}
         confirmButtonDisabled={confirmButtonDisabled}
         fromUserNameRedirected=""
