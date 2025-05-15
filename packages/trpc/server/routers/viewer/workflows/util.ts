@@ -137,6 +137,28 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
     return;
   }
 
+  // Check if it's a verified secondary email of the user
+  const secondaryEmail = await prisma.secondaryEmail.findFirst({
+    where: {
+      userId,
+      email,
+      emailVerified: {
+        not: null,
+      },
+    },
+  });
+
+  if (secondaryEmail) {
+    await prisma.verifiedEmail.create({
+      data: {
+        email,
+        userId,
+        teamId,
+      },
+    });
+    return;
+  }
+
   if (teamId) {
     const team = await prisma.team.findFirst({
       where: {
@@ -149,6 +171,12 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
               select: {
                 id: true,
                 email: true,
+                secondaryEmails: {
+                  select: {
+                    email: true,
+                    emailVerified: true,
+                  },
+                },
               },
             },
           },
@@ -166,9 +194,13 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
       throw new TRPCError({ code: "FORBIDDEN", message: "You are not a member of this team" });
     }
 
-    const teamMemberEmail = team.members.filter((member) => member.user.email === email);
+    const teamMemberWithEmail = team.members.find((member) => member.user.email === email);
 
-    if (teamMemberEmail) {
+    const teamMemberWithSecondaryEmail = team.members.find((member) =>
+      member.user.secondaryEmails.some((secondary) => secondary.email === email && !!secondary.emailVerified)
+    );
+
+    if (teamMemberWithEmail || teamMemberWithSecondaryEmail) {
       await prisma.verifiedEmail.create({
         data: {
           email,
