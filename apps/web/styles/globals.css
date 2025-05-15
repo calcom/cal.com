@@ -247,7 +247,7 @@
   /* Brand */
   --cal-brand: hsla(0, 0%, 100%, 1); /* white */
   --cal-brand-emphasis: hsla(218, 11%, 65%, 1); /* Keeping existing brand emphasis */
-  --cal-brand-text: hsla(0, 0%, 0%, 1); /* black */
+  --cal-brand-text: rgb(0, 0, 0); /* Black */
 }
 
 @layer base {
