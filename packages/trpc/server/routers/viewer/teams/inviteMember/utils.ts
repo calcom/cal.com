@@ -543,6 +543,7 @@ export async function handleExistingUsersInvites({
   orgSlug: string | null;
 }) {
   const translation = await getTranslation(language, "common");
+
   if (!team.isOrganization) {
     const [autoJoinUsers, regularUsers] = groupUsersByJoinability({
       existingUsersWithMemberships: invitableExistingUsers.map((u) => {
@@ -563,21 +564,21 @@ export async function handleExistingUsersInvites({
       })
     );
 
-    // invited users can autojoin, create their memberships in org
-    if (autoJoinUsers.length) {
-      await MembershipRepository.createBulkMemberships({
-        teamId,
-        invitees: autoJoinUsers,
-        parentId: team.parentId,
-        accepted: true,
-      });
+    await MembershipRepository.createBulkMembershipsForTeam({
+      teamId,
+      autoJoinUsers,
+      regularUsers,
+      parentId: team.parentId,
+    });
 
+    if (autoJoinUsers.length) {
       await Promise.all(
         autoJoinUsers.map(async (userToAutoJoin) => {
           await updateNewTeamMemberEventTypes(userToAutoJoin.id, team.id);
         })
       );
 
+      // invited users cannot autojoin, create provisional memberships and send email
       await sendExistingUserTeamInviteEmails({
         currentUserName: inviter.name,
         currentUserTeamName: team?.name,
@@ -591,14 +592,7 @@ export async function handleExistingUsersInvites({
       });
     }
 
-    // invited users cannot autojoin, create provisional memberships and send email
     if (regularUsers.length) {
-      await MembershipRepository.createBulkMemberships({
-        teamId,
-        invitees: regularUsers,
-        parentId: team.parentId,
-        accepted: false,
-      });
       await sendExistingUserTeamInviteEmails({
         currentUserName: inviter.name,
         currentUserTeamName: team?.name,
@@ -656,21 +650,18 @@ export async function handleExistingUsersInvites({
           });
         }
 
-        await prisma.membership.create({
-          data: {
-            createdAt: new Date(),
-            userId: user.id,
-            teamId: team.id,
-            accepted: shouldAutoAccept,
-            role: user.newRole,
-          },
-        });
         return {
           ...user,
           profile,
         };
       })
     );
+
+    await MembershipRepository.createBulkMembershipsForOrganization({
+      organizationId: team.id,
+      invitableUsers: invitableExistingUsers,
+      orgConnectInfoByUsernameOrEmail,
+    });
 
     const autoJoinUsers = existingUsersWithMembershipsNew.filter(
       (user) => orgConnectInfoByUsernameOrEmail[user.email].autoAccept
@@ -680,7 +671,7 @@ export async function handleExistingUsersInvites({
       (user) => !orgConnectInfoByUsernameOrEmail[user.email].autoAccept
     );
 
-    // Send emails to user who auto-joined
+    // Send emails to users who auto-joined
     await sendExistingUserTeamInviteEmails({
       currentUserName: inviter.name,
       currentUserTeamName: team?.name,
@@ -693,7 +684,7 @@ export async function handleExistingUsersInvites({
       orgSlug,
     });
 
-    // Send emails to user who need to accept invite
+    // Send emails to users who need to accept invite
     await sendExistingUserTeamInviteEmails({
       currentUserName: inviter.name,
       currentUserTeamName: team?.name,

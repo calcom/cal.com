@@ -154,4 +154,123 @@ describe("MembershipRepository", () => {
       ).rejects.toThrow(mockError);
     });
   });
+
+  describe("createBulkMembershipsForTeam", () => {
+    it("should create memberships for auto-join and regular users", async () => {
+      const mockAutoJoinUsers = [
+        {
+          id: 1,
+          newRole: MembershipRole.MEMBER,
+          needToCreateProfile: true,
+          needToCreateOrgMembership: true,
+        },
+      ];
+
+      const mockRegularUsers = [
+        {
+          id: 2,
+          newRole: MembershipRole.MEMBER,
+          needToCreateProfile: false,
+          needToCreateOrgMembership: false,
+        },
+      ];
+
+      await MembershipRepository.createBulkMembershipsForTeam({
+        teamId: 1,
+        autoJoinUsers: mockAutoJoinUsers,
+        regularUsers: mockRegularUsers,
+        parentId: 2,
+      });
+
+      expect(prismaMock.membership.createMany).toHaveBeenCalledWith({
+        data: [
+          {
+            createdAt: expect.any(Date),
+            teamId: 1,
+            userId: 1,
+            accepted: true,
+            role: MembershipRole.MEMBER,
+          },
+          {
+            createdAt: expect.any(Date),
+            teamId: 2,
+            userId: 1,
+            accepted: true,
+            role: MembershipRole.MEMBER,
+          },
+        ],
+      });
+
+      expect(prismaMock.membership.createMany).toHaveBeenCalledWith({
+        data: [
+          {
+            createdAt: expect.any(Date),
+            teamId: 1,
+            userId: 2,
+            accepted: false,
+            role: MembershipRole.MEMBER,
+          },
+        ],
+      });
+    });
+
+    it("should handle empty arrays of users", async () => {
+      await MembershipRepository.createBulkMembershipsForTeam({
+        teamId: 1,
+        autoJoinUsers: [],
+        regularUsers: [],
+        parentId: null,
+      });
+
+      expect(prismaMock.membership.createMany).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("createBulkMembershipsForOrganization", () => {
+    it("should create memberships for organization users", async () => {
+      const mockInvitableUsers = [
+        {
+          id: 1,
+          email: "user1@example.com",
+          newRole: MembershipRole.MEMBER,
+        },
+        {
+          id: 2,
+          email: "user2@example.com",
+          newRole: MembershipRole.ADMIN,
+        },
+      ];
+
+      const mockOrgConnectInfo = {
+        "user1@example.com": { orgId: 1, autoAccept: true },
+        "user2@example.com": { orgId: 1, autoAccept: false },
+      };
+
+      await MembershipRepository.createBulkMembershipsForOrganization({
+        organizationId: 1,
+        invitableUsers: mockInvitableUsers,
+        orgConnectInfoByUsernameOrEmail: mockOrgConnectInfo,
+      });
+
+      expect(prismaMock.membership.create).toHaveBeenCalledWith({
+        data: {
+          createdAt: expect.any(Date),
+          userId: 1,
+          teamId: 1,
+          accepted: true,
+          role: MembershipRole.MEMBER,
+        },
+      });
+
+      expect(prismaMock.membership.create).toHaveBeenCalledWith({
+        data: {
+          createdAt: expect.any(Date),
+          userId: 2,
+          teamId: 1,
+          accepted: false,
+          role: MembershipRole.ADMIN,
+        },
+      });
+    });
+  });
 });

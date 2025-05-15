@@ -530,4 +530,73 @@ export class MembershipRepository {
       return createdUsers;
     });
   }
+
+  static async createBulkMembershipsForTeam({
+    teamId,
+    autoJoinUsers,
+    regularUsers,
+    parentId = null,
+  }: {
+    teamId: number;
+    autoJoinUsers: Array<{
+      id: number;
+      newRole: MembershipRole;
+      needToCreateProfile: boolean | null;
+      needToCreateOrgMembership: boolean | null;
+    }>;
+    regularUsers: Array<{
+      id: number;
+      newRole: MembershipRole;
+      needToCreateProfile: boolean | null;
+      needToCreateOrgMembership: boolean | null;
+    }>;
+    parentId?: number | null;
+  }): Promise<void> {
+    if (autoJoinUsers.length) {
+      await MembershipRepository.createBulkMemberships({
+        teamId,
+        invitees: autoJoinUsers,
+        parentId,
+        accepted: true,
+      });
+    }
+
+    if (regularUsers.length) {
+      await MembershipRepository.createBulkMemberships({
+        teamId,
+        invitees: regularUsers,
+        parentId,
+        accepted: false,
+      });
+    }
+  }
+
+  static async createBulkMembershipsForOrganization({
+    organizationId,
+    invitableUsers,
+    orgConnectInfoByUsernameOrEmail,
+  }: {
+    organizationId: number;
+    invitableUsers: Array<{
+      id: number;
+      email: string;
+      newRole: MembershipRole;
+    }>;
+    orgConnectInfoByUsernameOrEmail: Record<string, { orgId: number | undefined; autoAccept: boolean }>;
+  }) {
+    await Promise.all(
+      invitableUsers.map(async (user) => {
+        const shouldAutoAccept = orgConnectInfoByUsernameOrEmail[user.email].autoAccept;
+        await prisma.membership.create({
+          data: {
+            createdAt: new Date(),
+            userId: user.id,
+            teamId: organizationId,
+            accepted: shouldAutoAccept,
+            role: user.newRole,
+          },
+        });
+      })
+    );
+  }
 }
