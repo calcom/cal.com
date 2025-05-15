@@ -25,7 +25,7 @@ import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import {
   enrichHostsWithDelegationCredentials,
-  enrichUserWithDelegationCredentialsWithoutOrgId,
+  enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
 } from "@calcom/lib/delegationCredential/server";
 import { getEventName } from "@calcom/lib/event";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
@@ -244,6 +244,7 @@ export const roundRobinReassignment = async ({
       },
       data: {
         userId: reassignedRRHost.id,
+        userPrimaryEmail: reassignedRRHost.email,
         title: newBookingTitle,
       },
       select: bookingSelect,
@@ -337,7 +338,7 @@ export const roundRobinReassignment = async ({
     },
   });
 
-  const organizerWithCredentials = await enrichUserWithDelegationCredentialsWithoutOrgId({
+  const organizerWithCredentials = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
     user: { ...organizer, credentials },
   });
 
