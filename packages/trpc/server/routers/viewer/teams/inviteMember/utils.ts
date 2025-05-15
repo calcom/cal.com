@@ -150,32 +150,9 @@ export async function findUsersWithInviteStatus({
   team: TeamWithParent;
 }) {
   const usernamesOrEmails = invitations.map((invitation) => invitation.usernameOrEmail);
-  const inviteesFromDb: UserWithMembership[] = await prisma.user.findMany({
-    where: {
-      OR: [
-        // Either it's a username in that organization
-        {
-          profiles: {
-            some: {
-              organizationId: team.id,
-              username: { in: usernamesOrEmails },
-            },
-          },
-        },
-        // Or it's an email
-        { email: { in: usernamesOrEmails } },
-      ],
-    },
-    select: {
-      id: true,
-      email: true,
-      username: true,
-      password: true,
-      completedOnboarding: true,
-      identityProvider: true,
-      profiles: true,
-      teams: true,
-    },
+  const inviteesFromDb = await UserRepository.findUsersWithInviteStatus({
+    invitations,
+    team,
   });
 
   const userToRoleMap = buildUserToRoleMap();

@@ -963,4 +963,43 @@ export class UserRepository {
       data: { whitelistWorkflows },
     });
   }
+
+  static async findUsersWithInviteStatus({
+    invitations,
+    team,
+  }: {
+    invitations: { usernameOrEmail: string }[];
+    team: { id: number; parentId: number | null };
+  }) {
+    const usernamesOrEmails = invitations.map((invitation) => invitation.usernameOrEmail);
+    const inviteesFromDb = await prisma.user.findMany({
+      where: {
+        OR: [
+          // Either it's a username in that organization
+          {
+            profiles: {
+              some: {
+                organizationId: team.id,
+                username: { in: usernamesOrEmails },
+              },
+            },
+          },
+          // Or it's an email
+          { email: { in: usernamesOrEmails } },
+        ],
+      },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        password: true,
+        completedOnboarding: true,
+        identityProvider: true,
+        profiles: true,
+        teams: true,
+      },
+    });
+
+    return inviteesFromDb;
+  }
 }
