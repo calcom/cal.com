@@ -3,7 +3,6 @@ import type { TFunction } from "i18next";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendTeamInviteEmail } from "@calcom/emails";
-import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import logger from "@calcom/lib/logger";
@@ -13,10 +12,8 @@ import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
 import { type User as UserType, type UserPassword } from "@calcom/prisma/client";
@@ -266,106 +263,20 @@ export async function createNewUsersConnectToOrgIfExists({
   language: string;
   creationSource: CreationSource;
 }) {
-  // fail if we have invalid emails
-  invitations.forEach((invitation) => checkInputEmailIsValid(invitation.usernameOrEmail));
-  // from this point we know usernamesOrEmails contains only emails
-  const createdUsers = await prisma.$transaction(
-    async (tx) => {
-      const createdUsers = [];
-      for (let index = 0; index < invitations.length; index++) {
-        const invitation = invitations[index];
-        // Weird but orgId is defined only if the invited user email matches orgAutoAcceptEmail
-        const { orgId, autoAccept } = orgConnectInfoByUsernameOrEmail[invitation.usernameOrEmail];
-        const [emailUser, emailDomain] = invitation.usernameOrEmail.split("@");
-        const [domainName, TLD] = emailDomain.split(".");
-
-        // An org member can't change username during signup, so we set the username
-        const orgMemberUsername =
-          emailDomain === autoAcceptEmailDomain
-            ? slugify(emailUser)
-            : slugify(`${emailUser}-${domainName}${isPlatformManaged ? `-${TLD}` : ""}`);
-
-        // As a regular team member is allowed to change username during signup, we don't set any username for him
-        const regularTeamMemberUsername = null;
-
-        const isBecomingAnOrgMember = parentId || isOrg;
-
-        const defaultAvailability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
-        const t = await getTranslation(language ?? "en", "common");
-        const createdUser = await tx.user.create({
-          data: {
-            username: isBecomingAnOrgMember ? orgMemberUsername : regularTeamMemberUsername,
-            email: invitation.usernameOrEmail,
-            verified: true,
-            invitedTo: teamId,
-            isPlatformManaged: !!isPlatformManaged,
-            timeFormat,
-            weekStart,
-            timeZone,
-            creationSource,
-            organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
-            ...(orgId
-              ? {
-                  profiles: {
-                    createMany: {
-                      data: [
-                        {
-                          uid: ProfileRepository.generateProfileUid(),
-                          username: orgMemberUsername,
-                          organizationId: orgId,
-                        },
-                      ],
-                    },
-                  },
-                }
-              : null),
-            teams: {
-              create: {
-                teamId: teamId,
-                role: invitation.role,
-                accepted: autoAccept, // If the user is invited to a child team, they are automatically accepted
-              },
-            },
-            ...(!isPlatformManaged
-              ? {
-                  schedules: {
-                    create: {
-                      name: t("default_schedule_name"),
-                      availability: {
-                        createMany: {
-                          data: defaultAvailability.map((schedule) => ({
-                            days: schedule.days,
-                            startTime: schedule.startTime,
-                            endTime: schedule.endTime,
-                          })),
-                        },
-                      },
-                    },
-                  },
-                }
-              : {}),
-          },
-        });
-
-        // We also need to create the membership in the parent org if it exists
-        if (parentId) {
-          await tx.membership.create({
-            data: {
-              createdAt: new Date(),
-              teamId: parentId,
-              userId: createdUser.id,
-              role: MembershipRole.MEMBER,
-              accepted: autoAccept,
-            },
-          });
-        }
-        createdUsers.push(createdUser);
-      }
-      return createdUsers;
-    },
-    { timeout: 10000 }
-  );
-  return createdUsers;
+  return await MembershipRepository.createNewUsersWithMemberships({
+    invitations,
+    isOrg,
+    teamId,
+    parentId,
+    autoAcceptEmailDomain,
+    orgConnectInfoByUsernameOrEmail,
+    isPlatformManaged,
+    timeFormat,
+    weekStart,
+    timeZone,
+    language,
+    creationSource,
+  });
 }
 
 export async function createMemberships({

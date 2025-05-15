@@ -1,13 +1,19 @@
+import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import logger from "@calcom/lib/logger";
+import { getTranslation } from "@calcom/lib/server/i18n";
+import slugify from "@calcom/lib/slugify";
 import { availabilityUserSelect, prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
+import type { CreationSource } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-import logger from "../../logger";
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
 import { LookupTarget, ProfileRepository } from "./profile";
 import { withSelectedCalendars } from "./user";
+
+const isEmail = (str: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
 
 const log = logger.getSubLogger({ prefix: ["repository/membership"] });
 type IMembership = {
@@ -389,5 +395,137 @@ export class MembershipRepository {
       }
       throw e;
     }
+  }
+
+  static async createNewUsersWithMemberships({
+    invitations,
+    isOrg,
+    teamId,
+    parentId,
+    autoAcceptEmailDomain,
+    orgConnectInfoByUsernameOrEmail,
+    isPlatformManaged,
+    timeFormat,
+    weekStart,
+    timeZone,
+    language,
+    creationSource,
+  }: {
+    invitations: Array<{
+      usernameOrEmail: string;
+      role: MembershipRole;
+    }>;
+    isOrg: boolean;
+    teamId: number;
+    parentId?: number | null;
+    autoAcceptEmailDomain: string | null;
+    orgConnectInfoByUsernameOrEmail: Record<string, { orgId: number | undefined; autoAccept: boolean }>;
+    isPlatformManaged?: boolean;
+    timeFormat?: number;
+    weekStart?: string;
+    timeZone?: string;
+    language: string;
+    creationSource: CreationSource;
+  }) {
+    // fail if we have invalid emails
+    invitations.forEach((invitation) => {
+      if (!isEmail(invitation.usernameOrEmail)) {
+        throw new Error(`Invalid email: ${invitation.usernameOrEmail}`);
+      }
+    });
+
+    const t = await getTranslation(language ?? "en", "common");
+    const defaultAvailability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
+
+    return await prisma.$transaction(async (tx) => {
+      const createdUsers = [];
+      for (let index = 0; index < invitations.length; index++) {
+        const invitation = invitations[index];
+        const { orgId, autoAccept } = orgConnectInfoByUsernameOrEmail[invitation.usernameOrEmail];
+        const [emailUser, emailDomain] = invitation.usernameOrEmail.split("@");
+        const [domainName, TLD] = emailDomain.split(".");
+
+        // An org member can't change username during signup, so we set the username
+        const orgMemberUsername =
+          emailDomain === autoAcceptEmailDomain
+            ? slugify(emailUser)
+            : slugify(`${emailUser}-${domainName}${isPlatformManaged ? `-${TLD}` : ""}`);
+
+        // As a regular team member is allowed to change username during signup, we don't set any username for him
+        const regularTeamMemberUsername = null;
+
+        const isBecomingAnOrgMember = parentId || isOrg;
+
+        const createdUser = await tx.user.create({
+          data: {
+            username: isBecomingAnOrgMember ? orgMemberUsername : regularTeamMemberUsername,
+            email: invitation.usernameOrEmail,
+            verified: true,
+            invitedTo: teamId,
+            isPlatformManaged: !!isPlatformManaged,
+            timeFormat,
+            weekStart,
+            timeZone,
+            creationSource,
+            organizationId: orgId || null,
+            ...(orgId
+              ? {
+                  profiles: {
+                    createMany: {
+                      data: [
+                        {
+                          uid: ProfileRepository.generateProfileUid(),
+                          username: orgMemberUsername,
+                          organizationId: orgId,
+                        },
+                      ],
+                    },
+                  },
+                }
+              : null),
+            teams: {
+              create: {
+                teamId: teamId,
+                role: invitation.role,
+                accepted: autoAccept,
+              },
+            },
+            ...(!isPlatformManaged
+              ? {
+                  schedules: {
+                    create: {
+                      name: t("default_schedule_name"),
+                      availability: {
+                        createMany: {
+                          data: defaultAvailability.map((schedule) => ({
+                            days: schedule.days,
+                            startTime: schedule.startTime,
+                            endTime: schedule.endTime,
+                          })),
+                        },
+                      },
+                    },
+                  },
+                }
+              : {}),
+          },
+        });
+
+        // We also need to create the membership in the parent org if it exists
+        if (parentId) {
+          await tx.membership.create({
+            data: {
+              createdAt: new Date(),
+              teamId: parentId,
+              userId: createdUser.id,
+              role: MembershipRole.MEMBER,
+              accepted: autoAccept,
+            },
+          });
+        }
+        createdUsers.push(createdUser);
+      }
+      return createdUsers;
+    });
   }
 }

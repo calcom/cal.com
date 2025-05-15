@@ -1,31 +1,37 @@
-import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
+import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
+
+import { vi, describe, expect, it, beforeEach, afterEach } from "vitest";
 
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { MembershipRole, Prisma } from "@calcom/prisma/client";
 
 import { MembershipRepository } from "./membership";
 
-vi.mock("@calcom/prisma", () => ({
-  prisma: {
-    membership: {
-      createMany: vi.fn(),
-    },
-  },
+vi.mock("@calcom/lib/server/i18n", () => ({
+  getTranslation: vi.fn().mockResolvedValue("Default Schedule"),
 }));
 
 vi.mock("@calcom/lib/logger", () => ({
   default: {
     error: vi.fn(),
-    getSubLogger: vi.fn(() => ({
+    getSubLogger: vi.fn().mockReturnValue({
       debug: vi.fn(),
-    })),
+      error: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+    }),
   },
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  prisma: prismaMock,
 }));
 
 describe("MembershipRepository", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(getTranslation).mockResolvedValue("Default Schedule");
   });
 
   afterEach(() => {
@@ -49,7 +55,7 @@ describe("MembershipRepository", () => {
         accepted: true,
       });
 
-      expect(prisma.membership.createMany).toHaveBeenCalledWith({
+      expect(prismaMock.membership.createMany).toHaveBeenCalledWith({
         data: [
           {
             createdAt: expect.any(Date),
@@ -78,7 +84,7 @@ describe("MembershipRepository", () => {
         accepted: true,
       });
 
-      expect(prisma.membership.createMany).toHaveBeenCalledWith({
+      expect(prismaMock.membership.createMany).toHaveBeenCalledWith({
         data: [
           {
             createdAt: expect.any(Date),
@@ -104,7 +110,7 @@ describe("MembershipRepository", () => {
         clientVersion: "1",
       });
 
-      (prisma.membership.createMany as jest.Mock).mockRejectedValueOnce(mockError);
+      vi.mocked(prismaMock.membership.createMany).mockRejectedValueOnce(mockError);
 
       const mockInvitees = [
         {
@@ -128,7 +134,7 @@ describe("MembershipRepository", () => {
 
     it("should throw non-Prisma errors as is", async () => {
       const mockError = new Error("Random error");
-      (prisma.membership.createMany as jest.Mock).mockRejectedValueOnce(mockError);
+      vi.mocked(prismaMock.membership.createMany).mockRejectedValueOnce(mockError);
 
       const mockInvitees = [
         {
