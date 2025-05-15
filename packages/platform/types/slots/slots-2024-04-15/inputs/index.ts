@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional, ApiHideProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import type { ValidationArguments, ValidatorConstraintInterface, ValidationOptions } from "class-validator";
+import type { ValidationArguments, ValidatorConstraintInterface } from "class-validator";
 import {
   IsArray,
   IsBoolean,
@@ -12,10 +12,33 @@ import {
   Min,
   IsEnum,
   ValidatorConstraint,
-  registerDecorator,
+  Validate,
 } from "class-validator";
 
 import { SlotFormat } from "@calcom/platform-enums";
+
+@ValidatorConstraint({ name: "routingFormResponseIdValidator", async: false })
+class RoutingFormResponseIdValidator implements ValidatorConstraintInterface {
+  validate(routingFormResponseId: number, args: ValidationArguments) {
+    if (routingFormResponseId === undefined) return true;
+
+    const payload = args.object as GetAvailableSlotsInput_2024_04_15;
+
+    if (payload._isDryRun) {
+      return routingFormResponseId === 0;
+    }
+
+    return routingFormResponseId >= 1;
+  }
+
+  defaultMessage(args: ValidationArguments) {
+    const payload = args.object as GetAvailableSlotsInput_2024_04_15;
+    if (payload._isDryRun) {
+      return "routingFormResponseId must be 0 for dry run";
+    }
+    return "routingFormResponseId must be a positive number";
+  }
+}
 
 export class GetAvailableSlotsInput_2024_04_15 {
   @IsDateString({ strict: true })
@@ -148,7 +171,7 @@ export class GetAvailableSlotsInput_2024_04_15 {
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
   @IsOptional()
-  @ValidateRoutingFormResponseId()
+  @Validate(RoutingFormResponseIdValidator)
   @ApiPropertyOptional()
   @ApiHideProperty()
   routingFormResponseId?: number;
@@ -222,33 +245,4 @@ export class ReserveSlotInput_2024_04_15 {
   @IsOptional()
   @ApiHideProperty()
   _isDryRun?: boolean;
-}
-
-@ValidatorConstraint({ name: "routingFormResponseIdValidator", async: false })
-class RoutingFormResponseIdValidator implements ValidatorConstraintInterface {
-  validate(value: number, args: ValidationArguments) {
-    if (value === undefined) return true;
-
-    const object = args.object as GetAvailableSlotsInput_2024_04_15;
-
-    if (value === 0 && object._isDryRun) return true;
-
-    return value >= 1;
-  }
-
-  defaultMessage() {
-    return "routingFormResponseId must be a positive number or 0 for dry run operations";
-  }
-}
-
-export function ValidateRoutingFormResponseId(validationOptions?: ValidationOptions) {
-  return function (object: any, propertyName: string) {
-    registerDecorator({
-      name: "ValidateRoutingFormResponseId",
-      target: object.constructor,
-      propertyName: propertyName,
-      options: validationOptions,
-      validator: new RoutingFormResponseIdValidator(),
-    });
-  };
 }
