@@ -1,4 +1,3 @@
-import SettingsLayoutAppDir from "app/(use-page-wrapper)/settings/(settings-layout)/layout";
 import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata } from "app/_utils";
 
@@ -28,10 +27,9 @@ const Page = async () => {
     attributesCaller.list(),
   ]);
 
-  const children = (
+  return (
     <MembersView org={org} teams={teams} facetedTeamValues={facetedTeamValues} attributes={attributes} />
   );
-  return await SettingsLayoutAppDir({ children, containerClassName: "lg:max-w-screen-2xl" });
 };
 
 export default Page;
