@@ -23,6 +23,11 @@ test.describe("hash my url", () => {
     // We wait until loading is finished
     await page.waitForSelector('[data-testid="event-types"]');
     await page.locator("ul[data-testid=event-types] > li a").first().click();
+    await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
+      "aria-current",
+      "page"
+    ); // fix the race condition
+    await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toContainText("Event Setup"); //fix the race condition
     // We wait for the page to load
     await page.locator(".primary-navigation >> text=Advanced").click();
     // ignore if it is already checked, and click if unchecked
@@ -34,8 +39,9 @@ test.describe("hash my url", () => {
     const $url = await page.locator('//*[@data-testid="generated-hash-url-0"]').inputValue();
 
     // click update
-    await page.locator('[data-testid="update-eventtype"]').press("Enter");
-
+    await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+      action: () => page.locator("[data-testid=update-eventtype]").click(),
+    });
     // book using generated url hash
     await page.goto($url);
     await selectFirstAvailableTimeSlotNextMonth(page);

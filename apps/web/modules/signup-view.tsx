@@ -3,7 +3,6 @@
 import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
-import { Trans } from "next-i18next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -18,11 +17,11 @@ import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import {
   APP_NAME,
   URL_PROTOCOL_REGEX,
   IS_CALCOM,
-  IS_EUROPE,
   WEBAPP_URL,
   CLOUDFLARE_SITE_ID,
   WEBSITE_PRIVACY_POLICY_URL,
@@ -35,11 +34,17 @@ import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
+import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
+import { IS_EUROPE } from "@calcom/lib/timezoneConstants";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, PasswordField, TextField, Form, Alert, CheckboxField, Icon, showToast } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { PasswordField, CheckboxField, TextField, Form } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
 
@@ -141,6 +146,7 @@ function UsernameField({
                 <p>
                   {t("premium_username", {
                     price: getPremiumPlanPriceValue(),
+                    interpolation: { escapeValue: false },
                   })}
                 </p>
               </div>
@@ -312,8 +318,12 @@ export default function Signup({
             </>
           )}
           <DubAnalytics
+            apiHost="/_proxy/dub"
             cookieOptions={{
               domain: isENVDev ? undefined : `.${new URL(WEBSITE_URL).hostname}`,
+            }}
+            domainsConfig={{
+              refer: "refer.cal.com",
             }}
           />
         </>
@@ -398,9 +408,11 @@ export default function Signup({
                   ) : null}
                   {/* Email */}
                   <TextField
+                    id="signup-email"
                     {...register("email")}
                     label={t("email")}
                     type="email"
+                    autoComplete="email"
                     disabled={prepopulateFormValues?.email}
                     data-testid="signup-emailfield"
                   />
@@ -408,7 +420,9 @@ export default function Signup({
                   {/* Password */}
                   {!isSamlSignup && (
                     <PasswordField
+                      id="signup-password"
                       data-testid="signup-passwordfield"
+                      autoComplete="new-password"
                       label={t("password")}
                       {...register("password")}
                       hintErrors={["caplow", "min", "num"]}
@@ -593,7 +607,8 @@ export default function Signup({
                   </Link>
                 </div>
                 <div className="text-subtle">
-                  <Trans
+                  <ServerTrans
+                    t={t}
                     i18nKey="signing_up_terms"
                     components={[
                       <Link

@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import { defaultVideoAppCategories } from "@calcom/app-store/utils";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
@@ -125,7 +125,10 @@ export async function getLocationGroupedOptions(
             : {}),
         };
         if (apps[groupByCategory]) {
-          apps[groupByCategory] = [...apps[groupByCategory], option];
+          const existingOption = apps[groupByCategory].find((o) => o.value === option.value);
+          if (!existingOption) {
+            apps[groupByCategory] = [...apps[groupByCategory], option];
+          }
         } else {
           apps[groupByCategory] = [option];
         }

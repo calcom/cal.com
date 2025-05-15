@@ -15,14 +15,14 @@ import {
 import { SlotFormat } from "@calcom/platform-enums";
 
 export class GetAvailableSlotsInput_2024_04_15 {
-  @IsDateString()
+  @IsDateString({ strict: true })
   @ApiProperty({
     description: "Start date string starting from which to fetch slots in UTC timezone.",
     example: "2022-06-14T00:00:00.000Z",
   })
   startTime!: string;
 
-  @IsDateString()
+  @IsDateString({ strict: true })
   @ApiProperty({
     description: "End date string until which to fetch slots in UTC timezone.",
     example: "2022-06-14T23:59:59.999Z",
@@ -129,6 +129,50 @@ export class GetAvailableSlotsInput_2024_04_15 {
   @IsOptional()
   @ApiPropertyOptional()
   teamMemberEmail?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  @ApiHideProperty()
+  embedConnectVersion?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  @ApiHideProperty()
+  email?: string | null;
+
+  @Transform(({ value }: { value: string }) => value && parseInt(value))
+  @IsNumber()
+  @IsOptional()
+  @Min(1, { message: "routingFormResponseId must be a positive number" })
+  @ApiPropertyOptional()
+  @ApiHideProperty()
+  routingFormResponseId?: number;
+
+  @Transform(({ value }) => value && value.toLowerCase() === "true")
+  @IsBoolean()
+  @IsOptional()
+  @ApiHideProperty()
+  _shouldServeCache?: boolean;
+
+  @Transform(({ value }) => value && value.toLowerCase() === "true")
+  @IsBoolean()
+  @IsOptional()
+  @ApiHideProperty()
+  _bypassCalendarBusyTimes?: boolean;
+
+  @Transform(({ value }) => (value ? value.toLowerCase() === "true" : false))
+  @IsBoolean()
+  @IsOptional()
+  @ApiHideProperty()
+  isTeamEvent?: boolean;
+
+  @Transform(({ value }: { value: string }) => value && parseInt(value))
+  @IsNumber()
+  @IsOptional()
+  @ApiHideProperty()
+  teamId?: number;
 }
 
 export class RemoveSelectedSlotInput_2024_04_15 {

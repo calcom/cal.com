@@ -32,3 +32,11 @@ export { addDelegationCredential };
 
 export { enrichUserWithDelegationConferencingCredentialsWithoutOrgId } from "@calcom/lib/delegationCredential/server";
 export { toggleDelegationCredentialEnabled } from "@calcom/trpc/server/routers/viewer/delegationCredential/toggleEnabled.handler";
+export {
+  CalendarAppError,
+  CalendarAppDelegationCredentialInvalidGrantError,
+  CalendarAppDelegationCredentialError,
+  CalendarAppDelegationCredentialConfigurationError,
+  CalendarAppDelegationCredentialClientIdNotAuthorizedError,
+  CalendarAppDelegationCredentialNotSetupError,
+} from "@calcom/lib/CalendarAppError";

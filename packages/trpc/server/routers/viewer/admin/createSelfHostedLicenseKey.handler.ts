@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
 
 type GetOptions = {

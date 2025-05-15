@@ -31,6 +31,15 @@ export class AppsRepository {
     });
   }
 
+  async deleteTeamAppCredentials(credentialIdsToDelete: number[], teamId: number) {
+    return this.dbWrite.prisma.credential.deleteMany({
+      where: {
+        id: { in: credentialIdsToDelete },
+        teamId,
+      },
+    });
+  }
+
   async createTeamAppCredential(type: string, key: Prisma.InputJsonValue, teamId: number, appId: string) {
     return this.dbWrite.prisma.credential.create({
       data: {

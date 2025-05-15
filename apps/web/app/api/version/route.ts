@@ -1,6 +1,9 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { NextResponse } from "next/server";
-import * as pjson from "package.json";
+import packageJson from "package.json";
 
-export async function GET() {
-  return NextResponse.json({ version: pjson.version });
+async function getHandler() {
+  return NextResponse.json({ version: packageJson.version });
 }
+
+export const GET = defaultResponderForAppDir(getHandler);

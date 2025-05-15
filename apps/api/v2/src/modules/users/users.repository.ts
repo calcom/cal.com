@@ -177,6 +177,33 @@ export class UsersRepository {
     });
   }
 
+  async findManagedUsersByOAuthClientIdAndEmails(
+    oauthClientId: string,
+    cursor: number,
+    limit: number,
+    oAuthEmails?: string[]
+  ) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        platformOAuthClients: {
+          some: {
+            id: oauthClientId,
+          },
+        },
+        isPlatformManaged: true,
+        ...(oAuthEmails && oAuthEmails.length > 0
+          ? {
+              email: {
+                in: oAuthEmails,
+              },
+            }
+          : {}),
+      },
+      take: limit,
+      skip: cursor,
+    });
+  }
+
   async update(userId: number, updateData: UpdateManagedUserInput) {
     this.formatInput(updateData);
 
@@ -287,6 +314,75 @@ export class UsersRepository {
       },
       select: {
         id: true,
+      },
+    });
+  }
+
+  async getOrgsManagedUserEmailsBySubscriptionId(subscriptionId: string) {
+    return await this.dbRead.prisma.user.findMany({
+      distinct: ["email"],
+      where: {
+        isPlatformManaged: true,
+        profiles: {
+          some: {
+            organization: {
+              platformBilling: {
+                subscriptionId,
+              },
+            },
+          },
+        },
+      },
+      select: {
+        email: true,
+      },
+    });
+  }
+
+  async getActiveManagedUsersAsHost(subscriptionId: string, startTime: Date, endTime: Date) {
+    return await this.dbRead.prisma.user.findMany({
+      distinct: ["email"],
+      where: {
+        isPlatformManaged: true,
+        profiles: {
+          some: {
+            organization: {
+              platformBilling: {
+                subscriptionId,
+              },
+            },
+          },
+        },
+        bookings: {
+          some: {
+            userId: { not: null },
+            startTime: {
+              gte: startTime,
+              lte: endTime,
+            },
+          },
+        },
+      },
+      select: {
+        email: true,
+      },
+    });
+  }
+
+  async getActiveManagedUsersAsAttendee(managedUsersEmails: string[], startTime: Date, endTime: Date) {
+    return await this.dbRead.prisma.attendee.findMany({
+      distinct: ["email"],
+      where: {
+        email: { in: managedUsersEmails },
+        booking: {
+          startTime: {
+            gte: startTime,
+            lte: endTime,
+          },
+        },
+      },
+      select: {
+        email: true,
       },
     });
   }

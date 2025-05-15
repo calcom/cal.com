@@ -18,7 +18,7 @@ const querySchema = z.object({
 });
 
 export const generateMetadata = async ({ params }: ServerPageProps) => {
-  const parsed = querySchema.safeParse(params);
+  const parsed = querySchema.safeParse(await params);
   if (!parsed.success) {
     notFound();
   }
@@ -28,14 +28,17 @@ export const generateMetadata = async ({ params }: ServerPageProps) => {
 
   return await _generateMetadata(
     (t) => t("this_meeting_has_not_started_yet"),
-    () => booking?.title ?? ""
+    () => booking?.title ?? "",
+    undefined,
+    undefined,
+    `/video/meeting-not-started/${parsed.data.uid}`
   );
 };
 
 const getData = withAppDirSsr<ClientPageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
-  const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
 
   const props = await getData(context);
   return <MeetingNotStarted {...props} />;

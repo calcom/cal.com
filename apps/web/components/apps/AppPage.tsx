@@ -14,8 +14,12 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App as AppType } from "@calcom/types/App";
-import { Badge, Button, Icon, SkeletonButton, SkeletonText, showToast } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
+import { SkeletonButton, SkeletonText } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { InstallAppButtonChild } from "./InstallAppButtonChild";
 import { MultiDisconnectIntegration } from "./MultiDisconnectIntegration";
@@ -87,7 +91,7 @@ export const AppPage = ({
       if (data?.setupPending) return;
       setIsLoading(false);
       showToast(data?.message || t("app_successfully_installed"), "success");
-      await utils.viewer.appCredentialsByType.invalidate({ appType: type });
+      await utils.viewer.apps.appCredentialsByType.invalidate({ appType: type });
     },
     onError: (error) => {
       if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
@@ -143,7 +147,7 @@ export const AppPage = ({
    */
   const [appInstalledForAllTargets, setAppInstalledForAllTargets] = useState(false);
 
-  const appDbQuery = trpc.viewer.appCredentialsByType.useQuery({ appType: type });
+  const appDbQuery = trpc.viewer.apps.appCredentialsByType.useQuery({ appType: type });
 
   useEffect(
     function refactorMeWithoutEffect() {
@@ -161,7 +165,7 @@ export const AppPage = ({
     [appDbQuery.data, availableForTeams]
   );
 
-  const dependencyData = trpc.viewer.appsRouter.queryForDependencies.useQuery(dependencies, {
+  const dependencyData = trpc.viewer.apps.queryForDependencies.useQuery(dependencies, {
     enabled: !!dependencies,
   });
 

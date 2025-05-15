@@ -11,17 +11,16 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { GOOGLE_MEET, OFFICE_365_VIDEO, ZOOM } from "@calcom/platform-constants";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import type { App } from "@calcom/types/App";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Button,
-  SkeletonContainer,
-  SkeletonText,
   Dropdown,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownItem,
-  EmptyScreen,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
@@ -47,6 +46,7 @@ type ConferencingAppsViewPlatformWrapperProps = {
   disableToasts?: boolean;
   returnTo?: string;
   onErrorReturnTo?: string;
+  teamId?: number;
 };
 
 type RemoveAppParams = { callback: () => void; app?: App["slug"] };
@@ -72,6 +72,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
   disableToasts = false,
   returnTo,
   onErrorReturnTo,
+  teamId,
 }: ConferencingAppsViewPlatformWrapperProps) => {
   const { t } = useLocale();
   const queryClient = useQueryClient();
@@ -102,9 +103,9 @@ export const ConferencingAppsViewPlatformWrapper = ({
     updateModal({ isOpen: true, credentialId, app });
   };
 
-  const installedIntegrationsQuery = useAtomsGetInstalledConferencingApps();
-  const { data: defaultConferencingApp } = useGetDefaultConferencingApp();
-  const { data: eventTypesQuery, isFetching: isEventTypesFetching } = useAtomGetEventTypes();
+  const installedIntegrationsQuery = useAtomsGetInstalledConferencingApps(teamId);
+  const { data: defaultConferencingApp } = useGetDefaultConferencingApp(teamId);
+  const { data: eventTypesQuery, isFetching: isEventTypesFetching } = useAtomGetEventTypes(teamId);
 
   const deleteCredentialMutation = useDeleteCredential({
     onSuccess: () => {
@@ -121,11 +122,16 @@ export const ConferencingAppsViewPlatformWrapper = ({
       showToast(t("error_removing_app"), "error");
       handleModelClose();
     },
+    teamId,
   });
 
-  const updateDefaultAppMutation = useUpdateUserDefaultConferencingApp({});
+  const updateDefaultAppMutation = useUpdateUserDefaultConferencingApp({
+    teamId,
+  });
 
-  const bulkUpdateEventTypesToDefaultLocation = useAtomBulkUpdateEventTypesToDefaultLocation({});
+  const bulkUpdateEventTypesToDefaultLocation = useAtomBulkUpdateEventTypesToDefaultLocation({
+    teamId,
+  });
 
   const handleRemoveApp = ({ app }: RemoveAppParams) => {
     !!app && deleteCredentialMutation.mutate(app);
@@ -177,6 +183,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
     },
     returnTo,
     onErrorReturnTo,
+    teamId,
   });
 
   const AddConferencingButtonPlatform = ({ installedApps }: { installedApps?: Array<{ slug: string }> }) => {

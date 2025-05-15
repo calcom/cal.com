@@ -31,8 +31,6 @@ async function handler(req: NextRequest) {
   return NextResponse.json(userInfo);
 }
 
-const getHandler = defaultResponderForAppDir(handler);
-
-export { getHandler as GET };
+export const GET = defaultResponderForAppDir(handler);
 
 export const dynamic = "force-dynamic";

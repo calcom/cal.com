@@ -1,5 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SheetClose, Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { SheetClose } from "@calcom/ui/components/sheet";
 
 import { useEditMode } from "./store";
 

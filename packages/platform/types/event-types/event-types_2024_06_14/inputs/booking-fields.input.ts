@@ -116,8 +116,21 @@ export class EmailDefaultFieldInput_2024_06_14 {
 
   @IsBoolean()
   @IsOptional()
-  @DocsProperty()
+  @DocsPropertyOptional({
+    description: `Can be set to false only for organization team event types and if you also pass booking field {type: "phone", slug: "attendeePhoneNumber", required: true, hidden: false, label: "whatever label"} of booking field type PhoneFieldInput_2024_06_14 - this is done
+      to enable phone only bookings where during the booking attendee can provide only their phone number and not provide email, so you must pass to the email booking field {hidden: true, required: false}.
+      If true show under event type settings but don't show this booking field in the Booker. If false show in both.`,
+  })
   required = true;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    description: `Can be set to true only for organization team event types and if you also pass booking field {type: "phone", slug: "attendeePhoneNumber", required: true, hidden: false, label: "whatever label"} of booking field type PhoneFieldInput_2024_06_14 - this is done
+      to enable phone only bookings where during the booking attendee can provide only their phone number and not provide email, so you must pass to the email booking field {hidden: true, required: false}.
+      If true show under event type settings but don't show this booking field in the Booker. If false show in both.`,
+  })
+  hidden?: boolean;
 
   @IsString()
   @IsOptional()
@@ -306,8 +319,8 @@ export class PhoneFieldInput_2024_06_14 {
 
   @IsString()
   @DocsProperty({
-    description:
-      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    description: `Unique identifier for the field in format \`some-slug\`. It is used to access response to this booking field during the booking. Special slug is \`attendeePhoneNumber\` - if you create
+      a phone input field with this slug for organization team event type you can create an organization team event type that can be booked using phone without requiring an email by setting {"type": "email", "required": false, "hidden": true} to the email booking field input in the request body.`,
     example: "some-slug",
   })
   slug!: string;

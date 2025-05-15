@@ -68,14 +68,6 @@ import {
   ValidateOutputLocations_2024_06_14,
 } from "./locations.output";
 
-enum SchedulingTypeEnum {
-  ROUND_ROBIN = "ROUND_ROBIN",
-  COLLECTIVE = "COLLECTIVE",
-  MANAGED = "MANAGED",
-}
-
-export type EventTypesOutputSchedulingType = "ROUND_ROBIN" | "COLLECTIVE" | "MANAGED";
-
 class User_2024_06_14 {
   @IsInt()
   @DocsProperty()
@@ -429,6 +421,14 @@ class BaseEventTypeOutput_2024_06_14 {
   @IsBoolean()
   @ApiPropertyOptional()
   hideCalendarEventDetails?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({
+    description:
+      "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events",
+  })
+  hideOrganizerEmail?: boolean;
 }
 
 export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
@@ -486,9 +486,9 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @ApiPropertyOptional()
   assignAllTeamMembers?: boolean;
 
-  @IsEnum(SchedulingTypeEnum)
-  @DocsProperty({ enum: SchedulingTypeEnum, nullable: true })
-  schedulingType!: EventTypesOutputSchedulingType | null;
+  @IsEnum(["roundRobin", "collective", "managed"] as const)
+  @DocsProperty({ enum: ["roundRobin", "collective", "managed"] })
+  schedulingType!: "roundRobin" | "collective" | "managed" | null;
 
   @IsOptional()
   @IsBoolean()

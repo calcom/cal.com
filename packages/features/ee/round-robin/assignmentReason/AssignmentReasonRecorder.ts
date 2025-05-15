@@ -1,14 +1,29 @@
 import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import { acrossQueryValueCompatiblity } from "@calcom/lib/raqb/raqbUtils";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getUsersAttributes } from "@calcom/lib/service/attribute/server/getAttributes";
 import prisma from "@calcom/prisma";
 import { AssignmentReasonEnum } from "@calcom/prisma/enums";
 
 const { getAttributesQueryValue } = acrossQueryValueCompatiblity;
 
+export enum RRReassignmentType {
+  ROUND_ROBIN = "round_robin",
+  MANUAL = "manual",
+}
+
 export default class AssignmentReasonRecorder {
-  static async routingFormRoute({
+  /**
+   * We should use decorators to wrap the methods with withReporting
+   * but we can't don't have support for static methods in decorators
+   * so this is a workaround to wrap the methods with withReporting.
+   */
+  static routingFormRoute = withReporting(
+    AssignmentReasonRecorder._routingFormRoute,
+    "AssignmentReasonRecorder.routingFormRoute"
+  );
+  static async _routingFormRoute({
     bookingId,
     routingFormResponseId,
     organizerId,
@@ -98,18 +113,29 @@ export default class AssignmentReasonRecorder {
       }
     }
 
+    const reasonEnum = AssignmentReasonEnum.ROUTING_FORM_ROUTING;
+    const reasonString = attributeValues.join(", ");
+
     await prisma.assignmentReason.create({
       data: {
         bookingId: bookingId,
-        reasonEnum: AssignmentReasonEnum.ROUTING_FORM_ROUTING,
-        reasonString: attributeValues.join(", "),
+        reasonEnum,
+        reasonString,
       },
     });
+
+    return {
+      reasonEnum,
+      reasonString,
+    };
   }
 
   // Separate method to handle rerouting
-
-  static async CRMOwnership({
+  static CRMOwnership = withReporting(
+    AssignmentReasonRecorder._CRMOwnership,
+    "AssignmentReasonRecorder.CRMOwnership"
+  );
+  static async _CRMOwnership({
     bookingId,
     crmAppSlug,
     teamMemberEmail,
@@ -130,23 +156,35 @@ export default class AssignmentReasonRecorder {
 
     if (!crmRoutingReason || !crmRoutingReason.assignmentReason) return;
 
+    const { reasonEnum, assignmentReason } = crmRoutingReason;
+
     await prisma.assignmentReason.create({
       data: {
         bookingId,
-        reasonEnum: crmRoutingReason.reasonEnum,
-        reasonString: crmRoutingReason.assignmentReason,
+        reasonEnum,
+        reasonString: assignmentReason,
       },
     });
-  }
 
-  static async roundRobinReassignment({
+    return {
+      reasonEnum,
+      reasonString: assignmentReason,
+    };
+  }
+  static roundRobinReassignment = withReporting(
+    AssignmentReasonRecorder._roundRobinReassignment,
+    "AssignmentReasonRecorder.roundRobinReassignment"
+  );
+  static async _roundRobinReassignment({
     bookingId,
     reassignById,
     reassignReason,
+    reassignmentType,
   }: {
     bookingId: number;
     reassignById: number;
     reassignReason?: string;
+    reassignmentType: RRReassignmentType;
   }) {
     const reassignedBy = await prisma.user.findFirst({
       where: {
@@ -157,6 +195,11 @@ export default class AssignmentReasonRecorder {
       },
     });
 
+    const reasonEnum =
+      reassignmentType === RRReassignmentType.MANUAL
+        ? AssignmentReasonEnum.REASSIGNED
+        : AssignmentReasonEnum.RR_REASSIGNED;
+
     const reasonString = `Reassigned by: ${reassignedBy?.username || "team member"}. ${
       reassignReason ? `Reason: ${reassignReason}` : ""
     }`;
@@ -164,9 +207,14 @@ export default class AssignmentReasonRecorder {
     await prisma.assignmentReason.create({
       data: {
         bookingId: bookingId,
-        reasonEnum: AssignmentReasonEnum.REASSIGNED,
+        reasonEnum,
         reasonString,
       },
     });
+
+    return {
+      reasonEnum,
+      reasonString,
+    };
   }
 }

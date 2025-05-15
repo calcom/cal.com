@@ -12,6 +12,4 @@ async function handler(req: NextRequest) {
   return NextResponse.json(tokenResponse);
 }
 
-const postHandler = defaultResponderForAppDir(handler);
-
-export { postHandler as POST };
+export const POST = defaultResponderForAppDir(handler);

@@ -1,9 +1,13 @@
 import { ConnectedCalendarsData } from "@/ee/calendars/outputs/connected-calendars.output";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, BadRequestException } from "@nestjs/common";
 
+import { CONFERENCING_APPS } from "@calcom/platform-constants";
+import { getUsersCredentials } from "@calcom/platform-libraries";
+import { getApps } from "@calcom/platform-libraries/app-store";
 import {
   transformBookingFieldsApiToInternal,
   transformLocationsApiToInternal,
@@ -37,8 +41,6 @@ import {
 } from "@calcom/platform-types";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
-import { OutputEventTypesService_2024_06_14 } from "./output-event-types.service";
-
 interface ValidationContext {
   eventTypeId?: number;
   seatsPerTimeSlot?: number | null;
@@ -51,14 +53,14 @@ interface ValidationContext {
 export class InputEventTypesService_2024_06_14 {
   constructor(
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
-    private readonly outputEventTypesService: OutputEventTypesService_2024_06_14,
     private readonly calendarsService: CalendarsService
   ) {}
 
   async transformAndValidateCreateEventTypeInput(
-    userId: UserWithProfile["id"],
+    user: UserWithProfile,
     inputEventType: CreateEventTypeInput_2024_06_14
   ) {
+    await this.validateInputLocations(user, inputEventType.locations);
     const transformedBody = this.transformInputCreateEventType(inputEventType);
 
     await this.validateEventTypeInputs({
@@ -69,19 +71,21 @@ export class InputEventTypesService_2024_06_14 {
     });
 
     transformedBody.destinationCalendar &&
-      (await this.validateInputDestinationCalendar(userId, transformedBody.destinationCalendar));
+      (await this.validateInputDestinationCalendar(user.id, transformedBody.destinationCalendar));
 
     transformedBody.useEventTypeDestinationCalendarEmail &&
-      (await this.validateInputUseDestinationCalendarEmail(userId));
+      (await this.validateInputUseDestinationCalendarEmail(user.id));
 
     return transformedBody;
   }
 
   async transformAndValidateUpdateEventTypeInput(
     inputEventType: UpdateEventTypeInput_2024_06_14,
-    userId: UserWithProfile["id"],
+    user: UserWithProfile,
     eventTypeId: number
   ) {
+    await this.validateInputLocations(user, inputEventType.locations);
+
     const transformedBody = await this.transformInputUpdateEventType(inputEventType, eventTypeId);
 
     await this.validateEventTypeInputs({
@@ -93,22 +97,15 @@ export class InputEventTypesService_2024_06_14 {
     });
 
     transformedBody.destinationCalendar &&
-      (await this.validateInputDestinationCalendar(userId, transformedBody.destinationCalendar));
+      (await this.validateInputDestinationCalendar(user.id, transformedBody.destinationCalendar));
 
     transformedBody.useEventTypeDestinationCalendarEmail &&
-      (await this.validateInputUseDestinationCalendarEmail(userId));
+      (await this.validateInputUseDestinationCalendarEmail(user.id));
 
     return transformedBody;
   }
 
   transformInputCreateEventType(inputEventType: CreateEventTypeInput_2024_06_14) {
-    const defaultLocations: CreateEventTypeInput_2024_06_14["locations"] = [
-      {
-        type: "integration",
-        integration: "cal-video",
-      },
-    ];
-
     const {
       lengthInMinutes,
       lengthInMinutesOptions,
@@ -128,12 +125,12 @@ export class InputEventTypesService_2024_06_14 {
     } = inputEventType;
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
 
-    const hasMultipleLocations = (locations || defaultLocations).length > 1;
+    const locationsTransformed = locations?.length ? this.transformInputLocations(locations) : undefined;
     const eventType = {
       ...rest,
       length: lengthInMinutes,
-      locations: this.transformInputLocations(locations || defaultLocations),
-      bookingFields: this.transformInputBookingFields(bookingFields, hasMultipleLocations),
+      locations: locationsTransformed,
+      bookingFields: this.transformInputBookingFields(bookingFields),
       bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
       durationLimits: bookingLimitsDuration
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
@@ -182,15 +179,12 @@ export class InputEventTypesService_2024_06_14 {
       : {};
 
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
-    const hasMultipleLocations = !!(locations && locations?.length > 1);
 
     const eventType = {
       ...rest,
       length: lengthInMinutes,
       locations: locations ? this.transformInputLocations(locations) : undefined,
-      bookingFields: bookingFields
-        ? this.transformInputBookingFields(bookingFields, hasMultipleLocations)
-        : undefined,
+      bookingFields: bookingFields ? this.transformInputBookingFields(bookingFields) : undefined,
       bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
       durationLimits: bookingLimitsDuration
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
@@ -220,10 +214,7 @@ export class InputEventTypesService_2024_06_14 {
     return transformLocationsApiToInternal(inputLocations);
   }
 
-  transformInputBookingFields(
-    inputBookingFields: CreateEventTypeInput_2024_06_14["bookingFields"],
-    hasMultipleLocations: boolean
-  ) {
+  transformInputBookingFields(inputBookingFields: CreateEventTypeInput_2024_06_14["bookingFields"]) {
     const internalFields: (SystemField | CustomField)[] = inputBookingFields
       ? transformBookingFieldsApiToInternal(inputBookingFields)
       : [];
@@ -252,7 +243,28 @@ export class InputEventTypesService_2024_06_14 {
       systemCustomRescheduleReasonField || systemAfterFieldRescheduleReason,
     ];
 
-    return [...defaultFieldsBefore, ...userCustomFields, ...defaultFieldsAfter];
+    const bookingFields = [...defaultFieldsBefore, ...userCustomFields, ...defaultFieldsAfter];
+
+    if (!this.hasEmailOrPhoneOnlySetup(bookingFields)) {
+      throw new BadRequestException(
+        "Booking fields validation failed: visible and required email or visible and required attendee phone field is needed."
+      );
+    }
+
+    return bookingFields;
+  }
+
+  hasEmailOrPhoneOnlySetup(bookingFields: (SystemField | CustomField)[]) {
+    const emailField = bookingFields.find((field) => field.type === "email" && field.name === "email");
+    const attendeePhoneNumberField = bookingFields.find(
+      (field) => field.type === "phone" && field.name === "attendeePhoneNumber"
+    );
+
+    const isEmailFieldRequiredAndVisible = emailField?.required && !emailField?.hidden;
+    const isAttendeePhoneNumberFieldRequiredAndVisible =
+      attendeePhoneNumberField?.required && !attendeePhoneNumberField?.hidden;
+
+    return isEmailFieldRequiredAndVisible || isAttendeePhoneNumberFieldRequiredAndVisible;
   }
 
   isUserCustomField(field: SystemField | CustomField): field is CustomField {
@@ -436,5 +448,43 @@ export class InputEventTypesService_2024_06_14 {
     }
 
     return;
+  }
+
+  async validateInputLocations(
+    user: UserWithProfile,
+    inputLocations: CreateEventTypeInput_2024_06_14["locations"] | undefined
+  ) {
+    await Promise.all(
+      inputLocations?.map(async (location) => {
+        if (location.type === "integration") {
+          // cal-video is global, so we can skip this check
+          if (location.integration !== "cal-video") {
+            await this.checkAppIsValidAndConnected(user, location.integration);
+          }
+        }
+      }) ?? []
+    );
+  }
+
+  async checkAppIsValidAndConnected(user: UserWithProfile, appSlug: string) {
+    const conferencingApps = ["google-meet", "office365-video", "zoom"];
+    if (!conferencingApps.includes(appSlug)) {
+      throw new BadRequestException("Invalid app, available apps are: ", conferencingApps.join(", "));
+    }
+
+    if (appSlug === "office365-video") {
+      appSlug = "msteams";
+    }
+
+    const credentials = await getUsersCredentials(user);
+
+    const foundApp = getApps(credentials, true).filter((app) => app.slug === appSlug)[0];
+
+    const appLocation = foundApp?.appData?.location;
+
+    if (!foundApp || !appLocation) {
+      throw new BadRequestException(`${appSlug} not connected.`);
+    }
+    return foundApp.credential;
   }
 }

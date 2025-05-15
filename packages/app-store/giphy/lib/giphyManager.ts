@@ -2,18 +2,16 @@ import { HttpError } from "@calcom/lib/http-error";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 
-let api_key = "";
-
 const checkGiphyApiKey = async () => {
   const appKeys = await getAppKeysFromSlug("giphy");
-  if (typeof appKeys.api_key === "string") api_key = appKeys.api_key;
-  if (!api_key) throw new HttpError({ statusCode: 400, message: "Missing Giphy api_key" });
+  if (typeof appKeys.api_key === "string") return appKeys.api_key;
+  throw new HttpError({ statusCode: 400, message: "Missing Giphy api_key" });
 };
 
 export const searchGiphy = async (locale: string, keyword: string, offset = 0) => {
-  await checkGiphyApiKey();
+  const apiKey = await checkGiphyApiKey();
   const queryParams = new URLSearchParams({
-    api_key,
+    api_key: apiKey,
     q: keyword,
     limit: "1",
     offset: String(offset),
@@ -36,9 +34,9 @@ export const searchGiphy = async (locale: string, keyword: string, offset = 0) =
 };
 
 export const getGiphyById = async (giphyId: string) => {
-  await checkGiphyApiKey();
+  const apiKey = await checkGiphyApiKey();
   const queryParams = new URLSearchParams({
-    api_key,
+    api_key: apiKey,
   });
   const response = await fetch(`https://api.giphy.com/v1/gifs/${giphyId}?${queryParams.toString()}`, {
     method: "GET",

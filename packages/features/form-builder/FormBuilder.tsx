@@ -5,31 +5,28 @@ import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-f
 import type { z } from "zod";
 import { ZodError } from "zod";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import turndown from "@calcom/lib/turndownService";
+import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import { Editor } from "@calcom/ui/components/editor";
 import {
-  Badge,
-  BooleanToggleGroupField,
-  Button,
+  Switch,
   CheckboxField,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
+  SelectField,
   Form,
-  Icon,
   Input,
   InputField,
   Label,
-  SelectField,
-  showToast,
-  Editor,
-  Switch,
-} from "@calcom/ui";
-import classNames from "@calcom/ui/classNames";
+  BooleanToggleGroupField,
+} from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
@@ -368,7 +365,7 @@ function Options({
     <div className={className}>
       <Label>{label}</Label>
       <div className="bg-muted rounded-md p-4">
-        <ul ref={animationRef}>
+        <ul ref={animationRef} className="flex flex-col gap-1">
           {value?.map((option, index) => (
             <li key={index}>
               <div className="flex items-center">
@@ -841,7 +838,7 @@ function VariantFields({
               {!isSimpleVariant && (
                 <Label className="flex justify-between">
                   <span>{`Field ${index + 1}`}</span>
-                  <span className="text-muted">{`${fieldForm.getValues("name")}.${f.name}`}</span>
+                  <span className="text-muted">{f.name}</span>
                 </Label>
               )}
               <InputField

@@ -1,11 +1,14 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { createHmac } from "crypto";
 import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
-import { sendDailyVideoRecordingEmails } from "@calcom/emails";
-import { sendDailyVideoTranscriptEmails } from "@calcom/emails";
+import {
+  sendDailyVideoRecordingEmails,
+  sendDailyVideoTranscriptEmails,
+} from "@calcom/emails/daily-video-emails";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -49,18 +52,14 @@ const getDownloadLinkOfCalVideo = async (recordingId: string) => {
   return downloadLink;
 };
 
-export async function POST(request: NextRequest) {
-  if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
-    return NextResponse.json({ message: "No SendGrid API key or email" }, { status: 405 });
-  }
-
+export async function postHandler(request: NextRequest) {
   const body = await request.json();
 
   if (testRequestSchema.safeParse(body).success) {
     return NextResponse.json({ message: "Test request successful" });
   }
 
-  const headersList = headers();
+  const headersList = await headers();
   const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
 
   if (!testMode) {
@@ -228,3 +227,5 @@ export async function POST(request: NextRequest) {
     }
   }
 }
+
+export const POST = defaultResponderForAppDir(postHandler);

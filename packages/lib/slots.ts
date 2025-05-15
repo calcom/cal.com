@@ -1,9 +1,10 @@
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { IFromUser, IOutOfOfficeData, IToUser } from "@calcom/lib/getUserAvailability";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 
-import { getTimeZone } from "./date-fns";
 import type { DateRange } from "./date-ranges";
+import { getTimeZone } from "./dayjs";
 
 export type GetSlots = {
   inviteeDate: Dayjs;
@@ -168,4 +169,4 @@ const getSlots = ({
   });
 };
 
-export default getSlots;
+export default withReporting(getSlots, "getSlots");

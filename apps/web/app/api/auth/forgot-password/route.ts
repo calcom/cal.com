@@ -46,6 +46,4 @@ async function handler(req: NextRequest) {
   }
 }
 
-const postHandler = defaultResponderForAppDir(handler);
-
-export { postHandler as POST };
+export const POST = defaultResponderForAppDir(handler);

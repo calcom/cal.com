@@ -1,5 +1,5 @@
 import type { Booking, BookingReference, User } from "@prisma/client";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
@@ -118,6 +118,7 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
         tAttendees
       ),
       organizer: userOwnerAsPeopleType,
+      hideOrganizerEmail: bookingToReschedule.eventType?.hideOrganizerEmail,
       team: !!bookingToReschedule.eventType?.team
         ? {
             name: bookingToReschedule.eventType.team.name,

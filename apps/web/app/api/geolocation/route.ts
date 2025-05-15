@@ -1,8 +1,9 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
-export async function GET() {
-  const headersList = headers();
+async function getHandler() {
+  const headersList = await headers();
   const country = headersList.get("x-vercel-ip-country") || "Unknown";
 
   const response = NextResponse.json({ country });
@@ -10,3 +11,5 @@ export async function GET() {
 
   return response;
 }
+
+export const GET = defaultResponderForAppDir(getHandler);

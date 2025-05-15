@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { OAuth2Client } from "googleapis-common";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -10,7 +11,7 @@ const scopes = [
   "https://www.googleapis.com/auth/admin.directory.customer.readonly",
 ];
 
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   try {
     // Get appKeys from google-calendar
     const { client_id, client_secret } = await getAppKeysFromSlug("google-calendar");
@@ -44,3 +45,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const GET = defaultResponderForAppDir(getHandler);

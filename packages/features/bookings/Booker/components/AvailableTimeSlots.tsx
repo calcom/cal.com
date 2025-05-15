@@ -4,10 +4,11 @@ import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
-import type { Slot } from "@calcom/features/schedules";
+import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
+import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
 import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
+import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 
@@ -33,6 +34,9 @@ type AvailableTimeSlotsProps = {
     availableTimeSlotsTimeFormatToggle?: string;
     availableTimes?: string;
   };
+  confirmStepClassNames?: {
+    confirmButton?: string;
+  };
   loadingStates: IUseBookingLoadingStates;
   isVerificationCodeSending: boolean;
   renderConfirmNotVerifyEmailButtonCond: boolean;
@@ -44,6 +48,7 @@ type AvailableTimeSlotsProps = {
    * This is the list of time slots that are unavailable to book
    */
   unavailableTimeSlots: string[];
+  confirmButtonDisabled?: boolean;
 };
 
 /**
@@ -65,6 +70,8 @@ export const AvailableTimeSlots = ({
   seatsPerTimeSlot,
   onSubmit,
   unavailableTimeSlots,
+  confirmButtonDisabled,
+  confirmStepClassNames,
   ...props
 }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -224,6 +231,8 @@ export const AvailableTimeSlots = ({
                 skipConfirmStep={skipConfirmStep}
                 seatsPerTimeSlot={seatsPerTimeSlot}
                 handleSlotClick={handleSlotClick}
+                confirmButtonDisabled={confirmButtonDisabled}
+                confirmStepClassNames={confirmStepClassNames}
                 {...props}
               />
             </div>

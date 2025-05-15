@@ -23,7 +23,7 @@ export type AvailabilityOption = {
 };
 export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
-export type EventTypeApps = RouterOutputs["viewer"]["integrations"];
+export type EventTypeApps = RouterOutputs["viewer"]["apps"]["integrations"];
 export type Host = {
   isFixed: boolean;
   userId: number;
@@ -90,12 +90,14 @@ export type FormValues = {
   hideCalendarNotes: boolean;
   multiplePrivateLinks: string[] | undefined;
   eventTypeColor: z.infer<typeof eventTypeColor>;
+  customReplyToEmail: string | null;
   locations: EventLocation[];
   aiPhoneCallConfig: PhoneCallConfig;
   customInputs: CustomInputParsed[];
   schedule: number | null;
   useEventLevelSelectedCalendars: boolean;
-
+  disabledCancelling: boolean;
+  disabledRescheduling: boolean;
   periodType: PeriodType;
   /**
    * Number of days(Applicable only for ROLLING period type)

@@ -2,10 +2,10 @@ import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { type RouterOutputs } from "@calcom/trpc";
-import { TopBanner } from "@calcom/ui";
+import { TopBanner } from "@calcom/ui/components/top-banner";
 
 export type CalendarCredentialBannerProps = {
-  data: RouterOutputs["viewer"]["getUserTopBanners"]["calendarCredentialBanner"];
+  data: RouterOutputs["viewer"]["me"]["getUserTopBanners"]["calendarCredentialBanner"];
 };
 
 function CalendarCredentialBanner({ data }: CalendarCredentialBannerProps) {

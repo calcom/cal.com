@@ -5,7 +5,8 @@ import Link from "next/link";
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Icon, SkeletonText } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import type { getServerSideProps } from "@lib/apps/categories/getServerSideProps";
 
@@ -15,7 +16,7 @@ export default function Apps({ categories }: PageProps) {
   const { t, isLocaleReady } = useLocale();
 
   return (
-    <Shell isPublic large title={t("app_store")} description={t("app_store_description")} withoutSeo>
+    <Shell isPublic large title={t("app_store")} description={t("app_store_description")}>
       <div className="text-md flex items-center gap-1 px-4 pb-3 pt-3 font-normal md:px-8 lg:px-0 lg:pt-0">
         <Link
           href="/apps"

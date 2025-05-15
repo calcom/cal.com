@@ -1,9 +1,33 @@
 import { CreateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/create-organization-membership.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { MembershipUserSelect } from "@/modules/teams/memberships/teams-memberships.repository";
 import { Injectable } from "@nestjs/common";
 
+import { Prisma } from "@calcom/prisma/client";
+
 import { UpdateOrgMembershipDto } from "./inputs/update-organization-membership.input";
+
+export type DbOrgMembership = Awaited<ReturnType<OrganizationsMembershipRepository["findOrgMembership"]>>;
+
+const attributeToUserSelect = {
+  createdByDSyncId: true,
+  weight: true,
+  attributeOption: {
+    select: {
+      id: true,
+      value: true,
+      slug: true,
+      attribute: {
+        select: {
+          id: true,
+          name: true,
+          type: true,
+        },
+      },
+    },
+  },
+} as const satisfies Prisma.AttributeToUserSelect;
 
 @Injectable()
 export class OrganizationsMembershipRepository {
@@ -15,6 +39,12 @@ export class OrganizationsMembershipRepository {
         id: membershipId,
         teamId: organizationId,
       },
+      include: {
+        user: { select: MembershipUserSelect },
+        AttributeToUser: {
+          select: attributeToUserSelect,
+        },
+      },
     });
   }
 
@@ -23,6 +53,12 @@ export class OrganizationsMembershipRepository {
       where: {
         teamId: organizationId,
         userId,
+      },
+      include: {
+        user: { select: MembershipUserSelect },
+        AttributeToUser: {
+          select: attributeToUserSelect,
+        },
       },
     });
   }
@@ -33,19 +69,38 @@ export class OrganizationsMembershipRepository {
         id: membershipId,
         teamId: organizationId,
       },
+      include: {
+        user: { select: MembershipUserSelect },
+        AttributeToUser: {
+          select: attributeToUserSelect,
+        },
+      },
     });
   }
 
   async createOrgMembership(organizationId: number, data: CreateOrgMembershipDto) {
-    return this.dbWrite.prisma.membership.create({
-      data: { ...data, teamId: organizationId },
+    return this.dbWrite.prisma.membership.upsert({
+      create: { ...data, teamId: organizationId },
+      update: { role: data.role, accepted: data.accepted, disableImpersonation: data.disableImpersonation },
+      where: { userId_teamId: { userId: data.userId, teamId: organizationId } },
+      include: {
+        user: { select: MembershipUserSelect },
+        AttributeToUser: {
+          select: attributeToUserSelect,
+        },
+      },
     });
   }
-
   async updateOrgMembership(organizationId: number, membershipId: number, data: UpdateOrgMembershipDto) {
     return this.dbWrite.prisma.membership.update({
       data: { ...data },
       where: { id: membershipId, teamId: organizationId },
+      include: {
+        user: { select: MembershipUserSelect },
+        AttributeToUser: {
+          select: attributeToUserSelect,
+        },
+      },
     });
   }
 
@@ -53,6 +108,12 @@ export class OrganizationsMembershipRepository {
     return this.dbRead.prisma.membership.findMany({
       where: {
         teamId: organizationId,
+      },
+      include: {
+        user: { select: MembershipUserSelect },
+        AttributeToUser: {
+          select: attributeToUserSelect,
+        },
       },
       skip,
       take,

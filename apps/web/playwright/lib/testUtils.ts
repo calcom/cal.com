@@ -14,7 +14,6 @@ import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 
 import type { createEmailsFixture } from "../fixtures/emails";
 import type { Fixtures } from "./fixtures";
-import { loadJSON } from "./loadJSON";
 
 type Request = IncomingMessage & { body?: unknown };
 type RequestHandlerOptions = { req: Request; res: ServerResponse };
@@ -178,16 +177,6 @@ export async function expectSlotNotAllowedToBook(page: Page) {
   await expect(page.locator("[data-testid=slot-not-allowed-to-book]")).toBeVisible();
 }
 
-// Provide an standalone localize utility not managed by next-i18n
-export async function localize(locale: string) {
-  const localeModule = `../../public/static/locales/${locale}/common.json`;
-  const localeMap = loadJSON(localeModule);
-  return (message: string) => {
-    if (message in localeMap) return localeMap[message];
-    throw "No locale found for the given entry message";
-  };
-}
-
 export const createNewEventType = async (page: Page, args: { eventTitle: string }) => {
   await page.click("[data-testid=new-event-type]");
   const eventTitle = args.eventTitle;
@@ -229,6 +218,10 @@ export const createNewSeatedEventType = async (page: Page, args: { eventTitle: s
   const eventTitle = args.eventTitle;
   await createNewEventType(page, { eventTitle });
   await page.waitForSelector('[data-testid="event-title"]');
+  await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
+    "aria-current",
+    "page"
+  );
   await page.locator('[data-testid="vertical-tab-event_advanced_tab_title"]').click();
   await page.locator('[data-testid="offer-seats-toggle"]').click();
   await page.locator('[data-testid="update-eventtype"]').click();
@@ -246,7 +239,8 @@ export async function gotoRoutingLink({
   let previewLink = null;
   if (!formId) {
     // Instead of clicking on the preview link, we are going to the preview link directly because the earlier opens a new tab which is a bit difficult to manage with Playwright
-    const href = await page.locator('[data-testid="form-action-preview"]').getAttribute("href");
+    await page.locator('[data-testid="preview-button"]').click();
+    const href = await page.locator('[data-testid="open-form-in-new-tab"]').getAttribute("href");
     if (!href) {
       throw new Error("Preview link not found");
     }

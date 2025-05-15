@@ -2,6 +2,7 @@ import { GetMeOutput } from "@/ee/me/outputs/get-me.output";
 import { UpdateMeOutput } from "@/ee/me/outputs/update-me.output";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -10,7 +11,7 @@ import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-us
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { Controller, UseGuards, Get, Patch, Body } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { PROFILE_READ, PROFILE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { userSchemaResponse } from "@calcom/platform-types";
@@ -21,6 +22,7 @@ import { userSchemaResponse } from "@calcom/platform-types";
 })
 @UseGuards(ApiAuthGuard, PermissionsGuard)
 @DocsTags("Me")
+@ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
 export class MeController {
   constructor(
     private readonly usersRepository: UsersRepository,
