@@ -31,17 +31,14 @@ async function postHandler(req: NextApiRequest) {
   const selectedCalendar = await SelectedCalendarRepository.findFirstByGoogleChannelId(channelId);
 
   if (!selectedCalendar) {
-    throw new HttpError({
-      statusCode: 200,
-      message: `No selected calendar found for googleChannelId: ${channelId}`,
-    });
+    log.info("postHandler", `No selected calendar found for googleChannelId: ${channelId}`);
+    return { message: "ok" };
   }
   const { credential } = selectedCalendar;
-  if (!credential)
-    throw new HttpError({
-      statusCode: 200,
-      message: `No credential found for selected calendar for googleChannelId: ${channelId}`,
-    });
+  if (!credential) {
+    log.info("postHandler", `No credential found for selected calendar for googleChannelId: ${channelId}`);
+    return { message: "ok" };
+  }
   const { selectedCalendars } = credential;
   const credentialForCalendarCache = await getCredentialForCalendarCache({ credentialId: credential.id });
   const calendarServiceForCalendarCache = await getCalendar(credentialForCalendarCache);
