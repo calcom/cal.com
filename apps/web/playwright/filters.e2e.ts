@@ -26,9 +26,11 @@ test.describe("Insights > Routing Filters", () => {
     });
     await owner.apiLogin();
 
-    await page.goto("/insights/routing");
+    await page.goto("/insights");
 
     await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
+
+    await page.getByRole("link", { name: "Routing" }).click();
 
     const membership = await owner.getOrgMembership();
 
@@ -88,9 +90,11 @@ test.describe("Insights > Routing Filters", () => {
 
     await owner.apiLogin();
 
-    await page.goto("/insights/routing");
+    await page.goto("/insights");
 
     await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
+
+    await page.getByRole("link", { name: "Routing" }).click();
     const membership = await owner.getOrgMembership();
 
     const formName = "Filter User Test Form";
@@ -183,9 +187,11 @@ test.describe("Insights > Routing Filters", () => {
     });
     await owner.apiLogin();
 
-    await page.goto("/insights/routing");
+    await page.goto("/insights");
 
     await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
+
+    await page.getByRole("link", { name: "Routing" }).click();
     const membership = await owner.getOrgMembership();
 
     const formName = "Attendee Filter Test Form";
@@ -307,9 +313,11 @@ test.describe("Insights > Routing Filters", () => {
     });
     await owner.apiLogin();
 
-    await page.goto("/insights/routing");
+    await page.goto("/insights");
 
     await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
+
+    await page.getByRole("link", { name: "Routing" }).click();
     const membership = await owner.getOrgMembership();
 
     const textFieldId = uuidv4();
@@ -434,9 +442,11 @@ test.describe("Insights > Routing Filters", () => {
     });
     await owner.apiLogin();
 
-    await page.goto("/insights/routing");
+    await page.goto("/insights");
 
     await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
+
+    await page.getByRole("link", { name: "Routing" }).click();
     const membership = await owner.getOrgMembership();
 
     const numberFieldId = uuidv4();
@@ -549,9 +559,11 @@ test.describe("Insights > Routing Filters", () => {
     });
     await owner.apiLogin();
 
-    await page.goto("/insights/routing");
+    await page.goto("/insights");
 
     await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
+
+    await page.getByRole("link", { name: "Routing" }).click();
     const membership = await owner.getOrgMembership();
 
     const singleSelectFieldId = uuidv4();
@@ -674,9 +686,11 @@ test.describe("Insights > Routing Filters", () => {
     });
     await owner.apiLogin();
 
-    await page.goto("/insights/routing");
+    await page.goto("/insights");
 
     await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
+
+    await page.getByRole("link", { name: "Routing" }).click();
     const membership = await owner.getOrgMembership();
 
     const formName = "Date Range Filter Test Form";
