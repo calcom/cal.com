@@ -64,6 +64,9 @@ const handleCalendarsToUnwatch = async () => {
   const result = await Promise.allSettled(
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
       async ([externalId, { eventTypeIds, credentialId, id }]) => {
+        const calendar = await SelectedCalendarRepository.findById(id);
+        const isFirstTimeUnwatching = calendar?.googleChannelExpiration && calendar.attempts === 0;
+
         if (!credentialId) {
           // So we don't retry on next cron run
 
@@ -80,6 +83,12 @@ const handleCalendarsToUnwatch = async () => {
         try {
           const cc = await CalendarCache.initFromCredentialId(credentialId);
           await cc.unwatchCalendar({ calendarId: externalId, eventTypeIds });
+
+          if (isFirstTimeUnwatching) {
+            await SelectedCalendarRepository.updateById(id, {
+              attempts: 0,
+            });
+          }
         } catch (error) {
           let errorMessage = "Unknown error";
           if (error instanceof Error) {

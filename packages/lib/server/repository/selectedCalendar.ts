@@ -6,6 +6,8 @@ import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import { buildCredentialPayloadForPrisma } from "../buildCredentialPayloadForCalendar";
 
+const maxAttempts = 3;
+
 export type UpdateArguments = {
   where: FindManyArgs["where"];
   data: Prisma.SelectedCalendarUpdateManyArgs["data"];
@@ -163,17 +165,12 @@ export class SelectedCalendarRepository {
               { error: null },
               {
                 error: { not: null },
-                attempts: { lt: 10 }, // Default max attempts, will be configured in the cron job
+                attempts: { lt: maxAttempts },
               },
             ],
           },
           {
-            OR: [
-              // Either is a calendar pending to be watched
-              { googleChannelExpiration: null },
-              // Or is a calendar that is about to expire
-              { googleChannelExpiration: { lt: tomorrowTimestamp } },
-            ],
+            OR: [{ googleChannelExpiration: null }, { googleChannelExpiration: { lt: tomorrowTimestamp } }],
           },
         ],
       },
