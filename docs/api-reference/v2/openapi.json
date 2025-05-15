@@ -4805,6 +4805,261 @@
         "tags": ["Orgs / Teams / Users / Schedules"]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/workflows": {
+      "get": {
+        "operationId": "OrganizationTeamWorkflowsController_getWorkflows",
+        "summary": "Get organization team workflows",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetWorkflowsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Workflows"]
+      },
+      "post": {
+        "operationId": "OrganizationTeamWorkflowsController_createWorkflow",
+        "summary": "Update workflows",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWorkflowDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetWorkflowOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Workflows"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId}": {
+      "get": {
+        "operationId": "OrganizationTeamWorkflowsController_getWorkflowById",
+        "summary": "Get organization team workflows",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetWorkflowOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Workflows"]
+      },
+      "patch": {
+        "operationId": "OrganizationTeamWorkflowsController_updateWorkflow",
+        "summary": "Update workflows",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetWorkflowOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Workflows"]
+      },
+      "delete": {
+        "operationId": "OrganizationTeamWorkflowsController_deleteWorkflow",
+        "summary": "Update workflows",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Orgs / Teams / Workflows"]
+      }
+    },
     "/v2/organizations/{orgId}/users": {
       "get": {
         "operationId": "OrganizationsUsersController_getOrganizationsUsers",
@@ -14118,6 +14373,7 @@
           },
           "address": {
             "type": "string",
+            "minLength": 1,
             "example": "123 Example St, City, Country"
           },
           "public": {
@@ -19021,6 +19277,446 @@
             "enum": ["unspecified", "vacation", "travel", "sick", "public_holiday"]
           }
         }
+      },
+      "WorkflowActivationOutputDto": {
+        "type": "object",
+        "properties": {
+          "isActiveOnAll": {
+            "type": "boolean",
+            "description": "Whether the workflow is active for all event types associated with the team/user",
+            "example": false
+          },
+          "activeOnEventTypeIds": {
+            "description": "List of Event Type IDs the workflow is specifically active on (if not active on all)",
+            "example": [698191, 698192],
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": ["isActiveOnAll"]
+      },
+      "WorkflowTriggerOffsetOutputDto": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number",
+            "description": "Time value for offset",
+            "example": 24
+          },
+          "unit": {
+            "enum": ["HOUR", "MINUTE", "DAY"],
+            "type": "string",
+            "description": "Unit for the offset time",
+            "example": "HOUR"
+          }
+        },
+        "required": ["value", "unit"]
+      },
+      "WorkflowTriggerOutputDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "BEFORE_EVENT",
+              "EVENT_CANCELLED",
+              "NEW_EVENT",
+              "AFTER_EVENT",
+              "RESCHEDULE_EVENT",
+              "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+              "AFTER_GUESTS_CAL_VIDEO_NO_SHOW"
+            ],
+            "type": "string",
+            "description": "Trigger type for the workflow",
+            "example": "BEFORE_EVENT"
+          },
+          "offset": {
+            "description": "Offset details (present for BEFORE_EVENT/AFTER_EVENT)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowTriggerOffsetOutputDto"
+              }
+            ]
+          }
+        },
+        "required": ["type"]
+      },
+      "WorkflowMessageOutputDto": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string",
+            "description": "Subject of the message",
+            "example": "Reminder: Your Meeting {EVENT_NAME} - {EVENT_DATE_ddd, MMM D, YYYY h:mma} with Cal.com"
+          },
+          "html": {
+            "type": "string",
+            "description": "HTML content of the message",
+            "example": "<p>Reminder for {EVENT_NAME}.</p>"
+          },
+          "text": {
+            "type": "string",
+            "description": "Text content of the message (used for SMS/WhatsApp)",
+            "example": "Reminder for {EVENT_NAME}."
+          }
+        },
+        "required": ["subject"]
+      },
+      "WorkflowStepOutputDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Unique identifier of the step",
+            "example": 67244
+          },
+          "stepNumber": {
+            "type": "number",
+            "description": "Step number in the workflow sequence",
+            "example": 1
+          },
+          "action": {
+            "enum": [
+              "EMAIL_HOST",
+              "EMAIL_ATTENDEE",
+              "EMAIL_ADDRESS",
+              "SMS_ATTENDEE",
+              "SMS_NUMBER",
+              "WHATSAPP_ATTENDEE",
+              "WHATSAPP_NUMBER"
+            ],
+            "type": "string",
+            "description": "Action to perform",
+            "example": "EMAIL_HOST"
+          },
+          "recipient": {
+            "enum": ["HOST", "ATTENDEE", "EMAIL", "PHONE_NUMBER"],
+            "type": "string",
+            "description": "Intended recipient type",
+            "example": "HOST"
+          },
+          "email": {
+            "type": "string",
+            "description": "Verified Email  if action is EMAIL_ADDRESS",
+            "example": 31214
+          },
+          "phone": {
+            "type": "string",
+            "description": "Verified Phone if action is SMS_NUMBER or WHATSAPP_NUMBER"
+          },
+          "template": {
+            "enum": ["REMINDER", "CUSTOM"],
+            "type": "string",
+            "description": "Template type used",
+            "example": "REMINDER"
+          },
+          "includeCalendarEvent": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether a calendar event (.ics) was included (for email actions)",
+            "example": true
+          },
+          "sender": {
+            "type": "string",
+            "description": "Displayed sender name used for this step",
+            "example": "Cal.com Notifications"
+          },
+          "message": {
+            "description": "Message content for this step",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowMessageOutputDto"
+              }
+            ]
+          }
+        },
+        "required": ["id", "stepNumber", "action", "recipient", "template", "sender", "message"]
+      },
+      "WorkflowOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Unique identifier of the workflow",
+            "example": 101
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the workflow",
+            "example": "Platform Test Workflow"
+          },
+          "userId": {
+            "type": "number",
+            "description": "ID of the user who owns the workflow (if not team-owned)",
+            "example": 2313
+          },
+          "teamId": {
+            "type": "number",
+            "description": "ID of the team owning the workflow",
+            "example": 4214321
+          },
+          "activation": {
+            "description": "Activation settings (scope)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowActivationOutputDto"
+              }
+            ]
+          },
+          "trigger": {
+            "description": "Trigger configuration",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowTriggerOutputDto"
+              }
+            ]
+          },
+          "steps": {
+            "description": "Steps comprising the workflow",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowStepOutputDto"
+            }
+          },
+          "createdAt": {
+            "type": "object",
+            "description": "Timestamp of creation",
+            "example": "2024-05-12T10:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "object",
+            "description": "Timestamp of last update",
+            "example": "2024-05-12T11:30:00.000Z"
+          }
+        },
+        "required": ["id", "name", "activation", "trigger", "steps"]
+      },
+      "GetWorkflowsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Indicates the status of the response",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "description": "List of workflows",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowOutput"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetWorkflowOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Indicates the status of the response",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "description": "workflow",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowOutput"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "WorkflowActivationDto": {
+        "type": "object",
+        "properties": {
+          "isActiveOnAll": {
+            "type": "boolean",
+            "description": "Whether the workflow is active for all calendars",
+            "example": false
+          },
+          "activeOnEventTypeIds": {
+            "default": [],
+            "description": "List of active calendar IDs the workflow applies to, required if isActiveOnAll is false",
+            "example": [698191],
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": ["isActiveOnAll"]
+      },
+      "WorkflowTriggerOffsetDto": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number",
+            "description": "Time value for offset before/after event trigger",
+            "example": 24
+          },
+          "unit": {
+            "enum": ["HOUR", "MINUTE", "DAY"],
+            "type": "string",
+            "description": "Unit for the offset time",
+            "example": "HOUR"
+          }
+        },
+        "required": ["value", "unit"]
+      },
+      "WorkflowTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": ["BEFORE_EVENT", "EVENT_CANCELLED", "NEW_EVENT", "AFTER_EVENT", "RESCHEDULE_EVENT"],
+            "type": "string",
+            "description": "Trigger type for the workflow",
+            "example": "BEFORE_EVENT"
+          },
+          "offset": {
+            "description": "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowTriggerOffsetDto"
+              }
+            ]
+          }
+        },
+        "required": ["type"]
+      },
+      "WorkflowMessageDto": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string",
+            "description": "Subject of the message",
+            "example": "Reminder: Your Meeting {EVENT_NAME} - {EVENT_DATE_ddd, MMM D, YYYY h:mma} with Cal.com"
+          },
+          "html": {
+            "type": "string",
+            "description": "HTML content of the message",
+            "example": "<p>This is a reminder from {ORGANIZER} of {EVENT_NAME} to {ATTENDEE} starting here  {LOCATION} {MEETING_URL} at {START_TIME_h:mma} {TIMEZONE}.</p>"
+          },
+          "text": {
+            "type": "string",
+            "description": "Text content of the message (used for SMS)",
+            "example": "This is a reminder message from {ORGANIZER} of {EVENT_NAME} to {ATTENDEE} starting here {LOCATION} {MEETING_URL} at {START_TIME_h:mma} {TIMEZONE}."
+          }
+        },
+        "required": ["subject"]
+      },
+      "WorkflowStepDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Unique identifier of the step",
+            "example": 67244
+          },
+          "stepNumber": {
+            "type": "number",
+            "description": "Step number in the workflow sequence",
+            "example": 1
+          },
+          "action": {
+            "enum": [
+              "EMAIL_HOST",
+              "EMAIL_ATTENDEE",
+              "EMAIL_ADDRESS",
+              "SMS_ATTENDEE",
+              "SMS_NUMBER",
+              "WHATSAPP_ATTENDEE",
+              "WHATSAPP_NUMBER"
+            ],
+            "type": "string",
+            "description": "Action to perform",
+            "example": "EMAIL_HOST"
+          },
+          "recipient": {
+            "enum": ["HOST", "ATTENDEE", "EMAIL", "PHONE_NUMBER"],
+            "type": "string",
+            "description": "Recipient type",
+            "example": "ATTENDEE"
+          },
+          "verifiedEmailId": {
+            "type": "number",
+            "description": "Email address if recipient is EMAIL, required for action EMAIL_ADDRESS",
+            "example": "31214",
+            "externalDocs": {
+              "url": "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-an-email-for-an-org-team"
+            }
+          },
+          "verifiedPhoneId": {
+            "type": "number",
+            "description": "Phone number if recipient is PHONE_NUMBER, required for actions SMS_NUMBER and WHATSAPP_NUMBER",
+            "example": "3243434",
+            "externalDocs": {
+              "url": "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-a-phone-number-for-an-org-team"
+            }
+          },
+          "template": {
+            "enum": ["REMINDER", "CUSTOM"],
+            "type": "string",
+            "description": "Template type for the step",
+            "example": "REMINDER"
+          },
+          "includeCalendarEvent": {
+            "type": "object",
+            "default": false,
+            "description": "Whether to include a calendar event in the notification, can be included with actions EMAIL_HOST, EMAIL_ATTENDEE, EMAIL_ADDRESS ",
+            "example": true
+          },
+          "sender": {
+            "type": "string",
+            "description": "Displayed sender name."
+          },
+          "message": {
+            "description": "Message content for this step",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowMessageDto"
+              }
+            ]
+          }
+        },
+        "required": ["id", "stepNumber", "action", "recipient", "template", "sender", "message"]
+      },
+      "CreateWorkflowDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the workflow",
+            "example": "Platform Test Workflow"
+          },
+          "activation": {
+            "description": "Activation settings for the workflow",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowActivationDto"
+              }
+            ]
+          },
+          "trigger": {
+            "description": "Trigger configuration for the workflow",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowTriggerDto"
+              }
+            ]
+          },
+          "steps": {
+            "description": "Steps to execute as part of the workflow",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowStepDto"
+            }
+          }
+        },
+        "required": ["name", "activation", "trigger", "steps"]
       },
       "StripConnectOutputDto": {
         "type": "object",

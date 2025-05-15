@@ -16,11 +16,11 @@ import {
 } from "@/modules/workflows/inputs/create-workflow.input";
 import { WorkflowOutput } from "@/modules/workflows/outputs/workflow.output";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { TimeUnit, Workflow, WorkflowStep, WorkflowTriggerEvents } from "@prisma/client";
 
 import { TUpdateInputSchema } from "@calcom/platform-libraries/workflows";
 import { updateWorkflow } from "@calcom/platform-libraries/workflows";
 import { PrismaClient } from "@calcom/prisma";
-import { TimeUnit, Workflow, WorkflowStep, WorkflowTriggerEvents } from "@calcom/prisma/client";
 
 export type WorkflowType = Workflow & { activeOn: { eventTypeId: number }[]; steps: WorkflowStep[] };
 

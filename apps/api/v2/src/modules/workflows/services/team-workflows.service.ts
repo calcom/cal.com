@@ -1,4 +1,3 @@
-import { OrganizationsTeamsRoutingFormsResponsesOutputService } from "@/modules/organizations/teams/routing-forms/services/organizations-teams-routing-forms-responses-output.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { CreateWorkflowDto } from "@/modules/workflows/inputs/create-workflow.input";
 import { WorkflowsRepository } from "@/modules/workflows/workflows.repository";
@@ -6,10 +5,7 @@ import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class TeamWorkflowsService {
-  constructor(
-    private readonly workflowsRepository: WorkflowsRepository,
-    private readonly outputService: OrganizationsTeamsRoutingFormsResponsesOutputService
-  ) {}
+  constructor(private readonly workflowsRepository: WorkflowsRepository) {}
 
   async getTeamWorkflows(teamId: number, skip: number, take: number) {
     const workflows = await this.workflowsRepository.getTeamWorkflows(teamId, skip, take);

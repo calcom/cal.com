@@ -8,7 +8,6 @@ import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.g
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { IsRoutingFormInTeam } from "@/modules/auth/guards/routing-forms/is-routing-form-in-team.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { IsWorkflowInTeam } from "@/modules/auth/guards/workflows/is-workflow-in-team";
 import { UserWithProfile } from "@/modules/users/users.repository";
@@ -37,17 +36,9 @@ import { SkipTakePagination } from "@calcom/platform-types";
   version: API_VERSIONS_VALUES,
 })
 @ApiTags("Orgs / Teams / Workflows")
-@UseGuards(
-  ApiAuthGuard,
-  IsOrgGuard,
-  IsTeamInOrg,
-  IsRoutingFormInTeam,
-  PlatformPlanGuard,
-  RolesGuard,
-  IsAdminAPIEnabledGuard
-)
+@UseGuards(ApiAuthGuard, IsOrgGuard, IsTeamInOrg, PlatformPlanGuard, RolesGuard, IsAdminAPIEnabledGuard)
 @ApiHeader(API_KEY_HEADER)
-export class OrganizationsTeamsRoutingFormsResponsesController {
+export class OrganizationTeamWorkflowsController {
   constructor(private readonly workflowsService: TeamWorkflowsService) {}
 
   @Get("/")
