@@ -337,4 +337,57 @@ export class MembershipRepository {
 
     return memberships.map((membership) => membership.teamId);
   }
+
+  static async createBulkMemberships({
+    teamId,
+    invitees,
+    parentId,
+    accepted,
+  }: {
+    teamId: number;
+    invitees: Array<{
+      id: number;
+      newRole: MembershipRole;
+      needToCreateOrgMembership: boolean | null;
+    }>;
+    parentId: number | null;
+    accepted: boolean;
+  }): Promise<void> {
+    try {
+      const membershipsToCreate = invitees.flatMap((invitee) => {
+        const data = [];
+        const createdAt = new Date();
+
+        data.push({
+          createdAt,
+          teamId,
+          userId: invitee.id,
+          accepted,
+          role: invitee.newRole,
+        });
+
+        if (parentId && invitee.needToCreateOrgMembership) {
+          data.push({
+            createdAt,
+            accepted,
+            teamId: parentId,
+            userId: invitee.id,
+            role: MembershipRole.MEMBER,
+          });
+        }
+
+        return data;
+      });
+
+      await prisma.membership.createMany({
+        data: membershipsToCreate,
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        logger.error("Failed to create memberships", { teamId });
+        throw new Error(`Failed to create memberships for team ${teamId}`);
+      }
+      throw e;
+    }
+  }
 }
