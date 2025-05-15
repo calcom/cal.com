@@ -14,7 +14,7 @@ import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import { prisma } from "@calcom/prisma";
+import { VerificationTokenRepository } from "@calcom/lib/server/repository/verificationToken";
 import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
 import { type User as UserType, type UserPassword } from "@calcom/prisma/client";
 import type { Profile as ProfileType } from "@calcom/prisma/client";
@@ -229,20 +229,15 @@ export async function sendSignupToOrganizationEmail({
   isOrg: boolean;
 }) {
   try {
-    const token: string = randomBytes(32).toString("hex");
+    const token = randomBytes(32).toString("hex");
 
-    await prisma.verificationToken.create({
-      data: {
-        identifier: usernameOrEmail,
-        token,
-        expires: new Date(new Date().setHours(168)), // +1 week
-        team: {
-          connect: {
-            id: teamId,
-          },
-        },
-      },
+    await VerificationTokenRepository.create({
+      identifier: usernameOrEmail,
+      token,
+      expires: new Date(new Date().setHours(168)), // +1 week
+      teamId,
     });
+
     await sendTeamInviteEmail({
       language: translation,
       from: inviterName || `${team.name}'s admin`,
@@ -456,17 +451,11 @@ export const sendExistingUserTeamInviteEmails = async ({
        */
       if (!user.completedOnboarding && !user.password?.hash && user.identityProvider === "CAL") {
         const token = randomBytes(32).toString("hex");
-        await prisma.verificationToken.create({
-          data: {
-            identifier: user.email,
-            token,
-            expires: new Date(new Date().setHours(168)), // +1 week
-            team: {
-              connect: {
-                id: teamId,
-              },
-            },
-          },
+        await VerificationTokenRepository.create({
+          identifier: user.email,
+          token,
+          expires: new Date(new Date().setHours(168)), // +1 week
+          teamId,
         });
 
         inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
