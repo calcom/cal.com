@@ -236,35 +236,6 @@ export function getOrgConnectionInfo({
   return { orgId, autoAccept };
 }
 
-export async function createMemberships({
-  teamId,
-  language,
-  invitees,
-  parentId,
-  accepted,
-}: {
-  teamId: number;
-  language: string;
-  invitees: (InvitableExistingUser & {
-    needToCreateOrgMembership: boolean | null;
-  })[];
-  parentId: number | null;
-  accepted: boolean;
-}) {
-  log.debug("Creating memberships for", safeStringify({ teamId, language, invitees, parentId, accepted }));
-  try {
-    await MembershipRepository.createBulkMemberships({
-      teamId,
-      invitees,
-      parentId,
-      accepted,
-    });
-  } catch (e) {
-    log.error("Failed to create memberships", e);
-    throw e;
-  }
-}
-
 export async function sendSignupToOrganizationEmail({
   usernameOrEmail,
   team,
@@ -622,9 +593,8 @@ export async function handleExistingUsersInvites({
 
     // invited users cannot autojoin, create provisional memberships and send email
     if (regularUsers.length) {
-      await createMemberships({
+      await MembershipRepository.createBulkMemberships({
         teamId,
-        language,
         invitees: regularUsers,
         parentId: team.parentId,
         accepted: false,

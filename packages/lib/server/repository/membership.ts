@@ -359,6 +359,8 @@ export class MembershipRepository {
     parentId: number | null;
     accepted: boolean;
   }): Promise<void> {
+    log.debug("Creating memberships for", safeStringify({ teamId, invitees, parentId, accepted }));
+
     try {
       const membershipsToCreate = invitees.flatMap((invitee) => {
         const data = [];
