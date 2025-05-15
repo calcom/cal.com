@@ -4,7 +4,7 @@ import { _generateMetadata } from "app/_utils";
 import { attributesRouter } from "@calcom/trpc/server/routers/viewer/attributes/_router";
 import { viewerOrganizationsRouter } from "@calcom/trpc/server/routers/viewer/organizations/_router";
 
-import MembersPage from "~/members/members-view";
+import { MembersView } from "~/members/members-view";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>
   await _generateMetadata(
@@ -27,7 +27,7 @@ const ServerPageWrapper = async () => {
     attributesCaller.list(),
   ]);
   return (
-    <MembersPage org={org} teams={teams} facetedTeamValues={facetedTeamValues} attributes={attributes} />
+    <MembersView org={org} teams={teams} facetedTeamValues={facetedTeamValues} attributes={attributes} />
   );
 };
 
