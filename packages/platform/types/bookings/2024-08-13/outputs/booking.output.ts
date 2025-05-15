@@ -355,3 +355,13 @@ export class ReassignBookingOutput_2024_08_13 {
   @Expose()
   reassignedTo!: ReassignedToDto;
 }
+
+export class UpdateBookingLocationOutputData_2024_08_13 {
+  @ApiProperty({ type: String, example: "booking_uid_123" })
+  @IsString()
+  @Expose()
+  bookingUid!: string;
+  @ApiProperty({ type: String, example: "https://example.com/meeting" })
+  @Expose()
+  location!: string;
+}

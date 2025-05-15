@@ -31,6 +31,7 @@ import {
   CreateInstantBookingInput_2024_08_13,
   MarkAbsentBookingInput_2024_08_13,
   ReassignToUserBookingInput_2024_08_13,
+  BookingInputLocation_2024_08_13,
   BookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
@@ -546,5 +547,14 @@ export class BookingsService_2024_08_13 {
     });
 
     return this.getBooking(bookingUid);
+  }
+  async updateBookingLocation(bookingUid: string, body: BookingInputLocation_2024_08_13) {
+    const booking = await this.bookingsRepository.getByUid(bookingUid);
+
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    return await this.bookingsRepository.updateLocationByUid(bookingUid, body.location);
   }
 }

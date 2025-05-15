@@ -10,8 +10,8 @@ import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/
 import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
 import { SlotsModule } from "@/modules/slots/slots.module";
 import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";
-import { TeamsModule } from "@/modules/teams/teams/teams.module";
 import { TeamsMembershipsModule } from "@/modules/teams/memberships/teams-memberships.module";
+import { TeamsModule } from "@/modules/teams/teams/teams.module";
 import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { Module } from "@nestjs/common";
 

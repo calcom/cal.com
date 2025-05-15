@@ -19,7 +19,6 @@ import type { nameObjectSchema } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import {
   useEmbedNonStylesConfig,
   useIsBackgroundTransparent,

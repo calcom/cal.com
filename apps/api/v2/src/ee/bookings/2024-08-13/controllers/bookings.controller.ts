@@ -4,6 +4,7 @@ import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
+import { UpdateBookingLocationOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/update-booking-location.output";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { VERSION_2024_08_13_VALUE } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -23,6 +24,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  Patch,
 } from "@nestjs/common";
 import {
   ApiOperation,
@@ -54,6 +56,7 @@ import {
   CreateInstantBookingInput_2024_08_13,
   CreateRecurringBookingInput_2024_08_13,
   DeclineBookingInput_2024_08_13,
+  BookingInputLocation_2024_08_13,
 } from "@calcom/platform-types";
 
 @Controller({
@@ -332,6 +335,36 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: booking,
+    };
+  }
+
+  @Patch("/:bookingUid")
+  @HttpCode(HttpStatus.OK)
+  @Permissions([BOOKING_WRITE])
+  @UseGuards(ApiAuthGuard, BookingUidGuard)
+  @ApiHeader({
+    name: "Authorization",
+    description:
+      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+    required: true,
+  })
+  @ApiOperation({
+    summary: "Update booking location",
+    description:
+      "Update the location of a booking by passing `:bookingUid` of the booking that should be updated and pass request body with a new location to update.",
+  })
+  async updateBookingLocation(
+    @Param("bookingUid") bookingUid: string,
+    @Body() body: BookingInputLocation_2024_08_13
+  ): Promise<UpdateBookingLocationOutput_2024_08_13> {
+    const booking = await this.bookingsService.updateBookingLocation(bookingUid, body);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: {
+        bookingUid: booking.uid,
+        location: booking.location!,
+      },
     };
   }
 }

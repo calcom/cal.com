@@ -8,3 +8,4 @@ export * from "./reassign-to-user.input";
 export * from "./reschedule-booking-input.pipe";
 export * from "./cancel-booking-input.pipe";
 export * from "./decline-booking.input";
+export * from "./update-booking-location.input";

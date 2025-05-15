@@ -1,6 +1,10 @@
 "use client";
 
-import { FailedBookingsByField, RoutingFormResponsesTable, RoutedToPerPeriod } from "@calcom/features/insights/components";
+import {
+  FailedBookingsByField,
+  RoutingFormResponsesTable,
+  RoutedToPerPeriod,
+} from "@calcom/features/insights/components";
 import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
