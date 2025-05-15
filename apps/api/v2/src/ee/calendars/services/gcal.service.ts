@@ -205,7 +205,7 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     return { url: redir || origin };
   }
 
-  async getEventDetails(userId: number, eventUid: string) {
+  async getEventDetails(eventUid: string) {
     const bookingReference =
       await this.bookingReferencesRepository.getBookingReferencesIncludeSensitiveCredentials(eventUid);
 
@@ -226,6 +226,7 @@ export class GoogleCalendarService implements OAuthCalendarApp {
       const event = await calendar.events.get({
         calendarId: bookingReference?.externalCalendarId ?? "primary",
         eventId: bookingReference?.uid,
+        // fields: "id,status,created,updated,summary,description,location,creator,organizer,start,end,attendees,conferenceData"
       });
 
       if (!event.data) {

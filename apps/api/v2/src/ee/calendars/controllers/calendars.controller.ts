@@ -321,7 +321,6 @@ export class CalendarsController {
       "Returns detailed information about a meeting including attendance metrics and reschedule history",
   })
   async getCalendarEventDetails(
-    @GetUser("id") userId: number,
     @Param("calendar") calendar: string,
     @Param("eventUid") eventUid: string
   ): Promise<any> {
@@ -329,6 +328,11 @@ export class CalendarsController {
       throw new BadRequestException("Meeting details are currently only available for Google Calendar");
     }
 
-    return await this.googleCalendarService.getEventDetails(userId, eventUid);
+    const eventDetails = await this.googleCalendarService.getEventDetails(eventUid);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: eventDetails,
+    };
   }
 }
