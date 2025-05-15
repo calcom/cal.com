@@ -86,9 +86,24 @@ export class PermissionCheckService {
         "eventType.*",
         "team.invite",
         "team.remove",
-        "organization.manage",
+        "team.changeMemberRole",
+        "organization.listMembers",
+        "organization.read",
+        "organization.update",
+        "booking.readTeamBookings",
+        "booking.readOrgBookings",
+        "apiKey.*",
+        "routingForm.*",
+        "workflow.*",
+        "insights.read",
       ],
-      [MembershipRole.MEMBER]: ["booking.read", "eventType.read", "team.read"],
+      [MembershipRole.MEMBER]: [
+        "booking.read",
+        "eventType.read",
+        "team.read",
+        "organization.read",
+        "routingForm.read",
+      ],
     };
 
     const rolePermissions = defaultPermissions[role] || [];

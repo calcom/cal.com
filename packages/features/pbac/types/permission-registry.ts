@@ -15,6 +15,7 @@ export enum Resource {
   Availability = "availability",
   Workflow = "workflow",
   RoutingForm = "routingForm",
+  ApiKey = "apiKey",
   All = "*", // Wildcard for all resources
 }
 
@@ -25,6 +26,11 @@ export enum CustomAction {
   Override = "override", // Override availability
   ReadRecordings = "readRecordings", // Access booking recordings
   ManageBilling = "manageBilling", // Manage org billing
+  ChangeMemberRole = "changeMemberRole", // Change role of team members
+  ListMembers = "listMembers", // List organization members
+  ReadTeamBookings = "readTeamBookings", // Read team bookings
+  ReadOrgBookings = "readOrgBookings", // Read organization bookings
+  FindKeyOfType = "findKeyOfType", // Find API keys by type
   All = "*", // Wildcard for all custom actions
 }
 
@@ -60,12 +66,18 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
   },
   [Resource.Team]: {
     [CrudAction.Create]: { description: "Create teams", category: "team" },
+    [CrudAction.Read]: { description: "View team details", category: "team" },
     [CrudAction.Update]: { description: "Update settings", category: "team" },
+    [CrudAction.Delete]: { description: "Delete team", category: "team" },
     [CustomAction.Invite]: { description: "Invite team members", category: "team" },
     [CustomAction.Remove]: { description: "Remove team members", category: "team" },
+    [CustomAction.ChangeMemberRole]: { description: "Change role of team members", category: "team" },
     [CustomAction.Manage]: { description: "All actions on teams", category: "team" },
   },
   [Resource.Organization]: {
+    [CrudAction.Create]: { description: "Create organization", category: "org" },
+    [CrudAction.Read]: { description: "View organization details", category: "org" },
+    [CustomAction.ListMembers]: { description: "List organization members", category: "org" },
     [CustomAction.Invite]: { description: "Invite organization members", category: "org" },
     [CustomAction.Remove]: { description: "Remove organization members", category: "org" },
     [CustomAction.ManageBilling]: { description: "Manage organization billing", category: "org" },
@@ -74,6 +86,8 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
   },
   [Resource.Booking]: {
     [CrudAction.Read]: { description: "View bookings", category: "booking" },
+    [CustomAction.ReadTeamBookings]: { description: "View team bookings", category: "booking" },
+    [CustomAction.ReadOrgBookings]: { description: "View organization bookings", category: "booking" },
     [CustomAction.ReadRecordings]: { description: "View booking recordings", category: "booking" },
     [CrudAction.Update]: { description: "Update bookings", category: "booking" },
     [CustomAction.Manage]: { description: "All actions on bookings", category: "booking" },
@@ -101,6 +115,13 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
     [CrudAction.Update]: { description: "Update routing forms", category: "routing" },
     [CrudAction.Delete]: { description: "Delete routing forms", category: "routing" },
     [CustomAction.Manage]: { description: "All actions on routing forms", category: "routing" },
+  },
+  [Resource.ApiKey]: {
+    [CrudAction.Create]: { description: "Create API keys", category: "apiKey" },
+    [CrudAction.Read]: { description: "View API keys", category: "apiKey" },
+    [CustomAction.FindKeyOfType]: { description: "Find API keys by type", category: "apiKey" },
+    [CrudAction.Delete]: { description: "Delete API keys", category: "apiKey" },
+    [CustomAction.Manage]: { description: "All actions on API keys", category: "apiKey" },
   },
 };
 
