@@ -1,8 +1,8 @@
 {
   "/*": "Don't modify slug - If required, do it using cli edit command",
-  "name": "Dub.co",
-  "slug": "dubco",
-  "type": "dubco_analytics",
+  "name": "Dub",
+  "slug": "dub",
+  "type": "dub_analytics",
   "logo": "icon.svg",
   "url": "http://dub.co",
   "variant": "analytics",

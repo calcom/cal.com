@@ -20,7 +20,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     throw new HttpError({ statusCode: 400, message: "Session user must have an email" });
   }
 
-  const { client_id, redirect_uris } = await getParsedAppKeysFromSlug("dubco", dubAppKeysSchema);
+  const { client_id, redirect_uris } = await getParsedAppKeysFromSlug("dub", dubAppKeysSchema);
 
   const oauthUrl = `https://app.dub.co/oauth/authorize?client_id=${client_id}&redirect_uri=${redirect_uris}&response_type=code&scope=${scopeString}`;
 

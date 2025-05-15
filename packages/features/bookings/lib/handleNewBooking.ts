@@ -44,13 +44,13 @@ import {
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import EventManager from "@calcom/lib/EventManager";
+import AnalyticsManager from "@calcom/lib/analyticsManager/analyticsManager";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import {
   enrichHostsWithDelegationCredentials,
   getFirstDelegationConferencingCredentialAppLocation,
 } from "@calcom/lib/delegationCredential/server";
-import DubManager from "@calcom/lib/dubManager/dubManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getEventName, updateHostInEventName } from "@calcom/lib/event";
@@ -2103,13 +2103,19 @@ async function handler(
 
   const { dub_id } = rawBookingData;
 
-  debugger;
   if (dub_id && !isDryRun) {
-    const dubCredential = allCredentials.find((cred) => cred.appId === "dubco");
+    const dubCredential = allCredentials.find((cred) => cred.appId === "dub");
     if (dubCredential) {
       try {
-        const dubManager = new DubManager(dubCredential);
-        await dubManager.trackLead({ clickId: dub_id, email: bookerEmail, name: fullName });
+        const dubManager = new AnalyticsManager(dubCredential);
+        if (dubManager) {
+          await dubManager.sendEvent({
+            id: dub_id,
+            email: bookerEmail,
+            name: fullName,
+            eventName: "Cal.com lead",
+          });
+        }
       } catch (err) {
         console.error("Error sending dub lead: ", err);
       }

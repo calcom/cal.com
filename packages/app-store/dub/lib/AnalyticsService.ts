@@ -1,19 +1,19 @@
-import { Dub } from "dub";
+import { Dub } from "dub-package";
 
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import type { AnalyticsService, SendEventProps } from "@calcom/types/AnalyticsService";
 import type { CredentialPayload } from "@calcom/types/Credential";
-import type { DUB, TrackLead } from "@calcom/types/DubService";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import type { DubOAuthToken } from "./type";
 
-export default class DubService implements DUB {
+export default class DubService implements AnalyticsService {
   private dubClient?: Dub;
   private client_id = "";
   private client_secret = "";
-  private log = logger.getSubLogger({ prefix: ["[[lib]] dubco"] });
+  private log = logger.getSubLogger({ prefix: ["[[lib]] dub"] });
   private credential: CredentialPayload;
 
   constructor(credential: CredentialPayload) {
@@ -23,7 +23,7 @@ export default class DubService implements DUB {
   }
 
   private async initClient() {
-    const appKeys = await getAppKeysFromSlug("dubco");
+    const appKeys = await getAppKeysFromSlug("dub");
 
     const { client_id, client_secret } = appKeys;
 
@@ -61,7 +61,7 @@ export default class DubService implements DUB {
         });
         return await response.json();
       },
-      "dubco",
+      "dub",
       this.credential.userId
     );
 
@@ -75,19 +75,22 @@ export default class DubService implements DUB {
     return newToken;
   }
 
-  async trackLead({ clickId, email, name, eventName, externalId }: TrackLead): Promise<void> {
+  async sendEvent({ name, email, eventName, id, externalId }: SendEventProps): Promise<void> {
     if (!this.dubClient) {
       await this.initClient();
     }
 
     if (!this.dubClient) return;
 
-    await this.dubClient.track.lead({
-      clickId,
+    const res = await this.dubClient.track.lead({
+      clickId: id,
       customerName: name,
       customerEmail: email,
       externalId: externalId ?? email,
       eventName: eventName ?? "Cal.com lead",
     });
+
+    console.log(res);
+    return res;
   }
 }
