@@ -52,7 +52,6 @@ interface FieldEditDialogProps {
     isOpen: boolean;
     fieldIndex: number;
     data: RhfFormField | null;
-    allFields: AnyField[];
   };
   onOpenChange: (open: boolean) => void;
   handleSubmit: SubmitHandler<RhfFormField>;
@@ -110,17 +109,10 @@ export const FormBuilder = function FormBuilder({
     name: formProp as unknown as "fields",
   });
 
-  // const [fieldDialog, setFieldDialog] = useState({
-  //   isOpen: false,
-  //   fieldIndex: -1,
-  //   data: {} as RhfFormField | null,
-  // });
-
   const [fieldDialog, setFieldDialog] = useState<FieldEditDialogProps["dialog"]>({
     isOpen: false,
     fieldIndex: -1,
     data: null,
-    allFields: [],
   });
 
   const addField = () => {
@@ -128,7 +120,6 @@ export const FormBuilder = function FormBuilder({
       isOpen: true,
       fieldIndex: -1,
       data: null,
-      allFields: fields,
     });
   };
 
@@ -137,7 +128,6 @@ export const FormBuilder = function FormBuilder({
       isOpen: true,
       fieldIndex: index,
       data,
-      allFields: fields.filter((_, i) => i !== index),
     });
   };
 
@@ -317,7 +307,6 @@ export const FormBuilder = function FormBuilder({
               isOpen,
               fieldIndex: -1,
               data: null,
-              allFields: [],
             })
           }
           handleSubmit={(data: Parameters<SubmitHandler<RhfFormField>>[0]) => {
@@ -349,11 +338,10 @@ export const FormBuilder = function FormBuilder({
               isOpen: false,
               fieldIndex: -1,
               data: null,
-              allFields: [],
             });
           }}
           shouldConsiderRequired={shouldConsiderRequired}
-          allFields={fieldDialog.allFields}
+          allFields={fields}
         />
       )}
     </div>
@@ -468,19 +456,6 @@ const CheckboxFieldLabel = ({ fieldForm }: { fieldForm: UseFormReturn<RhfFormFie
   );
 };
 
-// function FieldEditDialog({
-//   dialog,
-//   onOpenChange,
-//   handleSubmit,
-//   shouldConsiderRequired,
-//   allFields,
-// }: {
-//   dialog: { isOpen: boolean; fieldIndex: number; data: RhfFormField | null };
-//   onOpenChange: (isOpen: boolean) => void;
-//   handleSubmit: SubmitHandler<RhfFormField>;
-//   shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
-// }) {
-
 function FieldEditDialog({
   dialog,
   onOpenChange,
@@ -493,7 +468,7 @@ function FieldEditDialog({
     defaultValues: dialog.data || {},
     //resolver: zodResolver(fieldSchema),
   });
-  const formFieldType = fieldForm.getValues("type");
+  const formFieldType = fieldForm.watch("type");
 
   useEffect(() => {
     if (!formFieldType) {
@@ -507,7 +482,7 @@ function FieldEditDialog({
 
     // We need to set the variantsConfig in the RHF instead of using a derived value because RHF won't have the variantConfig for the variant that's not rendered yet.
     fieldForm.setValue("variantsConfig", variantsConfig);
-  }, [fieldForm]);
+  }, [formFieldType, fieldForm]);
 
   const isFieldEditMode = !!dialog.data;
   const fieldType = getCurrentFieldType(fieldForm);
@@ -823,9 +798,9 @@ function VisibleIfField({
           if (opt?.value) {
             fieldForm.setValue("visibleIf.parent", opt.value, { shouldDirty: true });
             // reset values list when parent changes
-            fieldForm.setValue("visibleIf.values", []);
+            fieldForm.setValue("visibleIf.values", [], { shouldDirty: true });
           } else {
-            fieldForm.resetField("visibleIf");
+            fieldForm.resetField("visibleIf", { defaultValue: undefined });
           }
         }}
         placeholder={t("form_builder.select_parent_field")}
