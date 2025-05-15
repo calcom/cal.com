@@ -6,15 +6,15 @@ import { useRef, useEffect } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TextField } from "@calcom/ui/components/form";
 import { Button } from "@calcom/ui/components/button";
+import { TextField } from "@calcom/ui/components/form";
 
 const ImpersonationView = () => {
   const { t } = useLocale();
   const usernameRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
 
-  const username = searchParams?.get("username")?.toLowerCase();
+  const username = (searchParams?.get("username") || "").toLowerCase();
 
   useEffect(() => {
     if (username) {
