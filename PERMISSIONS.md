@@ -143,4 +143,47 @@ if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code
 if (!permissionMatches("team.update", userPermissions)) throw new TRPCError({ code: "UNAUTHORIZED" });
 ```
 
+## Permission String Alternatives for Helper Functions
+
+The following table provides permission string alternatives for common helper functions:
+
+| Helper Function | Permission String Alternative | Description |
+|-----------------|-------------------------------|-------------|
+| isTeamAdmin | `team.*` | Grants all team permissions |
+| isTeamAdmin | `team.update` | Update team settings |
+| isTeamAdmin | `team.invite` | Invite team members |
+| isTeamAdmin | `team.remove` | Remove team members |
+| isTeamOwner | `team.changeMemberRole` | Change role of team members |
+| isTeamOwner | `team.delete` | Delete team |
+| isTeamMember | `team.read` | Read-only access to team |
+
+## Entity Permission Functions and Resources
+
+The following functions are used to check permissions for entities with userId and teamId properties:
+
+| Function | Description | Permission String Alternative |
+|----------|-------------|-------------------------------|
+| canEditEntity | Checks if user can edit an entity | `{resource}.update` |
+| canAccessEntity | Checks if user can access an entity | `{resource}.read` |
+| getEntityPermissionLevel | Gets permission level for an entity | N/A - Implementation detail |
+| canCreateEntity | Checks if user can create an entity | `{resource}.create` |
+
+### Resources Used with Entity Permission Functions
+
+| Resource | canEditEntity Usage | canAccessEntity Usage | Permission String |
+|----------|-------------------|---------------------|------------------|
+| routingForm | [packages/app-store/routing-forms/trpc/forms.handler.ts](packages/app-store/routing-forms/trpc/forms.handler.ts#L72) | [packages/app-store/routing-forms/trpc/getResponseWithFormFields.handler.ts](packages/app-store/routing-forms/trpc/getResponseWithFormFields.handler.ts#L78) | `routingForm.update`, `routingForm.read` |
+| routingForm | [packages/app-store/routing-forms/trpc/formMutation.handler.ts](packages/app-store/routing-forms/trpc/formMutation.handler.ts#L315) | | `routingForm.update` |
+| routingForm | [packages/app-store/routing-forms/api/responses/[formId].ts](packages/app-store/routing-forms/api/responses/[formId].ts#L96) | | `routingForm.update` |
+
+These functions can be used with any entity that has userId and teamId properties. When migrating to PBAC, replace these checks with appropriate permission string checks:
+
+```typescript
+// Instead of:
+if (!(await canEditEntity(form, user.id))) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+// Use:
+if (!permissionMatches("routingForm.update", userPermissions)) throw new TRPCError({ code: "UNAUTHORIZED" });
+```
+
 This allows for more granular permission control and the creation of custom roles with specific permissions.
