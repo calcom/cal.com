@@ -1,9 +1,11 @@
 "use client";
 
 import { ProgressBar } from "@tremor/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
@@ -61,7 +63,19 @@ export default function BillingCredits() {
     <div className="border-subtle mt-8 space-y-6 rounded-lg border px-6 py-6 pb-6 text-sm sm:space-y-8">
       <div>
         <h2 className="text-base font-semibold">{t("credits")}</h2>
-        <p>{t("view_and_manage_credits_description")}</p>
+        <ServerTrans
+          t={t}
+          i18nKey="view_and_manage_credits_description"
+          components={[
+            <Link
+              key="Credit System"
+              className="underline underline-offset-2"
+              target="_blank"
+              href="https://cal.com/help/billing-and-usage/messaging-credits">
+              Learn more
+            </Link>,
+          ]}
+        />
         <div className="-mx-6 mt-6">
           <hr className="border-subtle" />
         </div>
@@ -90,7 +104,6 @@ export default function BillingCredits() {
           ) : (
             <></>
           )}
-
           <Label>
             {creditsData.credits.totalMonthlyCredits ? t("additional_credits") : t("available_credits")}
           </Label>
