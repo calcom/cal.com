@@ -11,10 +11,10 @@ import BaseEmail from "./_base-email";
 export default class OrganizerDailyVideoDownloadTranscriptEmail extends BaseEmail {
   calEvent: CalendarEvent;
   transcriptDownloadLinks: Array<string>;
-  summaries: Array<string>;
+  summaries?: Array<string>;
   t: TFunction;
 
-  constructor(calEvent: CalendarEvent, transcriptDownloadLinks: string[], summaries: string[]) {
+  constructor(calEvent: CalendarEvent, transcriptDownloadLinks: string[], summaries?: string[]) {
     super();
     this.name = "SEND_TRANSCRIPT_DOWNLOAD_LINK";
     this.calEvent = calEvent;
@@ -49,7 +49,7 @@ export default class OrganizerDailyVideoDownloadTranscriptEmail extends BaseEmai
       html: await renderEmail("DailyVideoDownloadTranscriptEmail", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
-        downloadLinks: this.transcriptDownloadLinks,
+        transcriptDownloadLinks: this.transcriptDownloadLinks,
         summaries: this.summaries,
         language: this.t,
         name: this.calEvent.organizer.name,

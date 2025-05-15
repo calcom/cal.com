@@ -55,7 +55,7 @@ export default class AttendeeDailyVideoDownloadTranscriptEmail extends BaseEmail
       html: await renderEmail("DailyVideoDownloadTranscriptEmail", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
-        downloadLinks: this.transcriptDownloadLinks,
+        transcriptDownloadLinks: this.transcriptDownloadLinks,
         language: this.t,
         name: this.attendee.name,
         summaries: this.summaries,

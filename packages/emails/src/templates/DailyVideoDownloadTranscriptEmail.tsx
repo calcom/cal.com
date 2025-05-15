@@ -7,8 +7,8 @@ import { V2BaseEmailHtml } from "../components";
 
 interface DailyVideoTranscriptEmailProps {
   language: TFunction;
-  downloadLinks: string[];
-  summaries: string[];
+  transcriptDownloadLinks: string[];
+  summaries?: string[];
   title: string;
   date: string;
   name: string;
@@ -16,7 +16,6 @@ interface DailyVideoTranscriptEmailProps {
 
 export const DailyVideoDownloadTranscriptEmail = ({
   language,
-  downloadLinks,
   summaries = [],
   title,
   date,
@@ -93,7 +92,7 @@ export const DailyVideoDownloadTranscriptEmail = ({
         </p>
 
         {Array.isArray(summaries) &&
-          summaries.map((summary, index) => (
+          summaries.filter(Boolean).map((summary, index) => (
             <div
               key={index}
               style={{
