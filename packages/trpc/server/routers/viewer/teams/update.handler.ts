@@ -67,6 +67,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     bookingLimits: input.bookingLimits ?? undefined,
     includeManagedEventsInLimits: input.includeManagedEventsInLimits ?? undefined,
     rrResetInterval: input.rrResetInterval,
+    rrTimestampBasis: input.rrTimestampBasis,
   };
 
   if (input.logo && input.logo.startsWith("data:image/png;base64,")) {
@@ -148,6 +149,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     bookingLimits: updatedTeam.bookingLimits as IntervalLimit,
     includeManagedEventsInLimits: updatedTeam.includeManagedEventsInLimits,
     rrResetInterval: updatedTeam.rrResetInterval,
+    rrTimestampBasis: updatedTeam.rrTimestampBasis,
   };
 };
 

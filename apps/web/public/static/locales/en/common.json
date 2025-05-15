@@ -3211,5 +3211,8 @@
   "matching": "Matching",
   "event_redirect": "Event Redirect",
   "reset_form": "Reset Form",
+  "rr_settings_successfully_updated": "Round Robin settings successfully updated",
+  "timestamp_basis": "Timestamp Basis",
+  "timestamp_basis_description": "Determines the basis of the timestamp for the round robin booking count",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

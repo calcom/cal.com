@@ -1443,7 +1443,7 @@ enum RRResetInterval {
 
 enum RRTimestampBasis {
   CREATED_AT
-  MEETING_START_TIME
+  START_TIME
 }
 
 model SelectedSlots {

@@ -746,6 +746,7 @@ export class EventTypeRepository {
           select: {
             parentId: true,
             rrResetInterval: true,
+            rrTimestampBasis: true,
           },
         },
       },
@@ -821,6 +822,7 @@ export class EventTypeRepository {
             includeManagedEventsInLimits: true,
             parentId: true,
             rrResetInterval: true,
+            rrTimestampBasis: true,
           },
         },
         parent: {
