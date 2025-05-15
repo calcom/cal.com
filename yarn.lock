@@ -39464,7 +39464,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prismock@npm:^1.35.3":
+"prismock@npm:1.35.3":
   version: 1.35.3
   resolution: "prismock@npm:1.35.3"
   dependencies:
@@ -39476,6 +39476,21 @@ __metadata:
     "@prisma/client": "*"
     prisma: "*"
   checksum: 48de90a5b52c2632db4ce6ff5f77fd9c6d8f53a9cf5cf054eecacd2edbb0e9a64f6f97357726a1f035129cd1f6620f5810df60e46f8146a3c58ac1f3ba7da948
+  languageName: node
+  linkType: hard
+
+"prismock@patch:prismock@npm%3A1.35.3#./.yarn/patches/prismock-npm-1.35.3-d859268b55.patch::locator=calcom-monorepo%40workspace%3A.":
+  version: 1.35.3
+  resolution: "prismock@patch:prismock@npm%3A1.35.3#./.yarn/patches/prismock-npm-1.35.3-d859268b55.patch::version=1.35.3&hash=1adf84&locator=calcom-monorepo%40workspace%3A."
+  dependencies:
+    "@paralleldrive/cuid2": 2.2.2
+    "@prisma/generator-helper": 5.22.0
+    "@prisma/internals": 5.22.0
+    bson: 6.10.3
+  peerDependencies:
+    "@prisma/client": "*"
+    prisma: "*"
+  checksum: ef04e6f1f21fee7711befadfa1effb8cd5de59f08140dad1b92298c8754330676f5a30dc0c74d7cd8bf9de9f674576a49188512cba444fe591862a9ed0e6f6f8
   languageName: node
   linkType: hard
 
