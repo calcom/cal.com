@@ -1,5 +1,5 @@
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { CreateWorkflowDto } from "@/modules/workflows/inputs/create-workflow.input";
+import { CreateWorkflowDto, UpdateWorkflowDto } from "@/modules/workflows/inputs/create-workflow.input";
 import { WorkflowsRepository } from "@/modules/workflows/workflows.repository";
 import { Injectable } from "@nestjs/common";
 
@@ -29,7 +29,7 @@ export class TeamWorkflowsService {
     user: UserWithProfile,
     teamId: number,
     workflowId: number,
-    data: Partial<CreateWorkflowDto>
+    data: UpdateWorkflowDto
   ) {
     return this.workflowsRepository.toDto(
       await this.workflowsRepository.updateTeamWorkflow(user, teamId, workflowId, data)

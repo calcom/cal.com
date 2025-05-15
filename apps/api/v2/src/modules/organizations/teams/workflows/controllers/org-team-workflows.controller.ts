@@ -11,7 +11,7 @@ import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { IsWorkflowInTeam } from "@/modules/auth/guards/workflows/is-workflow-in-team";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { CreateWorkflowDto } from "@/modules/workflows/inputs/create-workflow.input";
+import { CreateWorkflowDto, UpdateWorkflowDto } from "@/modules/workflows/inputs/create-workflow.input";
 import { GetWorkflowOutput, GetWorkflowsOutput } from "@/modules/workflows/outputs/workflow.output";
 import { TeamWorkflowsService } from "@/modules/workflows/services/team-workflows.service";
 import {
@@ -63,7 +63,6 @@ export class OrganizationTeamWorkflowsController {
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   async getWorkflowById(
-    @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("workflowId", ParseIntPipe) workflowId: number
   ): Promise<GetWorkflowOutput> {
@@ -95,7 +94,7 @@ export class OrganizationTeamWorkflowsController {
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("workflowId") workflowId: number,
     @GetUser() user: UserWithProfile,
-    @Body() data: Partial<CreateWorkflowDto>
+    @Body() data: UpdateWorkflowDto
   ): Promise<Promise<GetWorkflowOutput>> {
     const workflow = await this.workflowsService.updateTeamWorkflow(user, teamId, workflowId, data);
     return { data: workflow, status: SUCCESS_STATUS };
@@ -103,7 +102,7 @@ export class OrganizationTeamWorkflowsController {
 
   @Delete("/:workflowId")
   @UseGuards(IsWorkflowInTeam)
-  @ApiOperation({ summary: "Update workflows" })
+  @ApiOperation({ summary: "Delete workflows" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   async deleteWorkflow(

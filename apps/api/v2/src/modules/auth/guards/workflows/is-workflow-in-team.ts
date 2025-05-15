@@ -38,8 +38,8 @@ export class IsWorkflowInTeam implements CanActivate {
   }
 
   async checkIfWorkflowIsInTeam(
-    workflowId: string,
-    teamId: string
+    teamId: string,
+    workflowId: string
   ): Promise<{ canAccess: boolean; workflow?: WorkflowType }> {
     const workflow = await this.workflowsRepository.getTeamWorkflowById(Number(teamId), Number(workflowId));
 

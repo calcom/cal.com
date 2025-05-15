@@ -133,10 +133,6 @@ export class WorkflowMessageDto {
 }
 
 export class WorkflowStepDto {
-  @ApiProperty({ description: "Unique identifier of the step", example: 67244 })
-  @IsNumber()
-  id!: number;
-
   @ApiProperty({ description: "Step number in the workflow sequence", example: 1 })
   @IsNumber()
   stepNumber!: number;
@@ -206,6 +202,16 @@ export class WorkflowStepDto {
   message!: WorkflowMessageDto;
 }
 
+export class UpdateWorkflowStepDto extends WorkflowStepDto {
+  @ApiProperty({
+    description:
+      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
+    example: 67244,
+  })
+  @IsNumber()
+  id?: number;
+}
+
 export class CreateWorkflowDto {
   @ApiProperty({ description: "Name of the workflow", example: "Platform Test Workflow" })
   @IsString()
@@ -226,4 +232,30 @@ export class CreateWorkflowDto {
   @ArrayMinSize(1, { message: "Your workflow must contain at least one step." })
   @Type(() => WorkflowStepDto)
   steps!: WorkflowStepDto[];
+}
+
+export class UpdateWorkflowDto {
+  @ApiProperty({ description: "Name of the workflow", example: "Platform Test Workflow" })
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @ApiProperty({ description: "Activation settings for the workflow", type: WorkflowActivationDto })
+  @ValidateNested()
+  @Type(() => WorkflowActivationDto)
+  @IsOptional()
+  activation?: WorkflowActivationDto;
+
+  @ApiProperty({ description: "Trigger configuration for the workflow", type: WorkflowTriggerDto })
+  @ValidateNested()
+  @IsOptional()
+  @Type(() => WorkflowTriggerDto)
+  trigger?: WorkflowTriggerDto;
+
+  @ApiProperty({ description: "Steps to execute as part of the workflow", type: [WorkflowStepDto] })
+  @ValidateNested({ each: true })
+  @ArrayMinSize(1, { message: "Your workflow must contain at least one step." })
+  @IsOptional()
+  @Type(() => UpdateWorkflowStepDto)
+  steps?: UpdateWorkflowStepDto[];
 }

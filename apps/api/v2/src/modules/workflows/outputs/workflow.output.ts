@@ -113,7 +113,7 @@ export class WorkflowStepOutputDto {
     example: true,
   })
   @Expose()
-  includeCalendarEvent?: boolean = false; // Default exposed if not present
+  includeCalendarEvent = false;
 
   @ApiProperty({ description: "Displayed sender name used for this step", example: "Cal.com Notifications" })
   @Expose()

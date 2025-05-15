@@ -7,14 +7,15 @@ import {
   WorkflowTriggerDto,
   WorkflowTriggerType,
   WorkflowTimeUnit,
-  WorkflowStepDto,
   WorkflowMessageDto,
   RecipientType,
   StepAction,
   TemplateType,
   CreateWorkflowDto,
+  UpdateWorkflowDto,
+  UpdateWorkflowStepDto,
 } from "@/modules/workflows/inputs/create-workflow.input";
-import { WorkflowOutput } from "@/modules/workflows/outputs/workflow.output";
+import { WorkflowOutput, WorkflowStepOutputDto } from "@/modules/workflows/outputs/workflow.output";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { TimeUnit, Workflow, WorkflowStep, WorkflowTriggerEvents } from "@prisma/client";
 
@@ -90,7 +91,6 @@ export class WorkflowsRepository {
 
   async createTeamWorkflow(user: UserWithProfile, teamId: number, data: Partial<CreateWorkflowDto>) {
     const workflowHusk = await this.createTeamWorkflowHusk(teamId);
-
     await updateWorkflow({
       ctx: {
         user: { ...user, locale: user?.locale ?? "en" },
@@ -107,7 +107,7 @@ export class WorkflowsRepository {
     user: UserWithProfile,
     teamId: number,
     workflowId: number,
-    data: Partial<CreateWorkflowDto>
+    data: UpdateWorkflowDto
   ) {
     const currentWorkflow = await this.getTeamWorkflowById(teamId, workflowId);
     await updateWorkflow({
@@ -137,7 +137,7 @@ export class WorkflowsRepository {
           : undefined,
     };
 
-    const steps: WorkflowStepDto[] = workflow.steps.map((step) => {
+    const steps: WorkflowStepOutputDto[] = workflow.steps.map((step) => {
       const message: WorkflowMessageDto = {
         subject: step.emailSubject ?? "",
 
@@ -207,14 +207,14 @@ export class WorkflowsRepository {
   }
 
   public async mapCreateDtoToZodUpdateSchema(
-    createDto: Partial<CreateWorkflowDto>,
+    updateDto: UpdateWorkflowDto,
     workflowIdToUse: number,
     teamId: number,
     currentData: WorkflowType
   ): Promise<TUpdateInputSchema> {
-    const mappedSteps = createDto?.steps
+    const mappedSteps = updateDto?.steps
       ? await Promise.all(
-          createDto.steps.map(async (stepDto: WorkflowStepDto) => {
+          updateDto.steps.map(async (stepDto: UpdateWorkflowStepDto, index: number) => {
             let reminderBody: string | null = null;
             let sendTo: string | null = null;
 
@@ -266,7 +266,7 @@ export class WorkflowsRepository {
             const templateForZod = stepDto.template;
 
             return {
-              id: stepDto.id,
+              id: stepDto.id ?? -(index + 1),
               stepNumber: stepDto.stepNumber,
               action: actionForZod,
               workflowId: workflowIdToUse,
@@ -283,21 +283,21 @@ export class WorkflowsRepository {
         )
       : currentData.steps.map((step) => ({ ...step, senderName: step.sender }));
 
-    const triggerForZod = createDto?.trigger?.type ?? currentData.trigger;
-    const timeUnitForZod = createDto?.trigger?.offset?.unit ?? currentData.timeUnit ?? null;
+    const triggerForZod = updateDto?.trigger?.type ?? currentData.trigger;
+    const timeUnitForZod = updateDto?.trigger?.offset?.unit ?? currentData.timeUnit ?? null;
 
     const updateData: TUpdateInputSchema = {
       id: workflowIdToUse,
-      name: createDto.name ?? currentData.name,
+      name: updateDto.name ?? currentData.name,
       activeOn:
-        createDto?.activation?.activeOnEventTypeIds ??
+        updateDto?.activation?.activeOnEventTypeIds ??
         currentData?.activeOn.map((active) => active.eventTypeId) ??
         [],
       steps: mappedSteps,
       trigger: triggerForZod,
-      time: createDto?.trigger?.offset?.value ?? currentData?.time ?? null,
+      time: updateDto?.trigger?.offset?.value ?? currentData?.time ?? null,
       timeUnit: timeUnitForZod,
-      isActiveOnAll: createDto?.activation?.isActiveOnAll ?? currentData.isActiveOnAll ?? false,
+      isActiveOnAll: updateDto?.activation?.isActiveOnAll ?? currentData.isActiveOnAll ?? false,
     } as const satisfies TUpdateInputSchema;
 
     return updateData;

@@ -19611,11 +19611,6 @@
       "WorkflowStepDto": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "number",
-            "description": "Unique identifier of the step",
-            "example": 67244
-          },
           "stepNumber": {
             "type": "number",
             "description": "Step number in the workflow sequence",
@@ -19682,7 +19677,7 @@
             ]
           }
         },
-        "required": ["id", "stepNumber", "action", "recipient", "template", "sender", "message"]
+        "required": ["stepNumber", "action", "recipient", "template", "sender", "message"]
       },
       "CreateWorkflowDto": {
         "type": "object",
