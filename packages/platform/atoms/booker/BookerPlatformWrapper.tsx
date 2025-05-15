@@ -295,8 +295,8 @@ export const BookerPlatformWrapper = (
     const _cacheParam = searchParams?.get("cal.cache");
     const _shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
     const isBookingDryRun =
-      searchParams?.get("cal.isBookingDryRun")?.toLowerCase() === "true" ||
-      searchParams?.get("cal.sandbox")?.toLowerCase() === "true";
+      (searchParams?.get("cal.isBookingDryRun") || "").toLowerCase() === "true" ||
+      (searchParams?.get("cal.sandbox") || "").toLowerCase() === "true";
     setRoutingParams({
       ...(skipContactOwner ? { skipContactOwner } : {}),
       ...(routedTeamMemberIds ? { routedTeamMemberIds } : {}),

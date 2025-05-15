@@ -192,6 +192,8 @@ export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerStat
     if (prefersReducedMotion || layout === "mobile" || isEmbed) {
       const styles = { ...nonAnimatedProperties, ...animatedProperties };
       Object.keys(styles).forEach((property) => {
+        if (!animationScope.current) return;
+
         if (property === "height") {
           // Change 100vh to 100% in embed, since 100vh in iframe will behave weird, because
           // the iframe will constantly grow. 100% will simply make sure it grows with the iframe.
@@ -203,6 +205,8 @@ export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerStat
       });
     } else {
       Object.keys(nonAnimatedProperties).forEach((property) => {
+        if (!animationScope.current) return;
+
         animationScope.current.style[property] =
           nonAnimatedProperties[property as keyof typeof nonAnimatedProperties];
       });
