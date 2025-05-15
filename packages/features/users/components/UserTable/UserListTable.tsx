@@ -553,10 +553,6 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
     }
   };
 
-  if (!isPlatformUser) {
-    return null;
-  }
-
   return (
     <>
       <DataTableWrapper<UserTableUser>
