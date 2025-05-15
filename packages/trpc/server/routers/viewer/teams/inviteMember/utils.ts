@@ -1,13 +1,9 @@
 import { ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
-import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
 import { type User as UserType, type UserPassword } from "@calcom/prisma/client";
@@ -40,6 +36,8 @@ export type Invitation = {
 
 type InvitableExistingUser = UserWithMembership & {
   newRole: MembershipRole;
+  needToCreateProfile: boolean | null;
+  needToCreateOrgMembership: boolean | null;
 };
 
 type InvitableExistingUserWithProfile = InvitableExistingUser & {
@@ -359,160 +357,16 @@ export async function handleExistingUsersInvites({
   orgSlug: string | null;
 }) {
   const translation = await getTranslation(language, "common");
-
-  if (!team.isOrganization) {
-    const [autoJoinUsers, regularUsers] = groupUsersByJoinability({
-      existingUsersWithMemberships: invitableExistingUsers.map((u) => {
-        return {
-          ...u,
-          profile: null,
-        };
-      }),
-      team,
-      connectionInfoMap: orgConnectInfoByUsernameOrEmail,
-    });
-
-    log.debug(
-      "Inviting existing users to a team",
-      safeStringify({
-        autoJoinUsers,
-        regularUsers,
-      })
-    );
-
-    await MembershipRepository.createBulkMembershipsForTeam({
-      teamId,
-      autoJoinUsers,
-      regularUsers,
-      parentId: team.parentId,
-    });
-
-    if (autoJoinUsers.length) {
-      await Promise.all(
-        autoJoinUsers.map(async (userToAutoJoin) => {
-          await updateNewTeamMemberEventTypes(userToAutoJoin.id, team.id);
-        })
-      );
-
-      // invited users cannot autojoin, create provisional memberships and send email
-      await InvitationService.sendExistingUserTeamInviteEmails({
-        currentUserName: inviter.name,
-        currentUserTeamName: team?.name,
-        existingUsersWithMemberships: autoJoinUsers,
-        language: translation,
-        isOrg: isOrg,
-        teamId: team.id,
-        isAutoJoin: true,
-        currentUserParentTeamName: team?.parent?.name,
-        orgSlug,
-      });
-    }
-
-    if (regularUsers.length) {
-      await InvitationService.sendExistingUserTeamInviteEmails({
-        currentUserName: inviter.name,
-        currentUserTeamName: team?.name,
-        existingUsersWithMemberships: regularUsers,
-        language: translation,
-        isOrg: isOrg,
-        teamId: team.id,
-        isAutoJoin: false,
-        currentUserParentTeamName: team?.parent?.name,
-        orgSlug,
-      });
-    }
-
-    const parentOrganization = team.parent;
-    if (parentOrganization) {
-      const parsedOrg = getParsedTeam(parentOrganization);
-      // Create profiles if needed
-      await Promise.all([
-        autoJoinUsers
-          .concat(regularUsers)
-          .filter((u) => u.needToCreateProfile)
-          .map((user) =>
-            createAProfileForAnExistingUser({
-              user: {
-                id: user.id,
-                email: user.email,
-                currentUsername: user.username,
-              },
-              organizationId: parsedOrg.id,
-            })
-          ),
-      ]);
-    }
-  } else {
-    const organization = team;
-    log.debug(
-      "Inviting existing users to an organization",
-      safeStringify({
-        invitableExistingUsers,
-      })
-    );
-
-    const existingUsersWithMembershipsNew = await Promise.all(
-      invitableExistingUsers.map(async (user) => {
-        const shouldAutoAccept = orgConnectInfoByUsernameOrEmail[user.email].autoAccept;
-        let profile = null;
-        if (shouldAutoAccept) {
-          profile = await createAProfileForAnExistingUser({
-            user: {
-              id: user.id,
-              email: user.email,
-              currentUsername: user.username,
-            },
-            organizationId: organization.id,
-          });
-        }
-
-        return {
-          ...user,
-          profile,
-        };
-      })
-    );
-
-    await MembershipRepository.createBulkMembershipsForOrganization({
-      organizationId: team.id,
-      invitableUsers: invitableExistingUsers,
-      orgConnectInfoByUsernameOrEmail,
-    });
-
-    const autoJoinUsers = existingUsersWithMembershipsNew.filter(
-      (user) => orgConnectInfoByUsernameOrEmail[user.email].autoAccept
-    );
-
-    const regularUsers = existingUsersWithMembershipsNew.filter(
-      (user) => !orgConnectInfoByUsernameOrEmail[user.email].autoAccept
-    );
-
-    // Send emails to users who auto-joined
-    await InvitationService.sendExistingUserTeamInviteEmails({
-      currentUserName: inviter.name,
-      currentUserTeamName: team?.name,
-      existingUsersWithMemberships: autoJoinUsers,
-      language: translation,
-      isOrg,
-      teamId: team.id,
-      isAutoJoin: true,
-      currentUserParentTeamName: team?.parent?.name,
-      orgSlug,
-    });
-
-    // Send emails to users who need to accept invite
-    await InvitationService.sendExistingUserTeamInviteEmails({
-      currentUserName: inviter.name,
-      currentUserTeamName: team?.name,
-      existingUsersWithMemberships: regularUsers,
-      language: translation,
-      isOrg,
-      teamId: team.id,
-      isAutoJoin: false,
-      currentUserParentTeamName: team?.parent?.name,
-      orgSlug,
-    });
-  }
+  await InvitationService.handleExistingUsersInvites({
+    invitableUsers: invitableExistingUsers,
+    team,
+    orgConnectInfoByUsernameOrEmail,
+    teamId,
+    language: translation,
+    inviter,
+    orgSlug,
+    isOrg,
+  });
 }
 
 export async function handleNewUsersInvites({
@@ -539,30 +393,15 @@ export async function handleNewUsersInvites({
   creationSource: CreationSource;
 }) {
   const translation = await getTranslation(language, "common");
-
-  await MembershipRepository.createNewUsersConnectToOrgIfExists({
-    invitations: invitationsForNewUsers,
-    isOrg,
-    teamId: teamId,
+  await InvitationService.handleNewUsersInvites({
+    invitationsForNewUsers,
+    team,
     orgConnectInfoByUsernameOrEmail,
-    autoAcceptEmailDomain: autoAcceptEmailDomain,
-    parentId: team.parentId,
-    language,
+    teamId,
+    language: translation,
+    isOrg,
+    autoAcceptEmailDomain,
+    inviter,
     creationSource,
   });
-
-  const sendVerifyEmailsPromises = invitationsForNewUsers.map((invitation) => {
-    return InvitationService.sendSignupToOrganizationEmail({
-      usernameOrEmail: invitation.usernameOrEmail,
-      team: {
-        name: team.name,
-        parent: team.parent,
-      },
-      translation,
-      inviterName: inviter.name ?? "",
-      teamId,
-      isOrg,
-    });
-  });
-  await InvitationService.sendEmails(sendVerifyEmailsPromises);
 }

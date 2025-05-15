@@ -2,7 +2,9 @@ import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
 import { sendTeamInviteEmail } from "@calcom/emails";
 import logger from "@calcom/lib/logger";
-import { VerificationTokenRepository } from "@calcom/lib/server/repository/verificationToken";
+import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { InvitationService } from "./invitiation.service";
 
@@ -14,6 +16,22 @@ vi.mock("@calcom/lib/server/repository/verificationToken", () => ({
   VerificationTokenRepository: {
     create: vi.fn(),
   },
+}));
+
+vi.mock("@calcom/lib/server/repository/membership", () => ({
+  MembershipRepository: {
+    createBulkMembershipsForTeam: vi.fn(),
+    createBulkMembershipsForOrganization: vi.fn(),
+    createNewUsersConnectToOrgIfExists: vi.fn(),
+  },
+}));
+
+vi.mock("@calcom/lib/server/queries/teams", () => ({
+  updateNewTeamMemberEventTypes: vi.fn(),
+}));
+
+vi.mock("@calcom/lib/createAProfileForAnExistingUser", () => ({
+  createAProfileForAnExistingUser: vi.fn(),
 }));
 
 vi.mock("@calcom/lib/logger", () => ({
@@ -49,127 +67,181 @@ describe("InvitationService", () => {
     });
   });
 
-  describe("sendExistingUserTeamInviteEmails", () => {
+  describe("handleExistingUsersInvites", () => {
+    const mockTeam = {
+      id: 1,
+      name: "Test Team",
+      isOrganization: false,
+      parent: null,
+      parentId: null,
+    };
+
     const mockUser = {
+      id: 1,
       email: "test@example.com",
       username: "testuser",
       completedOnboarding: true,
       identityProvider: "CAL",
       password: { hash: "hashedpassword" },
       profile: { username: "testuser" },
+      newRole: MembershipRole.MEMBER,
+      needToCreateProfile: null,
+      needToCreateOrgMembership: null,
     };
 
     const mockParams = {
-      existingUsersWithMemberships: [mockUser],
-      language: vi.fn() as any,
-      currentUserTeamName: "Test Team",
-      currentUserName: "Test Admin",
-      currentUserParentTeamName: undefined,
-      isOrg: false,
+      invitableUsers: [mockUser],
+      team: mockTeam,
+      orgConnectInfoByUsernameOrEmail: {
+        "test@example.com": { orgId: undefined, autoAccept: false },
+      },
       teamId: 1,
-      isAutoJoin: false,
+      language: vi.fn() as any,
+      inviter: { name: "Test Admin" },
       orgSlug: null,
+      isOrg: false,
     };
 
-    it("should send team invite email for existing user", async () => {
-      await InvitationService.sendExistingUserTeamInviteEmails(mockParams);
+    it("should handle team invites correctly", async () => {
+      await InvitationService.handleExistingUsersInvites(mockParams);
+
+      expect(MembershipRepository.createBulkMembershipsForTeam).toHaveBeenCalledWith(
+        expect.objectContaining({
+          teamId: mockParams.teamId,
+          regularUsers: [mockUser],
+          autoJoinUsers: [],
+        })
+      );
 
       expect(sendTeamInviteEmail).toHaveBeenCalledWith(
         expect.objectContaining({
           to: mockUser.email,
-          teamName: mockParams.currentUserTeamName,
-          from: mockParams.currentUserName,
-          isCalcomMember: true,
+          teamName: mockTeam.name,
           isAutoJoin: false,
-          isOrg: false,
         })
       );
     });
 
-    it("should create verification token for incomplete onboarding", async () => {
-      const incompleteUser = {
-        ...mockUser,
-        completedOnboarding: false,
-        password: null,
+    it("should handle auto-join users correctly", async () => {
+      const autoJoinParams = {
+        ...mockParams,
+        orgConnectInfoByUsernameOrEmail: {
+          "test@example.com": { orgId: undefined, autoAccept: true },
+        },
       };
 
-      await InvitationService.sendExistingUserTeamInviteEmails({
-        ...mockParams,
-        existingUsersWithMemberships: [incompleteUser],
-      });
+      await InvitationService.handleExistingUsersInvites(autoJoinParams);
 
-      expect(VerificationTokenRepository.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          identifier: incompleteUser.email,
-          teamId: mockParams.teamId,
-        })
-      );
-
+      expect(updateNewTeamMemberEventTypes).toHaveBeenCalledWith(mockUser.id, mockTeam.id);
       expect(sendTeamInviteEmail).toHaveBeenCalledWith(
         expect.objectContaining({
-          isCalcomMember: false,
-          joinLink: expect.stringContaining("/signup?token="),
+          isAutoJoin: true,
         })
       );
     });
 
-    it("should throw error if team name is missing", async () => {
-      await expect(
-        InvitationService.sendExistingUserTeamInviteEmails({
-          ...mockParams,
-          currentUserTeamName: undefined,
+    it("should handle organization invites correctly", async () => {
+      const orgParams = {
+        ...mockParams,
+        team: { ...mockTeam, isOrganization: true },
+        isOrg: true,
+      };
+
+      await InvitationService.handleExistingUsersInvites(orgParams);
+
+      expect(MembershipRepository.createBulkMembershipsForOrganization).toHaveBeenCalledWith(
+        expect.objectContaining({
+          organizationId: orgParams.team.id,
+          invitableUsers: [mockUser],
         })
-      ).rejects.toThrow("The team doesn't have a name");
+      );
     });
   });
 
-  describe("sendSignupToOrganizationEmail", () => {
-    const mockParams = {
-      usernameOrEmail: "newuser@example.com",
-      team: {
-        name: "Test Org",
-        parent: null,
-      },
-      translation: vi.fn() as any,
-      inviterName: "Test Admin",
-      teamId: 1,
-      isOrg: true,
+  describe("handleNewUsersInvites", () => {
+    const mockTeam = {
+      id: 1,
+      name: "Test Team",
+      parent: null,
+      parentId: null,
     };
 
-    it("should send organization signup email", async () => {
-      await InvitationService.sendSignupToOrganizationEmail(mockParams);
+    const mockInvitation = {
+      usernameOrEmail: "newuser@example.com",
+      role: MembershipRole.MEMBER,
+    };
 
-      expect(VerificationTokenRepository.create).toHaveBeenCalledWith(
+    const mockParams = {
+      invitationsForNewUsers: [mockInvitation],
+      team: mockTeam,
+      orgConnectInfoByUsernameOrEmail: {
+        "newuser@example.com": { orgId: undefined, autoAccept: false },
+      },
+      teamId: 1,
+      language: vi.fn() as any,
+      isOrg: false,
+      autoAcceptEmailDomain: null,
+      inviter: { name: "Test Admin" },
+      creationSource: "INVITE" as const,
+    };
+
+    it("should create new users and send invites", async () => {
+      await InvitationService.handleNewUsersInvites(mockParams);
+
+      expect(MembershipRepository.createNewUsersConnectToOrgIfExists).toHaveBeenCalledWith(
         expect.objectContaining({
-          identifier: mockParams.usernameOrEmail,
+          invitations: [mockInvitation],
           teamId: mockParams.teamId,
+          isOrg: false,
         })
       );
 
       expect(sendTeamInviteEmail).toHaveBeenCalledWith(
         expect.objectContaining({
-          to: mockParams.usernameOrEmail,
-          teamName: mockParams.team.name,
-          from: mockParams.inviterName,
+          to: mockInvitation.usernameOrEmail,
+          teamName: mockTeam.name,
           isCalcomMember: false,
-          isOrg: true,
         })
       );
     });
 
-    it("should handle errors gracefully", async () => {
-      const error = new Error("Failed to send email");
-      vi.mocked(sendTeamInviteEmail).mockRejectedValueOnce(error);
+    it("should handle auto-accept domain correctly", async () => {
+      const autoAcceptParams = {
+        ...mockParams,
+        autoAcceptEmailDomain: "example.com",
+        orgConnectInfoByUsernameOrEmail: {
+          "newuser@example.com": { orgId: undefined, autoAccept: true },
+        },
+      };
 
-      await InvitationService.sendSignupToOrganizationEmail(mockParams);
+      await InvitationService.handleNewUsersInvites(autoAcceptParams);
 
-      expect(logger.error).toHaveBeenCalledWith(
-        "Failed to send signup to organization email",
+      expect(MembershipRepository.createNewUsersConnectToOrgIfExists).toHaveBeenCalledWith(
         expect.objectContaining({
-          usernameOrEmail: mockParams.usernameOrEmail,
-          orgId: mockParams.teamId,
-        }),
-        error
+          autoAcceptEmailDomain: "example.com",
+        })
+      );
+    });
+
+    it("should handle organization invites correctly", async () => {
+      const orgParams = {
+        ...mockParams,
+        isOrg: true,
+        team: { ...mockTeam, isOrganization: true },
+      };
+
+      await InvitationService.handleNewUsersInvites(orgParams);
+
+      expect(MembershipRepository.createNewUsersConnectToOrgIfExists).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isOrg: true,
+        })
+      );
+
+      expect(sendTeamInviteEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isOrg: true,
+        })
       );
     });
   });
