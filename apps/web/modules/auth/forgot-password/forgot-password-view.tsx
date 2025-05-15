@@ -127,7 +127,7 @@ export default function ForgotPassword(props: PageProps) {
             />
             <div className="space-y-2">
               <Button
-                className="w-full justify-center dark:bg-white dark:text-black enabled:hover:text-white" 
+                className="w-full justify-center bg-white hover:bg-black hover:text-white"
                 type="submit"
                 color="primary"
                 disabled={loading}
