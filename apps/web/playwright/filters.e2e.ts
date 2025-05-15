@@ -69,11 +69,13 @@ test.describe("Insights > Routing Filters", () => {
     await applyFilter(page, "formId", formName1);
 
     await expect(page.getByText(formName1)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(formName2)).toBeHidden({ timeout: 10000 });
 
     await clearFilters(page);
     await applyFilter(page, "formId", formName2);
 
     await expect(page.getByText(formName2)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(formName1)).toBeHidden({ timeout: 10000 });
   });
 
   test("bookingUserId filter: should filter by user", async ({ page, users, routingForms, prisma }) => {
@@ -272,8 +274,26 @@ test.describe("Insights > Routing Filters", () => {
     await page.getByPlaceholder("Filter attendees by name or email").fill("John");
     await page.keyboard.press("Enter");
 
-    await expect(page.getByText("Response 1")).toBeVisible();
-    await expect(page.getByText("Response 2")).toBeHidden();
+    await expect(page.getByText("Response 1")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Response 2")).toBeHidden({ timeout: 10000 });
+
+    await clearFilters(page);
+    await selectFilter(page, "bookingAttendees");
+    await page.getByTestId("filter-popover-trigger-bookingAttendees").click();
+    await page.getByPlaceholder("Filter attendees by name or email").fill("jane.smith@example");
+    await page.keyboard.press("Enter");
+
+    await expect(page.getByText("Response 2")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Response 1")).toBeHidden({ timeout: 10000 });
+
+    await clearFilters(page);
+    await selectFilter(page, "bookingAttendees");
+    await page.getByTestId("filter-popover-trigger-bookingAttendees").click();
+    await page.getByPlaceholder("Filter attendees by name or email").fill("JANE");
+    await page.keyboard.press("Enter");
+
+    await expect(page.getByText("Response 2")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Response 1")).toBeHidden({ timeout: 10000 });
 
     await prisma.booking.delete({ where: { id: booking1.id } });
     await prisma.booking.delete({ where: { id: booking2.id } });
@@ -593,11 +613,11 @@ test.describe("Insights > Routing Filters", () => {
         formFillerId: "test-filler-1",
         formId: form.id,
         response: {
-          [singleSelectFieldId]: {
+          location: {
             label: "Location",
             value: locationOptionId1,
           },
-          [multiSelectFieldId]: {
+          skills: {
             label: "Skills",
             value: [skillOptionId1, skillOptionId2],
           },
@@ -610,11 +630,11 @@ test.describe("Insights > Routing Filters", () => {
         formFillerId: "test-filler-2",
         formId: form.id,
         response: {
-          [singleSelectFieldId]: {
+          location: {
             label: "Location",
             value: locationOptionId2,
           },
-          [multiSelectFieldId]: {
+          skills: {
             label: "Skills",
             value: [skillOptionId2, skillOptionId3],
           },
