@@ -159,18 +159,14 @@ export class SelectedCalendarRepository {
         },
         // RN we only support google calendar subscriptions for now
         integration: "google_calendar",
-        AND: [
+        OR: [
+          { error: null, googleChannelExpiration: null },
+          { error: null, googleChannelExpiration: { lt: tomorrowTimestamp } },
+          { error: { not: null }, attempts: { lt: maxAttempts }, googleChannelExpiration: null },
           {
-            OR: [
-              { error: null },
-              {
-                error: { not: null },
-                attempts: { lt: maxAttempts },
-              },
-            ],
-          },
-          {
-            OR: [{ googleChannelExpiration: null }, { googleChannelExpiration: { lt: tomorrowTimestamp } }],
+            error: { not: null },
+            attempts: { lt: maxAttempts },
+            googleChannelExpiration: { lt: tomorrowTimestamp },
           },
         ],
       },
