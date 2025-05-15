@@ -1,9 +1,4 @@
-import { randomBytes } from "crypto";
-import type { TFunction } from "i18next";
-
-import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
-import { sendTeamInviteEmail } from "@calcom/emails";
-import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
+import { ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -14,7 +9,6 @@ import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import { VerificationTokenRepository } from "@calcom/lib/server/repository/verificationToken";
 import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
 import { type User as UserType, type UserPassword } from "@calcom/prisma/client";
 import type { Profile as ProfileType } from "@calcom/prisma/client";
@@ -24,6 +18,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 
 import { isEmail } from "../util";
+import { InvitationService } from "./invitiation.service";
 import type { TeamWithParent } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["inviteMember.utils"] });
@@ -213,62 +208,6 @@ export function getOrgConnectionInfo({
   return { orgId, autoAccept };
 }
 
-export async function sendSignupToOrganizationEmail({
-  usernameOrEmail,
-  team,
-  translation,
-  inviterName,
-  teamId,
-  isOrg,
-}: {
-  usernameOrEmail: string;
-  team: { name: string; parent: { name: string } | null };
-  translation: TFunction;
-  inviterName: string;
-  teamId: number;
-  isOrg: boolean;
-}) {
-  try {
-    const token = randomBytes(32).toString("hex");
-
-    await VerificationTokenRepository.create({
-      identifier: usernameOrEmail,
-      token,
-      expires: new Date(new Date().setHours(168)), // +1 week
-      teamId,
-    });
-
-    await sendTeamInviteEmail({
-      language: translation,
-      from: inviterName || `${team.name}'s admin`,
-      to: usernameOrEmail,
-      teamName: team.name,
-      joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`,
-      isCalcomMember: false,
-      isOrg: isOrg,
-      parentTeamName: team?.parent?.name,
-      isAutoJoin: false,
-      isExistingUserMovedToOrg: false,
-      // For a new user there is no prev and new links.
-      prevLink: null,
-      newLink: null,
-    });
-  } catch (error) {
-    logger.error(
-      "Failed to send signup to organization email",
-      safeStringify({
-        usernameOrEmail,
-        orgId: teamId,
-      }),
-      error
-    );
-  }
-}
-
-type TeamAndOrganizationSettings = Team & {
-  organizationSettings?: OrganizationSettings | null;
-};
-
 export function getOrgState(
   isOrg: boolean,
   team: TeamAndOrganizationSettings & {
@@ -394,97 +333,8 @@ export const groupUsersByJoinability = ({
   return [usersToAutoJoin, regularUsers];
 };
 
-export const sendEmails = async (emailPromises: Promise<void>[]) => {
-  const sentEmails = await Promise.allSettled(emailPromises);
-  sentEmails.forEach((sentEmail) => {
-    if (sentEmail.status === "rejected") {
-      logger.error("Could not send email to user. Reason:", sentEmail.reason);
-    }
-  });
-};
-
-export const sendExistingUserTeamInviteEmails = async ({
-  existingUsersWithMemberships,
-  language,
-  currentUserTeamName,
-  currentUserName,
-  currentUserParentTeamName,
-  isOrg,
-  teamId,
-  isAutoJoin,
-  orgSlug,
-}: {
-  language: TFunction;
-  isAutoJoin: boolean;
-  existingUsersWithMemberships: Omit<InvitableExistingUserWithProfile, "canBeInvited" | "newRole">[];
-  currentUserTeamName?: string;
-  currentUserParentTeamName: string | undefined;
-  currentUserName?: string | null;
-  isOrg: boolean;
-  teamId: number;
-  orgSlug: string | null;
-}) => {
-  const sendEmailsPromises = existingUsersWithMemberships.map(async (user) => {
-    let sendTo = user.email;
-    if (!isEmail(user.email)) {
-      sendTo = user.email;
-    }
-
-    log.debug("Sending team invite email to", safeStringify({ user, currentUserName, currentUserTeamName }));
-
-    if (!currentUserTeamName) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "The team doesn't have a name",
-      });
-    }
-
-    // inform user of membership by email
-    if (currentUserTeamName) {
-      const inviteTeamOptions = {
-        joinLink: `${WEBAPP_URL}/auth/login?callbackUrl=/settings/teams`,
-        isCalcomMember: true,
-      };
-      /**
-       * Here we want to redirect to a different place if onboarding has been completed or not. This prevents the flash of going to teams -> Then to onboarding - also show a different email template.
-       * This only changes if the user is a CAL user and has not completed onboarding and has no password
-       */
-      if (!user.completedOnboarding && !user.password?.hash && user.identityProvider === "CAL") {
-        const token = randomBytes(32).toString("hex");
-        await VerificationTokenRepository.create({
-          identifier: user.email,
-          token,
-          expires: new Date(new Date().setHours(168)), // +1 week
-          teamId,
-        });
-
-        inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
-        inviteTeamOptions.isCalcomMember = false;
-      }
-
-      return sendTeamInviteEmail({
-        language,
-        isAutoJoin,
-        from: currentUserName ?? `${currentUserTeamName}'s admin`,
-        to: sendTo,
-        teamName: currentUserTeamName,
-        ...inviteTeamOptions,
-        isOrg: isOrg,
-        parentTeamName: currentUserParentTeamName,
-        isExistingUserMovedToOrg: true,
-        prevLink: `${getOrgFullOrigin("")}/${user.username || ""}`,
-        newLink: user.profile ? `${getOrgFullOrigin(orgSlug ?? "")}/${user.profile.username}` : null,
-      });
-    }
-  });
-
-  await sendEmails(sendEmailsPromises);
-};
-
-type inviteMemberHandlerInput = {
-  teamId: number;
-  role?: "ADMIN" | "MEMBER" | "OWNER";
-  language: string;
+type TeamAndOrganizationSettings = Team & {
+  organizationSettings?: OrganizationSettings | null;
 };
 
 export async function handleExistingUsersInvites({
@@ -545,7 +395,7 @@ export async function handleExistingUsersInvites({
       );
 
       // invited users cannot autojoin, create provisional memberships and send email
-      await sendExistingUserTeamInviteEmails({
+      await InvitationService.sendExistingUserTeamInviteEmails({
         currentUserName: inviter.name,
         currentUserTeamName: team?.name,
         existingUsersWithMemberships: autoJoinUsers,
@@ -559,7 +409,7 @@ export async function handleExistingUsersInvites({
     }
 
     if (regularUsers.length) {
-      await sendExistingUserTeamInviteEmails({
+      await InvitationService.sendExistingUserTeamInviteEmails({
         currentUserName: inviter.name,
         currentUserTeamName: team?.name,
         existingUsersWithMemberships: regularUsers,
@@ -638,7 +488,7 @@ export async function handleExistingUsersInvites({
     );
 
     // Send emails to users who auto-joined
-    await sendExistingUserTeamInviteEmails({
+    await InvitationService.sendExistingUserTeamInviteEmails({
       currentUserName: inviter.name,
       currentUserTeamName: team?.name,
       existingUsersWithMemberships: autoJoinUsers,
@@ -651,7 +501,7 @@ export async function handleExistingUsersInvites({
     });
 
     // Send emails to users who need to accept invite
-    await sendExistingUserTeamInviteEmails({
+    await InvitationService.sendExistingUserTeamInviteEmails({
       currentUserName: inviter.name,
       currentUserTeamName: team?.name,
       existingUsersWithMemberships: regularUsers,
@@ -702,7 +552,7 @@ export async function handleNewUsersInvites({
   });
 
   const sendVerifyEmailsPromises = invitationsForNewUsers.map((invitation) => {
-    return sendSignupToOrganizationEmail({
+    return InvitationService.sendSignupToOrganizationEmail({
       usernameOrEmail: invitation.usernameOrEmail,
       team: {
         name: team.name,
@@ -714,5 +564,5 @@ export async function handleNewUsersInvites({
       isOrg,
     });
   });
-  await sendEmails(sendVerifyEmailsPromises);
+  await InvitationService.sendEmails(sendVerifyEmailsPromises);
 }
