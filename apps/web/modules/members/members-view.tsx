@@ -8,15 +8,15 @@ import { UserListTable } from "@calcom/features/users/components/UserTable/UserL
 import type { UserListTableProps } from "@calcom/features/users/components/UserTable/UserListTable";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-export const MembersView = ({ org }: UserListTableProps) => {
+export const MembersView = (props: UserListTableProps) => {
   const { t } = useLocale();
-  const isOrgAdminOrOwner = org && checkAdminOrOwner(org.user.role);
+  const isOrgAdminOrOwner = props.org && checkAdminOrOwner(props.org.user.role);
   const canLoggedInUserSeeMembers =
-    (org?.isPrivate && isOrgAdminOrOwner) || isOrgAdminOrOwner || !org?.isPrivate;
+    (props.org?.isPrivate && isOrgAdminOrOwner) || isOrgAdminOrOwner || !props.org?.isPrivate;
 
   return (
     <LicenseRequired>
-      <div>{canLoggedInUserSeeMembers && <UserListTable org={org} />}</div>
+      <div>{canLoggedInUserSeeMembers && <UserListTable {...props} />}</div>
       {!canLoggedInUserSeeMembers && (
         <div className="border-subtle rounded-xl border p-6" data-testid="members-privacy-warning">
           <h2 className="text-default">{t("only_admin_can_see_members_of_org")}</h2>
@@ -26,7 +26,7 @@ export const MembersView = ({ org }: UserListTableProps) => {
   );
 };
 
-const MembersPage = ({ org }: UserListTableProps) => {
+const MembersPage = (props: UserListTableProps) => {
   const { t } = useLocale();
   return (
     <Shell
@@ -37,7 +37,7 @@ const MembersPage = ({ org }: UserListTableProps) => {
       subtitle={t("organization_description")}
       headerClassName="hidden md:block"
       actions={<div className={`mb-2 ${CTA_CONTAINER_CLASS_NAME}`} />}>
-      <MembersView org={org} />
+      <MembersView {...props} />
     </Shell>
   );
 };

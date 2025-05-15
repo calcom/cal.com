@@ -108,17 +108,20 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 
 export type UserListTableProps = {
   org: RouterOutputs["viewer"]["organizations"]["listCurrent"];
+  teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
+  facetedTeamValues: RouterOutputs["viewer"]["organizations"]["getFacetedValues"];
+  attributes: RouterOutputs["viewer"]["attributes"]["list"];
 };
 
-export function UserListTable({ org }: UserListTableProps) {
+export function UserListTable(props: UserListTableProps) {
   return (
     <DataTableProvider useSegments={useSegments} defaultPageSize={25}>
-      <UserListTableContent org={org} />
+      <UserListTableContent {...props} />
     </DataTableProvider>
   );
 }
 
-function UserListTableContent({ org }: UserListTableProps) {
+function UserListTableContent({ org, attributes, teams, facetedTeamValues }: UserListTableProps) {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
@@ -126,19 +129,6 @@ function UserListTableContent({ org }: UserListTableProps) {
 
   const { data: session } = useSession();
   const { isPlatformUser } = useGetUserAttributes();
-  const { data: attributes, isSuccess: isSuccessAttributes } = trpc.viewer.attributes.list.useQuery(
-    undefined,
-    {
-      refetchOnWindowFocus: false,
-    }
-  );
-  const { data: teams } = trpc.viewer.organizations.getTeams.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-  });
-  const { data: facetedTeamValues } = trpc.viewer.organizations.getFacetedValues.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-  });
-
   const [state, dispatch] = useReducer(reducer, initialState);
   const [isDownloading, setIsDownloading] = useState(false);
   const [rowSelection, setRowSelection] = useState({});
@@ -563,8 +553,7 @@ function UserListTableContent({ org }: UserListTableProps) {
     }
   };
 
-  if (!isPlatformUser && !isSuccessAttributes) {
-    // do not render the table until the attributes are fetched
+  if (!isPlatformUser) {
     return null;
   }
 
