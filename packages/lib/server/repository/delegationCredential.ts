@@ -21,6 +21,8 @@ const delegationCredentialSafeSelect = {
   createdAt: true,
   updatedAt: true,
   organizationId: true,
+  lastEnabledAt: true,
+  lastDisabledAt: true,
   workspacePlatform: {
     select: {
       name: true,
