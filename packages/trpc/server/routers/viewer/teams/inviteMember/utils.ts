@@ -6,7 +6,7 @@ import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
-import { type User as UserType, type UserPassword } from "@calcom/prisma/client";
+import type { User as UserType, UserPassword } from "@calcom/prisma/client";
 import type { Profile as ProfileType } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -38,6 +38,7 @@ type InvitableExistingUser = UserWithMembership & {
   newRole: MembershipRole;
   needToCreateProfile: boolean | null;
   needToCreateOrgMembership: boolean | null;
+  profile: { username: string } | null;
 };
 
 type InvitableExistingUserWithProfile = InvitableExistingUser & {
@@ -357,7 +358,8 @@ export async function handleExistingUsersInvites({
   orgSlug: string | null;
 }) {
   const translation = await getTranslation(language, "common");
-  await InvitationService.handleExistingUsersInvites({
+  const invitationService = new InvitationService();
+  await invitationService.handleExistingUsersInvites({
     invitableUsers: invitableExistingUsers,
     team,
     orgConnectInfoByUsernameOrEmail,
@@ -393,7 +395,8 @@ export async function handleNewUsersInvites({
   creationSource: CreationSource;
 }) {
   const translation = await getTranslation(language, "common");
-  await InvitationService.handleNewUsersInvites({
+  const invitationService = new InvitationService();
+  await invitationService.handleNewUsersInvites({
     invitationsForNewUsers,
     team,
     orgConnectInfoByUsernameOrEmail,

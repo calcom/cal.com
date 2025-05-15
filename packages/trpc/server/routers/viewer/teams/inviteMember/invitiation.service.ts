@@ -14,6 +14,7 @@ import { VerificationTokenRepository } from "@calcom/lib/server/repository/verif
 import type { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
 
+import type { IInvitationService } from "./invitiation.server.interface";
 import type { TeamWithParent } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["InvitationService"] });
@@ -36,8 +37,8 @@ type Invitation = {
   role: MembershipRole;
 };
 
-export class InvitationService {
-  static async sendEmails(emailPromises: Promise<void>[]) {
+export class InvitationService implements IInvitationService {
+  async sendEmails(emailPromises: Promise<void>[]) {
     const sentEmails = await Promise.allSettled(emailPromises);
     sentEmails.forEach((sentEmail) => {
       if (sentEmail.status === "rejected") {
@@ -46,7 +47,7 @@ export class InvitationService {
     });
   }
 
-  static async sendExistingUserTeamInviteEmails({
+  async sendExistingUserTeamInviteEmails({
     existingUsersWithMemberships,
     language,
     currentUserTeamName,
@@ -112,7 +113,7 @@ export class InvitationService {
     await this.sendEmails(sendEmailsPromises);
   }
 
-  static async sendSignupToOrganizationEmail({
+  async sendSignupToOrganizationEmail({
     usernameOrEmail,
     team,
     translation,
@@ -163,7 +164,7 @@ export class InvitationService {
     }
   }
 
-  static async handleExistingUsersInvites({
+  async handleExistingUsersInvites({
     invitableUsers,
     team,
     orgConnectInfoByUsernameOrEmail,
@@ -178,9 +179,7 @@ export class InvitationService {
     orgConnectInfoByUsernameOrEmail: Record<string, { orgId: number | undefined; autoAccept: boolean }>;
     teamId: number;
     language: TFunction;
-    inviter: {
-      name: string | null;
-    };
+    inviter: { name: string | null };
     isOrg: boolean;
     orgSlug: string | null;
   }) {
@@ -344,7 +343,7 @@ export class InvitationService {
     }
   }
 
-  static async handleNewUsersInvites({
+  async handleNewUsersInvites({
     invitationsForNewUsers,
     team,
     orgConnectInfoByUsernameOrEmail,
@@ -356,15 +355,13 @@ export class InvitationService {
     creationSource,
   }: {
     invitationsForNewUsers: Invitation[];
+    team: TeamWithParent;
+    orgConnectInfoByUsernameOrEmail: Record<string, { orgId: number | undefined; autoAccept: boolean }>;
     teamId: number;
     language: TFunction;
-    orgConnectInfoByUsernameOrEmail: Record<string, { orgId: number | undefined; autoAccept: boolean }>;
-    autoAcceptEmailDomain: string | null;
-    team: TeamWithParent;
-    inviter: {
-      name: string | null;
-    };
     isOrg: boolean;
+    autoAcceptEmailDomain: string | null;
+    inviter: { name: string | null };
     creationSource: CreationSource;
   }) {
     await MembershipRepository.createNewUsersConnectToOrgIfExists({
@@ -394,7 +391,7 @@ export class InvitationService {
     await this.sendEmails(sendVerifyEmailsPromises);
   }
 
-  private static groupUsersByJoinability({
+  private groupUsersByJoinability({
     existingUsersWithMemberships,
     orgConnectInfoByUsernameOrEmail,
   }: {

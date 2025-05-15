@@ -4,9 +4,10 @@ import { sendTeamInviteEmail } from "@calcom/emails";
 import logger from "@calcom/lib/logger";
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, CreationSource } from "@calcom/prisma/enums";
 
 import { InvitationService } from "./invitiation.service";
+import type { TeamWithParent } from "./types";
 
 vi.mock("@calcom/emails", () => ({
   sendTeamInviteEmail: vi.fn(),
@@ -44,8 +45,11 @@ vi.mock("@calcom/lib/logger", () => ({
 }));
 
 describe("InvitationService", () => {
+  let invitationService: InvitationService;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    invitationService = new InvitationService();
   });
 
   afterEach(() => {
@@ -55,25 +59,64 @@ describe("InvitationService", () => {
   describe("sendEmails", () => {
     it("should handle successful email sending", async () => {
       const successfulPromise = Promise.resolve();
-      await InvitationService.sendEmails([successfulPromise]);
+      await invitationService.sendEmails([successfulPromise]);
       expect(logger.error).not.toHaveBeenCalled();
     });
 
     it("should handle failed email sending", async () => {
       const error = new Error("Failed to send email");
       const failedPromise = Promise.reject(error);
-      await InvitationService.sendEmails([failedPromise]);
+      await invitationService.sendEmails([failedPromise]);
       expect(logger.error).toHaveBeenCalledWith("Could not send email to user. Reason:", error);
     });
   });
 
   describe("handleExistingUsersInvites", () => {
-    const mockTeam = {
+    const baseTeam = {
       id: 1,
       name: "Test Team",
+      slug: null,
+      logoUrl: null,
+      calVideoLogo: null,
+      appLogo: null,
+      appIconLogo: null,
+      bio: null,
+      hideBranding: false,
+      brandColor: null,
+      darkBrandColor: null,
+      theme: null,
+      timeZone: "Europe/London",
+      weekStart: "Sunday",
+      timeFormat: null,
+      metadata: null,
+      isPrivate: false,
+      pendingPayment: false,
+      organizationSettings: null,
+      organizationId: null,
+      isOrganizationVerified: false,
+      isOrganizationConfigured: false,
+      orgAutoAcceptEmail: null,
+      inviteToken: null,
+      isEnabled: true,
+      includeManagedEventsInLimits: false,
+      hideTeamProfileLink: false,
+      hideBookATeamMember: false,
+      rrResetInterval: "MONTH",
+      bannerUrl: null,
       isOrganization: false,
       parent: null,
       parentId: null,
+      isPlatform: false,
+      createdByOAuthClientId: null,
+      smsLockState: "UNLOCKED",
+      smsLockReviewedByAdmin: false,
+      bookingLimits: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as const;
+
+    const mockTeam: TeamWithParent = {
+      ...baseTeam,
     };
 
     const mockUser = {
@@ -103,7 +146,7 @@ describe("InvitationService", () => {
     };
 
     it("should handle team invites correctly", async () => {
-      await InvitationService.handleExistingUsersInvites(mockParams);
+      await invitationService.handleExistingUsersInvites(mockParams);
 
       expect(MembershipRepository.createBulkMembershipsForTeam).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -130,7 +173,7 @@ describe("InvitationService", () => {
         },
       };
 
-      await InvitationService.handleExistingUsersInvites(autoJoinParams);
+      await invitationService.handleExistingUsersInvites(autoJoinParams);
 
       expect(updateNewTeamMemberEventTypes).toHaveBeenCalledWith(mockUser.id, mockTeam.id);
       expect(sendTeamInviteEmail).toHaveBeenCalledWith(
@@ -147,7 +190,7 @@ describe("InvitationService", () => {
         isOrg: true,
       };
 
-      await InvitationService.handleExistingUsersInvites(orgParams);
+      await invitationService.handleExistingUsersInvites(orgParams);
 
       expect(MembershipRepository.createBulkMembershipsForOrganization).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -159,11 +202,51 @@ describe("InvitationService", () => {
   });
 
   describe("handleNewUsersInvites", () => {
-    const mockTeam = {
+    const baseTeam = {
       id: 1,
       name: "Test Team",
+      slug: null,
+      logoUrl: null,
+      calVideoLogo: null,
+      appLogo: null,
+      appIconLogo: null,
+      bio: null,
+      hideBranding: false,
+      brandColor: null,
+      darkBrandColor: null,
+      theme: null,
+      timeZone: "Europe/London",
+      weekStart: "Sunday",
+      timeFormat: null,
+      metadata: null,
+      isPrivate: false,
+      pendingPayment: false,
+      organizationSettings: null,
+      organizationId: null,
+      isOrganizationVerified: false,
+      isOrganizationConfigured: false,
+      orgAutoAcceptEmail: null,
+      inviteToken: null,
+      isEnabled: true,
+      includeManagedEventsInLimits: false,
+      hideTeamProfileLink: false,
+      hideBookATeamMember: false,
+      rrResetInterval: "MONTH",
+      bannerUrl: null,
+      isOrganization: false,
       parent: null,
       parentId: null,
+      isPlatform: false,
+      createdByOAuthClientId: null,
+      smsLockState: "UNLOCKED",
+      smsLockReviewedByAdmin: false,
+      bookingLimits: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as const;
+
+    const mockTeam: TeamWithParent = {
+      ...baseTeam,
     };
 
     const mockInvitation = {
@@ -182,11 +265,11 @@ describe("InvitationService", () => {
       isOrg: false,
       autoAcceptEmailDomain: null,
       inviter: { name: "Test Admin" },
-      creationSource: "INVITE" as const,
+      creationSource: CreationSource.WEBAPP,
     };
 
     it("should create new users and send invites", async () => {
-      await InvitationService.handleNewUsersInvites(mockParams);
+      await invitationService.handleNewUsersInvites(mockParams);
 
       expect(MembershipRepository.createNewUsersConnectToOrgIfExists).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -214,7 +297,7 @@ describe("InvitationService", () => {
         },
       };
 
-      await InvitationService.handleNewUsersInvites(autoAcceptParams);
+      await invitationService.handleNewUsersInvites(autoAcceptParams);
 
       expect(MembershipRepository.createNewUsersConnectToOrgIfExists).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -230,7 +313,7 @@ describe("InvitationService", () => {
         team: { ...mockTeam, isOrganization: true },
       };
 
-      await InvitationService.handleNewUsersInvites(orgParams);
+      await invitationService.handleNewUsersInvites(orgParams);
 
       expect(MembershipRepository.createNewUsersConnectToOrgIfExists).toHaveBeenCalledWith(
         expect.objectContaining({
