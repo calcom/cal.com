@@ -231,22 +231,8 @@ export class GoogleCalendarService implements OAuthCalendarApp {
       if (!event.data) {
         throw new NotFoundException("Meeting not found");
       }
-
-      return {
-        eventDetails: event.data,
-        rescheduleHistory: event.data.originalStartTime
-          ? {
-              originalStart: event.data.originalStartTime,
-              currentStart: event.data.start,
-            }
-          : null,
-      };
+      return event.data;
     } catch (error) {
-      // this.logger.error(`Failed to get Google Calendar event: ${error.message}`, {
-      //   userId,
-      //   eventUid,
-      //   calendarId: bookingReference?.externalCalendarId,
-      // });
       throw new NotFoundException("Failed to retrieve meeting details");
     }
   }
