@@ -181,7 +181,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
           title: "frisbee match",
           slug: `slots-2024-09-04-variable-length-event-type-${randomString()}`,
           length: 15,
-          metadata: { multipleDuration: [15, 30, 45, 60] },
+          metadata: { multipleDuration: [15, 30, 45, 60, 180] },
         },
         user.id
       );
@@ -504,6 +504,65 @@ describe("Slots 2024-09-04 Endpoints", () => {
       expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
       const { reservationDuration, ...rest } = reservedSlot;
       expect(reserveResponseBody.data).toEqual(rest);
+    });
+
+    describe("overlapping slot reservations", () => {
+      it("start of request slot overlaps already existing reserved slot", async () => {
+        // Try to reserve 10:15-11:15 when 10:00-11:00 is taken (60 min event)
+        const newSlotStart = DateTime.fromISO(reservedSlot.slotStart).plus({ minutes: 15 }).toISO();
+
+        await request(app.getHttpServer())
+          .post(`/v2/slots/reservations`)
+          .send({
+            eventTypeId,
+            slotStart: newSlotStart,
+          })
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+          .expect(422)
+          .then((response) => {
+            expect(response.body.error.message).toEqual(
+              "This time slot is already reserved by another user. Please choose a different time."
+            );
+          });
+      });
+
+      it("end of request slot overlaps already existing reserved slot", async () => {
+        // Try to reserve 9:45-10:45 when 10:00-11:00 is taken (60 min event)
+        const newSlotStart = DateTime.fromISO(reservedSlot.slotStart).minus({ minutes: 15 }).toISO();
+
+        await request(app.getHttpServer())
+          .post(`/v2/slots/reservations`)
+          .send({
+            eventTypeId,
+            slotStart: newSlotStart,
+          })
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+          .expect(422)
+          .then((response) => {
+            expect(response.body.error.message).toEqual(
+              "This time slot is already reserved by another user. Please choose a different time."
+            );
+          });
+      });
+
+      it("request slot is inside already existing reserved slot", async () => {
+        // Try to reserve 10:10-11:10 when 10:00-11:00 is taken (60 min event)
+        const newSlotStart = DateTime.fromISO(reservedSlot.slotStart).plus({ minutes: 10 }).toISO();
+
+        await request(app.getHttpServer())
+          .post(`/v2/slots/reservations`)
+          .send({
+            eventTypeId,
+            slotStart: newSlotStart,
+          })
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+          .expect(422)
+          .then((response) => {
+            expect(response.body.error.message).toEqual(
+              "This time slot is already reserved by another user. Please choose a different time."
+            );
+          });
+      });
     });
 
     it("should update a reserved slot and it should not appear in available slots", async () => {
@@ -1266,6 +1325,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     });
 
     describe("variable length", () => {
+      let responseReservedVariableSlot: ReserveSlotOutputData_2024_09_04;
       it("should not be able to reserve a slot for variable length event type with invalid duration", async () => {
         const slotStartTime = "2050-09-05T10:00:00.000Z";
         const reserveResponse = await request(app.getHttpServer())
@@ -1279,7 +1339,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
           .expect(400);
 
         expect(reserveResponse.body.error.message).toEqual(
-          "Provided 'slotDuration' is not one of the possible lengths for the event type. The possible lengths for this variable length event type are: 15, 30, 45, 60"
+          "Provided 'slotDuration' is not one of the possible lengths for the event type. The possible lengths for this variable length event type are: 15, 30, 45, 60, 180"
         );
       });
 
@@ -1303,17 +1363,17 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
         const reserveResponseBody: ReserveSlotOutputResponse_2024_09_04 = reserveResponse.body;
         expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
-        const responseReservedSlot: ReserveSlotOutputData_2024_09_04 = reserveResponseBody.data;
-        expect(responseReservedSlot.reservationUid).toBeDefined();
-        expect(responseReservedSlot.eventTypeId).toEqual(variableLengthEventType.id);
-        expect(responseReservedSlot.slotStart).toEqual(slotStartTime);
-        expect(responseReservedSlot.slotDuration).toEqual(slotDuration);
-        expect(responseReservedSlot.slotEnd).toEqual(
+        responseReservedVariableSlot = reserveResponseBody.data;
+        expect(responseReservedVariableSlot.reservationUid).toBeDefined();
+        expect(responseReservedVariableSlot.eventTypeId).toEqual(variableLengthEventType.id);
+        expect(responseReservedVariableSlot.slotStart).toEqual(slotStartTime);
+        expect(responseReservedVariableSlot.slotDuration).toEqual(slotDuration);
+        expect(responseReservedVariableSlot.slotEnd).toEqual(
           DateTime.fromISO(slotStartTime, { zone: "UTC" }).plus({ minutes: slotDuration }).toISO()
         );
-        expect(responseReservedSlot.reservationDuration).toEqual(5);
+        expect(responseReservedVariableSlot.reservationDuration).toEqual(5);
 
-        if (!responseReservedSlot.reservationUid) {
+        if (!responseReservedVariableSlot.reservationUid) {
           throw new Error("Reserved slot uid is undefined");
         }
 
@@ -1337,15 +1397,40 @@ describe("Slots 2024-09-04 Endpoints", () => {
         );
         expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
 
-        const dbSlot = await selectedSlotsRepositoryFixture.getByUid(reservedSlot.reservationUid);
+        const dbSlot = await selectedSlotsRepositoryFixture.getByUid(
+          responseReservedVariableSlot.reservationUid
+        );
         expect(dbSlot).toBeDefined();
         if (dbSlot) {
           const dbReleaseAt = DateTime.fromJSDate(dbSlot.releaseAt, { zone: "UTC" }).toISO();
           const expectedReleaseAt = DateTime.fromISO(now, { zone: "UTC" }).plus({ minutes: 5 }).toISO();
           expect(dbReleaseAt).toEqual(expectedReleaseAt);
-          expect(responseReservedSlot.reservationUntil).toEqual(expectedReleaseAt);
+          expect(responseReservedVariableSlot.reservationUntil).toEqual(expectedReleaseAt);
         }
         clear();
+      });
+
+      it("request slot contains already existing reserved slot", async () => {
+        // Try to reserve 9:45-12:45 when 10:00-11:00 is taken
+        const newSlotStart = DateTime.fromISO(responseReservedVariableSlot.slotStart)
+          .minus({ minutes: 15 })
+          .toISO();
+
+        await request(app.getHttpServer())
+          .post(`/v2/slots/reservations`)
+          .send({
+            eventTypeId: variableLengthEventType.id,
+            slotStart: newSlotStart,
+            slotDuration: 180,
+          })
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+          .set("Authorization", `Bearer cal_test_${apiKeyString}`)
+          .expect(422)
+          .then((response) => {
+            expect(response.body.error.message).toEqual(
+              "This time slot is already reserved by another user. Please choose a different time."
+            );
+          });
       });
     });
 

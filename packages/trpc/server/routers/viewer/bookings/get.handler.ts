@@ -7,8 +7,9 @@ import dayjs from "@calcom/dayjs";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
-import { parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
+import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
+import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
@@ -936,27 +937,31 @@ function addAdvancedAttendeeWhereClause(
 
   switch (operator) {
     case "endsWith":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "like", `%${operand}`);
+      fullQuery = fullQuery.where(`Attendee.${key}`, "ilike", `%${operand}`);
       break;
 
     case "startsWith":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "like", `${operand}%`);
+      fullQuery = fullQuery.where(`Attendee.${key}`, "ilike", `${operand}%`);
       break;
 
     case "equals":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "=", `${operand}`);
+      fullQuery = fullQuery.where((eb) =>
+        eb(eb.fn<string>("lower", [`Attendee.${key}`]), "=", `${operand.toLowerCase()}`)
+      );
       break;
 
     case "notEquals":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "!=", `${operand}`);
+      fullQuery = fullQuery.where((eb) =>
+        eb(eb.fn<string>("lower", [`Attendee.${key}`]), "!=", `${operand.toLowerCase()}`)
+      );
       break;
 
     case "contains":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "like", `%${operand}%`);
+      fullQuery = fullQuery.where(`Attendee.${key}`, "ilike", `%${operand}%`);
       break;
 
     case "notContains":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "not like", `%${operand}%`);
+      fullQuery = fullQuery.where(`Attendee.${key}`, "not ilike", `%${operand}%`);
       break;
 
     case "isEmpty":
