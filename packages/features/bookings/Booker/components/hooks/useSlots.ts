@@ -137,7 +137,7 @@ export const useSlots = (event: { id: number; length: number } | null) => {
         eventTypeId,
         slotUtcEndDate: dayjs(timeSlotToBeBooked).utc().add(eventDuration, "minutes").toISOString(),
         _isDryRun: isBookingDryRun(searchParams),
-        bookingUid: seatedEventData.bookingUid,
+        bookingUid: seatedEventData.bookingUid || undefined,
       });
     }
   };

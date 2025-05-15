@@ -80,7 +80,7 @@ export const useSlots = (
           .add(selectedDuration || event.data.length, "minutes")
           .format(),
         _isDryRun: isBookingDryRun,
-        bookingUid: seatedEventData.bookingUid,
+        bookingUid: seatedEventData.bookingUid || undefined,
       });
     }
   };
