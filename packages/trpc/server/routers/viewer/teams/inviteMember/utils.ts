@@ -236,49 +236,6 @@ export function getOrgConnectionInfo({
   return { orgId, autoAccept };
 }
 
-export async function createNewUsersConnectToOrgIfExists({
-  invitations,
-  isOrg,
-  teamId,
-  parentId,
-  autoAcceptEmailDomain,
-  orgConnectInfoByUsernameOrEmail,
-  isPlatformManaged,
-  timeFormat,
-  weekStart,
-  timeZone,
-  language,
-  creationSource,
-}: {
-  invitations: Invitation[];
-  isOrg: boolean;
-  teamId: number;
-  parentId?: number | null;
-  autoAcceptEmailDomain: string | null;
-  orgConnectInfoByUsernameOrEmail: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
-  isPlatformManaged?: boolean;
-  timeFormat?: number;
-  weekStart?: string;
-  timeZone?: string;
-  language: string;
-  creationSource: CreationSource;
-}) {
-  return await MembershipRepository.createNewUsersWithMemberships({
-    invitations,
-    isOrg,
-    teamId,
-    parentId,
-    autoAcceptEmailDomain,
-    orgConnectInfoByUsernameOrEmail,
-    isPlatformManaged,
-    timeFormat,
-    weekStart,
-    timeZone,
-    language,
-    creationSource,
-  });
-}
-
 export async function createMemberships({
   teamId,
   language,
@@ -806,7 +763,7 @@ export async function handleNewUsersInvites({
 }) {
   const translation = await getTranslation(language, "common");
 
-  await createNewUsersConnectToOrgIfExists({
+  await MembershipRepository.createNewUsersConnectToOrgIfExists({
     invitations: invitationsForNewUsers,
     isOrg,
     teamId: teamId,

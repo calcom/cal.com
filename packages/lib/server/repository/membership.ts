@@ -397,7 +397,7 @@ export class MembershipRepository {
     }
   }
 
-  static async createNewUsersWithMemberships({
+  static async createNewUsersConnectToOrgIfExists({
     invitations,
     isOrg,
     teamId,
