@@ -244,6 +244,7 @@ export const roundRobinReassignment = async ({
       },
       data: {
         userId: reassignedRRHost.id,
+        userPrimaryEmail: reassignedRRHost.email,
         title: newBookingTitle,
       },
       select: bookingSelect,
