@@ -1,10 +1,22 @@
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import { vi } from "vitest";
 
-import { prisma } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 
-import { outOfOfficeCreateOrUpdate } from "../ooo/outOfOfficeCreateOrUpdate.handler";
+import { outOfOfficeCreateOrUpdate } from "./outOfOfficeCreateOrUpdate.handler";
 
+// Mock the module first with a default export object (empty for now)
+vi.mock("@calcom/prisma", () => ({
+  default: {
+    outOfOfficeEntry: {
+      findFirst: vi.fn(),
+      findUnique: vi.fn(),
+      upsert: vi.fn(),
+    },
+  },
+}));
+
+// Setup mocks to control the implementations
 const prismaMock = {
   outOfOfficeEntry: {
     findFirst: vi.fn().mockResolvedValue(undefined),
@@ -12,6 +24,8 @@ const prismaMock = {
     upsert: vi.fn().mockResolvedValue(undefined),
   },
 };
+
+// Override the default mocks with your controlled mocks
 vi.spyOn(prisma.outOfOfficeEntry, "findFirst").mockImplementation(prismaMock.outOfOfficeEntry.findFirst);
 vi.spyOn(prisma.outOfOfficeEntry, "findUnique").mockImplementation(prismaMock.outOfOfficeEntry.findUnique);
 vi.spyOn(prisma.outOfOfficeEntry, "upsert").mockImplementation(prismaMock.outOfOfficeEntry.upsert);
