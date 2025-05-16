@@ -22,12 +22,14 @@ export function UserListTableSkeleton() {
 
               {/* Filters */}
               <SkeletonButton className="h-9 w-28" />
-              <SkeletonButton className="h-9 w-24" />
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <SkeletonButton className="h-9 w-28" />
+              <SkeletonButton className="h-9 w-20" />
               <SkeletonButton className="h-9 w-24" />
             </div>
+          </div>
+          <div>
+            <SkeletonButton className="h-9 w-24" />
           </div>
         </div>
       </div>
