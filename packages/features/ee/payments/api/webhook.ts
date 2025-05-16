@@ -5,7 +5,7 @@ import type Stripe from "stripe";
 
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
-import { getAllCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import EventManager from "@calcom/lib/EventManager";
@@ -75,7 +75,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
   });
 
   const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(eventType?.metadata);
-  const allCredentials = await getAllCredentials(user, {
+  const allCredentials = await getAllCredentialsIncludeServiceAccountKey(user, {
     ...booking.eventType,
     metadata,
   });
