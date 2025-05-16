@@ -1,3 +1,5 @@
+import type { TFunction } from "i18next";
+
 import dayjs from "@calcom/dayjs";
 import {
   sendCreditBalanceLimitReachedEmails,
@@ -17,6 +19,38 @@ import { CreditType } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["[CreditService]"] });
 
+type LowCreditBalanceResultBase = {
+  team?: {
+    id: number;
+    name: string;
+    adminAndOwners: {
+      id: number;
+      name: string;
+      email: string;
+      t: TFunction;
+    }[];
+  };
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+    t: TFunction;
+  };
+};
+
+type LowCreditBalanceLimitReachedResult = LowCreditBalanceResultBase & {
+  type: "LIMIT_REACHED";
+  teamId?: number;
+  userId?: number;
+};
+
+type LowCreditBalanceWarningResult = LowCreditBalanceResultBase & {
+  type: "WARNING";
+  balance: number;
+};
+
+type LowCreditBalanceResult = LowCreditBalanceLimitReachedResult | LowCreditBalanceWarningResult | null;
+
 export class CreditService {
   async chargeCredits({
     userId,
@@ -31,50 +65,66 @@ export class CreditService {
     bookingUid?: string;
     smsSid?: string;
   }) {
-    return await prisma.$transaction(async (tx) => {
-      let teamIdToCharge = credits === 0 && teamId ? teamId : undefined;
-      let creditType: CreditType = CreditType.ADDITIONAL;
-      let remainingCredits;
-      let userIdToCharge;
-      if (!teamIdToCharge) {
-        const result = await this._getUserOrTeamToCharge({
-          credits: credits ?? 1, // if we don't have exact credits, we check for at east 1 credit available
-          userId,
-          teamId,
-          tx,
-        });
-        teamIdToCharge = result?.teamId;
-        userIdToCharge = result?.userId;
-        creditType = result?.creditType ?? creditType;
-        remainingCredits = result?.remainingCredits;
-      }
+    return await prisma
+      .$transaction(async (tx) => {
+        let teamIdToCharge = credits === 0 && teamId ? teamId : undefined;
+        let creditType: CreditType = CreditType.ADDITIONAL;
+        let remainingCredits;
+        let userIdToCharge;
+        if (!teamIdToCharge) {
+          const result = await this._getUserOrTeamToCharge({
+            credits: credits ?? 1, // if we don't have exact credits, we check for at east 1 credit available
+            userId,
+            teamId,
+            tx,
+          });
+          teamIdToCharge = result?.teamId;
+          userIdToCharge = result?.userId;
+          creditType = result?.creditType ?? creditType;
+          remainingCredits = result?.remainingCredits;
+        }
 
-      if (!teamIdToCharge && !userIdToCharge) {
-        log.error("No team or user found to charge. No credit expense log created");
-        return null;
-      }
+        if (!teamIdToCharge && !userIdToCharge) {
+          log.error("No team or user found to charge. No credit expense log created");
+          return null;
+        }
 
-      await this._createExpenseLog({
-        bookingUid,
-        smsSid,
-        teamId: teamIdToCharge,
-        userId: userIdToCharge,
-        credits,
-        creditType,
-        tx,
-      });
-
-      if (credits) {
-        await this._handleLowCreditBalance({
+        await this._createExpenseLog({
+          bookingUid,
+          smsSid,
           teamId: teamIdToCharge,
           userId: userIdToCharge,
-          remainingCredits: remainingCredits ?? 0,
+          credits,
+          creditType,
           tx,
         });
-      }
 
-      return { teamId: teamIdToCharge, userId: userIdToCharge };
-    });
+        let lowCreditBalanceResult = null;
+        if (credits) {
+          lowCreditBalanceResult = await this._handleLowCreditBalance({
+            teamId: teamIdToCharge,
+            userId: userIdToCharge,
+            remainingCredits: remainingCredits ?? 0,
+            tx,
+          });
+        }
+
+        return {
+          teamId: teamIdToCharge,
+          userId: userIdToCharge,
+          lowCreditBalanceResult,
+        };
+      })
+      .then(async (result) => {
+        if (result?.lowCreditBalanceResult) {
+          // send emails after transaction is successfully committed
+          await this.handleLowCreditBalanceResult(result.lowCreditBalanceResult);
+        }
+        return {
+          teamId: result?.teamId,
+          userId: result?.userId,
+        };
+      });
   }
 
   async hasAvailableCredits({ userId, teamId }: { userId?: number | null; teamId?: number | null }) {
@@ -294,20 +344,6 @@ export class CreditService {
   - Sends limit reached email
   - cancels all already scheduled SMS (from the next two hours)
   */
-  async handleLowCreditBalance({
-    teamId,
-    userId,
-    remainingCredits,
-  }: {
-    teamId?: number | null;
-    userId?: number | null;
-    remainingCredits: number;
-  }) {
-    return prisma.$transaction(async (tx) => {
-      return this._handleLowCreditBalance({ teamId, userId, remainingCredits, tx });
-    });
-  }
-
   private async _handleLowCreditBalance({
     teamId,
     userId,
@@ -318,7 +354,7 @@ export class CreditService {
     userId?: number | null;
     remainingCredits: number;
     tx: PrismaTransaction;
-  }) {
+  }): Promise<LowCreditBalanceResult> {
     let warningLimit = 0;
     if (teamId) {
       const { totalMonthlyCredits } = await this._getAllCreditsForTeam({ teamId, tx });
@@ -337,7 +373,7 @@ export class CreditService {
         creditBalance?.limitReachedAt &&
         (!teamId || dayjs(creditBalance?.limitReachedAt).isAfter(dayjs().startOf("month")))
       ) {
-        return; // user has limit already reached or team has already reached limit this month
+        return null; // user has limit already reached or team has already reached limit this month
       }
 
       const teamWithAdmins = creditBalance?.team
@@ -363,15 +399,10 @@ export class CreditService {
 
       if ((!teamWithAdmins || !teamWithAdmins.adminAndOwners?.length) && !user) {
         log.error("Team or user not found to send warning email");
-        return;
+        return null;
       }
 
       if (remainingCredits <= 0) {
-        await sendCreditBalanceLimitReachedEmails({
-          team: teamWithAdmins,
-          user,
-        });
-
         await CreditsRepository.updateCreditBalance(
           {
             teamId,
@@ -384,21 +415,21 @@ export class CreditService {
           tx
         );
 
-        await cancelScheduledMessagesAndScheduleEmails({ teamId, userId });
-        return;
+        return {
+          type: "LIMIT_REACHED" as const,
+          team: teamWithAdmins,
+          user,
+          teamId,
+          userId,
+        };
       }
+
       if (
         creditBalance?.warningSentAt &&
         (!teamId || dayjs(creditBalance?.warningSentAt).isAfter(dayjs().startOf("month")))
       ) {
-        return; // user has already received a warning or team has already sent warning email this month
+        return null; // user has already received a warning or team has already sent warning email this month
       }
-
-      await sendCreditBalanceLowWarningEmails({
-        balance: remainingCredits,
-        team: teamWithAdmins,
-        user,
-      });
 
       await CreditsRepository.updateCreditBalance(
         {
@@ -410,7 +441,13 @@ export class CreditService {
         },
         tx
       );
-      return;
+
+      return {
+        type: "WARNING" as const,
+        balance: remainingCredits,
+        team: teamWithAdmins,
+        user,
+      };
     }
 
     await CreditsRepository.updateCreditBalance(
@@ -424,6 +461,60 @@ export class CreditService {
       },
       tx
     );
+
+    return null;
+  }
+
+  private async handleLowCreditBalanceResult(result: LowCreditBalanceResult) {
+    if (!result) return;
+
+    try {
+      if (result.type === "LIMIT_REACHED") {
+        await Promise.all([
+          sendCreditBalanceLimitReachedEmails({
+            team: result.team,
+            user: result.user,
+          }).catch((error) => {
+            log.error("Failed to send credit limit reached email", error, { result });
+          }),
+          cancelScheduledMessagesAndScheduleEmails({ teamId: result.teamId, userId: result.userId }).catch(
+            (error) => {
+              log.error("Failed to cancel scheduled messages", error, { result });
+            }
+          ),
+        ]);
+      } else if (result.type === "WARNING") {
+        await sendCreditBalanceLowWarningEmails({
+          balance: result.balance,
+          team: result.team,
+          user: result.user,
+        }).catch((error) => {
+          log.error("Failed to send credit warning email", error, { result });
+        });
+      }
+    } catch (error) {
+      // Catch any other unexpected errors
+      log.error("Unexpected error handling low credit balance result", error, { result });
+    }
+  }
+
+  async handleLowCreditBalance({
+    teamId,
+    userId,
+    remainingCredits,
+  }: {
+    teamId?: number | null;
+    userId?: number | null;
+    remainingCredits: number;
+  }) {
+    return prisma
+      .$transaction(async (tx) => {
+        const result = await this._handleLowCreditBalance({ teamId, userId, remainingCredits, tx });
+        return result;
+      })
+      .then(async (result) => {
+        await this.handleLowCreditBalanceResult(result);
+      });
   }
 
   async getMonthlyCredits(teamId: number) {
