@@ -61,6 +61,12 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       requiresConfirmation: true,
       requiresConfirmationForFreeEmail: true,
       requiresBookerEmailVerification: true,
+      optionalGuestTeamMembers: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
       maxLeadThreshold: true,
       includeNoShowInRRCalculation: true,
       minimumBookingNotice: true,

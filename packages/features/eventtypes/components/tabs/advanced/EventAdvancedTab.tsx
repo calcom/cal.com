@@ -63,6 +63,7 @@ import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
 import type { EmailNotificationToggleCustomClassNames } from "./DisableAllEmailsSetting";
 import { DisableAllEmailsSetting } from "./DisableAllEmailsSetting";
+import GuestTeamMemberController from "./GuestTeamMemberController";
 import type { RequiresConfirmationCustomClassNames } from "./RequiresConfirmationController";
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
@@ -599,7 +600,6 @@ export const EventAdvancedTab = ({
         onRequiresConfirmation={setRequiresConfirmation}
         customClassNames={customClassNames?.requiresConfirmation}
       />
-
       {!isPlatform && (
         <>
           <Controller
@@ -643,7 +643,6 @@ export const EventAdvancedTab = ({
           />
         </>
       )}
-
       <Controller
         name="canSendCalVideoTranscriptionEmails"
         render={({ field: { value, onChange } }) => (
@@ -1160,6 +1159,7 @@ export const EventAdvancedTab = ({
           </SettingsToggle>
         )}
       />
+      {team && team?.members.length > 0 && <GuestTeamMemberController team={team} eventType={eventType} />}
       {isRoundRobinEventType && (
         <Controller
           name="rescheduleWithSameRoundRobinHost"
@@ -1225,7 +1225,6 @@ export const EventAdvancedTab = ({
           )}
         />
       )}
-
       {team?.parentId && (
         <>
           <Controller
