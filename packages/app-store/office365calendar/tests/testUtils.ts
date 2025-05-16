@@ -10,7 +10,6 @@ import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import type { NewCalendarEventType } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
 import { type createUsersFixture } from "@calcom/web/playwright/fixtures/users";
 import { test } from "@calcom/web/playwright/lib/fixtures";
@@ -21,16 +20,15 @@ const client_id = process.env.E2E_TEST_OUTLOOK_CALENDAR_CLIENT_ID;
 const client_secret = process.env.E2E_TEST_OUTLOOK_CALENDAR_CLIENT_KEY;
 const tenant_id = process.env.E2E_TEST_OUTLOOK_CALENDAR_TENANT_ID;
 const testUserEmail = process.env.E2E_TEST_OUTLOOK_CALENDAR_EMAIL;
+let primaryCalendarExternalId: string | undefined = undefined;
 let existingAppKeys: Prisma.JsonValue;
 let workspacePlatformId = -1;
+let eventsToDelete: string[] = [];
 
-// Uses 'client_credentials' grant and creates DelegatedCredential
-// Skips the test if credentials are not available or if any error fetching the tokens.
-async function fetchTokensAndCreateCredential(userId: number, orgId: number) {
-  let credential: CredentialForCalendarServiceWithTenantId | undefined = undefined;
-
-  try {
-    if (testUserEmail && client_id && client_secret && tenant_id) {
+// Uses 'client_credentials' grant
+async function getAccessToken() {
+  if (client_id && client_secret && tenant_id) {
+    try {
       const tokenEndpoint = `https://login.microsoftonline.com/${tenant_id}/oauth2/v2.0/token`;
       const body = new URLSearchParams({
         client_id,
@@ -45,9 +43,27 @@ async function fetchTokensAndCreateCredential(userId: number, orgId: number) {
         },
         body: body.toString(),
       });
+      if (!response.ok) {
+        throw Error;
+      }
       const data = await response.json();
+      return data;
+    } catch (err) {
+      test.skip(true, "Not able to get access token");
+    }
+  }
+}
 
-      if (data["access_token"]) {
+// Create Credential with DelegatedCredential, as Office365CalendarService uses 'client_credentials' grant type for DelegatedCredential.
+// 'client_credentials' grant type is non interactive, ideal for tests.
+// Skips the test if credentials are not available or if any error fetching the tokens.
+async function fetchTokensAndCreateCredential(userId: number, orgId: number) {
+  let credential: CredentialForCalendarServiceWithTenantId | undefined = undefined;
+
+  try {
+    if (testUserEmail && client_id && client_secret && tenant_id) {
+      const data = await getAccessToken();
+      if (data?.access_token) {
         const platformSlug = `office365`;
         const workspacePlatform = await prisma.workspacePlatform.create({
           data: {
@@ -185,10 +201,11 @@ export async function setUpTestUserForIntegrationTest(users: ReturnType<typeof c
   const outlookCalendarService = new Office365CalendarService(outlookCredential!);
   const calendars = await outlookCalendarService.listCalendars();
   const primaryCalendar = calendars.find((calendar) => calendar.primary);
+  primaryCalendarExternalId = primaryCalendar?.externalId;
 
   test.skip(!primaryCalendar || !primaryCalendar.externalId, "Primary Calendar not found");
 
-  if (primaryCalendar && outlookCredential) {
+  if (primaryCalendarExternalId && outlookCredential) {
     selectedCalendar = await prisma.selectedCalendar.create({
       data: {
         user: {
@@ -197,7 +214,7 @@ export async function setUpTestUserForIntegrationTest(users: ReturnType<typeof c
           },
         },
         integration,
-        externalId: primaryCalendar.externalId,
+        externalId: primaryCalendarExternalId,
         credential: {
           connect: {
             id: outlookCredential.id,
@@ -214,7 +231,7 @@ export async function setUpTestUserForIntegrationTest(users: ReturnType<typeof c
           },
         },
         integration,
-        externalId: primaryCalendar.externalId,
+        externalId: primaryCalendarExternalId,
         primaryEmail: testUserEmail,
         credential: {
           connect: {
@@ -291,6 +308,30 @@ export async function createOutlookCalendarEvents(credentialId: number, destinat
 
   const outlookCalendarService = new Office365CalendarService(refreshedOutlookCredential);
 
+  // Ensure the calendar is clean before creating new events
+  // Deletes stale events that are older than 3 minutes
+  // Threshold is set to 3 minutes to avoid deleting events created by tests running in parallel
+  if (primaryCalendarExternalId) {
+    const staleEvents = await outlookCalendarService.fetchAvailability(
+      getTimeMin(),
+      getTimeMax(),
+      [primaryCalendarExternalId],
+      true
+    );
+    const thresholdMs = 3 * 60 * 1000;
+    const thresholdTime = new Date(Date.now() - thresholdMs);
+    staleEvents.map((event) => {
+      if (event?.createdDateTime) {
+        const createdAt = new Date(event?.createdDateTime);
+        if (event?.id && createdAt < thresholdTime) {
+          eventsToDelete.push(event?.id);
+        }
+      }
+    });
+
+    await deleteOutlookCalendarEvents();
+  }
+
   const tFunction = await getTranslation("en", "common");
   const baseEvent = {
     title: "E2E_TEST_TEAM_EVENT",
@@ -316,16 +357,15 @@ export async function createOutlookCalendarEvents(credentialId: number, destinat
     destinationCalendar.externalId
   );
 
-  const outlookCalEventsCreated: NewCalendarEventType[] = [];
   for (const event of expectedCacheValue) {
-    outlookCalEventsCreated.push(
-      await outlookCalendarService.createEvent(
-        { ...baseEvent, startTime: event.start, endTime: event.end },
-        credentialId
-      )
+    const createdEvent = await outlookCalendarService.createEvent(
+      { ...baseEvent, startTime: event.start, endTime: event.end },
+      credentialId
     );
+    eventsToDelete.push(createdEvent.id);
   }
-  return { outlookCalEventsCreated, expectedCacheKey, expectedCacheValue };
+
+  return { expectedCacheKey, expectedCacheValue };
 }
 
 // Invokes office365Calendar/webhook to trigger fetchAvailabilityAndSetCache()
@@ -364,27 +404,25 @@ export async function callWebhook(
   return webhookResponse;
 }
 
-// Deletes the events on actual Microsoft Outlook Calendar
-export async function deleteOutlookCalendarEvents(events: NewCalendarEventType[], credentialId: number) {
-  const refreshedOutlookCredential = {
-    ...(await prisma.credential.findFirstOrThrow({
-      where: {
-        id: credentialId,
-      },
-      select: credentialForCalendarServiceSelect,
-    })),
-    delegatedTo: {
-      serviceAccountKey: {
-        tenant_id,
-        client_id,
-        private_key: client_secret,
-      },
+// Deletes the events on actual Microsoft Outlook Calendar using the batch API
+export async function deleteOutlookCalendarEvents() {
+  if (eventsToDelete.length === 0) return;
+  const data = await getAccessToken();
+  const requests = eventsToDelete.map((value, index) => ({
+    id: index.toString(),
+    method: "DELETE",
+    url: `/users/${testUserEmail}/calendar/events/${value}`,
+  }));
+  const response = await fetch(`https://graph.microsoft.com/v1.0/$batch`, {
+    method: "POST",
+    body: JSON.stringify({ requests }),
+    headers: {
+      Authorization: `Bearer ${data.access_token}`,
+      "Content-Type": "application/json",
     },
-  } as CredentialForCalendarServiceWithTenantId;
-
-  const outlookCalendarService = new Office365CalendarService(refreshedOutlookCredential);
-  for (const event of events) {
-    await outlookCalendarService.deleteEvent(event.id);
+  });
+  if (response.ok) {
+    eventsToDelete = [];
   }
 }
 
@@ -400,6 +438,7 @@ export async function cleanUpAfterIntegrationTest() {
       keys: existingAppKeys ?? {},
     },
   });
+
   if (workspacePlatformId !== -1) {
     await prisma.workspacePlatform.delete({
       where: {
@@ -407,6 +446,7 @@ export async function cleanUpAfterIntegrationTest() {
       },
     });
   }
+  await deleteOutlookCalendarEvents(); //delete events if test exits in between
 }
 
 // For Non-Integration Tests

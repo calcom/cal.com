@@ -56,8 +56,11 @@ test.describe("Office365Calendar - Integration Tests", () => {
       } = await setUpTestUserForIntegrationTest(users);
 
       // Creates actual events in installed outlook calendar.
-      const { outlookCalEventsCreated, expectedCacheKey, expectedCacheValue } =
-        await createOutlookCalendarEvents(credentialId!, destinationCalendar, testUser);
+      const { expectedCacheKey, expectedCacheValue } = await createOutlookCalendarEvents(
+        credentialId!,
+        destinationCalendar,
+        testUser
+      );
 
       // The Microsoft Graph API '/subscription' endpoint triggers webhook validation.
       // Webhook validation and receiving notification through webhook requires 'https'.
@@ -84,11 +87,9 @@ test.describe("Office365Calendar - Integration Tests", () => {
       });
       expect(calendarCache).toBeTruthy();
       const actualCacheValue = calendarCache.value as EventBusyDate[];
-
       const uniqueActualCacheValue = Array.from(
         new Map(actualCacheValue.map((item) => [`${item.start}-${item.end}`, item])).values()
       );
-
       const actualMapped = uniqueActualCacheValue.map((item) => ({
         start: new Date(item.start),
         end: new Date(item.end),
@@ -106,7 +107,7 @@ test.describe("Office365Calendar - Integration Tests", () => {
       // Delete actual events in real outlook calendar.
       // This step is done to verify that the busy times are fetched from CalendarCache and NOT Graph Apis when booking page is visited with cal.cache=true.
       // Practically the outlook calendar and CalendarCache should be in sync, but this step is done only to test cache functionality (.i.e. to verify that cached data is fetched).
-      await deleteOutlookCalendarEvents(outlookCalEventsCreated, credentialId!);
+      await deleteOutlookCalendarEvents();
 
       await testUser.apiLogin();
       await doOnOrgDomain(
