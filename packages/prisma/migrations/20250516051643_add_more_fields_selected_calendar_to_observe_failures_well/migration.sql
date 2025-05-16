@@ -8,8 +8,11 @@ ALTER TABLE "RoutingFormResponseField" DROP CONSTRAINT "RoutingFormResponseField
 ALTER TABLE "RoutingFormResponseField" ALTER COLUMN "responseId" DROP NOT NULL;
 
 -- AlterTable
-ALTER TABLE "SelectedCalendar" ADD COLUMN     "attempts" INTEGER NOT NULL DEFAULT 0,
-ADD COLUMN     "lastErrorAt" TIMESTAMP(3);
+ALTER TABLE "SelectedCalendar" ADD COLUMN     "lastUnwatchErrorAt" TIMESTAMP(3),
+ADD COLUMN     "lastWatchErrorAt" TIMESTAMP(3),
+ADD COLUMN     "unwatchAttempts" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "unwatchError" TEXT,
+ADD COLUMN     "watchAttempts" INTEGER NOT NULL DEFAULT 0;
 
 -- CreateIndex
 CREATE INDEX "App_RoutingForms_FormResponse_routedToBookingUid_idx" ON "App_RoutingForms_FormResponse"("routedToBookingUid");

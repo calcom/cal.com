@@ -6,8 +6,6 @@ import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import { buildCredentialPayloadForPrisma } from "../buildCredentialPayloadForCalendar";
 
-const maxAttempts = 3;
-
 export type UpdateArguments = {
   where: FindManyArgs["where"];
   data: Prisma.SelectedCalendarUpdateManyArgs["data"];
@@ -140,6 +138,7 @@ export class SelectedCalendarRepository {
   static async getNextBatchToWatch(limit = 100) {
     // Get selected calendars from users that belong to a team that has calendar cache enabled
     const oneDayInMS = 24 * 60 * 60 * 1000;
+    const maxAttempts = 3;
     const tomorrowTimestamp = String(new Date().getTime() + oneDayInMS);
     const nextBatch = await prisma.selectedCalendar.findMany({
       take: limit,
@@ -159,14 +158,25 @@ export class SelectedCalendarRepository {
         },
         // RN we only support google calendar subscriptions for now
         integration: "google_calendar",
-        OR: [
-          { error: null, googleChannelExpiration: null },
-          { error: null, googleChannelExpiration: { lt: tomorrowTimestamp } },
-          { error: { not: null }, attempts: { lt: maxAttempts }, googleChannelExpiration: null },
+        AND: [
           {
-            error: { not: null },
-            attempts: { lt: maxAttempts },
-            googleChannelExpiration: { lt: tomorrowTimestamp },
+            OR: [
+              // Either is a calendar that has not errored
+              { error: null },
+              // Or is a calendar that has errored but has not reached max attempts
+              {
+                error: { not: null },
+                watchAttempts: { lt: maxAttempts },
+              },
+            ],
+          },
+          {
+            OR: [
+              // Either is a calendar pending to be watched
+              { googleChannelExpiration: null },
+              // Or is a calendar that is about to expire
+              { googleChannelExpiration: { lt: tomorrowTimestamp } },
+            ],
           },
         ],
       },
@@ -182,19 +192,34 @@ export class SelectedCalendarRepository {
       // RN we only support google calendar subscriptions for now
       integration: "google_calendar",
       googleChannelExpiration: { not: null },
-      user: {
-        teams: {
-          every: {
-            team: {
-              features: {
-                none: {
-                  featureId: "calendar-cache",
+      AND: [
+        {
+          OR: [
+            // Either is a calendar that has not errored during unwatch
+            { unwatchError: null },
+            // Or is a calendar that has errored during unwatch but has not reached max attempts
+            {
+              unwatchError: { not: null },
+              unwatchAttempts: { lt: maxAttempts },
+            },
+          ],
+        },
+        {
+          user: {
+            teams: {
+              every: {
+                team: {
+                  features: {
+                    none: {
+                      featureId: "calendar-cache",
+                    },
+                  },
                 },
               },
             },
           },
         },
-      },
+      ],
     };
     // If calendar cache is disabled globally, we skip team features and unwatch all subscriptions
     const nextBatch = await prisma.selectedCalendar.findMany({
@@ -343,6 +368,22 @@ export class SelectedCalendarRepository {
     return await prisma.selectedCalendar.update({
       where: { id },
       data,
+    });
+  }
+
+  static async setErrorInWatching({ id, error }: { id: string; error: string }) {
+    await SelectedCalendarRepository.updateById(id, {
+      error,
+      attempts: { increment: 1 },
+      lastWatchErrorAt: new Date(),
+    });
+  }
+
+  static async setErrorInUnwatching({ id, error }: { id: string; error: string }) {
+    await SelectedCalendarRepository.updateById(id, {
+      unwatchError: error,
+      attempts: { increment: 1 },
+      lastUnwatchErrorAt: new Date(),
     });
   }
 }
