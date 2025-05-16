@@ -14,7 +14,7 @@ const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
   const userId = session.metadata?.userId ? Number(session.metadata.userId) : undefined;
 
   if (!teamId && !userId) {
-    throw new HttpCode(400, "Team id and user id, but at least one is required");
+    throw new HttpCode(400, "Team id and user id are missing, but at least one is required");
   }
 
   const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
