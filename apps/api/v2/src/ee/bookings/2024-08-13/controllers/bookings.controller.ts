@@ -424,10 +424,12 @@ export class BookingsController_2024_08_13 {
   }
   @Patch("/:bookingUid")
   @UseGuards(ApiAuthGuard, BookingUidGuard)
-  @Permissions([BOOKING_READ])
+  @Permissions([BOOKING_WRITE])
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary: "Get 'Booking References' for a booking",
+    summary: "Update the location of a booking",
+    description:
+      "Allows updating the location of an existing booking using one of the supported location types.",
   })
   @HttpCode(HttpStatus.OK)
   async updateBookingLocation(
