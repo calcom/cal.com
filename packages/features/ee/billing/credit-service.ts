@@ -25,14 +25,14 @@ type LowCreditBalanceResultBase = {
     name: string;
     adminAndOwners: {
       id: number;
-      name: string;
+      name: string | null;
       email: string;
       t: TFunction;
     }[];
   };
   user?: {
     id: number;
-    name: string;
+    name: string | null;
     email: string;
     t: TFunction;
   };
@@ -40,8 +40,8 @@ type LowCreditBalanceResultBase = {
 
 type LowCreditBalanceLimitReachedResult = LowCreditBalanceResultBase & {
   type: "LIMIT_REACHED";
-  teamId?: number;
-  userId?: number;
+  teamId?: number | null;
+  userId?: number | null;
 };
 
 type LowCreditBalanceWarningResult = LowCreditBalanceResultBase & {

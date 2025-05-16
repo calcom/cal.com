@@ -1,5 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import prisma, { type PrismaTransaction } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { CreditType } from "@calcom/prisma/enums";
 
 export class CreditsRepository {
