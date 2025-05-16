@@ -646,6 +646,14 @@ following
 15. Create a verify service
 16. Copy Verify Service SID to your `.env` file into the `TWILIO_VERIFY_SID` field
 
+## Changesets
+
+We use changesets to generate changelogs and publish public packages (packages with `private: true` are ignored).
+
+An example of good readme is [atoms readme](https://github.com/calcom/cal.com/blob/main/packages/platform/atoms/README.md). Every public package must:
+1. Follow semantic versioning when using changesets.
+2. Mark breaking changes using `❗️Breaking change`
+
 <!-- LICENSE -->
 
 ## License
