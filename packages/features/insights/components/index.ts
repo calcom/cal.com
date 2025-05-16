@@ -9,7 +9,7 @@ export { LowestRatedMembersTable } from "./LowestRatedMembersTable";
 export { MostBookedTeamMembersTable } from "./MostBookedTeamMembersTable";
 export { MostCancelledBookingsTables } from "./MostCancelledBookingsTables";
 export { PopularEventsTable } from "./PopularEventsTable";
-export { RecentFeedbackTable } from "./RecentFeedbackTable";
+export { FeedbackTableContainer } from "./FeedbackTableContainer";
 export { RoutedToPerPeriod } from "./RoutedToPerPeriod";
 export { RoutingFormResponsesTable, type RoutingFormTableType } from "./RoutingFormResponsesTable";
 export { RoutingKPICards } from "./RoutingKPICards";
