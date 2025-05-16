@@ -3,9 +3,52 @@
 ## Overview
 The PBAC system provides fine-grained access control for Cal.com using a combination of CRUD-based permissions and custom actions, while maintaining backward compatibility with the existing role system.
 
-## Key Concepts
+## Implementation
 
-### Permission Format
+### Permission Store
+The system uses a centralized Zustand store with optimized data structures for fast permission lookups:
+
+```typescript
+interface TeamPermissions {
+  roleId: string;
+  permissions: Set<PermissionString>; // O(1) lookup
+}
+
+interface PermissionStore {
+  teamPermissions: Map<number, TeamPermissions>; // O(1) lookup
+  setTeamPermissions: (permissions: Record<number, { roleId: string; permissions: PermissionString[] }>) => void;
+  hasPermission: (teamId: number, permission: PermissionString) => boolean;
+  hasPermissions: (teamId: number, permissions: PermissionString[]) => boolean;
+}
+```
+
+### Context Provider
+The system uses a React context provider that fetches all permissions once at the root level:
+
+```tsx
+<PermissionProvider>
+  <App />
+</PermissionProvider>
+```
+
+The provider automatically:
+- Fetches permissions for all teams the user has access to
+- Caches the results (5-minute stale time)
+- Updates the central store
+- Provides loading states
+
+### Permission Hooks
+Two main hooks are provided for checking permissions:
+
+```typescript
+// Check single permission
+const { hasPermission, isLoading } = usePermission(teamId, "team.update");
+
+// Check multiple permissions
+const { hasPermissions, isLoading } = usePermissions(teamId, ["team.update", "team.invite"]);
+```
+
+## Permission Format
 Permissions follow two formats:
 1. CRUD Permissions: `${resource}.${action}`
 2. Custom Actions: `custom:${resource}.${action}`
@@ -20,15 +63,15 @@ Permissions follow two formats:
 "custom:booking.readRecordings"
 ```
 
-### Role Types
-1. **Default Roles** (MembershipRole) (TODO) - We need to make a list of what permissions these get by default.
+## Role Types
+1. **Default Roles** (MembershipRole)
    - OWNER: Full access (`*.*`)
    - ADMIN: Extensive management permissions
    - MEMBER: Basic read permissions
 
 2. **Custom Roles**
    - Team-specific roles with granular permissions
-   - Can be assigned alongside default roles (For now - until we have a seeder or something)
+   - Can be assigned alongside default roles
 
 ## Permission Structure
 
@@ -70,39 +113,50 @@ export enum Resource {
 
 ## Usage Guide
 
-### 1. Creating Custom Roles
-```typescript
-const roleService = new RoleService(prisma);
+### 1. Setup Provider
+```tsx
+// app/layout.tsx or similar
+import { PermissionProvider } from "@calcom/features/pbac/context/PermissionProvider";
 
-// Create a role with CRUD and custom permissions
-await roleService.createRole({
-  name: "Event Manager",
-  teamId: 1,
-  permissions: [
-    "eventType.create",           // CRUD permission
-    "eventType.read",            // CRUD permission
-    "custom:team.invite",        // Custom action
-    "custom:booking.readRecordings" // Custom action
-  ]
-});
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <PermissionProvider>
+      {children}
+    </PermissionProvider>
+  );
+}
 ```
 
-### 2. Checking Permissions
-```typescript
-const permissionCheck = new PermissionCheckService(roleService);
+### 2. Use in Components
+```tsx
+import { usePermission, usePermissions } from "@calcom/features/pbac/hooks/usePermission";
 
-// Check CRUD permission
-const canCreateEvent = await permissionCheck.hasPermission(
-  membership,
-  "eventType.create"
-);
+function TeamSettings({ teamId }: { teamId: number }) {
+  // Single permission check
+  const { hasPermission, isLoading } = usePermission(teamId, "team.update");
+  
+  // Multiple permissions check
+  const { hasPermissions } = usePermissions(teamId, [
+    "team.update",
+    "team.invite"
+  ]);
 
-// Check custom action
-const canReadRecordings = await permissionCheck.hasPermission(
-  membership,
-  "custom:booking.readRecordings"
-);
+  if (isLoading) return <div>Loading...</div>;
+
+  return (
+    <div>
+      {hasPermission && <button>Update Team</button>}
+      {hasPermissions && <button>Update and Invite</button>}
+    </div>
+  );
+}
 ```
+
+### 3. Performance Considerations
+- Permission checks are O(1) using Map and Set data structures
+- Permissions are fetched once and cached for 5 minutes
+- No redundant API calls for permission checks
+- Automatic updates when permissions change via store
 
 ## Common Permission Combinations
 
