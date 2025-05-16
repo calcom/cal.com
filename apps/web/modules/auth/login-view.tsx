@@ -15,15 +15,14 @@ import { HOSTED_CAL_FEATURES, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/consta
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { useLastUsed, LastUsed } from "@calcom/lib/hooks/useLastUsed";
+import { LastUsed, useLastUsed } from "@calcom/lib/hooks/useLastUsed";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { EmailField } from "@calcom/ui/components/form";
-import { PasswordField } from "@calcom/ui/components/form";
+import { EmailField, PasswordField } from "@calcom/ui/components/form";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { WithNonceProps } from "@lib/withNonce";
@@ -254,12 +253,13 @@ PageProps & WithNonceProps<{}>) {
                   defaultValue={totpEmail || (searchParams?.get("email") as string)}
                   placeholder="john.doe@example.com"
                   required
+                  autoComplete="email"
                   {...register("email")}
                 />
                 <div className="relative">
                   <PasswordField
                     id="password"
-                    autoComplete="off"
+                    autoComplete="current-password"
                     required={!totpEmail}
                     className="mb-0"
                     {...register("password")}

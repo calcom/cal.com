@@ -8,6 +8,7 @@ import {
   CalendarAppDelegationCredentialConfigurationError,
 } from "@calcom/lib/CalendarAppError";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
+import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
@@ -249,9 +250,10 @@ export default class Office365CalendarService implements Calendar {
         ? `${await this.getUserEndpoint()}/calendars/${mainHostDestinationCalendar?.externalId}/events`
         : `${await this.getUserEndpoint()}/calendar/events`;
 
+      const formattedEvent = formatCalEvent(event);
       const response = await this.fetcher(eventsUrl, {
         method: "POST",
-        body: JSON.stringify(this.translateEvent(event)),
+        body: JSON.stringify(this.translateEvent(formattedEvent)),
       });
 
       const responseJson = await handleErrorsJson<NewCalendarEventType & { iCalUId: string }>(response);

@@ -6,7 +6,6 @@ export const apiHandlers = {
   alby: import("./alby/api"),
   amie: import("./amie/api"),
   applecalendar: import("./applecalendar/api"),
-  around: import("./around/api"),
   attio: import("./attio/api"),
   autocheckin: import("./autocheckin/api"),
   "baa-for-hipaa": import("./baa-for-hipaa/api"),

@@ -10,18 +10,17 @@ import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
-import { SchedulingType, WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
+import { SchedulingType, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
 import {
   getAllRemindersToCancel,
   getAllRemindersToDelete,
   getAllUnscheduledReminders,
-  select,
 } from "../lib/getWorkflowReminders";
 import { sendOrScheduleWorkflowEmails } from "../lib/reminders/providers/emailProvider";
 import {
@@ -42,38 +41,32 @@ export async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
-  const isSendgridEnabled = process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL;
+  const isSendgridEnabled = !!(process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL);
 
   if (isSendgridEnabled) {
-    // delete batch_ids with already past scheduled date from scheduled_sends
-    const remindersToDelete: { referenceId: string | null }[] = await getAllRemindersToDelete();
+    const remindersToDelete: { referenceId: string | null; id: number }[] = await getAllRemindersToDelete();
 
-    const deletePromises: Promise<any>[] = [];
-
-    for (const reminder of remindersToDelete) {
-      const deletePromise = deleteScheduledSend(reminder.referenceId);
-      deletePromises.push(deletePromise);
-    }
-
-    Promise.allSettled(deletePromises).then((results) => {
-      results.forEach((result) => {
-        if (result.status === "rejected") {
-          logger.error(`Error deleting batch id from scheduled_sends: ${result.reason}`);
+    const handlePastCancelledReminders = remindersToDelete.map(async (reminder) => {
+      try {
+        if (reminder.referenceId) {
+          await deleteScheduledSend(reminder.referenceId);
         }
-      });
-    });
-  }
-  //delete workflow reminders with past scheduled date
-  await prisma.workflowReminder.deleteMany({
-    where: {
-      method: WorkflowMethods.EMAIL,
-      scheduledDate: {
-        lte: dayjs().toISOString(),
-      },
-    },
-  });
+      } catch (err) {
+        logger.error(`Error deleting scheduled send (ref: ${reminder.referenceId}): ${err}`);
+      }
 
-  if (isSendgridEnabled) {
+      try {
+        await prisma.workflowReminder.update({
+          where: { id: reminder.id },
+          data: { referenceId: null },
+        });
+      } catch (err) {
+        logger.error(`Error updating reminder (id: ${reminder.id}): ${err}`);
+      }
+    });
+
+    await Promise.allSettled(handlePastCancelledReminders);
+
     //cancel reminders for cancelled/rescheduled bookings that are scheduled within the next hour
     const remindersToCancel: { referenceId: string | null; id: number }[] = await getAllRemindersToCancel();
 
@@ -106,20 +99,7 @@ export async function handler(req: NextRequest) {
   // schedule all unscheduled reminders within the next 72 hours
   const sendEmailPromises: Promise<any>[] = [];
 
-  let unscheduledReminders: PartialWorkflowReminder[] = [];
-
-  if (isSendgridEnabled) {
-    unscheduledReminders = await getAllUnscheduledReminders();
-  } else {
-    unscheduledReminders = (await prisma.workflowReminder.findMany({
-      where: {
-        method: WorkflowMethods.EMAIL,
-        scheduled: false,
-        OR: [{ cancelled: false }, { cancelled: null }],
-      },
-      select,
-    })) as PartialWorkflowReminder[];
-  }
+  const unscheduledReminders = await getAllUnscheduledReminders();
 
   if (!unscheduledReminders.length) {
     return NextResponse.json({ message: "No Emails to schedule" }, { status: 200 });
@@ -399,7 +379,14 @@ export async function handler(req: NextRequest) {
           });
         }
       } catch (error) {
-        logger.error(`Error scheduling Email with error ${error}`);
+        logger.error(`Error scheduling Email with error ${error}`, {
+          reminderId: reminder.id,
+          scheduledDate: reminder.scheduledDate,
+          isMandatoryReminder: reminder.isMandatoryReminder,
+          workflowStepId: reminder?.workflowStep?.id,
+          bookingUid: reminder.booking?.uid,
+          fullError: safeStringify(error),
+        });
       }
     } else if (reminder.isMandatoryReminder) {
       try {
@@ -480,7 +467,14 @@ export async function handler(req: NextRequest) {
           });
         }
       } catch (error) {
-        logger.error(`Error scheduling Email with error ${error}`);
+        logger.error(`Error scheduling Email with error ${error}`, {
+          reminderId: reminder.id,
+          scheduledDate: reminder.scheduledDate,
+          isMandatoryReminder: reminder.isMandatoryReminder,
+          workflowStepId: reminder?.workflowStep?.id,
+          bookingUid: reminder.booking?.uid,
+          fullError: safeStringify(error),
+        });
       }
     }
   }

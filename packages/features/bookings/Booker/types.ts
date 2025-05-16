@@ -96,6 +96,7 @@ export interface BookerProps {
   areInstantMeetingParametersSet?: boolean | null;
   userLocale?: string | null;
   hasValidLicense?: boolean;
+  useApiV2?: boolean;
 }
 
 export type WrappedBookerPropsMain = {

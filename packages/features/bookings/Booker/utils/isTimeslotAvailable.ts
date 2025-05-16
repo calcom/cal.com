@@ -92,7 +92,7 @@ export const isTimeSlotAvailable = ({
   }
 
   const dateInGMT = isValidISOFormat(slotToCheckInIso) ? slotToCheckInIso.split("T")[0] : null;
-  // If the date is not in ISO format, we could errorneously consider the slot unavailable, so be on the safe side and consider it available
+  // If the date is not in ISO format, we could erroneously consider the slot unavailable, so be on the safe side and consider it available
   // Though this could be a false positive, it's better to consider the slot available than unavailable
   if (!dateInGMT) return true;
 

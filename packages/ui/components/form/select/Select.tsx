@@ -52,8 +52,8 @@ export const Select = <
       styles={{
         control: (base) => ({
           ...base,
-          minHeight: size === "sm" ? "28px" : "36px",
-          height: grow ? "auto" : size === "sm" ? "28px" : "36px",
+          minHeight: size === "sm" ? "28px" : "32px",
+          height: grow ? "auto" : size === "sm" ? "28px" : "32px",
         }),
       }}
       classNames={{
@@ -67,7 +67,7 @@ export const Select = <
             innerClassNames?.option
           ),
         placeholder: (state) => cx("text-muted", state.isFocused && variant !== "checkbox" && "hidden"),
-        dropdownIndicator: () => "text-default",
+        dropdownIndicator: () => cx("text-default w-4 h-4"),
         control: (state) =>
           cx(
             inputStyles({ size }),
@@ -78,10 +78,10 @@ export const Select = <
                 ? "p-1 h-fit"
                 : "px-3 h-fit"
               : size === "sm"
-              ? "h-7 px-2"
-              : "h-9 px-3",
+              ? "h-7 px-2 py-1"
+              : "h-8 px-3 py-2",
             props.isDisabled && "bg-subtle",
-            size === "sm" ? "rounded-md" : "rounded-[10px]",
+            "rounded-[10px]",
             "[&:focus-within]:border-emphasis [&:focus-within]:shadow-outline-gray-focused [&:focus-within]:ring-0 !flex",
             innerClassNames?.control
           ),
@@ -108,11 +108,12 @@ export const Select = <
           cx(
             state.selectProps.menuIsOpen
               ? hasMultiLastIcons
-                ? "[&>*:last-child]:rotate-180 [&>*:last-child]:transition-transform"
-                : "rotate-180 transition-transform"
-              : "text-default" // Woo it adds another SVG here on multi for some reason
+                ? "[&>*:last-child]:rotate-180 [&>*:last-child]:transition-transform [&>*:last-child]:w-4 [&>*:last-child]:h-4"
+                : "rotate-180 transition-transform w-4 h-4"
+              : "text-default w-4 h-4"
           ),
         multiValueRemove: () => "text-default py-auto",
+
         ...classNames,
       }}
       {...restProps}

@@ -48,8 +48,10 @@ interface MockOAuth2Client {
 let lastCreatedJWT: MockJWT | null = null;
 let lastCreatedOAuth2Client: MockOAuth2Client | null = null;
 
-vi.mock("@calcom/features/flags/server/utils", () => ({
-  getFeatureFlag: vi.fn().mockReturnValue(true),
+vi.mock("@calcom/features/flags/features.repository", () => ({
+  FeaturesRepository: vi.fn().mockImplementation(() => ({
+    checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(true),
+  })),
 }));
 
 vi.mock("./getGoogleAppKeys", () => ({

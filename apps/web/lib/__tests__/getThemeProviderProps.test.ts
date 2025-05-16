@@ -52,8 +52,8 @@ describe("getThemeProviderProps", () => {
 
       expect(result).toEqual({
         ...appThemeExpectedProps,
-        storageKey: undefined,
-        key: undefined,
+        storageKey: "forcedThemeKey",
+        key: "forcedThemeKey",
         forcedTheme: "light",
         enableSystem: false,
       });

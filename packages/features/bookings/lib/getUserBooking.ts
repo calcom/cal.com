@@ -61,6 +61,15 @@ const getUserBooking = async (uid: string) => {
           referenceUid: true,
         },
       },
+      tracking: {
+        select: {
+          utm_source: true,
+          utm_medium: true,
+          utm_campaign: true,
+          utm_term: true,
+          utm_content: true,
+        },
+      },
     },
   });
 

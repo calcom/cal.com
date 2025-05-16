@@ -16,21 +16,9 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
 };
 
 export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/auth/signup", "/api/trpc/"];
-// Some app routes are allowed because "revalidatePath()" is used to revalidate the cache for them
-export const POST_METHODS_ALLOWED_APP_ROUTES = [
-  "/settings/my-account/general",
-  "/settings/developer/webhooks",
-  "/settings/developer/api-keys",
-  "/teams",
-];
 export function checkPostMethod(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
-  if (
-    ![...POST_METHODS_ALLOWED_API_ROUTES, ...POST_METHODS_ALLOWED_APP_ROUTES].some((route) =>
-      pathname.startsWith(route)
-    ) &&
-    req.method === "POST"
-  ) {
+  if (!POST_METHODS_ALLOWED_API_ROUTES.some((route) => pathname.startsWith(route)) && req.method === "POST") {
     return new NextResponse(null, {
       status: 405,
       statusText: "Method Not Allowed",
@@ -191,11 +179,6 @@ export const config = {
     // API routes
     "/api/auth/signup",
     "/api/trpc/:path*",
-    // Routes allowed for POST method (matching `POST_METHODS_ALLOWED_APP_ROUTES` array)
-    "/settings/my-account/general",
-    "/settings/developer/webhooks",
-    "/settings/developer/api-keys",
-    "/teams",
   ],
 };
 

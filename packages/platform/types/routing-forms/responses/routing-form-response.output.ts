@@ -23,7 +23,7 @@ export class RoutingFormResponseOutput {
   @ApiProperty()
   @IsInt()
   @Expose()
-  id!: string;
+  id!: number;
 
   @ApiProperty()
   @IsInt()

@@ -239,7 +239,8 @@ export async function gotoRoutingLink({
   let previewLink = null;
   if (!formId) {
     // Instead of clicking on the preview link, we are going to the preview link directly because the earlier opens a new tab which is a bit difficult to manage with Playwright
-    const href = await page.locator('[data-testid="form-action-preview"]').getAttribute("href");
+    await page.locator('[data-testid="preview-button"]').click();
+    const href = await page.locator('[data-testid="open-form-in-new-tab"]').getAttribute("href");
     if (!href) {
       throw new Error("Preview link not found");
     }

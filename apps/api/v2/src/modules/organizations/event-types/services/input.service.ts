@@ -1,4 +1,5 @@
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
+import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
 import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
@@ -27,7 +28,8 @@ export class InputOrganizationsEventTypesService {
     private readonly teamsRepository: TeamsRepository,
     private readonly usersRepository: UsersRepository,
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
-    private readonly conferencingService: OrganizationsConferencingService
+    private readonly conferencingService: OrganizationsConferencingService,
+    private readonly conferencingRepository: ConferencingRepository
   ) {}
   async transformAndValidateCreateTeamEventTypeInput(
     userId: number,
@@ -305,6 +307,22 @@ export class InputOrganizationsEventTypesService {
         }
       }) ?? []
     );
+  }
+
+  async checkAppIsValidAndConnected(teamId: number, app: string) {
+    const conferencingApps = ["google-meet", "office365-video", "zoom"];
+    if (!conferencingApps.includes(app)) {
+      throw new BadRequestException("Invalid app, available apps are: ", conferencingApps.join(", "));
+    }
+    if (app === "office365-video") {
+      app = "msteams";
+    }
+    const credential = await this.conferencingRepository.findTeamConferencingApp(teamId, app);
+
+    if (!credential) {
+      throw new BadRequestException(`${app} not connected.`);
+    }
+    return credential;
   }
 }
 

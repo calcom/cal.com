@@ -60,6 +60,7 @@ export const BookerPlatformWrapper = (
     allowUpdatingUrlParams = false,
     confirmButtonDisabled,
     isBookingDryRun,
+    handleSlotReservation,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -278,7 +279,7 @@ export const BookerPlatformWrapper = (
 
   const [routingParams, setRoutingParams] = useState<{
     routedTeamMemberIds?: number[];
-    shouldServeCache?: boolean;
+    _shouldServeCache?: boolean;
     skipContactOwner?: boolean;
     isBookingDryRun?: boolean;
   }>({});
@@ -292,14 +293,14 @@ export const BookerPlatformWrapper = (
     const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
 
     const _cacheParam = searchParams?.get("cal.cache");
-    const shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
+    const _shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
     const isBookingDryRun =
       searchParams?.get("cal.isBookingDryRun")?.toLowerCase() === "true" ||
       searchParams?.get("cal.sandbox")?.toLowerCase() === "true";
     setRoutingParams({
       ...(skipContactOwner ? { skipContactOwner } : {}),
       ...(routedTeamMemberIds ? { routedTeamMemberIds } : {}),
-      ...(shouldServeCache ? { shouldServeCache } : {}),
+      ...(_shouldServeCache ? { _shouldServeCache } : {}),
       ...(isBookingDryRun ? { isBookingDryRun } : {}),
     });
   }, [routingFormSearchParams]);
@@ -400,6 +401,7 @@ export const BookerPlatformWrapper = (
     onDeleteSlotSuccess: props.onDeleteSlotSuccess,
     onDeleteSlotError: props.onDeleteSlotError,
     isBookingDryRun: routingParams?.isBookingDryRun,
+    handleSlotReservation,
   });
 
   const { data: connectedCalendars, isPending: fetchingConnectedCalendars } = useConnectedCalendars({

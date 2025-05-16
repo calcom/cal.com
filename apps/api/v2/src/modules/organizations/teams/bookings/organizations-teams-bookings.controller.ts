@@ -1,13 +1,18 @@
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
+import { BookingReferencesFilterInput_2024_08_13 } from "@/ee/bookings/2024-08-13/inputs/booking-references-filter.input";
+import { BookingReferencesOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/booking-references.output";
+import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
   OPTIONAL_X_CAL_CLIENT_ID_HEADER,
   OPTIONAL_X_CAL_SECRET_KEY_HEADER,
   OPTIONAL_API_KEY_HEADER,
+  API_KEY_OR_ACCESS_TOKEN_HEADER,
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
@@ -20,7 +25,7 @@ import { UserWithProfile } from "@/modules/users/users.repository";
 import { Controller, UseGuards, Get, Param, ParseIntPipe, Query, HttpStatus, HttpCode } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SUCCESS_STATUS, BOOKING_READ } from "@calcom/platform-constants";
 import { GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
 
 @Controller({
@@ -33,7 +38,10 @@ import { GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationsTeamsBookingsController {
-  constructor(private readonly bookingsService: BookingsService_2024_08_13) {}
+  constructor(
+    private readonly bookingsService: BookingsService_2024_08_13,
+    private readonly bookingReferencesService: BookingReferencesService_2024_08_13
+  ) {}
 
   @Get("/")
   @ApiOperation({ summary: "Get organization team bookings" })
@@ -46,7 +54,7 @@ export class OrganizationsTeamsBookingsController {
     @Param("orgId", ParseIntPipe) orgId: number,
     @GetUser() user: UserWithProfile
   ): Promise<GetBookingsOutput_2024_08_13> {
-    const bookings = await this.bookingsService.getBookings(
+    const { bookings, pagination } = await this.bookingsService.getBookings(
       { ...queryParams, teamId },
       { email: user.email, id: user.id, orgId }
     );
@@ -54,6 +62,36 @@ export class OrganizationsTeamsBookingsController {
     return {
       status: SUCCESS_STATUS,
       data: bookings,
+      pagination,
+    };
+  }
+
+  @Get("/:bookingUid/references")
+  @PlatformPlan("SCALE")
+  @Roles("TEAM_ADMIN")
+  @Permissions([BOOKING_READ])
+  @UseGuards(
+    ApiAuthGuard,
+    BookingUidGuard,
+    IsOrgGuard,
+    RolesGuard,
+    IsTeamInOrg,
+    PlatformPlanGuard,
+    IsAdminAPIEnabledGuard
+  )
+  @ApiOperation({
+    summary: "Get 'Booking References' for a booking",
+  })
+  @HttpCode(HttpStatus.OK)
+  async getBookingReferences(
+    @Param("bookingUid") bookingUid: string,
+    @Query() filter: BookingReferencesFilterInput_2024_08_13
+  ): Promise<BookingReferencesOutput_2024_08_13> {
+    const bookingReferences = await this.bookingReferencesService.getOrgBookingReferences(bookingUid, filter);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: bookingReferences,
     };
   }
 }

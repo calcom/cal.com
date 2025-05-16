@@ -68,6 +68,8 @@ describe("generate Csv for Org Users Table", () => {
     teams: [],
     attributes: [],
     lastActiveAt: "",
+    createdAt: null,
+    updatedAt: null,
   };
 
   it("should throw if no headers", () => {

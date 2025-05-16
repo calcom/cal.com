@@ -8,7 +8,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 
 import { useTimePreferences } from "../../bookings/lib/timePreferences";
-import { useSchedule } from "../../schedules/lib/use-schedule";
+import { useSchedule } from "../../schedules/lib/use-schedule/useSchedule";
 import { useTroubleshooterStore } from "../store";
 
 export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {

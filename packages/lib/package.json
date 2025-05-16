@@ -3,8 +3,6 @@
   "private": true,
   "sideEffects": false,
   "version": "0.0.0",
-  "main": "./index.ts",
-  "types": "./index.ts",
   "license": "MIT",
   "scripts": {
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
@@ -18,7 +16,6 @@
     "@formbricks/js": "^2.1.0",
     "@sendgrid/client": "^7.7.0",
     "@vercel/og": "^0.6.3",
-    "bcryptjs": "^2.4.3",
     "city-timezones": "^1.2.1",
     "i18next": "^23.2.3",
     "ical.js": "^1.4.0",

@@ -101,7 +101,9 @@ export type EventDataMap = {
   __routeChanged: Record<string, never>;
   __windowLoadComplete: Record<string, never>;
   __closeIframe: Record<string, never>;
-  __iframeReady: Record<string, never>;
+  __iframeReady: {
+    isPrerendering: boolean;
+  };
   __dimensionChanged: {
     iframeHeight: number;
     iframeWidth: number;

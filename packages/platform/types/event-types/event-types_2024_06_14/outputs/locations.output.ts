@@ -54,7 +54,6 @@ const integrationsValues = [
   "discord-video",
   "demodesk-video",
   "campfire-video",
-  "around-video",
 ] as const;
 export type OutputIntegration_2024_06_14 = (typeof integrationsValues)[number];
 

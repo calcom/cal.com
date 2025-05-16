@@ -47,15 +47,16 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
     </FormProvider>
   );
 
-  if (mainPage === "routing-link") {
-    return <FinalComponent />;
+  // TODO: we should really be using layout for this.
+  if (mainPage === "forms") {
+    return (
+      <Shell withoutMain>
+        <FinalComponent />
+      </Shell>
+    );
   }
 
-  return (
-    <Shell withoutMain>
-      <FinalComponent />
-    </Shell>
-  );
+  return <FinalComponent />;
 };
 
 export default ServerPage;

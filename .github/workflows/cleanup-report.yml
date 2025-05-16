@@ -1,0 +1,37 @@
+on:
+  workflow_call:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+jobs:
+  cleanup-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout GitHub Pages Branch
+        uses: actions/checkout@v4
+        with:
+          repository: calcom/test-results
+          ref: gh-pages
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Set Git User
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Cleanup HTML reports on PR close/merge
+        env:
+          BRANCH_REPORTS_DIR: reports/${{ github.event.pull_request.head.ref }}
+        run: |
+          if [ -d "$BRANCH_REPORTS_DIR" ]; then
+            rm -rf "$BRANCH_REPORTS_DIR"
+            git add .
+            git commit -m "workflow: remove all reports for branch ${{ github.event.pull_request.head.ref }} (PR closed/merged)"
+            git push
+          else
+            echo "No reports found for branch ${{ github.event.pull_request.head.ref }}. Nothing to clean up."
+          fi

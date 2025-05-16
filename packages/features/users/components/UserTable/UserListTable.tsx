@@ -74,6 +74,8 @@ const initalColumnVisibility = {
   member: true,
   role: true,
   teams: true,
+  createdAt: false,
+  updatedAt: false,
   actions: true,
 };
 
@@ -255,7 +257,6 @@ function UserListTableContent() {
             checked={table.getIsAllPageRowsSelected()}
             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
             aria-label="Select all"
-            className="translate-y-[2px]"
           />
         ),
         cell: ({ row }) => (
@@ -366,8 +367,51 @@ function UserListTableContent() {
       ...generateAttributeColumns(),
       {
         id: "lastActiveAt",
-        header: "Last Active",
+        accessorKey: "lastActiveAt",
+        header: t("last_active"),
+        enableSorting: false,
+        enableColumnFilter: true,
+        meta: {
+          filter: {
+            type: ColumnFilterType.DATE_RANGE,
+            dateRangeOptions: {
+              endOfDay: true,
+            },
+          },
+        },
         cell: ({ row }) => <div>{row.original.lastActiveAt}</div>,
+      },
+      {
+        id: "createdAt",
+        accessorKey: "createdAt",
+        header: t("member_since"),
+        enableSorting: false,
+        enableColumnFilter: true,
+        meta: {
+          filter: {
+            type: ColumnFilterType.DATE_RANGE,
+            dateRangeOptions: {
+              endOfDay: true,
+            },
+          },
+        },
+        cell: ({ row }) => <div>{row.original.createdAt || ""}</div>,
+      },
+      {
+        id: "updatedAt",
+        accessorKey: "updatedAt",
+        header: t("last_updated"),
+        enableSorting: false,
+        enableColumnFilter: true,
+        meta: {
+          filter: {
+            type: ColumnFilterType.DATE_RANGE,
+            dateRangeOptions: {
+              endOfDay: true,
+            },
+          },
+        },
+        cell: ({ row }) => <div>{row.original.updatedAt || ""}</div>,
       },
       {
         id: "actions",

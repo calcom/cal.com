@@ -27,6 +27,11 @@ function getStyle() {
       overflow: auto;
     }
 
+    .message-container {
+      min-height: 200px;
+      width: 600px;
+    }
+
     .header {
       position: relative;
       float:right;
@@ -58,11 +63,16 @@ const html = ({
     layout,
     pageType,
   });
+
+  // Keep message-container outside modal-box as that restricts the content to be shown through its overflow:auto unnecessarily
   return `
 ${getStyle()}
 <div class="my-backdrop">
   <div class="header">
     <button type="button" class="close" aria-label="Close">&times;</button>
+  </div>
+  <div id="message-container" style="left: 50%; top: 50%; transform: translate(-50%, -50%);" class="message-container flex items-center p-24 justify-center dark:bg-muted rounded-md border-subtle border bg-default text-default  absolute z-highest">
+    <div id="message"></div>
   </div>
   <div class="modal-box">
     <div class="body" id="skeleton-container" style="${skeletonContainerStyle}">
@@ -74,10 +84,10 @@ ${getStyle()}
       <div id="skeleton" style="${skeletonStyle}" class="absolute z-highest">
         ${skeletonContent}
       </div>
-      <div id="error" class="hidden left-1/2 -translate-x-1/2 relative text-inverted"></div>
       <slot></slot>
     </div>
   </div>
+
 </div>`;
 };
 

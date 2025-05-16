@@ -41,7 +41,7 @@ interface BuildBaseWhereConditionType {
 
 const bookingStatusSchema = z.enum(["NO_BOOKING", ...Object.values(BookingStatus)]).optional();
 
-const buildBaseWhereCondition = async ({
+export const buildBaseWhereCondition = async ({
   teamId,
   eventTypeId,
   memberUserId,
@@ -50,18 +50,28 @@ const buildBaseWhereCondition = async ({
   ctx,
 }: BuildBaseWhereConditionType): Promise<{
   whereCondition: Prisma.BookingTimeStatusWhereInput;
-  isEmptyResponse?: boolean;
 }> => {
-  let whereCondition: Prisma.BookingTimeStatusWhereInput = {};
-  const ANDConditions: Prisma.BookingTimeStatusWhereInput[] = [];
+  const conditions: Prisma.BookingTimeStatusWhereInput[] = [];
+
   // EventType Filter
-  if (eventTypeId) ANDConditions.push({ OR: [{ eventTypeId }, { eventParentId: eventTypeId }] });
-  // User/Member filter
-  if (memberUserId) whereCondition.userId = memberUserId;
-  if (userId) {
-    whereCondition.teamId = null;
-    whereCondition.userId = userId;
+  if (eventTypeId) {
+    conditions.push({
+      OR: [{ eventTypeId }, { eventParentId: eventTypeId }],
+    });
   }
+
+  // User/Member filter
+  if (memberUserId) {
+    conditions.push({ userId: memberUserId });
+  }
+
+  if (userId) {
+    conditions.push({
+      teamId: null,
+      userId: userId,
+    });
+  }
+
   // organization-wide queries condition
   if (isAll && ctx.userIsOwnerAdminOfParentTeam && ctx.userOrganizationId) {
     const teamsFromOrg = await ctx.insightsDb.team.findMany({
@@ -73,58 +83,48 @@ const buildBaseWhereCondition = async ({
       },
     });
 
-    if (teamsFromOrg.length === 0) {
-      return {
-        whereCondition: {
-          ...whereCondition,
-          teamId: ctx.userOrganizationId,
-          isTeamBooking: true,
-          ...(ANDConditions.length > 0 ? { AND: [...ANDConditions] } : {}),
-        },
-        isEmptyResponse: true,
-      };
-    }
+    const teamIds = [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)];
+    const usersFromOrg =
+      teamsFromOrg.length > 0
+        ? await ctx.insightsDb.membership.findMany({
+            where: {
+              team: {
+                id: {
+                  in: teamIds,
+                },
+              },
+              accepted: true,
+            },
+            select: {
+              userId: true,
+            },
+          })
+        : [];
 
-    const teamConditional = {
-      id: {
-        in: [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)],
-      },
-    };
-    const usersFromOrg = await ctx.insightsDb.membership.findMany({
-      where: {
-        team: teamConditional,
-        accepted: true,
-      },
-      select: {
-        userId: true,
-      },
-    });
-    const userIdsFromOrg = usersFromOrg.map((u) => u.userId);
-    whereCondition = {
-      ...whereCondition,
-      AND: [
-        ...ANDConditions,
+    conditions.push({
+      OR: [
         {
-          OR: [
-            {
-              teamId: {
-                in: [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)],
-              },
-              isTeamBooking: true,
-            },
-            {
-              userId: {
-                in: userIdsFromOrg,
-              },
-              isTeamBooking: false,
-            },
-          ],
+          teamId: {
+            in: teamIds,
+          },
+          isTeamBooking: true,
         },
+        ...(usersFromOrg.length > 0
+          ? [
+              {
+                userId: {
+                  in: usersFromOrg.map((u) => u.userId),
+                },
+                isTeamBooking: false,
+              },
+            ]
+          : []),
       ],
-    };
+    });
   }
 
-  if (teamId && !isAll && !eventTypeId) {
+  // Team-specific queries condition
+  if (!isAll && teamId) {
     const usersFromTeam = await ctx.insightsDb.membership.findMany({
       where: {
         teamId: teamId,
@@ -135,28 +135,37 @@ const buildBaseWhereCondition = async ({
       },
     });
     const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
-    whereCondition = {
-      ...whereCondition,
-      AND: [
-        ...ANDConditions,
+
+    conditions.push({
+      OR: [
         {
-          OR: [
-            {
-              teamId,
-              isTeamBooking: true,
-            },
-            {
-              userId: {
-                in: userIdsFromTeam,
-              },
-              isTeamBooking: false,
-            },
-          ],
+          teamId,
+          isTeamBooking: true,
+        },
+        {
+          userId: {
+            in: userIdsFromTeam,
+          },
+          isTeamBooking: false,
         },
       ],
-    };
+    });
   }
-  return { whereCondition };
+
+  let whereCondition: Prisma.BookingTimeStatusWhereInput = {};
+
+  if (conditions.length === 1) {
+    whereCondition = conditions[0];
+  } else if (conditions.length > 1) {
+    whereCondition = { AND: conditions };
+  }
+
+  return {
+    whereCondition:
+      Object.keys(whereCondition).length === 0
+        ? { id: -1 } // Ensure no data is returned for invalid parameters
+        : whereCondition,
+  };
 };
 
 const buildHashMapForUsers = <
@@ -1207,8 +1216,6 @@ export const insightsRouter = router({
 
     bookingWhere = {
       ...bookingWhere,
-      teamId,
-      eventTypeId,
       createdAt: {
         gte: dayjs(startDate).startOf("day").toDate(),
         lte: dayjs(endDate).endOf("day").toDate(),
@@ -1325,8 +1332,6 @@ export const insightsRouter = router({
 
       bookingWhere = {
         ...bookingWhere,
-        teamId,
-        eventTypeId,
         createdAt: {
           gte: dayjs(startDate).startOf("day").toDate(),
           lte: dayjs(endDate).endOf("day").toDate(),
@@ -1404,8 +1409,7 @@ export const insightsRouter = router({
       let { whereCondition: bookingWhere } = r;
 
       bookingWhere = {
-        teamId,
-        eventTypeId,
+        ...bookingWhere,
         createdAt: {
           gte: dayjs(startDate).startOf("day").toDate(),
           lte: dayjs(endDate).endOf("day").toDate(),
@@ -1483,8 +1487,7 @@ export const insightsRouter = router({
 
       let { whereCondition: bookingWhere } = r;
       bookingWhere = {
-        teamId,
-        eventTypeId,
+        ...bookingWhere,
         createdAt: {
           gte: dayjs(startDate).startOf("day").toDate(),
           lte: dayjs(endDate).endOf("day").toDate(),

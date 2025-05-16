@@ -138,6 +138,7 @@ async function createOnboardingEligibleUserAndOnboarding(data: {
 async function createTestMembership(data: { userId: number; teamId: number; role?: MembershipRole }) {
   return prismock.membership.create({
     data: {
+      createdAt: new Date(),
       userId: data.userId,
       teamId: data.teamId,
       role: data.role || MembershipRole.MEMBER,
