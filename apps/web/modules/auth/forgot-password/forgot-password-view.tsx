@@ -7,8 +7,8 @@ import type { CSSProperties, SyntheticEvent } from "react";
 import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmailField } from "@calcom/ui/components/form";
 import { Button } from "@calcom/ui/components/button";
+import { EmailField } from "@calcom/ui/components/form";
 
 import AuthContainer from "@components/ui/AuthContainer";
 
@@ -127,7 +127,7 @@ export default function ForgotPassword(props: PageProps) {
             />
             <div className="space-y-2">
               <Button
-                className="w-full justify-center dark:bg-white dark:text-black"
+                className="w-full justify-center dark:bg-white dark:text-black hover:dark:text-white"
                 type="submit"
                 color="primary"
                 disabled={loading}
