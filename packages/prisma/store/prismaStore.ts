@@ -1,10 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 import { AsyncLocalStorage } from "async_hooks";
 
-import type { Tenants } from "./tenants";
-import { tenantToDatabaseUrl } from "./tenants";
+import type { Tenant } from "./tenants";
+import { getTenantFromHost, tenantToDatabaseUrl } from "./tenants";
 
-type Store = { clients: Record<Tenants, PrismaClient> };
+type Store = { clients: Record<Tenant, PrismaClient> };
 
 const als = new AsyncLocalStorage<Store>();
 
@@ -12,7 +12,7 @@ export function runWithTenants<T>(fn: () => Promise<T>) {
   return als.run({ clients: {} } as Store, fn);
 }
 
-export function getPrisma(tenant: Tenants) {
+export function getPrisma(tenant: Tenant) {
   const store = als.getStore();
   if (!store)
     throw new Error("Prisma Store not initialized. You must wrap your handler with runWithTenants.");
@@ -28,4 +28,9 @@ export function getPrisma(tenant: Tenants) {
   }
 
   return store.clients[tenant];
+}
+
+export function getPrismaFromHost(host: string) {
+  const tenant = getTenantFromHost(host);
+  return getPrisma(tenant);
 }
