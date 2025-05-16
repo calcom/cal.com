@@ -32,65 +32,78 @@ export default class DubService implements AnalyticsService {
       return;
     }
 
-    let token = this.credential.key as unknown as DubOAuthToken;
+    this.client_id = client_id as string;
+    this.client_secret = client_secret as string;
 
-    const isTokenExpired = (token: DubOAuthToken) =>
-      !token || !token.access_token || (token.expiry_date && token.expiry_date < Date.now());
+    let token = this.credential.key as unknown as DubOAuthToken | undefined;
+
+    if (!token) return;
+
+    const isTokenExpired = (token: DubOAuthToken) => {
+      if (!token || !token.access_token) return true;
+      if (token.expiry_date) {
+        return token.expiry_date < Date.now();
+      }
+
+      return false;
+    };
 
     if (isTokenExpired(token)) {
       token = await this.refreshAccessToken(token.refresh_token);
+      if (!token) return;
     }
 
     this.dubClient = new Dub({ token: token.access_token });
   }
 
-  private async refreshAccessToken(refreshToken: string): Promise<DubOAuthToken> {
-    const newToken: DubOAuthToken = await refreshOAuthTokens(
-      async () => {
-        const response = await fetch(`https://api.dub.co/oauth/token`, {
-          method: "POST",
-          body: new URLSearchParams({
-            client_id: this.client_id,
-            client_secret: this.client_secret,
-            grant_type: "refresh_token",
-            refresh_token: refreshToken,
-          }).toString(),
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-        });
-        return await response.json();
-      },
-      "dub",
-      this.credential.userId
-    );
+  private async refreshAccessToken(refreshToken: string): Promise<DubOAuthToken | undefined> {
+    try {
+      if (!refreshToken) return;
+      debugger;
+      const newToken: DubOAuthToken = await refreshOAuthTokens(
+        async () => {
+          const response = await fetch(`https://api.dub.co/oauth/token`, {
+            method: "POST",
+            body: new URLSearchParams({
+              client_id: this.client_id,
+              client_secret: this.client_secret,
+              grant_type: "refresh_token",
+              refresh_token: refreshToken,
+            }).toString(),
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+          });
+          return await response.json();
+        },
+        "dub",
+        this.credential.userId
+      );
 
-    newToken.expiry_date = Date.now() + newToken.expires_in * 1000;
+      newToken.expiry_date = Date.now() + newToken.expires_in * 1000;
 
-    await prisma.credential.update({
-      where: { id: this.credential.id },
-      data: { key: newToken as any },
-    });
+      await prisma.credential.update({
+        where: { id: this.credential.id },
+        data: { key: newToken as any },
+      });
 
-    return newToken;
+      return newToken;
+    } catch (err) {
+      this.log.error(err);
+    }
   }
 
   async sendEvent({ name, email, eventName, id, externalId }: SendEventProps): Promise<void> {
-    if (!this.dubClient) {
-      await this.initClient();
-    }
+    await this.initClient();
 
     if (!this.dubClient) return;
 
-    const res = await this.dubClient.track.lead({
+    await this.dubClient.track.lead({
       clickId: id,
       customerName: name,
       customerEmail: email,
       externalId: externalId ?? email,
       eventName: eventName ?? "Cal.com lead",
     });
-
-    console.log(res);
-    return res;
   }
 }
