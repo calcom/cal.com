@@ -5,7 +5,7 @@ import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { MembershipRole, SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -26,7 +26,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
   const { eventTypeId, workflowId } = input;
 
   // Check that event type belong to the user or team
-  const userEventType = await prisma.eventType.findFirst({
+  const eventType = await prisma.eventType.findFirst({
     where: {
       id: eventTypeId,
       OR: [
@@ -48,29 +48,44 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
     },
     select: {
       teamId: true,
+      hideOrganizerEmail: true,
+      customReplyToEmail: true,
+      schedulingType: true,
+      slug: true,
       children: {
         select: {
           id: true,
         },
       },
+      hosts: {
+        select: {
+          user: {
+            select: {
+              email: true,
+              destinationCalendar: {
+                select: {
+                  primaryEmail: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
 
-  if (!userEventType)
+  if (!eventType)
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authorized to edit this event type" });
+
+  // at this point we know that the event type belongs to the user or team
+  // so we don't use OR, we use logic.
+  const whereClause = eventType.teamId ? { teamId: eventType.teamId } : { userId: ctx.user.id };
 
   // Check that the workflow belongs to the user or team
   const eventTypeWorkflow = await prisma.workflow.findFirst({
     where: {
       id: workflowId,
-      OR: [
-        {
-          userId: ctx.user.id,
-        },
-        {
-          teamId: userEventType.teamId || undefined,
-        },
-      ],
+      ...whereClause,
     },
     select: {
       steps: {
@@ -117,7 +132,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
 
   const isOrg = eventTypeWorkflow.team?.isOrganization ?? false;
 
-  const activeOn = [eventTypeId].concat(userEventType.children.map((ch) => ch.id));
+  const activeOn = [eventTypeId].concat(eventType.children.map((ch) => ch.id));
 
   if (isActive) {
     // disable workflow for this event type & delete all reminders
@@ -146,7 +161,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
     await prisma.workflowsOnEventTypes.deleteMany({
       where: {
         workflowId,
-        eventTypeId: { in: [eventTypeId].concat(userEventType.children.map((ch) => ch.id)) },
+        eventTypeId: { in: [eventTypeId].concat(eventType.children.map((ch) => ch.id)) },
       },
     });
 
@@ -246,28 +261,6 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               locale: true,
             },
           },
-          eventType: {
-            select: {
-              schedulingType: true,
-              slug: true,
-              customReplyToEmail: true,
-              hosts: {
-                select: {
-                  user: {
-                    select: {
-                      email: true,
-                      destinationCalendar: {
-                        select: {
-                          primaryEmail: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-              hideOrganizerEmail: true,
-            },
-          },
           user: {
             select: {
               name: true,
@@ -308,14 +301,14 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
           endTime: booking.endTime.toISOString(),
           title: booking.title,
           language: { locale: booking?.user?.locale || defaultLocale },
-          hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
+          hideOrganizerEmail: eventType.hideOrganizerEmail,
           eventType: {
-            slug: booking.eventType?.slug || "",
-            schedulingType: booking.eventType?.schedulingType,
-            hosts: booking.eventType?.hosts,
+            slug: eventType.slug || "",
+            schedulingType: eventType.schedulingType,
+            hosts: eventType.hosts,
           },
           metadata: booking.metadata,
-          customReplyToEmail: booking.eventType?.customReplyToEmail,
+          customReplyToEmail: eventType.customReplyToEmail,
         };
         for (const step of eventTypeWorkflow.steps) {
           if (
