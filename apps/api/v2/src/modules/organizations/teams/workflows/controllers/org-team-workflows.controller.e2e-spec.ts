@@ -6,22 +6,14 @@ import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import {
   CreateWorkflowDto,
-  WorkflowActivationDto,
-  WorkflowTriggerDto,
   WorkflowTriggerType,
   WorkflowTimeUnit,
-  WorkflowStepDto,
   RecipientType,
   StepAction,
   TemplateType,
-  WorkflowMessageDto,
 } from "@/modules/workflows/inputs/create-workflow.input";
 // Adjust path if needed
-import {
-  GetWorkflowOutput,
-  GetWorkflowsOutput,
-  WorkflowOutput,
-} from "@/modules/workflows/outputs/workflow.output";
+import { GetWorkflowOutput, GetWorkflowsOutput } from "@/modules/workflows/outputs/workflow.output";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -38,10 +30,6 @@ import { WorkflowRepositoryFixture } from "test/fixtures/repository/workflow.rep
 import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import {
-  WorkflowTriggerEvents as PrismaWorkflowTriggerEvents,
-  TimeUnit as PrismaTimeUnit,
-} from "@calcom/prisma/client";
 
 describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
   let app: INestApplication;
@@ -67,7 +55,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
   let sampleCreateWorkflowDto: CreateWorkflowDto = {
     name: `E2E Test Workflow ${randomString()}`,
     activation: {
-      isActiveOnAll: true,
+      isActiveOnAllEventTypes: true,
       activeOnEventTypeIds: [],
     },
     trigger: {
@@ -166,7 +154,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
     sampleCreateWorkflowDto = {
       name: `E2E Test Workflow ${randomString()}`,
       activation: {
-        isActiveOnAll: true,
+        isActiveOnAllEventTypes: true,
         activeOnEventTypeIds: [],
       },
       trigger: {
@@ -250,8 +238,8 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.name).toEqual(sampleCreateWorkflowDto.name);
-          expect(responseBody.data.activation.isActiveOnAll).toEqual(
-            sampleCreateWorkflowDto.activation.isActiveOnAll
+          expect(responseBody.data.activation.isActiveOnAllEventTypes).toEqual(
+            sampleCreateWorkflowDto.activation.isActiveOnAllEventTypes
           );
           expect(responseBody.data.trigger.type).toEqual(sampleCreateWorkflowDto.trigger.type);
           expect(responseBody.data.steps).toHaveLength(sampleCreateWorkflowDto.steps.length);

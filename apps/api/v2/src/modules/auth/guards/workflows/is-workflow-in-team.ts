@@ -18,7 +18,7 @@ export class IsWorkflowInTeam implements CanActivate {
     const workflowId: string = request.params.workflowId;
 
     if (!workflowId) {
-      throw new ForbiddenException("IsWorkflowInTeam - No org id found in request params.");
+      throw new ForbiddenException("IsWorkflowInTeam - No workflow found in request params.");
     }
 
     if (!teamId) {

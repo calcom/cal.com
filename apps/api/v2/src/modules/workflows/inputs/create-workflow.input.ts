@@ -2,7 +2,6 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
   IsBoolean,
-  IsEmail,
   IsEnum,
   ArrayMinSize,
   IsNumber,
@@ -50,12 +49,12 @@ export enum TemplateType {
 
 export class WorkflowActivationDto {
   @ApiProperty({
-    description: "Whether the workflow is active for all calendars",
+    description: "Whether the workflow is active for all the event-types",
     example: false,
     type: Boolean,
   })
   @IsBoolean()
-  isActiveOnAll!: boolean;
+  isActiveOnAllEventTypes!: boolean;
 
   @ApiPropertyOptional({
     description: "List of active calendar IDs the workflow applies to, required if isActiveOnAll is false",
@@ -112,7 +111,7 @@ export class WorkflowMessageDto {
   subject!: string;
 
   @ApiProperty({
-    description: "HTML content of the message",
+    description: "HTML content of the message (used for Emails)",
     example:
       "<p>This is a reminder from {ORGANIZER} of {EVENT_NAME} to {ATTENDEE} starting here  {LOCATION} {MEETING_URL} at {START_TIME_h:mma} {TIMEZONE}.</p>",
     required: false,

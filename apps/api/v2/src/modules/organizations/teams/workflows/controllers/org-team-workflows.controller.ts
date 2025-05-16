@@ -59,7 +59,7 @@ export class OrganizationTeamWorkflowsController {
 
   @Get("/:workflowId")
   @UseGuards(IsWorkflowInTeam)
-  @ApiOperation({ summary: "Get organization team workflows" })
+  @ApiOperation({ summary: "Get organization team workflow" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   async getWorkflowById(
@@ -72,22 +72,21 @@ export class OrganizationTeamWorkflowsController {
   }
 
   @Post("/")
-  @ApiOperation({ summary: "Update workflows" })
+  @ApiOperation({ summary: "Create organization team workflow" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   async createWorkflow(
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Param("workflowId") workflowId: number,
     @Body() data: CreateWorkflowDto
-  ): Promise<Promise<GetWorkflowOutput>> {
+  ): Promise<GetWorkflowOutput> {
     const workflow = await this.workflowsService.createTeamWorkflow(user, teamId, data);
     return { data: workflow, status: SUCCESS_STATUS };
   }
 
   @Patch("/:workflowId")
   @UseGuards(IsWorkflowInTeam)
-  @ApiOperation({ summary: "Update workflows" })
+  @ApiOperation({ summary: "Update workflow" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   async updateWorkflow(
@@ -102,7 +101,7 @@ export class OrganizationTeamWorkflowsController {
 
   @Delete("/:workflowId")
   @UseGuards(IsWorkflowInTeam)
-  @ApiOperation({ summary: "Delete workflows" })
+  @ApiOperation({ summary: "Delete organization team workflow" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   async deleteWorkflow(

@@ -1,55 +1,15 @@
+import {
+  StepAction,
+  RecipientType,
+  TemplateType,
+  WorkflowTimeUnit,
+  WorkflowTriggerType,
+} from "@/modules/workflows/inputs/create-workflow.input";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
 import { IsArray, IsEnum, ValidateNested } from "class-validator";
 
-// Assuming these constants are available
-const SUCCESS_STATUS = "success" as const;
-const ERROR_STATUS = "error" as const;
-type Status = typeof SUCCESS_STATUS | typeof ERROR_STATUS;
-
-// --- Re-using Enums from your Input DTOs ---
-// (Alternatively, import them if they are in separate files)
-export enum WorkflowTriggerType {
-  BEFORE_EVENT = "BEFORE_EVENT",
-  EVENT_CANCELLED = "EVENT_CANCELLED",
-  NEW_EVENT = "NEW_EVENT",
-  AFTER_EVENT = "AFTER_EVENT",
-  RESCHEDULE_EVENT = "RESCHEDULE_EVENT",
-  // Include enums from Prisma schema if they differ and are used in output
-  AFTER_HOSTS_CAL_VIDEO_NO_SHOW = "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
-  AFTER_GUESTS_CAL_VIDEO_NO_SHOW = "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
-}
-
-export enum WorkflowTimeUnit {
-  HOUR = "HOUR",
-  MINUTE = "MINUTE",
-  DAY = "DAY",
-}
-
-export enum RecipientType {
-  HOST = "HOST",
-  ATTENDEE = "ATTENDEE",
-  EMAIL = "EMAIL",
-  PHONE_NUMBER = "PHONE_NUMBER",
-}
-
-export enum StepAction {
-  EMAIL_HOST = "EMAIL_HOST",
-  EMAIL_ATTENDEE = "EMAIL_ATTENDEE",
-  EMAIL_ADDRESS = "EMAIL_ADDRESS",
-  SMS_ATTENDEE = "SMS_ATTENDEE",
-  SMS_NUMBER = "SMS_NUMBER",
-  WHATSAPP_ATTENDEE = "WHATSAPP_ATTENDEE",
-  WHATSAPP_NUMBER = "WHATSAPP_NUMBER",
-}
-
-export enum TemplateType {
-  REMINDER = "REMINDER",
-  CUSTOM = "CUSTOM",
-}
-// --- End Enums ---
-
-// --- Nested Output DTOs ---
+import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
 export class WorkflowMessageOutputDto {
   @ApiProperty({
@@ -167,7 +127,7 @@ export class WorkflowActivationOutputDto {
     example: false,
   })
   @Expose()
-  isActiveOnAll!: boolean;
+  isActiveOnAllEventTypes!: boolean;
 
   @ApiPropertyOptional({
     description: "List of Event Type IDs the workflow is specifically active on (if not active on all)",
@@ -239,7 +199,7 @@ export class GetWorkflowsOutput {
   })
   @Expose()
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
-  status!: Status;
+  status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @ApiProperty({
     description: "List of workflows",
@@ -260,7 +220,7 @@ export class GetWorkflowOutput {
   })
   @Expose()
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
-  status!: Status;
+  status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @ApiProperty({
     description: "workflow",
