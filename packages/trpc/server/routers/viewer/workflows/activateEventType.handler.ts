@@ -447,7 +447,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
           workflowId,
           eventTypeId,
         },
-      ].concat(userEventType.children.map((ch) => ({ workflowId, eventTypeId: ch.id }))),
+      ].concat(eventType.children.map((ch) => ({ workflowId, eventTypeId: ch.id }))),
     });
     const requiresAttendeeNumber = (action: WorkflowActions) =>
       action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.WHATSAPP_ATTENDEE;
