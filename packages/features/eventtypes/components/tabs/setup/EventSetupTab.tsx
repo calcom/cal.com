@@ -54,6 +54,7 @@ export type EventSetupTabCustomClassNames = {
 type CalVideoSettings = {
   disableRecordingForGuests: boolean;
   disableRecordingForOrganizer: boolean;
+  enabled: boolean;
 };
 
 const CalVideoSettings = () => {
