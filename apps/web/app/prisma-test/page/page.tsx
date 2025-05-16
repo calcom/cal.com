@@ -1,17 +1,19 @@
-import { headers } from "next/headers";
+import type { PrismaClient } from "@prisma/client";
 
-import { withPrismaDataForPage } from "@calcom/prisma/store/withPrismaDataForPage";
+import { withPrismaPage } from "@calcom/prisma/store/withPrismaPage";
 
-export default async function Home() {
-  const reqHeaders = await headers();
-  const users = await withPrismaDataForPage(reqHeaders, async (prisma) => {
-    const user = await prisma.user.findFirst({ where: { id: 1 }, select: { id: true, name: true } });
-    return user ? [user] : [];
-  });
+interface HomePageProps {
+  prisma: PrismaClient;
+  host: string; // host can be used if needed, e.g. for display
+}
+
+// This is the actual page component logic, now cleaner.
+async function HomePageContent({ prisma, host }: HomePageProps) {
+  const users = await prisma.user.findMany({ where: { id: 1 }, select: { id: true, name: true } });
 
   return (
     <div>
-      <h1>Users for tenant</h1>
+      <h1>Users for tenant ({host})</h1>
       <ul>
         {users.map((user) => (
           <li key={user.id}>{user.name}</li>
@@ -20,3 +22,8 @@ export default async function Home() {
     </div>
   );
 }
+
+// Wrap the page content component with the HOC
+const Home = withPrismaPage(HomePageContent);
+
+export default Home;
