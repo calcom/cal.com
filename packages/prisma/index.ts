@@ -1,7 +1,7 @@
-import type { Prisma } from "@prisma/client";
-import { PrismaClient as PrismaClientWithoutExtension } from "@prisma/client";
 import { withAccelerate } from "@prisma/extension-accelerate";
 
+import { PrismaClient as PrismaClientWithoutExtension } from "./client";
+import type { Prisma } from "./client";
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
 import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";

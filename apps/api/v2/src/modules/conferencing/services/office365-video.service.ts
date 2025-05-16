@@ -4,10 +4,10 @@ import { CredentialsRepository } from "@/modules/credentials/credentials.reposit
 import { BadRequestException, Logger, NotFoundException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import { OFFICE_365_VIDEO, OFFICE_365_VIDEO_TYPE } from "@calcom/platform-constants";
+import type { Prisma } from "@calcom/prisma/client";
 
 import stringify = require("qs-stringify");
 

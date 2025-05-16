@@ -1,10 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { MembershipRole } from "@prisma/client";
 import { Expose, Type } from "class-transformer";
 import { IsEnum, IsString, ValidateNested } from "class-validator";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { OrgTeamOutputDto } from "@calcom/platform-types";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 export class OrgMeTeamOutputDto extends OrgTeamOutputDto {
   @IsString()

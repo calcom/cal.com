@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
 
 import prisma from "@calcom/prisma";
-import { RRResetInterval } from "@calcom/prisma/client";
+import { RRResetInterval } from "@calcom/prisma/enums";
 
 import { getOrderedListOfLuckyUsers } from "../server/getLuckyUser";
 import { filterHostsByLeadThreshold, errorCodes } from "./filterHostsByLeadThreshold";

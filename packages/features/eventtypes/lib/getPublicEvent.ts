@@ -1,6 +1,3 @@
-import type { User as UserType } from "@prisma/client";
-import { Prisma } from "@prisma/client";
-
 import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
@@ -16,6 +13,8 @@ import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib/isRecurringEv
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
+import type { User as UserType } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
@@ -530,11 +529,9 @@ export const getPublicEvent = async (
   };
 };
 
-const eventData = Prisma.validator<Prisma.EventTypeArgs>()({
-  select: getPublicEventSelect(true),
-});
+const eventData = Prisma.validator<Prisma.EventTypeSelect>()(getPublicEventSelect(true));
 
-type Event = Prisma.EventTypeGetPayload<typeof eventData>;
+type Event = Prisma.EventTypeGetPayload<{ select: typeof eventData }>;
 
 type GetProfileFromEventInput = Omit<Event, "hosts"> & {
   hosts?: Event["hosts"];

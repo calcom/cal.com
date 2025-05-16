@@ -1,5 +1,3 @@
-import type { Prisma, PrismaPromise, User, Membership, Profile } from "@prisma/client";
-
 import { ensureOrganizationIsReviewed } from "@calcom/ee/organizations/lib/ensureOrganizationIsReviewed";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
@@ -7,6 +5,7 @@ import { checkRegularUsername } from "@calcom/lib/server/checkRegularUsername";
 import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { prisma } from "@calcom/prisma";
+import type { Prisma, PrismaPromise, User, Membership, Profile } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 

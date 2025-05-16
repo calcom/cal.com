@@ -1,8 +1,7 @@
-import { Prisma } from "@prisma/client";
-
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import type { Booking } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 

@@ -12,7 +12,8 @@ import { EventRepository } from "@calcom/lib/server/repository/event";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { BookingStatus, RedirectType } from "@calcom/prisma/client";
+import { RedirectType } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 

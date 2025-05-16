@@ -1,5 +1,4 @@
-import type { Team } from "@prisma/client";
-
+import type { Team } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TInviteMemberInputSchema } from "./inviteMember.schema";

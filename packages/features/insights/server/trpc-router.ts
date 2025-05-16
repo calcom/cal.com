@@ -1,4 +1,3 @@
-import type { Prisma } from "@prisma/client";
 import md5 from "md5";
 import { z } from "zod";
 
@@ -9,6 +8,7 @@ import {
   routingFormStatsInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
 import type { readonlyPrisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";

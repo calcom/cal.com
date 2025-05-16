@@ -70,7 +70,8 @@ async function getWorkflowReminders<T extends Prisma.WorkflowReminderSelect>(
     }
 
     filteredWorkflowReminders.push(
-      ...(newFilteredWorkflowReminders as Array<Prisma.WorkflowReminderGetPayload<{ select: T }>>)
+      // FIXME: This is a workaround to avoid type errors
+      ...(newFilteredWorkflowReminders as unknown as Array<Prisma.WorkflowReminderGetPayload<{ select: T }>>)
     );
     pageNumber++;
   }

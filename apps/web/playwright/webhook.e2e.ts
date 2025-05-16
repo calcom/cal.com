@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 import {

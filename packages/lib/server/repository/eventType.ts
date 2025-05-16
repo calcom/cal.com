@@ -1,8 +1,7 @@
-import type { EventType as PrismaEventType } from "@prisma/client";
-import { Prisma } from "@prisma/client";
-
 import logger from "@calcom/lib/logger";
 import { prisma, availabilityUserSelect } from "@calcom/prisma";
+import type { EventType as PrismaEventType } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
