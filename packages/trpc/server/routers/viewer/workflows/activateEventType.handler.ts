@@ -5,7 +5,6 @@ import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { MembershipRole, SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -26,45 +25,8 @@ type ActivateEventTypeOptions = {
 export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventTypeOptions) => {
   const { eventTypeId, workflowId } = input;
 
-  const eventTypeSelectWithoutChildren: Prisma.EventTypeSelect = {
-    id: true,
-    teamId: true,
-    hideOrganizerEmail: true,
-    customReplyToEmail: true,
-    schedulingType: true,
-    slug: true,
-    hosts: {
-      select: {
-        user: {
-          select: {
-            email: true,
-            destinationCalendar: {
-              select: {
-                primaryEmail: true,
-              },
-            },
-          },
-        },
-      },
-    },
-  };
-
-  const eventTypeSelectWithChildren: Prisma.EventTypeSelect = {
-    ...eventTypeSelectWithoutChildren,
-    // to prevent N+1 queries we select all children in one go
-    children: {
-      select: {
-        ...eventTypeSelectWithoutChildren,
-      },
-    },
-  };
-
-  type EventTypeWithChildren = Prisma.EventTypeGetPayload<{
-    select: typeof eventTypeSelectWithChildren;
-  }>;
-
   // Check that event type belong to the user or team
-  const eventType: EventTypeWithChildren | null = await prisma.eventType.findFirst({
+  const eventType = await prisma.eventType.findFirst({
     where: {
       id: eventTypeId,
       OR: [
@@ -84,7 +46,52 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         },
       ],
     },
-    select: eventTypeSelectWithChildren,
+    select: {
+      id: true,
+      teamId: true,
+      hideOrganizerEmail: true,
+      customReplyToEmail: true,
+      schedulingType: true,
+      slug: true,
+      hosts: {
+        select: {
+          user: {
+            select: {
+              email: true,
+              destinationCalendar: {
+                select: {
+                  primaryEmail: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      children: {
+        select: {
+          id: true,
+          teamId: true,
+          hideOrganizerEmail: true,
+          customReplyToEmail: true,
+          schedulingType: true,
+          slug: true,
+          hosts: {
+            select: {
+              user: {
+                select: {
+                  email: true,
+                  destinationCalendar: {
+                    select: {
+                      primaryEmail: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   });
 
   if (!eventType)
