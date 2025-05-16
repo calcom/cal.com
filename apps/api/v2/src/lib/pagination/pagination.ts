@@ -16,10 +16,10 @@ export function getPagination(pagination: Pagination): PaginationMetaDto {
   const currentPage = getCurrentPage(safeSkip, itemsPerPage, totalPages);
   const hasNextPage = getHasNextPage(safeSkip, itemsPerPage, totalCount);
   const hasPreviousPage = getHasPreviousPage(safeSkip);
-  const itemsReturned = getItemsReturned(safeSkip, itemsPerPage, totalCount);
+  const returnedItems = getReturnedItems(safeSkip, itemsPerPage, totalCount);
 
   return {
-    itemsReturned,
+    returnedItems,
     totalItems: totalCount,
     itemsPerPage,
     remainingItems,
@@ -58,7 +58,7 @@ function getHasPreviousPage(skip: number) {
   return skip > 0;
 }
 
-function getItemsReturned(skip: number, itemsPerPage: number, totalCount: number) {
+function getReturnedItems(skip: number, itemsPerPage: number, totalCount: number) {
   const remaining = totalCount - skip;
   return clamp({
     value: remaining,

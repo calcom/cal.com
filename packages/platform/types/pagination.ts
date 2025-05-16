@@ -27,7 +27,7 @@ export class PaginationMetaDto {
   })
   @IsInt()
   @Min(0)
-  itemsReturned!: number;
+  returnedItems!: number;
 
   @ApiProperty({
     description: "The maximum number of items requested per page.",
