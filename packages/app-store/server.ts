@@ -11,7 +11,7 @@ import { prisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-import { defaultLocations } from "./locations";
+import { defaultLocations, OrganizerDefaultConferencingAppType } from "./locations";
 
 export async function getLocationGroupedOptions(
   userOrTeamId: { userId: number } | { teamId: number },
@@ -136,7 +136,14 @@ export async function getLocationGroupedOptions(
     }
   });
 
-  defaultLocations.forEach((l) => {
+  const filteredDefaultLocations = defaultLocations.filter((l) => {
+    if (l.type == OrganizerDefaultConferencingAppType && "teamId" in userOrTeamId) {
+      return true;
+    }
+    return false;
+  });
+
+  filteredDefaultLocations.forEach((l) => {
     const category = l.category;
     if (apps[category]) {
       apps[category] = [
