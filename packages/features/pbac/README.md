@@ -272,12 +272,10 @@ export default async function TeamSettings({ params }: { params: { teamId: strin
     return null
   }
 
-  const hasPermission = await checkSessionPermissionInTeam({
+  const hasPermission = await checkUserPermissionInTeam({
     userId: session.user.id,
     teamId: parseInt(params.teamId),
     permission: "team.update",
-    headers: await headers(),
-    cookies: await cookies(),
   });
 
   if (!hasPermission) {
