@@ -5,7 +5,8 @@ import { Injectable } from "@nestjs/common";
 
 import { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
 import type { EventType, User, Schedule, Host, DestinationCalendar } from "@calcom/prisma/client";
-import { SchedulingType, Team } from "@calcom/prisma/client";
+import { Team } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 
 type EventTypeRelations = {
   users: User[];

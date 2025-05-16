@@ -11,7 +11,8 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
-import { BookingStatus, RedirectType } from "@calcom/prisma/client";
+import { RedirectType } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";

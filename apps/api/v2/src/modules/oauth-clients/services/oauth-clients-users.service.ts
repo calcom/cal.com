@@ -10,7 +10,8 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ConflictException, Injectable, Logger } from "@nestjs/common";
 
 import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries";
-import { User, CreationSource, PlatformOAuthClient } from "@calcom/prisma/client";
+import { User, PlatformOAuthClient } from "@calcom/prisma/client";
+import { CreationSource } from "@calcom/prisma/enums";
 
 @Injectable()
 export class OAuthClientUsersService {

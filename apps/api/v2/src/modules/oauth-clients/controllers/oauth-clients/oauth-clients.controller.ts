@@ -40,7 +40,8 @@ import {
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { CreateOAuthClientInput, UpdateOAuthClientInput, Pagination } from "@calcom/platform-types";
-import { User, MembershipRole } from "@calcom/prisma/client";
+import { User } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 @Controller({
   path: "/v2/oauth-clients",

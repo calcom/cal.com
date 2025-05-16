@@ -37,7 +37,8 @@ import { ApiOperation, ApiTags as DocsTags, ApiHeader } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 
 import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
-import { User, MembershipRole } from "@calcom/prisma/client";
+import { User } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 @Controller({
   path: "/v2/oauth-clients/:clientId/users",

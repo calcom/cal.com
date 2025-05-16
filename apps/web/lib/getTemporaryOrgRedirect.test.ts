@@ -2,7 +2,7 @@ import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
 
 import { describe, it, expect, beforeEach } from "vitest";
 
-import { RedirectType } from "@calcom/prisma/client";
+import { RedirectType } from "@calcom/prisma/enums";
 
 import { getTemporaryOrgRedirect } from "./getTemporaryOrgRedirect";
 

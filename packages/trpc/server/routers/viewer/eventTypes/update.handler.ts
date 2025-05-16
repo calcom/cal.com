@@ -13,7 +13,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import { WorkflowTriggerEvents } from "@calcom/prisma/client";
+import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { SchedulingType, EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 

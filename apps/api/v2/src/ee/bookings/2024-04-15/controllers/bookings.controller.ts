@@ -64,7 +64,7 @@ import {
 } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
-import { CreationSource } from "@calcom/prisma/client";
+import { CreationSource } from "@calcom/prisma/enums";
 
 type BookingRequest = Request & {
   userId?: number;

@@ -12,7 +12,7 @@ import {
   UpdateTeamEventTypeInput_2024_06_14,
   HostPriority,
 } from "@calcom/platform-types";
-import { SchedulingType } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 
 export type TransformedCreateTeamEventTypeInput = Awaited<
   ReturnType<InstanceType<typeof InputOrganizationsEventTypesService>["transformInputCreateTeamEventType"]>

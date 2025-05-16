@@ -3,7 +3,7 @@ import { Expose, Type } from "class-transformer";
 import { IsBoolean, IsEnum, IsInt, IsString, ValidateNested, IsArray } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
-import { WebhookTriggerEvents } from "@calcom/prisma/client";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 export class WebhookOutputDto {
   @IsInt()

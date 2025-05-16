@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { IsBoolean, IsOptional, IsEnum } from "class-validator";
 
-import { MembershipRole } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 export class UpdateOrgMembershipDto {
   @IsOptional()

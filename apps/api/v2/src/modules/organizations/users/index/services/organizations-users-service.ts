@@ -7,7 +7,8 @@ import { Injectable, ConflictException, ForbiddenException } from "@nestjs/commo
 import { plainToInstance } from "class-transformer";
 
 import { createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries";
-import { Team, CreationSource } from "@calcom/prisma/client";
+import { Team } from "@calcom/prisma/client";
+import { CreationSource } from "@calcom/prisma/enums";
 
 @Injectable()
 export class OrganizationsUsersService {

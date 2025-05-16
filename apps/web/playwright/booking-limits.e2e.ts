@@ -9,7 +9,7 @@ import dayjs from "@calcom/dayjs";
 import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import prisma from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { entries } from "@calcom/prisma/zod-utils";
 
 import { test } from "./lib/fixtures";

@@ -11,7 +11,7 @@ import {
   ValidateNested,
 } from "class-validator";
 
-import { AttributeType } from "@calcom/prisma/client";
+import { AttributeType } from "@calcom/prisma/enums";
 
 export class CreateOrganizationAttributeInput {
   @IsString()

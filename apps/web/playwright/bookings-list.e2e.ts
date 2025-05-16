@@ -2,7 +2,7 @@ import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { createTeamEventType } from "./fixtures/users";
