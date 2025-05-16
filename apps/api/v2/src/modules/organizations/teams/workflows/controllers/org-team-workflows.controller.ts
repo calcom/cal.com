@@ -44,7 +44,7 @@ export class OrganizationTeamWorkflowsController {
   @Get("/")
   @ApiOperation({ summary: "Get organization team workflows" })
   @Roles("TEAM_ADMIN")
-  @PlatformPlan("ESSENTIALS")
+  @PlatformPlan("SCALE")
   async getWorkflows(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -61,7 +61,7 @@ export class OrganizationTeamWorkflowsController {
   @UseGuards(IsWorkflowInTeam)
   @ApiOperation({ summary: "Get organization team workflow" })
   @Roles("TEAM_ADMIN")
-  @PlatformPlan("ESSENTIALS")
+  @PlatformPlan("SCALE")
   async getWorkflowById(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("workflowId", ParseIntPipe) workflowId: number
@@ -74,7 +74,7 @@ export class OrganizationTeamWorkflowsController {
   @Post("/")
   @ApiOperation({ summary: "Create organization team workflow" })
   @Roles("TEAM_ADMIN")
-  @PlatformPlan("ESSENTIALS")
+  @PlatformPlan("SCALE")
   async createWorkflow(
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -88,7 +88,7 @@ export class OrganizationTeamWorkflowsController {
   @UseGuards(IsWorkflowInTeam)
   @ApiOperation({ summary: "Update workflow" })
   @Roles("TEAM_ADMIN")
-  @PlatformPlan("ESSENTIALS")
+  @PlatformPlan("SCALE")
   async updateWorkflow(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("workflowId") workflowId: number,
@@ -103,7 +103,7 @@ export class OrganizationTeamWorkflowsController {
   @UseGuards(IsWorkflowInTeam)
   @ApiOperation({ summary: "Delete organization team workflow" })
   @Roles("TEAM_ADMIN")
-  @PlatformPlan("ESSENTIALS")
+  @PlatformPlan("SCALE")
   async deleteWorkflow(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("workflowId") workflowId: number
