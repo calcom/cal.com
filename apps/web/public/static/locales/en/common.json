@@ -3221,5 +3221,6 @@
   "requires_credits": "Requires credits",
   "requires_credits_tooltip": "You need enough credits in your account to use this feature",
   "available_credits": "Available credits",
+  "load_balancing_warning": "This will disable Load Balancing on all your Round Robin event types",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
