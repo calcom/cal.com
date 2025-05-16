@@ -1,8 +1,8 @@
 import { handleScheduleUpdatedWebhook } from "@calcom/features/webhooks/lib/handleScheduleUpdatedWebhook";
-import { transformScheduleToAvailabilityForAtom } from "@calcom/lib";
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { hasEditPermissionForUserID } from "@calcom/lib/hasEditPermissionForUser";
+import { transformScheduleToAvailabilityForAtom } from "@calcom/lib/schedules/transformers/for-atom";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 
