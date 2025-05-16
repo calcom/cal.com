@@ -147,7 +147,9 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
 
   const activeOnEventTypes = new Map<number, typeof eventType>([
     [eventType.id, eventType],
-    ...(eventType.children?.map((child) => [child.id, child]) ?? []),
+    ...(eventType.children
+      ? eventType.children.map((child) => [child.id, child] as [number, typeof eventType])
+      : []),
   ]);
 
   if (isActive) {
@@ -292,7 +294,8 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       const bookerUrl = await getBookerBaseUrl(ctx.user.organizationId ?? null);
 
       for (const booking of bookingsForReminders) {
-        const bookingEventType = activeOnEventTypes.get(booking.eventTypeId);
+        // eventTypeId is technically nullable but we know it will be there
+        const bookingEventType = activeOnEventTypes.get(booking.eventTypeId!);
         const defaultLocale = "en";
         const bookingInfo = {
           uid: booking.uid,
