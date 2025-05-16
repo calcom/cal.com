@@ -40,6 +40,7 @@ import {
   TextAreaFieldInput_2024_06_14,
   TextFieldInput_2024_06_14,
   TitleDefaultFieldInput_2024_06_14,
+  LocationDefaultFieldInput_2024_06_14,
   UrlFieldInput_2024_06_14,
 } from "./booking-fields.input";
 import type { InputBookingField_2024_06_14 } from "./booking-fields.input";
@@ -117,6 +118,7 @@ export const CREATE_EVENT_SLUG_EXAMPLE = "learn-the-secrets-of-masterchief";
   NameDefaultFieldInput_2024_06_14,
   EmailDefaultFieldInput_2024_06_14,
   TitleDefaultFieldInput_2024_06_14,
+  LocationDefaultFieldInput_2024_06_14,
   NotesDefaultFieldInput_2024_06_14,
   GuestsDefaultFieldInput_2024_06_14,
   RescheduleReasonDefaultFieldInput_2024_06_14,
@@ -163,6 +165,7 @@ class BaseCreateEventTypeInput {
       { $ref: getSchemaPath(NameDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(EmailDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(TitleDefaultFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(LocationDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(NotesDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(GuestsDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(RescheduleReasonDefaultFieldInput_2024_06_14) },
@@ -278,7 +281,7 @@ class BaseCreateEventTypeInput {
 
   @IsOptional()
   @IsInt()
-  @Min(1)
+  @Min(0)
   @DocsPropertyOptional({ description: "Offset timeslots shown to bookers by a specified number of minutes" })
   offsetStart?: number;
 
