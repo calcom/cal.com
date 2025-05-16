@@ -1,8 +1,7 @@
-import { PrismockClientClass } from "prismock";
+import { PrismockClient } from "prismock";
 import { beforeEach, vi } from "vitest";
 
 import logger from "@calcom/lib/logger";
-import { Prisma } from "@calcom/prisma/client";
 import * as selects from "@calcom/prisma/selects";
 
 vi.mock("@calcom/prisma", () => ({
@@ -35,8 +34,7 @@ beforeEach(() => {
   handlePrismockBugs();
 });
 
-const ActualPrismockClientConstructor = PrismockClientClass({ dmmf: Prisma.dmmf });
-const prismock = new ActualPrismockClientConstructor();
+const prismock = new PrismockClient();
 
 const prisma = prismock;
 export default prisma;
