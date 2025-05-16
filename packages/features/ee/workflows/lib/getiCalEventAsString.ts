@@ -4,7 +4,7 @@ import { RRule } from "rrule";
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
-import { parseRecurringEvent } from "@calcom/lib";
+import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import type { Prisma, User } from "@calcom/prisma/client";
 
 type Booking = Prisma.BookingGetPayload<{
