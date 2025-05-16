@@ -469,7 +469,10 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
     }
 
     await prisma.workflowsOnEventTypes.createMany({
-      data: Array.from(activeOnEventTypes).map((ch) => ({ workflowId, eventTypeId: ch.id })),
+      data: Array.from(activeOnEventTypes).map(([eventTypeId]) => ({
+        workflowId,
+        eventTypeId,
+      })),
     });
     const requiresAttendeeNumber = (action: WorkflowActions) =>
       action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.WHATSAPP_ATTENDEE;
