@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
-import type { AvailableSlotsType } from "@calcom/platform-libraries";
 import type {
   GetAvailableSlotsInput_2024_04_15,
   ApiResponse,
   ApiSuccessResponse,
 } from "@calcom/platform-types";
+import type { GetAvailableSlotsResponse } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 export const QUERY_KEY = "get-available-slots";
 
@@ -32,12 +32,15 @@ export const useApiV2AvailableSlots = ({
     ],
     queryFn: () => {
       return axios
-        .get<ApiResponse<AvailableSlotsType>>(`${process.env.NEXT_PUBLIC_API_V2_URL}/slots/available`, {
-          params: rest,
-        })
+        .get<ApiResponse<GetAvailableSlotsResponse>>(
+          `${process.env.NEXT_PUBLIC_API_V2_URL}/slots/available`,
+          {
+            params: rest,
+          }
+        )
         .then((res) => {
           if (res.data.status === "success") {
-            return (res.data as ApiSuccessResponse<AvailableSlotsType>).data;
+            return (res.data as ApiSuccessResponse<GetAvailableSlotsResponse>).data;
           }
           throw new Error(res.data.error.message);
         });

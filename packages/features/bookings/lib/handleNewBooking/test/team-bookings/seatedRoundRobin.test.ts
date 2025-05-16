@@ -1,11 +1,8 @@
-import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
-
 import {
   getBooker,
   TestData,
   getOrganizer,
   createBookingScenario,
-  getGoogleCalendarCredential,
   Timezones,
   getScenarioData,
   mockSuccessfulVideoMeetingCreation,
@@ -13,18 +10,14 @@ import {
   getDate,
   getMockBookingAttendee,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 import { describe, test, vi, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
-import { ErrorCode } from "@calcom/lib/errorCodes";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-
-import * as handleSeatsModule from "../handleSeats";
 
 describe("Seated Round Robin Events", () => {
   setupAndTeardown();
@@ -32,9 +25,9 @@ describe("Seated Round Robin Events", () => {
   test("For second seat booking, organizer remains the same with no team members included", async () => {
     const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
     const EventManager = (await import("@calcom/lib/EventManager")).default;
-    
+
     const eventManagerSpy = vi.spyOn(EventManager.prototype, "updateCalendarAttendees");
-    
+
     const booker = getBooker({
       email: "seat2@example.com",
       name: "Seat 2",
@@ -83,11 +76,7 @@ describe("Seated Round Robin Events", () => {
             slotInterval: 30,
             length: 30,
             schedulingType: SchedulingType.ROUND_ROBIN,
-            users: [
-              { id: assignedHost.id },
-              { id: teamMembers[0].id },
-              { id: teamMembers[1].id },
-            ],
+            users: [{ id: assignedHost.id }, { id: teamMembers[0].id }, { id: teamMembers[1].id }],
             hosts: [
               { userId: assignedHost.id, isFixed: false },
               { userId: teamMembers[0].id, isFixed: false },
@@ -172,10 +161,10 @@ describe("Seated Round Robin Events", () => {
     const calendarEvent = eventManagerSpy.mock.calls[0][0];
 
     expect(calendarEvent.organizer.email).toBe(assignedHost.email);
-    
+
     expect(calendarEvent.team?.members).toBeDefined();
     expect(calendarEvent.team?.members.length).toBe(0);
-    
+
     const teamMemberEmails = calendarEvent.team?.members.map((member) => member.email);
     expect(teamMemberEmails).not.toContain(teamMembers[0].email);
     expect(teamMemberEmails).not.toContain(teamMembers[1].email);
