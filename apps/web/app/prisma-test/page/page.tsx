@@ -1,13 +1,14 @@
-import type { GetServerSidePropsContext } from "next";
+import { headers } from "next/headers";
 
-import { withPrismaSsr } from "@calcom/prisma/store/withPrismaSsr";
+import { withPrismaDataForPage } from "@calcom/prisma/store/withPrismaDataForPage";
 
-export const getServerSideProps = withPrismaSsr(async (ctx: GetServerSidePropsContext, prisma) => {
-  const user = await prisma.user.findFirst({ where: { id: 1 }, select: { id: true, name: true } });
-  return { props: { users: [user] } };
-});
+export default async function Home() {
+  const reqHeaders = await headers();
+  const users = await withPrismaDataForPage(reqHeaders, async (prisma) => {
+    const user = await prisma.user.findFirst({ where: { id: 1 }, select: { id: true, name: true } });
+    return user ? [user] : [];
+  });
 
-export default function Home({ users }: { users: { id: number; name: string }[] }) {
   return (
     <div>
       <h1>Users for tenant</h1>
