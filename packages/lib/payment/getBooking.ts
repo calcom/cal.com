@@ -1,7 +1,8 @@
 import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
@@ -9,7 +10,7 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { enrichUserWithDelegationCredentialsWithoutOrgId } from "../delegationCredential/server";
+import { enrichUserWithDelegationCredentials } from "../delegationCredential/server";
 import { getBookerBaseUrl } from "../getBookerUrl/server";
 
 async function getEventType(id: number) {
@@ -108,7 +109,7 @@ export async function getBooking(bookingId: number) {
   const { user: userWithoutDelegationCredentials } = booking;
 
   if (!userWithoutDelegationCredentials) throw new HttpCode({ statusCode: 204, message: "No user found" });
-  const user = await enrichUserWithDelegationCredentialsWithoutOrgId({
+  const user = await enrichUserWithDelegationCredentials({
     user: userWithoutDelegationCredentials,
   });
 
