@@ -20,6 +20,7 @@ import { UsersRepository, UserWithProfile } from "@/modules/users/users.reposito
 import { ConflictException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
+import { DateTime } from "luxon";
 import { z } from "zod";
 
 import {
@@ -65,7 +66,7 @@ const eventTypeBookingFieldSchema = z.object({
   editable: z.string(),
 });
 
-const eventTypeBookingFieldsSchema = z.array(eventTypeBookingFieldSchema);
+export const eventTypeBookingFieldsSchema = z.array(eventTypeBookingFieldSchema);
 
 export type EventTypeWithOwnerAndTeam = EventType & { owner: User | null; team: Team | null };
 
@@ -171,25 +172,30 @@ export class BookingsService_2024_08_13 {
   }
 
   async hasRequiredBookingFieldsResponses(body: CreateBookingInput, eventType: EventType | null) {
-    const bookingFields = { ...body.bookingFieldsResponses, attendeePhoneNumber: body.attendee.phoneNumber };
+    const bookingFields: Record<string, unknown> = {
+      ...body.bookingFieldsResponses,
+      attendeePhoneNumber: body.attendee.phoneNumber,
+      smsReminderNumber: body.attendee.phoneNumber,
+    };
     if (!eventType?.bookingFields) {
       return true;
     }
 
-    // note(Lauris): we filter out system fields, because some of them are set by default and name and email are passed in the body.attendee
+    // note(Lauris): we filter out system fields, because some of them are set by default and name and email are passed in the body.attendee. Only exception
+    // is smsReminderNumber, because if it is required and not passed sms workflow won't work.
     const eventTypeBookingFields = eventTypeBookingFieldsSchema
       .parse(eventType.bookingFields)
-      .filter((field) => !field.editable.startsWith("system"));
+      .filter((field) => !field.editable.startsWith("system") || field.name === "smsReminderNumber");
 
     if (!eventTypeBookingFields.length) {
       return true;
     }
 
     for (const field of eventTypeBookingFields) {
-      if (field.required && !(field.name in bookingFields)) {
-        if (field.name === "attendeePhoneNumber") {
+      if (field.required && (bookingFields[field.name] === null || bookingFields[field.name] === undefined)) {
+        if (field.name === "attendeePhoneNumber" || field.name === "smsReminderNumber") {
           throw new BadRequestException(
-            `Missing attendee phone number - it is required by the event type. Pass it as "attendee.phoneNumber" in the request.`
+            `Missing attendee phone number - it is required by the event type. Pass it as "attendee.phoneNumber" string in the request.`
           );
         }
         throw new BadRequestException(
@@ -376,7 +382,7 @@ export class BookingsService_2024_08_13 {
       queryParams.attendeeEmail = await this.getAttendeeEmail(queryParams.attendeeEmail, user);
     }
 
-    const fetchedBookings: { bookings: { id: number }[] } = await getAllUserBookings({
+    const fetchedBookings: { bookings: { id: number }[]; totalCount: number } = await getAllUserBookings({
       bookingListingByStatus: queryParams.status || [],
       skip: queryParams.skip ?? 0,
       take: queryParams.take ?? 100,
@@ -432,7 +438,29 @@ export class BookingsService_2024_08_13 {
       }
     }
 
-    return formattedBookings;
+    const skip = Math.abs(queryParams?.skip ?? 0);
+    const take = Math.abs(queryParams?.take ?? 100);
+    const itemsPerPage = take;
+    const totalPages = itemsPerPage !== 0 ? Math.ceil(fetchedBookings.totalCount / itemsPerPage) : 0;
+    const currentPage = Math.floor(skip / itemsPerPage) + 1;
+    const hasNextPage = skip + itemsPerPage < fetchedBookings.totalCount;
+    const hasPreviousPage = skip > 0;
+    return {
+      bookings: formattedBookings,
+      pagination: {
+        totalItems: fetchedBookings.totalCount,
+        // clamp remainingItems between 0 and totalCount
+        remainingItems: Math.min(
+          Math.max(fetchedBookings.totalCount - (skip + take), 0),
+          fetchedBookings.totalCount
+        ),
+        itemsPerPage: itemsPerPage,
+        currentPage: currentPage,
+        totalPages: totalPages,
+        hasNextPage: hasNextPage,
+        hasPreviousPage: hasPreviousPage,
+      },
+    };
   }
 
   async getAttendeeEmail(queryParamsAttendeeEmail: string, user: { id: number }) {
@@ -572,6 +600,20 @@ export class BookingsService_2024_08_13 {
   async markAbsent(bookingUid: string, bookingOwnerId: number, body: MarkAbsentBookingInput_2024_08_13) {
     const bodyTransformed = this.inputService.transformInputMarkAbsentBooking(body);
     const bookingBefore = await this.bookingsRepository.getByUid(bookingUid);
+
+    if (!bookingBefore) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} not found.`);
+    }
+
+    const nowUtc = DateTime.utc();
+    const bookingStartTimeUtc = DateTime.fromJSDate(bookingBefore.startTime, { zone: "utc" });
+
+    if (nowUtc < bookingStartTimeUtc) {
+      throw new BadRequestException(
+        `Bookings can only be marked as absent after their scheduled start time. Current time in UTC+0: ${nowUtc.toISO()}, Booking start time in UTC+0: ${bookingStartTimeUtc.toISO()}`
+      );
+    }
+
     const platformClientParams = bookingBefore?.eventTypeId
       ? await this.platformBookingsService.getOAuthClientParams(bookingBefore.eventTypeId)
       : undefined;

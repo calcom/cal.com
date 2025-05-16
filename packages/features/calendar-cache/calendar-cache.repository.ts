@@ -145,6 +145,8 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         },
       },
       update: {
+        // Ensure that on update userId is also set(It handles the case where userId is not set for legacy records)
+        userId,
         value,
         expiresAt: new Date(Date.now() + CACHING_TIME),
       },

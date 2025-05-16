@@ -212,13 +212,13 @@ test.describe("Insights", async () => {
     await page.getByTestId("filter-popover-trigger-bookingUserId").click();
 
     await page
-      .locator('[data-testid="single-select-options-bookingUserId"]')
+      .locator('[data-testid="select-filter-options-bookingUserId"]')
       .getByRole("option")
       .nth(0)
       .click();
 
     await page
-      .locator('[data-testid="single-select-options-bookingUserId"]')
+      .locator('[data-testid="select-filter-options-bookingUserId"]')
       .getByRole("option")
       .nth(1)
       .click();

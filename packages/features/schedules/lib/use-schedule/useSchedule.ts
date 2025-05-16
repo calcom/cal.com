@@ -8,6 +8,8 @@ import { PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS } from "@calcom/lib/const
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { trpc } from "@calcom/trpc/react";
 
+import { useApiV2AvailableSlots } from "./useApiV2AvailableSlots";
+
 export type UseScheduleWithCacheArgs = {
   username?: string | null;
   eventSlug?: string | null;
@@ -23,6 +25,8 @@ export type UseScheduleWithCacheArgs = {
   isTeamEvent?: boolean;
   orgSlug?: string;
   teamMemberEmail?: string | null;
+  useApiV2?: boolean;
+  enabled?: boolean;
 };
 
 export const useSchedule = ({
@@ -40,6 +44,8 @@ export const useSchedule = ({
   isTeamEvent,
   orgSlug,
   teamMemberEmail,
+  useApiV2 = false,
+  enabled: enabledProp = true,
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
 
@@ -111,14 +117,45 @@ export const useSchedule = ({
       Boolean(month) &&
       Boolean(timezone) &&
       // Should only wait for one or the other, not both.
-      (Boolean(eventSlug) || Boolean(eventId) || eventId === 0),
+      (Boolean(eventSlug) || Boolean(eventId) || eventId === 0) &&
+      enabledProp,
   };
 
-  let schedule;
-  if (isTeamEvent) {
-    schedule = trpc.viewer.highPerf.getTeamSchedule.useQuery(input, options);
-  } else {
-    schedule = trpc.viewer.slots.getSchedule.useQuery(input, options);
+  const isCallingApiV2Slots = useApiV2 && Boolean(isTeamEvent) && options.enabled;
+
+  // API V2 query for team events
+  const teamScheduleV2 = useApiV2AvailableSlots({
+    ...input,
+    enabled: isCallingApiV2Slots,
+    duration: input.duration ? Number(input.duration) : undefined,
+    routedTeamMemberIds: input.routedTeamMemberIds ?? undefined,
+    teamMemberEmail: input.teamMemberEmail ?? undefined,
+    eventTypeId: eventId ?? undefined,
+  });
+
+  const schedule = isTeamEvent
+    ? trpc.viewer.highPerf.getTeamSchedule.useQuery(input, {
+        ...options,
+        // Only enable if we're not using API V2 or if API V2 failed
+        enabled: options.enabled && (!isCallingApiV2Slots || !!teamScheduleV2.failureReason),
+      })
+    : trpc.viewer.slots.getSchedule.useQuery(input, options);
+
+  if (isCallingApiV2Slots && !teamScheduleV2.failureReason) {
+    updateEmbedBookerState({
+      bookerState,
+      slotsQuery: teamScheduleV2,
+    });
+
+    return {
+      ...teamScheduleV2,
+      /**
+       * Invalidates the request and resends it regardless of any other configuration including staleTime
+       */
+      invalidate: () => {
+        return teamScheduleV2.refetch();
+      },
+    };
   }
 
   updateEmbedBookerState({
