@@ -13,6 +13,7 @@ import { Permissions } from "@/modules/auth/decorators/permissions/permissions.d
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { BillingService } from "@/modules/billing/services/billing.service";
+import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
@@ -99,6 +100,7 @@ export class BookingsController_2024_04_15 {
   constructor(
     private readonly oAuthFlowService: OAuthFlowService,
     private readonly prismaReadService: PrismaReadService,
+    private readonly kyselyReadService: KyselyReadService,
     private readonly oAuthClientRepository: OAuthClientRepository,
     private readonly billingService: BillingService,
     private readonly config: ConfigService,
@@ -129,6 +131,7 @@ export class BookingsController_2024_04_15 {
       ctx: {
         user: { email: user.email, id: user.id, orgId: profile?.organizationId },
         prisma: this.prismaReadService.prisma as unknown as PrismaClient,
+        kysely: this.kyselyReadService.kysely,
       },
     });
 

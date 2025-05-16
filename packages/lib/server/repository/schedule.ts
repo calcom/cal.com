@@ -6,7 +6,7 @@ import {
   transformAvailabilityForAtom,
   transformDateOverridesForAtom,
   transformWorkingHoursForAtom,
-} from "../../schedules";
+} from "../../schedules/transformers";
 
 export type FindDetailedScheduleByIdReturnType = Awaited<
   ReturnType<typeof ScheduleRepository.findDetailedScheduleById>

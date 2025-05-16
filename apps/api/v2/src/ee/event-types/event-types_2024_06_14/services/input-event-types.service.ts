@@ -24,10 +24,11 @@ import {
   InternalLocation,
   InternalLocationSchema,
 } from "@/ee/event-types/event-types_2024_06_14/transformers";
-import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, BadRequestException } from "@nestjs/common";
 
+import { getUsersCredentials } from "@calcom/platform-libraries";
+import { getApps } from "@calcom/platform-libraries/app-store";
 import { validateCustomEventName, EventTypeMetaDataSchema } from "@calcom/platform-libraries/event-types";
 import {
   CreateEventTypeInput_2024_06_14,
@@ -49,8 +50,7 @@ interface ValidationContext {
 export class InputEventTypesService_2024_06_14 {
   constructor(
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
-    private readonly calendarsService: CalendarsService,
-    private readonly conferencingService: ConferencingService
+    private readonly calendarsService: CalendarsService
   ) {}
 
   async transformAndValidateCreateEventTypeInput(
@@ -103,13 +103,6 @@ export class InputEventTypesService_2024_06_14 {
   }
 
   transformInputCreateEventType(inputEventType: CreateEventTypeInput_2024_06_14) {
-    const defaultLocations: CreateEventTypeInput_2024_06_14["locations"] = [
-      {
-        type: "integration",
-        integration: "cal-video",
-      },
-    ];
-
     const {
       lengthInMinutes,
       lengthInMinutesOptions,
@@ -129,10 +122,11 @@ export class InputEventTypesService_2024_06_14 {
     } = inputEventType;
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
 
+    const locationsTransformed = locations?.length ? this.transformInputLocations(locations) : undefined;
     const eventType = {
       ...rest,
       length: lengthInMinutes,
-      locations: this.transformInputLocations(locations || defaultLocations),
+      locations: locationsTransformed,
       bookingFields: this.transformInputBookingFields(bookingFields),
       bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
       durationLimits: bookingLimitsDuration
@@ -462,10 +456,32 @@ export class InputEventTypesService_2024_06_14 {
         if (location.type === "integration") {
           // cal-video is global, so we can skip this check
           if (location.integration !== "cal-video") {
-            await this.conferencingService.checkAppIsValidAndConnected(user, location.integration);
+            await this.checkAppIsValidAndConnected(user, location.integration);
           }
         }
       }) ?? []
     );
+  }
+
+  async checkAppIsValidAndConnected(user: UserWithProfile, appSlug: string) {
+    const conferencingApps = ["google-meet", "office365-video", "zoom"];
+    if (!conferencingApps.includes(appSlug)) {
+      throw new BadRequestException("Invalid app, available apps are: ", conferencingApps.join(", "));
+    }
+
+    if (appSlug === "office365-video") {
+      appSlug = "msteams";
+    }
+
+    const credentials = await getUsersCredentials(user);
+
+    const foundApp = getApps(credentials, true).filter((app) => app.slug === appSlug)[0];
+
+    const appLocation = foundApp?.appData?.location;
+
+    if (!foundApp || !appLocation) {
+      throw new BadRequestException(`${appSlug} not connected.`);
+    }
+    return foundApp.credential;
   }
 }
