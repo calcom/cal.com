@@ -1,5 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
-
+import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import type { PermissionString, Resource, CrudAction, CustomAction } from "../types/permission-registry";

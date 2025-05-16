@@ -201,4 +201,92 @@ model RolePermission {
   "booking.update",
   "custom:booking.readRecordings"
 ]
-``` 
+```
+
+## Usage
+
+### Server-Side (React Server Components)
+```typescript
+import { cookies, headers } from "next/headers";
+import { checkSessionPermissionInTeam } from "@calcom/features/pbac/lib/server/checkPermissions";
+
+// In a Server Component
+export default async function TeamSettings({ params }: { params: { teamId: string } }) {
+  const session = buildLegacyRequest(await headers(), await cookies())
+
+  if(!session?.user?.id){
+    return null
+  }
+
+  const hasPermission = await checkSessionPermissionInTeam({
+    userId: session.user.id,
+    teamId: parseInt(params.teamId),
+    permission: "team.update",
+    headers: await headers(),
+    cookies: await cookies(),
+  });
+
+  if (!hasPermission) {
+    return <div>Not authorized</div>;
+  }
+
+  return <div>Team Settings</div>;
+}
+
+// Check multiple permissions
+const hasPermissions = await checkMultiplePermissionsInTeam({
+  userId: session.user.id,
+  teamId: teamId,
+  permissions: ["team.update", "team.invite"],
+});
+```
+
+### Client-Side (React Components)
+```typescript
+import { usePermission, usePermissions } from "@calcom/features/pbac/hooks/usePermission";
+
+// In a React Component
+function TeamSettingsButton({ teamId }: { teamId: number }) {
+  // Single permission check
+  const { hasPermission, isLoading } = usePermission(teamId, "team.update");
+  
+  if (isLoading) return <div>Loading...</div>;
+  if (!hasPermission) return null;
+  
+  return <button>Update Team Settings</button>;
+}
+
+// Multiple permissions check
+function TeamAdminPanel({ teamId }: { teamId: number }) {
+  const { hasPermissions, isLoading } = usePermissions(teamId, [
+    "team.update",
+    "team.invite"
+  ]);
+  
+  if (isLoading) return <div>Loading...</div>;
+  if (!hasPermissions) return <div>Insufficient permissions</div>;
+  
+  return <div>Admin Panel</div>;
+}
+```
+
+### Available Permissions
+
+Permissions follow the format `resource.action` where:
+- `resource` is the entity being accessed (e.g., team, eventType, booking)
+- `action` is the operation being performed (e.g., create, read, update, delete)
+
+Common permissions include:
+- `team.create` - Create teams
+- `team.update` - Update team settings
+- `team.invite` - Invite team members
+- `team.remove` - Remove team members
+- `eventType.create` - Create event types
+- `eventType.update` - Update event types
+- `booking.read` - Read booking details
+
+For a complete list of permissions, see [PERMISSIONS.md](./PERMISSIONS.md).
+
+### Caching
+
+The client-side hooks automatically cache permission results for 5 minutes to reduce API calls. The cache can be invalidated by calling the TRPC mutation to update permissions. 

@@ -1,8 +1,4 @@
-import type { NextApiRequest } from "next";
-
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { prisma } from "@calcom/prisma";
-import type { PrismaClient } from "@calcom/prisma";
 
 import { PermissionCheckService } from "../../services/permission-check.service";
 import { RoleService } from "../../services/role.service";
@@ -17,28 +13,9 @@ export async function checkUserPermissionInTeam({
   teamId: number;
   permission: PermissionString;
 }) {
-  const roleService = new RoleService(prisma as PrismaClient);
-  const permissionCheckService = new PermissionCheckService(roleService, prisma as PrismaClient);
+  const roleService = new RoleService(prisma);
+  const permissionCheckService = new PermissionCheckService(roleService, prisma);
   return permissionCheckService.hasPermission({ userId, teamId }, permission);
-}
-
-export async function checkSessionPermissionInTeam({
-  teamId,
-  permission,
-  req,
-}: {
-  teamId: number;
-  permission: PermissionString;
-  req: NextApiRequest;
-}) {
-  const session = await getServerSession({ req });
-  if (!session?.user?.id) return false;
-
-  return checkUserPermissionInTeam({
-    userId: session.user.id,
-    teamId,
-    permission,
-  });
 }
 
 export async function checkMultiplePermissionsInTeam({
@@ -50,7 +27,7 @@ export async function checkMultiplePermissionsInTeam({
   teamId: number;
   permissions: PermissionString[];
 }) {
-  const roleService = new RoleService(prisma as PrismaClient);
-  const permissionCheckService = new PermissionCheckService(roleService, prisma as PrismaClient);
+  const roleService = new RoleService(prisma);
+  const permissionCheckService = new PermissionCheckService(roleService, prisma);
   return permissionCheckService.hasPermissions({ userId, teamId }, permissions);
 }

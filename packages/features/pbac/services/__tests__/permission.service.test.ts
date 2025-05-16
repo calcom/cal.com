@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 
 import type { PermissionString } from "../../types/permission-registry";
 import { CrudAction, Resource } from "../../types/permission-registry";
@@ -6,7 +6,11 @@ import { PERMISSION_REGISTRY } from "../../types/permission-registry";
 import { PermissionService } from "../permission.service";
 
 describe("PermissionService", () => {
-  const service = new PermissionService();
+  let service: PermissionService;
+
+  beforeEach(() => {
+    service = new PermissionService();
+  });
 
   describe("validatePermission", () => {
     it("should validate a valid permission", () => {
@@ -22,11 +26,11 @@ describe("PermissionService", () => {
 
   describe("validatePermissions", () => {
     it("should validate multiple valid permissions", () => {
-      const permissions = [
+      const permissions: PermissionString[] = [
         "eventType.create",
         "team.invite",
         "organization.manageBilling",
-      ] as PermissionString[];
+      ];
       expect(service.validatePermissions(permissions)).toBe(true);
     });
 
@@ -72,17 +76,18 @@ describe("PermissionService", () => {
         )
       );
       expect(categories).toHaveLength(uniqueCategories.size);
+      expect(categories.every((category) => typeof category === "string")).toBe(true);
     });
   });
 
   describe("getPermissionsByResource", () => {
     it("should return permissions for a specific resource", () => {
       const eventTypePermissions = service.getPermissionsByResource(Resource.EventType);
-      expect(eventTypePermissions.every((p) => p.resource === "eventType")).toBe(true);
+      expect(eventTypePermissions.every((p) => p.resource === Resource.EventType)).toBe(true);
     });
 
     it("should return empty array for non-existent resource", () => {
-      const permissions = service.getPermissionsByResource("nonexistent" as any);
+      const permissions = service.getPermissionsByResource("nonexistent" as Resource);
       expect(permissions).toHaveLength(0);
     });
   });
@@ -94,7 +99,7 @@ describe("PermissionService", () => {
     });
 
     it("should return empty array for non-existent action", () => {
-      const permissions = service.getPermissionsByAction("nonexistent" as any);
+      const permissions = service.getPermissionsByAction("nonexistent" as CrudAction);
       expect(permissions).toHaveLength(0);
     });
   });

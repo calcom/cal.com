@@ -1,52 +1,18 @@
-import { PrismaClient } from "@prisma/client";
+import prismaMock from "../../../../../tests/libs/__mocks__/prismaMock";
+
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import type { PrismaClient } from "@calcom/prisma";
 
 import type { PermissionString } from "../../types/permission-registry";
 import { RoleService } from "../role.service";
 
-// Mock PrismaClient
-vi.mock("@prisma/client", () => ({
-  PrismaClient: vi.fn(() => ({
-    $transaction: vi.fn((callback) =>
-      callback({
-        role: {
-          create: vi.fn(),
-          findUnique: vi.fn(),
-          findMany: vi.fn(),
-          update: vi.fn(),
-          delete: vi.fn(),
-        },
-        rolePermission: {
-          createMany: vi.fn(),
-          deleteMany: vi.fn(),
-          findMany: vi.fn(),
-        },
-        membership: {
-          update: vi.fn(),
-        },
-      })
-    ),
-    role: {
-      create: vi.fn(),
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    },
-    rolePermission: {
-      createMany: vi.fn(),
-      deleteMany: vi.fn(),
-      findMany: vi.fn(),
-    },
-    membership: {
-      update: vi.fn(),
-    },
-  })),
-}));
-
 describe("RoleService", () => {
-  const prisma = new PrismaClient();
-  const service = new RoleService(prisma);
+  const service = new RoleService(prismaMock);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   describe("createRole", () => {
     it("should create a role with permissions", async () => {
@@ -67,7 +33,7 @@ describe("RoleService", () => {
         { roleId: "role-id", resource: "eventType", action: "read" },
       ];
 
-      vi.mocked(prisma.$transaction).mockImplementationOnce(async (callback) => {
+      prismaMock.$transaction.mockImplementationOnce(async (callback) => {
         const tx = {
           role: {
             create: vi.fn().mockResolvedValueOnce(mockRole),
@@ -84,8 +50,8 @@ describe("RoleService", () => {
           membership: {
             update: vi.fn(),
           },
-        } as unknown as PrismaClient;
-        return callback(tx);
+        };
+        return callback(tx as unknown as PrismaClient);
       });
 
       const result = await service.createRole(roleData);
@@ -106,8 +72,8 @@ describe("RoleService", () => {
         teamId: 1,
       };
 
-      vi.mocked(prisma.role.findUnique).mockResolvedValueOnce(role as any);
-      vi.mocked(prisma.rolePermission.findMany).mockResolvedValueOnce([
+      prismaMock.role.findUnique.mockResolvedValueOnce(role as any);
+      prismaMock.rolePermission.findMany.mockResolvedValueOnce([
         { permission: "eventType.create" },
         { permission: "eventType.read" },
       ] as any);
@@ -118,7 +84,7 @@ describe("RoleService", () => {
     });
 
     it("should return null for non-existent role", async () => {
-      vi.mocked(prisma.role.findUnique).mockResolvedValueOnce(null);
+      prismaMock.role.findUnique.mockResolvedValueOnce(null);
 
       const result = await service.getRole("non-existent");
       expect(result).toBeNull();
@@ -133,8 +99,8 @@ describe("RoleService", () => {
         { id: "role-2", name: "Role 2", teamId },
       ];
 
-      vi.mocked(prisma.role.findMany).mockResolvedValueOnce(roles as any);
-      vi.mocked(prisma.rolePermission.findMany).mockResolvedValueOnce([
+      prismaMock.role.findMany.mockResolvedValueOnce(roles as any);
+      prismaMock.rolePermission.findMany.mockResolvedValueOnce([
         { roleId: "role-1", permission: "eventType.create" },
         { roleId: "role-2", permission: "eventType.read" },
       ] as any);
@@ -161,7 +127,7 @@ describe("RoleService", () => {
         { roleId, resource: "eventType", action: "read" },
       ];
 
-      vi.mocked(prisma.$transaction).mockImplementationOnce(async (callback) => {
+      prismaMock.$transaction.mockImplementationOnce(async (callback) => {
         const tx = {
           role: {
             create: vi.fn(),
@@ -178,8 +144,8 @@ describe("RoleService", () => {
           membership: {
             update: vi.fn(),
           },
-        } as unknown as PrismaClient;
-        return callback(tx);
+        };
+        return callback(tx as unknown as PrismaClient);
       });
 
       const result = await service.updateRolePermissions(roleId, permissions);
@@ -195,7 +161,7 @@ describe("RoleService", () => {
       const roleId = "role-id";
       const mockDeletedRole = { id: roleId };
 
-      vi.mocked(prisma.$transaction).mockImplementationOnce(async (callback) => {
+      prismaMock.$transaction.mockImplementationOnce(async (callback) => {
         const tx = {
           role: {
             create: vi.fn(),
@@ -212,9 +178,9 @@ describe("RoleService", () => {
           membership: {
             update: vi.fn(),
           },
-        } as unknown as PrismaClient;
+        };
 
-        const result = await callback(tx);
+        const result = await callback(tx as unknown as PrismaClient);
         expect(tx.rolePermission.deleteMany).toHaveBeenCalledWith({
           where: { roleId },
         });
@@ -234,13 +200,13 @@ describe("RoleService", () => {
       const memberId = 1;
       const roleId = "role-id";
 
-      vi.mocked(prisma.membership.update).mockResolvedValueOnce({
+      prismaMock.membership.update.mockResolvedValueOnce({
         id: memberId,
         customRoleId: roleId,
       } as any);
 
       await service.assignRoleToMember(roleId, memberId);
-      expect(prisma.membership.update).toHaveBeenCalledWith({
+      expect(prismaMock.membership.update).toHaveBeenCalledWith({
         where: { id: memberId },
         data: { customRoleId: roleId },
       });
@@ -251,13 +217,13 @@ describe("RoleService", () => {
     it("should remove a role from a member", async () => {
       const memberId = 1;
 
-      vi.mocked(prisma.membership.update).mockResolvedValueOnce({
+      prismaMock.membership.update.mockResolvedValueOnce({
         id: memberId,
         customRoleId: null,
       } as any);
 
       await service.removeRoleFromMember(memberId);
-      expect(prisma.membership.update).toHaveBeenCalledWith({
+      expect(prismaMock.membership.update).toHaveBeenCalledWith({
         where: { id: memberId },
         data: { customRoleId: null },
       });
@@ -293,13 +259,13 @@ describe("RoleService", () => {
         },
       };
 
-      vi.mocked(prisma.role.findUnique).mockResolvedValueOnce(mockRole as any);
-      vi.mocked(prisma.rolePermission.findMany).mockResolvedValueOnce(mockPermissions as any);
-      vi.mocked(prisma.membership.update).mockResolvedValueOnce(mockUpdatedMembership as any);
+      prismaMock.role.findUnique.mockResolvedValueOnce(mockRole as any);
+      prismaMock.rolePermission.findMany.mockResolvedValueOnce(mockPermissions as any);
+      prismaMock.membership.update.mockResolvedValueOnce(mockUpdatedMembership as any);
 
       const result = await service.changeUserRole(membershipId, roleId);
       expect(result).toEqual(mockUpdatedMembership);
-      expect(prisma.membership.update).toHaveBeenCalledWith({
+      expect(prismaMock.membership.update).toHaveBeenCalledWith({
         where: { id: membershipId },
         data: { customRoleId: roleId },
         include: {
@@ -313,22 +279,22 @@ describe("RoleService", () => {
     });
 
     it("should throw error if role does not exist", async () => {
-      vi.mocked(prisma.role.findUnique).mockResolvedValueOnce(null);
-      vi.mocked(prisma.rolePermission.findMany).mockResolvedValueOnce([]);
+      prismaMock.role.findUnique.mockResolvedValueOnce(null);
+      prismaMock.rolePermission.findMany.mockResolvedValueOnce([]);
 
       await expect(service.changeUserRole(membershipId, roleId)).rejects.toThrow("Role not found");
     });
 
     it("should verify role exists before updating membership", async () => {
-      vi.mocked(prisma.role.findUnique).mockResolvedValueOnce(null);
-      vi.mocked(prisma.rolePermission.findMany).mockResolvedValueOnce([]);
+      prismaMock.role.findUnique.mockResolvedValueOnce(null);
+      prismaMock.rolePermission.findMany.mockResolvedValueOnce([]);
 
       await expect(service.changeUserRole(membershipId, roleId)).rejects.toThrow("Role not found");
-      expect(prisma.role.findUnique).toHaveBeenCalledWith({
+      expect(prismaMock.role.findUnique).toHaveBeenCalledWith({
         where: { id: roleId },
       });
       // Since role doesn't exist, membership.update should not be called
-      expect(prisma.membership.update).not.toHaveBeenCalled();
+      expect(prismaMock.membership.update).not.toHaveBeenCalled();
     });
 
     it("should include role permissions in response", async () => {
@@ -353,9 +319,9 @@ describe("RoleService", () => {
         },
       };
 
-      vi.mocked(prisma.role.findUnique).mockResolvedValueOnce(mockRole as any);
-      vi.mocked(prisma.rolePermission.findMany).mockResolvedValueOnce(mockPermissions as any);
-      vi.mocked(prisma.membership.update).mockResolvedValueOnce(mockUpdatedMembership as any);
+      prismaMock.role.findUnique.mockResolvedValueOnce(mockRole as any);
+      prismaMock.rolePermission.findMany.mockResolvedValueOnce(mockPermissions as any);
+      prismaMock.membership.update.mockResolvedValueOnce(mockUpdatedMembership as any);
 
       const result = await service.changeUserRole(membershipId, roleId);
       expect(result.customRole!.permissions).toHaveLength(3);
