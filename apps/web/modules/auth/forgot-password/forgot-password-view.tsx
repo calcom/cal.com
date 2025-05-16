@@ -112,7 +112,7 @@ export default function ForgotPassword(props: PageProps) {
               {
                 "--cal-brand": "#111827",
                 "--cal-brand-emphasis": "#101010",
-                "--cal-brand-text": "white",
+                "--cal-brand-text": "Black",
                 "--cal-brand-subtle": "#9CA3AF",
               } as CSSProperties
             }>
