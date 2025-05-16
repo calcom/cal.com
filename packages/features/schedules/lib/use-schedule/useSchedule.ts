@@ -2,6 +2,7 @@ import { useSearchParams } from "next/navigation";
 
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS } from "@calcom/lib/constants";
@@ -97,6 +98,7 @@ export const useSchedule = ({
     email,
     // Ensures that connectVersion causes a refresh of the data
     ...(embedConnectVersion ? { embedConnectVersion } : {}),
+    _isDryRun: searchParams ? isBookingDryRun(searchParams) : false,
   };
 
   const options = {
