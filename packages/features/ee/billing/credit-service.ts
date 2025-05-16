@@ -179,7 +179,7 @@ export class CreditService {
     });
   }
 
-  private async _getTeamWithAvailableCredits({ userId, tx }: { userId: number; tx: PrismaTransaction }) {
+  protected async _getTeamWithAvailableCredits({ userId, tx }: { userId: number; tx: PrismaTransaction }) {
     const memberships = await MembershipRepository.findAllAcceptedMemberships(userId, tx);
 
     if (memberships.length === 0) {
@@ -243,7 +243,7 @@ export class CreditService {
     });
   }
 
-  private async _getUserOrTeamToCharge({
+  protected async _getUserOrTeamToCharge({
     credits,
     userId,
     teamId,
@@ -282,7 +282,7 @@ export class CreditService {
     return null;
   }
 
-  private async _createExpenseLog(props: {
+  protected async _createExpenseLog(props: {
     bookingUid?: string;
     smsSid?: string;
     teamId?: number;
@@ -344,7 +344,7 @@ export class CreditService {
   - Sends limit reached email
   - cancels all already scheduled SMS (from the next two hours)
   */
-  private async _handleLowCreditBalance({
+  protected async _handleLowCreditBalance({
     teamId,
     userId,
     remainingCredits,
@@ -555,7 +555,7 @@ export class CreditService {
     });
   }
 
-  private async _getAllCredits({
+  protected async _getAllCredits({
     userId,
     teamId,
     tx,
@@ -591,7 +591,7 @@ export class CreditService {
     });
   }
 
-  private async _getAllCreditsForTeam({ teamId, tx }: { teamId: number; tx: PrismaTransaction }) {
+  protected async _getAllCreditsForTeam({ teamId, tx }: { teamId: number; tx: PrismaTransaction }) {
     const creditBalance = await CreditsRepository.findCreditBalanceWithExpenseLogs({ teamId }, tx);
 
     const totalMonthlyCredits = await this.getMonthlyCredits(teamId);
