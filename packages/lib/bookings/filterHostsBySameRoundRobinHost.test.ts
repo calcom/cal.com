@@ -4,14 +4,24 @@ import prisma from "@calcom/prisma";
 
 import { filterHostsBySameRoundRobinHost } from "./filterHostsBySameRoundRobinHost";
 
+vi.mock("@calcom/prisma", () => {
+  return {
+    default: {
+      booking: {
+        findFirst: vi.fn(),
+      },
+    },
+  };
+});
+
 // Mocking setup
 const prismaMock = {
   booking: {
-    findFirst: vi.fn(), // Mock the findFirst method
+    findFirst: vi.fn(),
   },
 };
 
-// Use `vi.spyOn` to make `prisma.booking.groupBy` call the mock instead
+// Spy on the actual imported prisma.booking.findFirst and override with mock implementation
 vi.spyOn(prisma.booking, "findFirst").mockImplementation(prismaMock.booking.findFirst);
 
 afterEach(() => {
@@ -35,7 +45,7 @@ describe("filterHostsBySameRoundRobinHost", () => {
   });
   it("skips filter if rerouting", async () => {
     const hosts = [
-      { isFixed: true as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
+      { isFixed: false as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
     ];
     expect(
       filterHostsBySameRoundRobinHost({

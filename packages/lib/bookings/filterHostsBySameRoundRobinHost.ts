@@ -1,4 +1,4 @@
-import { prisma } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { isRerouting } from "./routing/utils";
@@ -26,6 +26,7 @@ export const filterHostsBySameRoundRobinHost = async <
   ) {
     return hosts;
   }
+  // TODO: Rewrite this to use BookingRepository.findOriginalRescheduledBooking
   const originalRescheduledBooking = await prisma.booking.findFirst({
     where: {
       uid: rescheduleUid,
