@@ -2,7 +2,7 @@ import { expect } from "@playwright/test";
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
 import { selectFilter, applyFilter, clearFilters } from "./filter-helpers";
 import { test } from "./lib/fixtures";
@@ -26,13 +26,7 @@ test.describe("Insights > Routing Filters", () => {
     });
     await owner.apiLogin();
 
-    await page.goto("/insights");
-
-    await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
-
-    await page.getByRole("link", { name: "Routing" }).click();
-
-    const membership = await owner.getOrgMembership();
+    const membership = await owner.getFirstTeamMembership();
 
     const formName1 = "Test Form 1";
     const form1 = await routingForms.create({
@@ -68,34 +62,49 @@ test.describe("Insights > Routing Filters", () => {
 
     await applyFilter(page, "formId", formName1);
 
-    await expect(page.getByText(formName1)).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText(formName2)).toBeHidden({ timeout: 10000 });
+    await expect(page.getByText(formName1)).toBeVisible();
+    await expect(page.getByText(formName2)).toBeHidden();
 
     await clearFilters(page);
     await applyFilter(page, "formId", formName2);
 
-    await expect(page.getByText(formName2)).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText(formName1)).toBeHidden({ timeout: 10000 });
+    await expect(page.getByText(formName2)).toBeVisible();
+    await expect(page.getByText(formName1)).toBeHidden();
   });
 
   test("bookingUserId filter: should filter by user", async ({ page, users, routingForms, prisma }) => {
-    const owner = await users.create(undefined, {
-      hasTeam: true,
-      isUnpublished: true,
-      isOrg: true,
-      hasSubteam: true,
-    });
-    const user1 = await users.create({ name: "User One" });
+    const owner = await users.create(
+      { name: "owner" },
+      {
+        hasTeam: true,
+        isUnpublished: true,
+        isOrg: true,
+        hasSubteam: true,
+      }
+    );
+    const membership = await owner.getFirstTeamMembership();
+
+    const user1Name = "User One";
+    const user1 = await users.create({ name: user1Name });
     const user2 = await users.create({ name: "User Two" });
+    await prisma.membership.createMany({
+      data: [
+        {
+          teamId: membership.teamId,
+          userId: user1.id,
+          role: MembershipRole.MEMBER,
+          accepted: true,
+        },
+        {
+          teamId: membership.teamId,
+          userId: user2.id,
+          role: MembershipRole.MEMBER,
+          accepted: true,
+        },
+      ],
+    });
 
     await owner.apiLogin();
-
-    await page.goto("/insights");
-
-    await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
-
-    await page.getByRole("link", { name: "Routing" }).click();
-    const membership = await owner.getOrgMembership();
 
     const formName = "Filter User Test Form";
     const form = await routingForms.create({
@@ -134,12 +143,13 @@ test.describe("Insights > Routing Filters", () => {
       },
     });
 
+    const fieldId = (form.fields as any)[0].id;
     await prisma.app_RoutingForms_FormResponse.create({
       data: {
         formFillerId: "test-filler-1",
         formId: form.id,
         response: {
-          name: {
+          [fieldId]: {
             label: "Name",
             value: "John Doe",
           },
@@ -153,7 +163,7 @@ test.describe("Insights > Routing Filters", () => {
         formFillerId: "test-filler-2",
         formId: form.id,
         response: {
-          name: {
+          [fieldId]: {
             label: "Name",
             value: "Jane Smith",
           },
@@ -164,7 +174,7 @@ test.describe("Insights > Routing Filters", () => {
 
     await page.goto(`/insights/routing`);
 
-    await applyFilter(page, "bookingUserId", user1.name || "User One");
+    await applyFilter(page, "bookingUserId", user1Name);
 
     await expect(page.getByText("John Doe")).toBeVisible();
     await expect(page.getByText("Jane Smith")).toBeHidden();
@@ -187,12 +197,7 @@ test.describe("Insights > Routing Filters", () => {
     });
     await owner.apiLogin();
 
-    await page.goto("/insights");
-
-    await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
-
-    await page.getByRole("link", { name: "Routing" }).click();
-    const membership = await owner.getOrgMembership();
+    const membership = await owner.getFirstTeamMembership();
 
     const formName = "Attendee Filter Test Form";
     const form = await routingForms.create({
@@ -208,6 +213,7 @@ test.describe("Insights > Routing Filters", () => {
         },
       ],
     });
+    const fieldId = (form.fields as any)[0].id;
 
     const booking1 = await prisma.booking.create({
       data: {
@@ -253,7 +259,7 @@ test.describe("Insights > Routing Filters", () => {
       data: {
         formFillerId: "test-filler-1",
         formId: form.id,
-        response: { name: { label: "Name", value: "Response 1" } },
+        response: { [fieldId]: { label: "Name", value: "Response 1" } },
         routedToBookingUid: booking1.uid,
       },
     });
@@ -262,7 +268,7 @@ test.describe("Insights > Routing Filters", () => {
       data: {
         formFillerId: "test-filler-2",
         formId: form.id,
-        response: { name: { label: "Name", value: "Response 2" } },
+        response: { [fieldId]: { label: "Name", value: "Response 2" } },
         routedToBookingUid: booking2.uid,
       },
     });
@@ -274,8 +280,8 @@ test.describe("Insights > Routing Filters", () => {
     await page.getByPlaceholder("Filter attendees by name or email").fill("John");
     await page.keyboard.press("Enter");
 
-    await expect(page.getByText("Response 1")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Response 2")).toBeHidden({ timeout: 10000 });
+    await expect(page.getByText("Response 1")).toBeVisible();
+    await expect(page.getByText("Response 2")).toBeHidden();
 
     await clearFilters(page);
     await selectFilter(page, "bookingAttendees");
@@ -283,8 +289,8 @@ test.describe("Insights > Routing Filters", () => {
     await page.getByPlaceholder("Filter attendees by name or email").fill("jane.smith@example");
     await page.keyboard.press("Enter");
 
-    await expect(page.getByText("Response 2")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Response 1")).toBeHidden({ timeout: 10000 });
+    await expect(page.getByText("Response 2")).toBeVisible();
+    await expect(page.getByText("Response 1")).toBeHidden();
 
     await clearFilters(page);
     await selectFilter(page, "bookingAttendees");
@@ -292,8 +298,8 @@ test.describe("Insights > Routing Filters", () => {
     await page.getByPlaceholder("Filter attendees by name or email").fill("JANE");
     await page.keyboard.press("Enter");
 
-    await expect(page.getByText("Response 2")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Response 1")).toBeHidden({ timeout: 10000 });
+    await expect(page.getByText("Response 2")).toBeVisible();
+    await expect(page.getByText("Response 1")).toBeHidden();
 
     await prisma.booking.delete({ where: { id: booking1.id } });
     await prisma.booking.delete({ where: { id: booking2.id } });
@@ -313,12 +319,7 @@ test.describe("Insights > Routing Filters", () => {
     });
     await owner.apiLogin();
 
-    await page.goto("/insights");
-
-    await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
-
-    await page.getByRole("link", { name: "Routing" }).click();
-    const membership = await owner.getOrgMembership();
+    const membership = await owner.getFirstTeamMembership();
 
     const textFieldId = uuidv4();
     const formName = "Text Filter Test Form";
@@ -335,6 +336,7 @@ test.describe("Insights > Routing Filters", () => {
         },
       ],
     });
+    const fieldId = (form.fields as any)[0].id;
 
     await prisma.app_RoutingForms_FormResponse.create({
       data: {
@@ -354,7 +356,7 @@ test.describe("Insights > Routing Filters", () => {
         formFillerId: "test-filler-2",
         formId: form.id,
         response: {
-          description: {
+          [fieldId]: {
             label: "Description",
             value: "Another description for testing",
           },
@@ -367,7 +369,7 @@ test.describe("Insights > Routing Filters", () => {
         formFillerId: "test-filler-3",
         formId: form.id,
         response: {
-          description: {
+          [fieldId]: {
             label: "Description",
             value: "",
           },
@@ -442,14 +444,8 @@ test.describe("Insights > Routing Filters", () => {
     });
     await owner.apiLogin();
 
-    await page.goto("/insights");
+    const membership = await owner.getFirstTeamMembership();
 
-    await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
-
-    await page.getByRole("link", { name: "Routing" }).click();
-    const membership = await owner.getOrgMembership();
-
-    const numberFieldId = uuidv4();
     const formName = "Number Filter Test Form";
     const form = await routingForms.create({
       name: formName,
@@ -464,13 +460,14 @@ test.describe("Insights > Routing Filters", () => {
         },
       ],
     });
+    const fieldId = (form.fields as any)[0].id;
 
     await prisma.app_RoutingForms_FormResponse.create({
       data: {
         formFillerId: "test-filler-1",
         formId: form.id,
         response: {
-          rating: {
+          [fieldId]: {
             label: "Rating",
             value: 1,
           },
@@ -483,7 +480,7 @@ test.describe("Insights > Routing Filters", () => {
         formFillerId: "test-filler-2",
         formId: form.id,
         response: {
-          rating: {
+          [fieldId]: {
             label: "Rating",
             value: 3,
           },
@@ -496,7 +493,7 @@ test.describe("Insights > Routing Filters", () => {
         formFillerId: "test-filler-3",
         formId: form.id,
         response: {
-          rating: {
+          [fieldId]: {
             label: "Rating",
             value: 5,
           },
@@ -559,12 +556,7 @@ test.describe("Insights > Routing Filters", () => {
     });
     await owner.apiLogin();
 
-    await page.goto("/insights");
-
-    await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
-
-    await page.getByRole("link", { name: "Routing" }).click();
-    const membership = await owner.getOrgMembership();
+    const membership = await owner.getFirstTeamMembership();
 
     const singleSelectFieldId = uuidv4();
     const multiSelectFieldId = uuidv4();
@@ -620,17 +612,19 @@ test.describe("Insights > Routing Filters", () => {
         },
       ],
     });
+    const locationFieldId = (form.fields as any)[0].id;
+    const skillFieldId = (form.fields as any)[1].id;
 
     await prisma.app_RoutingForms_FormResponse.create({
       data: {
         formFillerId: "test-filler-1",
         formId: form.id,
         response: {
-          location: {
+          [locationFieldId]: {
             label: "Location",
             value: locationOptionId1,
           },
-          skills: {
+          [skillFieldId]: {
             label: "Skills",
             value: [skillOptionId1, skillOptionId2],
           },
@@ -644,11 +638,11 @@ test.describe("Insights > Routing Filters", () => {
         formId: form.id,
         response: {
           location: {
-            label: "Location",
+            [locationFieldId]: "Location",
             value: locationOptionId2,
           },
           skills: {
-            label: "Skills",
+            [skillFieldId]: "Skills",
             value: [skillOptionId2, skillOptionId3],
           },
         },
@@ -665,8 +659,8 @@ test.describe("Insights > Routing Filters", () => {
       .click();
     await page.keyboard.press("Escape");
 
-    await expect(page.getByText("New York")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("London")).toBeHidden({ timeout: 10000 });
+    await expect(page.getByText("New York")).toBeVisible();
+    await expect(page.getByText("London")).toBeHidden();
 
     await clearFilters(page);
     await selectFilter(page, "skills");
@@ -674,7 +668,7 @@ test.describe("Insights > Routing Filters", () => {
     await page.getByTestId("select-filter-options-skills").getByRole("option", { name: "React" }).click();
     await page.keyboard.press("Escape");
 
-    await expect(page.getByText("React")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("React")).toBeVisible();
   });
 
   test("createdAt filter: should filter by date range", async ({ page, users, routingForms, prisma }) => {
@@ -686,12 +680,7 @@ test.describe("Insights > Routing Filters", () => {
     });
     await owner.apiLogin();
 
-    await page.goto("/insights");
-
-    await page.locator('[data-testid^="insights-filters-false-"]').waitFor();
-
-    await page.getByRole("link", { name: "Routing" }).click();
-    const membership = await owner.getOrgMembership();
+    const membership = await owner.getFirstTeamMembership();
 
     const formName = "Date Range Filter Test Form";
     const form = await routingForms.create({
@@ -707,6 +696,7 @@ test.describe("Insights > Routing Filters", () => {
         },
       ],
     });
+    const fieldId = (form.fields as any)[0].id;
 
     const oldDate = new Date();
     oldDate.setDate(oldDate.getDate() - 10);
@@ -716,7 +706,7 @@ test.describe("Insights > Routing Filters", () => {
         formFillerId: "test-filler-old",
         formId: form.id,
         response: {
-          name: {
+          [fieldId]: {
             label: "Name",
             value: "Old Response",
           },
@@ -730,7 +720,7 @@ test.describe("Insights > Routing Filters", () => {
         formFillerId: "test-filler-recent",
         formId: form.id,
         response: {
-          name: {
+          [fieldId]: {
             label: "Name",
             value: "Recent Response",
           },
@@ -744,16 +734,16 @@ test.describe("Insights > Routing Filters", () => {
     await page.getByTestId("filter-popover-trigger-createdAt").click();
     await page.getByTestId("date-range-options-w").click(); // Last 7 Days
 
-    await expect(page.getByText("Recent Response")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Old Response")).toBeHidden({ timeout: 10000 });
+    await expect(page.getByText("Recent Response")).toBeVisible();
+    await expect(page.getByText("Old Response")).toBeHidden();
 
     await clearFilters(page);
     await selectFilter(page, "createdAt");
     await page.getByTestId("filter-popover-trigger-createdAt").click();
     await page.getByTestId("date-range-options-t").click(); // Last 30 Days
 
-    await expect(page.getByText("Recent Response")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Old Response")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Recent Response")).toBeVisible();
+    await expect(page.getByText("Old Response")).toBeVisible();
 
     await clearFilters(page);
     await selectFilter(page, "createdAt");
@@ -767,7 +757,7 @@ test.describe("Insights > Routing Filters", () => {
     await page.getByTestId("date-range-end-date").fill(endDate);
     await page.keyboard.press("Enter");
 
-    await expect(page.getByText("Old Response")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Recent Response")).toBeHidden({ timeout: 10000 });
+    await expect(page.getByText("Old Response")).toBeVisible();
+    await expect(page.getByText("Recent Response")).toBeHidden();
   });
 });
