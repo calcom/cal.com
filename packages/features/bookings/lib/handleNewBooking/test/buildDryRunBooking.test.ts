@@ -1,8 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 import { BookingStatus, CreationSource } from "@calcom/prisma/enums";
 
 import { buildDryRunBooking } from "../../handleNewBooking";
+
+vi.mock("@calcom/prisma", () => ({
+  default: {}, // empty object as default export
+}));
 
 describe("buildDryRunBooking", () => {
   const baseOrganizerUser = {
