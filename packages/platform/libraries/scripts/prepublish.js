@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Fetch current version from npm registry
-function getCurrentVersion() {
+export function getCurrentVersion() {
   return new Promise((resolve, reject) => {
     https
       .get(

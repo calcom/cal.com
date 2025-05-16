@@ -141,6 +141,11 @@ export class LocationDefaultFieldOutput_2024_06_14 {
       "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
   })
   hidden!: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  label?: string;
 }
 
 export class RescheduleReasonDefaultFieldOutput_2024_06_14 extends RescheduleReasonDefaultFieldInput_2024_06_14 {
