@@ -1,6 +1,7 @@
 import { useSearchParams } from "next/navigation";
 
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
+import { sdkActionManager } from "@calcom/embed-core/src/sdk-event";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
@@ -27,6 +28,23 @@ export type UseScheduleWithCacheArgs = {
   teamMemberEmail?: string | null;
   useApiV2?: boolean;
   enabled?: boolean;
+  eventTitle?: string | null;
+};
+
+const getAvailabilityLoadedEventPayload = ({
+  eventId,
+  eventSlug,
+  eventTitle,
+}: {
+  eventId: number | null | undefined;
+  eventSlug: string | null | undefined;
+  eventTitle: string | null | undefined;
+}) => {
+  return {
+    eventId,
+    eventSlug,
+    eventTitle,
+  };
 };
 
 export const useSchedule = ({
@@ -46,6 +64,7 @@ export const useSchedule = ({
   teamMemberEmail,
   useApiV2 = false,
   enabled: enabledProp = true,
+  eventTitle,
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
 
@@ -147,6 +166,17 @@ export const useSchedule = ({
       slotsQuery: teamScheduleV2,
     });
 
+    if (teamScheduleV2.isSuccess) {
+      sdkActionManager?.fire(
+        "availabilityLoaded",
+        getAvailabilityLoadedEventPayload({
+          eventId,
+          eventSlug,
+          eventTitle,
+        })
+      );
+    }
+
     return {
       ...teamScheduleV2,
       /**
@@ -162,6 +192,17 @@ export const useSchedule = ({
     bookerState,
     slotsQuery: schedule,
   });
+
+  if (schedule.isSuccess) {
+    sdkActionManager?.fire(
+      "availabilityLoaded",
+      getAvailabilityLoadedEventPayload({
+        eventId,
+        eventSlug,
+        eventTitle,
+      })
+    );
+  }
 
   return {
     ...schedule,
