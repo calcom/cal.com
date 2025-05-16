@@ -33,6 +33,7 @@ export default function JoinCall(props: PageProps) {
     calVideoLogo,
     displayLogInOverlay,
     loggedInUserName,
+    showRecordingButton,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
 
@@ -65,12 +66,16 @@ export default function JoinCall(props: PageProps) {
         ...(typeof meetingPassword === "string" && { token: meetingPassword }),
         ...(hasTeamPlan && {
           customTrayButtons: {
-            recording: {
-              label: "Record",
-              tooltip: "Start or stop recording",
-              iconPath: RECORDING_DEFAULT_ICON,
-              iconPathDarkMode: RECORDING_DEFAULT_ICON,
-            },
+            ...(showRecordingButton
+              ? {
+                  recording: {
+                    label: "Record",
+                    tooltip: "Start or stop recording",
+                    iconPath: RECORDING_DEFAULT_ICON,
+                    iconPathDarkMode: RECORDING_DEFAULT_ICON,
+                  },
+                }
+              : {}),
             transcription: {
               label: "Cal.ai",
               tooltip: "Transcription powered by AI",

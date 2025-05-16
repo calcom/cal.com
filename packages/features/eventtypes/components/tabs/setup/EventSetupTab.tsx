@@ -60,17 +60,24 @@ const CalVideoSettings = () => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const settings = formMethods.watch("calVideoSettings");
-  console.log("CalVideoSettings.settings", settings);
+  const locations = formMethods.watch("locations");
+
+  const doesLocationHaveCalVideo = locations.some((location) => location.type === "integrations:daily");
+
+  if (!doesLocationHaveCalVideo) return null;
 
   return (
-    <div>
+    <div className="mt-4">
       <Controller
         name="calVideoSettings"
         render={() => (
           <SettingsToggle
             labelClassName={classNames("text-sm")}
             toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames("border-subtle rounded-lg border py-6 px-4 sm:px-6")}
+            switchContainerClassName={classNames(
+              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+              !!settings.enabled && "rounded-b-none"
+            )}
             title={t("customize_calvideo_settings")}
             description={t("calvideo_settings_description")}
             checked={!!settings?.enabled}
@@ -436,7 +443,7 @@ export const EventSetupTab = (
               )}
             />
           </div>
-          <div className="mt-4">
+          <div>
             <CalVideoSettings />
           </div>
         </div>

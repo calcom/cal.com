@@ -18,6 +18,25 @@ import prisma from "@calcom/prisma";
 
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
+const checkShowRecordingButton = ({
+  hasTeamPlan,
+  calVideoSettings,
+  isOrganizer,
+}: {
+  hasTeamPlan: boolean;
+  calVideoSettings: CalVideoSettings;
+  isOrganizer: boolean;
+}) => {
+  if (!hasTeamPlan) return false;
+  if (!calVideoSettings || !calVideoSettings.enabled) return true;
+
+  if (isOrganizer) {
+    return !calVideoSettings.disableRecordingForOrganizer;
+  }
+
+  return !calVideoSettings.disableRecordingForGuests;
+};
+
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req } = context;
 
@@ -141,6 +160,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     ? await featureRepo.checkIfTeamHasFeature(profile.organizationId, "cal-video-log-in-overlay")
     : false;
 
+  const showRecordingButton = checkShowRecordingButton({
+    hasTeamPlan,
+    calVideoSettings: bookingObj.eventType.calVideoSettings,
+    isOrganizer: sessionUserId === bookingObj.user?.id,
+  });
+
   return {
     props: {
       meetingUrl: videoReference.meetingUrl ?? "",
@@ -161,6 +186,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       calVideoLogo,
       displayLogInOverlay,
       loggedInUserName: sessionUserId ? session?.user?.name : undefined,
+      showRecordingButton,
     },
   };
 }

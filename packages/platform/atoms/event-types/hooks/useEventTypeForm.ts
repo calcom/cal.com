@@ -130,6 +130,7 @@ export const useEventTypeForm = ({
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
       useEventLevelSelectedCalendars: eventType.useEventLevelSelectedCalendars,
       customReplyToEmail: eventType.customReplyToEmail || null,
+      calVideoSettings: eventType.calVideoSettings,
     };
   }, [eventType, periodDates]);
 

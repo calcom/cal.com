@@ -375,6 +375,13 @@ export class BookingRepository {
         eventType: {
           select: {
             hideOrganizerEmail: true,
+            calVideoSettings: {
+              select: {
+                enabled: true,
+                disableRecordingForGuests: true,
+                disableRecordingForOrganizer: true,
+              },
+            },
           },
         },
         user: {
