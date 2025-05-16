@@ -21992,7 +21992,7 @@ __metadata:
     node-ical: ^0.16.1
     p-limit: ^6.2.0
     prettier: ^2.8.6
-    prismock: 1.35.3
+    prismock: ^1.35.3
     resize-observer-polyfill: ^1.5.1
     tsc-absolute: ^1.0.0
     turbo: ^1.10.1
@@ -39481,7 +39481,7 @@ __metadata:
 
 "prismock@patch:prismock@npm%3A1.35.3#./.yarn/patches/prismock-npm-1.35.3-d859268b55.patch::locator=calcom-monorepo%40workspace%3A.":
   version: 1.35.3
-  resolution: "prismock@patch:prismock@npm%3A1.35.3#./.yarn/patches/prismock-npm-1.35.3-d859268b55.patch::version=1.35.3&hash=d9c8ec&locator=calcom-monorepo%40workspace%3A."
+  resolution: "prismock@patch:prismock@npm%3A1.35.3#./.yarn/patches/prismock-npm-1.35.3-d859268b55.patch::version=1.35.3&hash=1adf84&locator=calcom-monorepo%40workspace%3A."
   dependencies:
     "@paralleldrive/cuid2": 2.2.2
     "@prisma/generator-helper": 5.22.0
@@ -39490,7 +39490,7 @@ __metadata:
   peerDependencies:
     "@prisma/client": "*"
     prisma: "*"
-  checksum: 8b786ad167a7f77a32b0b1aefa1bb1afc9b46cf89bed67486f587669d8827c289aebb4c9bec49141d78f925fba27d94114e8a522acec6298dc9fc9474ec2467a
+  checksum: ef04e6f1f21fee7711befadfa1effb8cd5de59f08140dad1b92298c8754330676f5a30dc0c74d7cd8bf9de9f674576a49188512cba444fe591862a9ed0e6f6f8
   languageName: node
   linkType: hard
 
