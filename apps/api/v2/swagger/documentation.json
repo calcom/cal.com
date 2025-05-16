@@ -14805,6 +14805,22 @@
           "slug"
         ]
       },
+      "LocationDefaultFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "example": "location",
+            "description": "only allowed value for type is `location`. This booking field is displayed only when event type has 2 or more locations in order to allow person doing the booking pick the location."
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug"
+        ]
+      },
       "NotesDefaultFieldInput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -15017,6 +15033,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/TitleDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/LocationDefaultFieldInput_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/NotesDefaultFieldInput_2024_06_14"
@@ -15610,6 +15629,9 @@
           "hidden": {
             "type": "boolean",
             "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "label": {
+            "type": "string"
           }
         },
         "required": [
@@ -15626,11 +15648,11 @@
           "slug": {
             "type": "string",
             "enum": [
-              "name",
-              "email",
               "title",
+              "location",
               "notes",
-              "guests"
+              "guests",
+              "rescheduleReason"
             ],
             "example": "rescheduleReason",
             "description": "only allowed value for type is `rescheduleReason`",
@@ -15676,11 +15698,11 @@
           "slug": {
             "type": "string",
             "enum": [
-              "name",
-              "email",
               "title",
+              "location",
               "notes",
-              "guests"
+              "guests",
+              "rescheduleReason"
             ],
             "example": "title",
             "description": "only allowed value for type is `title`",
@@ -15726,11 +15748,11 @@
           "slug": {
             "type": "string",
             "enum": [
-              "name",
-              "email",
               "title",
+              "location",
               "notes",
-              "guests"
+              "guests",
+              "rescheduleReason"
             ],
             "example": "notes",
             "description": "only allowed value for type is `notes`",
@@ -15776,11 +15798,11 @@
           "slug": {
             "type": "string",
             "enum": [
-              "name",
-              "email",
               "title",
+              "location",
               "notes",
-              "guests"
+              "guests",
+              "rescheduleReason"
             ],
             "example": "guests",
             "description": "only allowed value for type is `guests`",
@@ -17008,6 +17030,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/TitleDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/LocationDefaultFieldInput_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/NotesDefaultFieldInput_2024_06_14"
@@ -18824,6 +18849,9 @@
                   "$ref": "#/components/schemas/TitleDefaultFieldInput_2024_06_14"
                 },
                 {
+                  "$ref": "#/components/schemas/LocationDefaultFieldInput_2024_06_14"
+                },
+                {
                   "$ref": "#/components/schemas/NotesDefaultFieldInput_2024_06_14"
                 },
                 {
@@ -19680,6 +19708,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/TitleDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/LocationDefaultFieldInput_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/NotesDefaultFieldInput_2024_06_14"
