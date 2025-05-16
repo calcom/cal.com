@@ -196,8 +196,15 @@ export class BookingsService_2024_08_13 {
     }
 
     for (const eventTypeBookingField of eventTypeBookingFields) {
-      if (eventTypeBookingField.required && (bookingFields[eventTypeBookingField.name] === null || bookingFields[eventTypeBookingField.name] === undefined)) {
-        if (eventTypeBookingField.name === "attendeePhoneNumber" || eventTypeBookingField.name === "smsReminderNumber") {
+      if (
+        eventTypeBookingField.required &&
+        (bookingFieldsResponses[eventTypeBookingField.name] === null ||
+          bookingFieldsResponses[eventTypeBookingField.name] === undefined)
+      ) {
+        if (
+          eventTypeBookingField.name === "attendeePhoneNumber" ||
+          eventTypeBookingField.name === "smsReminderNumber"
+        ) {
           throw new BadRequestException(
             `Missing attendee phone number - it is required by the event type. Pass it as "attendee.phoneNumber" string in the request.`
           );
