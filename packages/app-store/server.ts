@@ -138,9 +138,9 @@ export async function getLocationGroupedOptions(
 
   const filteredDefaultLocations = defaultLocations.filter((l) => {
     if (l.type == OrganizerDefaultConferencingAppType && "teamId" in userOrTeamId) {
-      return true;
+      return false;
     }
-    return false;
+    return true;
   });
 
   filteredDefaultLocations.forEach((l) => {
