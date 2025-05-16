@@ -526,11 +526,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  console.log("calVideoSettings", calVideoSettings);
-
   if (calVideoSettings) {
     if (calVideoSettings.enabled) {
-      const res = await ctx.prisma.calVideoSettings.upsert({
+      await ctx.prisma.calVideoSettings.upsert({
         where: { eventTypeId: id },
         update: {
           enabled: calVideoSettings.enabled,
@@ -544,8 +542,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           eventTypeId: id,
         },
       });
-
-      console.log("res", res);
     } else if (!calVideoSettings.enabled && eventType.calVideoSettings) {
       await ctx.prisma.calVideoSettings.delete({
         where: { eventTypeId: id },
