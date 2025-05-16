@@ -842,10 +842,13 @@ model SelectedCalendar {
   @@unique([userId, integration, externalId, eventTypeId])
   @@unique([googleChannelId, eventTypeId])
   @@index([userId])
-  @@index([integration])
+  // @@index([integration]) // Covered by composite indexes starting with integration
   @@index([externalId])
   @@index([eventTypeId])
   @@index([credentialId])
+  // Composite indices to optimize calendar-cache queries
+  @@index([integration, googleChannelExpiration, error, watchAttempts], name: "SelCal_integ_channelExp_error_watchAttempts_idx")
+  @@index([integration, googleChannelExpiration, unwatchError, unwatchAttempts], name: "SelCal_integ_channelExp_unwatchError_unwatchAttempts_idx")
 }
 
 enum EventTypeCustomInputType {

@@ -6,6 +6,8 @@ import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import { buildCredentialPayloadForPrisma } from "../buildCredentialPayloadForCalendar";
 
+const maxAttemptsOfUnwatch = 3;
+const maxAttemptsOfWatch = 3;
 export type UpdateArguments = {
   where: FindManyArgs["where"];
   data: Prisma.SelectedCalendarUpdateManyArgs["data"];
@@ -138,7 +140,6 @@ export class SelectedCalendarRepository {
   static async getNextBatchToWatch(limit = 100) {
     // Get selected calendars from users that belong to a team that has calendar cache enabled
     const oneDayInMS = 24 * 60 * 60 * 1000;
-    const maxAttempts = 3;
     const tomorrowTimestamp = String(new Date().getTime() + oneDayInMS);
     const nextBatch = await prisma.selectedCalendar.findMany({
       take: limit,
@@ -166,7 +167,7 @@ export class SelectedCalendarRepository {
               // Or is a calendar that has errored but has not reached max attempts
               {
                 error: { not: null },
-                watchAttempts: { lt: maxAttempts },
+                watchAttempts: { lt: maxAttemptsOfWatch },
               },
             ],
           },
@@ -200,7 +201,7 @@ export class SelectedCalendarRepository {
             // Or is a calendar that has errored during unwatch but has not reached max attempts
             {
               unwatchError: { not: null },
-              unwatchAttempts: { lt: maxAttempts },
+              unwatchAttempts: { lt: maxAttemptsOfUnwatch },
             },
           ],
         },
@@ -374,7 +375,7 @@ export class SelectedCalendarRepository {
   static async setErrorInWatching({ id, error }: { id: string; error: string }) {
     await SelectedCalendarRepository.updateById(id, {
       error,
-      attempts: { increment: 1 },
+      watchAttempts: { increment: 1 },
       lastWatchErrorAt: new Date(),
     });
   }
@@ -382,7 +383,7 @@ export class SelectedCalendarRepository {
   static async setErrorInUnwatching({ id, error }: { id: string; error: string }) {
     await SelectedCalendarRepository.updateById(id, {
       unwatchError: error,
-      attempts: { increment: 1 },
+      unwatchAttempts: { increment: 1 },
       lastUnwatchErrorAt: new Date(),
     });
   }
