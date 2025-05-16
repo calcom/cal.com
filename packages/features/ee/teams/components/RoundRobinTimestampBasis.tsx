@@ -38,8 +38,11 @@ const RoundRobinTimestampBasis = () => {
                   onChange(val?.value);
                 }}
               />
-              <p className="text-attention mt-2 text-sm">{t("load_balancing_warning")}</p>
             </div>
+
+            {value !== RRTimestampBasis.CREATED_AT && (
+              <p className="text-attention mt-2 text-sm">{t("load_balancing_warning")}</p>
+            )}
           </>
         );
       }}

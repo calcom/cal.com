@@ -547,6 +547,7 @@ export class EventTypeRepository {
           name: true,
           slug: true,
           parentId: true,
+          rrTimestampBasis: true,
           parent: {
             select: {
               slug: true,
