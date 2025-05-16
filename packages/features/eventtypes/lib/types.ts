@@ -152,7 +152,7 @@ export type FormValues = {
   maxLeadThreshold?: number;
   calVideoSettings?: {
     disableRecordingForOrganizer: boolean;
-    disableTranscriptionForOrganizer: boolean;
+    disableRecordingForGuests: boolean;
   };
 };
 

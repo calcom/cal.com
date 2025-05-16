@@ -119,7 +119,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       calVideoSettings: {
         select: {
           disableRecordingForOrganizer: true,
-          disableTranscriptionForOrganizer: true,
+          disableRecordingForGuests: true,
         },
       },
       children: {
@@ -530,12 +530,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       await ctx.prisma.calVideoSettings.upsert({
         where: { eventTypeId: id },
         update: {
+          disableRecordingForGuests: calVideoSettings.disableRecordingForGuests,
           disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer,
-          disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer,
         },
         create: {
+          disableRecordingForGuests: calVideoSettings.disableRecordingForGuests,
           disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer,
-          disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer,
           eventTypeId: id,
         },
       });

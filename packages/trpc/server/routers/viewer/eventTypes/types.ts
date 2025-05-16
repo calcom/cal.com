@@ -25,6 +25,14 @@ const aiPhoneCallConfig = z
   })
   .optional();
 
+const calVideoSettingsSchema = z
+  .object({
+    enabled: z.boolean(),
+    disableRecordingForGuests: z.boolean().optional(),
+    disableRecordingForOrganizer: z.boolean().optional(),
+  })
+  .optional();
+
 const hostSchema = z.object({
   userId: z.number(),
   profileId: z.number().or(z.null()).optional(),
@@ -51,6 +59,7 @@ const BaseEventTypeUpdateInput = _EventTypeModel
     instantMeetingParameters: z.array(z.string()),
     instantMeetingExpiryTimeOffsetInSeconds: z.number(),
     aiPhoneCallConfig,
+    calVideoSettings: calVideoSettingsSchema,
     calAiPhoneScript: z.string(),
     customInputs: z.array(customInputSchema),
     destinationCalendar: _DestinationCalendarModel

@@ -53,7 +53,7 @@ export type EventSetupTabCustomClassNames = {
 
 type CalVideoSettings = {
   disableRecordingForGuests: boolean;
-  disableTranscriptionForOrganizer: boolean;
+  disableRecordingForOrganizer: boolean;
 };
 
 const CalVideoSettings = () => {
@@ -73,16 +73,17 @@ const CalVideoSettings = () => {
             switchContainerClassName={classNames("border-subtle rounded-lg border py-6 px-4 sm:px-6")}
             title={t("customize_calvideo_settings")}
             description={t("calvideo_settings_description")}
-            checked={!!settings}
+            checked={!!settings?.enabled}
             onCheckedChange={(e) => {
               formMethods.setValue(
                 "calVideoSettings",
                 e
                   ? {
+                      enabled: true,
                       disableRecordingForGuests: false,
-                      disableTranscriptionForOrganizer: false,
+                      disableRecordingForOrganizer: false,
                     }
-                  : null,
+                  : { enabled: false },
                 {
                   shouldDirty: true,
                 }
@@ -103,9 +104,9 @@ const CalVideoSettings = () => {
               <SettingsToggle
                 title={t("disable_recording_for_organizer")}
                 labelClassName="text-sm"
-                checked={settings?.disableTranscriptionForOrganizer}
+                checked={settings?.disableRecordingForOrganizer}
                 onCheckedChange={(e) => {
-                  formMethods.setValue("calVideoSettings.disableTranscriptionForOrganizer", e, {
+                  formMethods.setValue("calVideoSettings.disableRecordingForOrganizer", e, {
                     shouldDirty: true,
                   });
                 }}
