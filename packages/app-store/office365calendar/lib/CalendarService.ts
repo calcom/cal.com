@@ -56,6 +56,13 @@ interface BodyValue {
   end: { dateTime: string };
   evt: { showAs: string };
   start: { dateTime: string };
+  id?: string;
+  createdDateTime?: string;
+}
+
+export interface EnrichedBufferedBusyTime extends BufferedBusyTime {
+  id?: string;
+  createdDateTime?: string | Date;
 }
 
 const MICROSOFT_WEBHOOK_URL = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/office365calendar/webhook`;
@@ -316,7 +323,12 @@ export default class Office365CalendarService implements Calendar {
     }
   }
 
-  async fetchAvailability(dateFrom: string, dateTo: string, calendarIds: string[]): Promise<EventBusyDate[]> {
+  async fetchAvailability(
+    dateFrom: string,
+    dateTo: string,
+    calendarIds: string[],
+    getCreatedDateTime = false
+  ): Promise<EventBusyDate[]> {
     const dateFromParsed = new Date(dateFrom);
     const dateToParsed = new Date(dateTo);
 
@@ -324,13 +336,15 @@ export default class Office365CalendarService implements Calendar {
       dateFromParsed.toISOString()
     )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
 
-    const calendarSelectParams = "$select=showAs,start,end";
+    const calendarSelectParams = `$select=showAs,start,end${getCreatedDateTime ? ",createdDateTime" : ""}`;
 
     const userEndpoint = await this.getUserEndpoint();
     const requests = calendarIds.map((calendarId, id) => ({
       id,
       method: "GET",
-      url: `${userEndpoint}/calendars/${calendarId}/calendarView${filter}&${calendarSelectParams}`,
+      url: `${userEndpoint}/calendars/${calendarId}/${
+        getCreatedDateTime ? "events" : "calendarView"
+      }${filter}&${calendarSelectParams}`,
     }));
 
     const response = await this.apiGraphBatchCall(requests);
@@ -934,14 +948,16 @@ export default class Office365CalendarService implements Calendar {
 
   private processBusyTimes = (responses: ISettledResponse[]) => {
     return responses.reduce(
-      (acc: BufferedBusyTime[], subResponse: { body: { value?: BodyValue[]; error?: Error[] } }) => {
+      (acc: EnrichedBufferedBusyTime[], subResponse: { body: { value?: BodyValue[]; error?: Error[] } }) => {
         if (!subResponse.body?.value) return acc;
         return acc.concat(
-          subResponse.body.value.reduce((acc: BufferedBusyTime[], evt: BodyValue) => {
+          subResponse.body.value.reduce((acc: EnrichedBufferedBusyTime[], evt: BodyValue) => {
             if (evt.showAs === "free" || evt.showAs === "workingElsewhere") return acc;
             return acc.concat({
               start: `${evt.start.dateTime}Z`,
               end: `${evt.end.dateTime}Z`,
+              ...(evt.createdDateTime ? { createdDateTime: evt.createdDateTime } : {}),
+              ...(evt.id ? { id: evt.id } : {}),
             });
           }, [])
         );
