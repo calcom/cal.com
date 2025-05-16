@@ -79,6 +79,7 @@ const handleCalendarsToUnwatch = async () => {
         try {
           const cc = await CalendarCache.initFromCredentialId(credentialId);
           await cc.unwatchCalendar({ calendarId: externalId, eventTypeIds });
+          await SelectedCalendarRepository.removeUnwatchingError({ id });
         } catch (error) {
           let errorMessage = "Unknown error";
           if (error instanceof Error) {
@@ -116,6 +117,7 @@ const handleCalendarsToWatch = async () => {
         try {
           const cc = await CalendarCache.initFromCredentialId(credentialId);
           await cc.watchCalendar({ calendarId: externalId, eventTypeIds });
+          await SelectedCalendarRepository.removeWatchingError({ id });
         } catch (error) {
           let errorMessage = "Unknown error";
           if (error instanceof Error) {

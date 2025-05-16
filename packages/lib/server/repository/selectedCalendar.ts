@@ -387,4 +387,20 @@ export class SelectedCalendarRepository {
       lastUnwatchErrorAt: new Date(),
     });
   }
+
+  static async removeWatchingError({ id }: { id: string }) {
+    await SelectedCalendarRepository.updateById(id, {
+      error: null,
+      watchAttempts: 0,
+      lastWatchErrorAt: null,
+    });
+  }
+
+  static async removeUnwatchingError({ id }: { id: string }) {
+    await SelectedCalendarRepository.updateById(id, {
+      unwatchError: null,
+      unwatchAttempts: 0,
+      lastUnwatchErrorAt: null,
+    });
+  }
 }
