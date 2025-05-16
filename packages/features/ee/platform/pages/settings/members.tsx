@@ -1,18 +1,14 @@
 "use client";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import { CTA_CONTAINER_CLASS_NAME } from "@calcom/features/data-table/lib/utils";
-import Shell from "@calcom/features/shell/Shell";
 import { UserListTable } from "@calcom/features/users/components/UserTable/UserListTable";
 import type { UserListTableProps } from "@calcom/features/users/components/UserTable/UserListTable";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
+import { UserListTableSkeleton } from "@calcom/features/users/components/UserTable/UserListTableSkeleton";
 import NoPlatformPlan from "@calcom/web/components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 import { PlatformPricing } from "@calcom/web/components/settings/platform/pricing/platform-pricing/index";
 
 const PlatformMembersView = (props: UserListTableProps) => {
-  const { t } = useLocale();
   const { isUserLoading, isUserBillingDataLoading, isPlatformUser, isPaidUser, userBillingData, userOrgId } =
     useGetUserAttributes();
   const currentOrg = props.org;
@@ -22,7 +18,7 @@ const PlatformMembersView = (props: UserListTableProps) => {
     (currentOrg?.isPrivate && isOrgAdminOrOwner) || isOrgAdminOrOwner || !currentOrg?.isPrivate;
 
   if (isUserLoading || (isUserBillingDataLoading && !userBillingData)) {
-    return <div className="m-5">Loading...</div>;
+    return <UserListTableSkeleton />;
   }
 
   if (isPlatformUser && !isPaidUser)
@@ -37,37 +33,10 @@ const PlatformMembersView = (props: UserListTableProps) => {
       />
     );
 
-  if (!isPlatformUser)
-    return (
-      <div>
-        <Shell isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
-          <NoPlatformPlan />
-        </Shell>
-      </div>
-    );
-
-  return (
-    <Shell
-      heading={
-        <div className="flex">
-          <h1>Member management</h1>
-          <Button
-            tooltip="Only teammates invited as admins can create OAuth clients while teammates invited as members have read only access"
-            tooltipSide="right"
-            className="mx-2 hover:bg-transparent"
-            color="minimal"
-            variant="icon"
-            StartIcon="info"
-          />
-        </div>
-      }
-      title={t("platform_members")}
-      subtitle={t("platform_members_description")}
-      withoutMain={false}
-      isPlatformUser={true}
-      actions={<div className={CTA_CONTAINER_CLASS_NAME} />}>
-      <div>{canLoggedInUserSeeMembers && <UserListTable {...props} />}</div>
-    </Shell>
+  return !isPlatformUser ? (
+    <div>{canLoggedInUserSeeMembers && <UserListTable {...props} />}</div>
+  ) : (
+    <NoPlatformPlan />
   );
 };
 
