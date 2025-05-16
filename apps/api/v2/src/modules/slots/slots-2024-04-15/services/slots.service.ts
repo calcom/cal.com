@@ -21,7 +21,9 @@ export class SlotsService_2024_04_15 {
 
     let shouldReserveSlot = true;
     if (eventType.seatsPerTimeSlot) {
-      const bookingWithAttendees = await this.slotsRepo.getBookingWithAttendees(input.bookingUid);
+      const bookingWithAttendees = input.bookingUid
+        ? await this.slotsRepo.getBookingWithAttendees(input.bookingUid)
+        : undefined;
       const bookingAttendeesLength = bookingWithAttendees?.attendees?.length;
       if (bookingAttendeesLength) {
         const seatsLeft = eventType.seatsPerTimeSlot - bookingAttendeesLength;

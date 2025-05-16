@@ -136,7 +136,8 @@ export const AvailableTimeSlots = ({
         schedule?.invalidate();
       }
       setTentativeSelectedTimeslots([]);
-      setSelectedTimeslot(time);
+      // note(Lauris): setting setSeatedEventData before setSelectedTimeslot so that in useSlots we have seated event data available
+      // and only then we invoke handleReserveSlot that is triggered by the changes in setSelectedTimeslot.
       if (seatsPerTimeSlot) {
         setSeatedEventData({
           seatsPerTimeSlot,
@@ -145,6 +146,7 @@ export const AvailableTimeSlots = ({
           showAvailableSeatsCount,
         });
       }
+      setSelectedTimeslot(time);
       const isTimeSlotAvailable = !unavailableTimeSlots.includes(time);
       if (skipConfirmStep && isTimeSlotAvailable) {
         onSubmit(time);
