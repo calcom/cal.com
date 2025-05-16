@@ -37,7 +37,7 @@ export class WorkflowMessageOutputDto {
 export class WorkflowStepOutputDto {
   @ApiProperty({ description: "Unique identifier of the step", example: 67244 })
   @Expose()
-  id!: number; // Changed from stepId for consistency
+  id!: number;
 
   @ApiProperty({ description: "Step number in the workflow sequence", example: 1 })
   @Expose()
@@ -51,7 +51,7 @@ export class WorkflowStepOutputDto {
   @ApiProperty({ description: "Intended recipient type", example: RecipientType.HOST, enum: RecipientType })
   @Expose()
   @IsEnum(RecipientType)
-  recipient!: RecipientType; // Reflects the intended recipient logic
+  recipient!: RecipientType;
 
   @ApiPropertyOptional({ description: "Verified Email  if action is EMAIL_ADDRESS", example: 31214 })
   @Expose()
@@ -179,7 +179,6 @@ export class WorkflowOutput {
   @Type(() => WorkflowStepOutputDto)
   steps!: WorkflowStepOutputDto[];
 
-  // Assuming these fields are available from Prisma (add @updatedAt, @createdAt in schema)
   @ApiPropertyOptional({ description: "Timestamp of creation", example: "2024-05-12T10:00:00.000Z" })
   @Expose()
   createdAt?: Date | string;

@@ -1,7 +1,6 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { TeamsVerifiedResourcesRepository } from "@/modules/verified-resources/teams-verified-resources.repository";
 import { Injectable } from "@nestjs/common";
 import { TimeUnit, Workflow, WorkflowStep, WorkflowTriggerEvents } from "@prisma/client";
 
@@ -13,11 +12,7 @@ export type WorkflowType = Workflow & { activeOn: { eventTypeId: number }[]; ste
 
 @Injectable()
 export class WorkflowsRepository {
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService,
-    private readonly teamsVerifiedResourcesRepository: TeamsVerifiedResourcesRepository
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async deleteTeamWorkflowById(teamId: number, workflowId: number) {
     return await this.dbWrite.prisma.workflow.delete({ where: { id: workflowId, teamId } });

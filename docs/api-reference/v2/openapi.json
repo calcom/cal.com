@@ -4872,7 +4872,7 @@
       },
       "post": {
         "operationId": "OrganizationTeamWorkflowsController_createWorkflow",
-        "summary": "Update workflows",
+        "summary": "Create organization team workflow",
         "parameters": [
           {
             "name": "Authorization",
@@ -4885,14 +4885,6 @@
           },
           {
             "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "workflowId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4928,7 +4920,7 @@
     "/v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId}": {
       "get": {
         "operationId": "OrganizationTeamWorkflowsController_getWorkflowById",
-        "summary": "Get organization team workflows",
+        "summary": "Get organization team workflow",
         "parameters": [
           {
             "name": "Authorization",
@@ -4937,14 +4929,6 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
             }
           },
           {
@@ -4980,7 +4964,7 @@
       },
       "patch": {
         "operationId": "OrganizationTeamWorkflowsController_updateWorkflow",
-        "summary": "Update workflows",
+        "summary": "Update workflow",
         "parameters": [
           {
             "name": "Authorization",
@@ -5008,6 +4992,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWorkflowDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -5024,7 +5018,7 @@
       },
       "delete": {
         "operationId": "OrganizationTeamWorkflowsController_deleteWorkflow",
-        "summary": "Update workflows",
+        "summary": "Delete organization team workflow",
         "parameters": [
           {
             "name": "Authorization",
@@ -19281,7 +19275,7 @@
       "WorkflowActivationOutputDto": {
         "type": "object",
         "properties": {
-          "isActiveOnAll": {
+          "isActiveOnAllEventTypes": {
             "type": "boolean",
             "description": "Whether the workflow is active for all event types associated with the team/user",
             "example": false
@@ -19295,7 +19289,7 @@
             }
           }
         },
-        "required": ["isActiveOnAll"]
+        "required": ["isActiveOnAllEventTypes"]
       },
       "WorkflowTriggerOffsetOutputDto": {
         "type": "object",
@@ -19318,15 +19312,7 @@
         "type": "object",
         "properties": {
           "type": {
-            "enum": [
-              "BEFORE_EVENT",
-              "EVENT_CANCELLED",
-              "NEW_EVENT",
-              "AFTER_EVENT",
-              "RESCHEDULE_EVENT",
-              "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
-              "AFTER_GUESTS_CAL_VIDEO_NO_SHOW"
-            ],
+            "enum": ["BEFORE_EVENT", "EVENT_CANCELLED", "NEW_EVENT", "AFTER_EVENT", "RESCHEDULE_EVENT"],
             "type": "string",
             "description": "Trigger type for the workflow",
             "example": "BEFORE_EVENT"
@@ -19412,7 +19398,7 @@
             "example": "REMINDER"
           },
           "includeCalendarEvent": {
-            "type": "boolean",
+            "type": "object",
             "default": false,
             "description": "Whether a calendar event (.ics) was included (for email actions)",
             "example": true
@@ -19533,9 +19519,9 @@
       "WorkflowActivationDto": {
         "type": "object",
         "properties": {
-          "isActiveOnAll": {
+          "isActiveOnAllEventTypes": {
             "type": "boolean",
-            "description": "Whether the workflow is active for all calendars",
+            "description": "Whether the workflow is active for all the event-types",
             "example": false
           },
           "activeOnEventTypeIds": {
@@ -19548,7 +19534,7 @@
             }
           }
         },
-        "required": ["isActiveOnAll"]
+        "required": ["isActiveOnAllEventTypes"]
       },
       "WorkflowTriggerOffsetDto": {
         "type": "object",
@@ -19597,7 +19583,7 @@
           },
           "html": {
             "type": "string",
-            "description": "HTML content of the message",
+            "description": "HTML content of the message (used for Emails)",
             "example": "<p>This is a reminder from {ORGANIZER} of {EVENT_NAME} to {ATTENDEE} starting here  {LOCATION} {MEETING_URL} at {START_TIME_h:mma} {TIMEZONE}.</p>"
           },
           "text": {
@@ -19712,6 +19698,39 @@
           }
         },
         "required": ["name", "activation", "trigger", "steps"]
+      },
+      "UpdateWorkflowDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the workflow",
+            "example": "Platform Test Workflow"
+          },
+          "activation": {
+            "description": "Activation settings for the workflow",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowActivationDto"
+              }
+            ]
+          },
+          "trigger": {
+            "description": "Trigger configuration for the workflow",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowTriggerDto"
+              }
+            ]
+          },
+          "steps": {
+            "description": "Steps to execute as part of the workflow",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowStepDto"
+            }
+          }
+        }
       },
       "StripConnectOutputDto": {
         "type": "object",
