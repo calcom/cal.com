@@ -4,7 +4,6 @@ import { type SelectQueryBuilder } from "kysely";
 import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
 
 import dayjs from "@calcom/dayjs";
-import type { TextFilterOperator } from "@calcom/features/data-table/lib/types";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
@@ -362,13 +361,8 @@ export async function getBookings({
         // Simple string match (exact)
         fullQuery = fullQuery.where("Booking.uid", "=", filters.bookingUid.trim());
       } else if (isTextFilterValue(filters.bookingUid)) {
-        // TODO: write makeWhereClause equivalent for kysely
-        fullQuery = addAdvancedWhereClause(
-          fullQuery,
-          "Booking.uid",
-          filters.bookingUid.data.operator,
-          filters.bookingUid.data.operand
-        );
+        const operand = filters.bookingUid.data.operand;
+        fullQuery = fullQuery.where("Booking.uid", "=", operand);
       }
     }
 
@@ -990,48 +984,6 @@ function addAdvancedAttendeeWhereClause(
       break;
 
     default:
-      break;
-  }
-
-  return fullQuery;
-}
-
-function addAdvancedWhereClause<T extends object>(
-  query: SelectQueryBuilder<DB, "Booking", T>,
-  field: string,
-  operator: TextFilterOperator,
-  operand: string
-) {
-  let fullQuery = query;
-
-  if (operand === undefined && operator !== "isEmpty" && operator !== "isNotEmpty") {
-    return fullQuery;
-  }
-
-  switch (operator) {
-    case "equals":
-      fullQuery = fullQuery.where(`${field}`, "=", operand);
-      break;
-    case "notEquals":
-      fullQuery = fullQuery.where(`${field}`, "<>", operand);
-      break;
-    case "contains":
-      fullQuery = fullQuery.where(`${field}`, "like", `%${operand}%`);
-      break;
-    case "notContains":
-      fullQuery = fullQuery.where(`${field}`, "not like", `%${operand}%`);
-      break;
-    case "startsWith":
-      fullQuery = fullQuery.where(`${field}`, "like", `${operand}%`);
-      break;
-    case "endsWith":
-      fullQuery = fullQuery.where(`${field}`, "like", `%${operand}`);
-      break;
-    case "isEmpty":
-      fullQuery = fullQuery.where((eb) => eb.or([eb(`${field}`, "=", ""), eb(`${field}`, "is", null)]));
-      break;
-    case "isNotEmpty":
-      fullQuery = fullQuery.where((eb) => eb.and([eb(`${field}`, "<>", ""), eb(`${field}`, "is not", null)]));
       break;
   }
 

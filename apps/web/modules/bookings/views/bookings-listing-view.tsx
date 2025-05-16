@@ -225,6 +225,9 @@ function BookingsContent({ status }: BookingsProps) {
         meta: {
           filter: {
             type: ColumnFilterType.TEXT,
+            textOptions: {
+              allowedOperators: ["equals"],
+            },
           },
         },
       }),
