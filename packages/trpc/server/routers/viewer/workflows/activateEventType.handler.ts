@@ -161,7 +161,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
     await prisma.workflowsOnEventTypes.deleteMany({
       where: {
         workflowId,
-        eventTypeId: { in: [eventTypeId].concat(eventType.children.map((ch) => ch.id)) },
+        eventTypeId: { in: activeOn },
       },
     });
 
@@ -228,15 +228,11 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       eventTypeWorkflow.trigger == WorkflowTriggerEvents.BEFORE_EVENT ||
       eventTypeWorkflow.trigger == WorkflowTriggerEvents.AFTER_EVENT
     ) {
-      // we used to OR by eventType.parentId - but if so the eventTypeId
-      // would be a child of the current event type. So instead we have a list
-      // of the current event type and all its children
-      const eventTypeIds = [eventTypeId].concat(eventType.children.map((ch) => ch.id));
       // activate workflow and schedule reminders for existing bookings
       const bookingsForReminders = await prisma.booking.findMany({
         where: {
           eventTypeId: {
-            in: eventTypeIds,
+            in: activeOn,
           },
           status: BookingStatus.ACCEPTED,
           startTime: {
