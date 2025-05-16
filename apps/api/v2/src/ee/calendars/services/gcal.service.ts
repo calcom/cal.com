@@ -24,6 +24,76 @@ const CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.events",
 ];
 
+export interface GoogleCalendarEventResponse {
+  kind: string;
+  etag: string;
+  id: string;
+  status: string;
+  htmlLink: string;
+  created: string;
+  updated: string;
+  summary: string;
+  description?: string;
+  location?: string;
+  creator: {
+    email: string;
+    displayName?: string;
+  };
+  organizer: {
+    email: string;
+    displayName?: string;
+    self?: boolean;
+  };
+  start: {
+    dateTime: string;
+    timeZone: string;
+  };
+  end: {
+    dateTime: string;
+    timeZone: string;
+  };
+  iCalUID: string;
+  sequence: number;
+  attendees?: Array<{
+    email: string;
+    displayName?: string;
+    organizer?: boolean;
+    self?: boolean;
+    responseStatus?: string;
+  }>;
+  hangoutLink?: string;
+  conferenceData?: {
+    createRequest?: {
+      requestId: string;
+      conferenceSolutionKey: {
+        type: string;
+      };
+      status: {
+        statusCode: string;
+      };
+    };
+    entryPoints?: Array<{
+      entryPointType: string;
+      uri: string;
+      label?: string;
+      pin?: string;
+      regionCode?: string;
+    }>;
+    conferenceSolution?: {
+      key: {
+        type: string;
+      };
+      name: string;
+      iconUri: string;
+    };
+    conferenceId: string;
+  };
+  reminders?: {
+    useDefault: boolean;
+  };
+  eventType?: string;
+}
+
 @Injectable()
 export class GoogleCalendarService implements OAuthCalendarApp {
   private redirectUri = `${this.config.get("api.url")}/gcal/oauth/save`;
@@ -205,7 +275,7 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     return { url: redir || origin };
   }
 
-  async getEventDetails(eventUid: string) {
+  async getEventDetails(eventUid: string): Promise<GoogleCalendarEventResponse> {
     const bookingReference =
       await this.bookingReferencesRepository.getBookingReferencesIncludeSensitiveCredentials(eventUid);
 
@@ -232,7 +302,7 @@ export class GoogleCalendarService implements OAuthCalendarApp {
       if (!event.data) {
         throw new NotFoundException("Meeting not found");
       }
-      return event.data;
+      return event.data as GoogleCalendarEventResponse;
     } catch (error) {
       throw new NotFoundException("Failed to retrieve meeting details");
     }

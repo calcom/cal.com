@@ -8,6 +8,8 @@ import {
   DeletedCalendarCredentialsOutputResponseDto,
   DeletedCalendarCredentialsOutputDto,
 } from "@/ee/calendars/outputs/delete-calendar-credentials.output";
+import { GetCalendarEventOutput } from "@/ee/calendars/outputs/get-calendar-event";
+import { GoogleCalendarEventOutputPipe } from "@/ee/calendars/pipes/get-calendar-event-details-output-pipe";
 import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GoogleCalendarService } from "@/ee/calendars/services/gcal.service";
@@ -323,16 +325,18 @@ export class CalendarsController {
   async getCalendarEventDetails(
     @Param("calendar") calendar: string,
     @Param("eventUid") eventUid: string
-  ): Promise<any> {
+  ): Promise<GetCalendarEventOutput> {
     if (calendar !== GOOGLE_CALENDAR) {
       throw new BadRequestException("Meeting details are currently only available for Google Calendar");
     }
 
     const eventDetails = await this.googleCalendarService.getEventDetails(eventUid);
 
+    const transformedEvent = new GoogleCalendarEventOutputPipe().transform(eventDetails);
+
     return {
       status: SUCCESS_STATUS,
-      data: eventDetails,
+      data: transformedEvent,
     };
   }
 }
