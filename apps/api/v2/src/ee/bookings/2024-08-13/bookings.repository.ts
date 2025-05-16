@@ -3,6 +3,8 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import type { Prisma } from "@prisma/client";
 
+import { BookingInputLocation_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/location.input";
+
 @Injectable()
 export class BookingsRepository_2024_08_13 {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
@@ -166,6 +168,21 @@ export class BookingsRepository_2024_08_13 {
       include: {
         attendees: true,
         user: true,
+      },
+    });
+  }
+
+  async updateBookingLocationByUid(uid: string, location: BookingInputLocation_2024_08_13 | string) {
+    return this.dbWrite.prisma.booking.update({
+      where: {
+        uid,
+      },
+      data: {
+        location: String(location),
+      },
+      select: {
+        uid: true,
+        location: true,
       },
     });
   }
