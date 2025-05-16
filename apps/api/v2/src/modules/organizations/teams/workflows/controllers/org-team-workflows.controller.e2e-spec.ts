@@ -90,7 +90,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
       platformBilling: {
         create: {
           customerId: "cus_999",
-          plan: "ESSENTIALS",
+          plan: "SCALE",
           subscriptionId: "sub_999",
         },
       },
