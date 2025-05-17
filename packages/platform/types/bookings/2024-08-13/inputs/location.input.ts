@@ -1,8 +1,11 @@
+import { BadRequestException } from "@nestjs/common";
 import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { IsString, IsIn, IsPhoneNumber, MinLength } from "class-validator";
+import { IsString, IsIn, IsPhoneNumber, MinLength, isPhoneNumber, isURL } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
 import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
+
+import { apiToInternalintegrationsMapping } from "@calcom/lib/event-types/transformers";
 
 export const inputLocations = [
   "address",
@@ -207,4 +210,97 @@ export function ValidateBookingLocation_2024_08_13(validationOptions?: Validatio
       validator: new BookingInputLocationValidator_2024_08_13(),
     });
   };
+}
+
+export function transformLocation(location: string | BookingInputLocation_2024_08_13): {
+  value: string;
+  optionValue: string;
+} {
+  if (typeof location === "string") {
+    // note(Lauris): this is for backwards compatibility because before switching to booking location objects
+    // we only received a string. If someone is complaining that their location is not displaying as a URL
+    // or whatever check that they are not providing a string for bookign location but one of the input objects.
+    if (isURL(location, { require_protocol: false }) || location.startsWith("www.")) {
+      return {
+        value: "link",
+        optionValue: location,
+      };
+    }
+
+    if (isPhoneNumber(location)) {
+      return {
+        value: "phone",
+        optionValue: location,
+      };
+    }
+
+    return {
+      value: "somewhereElse",
+      optionValue: location,
+    };
+  }
+
+  if (location.type === "integration") {
+    const integration = apiToInternalintegrationsMapping[location.integration];
+    if (!integration) {
+      throw new BadRequestException(`Invalid integration: ${location.integration}`);
+    }
+    return {
+      value: integration,
+      optionValue: "",
+    };
+  }
+
+  if (location.type === "address") {
+    return {
+      value: "inPerson",
+      optionValue: "",
+    };
+  }
+
+  if (location.type === "attendeeAddress") {
+    return {
+      value: "attendeeInPerson",
+      optionValue: location.address,
+    };
+  }
+
+  if (location.type === "link") {
+    return {
+      value: "link",
+      optionValue: "",
+    };
+  }
+
+  if (location.type === "phone") {
+    return {
+      value: "userPhone",
+      optionValue: "",
+    };
+  }
+
+  if (location.type === "organizersDefaultApp") {
+    return {
+      value: "conferencing",
+      optionValue: "",
+    };
+  }
+
+  if (location.type === "attendeePhone") {
+    return {
+      value: "phone",
+      optionValue: location.phone,
+    };
+  }
+
+  if (location.type === "attendeeDefined") {
+    return {
+      value: "somewhereElse",
+      optionValue: location.location,
+    };
+  }
+
+  throw new BadRequestException(
+    `Booking location with type ${(location as BookingInputLocation_2024_08_13).type} not valid.`
+  );
 }
