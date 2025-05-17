@@ -360,7 +360,7 @@ describe("Tests the slots function performance", () => {
 
     for (let hour = 0; hour < 24; hour++) {
       for (let minute = 0; minute < 60; minute += 5) {
-        if (dateRanges.length >= 500) break;
+        if (dateRanges.length >= 2000) break;
 
         dateRanges.push({
           start: nextDay.hour(hour).minute(minute),
@@ -370,7 +370,7 @@ describe("Tests the slots function performance", () => {
             .second(59),
         });
       }
-      if (dateRanges.length >= 500) break;
+      if (dateRanges.length >= 2000) break;
     }
 
     const result = getSlots({
