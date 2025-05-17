@@ -335,6 +335,22 @@ export async function getBookings({
     andConditions.push({ createdAt: { lte: dayjs.utc(filters.beforeCreatedDate).toDate() } });
   }
 
+  // 6. Filter by Booking Uid (if provided)
+  if (filters?.bookingUid) {
+    if (typeof filters.bookingUid === "string") {
+      // Simple string match (exact)
+      andConditions.push({ uid: filters.bookingUid.trim() });
+    } else if (isTextFilterValue(filters.bookingUid)) {
+      // Complex text filter (contains, startsWith, etc.) using makeWhereClause
+      andConditions.push(
+        makeWhereClause({
+          columnName: "uid",
+          filterValue: filters.bookingUid,
+        })
+      );
+    }
+  }
+
   // All the possible date filter keys
   const dateFilterKeys = [
     "afterStartDate",
