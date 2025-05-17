@@ -142,6 +142,19 @@ export const tabs = [
       const { t } = useLocale();
       const embedCalOrigin = useEmbedCalOrigin();
 
+      const parts = calLink.split("/");
+      const eventSlug = parts.pop() || "";
+      const calUsername = parts.join("/");
+
+      let bookerProps = ``;
+      if (previewState.hideBranding) {
+        bookerProps += `\n        hideBranding={true}`;
+      }
+      if (previewState.confirmButtonDisabled) {
+        bookerProps += `\n        confirmButtonDisabled={true}`;
+      }
+      bookerProps += `\n        hideEventTypeDetails={${previewState.hideEventTypeDetails}}`;
+
       if (ref instanceof Function || !ref) {
         return null;
       }
@@ -165,14 +178,25 @@ export const tabs = [
 
 /* If you are using npm */
 // npm install @calcom/atoms
-${getEmbedTypeSpecificString({
-  embedFramework: "react-atom" as EmbedFramework,
-  embedType,
-  calLink,
-  previewState,
-  embedCalOrigin,
-  namespace,
-})}`}
+
+import { BookerEmbed } from "@calcom/atoms";
+
+// You might need to define or import BookerProps depending on your setup
+// For example: type BookerProps = { /* ... */ };
+
+export default function MyBookerComponent( props : BookerProps ) {
+  return (
+    <BookerEmbed
+        eventSlug={"${eventSlug}"}
+        username={"${calUsername}"}
+        view={"${previewState.layout || "MONTH_VIEW"}"}${bookerProps} // Inject conditional props
+        // Add other props like callbacks as needed
+        onCreateBookingSuccess={() => {
+          console.log("booking created successfully");
+        }}
+      />
+  );
+}`}
           />
         </>
       );
