@@ -16,7 +16,7 @@ export function MultiSelectFilterOptions({ column }: MultiSelectFilterOptionsPro
     <BaseSelectFilterOptions<ColumnFilterType.MULTI_SELECT>
       column={column}
       filterValueSchema={ZMultiSelectFilterValue}
-      testIdPrefix="multi-select-options"
+      testIdPrefix="select-filter-options"
       isOptionSelected={(filterValue, optionValue) => {
         if (!filterValue?.data) return false;
         return filterValue.data.includes(optionValue);

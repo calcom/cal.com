@@ -1,6 +1,5 @@
 import type {
   InputBookingField_2024_06_14,
-  LocationDefaultFieldOutput_2024_06_14,
   PhoneDefaultFieldOutput_2024_06_14,
   MultiSelectFieldInput_2024_06_14,
   CheckboxGroupFieldInput_2024_06_14,
@@ -8,6 +7,7 @@ import type {
   NameDefaultFieldInput_2024_06_14,
   EmailDefaultFieldInput_2024_06_14,
   TitleDefaultFieldInput_2024_06_14,
+  LocationDefaultFieldInput_2024_06_14,
   NotesDefaultFieldInput_2024_06_14,
   GuestsDefaultFieldInput_2024_06_14,
   RescheduleReasonDefaultFieldInput_2024_06_14,
@@ -28,10 +28,7 @@ import {
   systemBeforeFieldNameSplit,
 } from "../internal-to-api";
 
-type InputBookingField =
-  | InputBookingField_2024_06_14
-  | LocationDefaultFieldOutput_2024_06_14
-  | PhoneDefaultFieldOutput_2024_06_14;
+type InputBookingField = InputBookingField_2024_06_14 | PhoneDefaultFieldOutput_2024_06_14;
 
 export function transformBookingFieldsApiToInternal(bookingFields: InputBookingField[]) {
   const customBookingFields = bookingFields.map((field) => {
@@ -79,6 +76,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
       ...systemBeforeFieldLocation,
       required: field.required,
       hidden: "hidden" in field ? !!field.hidden : false,
+      label: field.label,
     };
   }
 
@@ -157,7 +155,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
       required: !!field.required,
       hidden: "hidden" in field ? !!field.hidden : false,
       label: field.label,
-      placeholder: "placeholder" in field ? field.placeholder : "",
+      placeholder: "placeholder" in field ? field.placeholder : undefined,
       disableOnPrefill: !!field.disableOnPrefill,
     };
   }
@@ -168,7 +166,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
       required: !!field.required,
       hidden: "hidden" in field ? !!field.hidden : false,
       label: field.label,
-      placeholder: "placeholder" in field ? field.placeholder : "",
+      placeholder: "placeholder" in field ? field.placeholder : undefined,
       disableOnPrefill: !!field.disableOnPrefill,
     };
   }
@@ -179,7 +177,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
       required: !!field.required,
       hidden: "hidden" in field ? !!field.hidden : false,
       label: field.label,
-      placeholder: "placeholder" in field ? field.placeholder : "",
+      placeholder: "placeholder" in field ? field.placeholder : undefined,
       disableOnPrefill: !!field.disableOnPrefill,
     };
   }
@@ -190,7 +188,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
       required: !!field.required,
       hidden: "hidden" in field ? !!field.hidden : false,
       label: field.label,
-      placeholder: "placeholder" in field ? field.placeholder : "",
+      placeholder: "placeholder" in field ? field.placeholder : undefined,
       disableOnPrefill: !!field.disableOnPrefill,
     };
   }
@@ -298,7 +296,7 @@ function fieldIsDefaultAttendeePhone(field: InputBookingField): field is PhoneDe
 
 function fieldIsDefaultSystemLocation(
   field: InputBookingField
-): field is LocationDefaultFieldOutput_2024_06_14 {
+): field is LocationDefaultFieldInput_2024_06_14 {
   return "slug" in field && field.slug === "location";
 }
 
