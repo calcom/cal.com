@@ -1003,13 +1003,6 @@ export class BookingsService_2024_08_13 {
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
-    let locationData: string;
-
-    if (typeof location === "string") {
-      locationData = location;
-    } else {
-      locationData = JSON.stringify(location);
-    }
-    return this.bookingsRepository.updateBookingLocationByUid(bookingUid, locationData);
+    return this.bookingsRepository.updateBookingLocationByUid(bookingUid, body.location);
   }
 }
