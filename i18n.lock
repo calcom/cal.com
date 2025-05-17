@@ -2999,6 +2999,12 @@ checksums:
     asc: 859eb73e4d1bda5351ca36472efe6492
     desc: 55089d006e5eb530227e6f1c41707fc9
     verify_email_change: b7a83c7a3100b128e8d1a8f36a8171ba
+    buy_credits: d5c34a6e8829e3a475dd5cda6d7e10ac
+    credits: b21b88917ea0c8e2a71888756f71d0be
+    view_and_manage_credits: 4d483027287e2349b3d68cd0643c96f8
+    view_and_manage_credits_description: d6cdd13f5eec3810bc0c697d3ca4dd0e
+    buy_additional_credits: 4a3b39af3e55b16d932bb0b4b3e0f8b1
+    overview: 30c54e4dc4ce599b87d94be34a8617f5
     organization_slug_taken: 492cc9dd76b78c9210c0c7dfafbfd040
     you_cannot_create_an_organization_as_you_are_already_part_of_an_organization: f7df69b7f201bdfc1f26eb41006102a2
     you_need_to_complete_user_onboarding_before_creating_an_organization: c1489f3a1ddc3859fd07e83b3b07be66
@@ -3092,6 +3098,8 @@ checksums:
     most_cancelled_bookings: ad8362bfa418808b784435e1b3f013c8
     name_or_email: d6e1cc7612211a2f7080b5096510f282
     salesforce_round_robin_skip_fallback_to_lead_owner: 95ba66cdc5f1422c48d907e9d4d442b9
+    credit_purchase_failed: a55a743ea071dadcc5e59921c4b303ca
+    minimum_of_credits_required: 3620f8415aa038110d2529d7fddaa408
     enable_delegation_credential: 444d27809dd4b53d6d4159361109fc69
     enable_delegation_credential_description: c713439db9cc156b5a381f60b58b83c7
     disable_delegation_credential: 3e2100b538dc75842cb06842eec4ac19
@@ -3162,6 +3170,20 @@ checksums:
     results: 1a8f50c90d0a0d500624dd3a62aab6ee
     view_form: 4c60dbda532d24ff38f8b41333543a3a
     sms_opt_out_message: 51959b7ca038e02d867701bfe02e0347
+    team_credits_low_warning: 3ebc7812714842a0d2ad10b364243f76
+    user_credits_low_warning: 239f90e2fe4d66e62a97100a59a29e03
+    action_required_out_of_credits: 93d1fa52db6acb8c4f445052ce73d622
+    action_required_user_out_of_credits: 112c1ee5e5ae06ad289684ecb3934ee4
+    low_credits_warning_message: d3194620077e2dfaa1e198c225e767f3
+    low_credits_warning_message_user: 4c9536a4463fd75fd5c15d8e1e7c9869
+    credit_limit_reached_message: d12b88a279d619ad18ff3c286ebec2b3
+    credit_limit_reached_message_user: d5446b226f841605083f7b2dd7b81065
+    current_credit_balance: 53c4f4d7c65f327c56483735a5df9831
+    notification_about_your_booking: a98d4c351d6ec6042e488f90b0864d41
+    monthly_credits: a95229fd9020089dfad6fb6cd92f7952
+    total_credits: b834a4f211978381eca9bdc33ea5e357
+    remaining_credits: 60a3f4d78699e2e60c69da9cecde9226
+    additional_credits: 1c05adf1d03583d8ae1bbdb4ed609687
     routing_form_next_in_queue: 47946873f93e70e61476646edc7e5f1e
     routing_form_select_members_to_email: be35ce1ba18d8d6ed66c043cfe812a8b
     routing_incomplete_booking_tab: 8d30d258714176df4fae2826ebb1973a
@@ -3169,4 +3191,7 @@ checksums:
     matching: f46e191931edeb7df0ddfc6d50001851
     event_redirect: c7962c0568581ec66d24f799de53356c
     reset_form: d4bf98db642dedeaf71f3c18353b2200
+    requires_credits: 02b9411ac23abf3dac48ff348ca1a89f
+    requires_credits_tooltip: 4368005e0d2453e8a99a3d3dbc2634bb
+    available_credits: 943bb58ad49bb2242c61d345565bb28c
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850
