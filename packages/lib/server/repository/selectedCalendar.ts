@@ -28,6 +28,12 @@ export type FindManyArgs = {
       | {
           not: null;
         };
+    outlookSubscriptionId?:
+      | string
+      | null
+      | {
+          not: null;
+        };
   };
   orderBy?: {
     userId?: "asc" | "desc";
@@ -155,15 +161,21 @@ export class SelectedCalendarRepository {
             },
           },
         },
-        // RN we only support google calendar subscriptions for now
-        integration: "google_calendar",
         // We skip retrying calendars that have errored
         error: null,
+        // RN we only support google calendar, outlook calendar subscriptions for now
         OR: [
-          // Either is a calendar pending to be watched
-          { googleChannelExpiration: null },
-          // Or is a calendar that is about to expire
-          { googleChannelExpiration: { lt: tomorrowTimestamp } },
+          {
+            integration: "google_calendar",
+            OR: [{ googleChannelExpiration: null }, { googleChannelExpiration: { lt: tomorrowTimestamp } }],
+          },
+          {
+            integration: "office365_calendar",
+            OR: [
+              { outlookSubscriptionExpiration: null },
+              { outlookSubscriptionExpiration: { lt: tomorrowTimestamp } },
+            ],
+          },
         ],
       },
     });
@@ -175,9 +187,17 @@ export class SelectedCalendarRepository {
    */
   static async getNextBatchToUnwatch(limit = 100) {
     const where: Prisma.SelectedCalendarWhereInput = {
-      // RN we only support google calendar subscriptions for now
-      integration: "google_calendar",
-      googleChannelExpiration: { not: null },
+      // RN we only support google calendar, outlook calendar subscriptions for now
+      OR: [
+        {
+          integration: "google_calendar",
+          googleChannelExpiration: { not: null },
+        },
+        {
+          integration: "office365_calendar",
+          outlookSubscriptionExpiration: { not: null },
+        },
+      ],
       user: {
         teams: {
           every: {
@@ -219,6 +239,33 @@ export class SelectedCalendarRepository {
         googleChannelId,
       },
       select: {
+        credential: {
+          select: {
+            ...credentialForCalendarServiceSelect,
+            selectedCalendars: {
+              orderBy: {
+                externalId: "asc",
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  static async findManyByOutlookSubscriptionIds(subscriptionIds: string[]) {
+    if (subscriptionIds.length === 0) {
+      return [];
+    }
+    return await prisma.selectedCalendar.findMany({
+      where: {
+        outlookSubscriptionId: { in: subscriptionIds },
+        integration: "office365_calendar",
+      },
+      select: {
+        id: true,
+        outlookSubscriptionId: true,
+        externalId: true,
         credential: {
           select: {
             ...credentialForCalendarServiceSelect,
