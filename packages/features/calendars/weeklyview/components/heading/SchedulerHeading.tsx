@@ -24,7 +24,7 @@ export function SchedulerHeading() {
             { label: "Daily", value: "day", disabled: false },
             { label: "Weekly", value: "week", disabled: isSm },
           ]}
-          defaultValue={view === "day" ? "day" : "week"}
+          value={view === "day" ? "day" : "week"}
         /> */}
 
         <ButtonGroup combined>

@@ -198,8 +198,8 @@ export function EditMemberSheet({
                         defaultValue={role}
                         value={form.watch("role")}
                         options={options}
-                        onValueChange={(value: FormSchema["role"]) => {
-                          form.setValue("role", value);
+                        onValueChange={(value: string) => {
+                          form.setValue("role", value as MembershipRole);
                         }}
                       />
                     </div>
