@@ -34,8 +34,6 @@ import { type fieldsSchema, excludeOrRequireEmailSchema } from "./schema";
 import { getFieldIdentifier } from "./utils/getFieldIdentifier";
 import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
-type AnyField = z.infer<typeof fieldsSchema>[number];
-
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
 };
@@ -43,6 +41,8 @@ type RhfForm = {
 type RhfFormFields = RhfForm["fields"];
 
 type RhfFormField = RhfFormFields[number];
+
+type MinimalField = Pick<RhfFormField, "name" | "label" | "defaultLabel" | "type" | "options">;
 
 function getCurrentFieldType(fieldForm: UseFormReturn<RhfFormField>) {
   return fieldTypesConfigMap[fieldForm.watch("type") || "text"];
@@ -56,7 +56,7 @@ interface FieldEditDialogProps {
   onOpenChange: (open: boolean) => void;
   handleSubmit: SubmitHandler<RhfFormField>;
   shouldConsiderRequired?: (f: RhfFormField) => boolean | undefined;
-  allFields: AnyField[];
+  allFields: MinimalField[];
 }
 
 /**
@@ -114,6 +114,14 @@ export const FormBuilder = function FormBuilder({
     fieldIndex: -1,
     data: null,
   });
+
+  const minimalFields: MinimalField[] = fields.map((f) => ({
+    name: f.name,
+    label: f.label,
+    defaultLabel: f.defaultLabel,
+    type: f.type,
+    options: f.options,
+  }));
 
   const addField = () => {
     setFieldDialog({
@@ -341,7 +349,7 @@ export const FormBuilder = function FormBuilder({
             });
           }}
           shouldConsiderRequired={shouldConsiderRequired}
-          allFields={fields}
+          allFields={minimalFields}
         />
       )}
     </div>
@@ -768,7 +776,7 @@ function VisibleIfField({
   allFields,
   fieldForm,
 }: {
-  allFields: AnyField[];
+  allFields: MinimalField[];
   fieldForm: UseFormReturn<RhfFormField>;
 }) {
   const { t } = useLocale();
