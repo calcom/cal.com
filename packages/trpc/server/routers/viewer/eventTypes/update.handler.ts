@@ -83,6 +83,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     description: newDescription,
     title: newTitle,
     seatsPerTimeSlot,
+    calVideoSettings,
     ...rest
   } = input;
 
@@ -113,6 +114,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           beginMessage: true,
           enabled: true,
           llmId: true,
+        },
+      },
+      calVideoSettings: {
+        select: {
+          enabled: true,
+          disableRecordingForOrganizer: true,
+          disableRecordingForGuests: true,
         },
       },
       children: {
@@ -514,6 +522,33 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         where: {
           eventTypeId: id,
         },
+      });
+    }
+  }
+
+  console.log("calVideoSettings", calVideoSettings);
+
+  if (calVideoSettings) {
+    if (calVideoSettings.enabled) {
+      const res = await ctx.prisma.calVideoSettings.upsert({
+        where: { eventTypeId: id },
+        update: {
+          enabled: calVideoSettings.enabled,
+          disableRecordingForGuests: calVideoSettings.disableRecordingForGuests,
+          disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer,
+        },
+        create: {
+          enabled: calVideoSettings.enabled,
+          disableRecordingForGuests: calVideoSettings.disableRecordingForGuests,
+          disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer,
+          eventTypeId: id,
+        },
+      });
+
+      console.log("res", res);
+    } else if (!calVideoSettings.enabled && eventType.calVideoSettings) {
+      await ctx.prisma.calVideoSettings.delete({
+        where: { eventTypeId: id },
       });
     }
   }

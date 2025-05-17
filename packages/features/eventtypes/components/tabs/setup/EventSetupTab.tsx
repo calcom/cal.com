@@ -18,7 +18,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import { Skeleton } from "@calcom/ui/components/skeleton";
 import classNames from "@calcom/ui/classNames";
 import { Editor } from "@calcom/ui/components/editor";
 import { TextAreaField } from "@calcom/ui/components/form";
@@ -26,6 +25,7 @@ import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
+import { Skeleton } from "@calcom/ui/components/skeleton";
 
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;
@@ -51,6 +51,82 @@ export type EventSetupTabCustomClassNames = {
   };
 };
 
+type CalVideoSettings = {
+  disableRecordingForGuests: boolean;
+  disableRecordingForOrganizer: boolean;
+  enabled: boolean;
+};
+
+const CalVideoSettings = () => {
+  const { t } = useLocale();
+  const formMethods = useFormContext<FormValues>();
+  const settings = formMethods.watch("calVideoSettings");
+  const locations = formMethods.watch("locations");
+
+  const doesLocationHaveCalVideo = locations.some((location) => location.type === "integrations:daily");
+
+  if (!doesLocationHaveCalVideo) return null;
+
+  return (
+    <div className="mt-4">
+      <Controller
+        name="calVideoSettings"
+        render={() => (
+          <SettingsToggle
+            labelClassName={classNames("text-sm")}
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName={classNames(
+              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+              !!settings.enabled && "rounded-b-none"
+            )}
+            title={t("customize_calvideo_settings")}
+            description={t("calvideo_settings_description")}
+            checked={!!settings?.enabled}
+            onCheckedChange={(e) => {
+              formMethods.setValue(
+                "calVideoSettings",
+                e
+                  ? {
+                      enabled: true,
+                      disableRecordingForGuests: false,
+                      disableRecordingForOrganizer: false,
+                    }
+                  : { enabled: false },
+                {
+                  shouldDirty: true,
+                }
+              );
+            }}
+            childrenClassName={classNames("lg:ml-0")}>
+            <div className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
+              <SettingsToggle
+                title={t("disable_recording_for_guests")}
+                labelClassName="text-sm"
+                checked={settings?.disableRecordingForGuests}
+                onCheckedChange={(e) => {
+                  formMethods.setValue("calVideoSettings.disableRecordingForGuests", e, {
+                    shouldDirty: true,
+                  });
+                }}
+              />
+              <SettingsToggle
+                title={t("disable_recording_for_organizer")}
+                labelClassName="text-sm"
+                checked={settings?.disableRecordingForOrganizer}
+                onCheckedChange={(e) => {
+                  formMethods.setValue("calVideoSettings.disableRecordingForOrganizer", e, {
+                    shouldDirty: true,
+                  });
+                }}
+              />
+            </div>
+          </SettingsToggle>
+        )}
+      />
+    </div>
+  );
+};
+
 export type EventSetupTabProps = Pick<
   EventTypeSetupProps,
   "eventType" | "locationOptions" | "team" | "teamMembers" | "destinationCalendar"
@@ -64,6 +140,7 @@ export const EventSetupTab = (
   const isPlatform = useIsPlatform();
   const formMethods = useFormContext<FormValues>();
   const { eventType, team, urlPrefix, hasOrgBranding, customClassNames, orgId } = props;
+  console.log("EventSetupTab.eventType", eventType);
   const [multipleDuration, setMultipleDuration] = useState(
     formMethods.getValues("metadata")?.multipleDuration
   );
@@ -366,6 +443,9 @@ export const EventSetupTab = (
                 />
               )}
             />
+          </div>
+          <div>
+            <CalVideoSettings />
           </div>
         </div>
       </div>

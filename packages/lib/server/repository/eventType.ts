@@ -676,6 +676,13 @@ export class EventTypeRepository {
       maxLeadThreshold: true,
       includeNoShowInRRCalculation: true,
       useEventLevelSelectedCalendars: true,
+      calVideoSettings: {
+        select: {
+          enabled: true,
+          disableRecordingForGuests: true,
+          disableRecordingForOrganizer: true,
+        },
+      },
     });
 
     // This is more efficient than using a complex join with team.members in the query

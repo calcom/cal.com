@@ -68,6 +68,20 @@ model Host {
   @@index([scheduleId])
 }
 
+model CalVideoSettings {
+  eventTypeId Int
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+
+  disableRecordingForOrganizer Boolean @default(false)
+  disableRecordingForGuests    Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([eventTypeId])
+  @@index([eventTypeId])
+}
+
 model EventType {
   id          Int     @id @default(autoincrement())
   /// @zod.min(1)
@@ -175,6 +189,7 @@ model EventType {
   hideOrganizerEmail                      Boolean                   @default(false)
   /// @zod.custom(imports.emailSchema)
   customReplyToEmail                      String?
+  calVideoSettings                        CalVideoSettings?
 
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                   Json?
