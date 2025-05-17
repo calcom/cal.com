@@ -13,7 +13,7 @@ import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
-import { BookingStatus, RRResetInterval } from "@calcom/prisma/enums";
+import { BookingStatus, RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
@@ -66,7 +66,11 @@ interface GetLuckyUserParams<T extends PartialUser> {
   eventType: {
     id: number;
     isRRWeightsEnabled: boolean;
-    team: { parentId?: number | null; rrResetInterval: RRResetInterval | null } | null;
+    team: {
+      parentId?: number | null;
+      rrResetInterval: RRResetInterval | null;
+      rrTimestampBasis: RRTimestampBasis | null;
+    } | null;
     includeNoShowInRRCalculation: boolean;
   };
   // all routedTeamMemberIds or all hosts of event types
@@ -425,12 +429,14 @@ async function getBookingsOfInterval({
   virtualQueuesData,
   interval,
   includeNoShowInRRCalculation,
+  timestampBasis,
 }: {
   eventTypeId: number;
   users: { id: number; email: string }[];
   virtualQueuesData: VirtualQueuesDataType | null;
   interval: RRResetInterval;
   includeNoShowInRRCalculation: boolean;
+  timestampBasis: RRTimestampBasis;
 }) {
   return await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventTypeId,
@@ -439,6 +445,7 @@ async function getBookingsOfInterval({
     endDate: new Date(),
     virtualQueuesData,
     includeNoShowInRRCalculation,
+    timestampBasis,
   });
 }
 
@@ -595,6 +602,7 @@ async function fetchAllDataNeededForCalculations<
   const { attributeWeights, virtualQueuesData } = await prepareQueuesAndAttributesData(getLuckyUserParams);
 
   const interval = getLuckyUserParams.eventType.team?.rrResetInterval ?? RRResetInterval.MONTH;
+  const timestampBasis = getLuckyUserParams.eventType.team?.rrTimestampBasis ?? RRTimestampBasis.CREATED_AT;
 
   const [
     userBusyTimesOfInterval,
@@ -616,6 +624,7 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
+      timestampBasis,
     }),
 
     getBookingsOfInterval({
@@ -624,6 +633,7 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
+      timestampBasis,
     }),
 
     getBookingsOfInterval({
@@ -634,6 +644,7 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
+      timestampBasis,
     }),
 
     prisma.host.findMany({

@@ -64,7 +64,7 @@ it("can find lucky user with maximize availability", async () => {
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: { rrResetInterval: RRResetInterval.MONTH },
+        team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -117,7 +117,10 @@ it("can find lucky user with maximize availability and priority ranking", async 
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: { rrResetInterval: RRResetInterval.MONTH },
+        team: {
+          rrResetInterval: RRResetInterval.MONTH,
+          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+        },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -174,7 +177,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: { rrResetInterval: RRResetInterval.MONTH },
+        team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -236,7 +239,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: { rrResetInterval: RRResetInterval.MONTH },
+        team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -327,7 +330,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.MONTH },
+          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -435,7 +438,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.DAY },
+          team: { rrResetInterval: RRResetInterval.DAY, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -543,7 +546,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.DAY },
+          team: { rrResetInterval: RRResetInterval.DAY, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -638,7 +641,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.MONTH },
+          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -745,7 +748,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.MONTH },
+          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -840,7 +843,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.MONTH },
+          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -865,7 +868,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.MONTH },
+          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -1383,7 +1386,11 @@ describe("attribute weights and virtual queues", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { parentId: 1, rrResetInterval: RRResetInterval.DAY },
+          team: {
+            parentId: 1,
+            rrResetInterval: RRResetInterval.DAY,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+          },
         },
         allRRHosts,
         routingFormResponse,

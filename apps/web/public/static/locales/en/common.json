@@ -3215,8 +3215,13 @@
   "matching": "Matching",
   "event_redirect": "Event Redirect",
   "reset_form": "Reset Form",
+  "rr_settings_successfully_updated": "Round Robin settings successfully updated",
+  "timestamp_basis": "Timestamp Basis",
+  "timestamp_basis_description": "Determines the basis of the timestamp for the round robin booking count",
   "requires_credits": "Requires credits",
   "requires_credits_tooltip": "You need enough credits in your account to use this feature",
   "available_credits": "Available credits",
+  "load_balancing_warning": "This will disable Load Balancing on all your Round Robin event types",
+  "rr_load_balancing_disabled": "Load Balancing is only available when the timestamp basis is set to Created At'",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
