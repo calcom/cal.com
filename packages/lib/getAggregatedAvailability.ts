@@ -48,6 +48,11 @@ export const getAggregatedAvailability = (
     );
   }
   const availability = intersect(dateRangesToIntersect);
-  // we no longer merge overlapping date ranges, rr-hosts need to be individually available here.
-  return uniqueAndSortedDateRanges(availability);
+  const uniqueRanges = uniqueAndSortedDateRanges(availability);
+
+  if (schedulingType !== SchedulingType.ROUND_ROBIN) {
+    return mergeOverlappingDateRanges(uniqueRanges);
+  }
+
+  return uniqueRanges;
 };
