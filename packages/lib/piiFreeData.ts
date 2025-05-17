@@ -64,7 +64,7 @@ export function getPiiFreeCredential(credential: Partial<Credential>) {
    */
   const booleanKeyStatus = getBooleanStatus(credential?.key);
 
-  return { ...credential, key: booleanKeyStatus };
+  return { ...credential, key: booleanKeyStatus, delegatedTo: undefined };
 }
 
 export function getPiiFreeSelectedCalendar(selectedCalendar: Partial<SelectedCalendar>) {
