@@ -51,9 +51,5 @@ export const getAggregatedAvailability = (
   const availability = intersect(dateRangesToIntersect);
   const uniqueRanges = uniqueAndSortedDateRanges(availability);
 
-  if (schedulingType === SchedulingType.ROUND_ROBIN) {
-    return filterRedundantDateRanges(uniqueRanges);
-  }
-
-  return mergeOverlappingDateRanges(uniqueRanges);
+  return filterRedundantDateRanges(uniqueRanges);
 };
