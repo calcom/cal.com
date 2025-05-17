@@ -89,10 +89,9 @@ describe("POST /api/selected-calendars", () => {
         googleChannelResourceUri: null,
         googleChannelExpiration: null,
         error: null,
+        lastErrorAt: null,
         watchAttempts: 0,
-        lastWatchErrorAt: null,
-        unwatchError: null,
-        lastUnwatchErrorAt: null,
+        maxAttempts: 3,
         unwatchAttempts: 0,
       });
 
@@ -133,10 +132,9 @@ describe("POST /api/selected-calendars", () => {
         domainWideDelegationCredentialId: null,
         eventTypeId: null,
         error: null,
+        lastErrorAt: null,
         watchAttempts: 0,
-        lastWatchErrorAt: null,
-        unwatchError: null,
-        lastUnwatchErrorAt: null,
+        maxAttempts: 3,
         unwatchAttempts: 0,
       });
 

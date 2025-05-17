@@ -6,8 +6,6 @@ import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import { buildCredentialPayloadForPrisma } from "../buildCredentialPayloadForCalendar";
 
-const maxAttemptsOfUnwatch = 3;
-const maxAttemptsOfWatch = 3;
 export type UpdateArguments = {
   where: FindManyArgs["where"];
   data: Prisma.SelectedCalendarUpdateManyArgs["data"];
@@ -167,7 +165,13 @@ export class SelectedCalendarRepository {
               // Or is a calendar that has errored but has not reached max attempts
               {
                 error: { not: null },
-                watchAttempts: { lt: maxAttemptsOfWatch },
+                watchAttempts: {
+                  lt: {
+                    // @ts-expect-error '_ref' works but not in the type
+                    _ref: "maxAttempts",
+                    _container: "SelectedCalendar",
+                  },
+                },
               },
             ],
           },
@@ -197,11 +201,17 @@ export class SelectedCalendarRepository {
         {
           OR: [
             // Either is a calendar that has not errored during unwatch
-            { unwatchError: null },
+            { error: null },
             // Or is a calendar that has errored during unwatch but has not reached max attempts
             {
-              unwatchError: { not: null },
-              unwatchAttempts: { lt: maxAttemptsOfUnwatch },
+              error: { not: null },
+              unwatchAttempts: {
+                lt: {
+                  // @ts-expect-error '_ref' works but not in the type
+                  _ref: "maxAttempts",
+                  _container: "SelectedCalendar",
+                },
+              },
             },
           ],
         },
@@ -375,32 +385,32 @@ export class SelectedCalendarRepository {
   static async setErrorInWatching({ id, error }: { id: string; error: string }) {
     await SelectedCalendarRepository.updateById(id, {
       error,
+      lastErrorAt: new Date(),
       watchAttempts: { increment: 1 },
-      lastWatchErrorAt: new Date(),
     });
   }
 
   static async setErrorInUnwatching({ id, error }: { id: string; error: string }) {
     await SelectedCalendarRepository.updateById(id, {
-      unwatchError: error,
+      error,
+      lastErrorAt: new Date(),
       unwatchAttempts: { increment: 1 },
-      lastUnwatchErrorAt: new Date(),
     });
   }
 
   static async removeWatchingError({ id }: { id: string }) {
     await SelectedCalendarRepository.updateById(id, {
       error: null,
+      lastErrorAt: null,
       watchAttempts: 0,
-      lastWatchErrorAt: null,
     });
   }
 
   static async removeUnwatchingError({ id }: { id: string }) {
     await SelectedCalendarRepository.updateById(id, {
-      unwatchError: null,
+      error: null,
+      lastErrorAt: null,
       unwatchAttempts: 0,
-      lastUnwatchErrorAt: null,
     });
   }
 }
