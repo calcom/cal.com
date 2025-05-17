@@ -1,4 +1,4 @@
-import { availabilityUserSelect, prisma } from "@calcom/prisma";
+import { availabilityUserSelect, prisma, type PrismaTransaction } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -310,8 +310,8 @@ export class MembershipRepository {
       },
     });
   }
-  static async findAllAcceptedMemberships(userId: number) {
-    return prisma.membership.findMany({
+  static async findAllAcceptedMemberships(userId: number, tx?: PrismaTransaction) {
+    return (tx ?? prisma).membership.findMany({
       where: {
         userId,
         accepted: true,
