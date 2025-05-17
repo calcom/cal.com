@@ -51,6 +51,7 @@ import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { ReassignDialog } from "@components/dialog/ReassignDialog";
+import { RemoveBookingSeatsDialog } from "@components/dialog/RemoveBookingSeatsDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
@@ -292,6 +293,20 @@ function BookingListItem(booking: BookingItemProps) {
             icon: "user-plus" as const,
           },
         ]),
+    ...(booking.seatsReferences.length > 0 &&
+    !isBookingInPast &&
+    booking.user?.id === booking.loggedInUser.userId
+      ? [
+          {
+            id: "remove_seats",
+            label: t("remove_seats"),
+            onClick: () => {
+              setIsOpenRemoveSeatsDialog(true);
+            },
+            icon: "user-x" as const,
+          },
+        ]
+      : []),
   ];
 
   if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
@@ -477,6 +492,8 @@ function BookingListItem(booking: BookingItemProps) {
 
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
 
+  const [isOpenRemoveSeatsDialog, setIsOpenRemoveSeatsDialog] = useState(false);
+
   return (
     <>
       <RescheduleDialog
@@ -505,6 +522,20 @@ function BookingListItem(booking: BookingItemProps) {
         setIsOpenDialog={setIsOpenAddGuestsDialog}
         bookingId={booking.id}
       />
+      {booking.user?.id === booking.loggedInUser.userId && (
+        <RemoveBookingSeatsDialog
+          isOpenDialog={isOpenRemoveSeatsDialog}
+          setIsOpenDialog={setIsOpenRemoveSeatsDialog}
+          bookingUid={booking.uid}
+          attendees={booking.seatsReferences
+            .map((seat) => ({
+              email: seat.attendee?.email || "",
+              name: seat.attendee?.name || null,
+              referenceUid: seat.referenceUid,
+            }))
+            .filter((attendee) => attendee.email)}
+        />
+      )}
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
           isOpenDialog={chargeCardDialogIsOpen}
