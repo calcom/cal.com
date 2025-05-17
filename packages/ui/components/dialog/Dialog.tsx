@@ -14,7 +14,7 @@ import type { IconName } from "../icon";
 import { Icon } from "../icon";
 
 const dialogClasses = cva(
-  "fadeIn bg-default scroll-bar fixed left-1/2 top-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 rounded-2xl text-left shadow-xl focus-visible:outline-none sm:align-middle",
+  "fadeIn bg-default scroll-bar fixed z-50 w-full text-left shadow-xl focus-visible:outline-none",
   {
     variants: {
       size: {
@@ -83,15 +83,16 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
           }}
           className={classNames(
             dialogClasses({ size: props.size }),
-            "max-h-[95vh]",
+            "fixed inset-0 m-0 h-full max-h-none w-full rounded-none",
+            "sm:relative sm:left-1/2 sm:top-1/2 sm:max-h-[95vh] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:p-8",
             enableOverflow ? "overflow-y-auto" : "overflow-visible",
             `${props.className || ""}`
           )}
           ref={forwardedRef}>
           {type === "creation" && (
-            <div>
+            <div className="h-full">
               <DialogHeader title={title} subtitle={props.description} />
-              <div data-testid="dialog-creation" className="flex flex-col">
+              <div data-testid="dialog-creation" className="flex h-full flex-col">
                 {children}
               </div>
             </div>
