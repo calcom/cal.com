@@ -31,40 +31,50 @@ const _getBusyTimesFromLimits = async (
   // shared amongst limiters to prevent processing known busy periods
   const limitManager = new LimitManager();
 
+  const limitChecks = [];
+
   // run this first, as counting bookings should always run faster..
   if (bookingLimits) {
     performance.mark("bookingLimitsStart");
-    await getBusyTimesFromBookingLimits({
-      bookings,
-      bookingLimits,
-      dateFrom,
-      dateTo,
-      eventTypeId: eventType.id,
-      limitManager,
-      rescheduleUid,
-      timeZone,
-    });
-    performance.mark("bookingLimitsEnd");
-    performance.measure(`checking booking limits took $1'`, "bookingLimitsStart", "bookingLimitsEnd");
+    limitChecks.push(
+      getBusyTimesFromBookingLimits({
+        bookings,
+        bookingLimits,
+        dateFrom,
+        dateTo,
+        eventTypeId: eventType.id,
+        limitManager,
+        rescheduleUid,
+        timeZone,
+      }).then(() => {
+        performance.mark("bookingLimitsEnd");
+        performance.measure(`checking booking limits took $1'`, "bookingLimitsStart", "bookingLimitsEnd");
+      })
+    );
   }
 
   // ..than adding up durations (especially for the whole year)
   if (durationLimits) {
     performance.mark("durationLimitsStart");
-    await getBusyTimesFromDurationLimits(
-      bookings,
-      durationLimits,
-      dateFrom,
-      dateTo,
-      duration,
-      eventType,
-      limitManager,
-      timeZone,
-      rescheduleUid
+    limitChecks.push(
+      getBusyTimesFromDurationLimits(
+        bookings,
+        durationLimits,
+        dateFrom,
+        dateTo,
+        duration,
+        eventType,
+        limitManager,
+        timeZone,
+        rescheduleUid
+      ).then(() => {
+        performance.mark("durationLimitsEnd");
+        performance.measure(`checking duration limits took $1'`, "durationLimitsStart", "durationLimitsEnd");
+      })
     );
-    performance.mark("durationLimitsEnd");
-    performance.measure(`checking duration limits took $1'`, "durationLimitsStart", "durationLimitsEnd");
   }
+
+  await Promise.all(limitChecks);
 
   performance.mark("limitsEnd");
   performance.measure(`checking all limits took $1'`, "limitsStart", "limitsEnd");
