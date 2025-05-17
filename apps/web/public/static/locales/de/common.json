@@ -3140,6 +3140,7 @@
   "user_workflows_whitelisted": "Benutzer-Workflows zur Whitelist hinzugefügt",
   "user_workflows_unwhitelisted": "Benutzer-Workflows von der Whitelist entfernt",
   "date_and_time": "Datum und Uhrzeit",
+  "bookingDateTime": "{{weekday}}, {{day}}. {{month}} {{year}} {{time}} Uhr",
   "email_reminder_upcoming_event_notice": "Dies ist eine Erinnerung an Ihre bevorstehende Veranstaltung.",
   "email_reminder_triggered_by_workflow": "Diese Erinnerung wurde durch einen Workflow in Cal ausgelöst.",
   "event_upper_case": "Ereignis",
