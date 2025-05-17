@@ -44,6 +44,7 @@ import {
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import EventManager from "@calcom/lib/EventManager";
+import AnalyticsManager from "@calcom/lib/analyticsManager/analyticsManager";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import {
@@ -896,6 +897,7 @@ async function handler(
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
   const allCredentials = await getAllCredentialsIncludeServiceAccountKey(organizerUser, eventType);
+  console.log("allCredentials: ", JSON.stringify(allCredentials, null, 2));
 
   // If the Organizer himself is rescheduling, the booker should be sent the communication in his timezone and locale.
   const attendeeInfoOnReschedule =
@@ -2140,6 +2142,27 @@ async function handler(
     }
   } catch (error) {
     loggerWithEventDetails.error("Error while scheduling no show triggers", JSON.stringify({ error }));
+  }
+
+  const { dub_id } = rawBookingData;
+
+  if (dub_id && !isDryRun) {
+    const dubCredential = allCredentials.find((cred) => cred.appId === "dub");
+    if (dubCredential) {
+      try {
+        const dubManager = new AnalyticsManager(dubCredential);
+        if (dubManager) {
+          await dubManager.sendEvent({
+            id: dub_id,
+            email: bookerEmail,
+            name: fullName,
+            eventName: "Cal.com lead",
+          });
+        }
+      } catch (err) {
+        console.error("Error sending dub lead: ", err);
+      }
+    }
   }
 
   // TODO: Refactor better so this booking object is not passed
