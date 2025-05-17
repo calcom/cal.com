@@ -974,15 +974,13 @@ export default class GoogleCalendarService implements Calendar {
           expiration: otherCalendarsWithSameSubscription[0].googleChannelExpiration,
         }
       : {};
-    let error: string | undefined;
 
     if (!otherCalendarsWithSameSubscription.length) {
       try {
         googleChannelProps = await this.startWatchingCalendarsInGoogle({ calendarId });
       } catch (error) {
-        this.log.error(`Failed to watch calendar ${calendarId}`, error);
-        // We set error to prevent attempting to watch on next cron run
-        error = error instanceof Error ? error.message : "Unknown error";
+        this.log.error(`Failed to watch calendar ${calendarId}`, safeStringify(error));
+        throw error;
       }
     } else {
       logger.info(
@@ -1000,7 +998,6 @@ export default class GoogleCalendarService implements Calendar {
         googleChannelResourceId: googleChannelProps.resourceId,
         googleChannelResourceUri: googleChannelProps.resourceUri,
         googleChannelExpiration: googleChannelProps.expiration,
-        error,
       },
       eventTypeIds
     );
