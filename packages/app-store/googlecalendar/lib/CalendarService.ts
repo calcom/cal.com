@@ -656,6 +656,7 @@ export default class GoogleCalendarService implements Calendar {
   async fetchAvailability(requestBody: FreeBusyArgs): Promise<calendar_v3.Schema$FreeBusyResponse> {
     log.debug("fetchAvailability", safeStringify({ requestBody }));
     const calendar = await this.authedCalendar();
+
     const apiResponse = await this.oAuthManagerInstance.request(
       async () => new AxiosLikeResponseToFetchResponse(await calendar.freebusy.query({ requestBody }))
     );
@@ -1256,7 +1257,14 @@ export default class GoogleCalendarService implements Calendar {
 
 class MyGoogleAuth extends OAuth2Client {
   constructor(client_id: string, client_secret: string, redirect_uri: string) {
-    super(client_id, client_secret, redirect_uri);
+    super({
+      clientId: client_id,
+      clientSecret: client_secret,
+      redirectUri: redirect_uri,
+      // default: 5 * 60 * 1000, 5 minutes
+      // tho, fn will never run in excess of 60 seconds
+      eagerRefreshThresholdMillis: 60000,
+    });
   }
 
   isTokenExpiring() {
