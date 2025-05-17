@@ -3,6 +3,7 @@ import { useFormContext } from "react-hook-form";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { isFieldVisible } from "@calcom/features/bookings/lib/fieldVisibility";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilderField";
@@ -51,6 +52,9 @@ export const BookingFields = ({
 
         let hidden = !!field.hidden;
         const fieldViews = field.views;
+
+        const responses = watch("responses") as Record<string, unknown>;
+        if (!isFieldVisible(field, responses)) return null;
 
         if (fieldViews && !fieldViews.find((view) => view.id === currentView)) {
           return null;
