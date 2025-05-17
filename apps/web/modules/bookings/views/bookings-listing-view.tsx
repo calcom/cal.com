@@ -115,6 +115,7 @@ function BookingsContent({ status }: BookingsProps) {
   const dateRange = useFilterValue("dateRange", ZDateRangeFilterValue)?.data;
   const attendeeName = useFilterValue("attendeeName", ZTextFilterValue);
   const attendeeEmail = useFilterValue("attendeeEmail", ZTextFilterValue);
+  const bookingUid = useFilterValue("bookingUid", ZTextFilterValue);
 
   const { limit, offset } = useDataTable();
 
@@ -128,6 +129,7 @@ function BookingsContent({ status }: BookingsProps) {
       userIds,
       attendeeName,
       attendeeEmail,
+      bookingUid,
       afterStartDate: dateRange?.startDate
         ? dayjs(dateRange?.startDate).startOf("day").toISOString()
         : undefined,
@@ -210,6 +212,21 @@ function BookingsContent({ status }: BookingsProps) {
             type: ColumnFilterType.DATE_RANGE,
             dateRangeOptions: {
               range: status === "past" ? "past" : "custom",
+            },
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row.type === "data" && row.booking.uid, {
+        id: "bookingUid",
+        header: t("booking_uid"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+            textOptions: {
+              allowedOperators: ["equals"],
             },
           },
         },
@@ -335,6 +352,7 @@ function BookingsContent({ status }: BookingsProps) {
         userId: false,
         attendeeName: false,
         attendeeEmail: false,
+        bookingUid: false,
         dateRange: false,
       },
     },

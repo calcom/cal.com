@@ -355,6 +355,17 @@ export async function getBookings({
       }
     }
 
+    // 5b. Filter by Booking UID (if provided)
+    if (filters?.bookingUid) {
+      if (typeof filters.bookingUid === "string") {
+        // Simple string match (exact)
+        fullQuery = fullQuery.where("Booking.uid", "=", filters.bookingUid.trim());
+      } else if (isTextFilterValue(filters.bookingUid)) {
+        const operand = filters.bookingUid.data.operand;
+        fullQuery = fullQuery.where("Booking.uid", "=", operand);
+      }
+    }
+
     // 6. Booking Start/End Time Range Filters
     if (filters?.afterStartDate) {
       fullQuery = fullQuery.where("Booking.startTime", ">=", dayjs.utc(filters.afterStartDate).toDate());

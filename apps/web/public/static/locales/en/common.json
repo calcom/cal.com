@@ -1779,6 +1779,7 @@
   "number_sms_notifications": "Phone number (SMS notifications)",
   "attendee_email_variable": "Attendee email",
   "attendee_email_info": "The person booking's email",
+  "booking_uid": "Booking UID",
   "kbar_search_placeholder": "Type a command or search...",
   "invalid_credential": "It looks like permissions expired or were revoked for {{appName}}.",
   "invalid_credential_action": "Reinstall app",
