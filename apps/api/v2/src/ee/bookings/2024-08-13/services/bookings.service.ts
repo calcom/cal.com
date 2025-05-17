@@ -51,6 +51,7 @@ import {
   RescheduleBookingInput,
   CancelBookingInput,
 } from "@calcom/platform-types";
+import { transformLocation } from "@calcom/platform-types/bookings/2024-08-13/inputs/location.input";
 import { UpdateBookingLocationInput_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/update-booking-location.input";
 import { PrismaClient } from "@calcom/prisma";
 import { EventType, User, Team } from "@calcom/prisma/client";
@@ -1003,6 +1004,7 @@ export class BookingsService_2024_08_13 {
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
-    return this.bookingsRepository.updateBookingLocationByUid(bookingUid, body.location);
+    const location = transformLocation(body.location);
+    return this.bookingsRepository.updateBookingLocationByUid(bookingUid, location);
   }
 }

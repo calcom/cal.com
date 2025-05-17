@@ -441,7 +441,7 @@ export class BookingsController_2024_08_13 {
       status: SUCCESS_STATUS,
       data: {
         bookingUid: booking.uid,
-        location: JSON.parse(booking.location!),
+        location: booking.location!,
       },
     };
   }

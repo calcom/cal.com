@@ -2255,10 +2255,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
           throw new Error("Unexpected response data type");
         }
 
-        // 2. Update the location to a link
+        // 2. Update the location to attendee phone
         const newLocation = {
           type: "attendeePhone",
-          phone: "+37120993151",
+          phone: "+12345678901",
         };
 
         const patchResponse = await request(app.getHttpServer())
@@ -2270,7 +2270,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         // 3. Assert the response
         expect(patchResponse.body.status).toBe(SUCCESS_STATUS);
         expect(patchResponse.body.data.bookingUid).toBe(createdBooking.uid);
-        expect(patchResponse.body.data.location).toBe(newLocation);
+        expect(patchResponse.body.data.location).toBe("+12345678901"); // Should be stored as optionValue
 
         // 4. Verify the update by fetching the booking
         const getResponse = await request(app.getHttpServer())
@@ -2278,7 +2278,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(200);
 
-        expect(getResponse.body.data.location).toBe(newLocation);
+        // Location should be stored as a string using optionValue
+        expect(getResponse.body.data.location).toBe("+12345678901");
 
         // Clean up
         await bookingsRepositoryFixture.deleteById(createdBooking.id);

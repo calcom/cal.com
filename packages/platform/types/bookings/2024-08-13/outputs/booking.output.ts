@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
 import {
   IsArray,
@@ -17,18 +17,7 @@ import {
 
 import type { BookingLanguageType } from "../inputs/language";
 import { BookingLanguage } from "../inputs/language";
-import type { BookingInputLocation_2024_08_13 } from "../inputs/location.input";
-import {
-  BookingInputAddressLocation_2024_08_13,
-  BookingInputAttendeeAddressLocation_2024_08_13,
-  BookingInputAttendeeDefinedLocation_2024_08_13,
-  BookingInputAttendeePhoneLocation_2024_08_13,
-  BookingInputIntegrationLocation_2024_08_13,
-  BookingInputLinkLocation_2024_08_13,
-  BookingInputOrganizersDefaultAppLocation_2024_08_13,
-  BookingInputPhoneLocation_2024_08_13,
-  ValidateBookingLocation_2024_08_13,
-} from "../inputs/location.input";
+import { ValidateBookingLocation_2024_08_13 } from "../inputs/location.input";
 
 class Attendee {
   @ApiProperty({ type: String, example: "John Doe" })
@@ -234,9 +223,16 @@ class BaseBookingOutput_2024_08_13 {
   @Expose()
   meetingUrl?: string;
 
-  @ApiProperty({ type: String, example: "https://example.com/meeting" })
+  @ValidateBookingLocation_2024_08_13()
+  @ApiPropertyOptional({
+    description:
+      "The location string returned by the database. This is stored as either the optionValue or value from the location object.",
+    type: String,
+    example: "+12345678901",
+  })
+  @Type(() => Object)
   @Expose()
-  location!: string;
+  location?: string;
 
   @ApiProperty({ type: Boolean, example: true })
   @IsBoolean()
@@ -417,19 +413,10 @@ export class UpdateBookingLocationOutputData_2024_08_13 {
   @ValidateBookingLocation_2024_08_13()
   @ApiPropertyOptional({
     description:
-      "One of the event type locations. If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
-    oneOf: [
-      { $ref: getSchemaPath(BookingInputAddressLocation_2024_08_13) },
-      { $ref: getSchemaPath(BookingInputAttendeeAddressLocation_2024_08_13) },
-      { $ref: getSchemaPath(BookingInputAttendeeDefinedLocation_2024_08_13) },
-      { $ref: getSchemaPath(BookingInputAttendeePhoneLocation_2024_08_13) },
-      { $ref: getSchemaPath(BookingInputIntegrationLocation_2024_08_13) },
-      { $ref: getSchemaPath(BookingInputLinkLocation_2024_08_13) },
-      { $ref: getSchemaPath(BookingInputPhoneLocation_2024_08_13) },
-      { $ref: getSchemaPath(BookingInputOrganizersDefaultAppLocation_2024_08_13) },
-    ],
+      "The location string returned by the database. This is stored as either the optionValue or value from the location object.",
+    type: String,
+    example: "+12345678901",
   })
   @Type(() => Object)
-  // note(Lauris): string is for backwards compatability
-  location?: BookingInputLocation_2024_08_13 | string;
+  location?: string;
 }

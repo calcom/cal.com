@@ -172,13 +172,13 @@ export class BookingsRepository_2024_08_13 {
     });
   }
 
-  async updateBookingLocationByUid(uid: string, location: BookingInputLocation_2024_08_13 | string) {
+  async updateBookingLocationByUid(uid: string, location: { value: string; optionValue: string }) {
     return this.dbWrite.prisma.booking.update({
       where: {
         uid,
       },
       data: {
-        location: JSON.stringify(location),
+        location: location.optionValue || location.value,
       },
       select: {
         uid: true,
