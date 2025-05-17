@@ -49,6 +49,7 @@ export const getAggregatedAvailability = (
     );
   }
   const availability = intersect(dateRangesToIntersect);
+
   const uniqueRanges = uniqueAndSortedDateRanges(availability);
 
   return filterRedundantDateRanges(uniqueRanges);
