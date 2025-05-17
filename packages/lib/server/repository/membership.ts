@@ -1,13 +1,19 @@
+import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import logger from "@calcom/lib/logger";
+import { getTranslation } from "@calcom/lib/server/i18n";
+import slugify from "@calcom/lib/slugify";
 import { availabilityUserSelect, prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
+import type { CreationSource } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-import logger from "../../logger";
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
 import { LookupTarget, ProfileRepository } from "./profile";
 import { withSelectedCalendars } from "./user";
+
+const isEmail = (str: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
 
 const log = logger.getSubLogger({ prefix: ["repository/membership"] });
 type IMembership = {
@@ -336,5 +342,261 @@ export class MembershipRepository {
     });
 
     return memberships.map((membership) => membership.teamId);
+  }
+
+  static async createBulkMemberships({
+    teamId,
+    invitees,
+    parentId,
+    accepted,
+  }: {
+    teamId: number;
+    invitees: Array<{
+      id: number;
+      newRole: MembershipRole;
+      needToCreateOrgMembership: boolean | null;
+    }>;
+    parentId: number | null;
+    accepted: boolean;
+  }): Promise<void> {
+    log.debug("Creating memberships for", safeStringify({ teamId, invitees, parentId, accepted }));
+
+    try {
+      const membershipsToCreate = invitees.flatMap((invitee) => {
+        const data = [];
+        const createdAt = new Date();
+
+        data.push({
+          createdAt,
+          teamId,
+          userId: invitee.id,
+          accepted,
+          role: invitee.newRole,
+        });
+
+        if (parentId && invitee.needToCreateOrgMembership) {
+          data.push({
+            createdAt,
+            accepted,
+            teamId: parentId,
+            userId: invitee.id,
+            role: MembershipRole.MEMBER,
+          });
+        }
+
+        return data;
+      });
+
+      await prisma.membership.createMany({
+        data: membershipsToCreate,
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        logger.error("Failed to create memberships", { teamId });
+        throw new Error(`Failed to create memberships for team ${teamId}`);
+      }
+      throw e;
+    }
+  }
+
+  static async createNewUsersConnectToOrgIfExists({
+    invitations,
+    isOrg,
+    teamId,
+    parentId,
+    autoAcceptEmailDomain,
+    orgConnectInfoByUsernameOrEmail,
+    isPlatformManaged,
+    timeFormat,
+    weekStart,
+    timeZone,
+    language,
+    creationSource,
+  }: {
+    invitations: Array<{
+      usernameOrEmail: string;
+      role: MembershipRole;
+    }>;
+    isOrg: boolean;
+    teamId: number;
+    parentId?: number | null;
+    autoAcceptEmailDomain: string | null;
+    orgConnectInfoByUsernameOrEmail: Record<string, { orgId: number | undefined; autoAccept: boolean }>;
+    isPlatformManaged?: boolean;
+    timeFormat?: number;
+    weekStart?: string;
+    timeZone?: string;
+    language: string;
+    creationSource: CreationSource;
+  }) {
+    // fail if we have invalid emails
+    invitations.forEach((invitation) => {
+      if (!isEmail(invitation.usernameOrEmail)) {
+        throw new Error(`Invalid email: ${invitation.usernameOrEmail}`);
+      }
+    });
+
+    const t = await getTranslation(language ?? "en", "common");
+    const defaultAvailability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
+
+    return await prisma.$transaction(async (tx) => {
+      const createdUsers = [];
+      for (let index = 0; index < invitations.length; index++) {
+        const invitation = invitations[index];
+        const { orgId, autoAccept } = orgConnectInfoByUsernameOrEmail[invitation.usernameOrEmail];
+        const [emailUser, emailDomain] = invitation.usernameOrEmail.split("@");
+        const [domainName, TLD] = emailDomain.split(".");
+
+        // An org member can't change username during signup, so we set the username
+        const orgMemberUsername =
+          emailDomain === autoAcceptEmailDomain
+            ? slugify(emailUser)
+            : slugify(`${emailUser}-${domainName}${isPlatformManaged ? `-${TLD}` : ""}`);
+
+        // As a regular team member is allowed to change username during signup, we don't set any username for him
+        const regularTeamMemberUsername = null;
+
+        const isBecomingAnOrgMember = parentId || isOrg;
+
+        const createdUser = await tx.user.create({
+          data: {
+            username: isBecomingAnOrgMember ? orgMemberUsername : regularTeamMemberUsername,
+            email: invitation.usernameOrEmail,
+            verified: true,
+            invitedTo: teamId,
+            isPlatformManaged: !!isPlatformManaged,
+            timeFormat,
+            weekStart,
+            timeZone,
+            creationSource,
+            organizationId: orgId || null,
+            ...(orgId
+              ? {
+                  profiles: {
+                    createMany: {
+                      data: [
+                        {
+                          uid: ProfileRepository.generateProfileUid(),
+                          username: orgMemberUsername,
+                          organizationId: orgId,
+                        },
+                      ],
+                    },
+                  },
+                }
+              : null),
+            teams: {
+              create: {
+                teamId: teamId,
+                role: invitation.role,
+                accepted: autoAccept,
+              },
+            },
+            ...(!isPlatformManaged
+              ? {
+                  schedules: {
+                    create: {
+                      name: t("default_schedule_name"),
+                      availability: {
+                        createMany: {
+                          data: defaultAvailability.map((schedule) => ({
+                            days: schedule.days,
+                            startTime: schedule.startTime,
+                            endTime: schedule.endTime,
+                          })),
+                        },
+                      },
+                    },
+                  },
+                }
+              : {}),
+          },
+        });
+
+        // We also need to create the membership in the parent org if it exists
+        if (parentId) {
+          await tx.membership.create({
+            data: {
+              createdAt: new Date(),
+              teamId: parentId,
+              userId: createdUser.id,
+              role: MembershipRole.MEMBER,
+              accepted: autoAccept,
+            },
+          });
+        }
+        createdUsers.push(createdUser);
+      }
+      return createdUsers;
+    });
+  }
+
+  static async createBulkMembershipsForTeam({
+    teamId,
+    autoJoinUsers,
+    regularUsers,
+    parentId = null,
+  }: {
+    teamId: number;
+    autoJoinUsers: Array<{
+      id: number;
+      newRole: MembershipRole;
+      needToCreateProfile: boolean | null;
+      needToCreateOrgMembership: boolean | null;
+    }>;
+    regularUsers: Array<{
+      id: number;
+      newRole: MembershipRole;
+      needToCreateProfile: boolean | null;
+      needToCreateOrgMembership: boolean | null;
+    }>;
+    parentId?: number | null;
+  }): Promise<void> {
+    if (autoJoinUsers.length) {
+      await MembershipRepository.createBulkMemberships({
+        teamId,
+        invitees: autoJoinUsers,
+        parentId,
+        accepted: true,
+      });
+    }
+
+    if (regularUsers.length) {
+      await MembershipRepository.createBulkMemberships({
+        teamId,
+        invitees: regularUsers,
+        parentId,
+        accepted: false,
+      });
+    }
+  }
+
+  static async createBulkMembershipsForOrganization({
+    organizationId,
+    invitableUsers,
+    orgConnectInfoByUsernameOrEmail,
+  }: {
+    organizationId: number;
+    invitableUsers: Array<{
+      id: number;
+      email: string;
+      newRole: MembershipRole;
+    }>;
+    orgConnectInfoByUsernameOrEmail: Record<string, { orgId: number | undefined; autoAccept: boolean }>;
+  }) {
+    await Promise.all(
+      invitableUsers.map(async (user) => {
+        const shouldAutoAccept = orgConnectInfoByUsernameOrEmail[user.email].autoAccept;
+        await prisma.membership.create({
+          data: {
+            createdAt: new Date(),
+            userId: user.id,
+            teamId: organizationId,
+            accepted: shouldAutoAccept,
+            role: user.newRole,
+          },
+        });
+      })
+    );
   }
 }
