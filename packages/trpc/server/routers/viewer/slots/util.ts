@@ -1,5 +1,4 @@
 // eslint-disable-next-line no-restricted-imports
-import { countBy } from "lodash";
 import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 
@@ -248,14 +247,21 @@ export const getRegularOrDynamicEventType = withReporting(
 );
 
 function applyOccupiedSeatsToCurrentSeats(currentSeats: CurrentSeats, occupiedSeats: SelectedSlots[]) {
-  const occupiedSeatsCount = countBy(occupiedSeats, (item) => item.slotUtcStartDate.toISOString());
-  Object.keys(occupiedSeatsCount).forEach((date) => {
+  const occupiedSeatsMap = new Map<string, number>();
+
+  occupiedSeats.forEach((item) => {
+    const dateKey = item.slotUtcStartDate.toISOString();
+    occupiedSeatsMap.set(dateKey, (occupiedSeatsMap.get(dateKey) || 0) + 1);
+  });
+
+  occupiedSeatsMap.forEach((count, date) => {
     currentSeats.push({
       uid: uuid(),
       startTime: dayjs(date).toDate(),
-      _count: { attendees: occupiedSeatsCount[date] },
+      _count: { attendees: count },
     });
   });
+
   return currentSeats;
 }
 
@@ -542,15 +548,15 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
 
       currentSeats = availabilityCheckProps.currentSeats;
     }
+    const busySlotsFromReservedSlots = reservedSlots.reduce<EventBusyDate[]>((r, c) => {
+      if (!c.isSeat) {
+        r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
+      }
+      return r;
+    }, []);
+
     availableTimeSlots = availableTimeSlots
       .map((slot) => {
-        const busySlotsFromReservedSlots = reservedSlots.reduce<EventBusyDate[]>((r, c) => {
-          if (!c.isSeat) {
-            r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
-          }
-          return r;
-        }, []);
-
         if (
           !checkForConflicts({
             time: slot.time,
@@ -588,34 +594,41 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
   });
 
   function _mapSlotsToDate() {
+    const currentSeatsMap = new Map();
+
+    if (currentSeats && currentSeats.length > 0) {
+      currentSeats.forEach((booking) => {
+        const timeKey = booking.startTime.toISOString();
+        currentSeatsMap.set(timeKey, {
+          attendees: booking._count.attendees,
+          uid: booking.uid,
+        });
+      });
+    }
+
     return availableTimeSlots.reduce(
       (
         r: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
         { time, ...passThroughProps }
       ) => {
-        // TODO: Adds unit tests to prevent regressions in getSchedule (try multiple timezones)
-
         // This used to be _time.tz(input.timeZone) but Dayjs tz() is slow.
         // toLocaleDateString slugish, using Intl.DateTimeFormat we get the desired speed results.
         const dateString = formatter.format(time.toDate());
+        const timeISO = time.toISOString();
 
         r[dateString] = r[dateString] || [];
         if (eventType?.onlyShowFirstAvailableSlot && r[dateString].length > 0) {
           return r;
         }
+
+        const existingBooking = currentSeatsMap.get(timeISO);
+
         r[dateString].push({
           ...passThroughProps,
-          time: time.toISOString(),
-          // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
-          ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
-            attendees:
-              currentSeats[
-                currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-              ]._count.attendees,
-            bookingUid:
-              currentSeats[
-                currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-              ].uid,
+          time: timeISO,
+          ...(existingBooking && {
+            attendees: existingBooking.attendees,
+            bookingUid: existingBooking.uid,
           }),
         });
         return r;
@@ -654,20 +667,25 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
   function _mapWithinBoundsSlotsToDate() {
     // This should never happen. Just for type safety, we already check in the upper scope
     if (!eventType) throw new TRPCError({ code: "NOT_FOUND" });
-    return Object.entries(slotsMappedToDate).reduce((withinBoundsSlotsMappedToDate, [date, slots]) => {
-      // Computation Optimization: If a future limit violation has been found, we just consider all slots to be out of bounds beyond that slot.
-      // We can't do the same for periodType=RANGE because it can start from a day other than today and today will hit the violation then.
-      if (foundAFutureLimitViolation && doesRangeStartFromToday(eventType.periodType)) {
-        return withinBoundsSlotsMappedToDate;
+
+    const withinBoundsSlotsMappedToDate = {} as typeof slotsMappedToDate;
+    const doesStartFromToday = doesRangeStartFromToday(eventType.periodType);
+
+    for (const [date, slots] of Object.entries(slotsMappedToDate)) {
+      if (foundAFutureLimitViolation && doesStartFromToday) {
+        break; // Instead of continuing the loop, we can break since all future dates will be skipped
       }
+
       const filteredSlots = slots.filter((slot) => {
         const isFutureLimitViolationForTheSlot = isTimeViolatingFutureLimit({
           time: slot.time,
           periodLimits,
         });
+
         if (isFutureLimitViolationForTheSlot) {
           foundAFutureLimitViolation = true;
         }
+
         return (
           !isFutureLimitViolationForTheSlot &&
           // TODO: Perf Optimization: Slots calculation logic already seems to consider the minimum booking notice and past booking time and thus there shouldn't be need to filter out slots here.
@@ -675,14 +693,12 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
         );
       });
 
-      if (!filteredSlots.length) {
-        // If there are no slots available, we don't set that date, otherwise having an empty slots array makes frontend consider it as an all day OOO case
-        return withinBoundsSlotsMappedToDate;
+      if (filteredSlots.length) {
+        withinBoundsSlotsMappedToDate[date] = filteredSlots;
       }
+    }
 
-      withinBoundsSlotsMappedToDate[date] = filteredSlots;
-      return withinBoundsSlotsMappedToDate;
-    }, {} as typeof slotsMappedToDate);
+    return withinBoundsSlotsMappedToDate;
   }
   const mapWithinBoundsSlotsToDate = withReporting(_mapWithinBoundsSlotsToDate, "mapWithinBoundsSlotsToDate");
   const withinBoundsSlotsMappedToDate = mapWithinBoundsSlotsToDate();
