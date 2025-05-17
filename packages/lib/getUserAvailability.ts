@@ -7,6 +7,7 @@ import type {
   EventType as PrismaEventType,
 } from "@prisma/client";
 import * as Sentry from "@sentry/nextjs";
+import pLimit from "p-limit";
 import { z } from "zod";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -699,22 +700,26 @@ type GetUsersAvailabilityProps = {
 };
 
 const _getUsersAvailability = async ({ users, query, initialData }: GetUsersAvailabilityProps) => {
+  const limit = pLimit(10);
+
   return await Promise.all(
     users.map((user) =>
-      _getUserAvailability(
-        {
-          ...query,
-          userId: user.id,
-          username: user.username || "",
-        },
-        initialData
-          ? {
-              ...initialData,
-              user,
-              currentBookings: user.currentBookings,
-              outOfOfficeDays: user.outOfOfficeDays,
-            }
-          : undefined
+      limit(() =>
+        _getUserAvailability(
+          {
+            ...query,
+            userId: user.id,
+            username: user.username || "",
+          },
+          initialData
+            ? {
+                ...initialData,
+                user,
+                currentBookings: user.currentBookings,
+                outOfOfficeDays: user.outOfOfficeDays,
+              }
+            : undefined
+        )
       )
     )
   );
