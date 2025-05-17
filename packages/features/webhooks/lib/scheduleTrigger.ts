@@ -1,9 +1,11 @@
-import type { Prisma, Webhook, Booking } from "@prisma/client";
+import type { Booking, Prisma, Webhook } from "@prisma/client";
 import { v4 } from "uuid";
 
 import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
+import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { getHumanReadableLocationValue } from "@calcom/lib/location";
+import tasker from "@calcom/features/tasker";
+import { DailyLocationType, getHumanReadableLocationValue } from "@calcom/lib/location";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
@@ -15,6 +17,11 @@ import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 const SCHEDULING_TRIGGER: WebhookTriggerEvents[] = [
   WebhookTriggerEvents.MEETING_ENDED,
   WebhookTriggerEvents.MEETING_STARTED,
+];
+
+const NO_SHOW_TRIGGERS: WebhookTriggerEvents[] = [
+  WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+  WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
 ];
 
 const log = logger.getSubLogger({ prefix: ["[node-scheduler]"] });
@@ -379,7 +386,20 @@ export async function updateTriggerForExistingBookings(
     (trigger) => !updatedEventTriggers.includes(trigger) && SCHEDULING_TRIGGER.includes(trigger)
   );
 
-  if (addedEventTriggers.length === 0 && removedEventTriggers.length === 0) return;
+  const addedNoShowTriggers = updatedEventTriggers.filter(
+    (trigger) => !existingEventTriggers.includes(trigger) && NO_SHOW_TRIGGERS.includes(trigger)
+  );
+  const removedNoShowTriggers = existingEventTriggers.filter(
+    (trigger) => !updatedEventTriggers.includes(trigger) && NO_SHOW_TRIGGERS.includes(trigger)
+  );
+
+  if (
+    addedEventTriggers.length === 0 &&
+    removedEventTriggers.length === 0 &&
+    addedNoShowTriggers.length === 0 &&
+    removedNoShowTriggers.length === 0
+  )
+    return;
 
   const currentTime = new Date();
   const where: Prisma.BookingWhereInput = {
@@ -472,25 +492,37 @@ export async function updateTriggerForExistingBookings(
 
   if (bookings.length === 0) return;
 
-  if (addedEventTriggers.length > 0) {
-    const promise = bookings.map((booking) => {
-      return addedEventTriggers.map((triggerEvent) => {
-        if (
-          triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW ||
-          triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
-        )
-          return Promise.resolve();
-
-        scheduleTrigger({ booking, subscriberUrl: webhook.subscriberUrl, subscriber: webhook, triggerEvent });
-      });
+  if (addedEventTriggers.length > 0 || addedNoShowTriggers.length > 0 || removedNoShowTriggers.length > 0) {
+    const allPromises = bookings.flatMap((booking) => {
+      return [
+        ...addedEventTriggers.map(async (triggerEvent) => {
+          if (NO_SHOW_TRIGGERS.includes(triggerEvent)) return;
+          await scheduleTrigger({
+            booking,
+            subscriberUrl: webhook.subscriberUrl,
+            subscriber: webhook,
+            triggerEvent,
+          });
+        }),
+        ...addedNoShowTriggers.map(async (triggerEvent) => {
+          await scheduleNoShowTaskForBooking(booking, webhook, triggerEvent);
+        }),
+        ...removedNoShowTriggers.map((triggerEvent) =>
+          cancelNoShowTasksForBooking({
+            bookingUid: booking.uid,
+            triggerEvent,
+          })
+        ),
+      ];
     });
 
-    await Promise.all(promise);
+    await Promise.all(allPromises);
   }
 
   const promise = removedEventTriggers.map((triggerEvent) =>
     deleteWebhookScheduledTriggers({ triggerEvent, webhookId: webhook.id })
   );
+
   await Promise.all(promise);
 }
 
@@ -545,4 +577,83 @@ export async function listOOOEntries(
       safeStringify(err)
     );
   }
+}
+
+export async function cancelNoShowTasksForBooking({
+  bookingUid,
+  triggerEvent,
+  webhookId,
+}: {
+  bookingUid?: string;
+  triggerEvent?: WebhookTriggerEvents;
+  webhookId?: string;
+}) {
+  if (bookingUid) {
+    if (triggerEvent && !NO_SHOW_TRIGGERS.includes(triggerEvent)) return;
+
+    if (triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW) {
+      await tasker.cancelWithReference(bookingUid, "triggerHostNoShowWebhook");
+    } else if (triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW) {
+      await tasker.cancelWithReference(bookingUid, "triggerGuestNoShowWebhook");
+    } else {
+      await prisma.task.deleteMany({
+        where: {
+          referenceUid: bookingUid,
+        },
+      });
+    }
+  } else if (webhookId) {
+    const shouldContain = `"webhookId":"${webhookId}"`;
+
+    await prisma.task.deleteMany({
+      where: {
+        payload: {
+          contains: shouldContain,
+        },
+      },
+    });
+  }
+}
+
+export async function scheduleNoShowTaskForBooking(
+  booking: { id: number; uid: string; startTime: Date; location: string | null },
+  webhook: Webhook,
+  triggerEvent: WebhookTriggerEvents
+) {
+  if (!webhook.time || !webhook.timeUnit || !booking.startTime || !booking.location) return;
+
+  const isCalVideoLocation = booking.location === DailyLocationType || booking.location?.trim() === "";
+  if (!isCalVideoLocation) return;
+
+  if (
+    triggerEvent !== WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW &&
+    triggerEvent !== WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+  )
+    return;
+
+  const scheduledAt = dayjs(booking.startTime)
+    .add(webhook.time ?? 0, webhook.timeUnit?.toLowerCase() as dayjs.ManipulateType)
+    .toDate();
+
+  const taskType =
+    triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
+      ? "triggerHostNoShowWebhook"
+      : "triggerGuestNoShowWebhook";
+
+  await tasker.create(
+    taskType,
+    {
+      triggerEvent,
+      bookingId: booking.id,
+      webhook: {
+        ...webhook,
+        time: webhook.time ?? 0,
+        timeUnit: webhook.timeUnit ?? "HOUR",
+      },
+    },
+    {
+      scheduledAt,
+      referenceUid: booking.uid,
+    }
+  );
 }
