@@ -220,7 +220,7 @@ test.describe("authorized user sees correct translations (de)", async () => {
       await user.apiLogin();
     });
 
-    await test.step("should navigate to /event-types and show uhr translations", async () => {
+    await test.step("should navigate to /event-types and show Uhr translations", async () => {
       await page.goto("/event-types");
 
       await page.waitForLoadState("domcontentloaded");
