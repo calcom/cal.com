@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { safeStringify } from "@calcom/lib/safeStringify";

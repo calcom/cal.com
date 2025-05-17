@@ -40,8 +40,8 @@ export const AdminUser = (props: { onSubmit: () => void; onError: () => void; on
   const formSchema = z.object({
     username: z
       .string()
-      .refine((val) => val.trim().length >= 1, { message: t("at_least_characters", { count: 1 }) }),
-    email_address: z.string().regex(emailRegex, { message: t("enter_valid_email") }),
+      .refine((val) => val.trim().length >= 1, { error: t("at_least_characters", { count: 1 }) }),
+    email_address: z.string().regex(emailRegex, { error: t("enter_valid_email") }),
     full_name: z.string().min(3, t("at_least_characters", { count: 3 })),
     password: z.string().superRefine((data, ctx) => {
       const isStrict = true;

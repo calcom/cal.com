@@ -2,7 +2,7 @@ import * as RadioGroup from "@radix-ui/react-radio-group";
 import { useSession } from "next-auth/react";
 import React, { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
-import { z } from "zod";
+import type { z } from "zod";
 
 import PhoneInput from "@calcom/features/components/phone-input";
 import { getTemplateFieldsSchema } from "@calcom/features/ee/cal-ai-phone/getTemplateFieldsSchema";
@@ -13,12 +13,12 @@ import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib
 import { ComponentForField } from "@calcom/features/form-builder/FormBuilderField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Label } from "@calcom/ui/components/form";
-import { Divider } from "@calcom/ui/components/divider";
-import { TextField } from "@calcom/ui/components/form";
-import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Divider } from "@calcom/ui/components/divider";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
@@ -178,12 +178,13 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
 
       createCallMutation.mutate(data);
     } catch (err) {
-      if (err instanceof z.ZodError) {
-        const fieldName = err.issues?.[0]?.path?.[0];
-        const message = err.issues?.[0]?.message;
+      if (err && typeof err === "object" && "name" in err && err.name === "ZodError") {
+        const zodError = err as z.ZodError;
+        const fieldName = zodError.issues?.[0]?.path?.[0];
+        const message = zodError.issues?.[0]?.message;
         showToast(`Error on ${fieldName}: ${message} `, "error");
 
-        const issues = err.issues;
+        const issues = zodError.issues;
         for (const issue of issues) {
           const fieldName = `aiPhoneCallConfig.${issue.path[0]}` as unknown as keyof FormValues;
           formMethods.setError(fieldName, {

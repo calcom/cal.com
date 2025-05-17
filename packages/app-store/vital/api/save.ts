@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { ZodError } from "zod";
+import type { ZodError } from "zod";
 
 import prisma from "@calcom/prisma";
 import { vitalSettingsUpdateSchema } from "@calcom/prisma/zod-utils";
@@ -71,8 +71,9 @@ function validate(
       try {
         vitalSettingsUpdateSchema.parse(req.body);
       } catch (error) {
-        if (error instanceof ZodError && error?.name === "ZodError") {
-          return res.status(400).json(error?.issues);
+        if (error && typeof error === "object" && "name" in error && error.name === "ZodError") {
+          const zodError = error as ZodError;
+          return res.status(400).json(zodError?.issues);
         }
         return res.status(402);
       }

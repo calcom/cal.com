@@ -1,4 +1,6 @@
-import z from "zod";
+import { AkismetClient } from "akismet-api";
+import type { Comment } from "akismet-api";
+import { z } from "zod";
 
 import { getTemplateBodyForAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import compareReminderBodyToTemplate from "@calcom/features/ee/workflows/lib/compareReminderBodyToTemplate";

@@ -91,12 +91,13 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
         const validatedData = await schema.parseAsync(data);
         return { values: validatedData, errors: {} };
       } catch (error) {
-        if (error instanceof z.ZodError) {
+        if (error && typeof error === "object" && "name" in error && error.name === "ZodError") {
+          const zodError = error as z.ZodError;
           return {
             values: {
               teams: [],
             },
-            errors: error.formErrors.fieldErrors,
+            errors: zodError.formErrors.fieldErrors,
           };
         }
         return { values: {}, errors: { teams: { message: "Error validating input" } } };

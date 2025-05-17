@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       state: typeof req.query.state === "string" ? req.query.state : undefined,
     };
     /** stringify is being dumb here */
-    const params = z.record(z.any()).parse(stripeConnectParams);
+    const params = z.record(z.string(), z.any()).parse(stripeConnectParams);
     const query = stringify(params);
     /**
      * Choose Express or Standard Stripe accounts

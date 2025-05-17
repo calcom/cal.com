@@ -4,6 +4,7 @@ export const ZResponseInputSchema = z.object({
   formId: z.string(),
   formFillerId: z.string(),
   response: z.record(
+    z.string(),
     z.object({
       label: z.string(),
       identifier: z.string().optional(),

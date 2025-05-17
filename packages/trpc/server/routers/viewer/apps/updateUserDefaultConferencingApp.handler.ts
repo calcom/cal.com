@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 
 import getApps from "@calcom/app-store/utils";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
