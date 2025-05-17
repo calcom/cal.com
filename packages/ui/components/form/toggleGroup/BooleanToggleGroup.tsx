@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
+import { InfoBadge } from "@calcom/ui/components/badge";
 
 import { Label } from "../../../components/form/inputs/Label";
 
@@ -109,18 +110,31 @@ export const BooleanToggleGroupField = function BooleanToggleGroupField(
     labelProps?: React.ComponentProps<typeof Label>;
     className?: string;
     error?: string;
+    infoBadgeContent?: string;
   }
 ) {
   const { t } = useLocale();
-  const { label = t(props.name || ""), containerClassName, labelProps, className, ...passThrough } = props;
+  const {
+    label = t(props.name || ""),
+    containerClassName,
+    labelProps,
+    className,
+    infoBadgeContent,
+    ...passThrough
+  } = props;
   const id = useId();
   return (
     <div className={classNames(containerClassName)}>
-      <div className={className}>
+      <div className={classNames(className, "flex items-center gap-1")}>
         {!!label && (
           <Label htmlFor={id} {...labelProps} className={classNames(props.error && "text-error", "mt-4")}>
             {label}
           </Label>
+        )}
+        {infoBadgeContent && (
+          <div className="mt-1">
+            <InfoBadge content={infoBadgeContent} />
+          </div>
         )}
       </div>
       <BooleanToggleGroup {...passThrough} />

@@ -2004,6 +2004,8 @@
   "add_a_booking_question": "Add a question",
   "identifier": "Identifier",
   "duplicate_email": "Email is duplicate",
+  "enable_sms_notification": "Enable SMS notification to attendee",
+  "enable_sms_notification_info": "This option would send a confirmation text message to the attendee in case no email is provided and requires credit",
   "booking_with_payment_cancelled": "Paying for this event is no longer possible",
   "booking_with_payment_cancelled_already_paid": "A refund for this booking payment is on its way.",
   "booking_with_payment_cancelled_refunded": "This booking payment has been refunded.",

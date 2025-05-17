@@ -62,6 +62,7 @@ const baseFieldSchema = z.object({
   // TODO: We should make at least one of `defaultPlaceholder` and `placeholder` required. Do the same for label.
   label: z.string().optional(),
   labelAsSafeHtml: z.string().optional(),
+  enableSMSNotification: z.boolean().default(true).optional(),
 
   /**
    * It is the default label that will be used when a new field is created.
