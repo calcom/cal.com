@@ -12,7 +12,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesHeader } from "@calcom/features/bookings";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
-import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
+import { useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
@@ -272,7 +272,6 @@ const EmailEmbed = ({
       ],
       shallow
     );
-  const event = useEvent();
   const schedule = useScheduleForEvent({
     orgSlug,
     eventId: eventType?.id,
@@ -369,7 +368,7 @@ const EmailEmbed = ({
               locale={i18n.language}
               browsingDate={month ? dayjs(month) : undefined}
               selected={dayjs(selectedDate)}
-              weekStart={weekdayToWeekIndex(event?.data?.subsetOfUsers?.[0]?.weekStart)}
+              weekStart={weekdayToWeekIndex(eventType?.users?.[0]?.weekStart)}
               eventSlug={eventType?.slug}
             />
           </CollapsibleContent>
@@ -393,7 +392,7 @@ const EmailEmbed = ({
                 handleSlotClick={handleSlotClick}
                 slots={slots}
                 showAvailableSeatsCount={eventType.seatsShowAvailabilityCount}
-                event={event}
+                eventType={eventType}
               />
             </div>
           ) : null}
@@ -899,7 +898,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     },
   ];
   const previewTab = tabs.find((tab) => tab.name === "Preview");
-
+  const x = eventTypeData;
   return (
     <DialogContent
       enableOverflow
