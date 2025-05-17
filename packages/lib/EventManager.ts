@@ -794,8 +794,11 @@ export default class EventManager {
                 firstConnectedCalendar: getPiiFreeCredential(firstCalendarCredential),
               })
             );
-            createdEvents.push(await createEvent(firstCalendarCredential, event));
-            eventCreated = true;
+            const createdEvent = await createEvent(firstCalendarCredential, event);
+            if (createdEvent) {
+              createdEvents.push(createdEvent);
+              eventCreated = true;
+            }
           }
         }
       }
@@ -811,11 +814,13 @@ export default class EventManager {
 
     // Taking care of non-traditional calendar integrations
     createdEvents = createdEvents.concat(
-      await Promise.all(
-        this.calendarCredentials
-          .filter((cred) => cred.type.includes("other_calendar"))
-          .map(async (cred) => await createEvent(cred, event))
-      )
+      (
+        await Promise.all(
+          this.calendarCredentials
+            .filter((cred) => cred.type.includes("other_calendar"))
+            .map(async (cred) => await createEvent(cred, event))
+        )
+      ).filter((createdEvent): createdEvent is EventResult<NewCalendarEventType> => !!createdEvent)
     );
 
     return createdEvents;
@@ -955,14 +960,20 @@ export default class EventManager {
               };
             }
           }
-          result.push(updateEvent(credential, event, bookingRefUid, calenderExternalId));
+          const updatedEvent = await updateEvent(credential, event, bookingRefUid, calenderExternalId);
+          if (updatedEvent) {
+            result.push(updatedEvent);
+          }
         } else {
           const credentials = this.calendarCredentials.filter(
             (credential) => credential.type === reference?.type
           );
           for (const credential of credentials) {
             log.silly("updateAllCalendarEvents-credential", JSON.stringify({ credentials }));
-            result.push(updateEvent(credential, event, bookingRefUid, calenderExternalId));
+            const updatedEvent = await updateEvent(credential, event, bookingRefUid, calenderExternalId);
+            if (updatedEvent) {
+              result.push(updatedEvent);
+            }
           }
         }
       }
@@ -981,28 +992,38 @@ export default class EventManager {
 
       // Taking care of non-traditional calendar integrations
       result = result.concat(
-        this.calendarCredentials
-          .filter((cred) => cred.type.includes("other_calendar"))
-          .map(async (cred) => {
-            const calendarReference = booking.references.find((ref) => ref.type === cred.type);
+        (
+          await Promise.all(
+            this.calendarCredentials
+              .filter((cred) => cred.type.includes("other_calendar"))
+              .map(async (cred) => {
+                const calendarReference = booking.references.find((ref) => ref.type === cred.type);
 
-            if (!calendarReference) {
-              return {
-                appName: cred.appId || "",
-                type: cred.type,
-                success: false,
-                uid: "",
-                originalEvent: event,
-                credentialId: cred.id,
-              };
-            }
-            const { externalCalendarId: bookingExternalCalendarId, meetingId: bookingRefUid } =
-              calendarReference;
-            return await updateEvent(cred, event, bookingRefUid ?? null, bookingExternalCalendarId ?? null);
-          })
+                if (!calendarReference) {
+                  return {
+                    appName: cred.appId || "",
+                    type: cred.type,
+                    success: false,
+                    uid: "",
+                    originalEvent: event,
+                    credentialId: cred.id,
+                  } as EventResult<NewCalendarEventType>;
+                }
+
+                const { externalCalendarId: bookingExternalCalendarId, meetingId: bookingRefUid } =
+                  calendarReference;
+                return await updateEvent(
+                  cred,
+                  event,
+                  bookingRefUid ?? null,
+                  bookingExternalCalendarId ?? null
+                );
+              })
+          )
+        ).filter((item): item is EventResult<NewCalendarEventType> => !!item)
       );
 
-      return Promise.all(result);
+      return result;
     } catch (error) {
       let message = `Tried to 'updateAllCalendarEvents' but there was no '{thing}' for '${credential?.type}', userId: '${credential?.userId}', bookingId: '${booking?.id}'`;
       if (error instanceof Error) {
