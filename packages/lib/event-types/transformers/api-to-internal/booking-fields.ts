@@ -74,7 +74,6 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
   if (fieldIsDefaultSystemLocation(field)) {
     return {
       ...systemBeforeFieldLocation,
-      required: field.required,
       hidden: "hidden" in field ? !!field.hidden : false,
       label: field.label,
     };
