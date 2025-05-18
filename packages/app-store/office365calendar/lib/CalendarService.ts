@@ -1,8 +1,9 @@
 import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microsoft-graph-types-beta";
 import type { DefaultBodyType } from "msw";
 
+import { MSTeamsLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
-import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
+import { getLocation, getRichDescription, getRichDescriptionHTML } from "@calcom/lib/CalEventParser";
 import {
   CalendarAppDelegationCredentialInvalidGrantError,
   CalendarAppDelegationCredentialConfigurationError,
@@ -268,9 +269,22 @@ export default class Office365CalendarService implements Calendar {
 
   async updateEvent(uid: string, event: CalendarEvent): Promise<NewCalendarEventType> {
     try {
+      let existingBody = "";
+      if (event.location === MSTeamsLocationType) {
+        // Extract the existing body content to preserve the meeting blob, otherwise it breaks and converts it into non-onlineMeeting
+        const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`, {
+          method: "GET",
+        });
+
+        const responseJson = await handleErrorsJson<
+          NewCalendarEventType & { body: { contentType: string; content: string } }
+        >(response);
+        existingBody = responseJson.body?.contentType === "html" ? responseJson.body.content : "";
+      }
+
       const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`, {
         method: "PATCH",
-        body: JSON.stringify(this.translateEvent(event)),
+        body: JSON.stringify(this.translateEvent(event, existingBody)),
       });
 
       const responseJson = await handleErrorsJson<NewCalendarEventType & { iCalUId: string }>(response);
@@ -403,12 +417,21 @@ export default class Office365CalendarService implements Calendar {
     });
   }
 
-  private translateEvent = (event: CalendarEvent) => {
+  private translateEvent = (event: CalendarEvent, existingBody?: string) => {
+    const isOnlineMeeting = event.location === MSTeamsLocationType;
+    const content = isOnlineMeeting
+      ? existingBody
+        ? `
+        ${existingBody}\n
+        ${getRichDescriptionHTML(event)}`.trim()
+        : getRichDescriptionHTML(event)
+      : getRichDescription(event);
+
     const office365Event: Event = {
       subject: event.title,
       body: {
-        contentType: "text",
-        content: getRichDescription(event),
+        contentType: isOnlineMeeting ? "html" : "text",
+        content,
       },
       start: {
         dateTime: dayjs(event.startTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss"),
@@ -457,6 +480,12 @@ export default class Office365CalendarService implements Calendar {
     };
     if (event.hideCalendarEventDetails) {
       office365Event.sensitivity = "private";
+    }
+    if (isOnlineMeeting) {
+      office365Event.isOnlineMeeting = true;
+      office365Event.allowNewTimeProposals = true;
+      office365Event.onlineMeetingProvider = "teamsForBusiness";
+      office365Event.location = undefined; //This lets MS Teams automatically show location as 'Microsoft Teams Meeting'.
     }
     return office365Event;
   };

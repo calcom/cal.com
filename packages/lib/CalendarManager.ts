@@ -282,24 +282,11 @@ export const createEvent = async (
   credential: CredentialForCalendarService,
   calEvent: CalendarEvent,
   externalId?: string
-): Promise<EventResult<NewCalendarEventType> | undefined> => {
+): Promise<EventResult<NewCalendarEventType>> => {
   const uid: string = getUid(calEvent);
   const calendar = await getCalendar(credential);
   let success = true;
   let calError: string | undefined = undefined;
-
-  // If both 'MSTeams' video conference and 'outlook' calendar are connected for the user,
-  // and meeting or event is created through 'MSTeams',then no need to create a calendar event in outlook (or office365Calendar) explicitly.
-  // MS Teams creates a calendar event automatically on the primary calendar and sends mails to attendees.
-  // This check avoids duplicate calendar events on outlook or office365Calendar.
-  if (
-    credential.type === "office365_calendar" &&
-    calEvent?.videoCallData?.type === "office365_video" &&
-    calEvent?.videoCallData?.url !== ""
-  ) {
-    log.debug("Skipping calendar event creation for MS Teams video call");
-    return;
-  }
 
   log.debug(
     "Creating calendar event",
@@ -385,22 +372,12 @@ export const updateEvent = async (
   calEvent: CalendarEvent,
   bookingRefUid: string | null,
   externalCalendarId: string | null
-): Promise<EventResult<NewCalendarEventType> | undefined> => {
+): Promise<EventResult<NewCalendarEventType>> => {
   const uid = getUid(calEvent);
   const calendar = await getCalendar(credential);
   let success = false;
   let calError: string | undefined = undefined;
   let calWarnings: string[] | undefined = [];
-
-  if (
-    credential.type === "office365_calendar" &&
-    calEvent?.videoCallData?.type === "office365_video" &&
-    calEvent?.videoCallData?.url !== ""
-  ) {
-    log.debug("Skipping calendar event update for MS Teams video call");
-    return;
-  }
-
   log.debug(
     "Updating calendar event",
     safeStringify({

@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-import dayjs from "@calcom/dayjs";
-import { getRichDescriptionHTML } from "@calcom/lib/CalEventParser";
 import {
   CalendarAppDelegationCredentialConfigurationError,
   CalendarAppDelegationCredentialInvalidGrantError,
@@ -119,66 +117,11 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
     return "https://login.microsoftonline.com/common/oauth2/v2.0/token";
   }
 
-  const translateEvent = (event: CalendarEvent, existingBody?: string) => {
-    const content = existingBody
-      ? `
-    ${existingBody}\n
-    ${getRichDescriptionHTML(event)}`.trim()
-      : getRichDescriptionHTML(event);
-
+  const translateEvent = (event: CalendarEvent) => {
     return {
+      startDateTime: event.startTime,
+      endDateTime: event.endTime,
       subject: event.title,
-      body: {
-        contentType: "HTML",
-        content,
-      },
-      start: {
-        dateTime: dayjs(event.startTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss"),
-        timeZone: event.organizer.timeZone,
-      },
-      end: {
-        dateTime: dayjs(event.endTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss"),
-        timeZone: event.organizer.timeZone,
-      },
-      hideAttendees: !event.seatsPerTimeSlot ? false : !event.seatsShowAttendees,
-      organizer: {
-        emailAddress: {
-          address: event.destinationCalendar
-            ? event.destinationCalendar.find((cal) => cal.userId === event.organizer.id)?.externalId ??
-              event.organizer.email
-            : event.organizer.email,
-          name: event.organizer.name,
-        },
-      },
-      attendees: [
-        ...event.attendees.map((attendee) => ({
-          emailAddress: {
-            address: attendee.email,
-            name: attendee.name,
-          },
-          type: "required" as const,
-        })),
-        ...(event.team?.members
-          ? event.team?.members
-              .filter((member) => member.email !== credential.user?.email)
-              .map((member) => {
-                const destinationCalendar =
-                  event.destinationCalendar &&
-                  event.destinationCalendar.find((cal) => cal.userId === member.id);
-                return {
-                  emailAddress: {
-                    address: destinationCalendar?.externalId ?? member.email,
-                    name: member.name,
-                  },
-                  type: "required" as const,
-                };
-              })
-          : []),
-      ],
-      ...(event.hideCalendarEventDetails ? { sensitivity: "private" } : {}),
-      isOnlineMeeting: true,
-      allowNewTimeProposals: true,
-      onlineMeetingProvider: "teamsForBusiness",
     };
   };
 
@@ -250,64 +193,32 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       return Promise.resolve([]);
     },
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent) => {
-      // Extract the existing body content to preserve the meeting blob, otherwise it breaks and converts it into non-onlineMeeting
-      const getResultString = await auth
-        .requestRaw({
-          url: `${await getUserEndpoint()}/events/${bookingRef.uid}`,
-          options: {
-            method: "GET",
-          },
-        })
-        .then(handleErrorsRaw);
-      const existingEvent = JSON.parse(getResultString);
-      if (!existingEvent) {
-        throw new HttpError({
-          statusCode: 404,
-          message: `Event with ID ${bookingRef.uid} not found`,
-        });
-      }
-      const existingBody = existingEvent.body?.contentType === "html" ? existingEvent.body.content : "";
-
       const resultString = await auth
         .requestRaw({
-          url: `${await getUserEndpoint()}/events/${bookingRef.uid}`,
+          url: `${await getUserEndpoint()}/onlineMeetings`,
           options: {
-            method: "PATCH",
-            body: JSON.stringify(translateEvent(event, existingBody)),
+            method: "POST",
+            body: JSON.stringify(translateEvent(event)),
           },
         })
         .then(handleErrorsRaw);
 
       const resultObject = JSON.parse(resultString);
 
-      if (!resultObject.id || !resultObject.onlineMeeting.joinUrl) {
-        throw new HttpError({
-          statusCode: 500,
-          message: `Error updating MS Teams meeting: ${resultObject.error.message}`,
-        });
-      }
-
       return Promise.resolve({
         type: "office365_video",
         id: resultObject.id,
         password: "",
-        url: resultObject.onlineMeeting.joinUrl,
+        url: resultObject.joinWebUrl || resultObject.joinUrl,
       });
     },
-    deleteMeeting: async (uid: string) => {
-      await auth
-        .requestRaw({
-          url: `${await getUserEndpoint()}/events/${uid}`,
-          options: {
-            method: "DELETE",
-          },
-        })
-        .then(handleErrorsRaw);
+    deleteMeeting: () => {
+      return Promise.resolve([]);
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
       console.log("=======>createMeeting: ");
 
-      const url = `${await getUserEndpoint()}/events`;
+      const url = `${await getUserEndpoint()}/onlineMeetings`;
       console.log("urllllllllllll: ", url);
       console.log("translateEvent(event): ", translateEvent(event));
       const resultString = await auth
@@ -322,7 +233,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
 
       const resultObject = JSON.parse(resultString);
 
-      if (!resultObject.id || !resultObject.onlineMeeting.joinUrl) {
+      if (!resultObject.id || !resultObject.joinUrl || !resultObject.joinWebUrl) {
         throw new HttpError({
           statusCode: 500,
           message: `Error creating MS Teams meeting: ${resultObject.error.message}`,
@@ -333,7 +244,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
         type: "office365_video",
         id: resultObject.id,
         password: "",
-        url: resultObject.onlineMeeting.joinUrl,
+        url: resultObject.joinWebUrl || resultObject.joinUrl,
       });
     },
   };

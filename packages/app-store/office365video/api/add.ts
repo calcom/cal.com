@@ -6,7 +6,7 @@ import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 
-export const OFFICE365_VIDEO_SCOPES = ["OnlineMeetings.ReadWrite", "offline_access", "Calendars.ReadWrite"];
+export const OFFICE365_VIDEO_SCOPES = ["OnlineMeetings.ReadWrite", "offline_access"];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
