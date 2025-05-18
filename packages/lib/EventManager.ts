@@ -152,7 +152,8 @@ export default class EventManager {
         (cred) => cred.type.endsWith("_calendar") && !cred.type.includes("other_calendar")
       )
       // see https://github.com/calcom/cal.com/issues/11671#issue-1923600672
-      // This sorting is mostly applicable for fallback which happens when there is no explicity destinationCalendar set. That could be true for really old accounts but not for new
+      // This sorting is mostly applicable for fallback which happens when there is no explicit destinationCalendar set.
+      // That could be true for really old accounts but not for new
       .sort(latestCredentialFirst)
       // Keep Delegation Credentials first so because those credentials never expire and are preferred.
       // Also, those credentials have consistent permission for all the members avoiding the scenario where user doesn't give all permissions
@@ -449,7 +450,8 @@ export default class EventManager {
     rescheduleUid: string,
     newBookingId?: number,
     changedOrganizer?: boolean,
-    previousHostDestinationCalendar?: DestinationCalendar[] | null
+    previousHostDestinationCalendar?: DestinationCalendar[] | null,
+    isBookingRequestedReschedule?: boolean
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
     const evt = cloneDeep(originalEvt);
@@ -501,7 +503,9 @@ export default class EventManager {
 
     const results: Array<EventResult<Event>> = [];
     const updatedBookingReferences: Array<PartialReference> = [];
-    const isLocationChanged = evt.location && booking.location && evt.location !== booking.location;
+    const isLocationChanged = !!evt.location && !!booking.location && evt.location !== booking.location;
+    const shouldUpdateBookingReferences =
+      !!changedOrganizer || isLocationChanged || !!isBookingRequestedReschedule;
 
     if (evt.requiresConfirmation) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
@@ -525,7 +529,7 @@ export default class EventManager {
         updatedBookingReferences.push(...createdEvent.referencesToCreate);
       } else {
         // If the reschedule doesn't require confirmation, we can "update" the events and meetings to new time.
-        if (isLocationChanged) {
+        if (isLocationChanged || isBookingRequestedReschedule) {
           const updatedLocation = await this.updateLocation(evt, booking);
           results.push(...updatedLocation.results);
           updatedBookingReferences.push(...updatedLocation.referencesToCreate);
@@ -577,8 +581,7 @@ export default class EventManager {
 
     return {
       results,
-      referencesToCreate:
-        changedOrganizer || isLocationChanged ? updatedBookingReferences : [...booking.references],
+      referencesToCreate: shouldUpdateBookingReferences ? updatedBookingReferences : [...booking.references],
     };
   }
 

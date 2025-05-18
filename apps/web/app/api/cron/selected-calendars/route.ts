@@ -1,3 +1,8 @@
+/**
+ * @description This route is used to create SelectedCalendar records based on Credential records corresponding to Delegation Credentials
+ *
+ * It works in conjunction with `/api/cron/credentials` route(which creates the Credential records for all the members of an organization that has delegation credentials enabled)
+ */
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -31,8 +36,10 @@ async function handleCreateSelectedCalendars() {
   });
 
   if (!allDelegationUserCredentials.length) {
+    const message = "No delegation credentials found";
+    log.info(message);
     return {
-      message: "No delegation credentials found",
+      message,
       success: 0,
       failures: 0,
     };
@@ -153,17 +160,19 @@ async function handleCreateSelectedCalendars() {
     );
     const successCount = results.filter((r) => r.status === "fulfilled").length;
     const failureCount = results.filter((r) => r.status === "rejected").length;
-
+    log.info(
+      `Processed ${successCount} selected calendars for delegationCredentialId: ${delegationCredentialId} and ${failureCount} failures`
+    );
     totalSuccess += successCount;
     totalFailures += failureCount;
   }
 
   log.info(
-    `Completed processing all selected calendars. Total Success: ${totalSuccess}, Total Failures: ${totalFailures}`
+    `Completed creating selected calendars for all delegation credentials. Total Success: ${totalSuccess}, Total Failures: ${totalFailures}`
   );
 
   return {
-    message: "All selected calendars processed",
+    message: "All selected calendars created",
     executedAt: new Date().toISOString(),
     success: totalSuccess,
     failures: totalFailures,
