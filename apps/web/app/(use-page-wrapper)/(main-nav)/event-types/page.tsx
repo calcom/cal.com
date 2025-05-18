@@ -30,7 +30,7 @@ const getCachedMe = unstable_cache(
     return await meCaller.get();
   },
   undefined,
-  { revalidate: 3600 }
+  { revalidate: 3600 } // seconds
 );
 
 const getCachedEventGroups = unstable_cache(
@@ -42,7 +42,7 @@ const getCachedEventGroups = unstable_cache(
     return await eventTypesCaller.getUserEventGroups({ filters });
   },
   undefined,
-  { revalidate: 3600 }
+  { revalidate: 3600 } // seconds
 );
 
 const Page = async ({ params, searchParams }: PageProps) => {
