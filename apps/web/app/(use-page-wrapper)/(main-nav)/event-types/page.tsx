@@ -34,7 +34,15 @@ const getCachedMe = unstable_cache(
 );
 
 const getCachedEventGroups = unstable_cache(
-  async (headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies, filters: any) => {
+  async (
+    headers: ReadonlyHeaders,
+    cookies: ReadonlyRequestCookies,
+    filters?: {
+      teamIds?: number[] | undefined;
+      userIds?: number[] | undefined;
+      upIds?: string[] | undefined;
+    }
+  ) => {
     const eventTypesCaller = await createRouterCaller(
       eventTypesRouter,
       await getTRPCContext(headers, cookies)
