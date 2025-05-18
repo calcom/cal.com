@@ -29,7 +29,7 @@ const getCachedMe = unstable_cache(
     const meCaller = await createRouterCaller(meRouter, await getTRPCContext(headers, cookies));
     return await meCaller.get();
   },
-  undefined,
+  ["viewer.me.get"],
   { revalidate: 3600 } // seconds
 );
 
@@ -41,7 +41,7 @@ const getCachedEventGroups = unstable_cache(
     );
     return await eventTypesCaller.getUserEventGroups({ filters });
   },
-  undefined,
+  ["viewer.eventTypes.getUserEventGroups"],
   { revalidate: 3600 } // seconds
 );
 
