@@ -84,11 +84,7 @@ const schemaEventTypeCreateParams = z
     title: z.string(),
     slug: z.string().transform((s) => slugify(s)),
     description: z.string().optional().nullable(),
-    length: z
-      .number()
-      .int()
-      .min(MIN_EVENT_DURATION_MINUTES)
-      .max(MAX_EVENT_DURATION_MINUTES, "Duration cannot exceed 1440 minutes (24 hours)"),
+    length: z.number().int().min(MIN_EVENT_DURATION_MINUTES).max(MAX_EVENT_DURATION_MINUTES),
     metadata: z.any().optional(),
     recurringEvent: recurringEventInputSchema.optional(),
     seatsPerTimeSlot: z.number().optional(),
