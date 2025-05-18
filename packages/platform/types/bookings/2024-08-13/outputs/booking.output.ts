@@ -418,5 +418,5 @@ export class UpdateBookingLocationOutputData_2024_08_13 {
     example: "+12345678901",
   })
   @Type(() => Object)
-  location?: string;
+  location!: string;
 }
