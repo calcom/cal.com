@@ -3218,5 +3218,7 @@
   "requires_credits": "Requires credits",
   "requires_credits_tooltip": "You need enough credits in your account to use this feature",
   "available_credits": "Available credits",
+  "duration_min_error": "Duration must be at least {{min}} minute(s)",
+  "duration_max_error": "Duration cannot exceed {{max}} minutes (24 hours)",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
