@@ -74,4 +74,3 @@ const Page = async ({ params, searchParams }: PageProps) => {
 };
 
 export default Page;
-export const revalidate = 3600; // 1 hour in seconds
