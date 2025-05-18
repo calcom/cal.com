@@ -1,23 +1,59 @@
-name: Notify New Security Advisories
+name: Post Security Advisories to Slack
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: "*/15 * * * *" # every 15 minutes
   workflow_dispatch:
 
 jobs:
-  notify:
+  notify-advisories:
     runs-on: ubuntu-latest
     steps:
-      - name: Fetch advisories and send to Slack
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Prepare cache dir
+        run: mkdir -p .github/advisories-cache
+
+      - name: Download previous advisory list (if exists)
+        id: load_previous
+        run: |
+          if [ -f .github/advisories-cache/advisories.json ]; then
+            echo "Found previous cache"
+          else
+            echo "[]" > .github/advisories-cache/advisories.json
+          fi
+
+      - name: Fetch current advisories from GitHub
+        id: fetch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_SECURITY_ADVISORIES }}
         run: |
           curl -s -H "Authorization: token $GH_TOKEN" \
             https://api.github.com/repos/calcom/cal.com/security-advisories \
-            | jq -r '.[] | select(.state=="published") | "\(.summary)\n\(.url)"' \
-            | while read -r msg; do
-                [ -n "$msg" ] && curl -X POST -H 'Content-type: application/json' \
-                  --data "{\"text\":\"$msg\"}" "$SLACK_WEBHOOK"
-              done
+            > advisories.json
+
+      - name: Compare and notify Slack
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_SECURITY_ADVISORIES }}
+        run: |
+          jq -r '.[].ghsa_id' advisories.json | sort > current_ids.txt
+          jq -r '.[].ghsa_id' .github/advisories-cache/advisories.json | sort > previous_ids.txt
+
+          # Find new advisories
+          comm -23 current_ids.txt previous_ids.txt > new_ids.txt
+
+          while read -r id; do
+            if [ -n "$id" ]; then
+              summary=$(jq -r --arg id "$id" '.[] | select(.ghsa_id == $id) | .summary' advisories.json)
+              url=$(jq -r --arg id "$id" '.[] | select(.ghsa_id == $id) | .html_url' advisories.json)
+              state=$(jq -r --arg id "$id" '.[] | select(.ghsa_id == $id) | .state' advisories.json)
+
+              curl -X POST -H 'Content-type: application/json' \
+                --data "{\"text\":\":rotating_light: *New GitHub Advisory Detected*\n>*Summary:* $summary\n>*State:* $state\n>$url\"}" \
+                "$SLACK_WEBHOOK"
+            fi
+          done < new_ids.txt
+
+          # Save current advisories as cache for next run
+          cp advisories.json .github/advisories-cache/advisories.json
