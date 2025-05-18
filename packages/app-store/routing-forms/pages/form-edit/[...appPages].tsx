@@ -2,10 +2,12 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { UseFormReturn } from "react-hook-form";
-import { Controller, useFieldArray, useWatch } from "react-hook-form";
+import { Controller, useFieldArray, useWatch, useForm } from "react-hook-form";
 import { Toaster } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
+import { AddQuestionsForm } from "@calcom/features/form-builder/AddQuestionsForm";
+import type { RhfFormField } from "@calcom/features/form-builder/FormBuilder";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -78,6 +80,14 @@ function Field({
 
   const preCountFieldLabel = label || routerField?.label || "Field";
   const fieldLabel = `${fieldIndex + 1}. ${preCountFieldLabel}`;
+
+  const fieldForm = useForm<RhfFormField>({
+    defaultValues: {},
+  });
+
+  const onUpdate = (field: RhfFormField) => {
+    console.log("onUpdate", field);
+  };
 
   return (
     <div data-testid="field">
@@ -190,6 +200,10 @@ function Field({
             />
           </div>
         </div>
+
+        <div className="bg-default border-default w-full gap-3 rounded-2xl border p-3">
+          <AddQuestionsForm shouldConsiderRequired={() => true} fieldForm={fieldForm} onUpdate={onUpdate} />
+        </div>
       </FormCard>
     </div>
   );
@@ -234,6 +248,7 @@ const FormEdit = ({
   if (!form.fields) {
     form.fields = [];
   }
+
   return hookFormFields.length ? (
     <div className="w-full py-4 lg:py-8">
       <div ref={animationRef} className="flex w-full flex-col rounded-md">
