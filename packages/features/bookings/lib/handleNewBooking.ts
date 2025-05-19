@@ -1612,7 +1612,6 @@ async function handler(
       */
       if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
         const originalBookingMemberEmails: Person[] = [];
-        const translate = await getTranslation(originalRescheduledBooking.user.locale ?? "en", "common");
 
         for (const user of originalRescheduledBooking.attendees) {
           const translate = await getTranslation(user.locale ?? "en", "common");
@@ -1625,27 +1624,29 @@ async function handler(
           });
         }
         if (originalRescheduledBooking.user) {
+          const translate = await getTranslation(originalRescheduledBooking.user.locale ?? "en", "common");
+          const originalOrganizer = originalRescheduledBooking.user;
+
           originalBookingMemberEmails.push({
             ...originalRescheduledBooking.user,
             name: originalRescheduledBooking.user.name || "",
             language: { translate, locale: originalRescheduledBooking.user.locale ?? "en" },
           });
-        }
 
-        if (changedOrganizer) {
-          const originalOrganizer = originalRescheduledBooking.user;
-
-          cancelledRRHostEvt.title = originalRescheduledBooking.title;
-          cancelledRRHostEvt.startTime =
-            dayjs(originalRescheduledBooking?.startTime).utc().format() || copyEventAdditionalInfo.startTime;
-          cancelledRRHostEvt.endTime =
-            dayjs(originalRescheduledBooking?.endTime).utc().format() || copyEventAdditionalInfo.endTime;
-          cancelledRRHostEvt.organizer = {
-            email: originalOrganizer.email,
-            name: originalOrganizer.name || "",
-            timeZone: originalOrganizer.timeZone,
-            language: { translate, locale: originalOrganizer.locale || "en" },
-          };
+          if (changedOrganizer) {
+            cancelledRRHostEvt.title = originalRescheduledBooking.title;
+            cancelledRRHostEvt.startTime =
+              dayjs(originalRescheduledBooking?.startTime).utc().format() ||
+              copyEventAdditionalInfo.startTime;
+            cancelledRRHostEvt.endTime =
+              dayjs(originalRescheduledBooking?.endTime).utc().format() || copyEventAdditionalInfo.endTime;
+            cancelledRRHostEvt.organizer = {
+              email: originalOrganizer.email,
+              name: originalOrganizer.name || "",
+              timeZone: originalOrganizer.timeZone,
+              language: { translate, locale: originalOrganizer.locale || "en" },
+            };
+          }
         }
 
         const newBookingMemberEmails: Person[] =
