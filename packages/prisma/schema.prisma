@@ -184,6 +184,10 @@ model EventType {
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
 
+  restrictionScheduleId Int?
+  useBookerTimezone     Boolean   @default(false)
+  restrictionSchedule   Schedule? @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
+
   @@unique([userId, slug])
   @@unique([teamId, slug])
   @@unique([userId, parentId])
@@ -779,6 +783,7 @@ model Schedule {
   userId               Int
   eventType            EventType[]
   instantMeetingEvents EventType[]    @relation("InstantMeetingSchedule")
+  restrictionSchedule  EventType[]    @relation("restrictionSchedule")
   name                 String
   timeZone             String?
   availability         Availability[]

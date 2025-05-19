@@ -120,7 +120,7 @@ export type EventAvailabilityTabBaserProps = {
   isTeamEvent: boolean;
 };
 
-type UseCommonScheduleSettingsToggle = Omit<EventTypeScheduleProps, "customClassNames"> & {
+type UseTeamEventScheduleSettingsToggle = Omit<EventTypeScheduleProps, "customClassNames"> & {
   customClassNames?: EventAvailabilityTabCustomClassNames;
 };
 
@@ -575,11 +575,11 @@ const useCommonScheduleState = (initialScheduleId: number | null) => {
   };
 };
 
-const UseCommonScheduleSettingsToggle = ({
+const UseTeamEventScheduleSettingsToggle = ({
   eventType,
   customClassNames,
   ...rest
-}: UseCommonScheduleSettingsToggle) => {
+}: UseTeamEventScheduleSettingsToggle) => {
   const { t } = useLocale();
   const { useHostSchedulesForTeamEvent, toggleScheduleState } = useCommonScheduleState(eventType.schedule);
   return (
@@ -611,7 +611,7 @@ const UseCommonScheduleSettingsToggle = ({
 
 export const EventAvailabilityTab = ({ eventType, isTeamEvent, ...rest }: EventAvailabilityTabProps) => {
   return isTeamEvent && eventType.schedulingType !== SchedulingType.MANAGED ? (
-    <UseCommonScheduleSettingsToggle eventType={eventType} {...rest} />
+    <UseTeamEventScheduleSettingsToggle eventType={eventType} {...rest} />
   ) : (
     <EventTypeSchedule
       eventType={eventType}
