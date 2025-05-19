@@ -131,6 +131,7 @@ const commons = {
   useEventLevelSelectedCalendars: false,
   rrResetInterval: null,
   rrTimestampBasis: null,
+  interfaceLanguage: null,
   customReplyToEmail: null,
 };
 
