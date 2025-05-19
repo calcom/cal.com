@@ -8,8 +8,9 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
 import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
-import type { DelegationCredentialAccesssToken } from "@calcom/prisma/client";
+import type { Credential } from "@calcom/prisma/client";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
+import type { Ensure } from "@calcom/types/utils";
 
 import { UserRepository } from "../server/repository/user";
 import {
@@ -18,26 +19,13 @@ import {
   isDelegationCredential,
 } from "./clientAndServer";
 
+type DelegationUserCredentialInDb = Ensure<Credential, "delegationCredentialId">;
+
 export { buildNonDelegationCredentials, buildNonDelegationCredential } from "./clientAndServer";
 
 const GOOGLE_WORKSPACE_SLUG = "google";
 const OFFICE365_WORKSPACE_SLUG = "office365";
 const WORKSPACE_PLATFORM_SLUGS = [GOOGLE_WORKSPACE_SLUG, OFFICE365_WORKSPACE_SLUG] as const;
-
-// Slugs that support per-user access tokens
-const WORKSPACE_PLATFORM_SLUGS_PER_USER_ACCESS_TOKENS = [GOOGLE_WORKSPACE_SLUG] as const;
-
-function getDelegationAccessToken(delegationCredential: DelegationCredential, user: User) {
-  if (
-    WORKSPACE_PLATFORM_SLUGS_PER_USER_ACCESS_TOKENS.includes(
-      delegationCredential.workspacePlatform
-        .slug as (typeof WORKSPACE_PLATFORM_SLUGS_PER_USER_ACCESS_TOKENS)[number]
-    )
-  ) {
-    return delegationCredential.accessTokens?.find((token) => token.userId === user.id)?.key ?? null;
-  }
-  return delegationCredential.accessTokens?.[0]?.key ?? null;
-}
 
 type WORKSPACE_PLATFORM_SLUGS_TYPE = (typeof WORKSPACE_PLATFORM_SLUGS)[number];
 
@@ -95,9 +83,11 @@ const _isConferencingCredential = (credential: CredentialPayload) => {
 const _buildCommonUserCredential = ({
   delegationCredential,
   user,
+  delegationUserCredentialInDb,
 }: {
   delegationCredential: DelegationCredential;
   user: User;
+  delegationUserCredentialInDb: DelegationUserCredentialInDb | null;
 }) => {
   return {
     id: -1,
@@ -117,7 +107,7 @@ const _buildCommonUserCredential = ({
       ? {
           serviceAccountKey: delegationCredential.serviceAccountKey,
           id: delegationCredential.id,
-          key: getDelegationAccessToken(delegationCredential, user),
+          key: delegationUserCredentialInDb?.key ?? null,
         }
       : null,
   };
@@ -126,9 +116,11 @@ const _buildCommonUserCredential = ({
 const _buildDelegatedCalendarCredential = ({
   delegationCredential,
   user,
+  delegationUserCredentialInDb,
 }: {
   delegationCredential: DelegationCredential;
   user: User;
+  delegationUserCredentialInDb: DelegationUserCredentialInDb | null;
 }) => {
   log.debug(
     "buildDelegationCredential",
@@ -156,18 +148,24 @@ const _buildDelegatedCalendarCredential = ({
       delegationCredential.workspacePlatform.slug as unknown as WORKSPACE_PLATFORM_SLUGS_TYPE,
       false
     ),
-    ..._buildCommonUserCredential({ delegationCredential, user }),
+    ..._buildCommonUserCredential({ delegationCredential, user, delegationUserCredentialInDb }),
   };
 };
 
 const _buildDelegatedCalendarCredentialWithServiceAccountKey = ({
   delegationCredential,
   user,
+  delegationUserCredentialInDb,
 }: {
   delegationCredential: DelegationCredentialWithSensitiveServiceAccountKey;
   user: User;
+  delegationUserCredentialInDb: DelegationUserCredentialInDb | null;
 }) => {
-  const credential = _buildDelegatedCalendarCredential({ delegationCredential, user });
+  const credential = _buildDelegatedCalendarCredential({
+    delegationCredential,
+    user,
+    delegationUserCredentialInDb,
+  });
   if (!credential) {
     return null;
   }
@@ -183,9 +181,11 @@ const _buildDelegatedCalendarCredentialWithServiceAccountKey = ({
 const _buildDelegatedConferencingCredential = ({
   delegationCredential,
   user,
+  delegationUserCredentialInDb,
 }: {
   delegationCredential: DelegationCredential;
   user: User;
+  delegationUserCredentialInDb: DelegationCredentialAccesssToken | null;
 }) => {
   // TODO: Build for other platforms as well
   if (!isValidWorkspaceSlug(delegationCredential.workspacePlatform.slug)) {
@@ -202,7 +202,7 @@ const _buildDelegatedConferencingCredential = ({
       delegationCredential.workspacePlatform.slug as unknown as WORKSPACE_PLATFORM_SLUGS_TYPE,
       true
     ),
-    ..._buildCommonUserCredential({ delegationCredential, user }),
+    ..._buildCommonUserCredential({ delegationCredential, user, delegationUserCredentialInDb }),
   };
 };
 
@@ -295,6 +295,11 @@ async function _getDelegationCredentialsMapPerUser({
     return emptyMap;
   }
 
+  const delegationUserCredentialsInDbMap = await getDelegationUserCredentialsInDbMapPerUserId({
+    userIds: users.map((user) => user.id),
+    delegationCredentialId: delegationCredential.id,
+  });
+
   const credentialsByUserId = new Map<
     number,
     NonNullable<ReturnType<typeof _buildDelegatedCalendarCredential>>[]
@@ -302,14 +307,22 @@ async function _getDelegationCredentialsMapPerUser({
 
   for (const user of users) {
     const delegationCredentials = [
-      _buildDelegatedCalendarCredential({ delegationCredential, user }),
-      _buildDelegatedConferencingCredential({ delegationCredential, user }),
+      _buildDelegatedCalendarCredential({
+        delegationCredential,
+        user,
+        delegationUserCredentialInDb: delegationUserCredentialsInDbMap.get(user.id),
+      }),
+      _buildDelegatedConferencingCredential({
+        delegationCredential,
+        user,
+        delegationUserCredentialInDb: delegationUserCredentialsInDbMap.get(user.id),
+      }),
     ].filter((credential): credential is NonNullable<typeof credential> => credential !== null);
 
     log.debug(
       "Returned for user",
       safeStringify({
-        user,
+        userId: user.id,
         delegationCredentialIds:
           delegationCredentials?.map?.((delegationCredential) => delegationCredential?.delegatedToId) ?? [],
       })
@@ -327,6 +340,11 @@ export async function checkIfSuccessfullyConfiguredInWorkspace({
   delegationCredential: DelegationCredentialWithSensitiveServiceAccountKey;
   user: User;
 }) {
+  const delegationUserCredentialsInDbPerUserId = await getDelegationUserCredentialsInDbMapPerUserId({
+    userIds: [user.id],
+    delegationCredentialId: delegationCredential.id,
+  });
+
   if (!isValidWorkspaceSlug(delegationCredential.workspacePlatform.slug)) {
     log.warn(
       `Only ${WORKSPACE_PLATFORM_SLUGS.toString()} Platforms are supported here, skipping ${
@@ -339,6 +357,7 @@ export async function checkIfSuccessfullyConfiguredInWorkspace({
   const credential = _buildDelegatedCalendarCredentialWithServiceAccountKey({
     delegationCredential,
     user,
+    delegationUserCredentialInDb: delegationUserCredentialsInDbPerUserId.get(user.id),
   });
 
   const calendar = await getCalendar(credential);
@@ -419,6 +438,21 @@ export const buildAllCredentials = ({
 
   return uniqueAllCredentials;
 };
+
+async function getDelegationUserCredentialsInDbMapPerUserId({
+  userIds,
+  delegationCredentialId,
+}: {
+  userIds: number[];
+  delegationCredentialId: string;
+}) {
+  const delegationUserCredentials = await CredentialRepository.findByUserIdsAndDelegationCredentialId({
+    userIds,
+    delegationCredentialId,
+  });
+
+  return delegationUserCredentials;
+}
 
 export async function enrichUsersWithDelegationCredentials<
   TUser extends { id: number; email: string; credentials: CredentialPayload[] }

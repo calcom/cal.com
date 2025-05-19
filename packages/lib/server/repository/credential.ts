@@ -1,6 +1,8 @@
+import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { Ensure } from "@calcom/types/utils";
 
 import { buildNonDelegationCredential } from "../../delegationCredential/server";
 
@@ -11,6 +13,8 @@ type CredentialCreateInput = {
   appId: string;
   delegationCredentialId?: string | null;
 };
+
+const log = logger.getSubLogger({ prefix: ["Repository", "Credential"] });
 
 export class CredentialRepository {
   static async create(data: CredentialCreateInput) {
@@ -141,5 +145,49 @@ export class CredentialRepository {
         delegationCredentialId: delegationCredentialId!,
       };
     });
+  }
+
+  static async findByUserIdsAndDelegationCredentialId({
+    userIds,
+    delegationCredentialId,
+  }: {
+    userIds: number[];
+    delegationCredentialId: string;
+  }) {
+    const credentialsFromDb = await prisma.credential.findMany({
+      where: {
+        userId: {
+          in: userIds,
+        },
+        delegationCredentialId,
+      },
+    });
+
+    // We know that userId is not null because we filtered for it above, but still we need to do it.
+    const credentials = credentialsFromDb.filter((c): c is Ensure<typeof c, "userId"> => c.userId !== null);
+
+    const credentialsPerUser = credentials.reduce((acc, credential) => {
+      const value = acc.get(credential.userId);
+      if (!value) {
+        acc.set(credential.userId, [credential]);
+      } else {
+        value.push(credential);
+      }
+      return acc;
+    }, new Map<number, (typeof credentials)[number][]>());
+
+    const credentialsPerUserArray = Array.from(credentialsPerUser.entries());
+    for (const [userId, credentials] of credentialsPerUserArray) {
+      if (credentials.length > 1) {
+        // We want to add a unique index on userId and delegationCredentialId, let's track this in logs first
+        log.warn("Found multiple credentials for user and delegation credential", {
+          userId,
+          delegationCredentialId,
+          credentialIds: credentials.map((c) => c.id),
+        });
+      }
+    }
+
+    return new Map(credentialsPerUserArray.map(([userId, credentials]) => [userId, credentials[0] ?? null]));
   }
 }
