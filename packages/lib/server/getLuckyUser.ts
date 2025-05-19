@@ -101,7 +101,7 @@ const endOfDay = (date: Date) =>
 const endOfMonth = (date: Date) =>
   new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0, 23, 59, 59, 999));
 
-const getIntervalEndDate = ({
+export const getIntervalEndDate = ({
   interval,
   rrTimestampBasis,
   meetingStartTime,
@@ -123,7 +123,7 @@ const getIntervalEndDate = ({
   return new Date();
 };
 
-const getIntervalStartDate = ({
+export const getIntervalStartDate = ({
   interval,
   rrTimestampBasis,
   meetingStartTime,
