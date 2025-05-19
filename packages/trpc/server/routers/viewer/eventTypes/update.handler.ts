@@ -200,7 +200,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     eventTypeColor: eventTypeColor === null ? Prisma.DbNull : (eventTypeColor as Prisma.InputJsonObject),
     disableGuests: guestsField?.hidden ?? false,
     seatsPerTimeSlot,
-    maxLeadThreshold: rest.team?.rrTimestampBasis ? null : rest.maxLeadThreshold,
+    maxLeadThreshold: eventType.team?.rrTimestampBasis ? null : rest.maxLeadThreshold,
   };
   data.locations = locations ?? undefined;
 
