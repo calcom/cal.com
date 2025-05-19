@@ -26,6 +26,9 @@
     }
   ],
   "functions": {
+    "pages/api/trpc/workflows/[trpc].ts": {
+      "maxDuration": 800
+    },
     "pages/api/trpc/highPerf/[trpc].ts": {
       "memory": 3008
     },
