@@ -201,7 +201,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     disableGuests: guestsField?.hidden ?? false,
     seatsPerTimeSlot,
     maxLeadThreshold:
-      eventType.team?.rrTimestampBasis && eventType.team?.rrTimestampBasis !== RRTimestampBasis.START_TIME
+      eventType.team?.rrTimestampBasis && eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
         ? null
         : rest.maxLeadThreshold,
   };
