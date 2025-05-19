@@ -456,29 +456,37 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
       if (!existingLink) {
         // Link needs to be created
+        const createData: Prisma.HashedLinkCreateManyInput = {
+          link: linkValue,
+          eventTypeId: input.id,
+          expiresAt:
+            typeof privateLink !== "string" ? (privateLink as HashedLinkInputType).expiresAt ?? null : null,
+        };
+        // Only add maxUsageCount to createData if it's explicitly provided
+        if (
+          typeof privateLink !== "string" &&
+          typeof (privateLink as HashedLinkInputType).maxUsageCount === "number"
+        ) {
+          createData.maxUsageCount = (privateLink as HashedLinkInputType).maxUsageCount;
+        }
         await ctx.prisma.hashedLink.create({
-          data: {
-            link: linkValue,
-            eventTypeId: input.id,
-            expiresAt:
-              typeof privateLink !== "string" ? (privateLink as HashedLinkInputType).expiresAt ?? null : null,
-            maxUsageCount:
-              typeof privateLink !== "string"
-                ? (privateLink as HashedLinkInputType).maxUsageCount ?? null
-                : null,
-          },
+          data: createData,
         });
       } else if (typeof privateLink !== "string") {
         // Link exists but may need to be updated with new expiresAt or maxUsageCount
+        const updateData: Prisma.HashedLinkUpdateManyMutationInput = {
+          expiresAt: (privateLink as HashedLinkInputType).expiresAt ?? null,
+        };
+        // Only add maxUsageCount to updateData if it's explicitly provided
+        if (typeof (privateLink as HashedLinkInputType).maxUsageCount === "number") {
+          updateData.maxUsageCount = (privateLink as HashedLinkInputType).maxUsageCount;
+        }
         await ctx.prisma.hashedLink.updateMany({
           where: {
             eventTypeId: input.id,
             link: linkValue,
           },
-          data: {
-            expiresAt: (privateLink as HashedLinkInputType).expiresAt ?? null,
-            maxUsageCount: (privateLink as HashedLinkInputType).maxUsageCount ?? null,
-          },
+          data: updateData,
         });
       }
     }

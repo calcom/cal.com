@@ -1010,12 +1010,14 @@ model RateLimit {
 
 model HashedLink {
   id            Int       @id @default(autoincrement())
-  link          String    @unique()
-  eventType     EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  link          String    @unique
   eventTypeId   Int
+  eventType     EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   expiresAt     DateTime?
-  maxUsageCount Int?
+  maxUsageCount Int       @default(1)
   usageCount    Int       @default(0)
+
+  @@index([eventTypeId])
 }
 
 model Account {
