@@ -55,6 +55,8 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
     getCachedAvailabilities(_headers, _cookies),
   ]);
 
+  // Transform the data to ensure startTime, endTime, and date are Date objects
+  // This is because the data is cached and as a result the data is converted to a string
   const availabilities = {
     ...cachedAvailabilities,
     schedules: cachedAvailabilities.schedules.map((schedule) => ({
