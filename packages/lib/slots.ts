@@ -40,6 +40,9 @@ function buildSlotsWithDateRanges({
   frequency = minimumOfOne(frequency);
   eventLength = minimumOfOne(eventLength);
   offsetStart = offsetStart ? minimumOfOne(offsetStart) : 0;
+
+  const orderedDateRanges = dateRanges.sort((a, b) => a.start.valueOf() - b.start.valueOf());
+
   // there can only ever be one slot at a given start time, and based on duration also only a single length.
   const slots = new Map<
     string,
@@ -66,7 +69,8 @@ function buildSlotsWithDateRanges({
 
   const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
-  const orderedDateRanges = dateRanges.sort((a, b) => a.start.valueOf() - b.start.valueOf());
+  const slotBoundaries = new Map<string, true>();
+
   orderedDateRanges.forEach((range) => {
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
 
@@ -81,32 +85,41 @@ function buildSlotsWithDateRanges({
 
     slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
 
-    // if the slotStartTime is between an existing slot, we need to adjust to the begin of the existing slot
-    // but that adjusted startTime must be legal.
-    const iterator = slots.keys();
-    let result = iterator.next();
+    // Find the nearest appropriate slot boundary if this time falls within an existing slot
+    const slotBoundariesArray = Array.from(slotBoundaries.keys()).map((t) => dayjs(t));
+    if (slotBoundariesArray.length > 0) {
+      slotBoundariesArray.sort((a, b) => a.valueOf() - b.valueOf());
 
-    while (!result.done) {
-      const utcResultValue = dayjs.utc(result.value);
-      // if the slotStartTime is between an existing slot, we need to adjust to the begin of the existing slot
-      if (
-        utcResultValue.isBefore(slotStartTime) &&
-        utcResultValue.add(frequency + (offsetStart ?? 0), "minutes").isAfter(slotStartTime)
-      ) {
-        // however, the slot can now be before the start of this date range.
-        if (!utcResultValue.isBefore(range.start)) {
-          // it is between, if possible floor down to the start of the existing slot
-          slotStartTime = utcResultValue;
-        } else {
-          // if not possible to floor, we need to ceil up to the next slot.
-          slotStartTime = utcResultValue.add(frequency + (offsetStart ?? 0), "minutes");
+      let prevBoundary = null;
+      for (let i = slotBoundariesArray.length - 1; i >= 0; i--) {
+        if (slotBoundariesArray[i].isBefore(slotStartTime)) {
+          prevBoundary = slotBoundariesArray[i];
+          break;
         }
-        // and then convert to the correct timezone - UTC mode is just for performance.
-        slotStartTime = slotStartTime.tz(timeZone);
       }
-      result = iterator.next();
+
+      if (prevBoundary) {
+        const prevBoundaryEnd = prevBoundary.add(frequency + (offsetStart ?? 0), "minutes");
+        if (prevBoundaryEnd.isAfter(slotStartTime)) {
+          if (!prevBoundary.isBefore(range.start)) {
+            slotStartTime = prevBoundary;
+          } else {
+            slotStartTime = prevBoundaryEnd;
+          }
+          slotStartTime = slotStartTime.tz(timeZone);
+        }
+      }
     }
+
     while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(range.end)) {
+      const slotKey = slotStartTime.toISOString();
+      if (slots.has(slotKey)) {
+        slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
+        continue;
+      }
+
+      slotBoundaries.set(slotKey, true);
+
       const dateOutOfOfficeExists = datesOutOfOffice?.[dateYYYYMMDD];
       let slotData: {
         time: Dayjs;
@@ -133,7 +146,7 @@ function buildSlotsWithDateRanges({
         };
       }
 
-      slots.set(slotData.time.toISOString(), slotData);
+      slots.set(slotKey, slotData);
       slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
     }
   });

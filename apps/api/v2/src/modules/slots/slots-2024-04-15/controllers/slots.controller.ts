@@ -1,7 +1,7 @@
 import { SlotsOutputService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
 import type { RangeSlots, TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
 import { SlotsService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots.service";
-import { Query, Body, Controller, Get, Delete, Post, Req, Res } from "@nestjs/common";
+import { Query, Body, Controller, Get, Delete, Post, Req, Res, BadRequestException } from "@nestjs/common";
 import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 import { ApiTags as DocsTags, ApiCreatedResponse, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
@@ -157,7 +157,11 @@ export class SlotsController_2024_04_15 {
     @Query() query: GetAvailableSlotsInput_2024_04_15,
     @Req() req: ExpressRequest
   ): Promise<ApiResponse<{ slots: TimeSlots["slots"] | RangeSlots["slots"] }>> {
-    const isTeamEvent = await this.slotsService.checkIfIsTeamEvent(query.eventTypeId);
+    try {
+    const isTeamEvent =
+      query.isTeamEvent === undefined
+        ? await this.slotsService.checkIfIsTeamEvent(query.eventTypeId)
+        : query.isTeamEvent;
     const availableSlots = await getAvailableSlots({
       input: {
         ...query,
@@ -168,19 +172,29 @@ export class SlotsController_2024_04_15 {
       },
     });
 
-    const { slots } = await this.slotsOutputService.getOutputSlots(
-      availableSlots,
-      query.duration,
-      query.eventTypeId,
-      query.slotFormat,
-      query.timeZone
-    );
+      const { slots } = await this.slotsOutputService.getOutputSlots(
+        availableSlots,
+        query.duration,
+        query.eventTypeId,
+        query.slotFormat,
+        query.timeZone
+      );
 
-    return {
-      data: {
-        slots,
-      },
-      status: SUCCESS_STATUS,
-    };
+      return {
+        data: {
+          slots,
+        },
+        status: SUCCESS_STATUS,
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message.includes("Invalid time range given")) {
+          throw new BadRequestException(
+            "Invalid time range given - check the 'startTime' and 'endTime' query parameters."
+          );
+        }
+      }
+      throw error;
+    }
   }
 }
