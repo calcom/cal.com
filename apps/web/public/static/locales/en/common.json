@@ -3226,5 +3226,6 @@
   "load_balancing_warning": "This will disable Load Balancing on all your Round Robin event types",
   "rr_load_balancing_disabled": "Load Balancing is only available when the timestamp basis is set to Booking Created At'",
   "round_robin_settings_description": "Customize the default round robin settings for this team",
+  "round_robin_settings_updated_successfully": "Round Robin settings updated successfully",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
