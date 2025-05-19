@@ -221,6 +221,24 @@ export default class EventManager {
         evt["conferenceCredentialId"] = undefined;
       }
     }
+    // Fallback to Cal Video if MSTeams is selected w/o a Outlook Calendar connection
+    if (
+      evt.location === MSTeamsLocationType &&
+      mainHostDestinationCalendar?.integration !== "office365_calendar"
+    ) {
+      const [outlookCalendarCredential] = this.calendarCredentials.filter(
+        (cred) => cred.type === "office365_calendar"
+      );
+      // Delegation Credential case won't normally have DestinationCalendar set and thus fallback of using Outlook Calendar credential would be used. Identify that case.
+      // TODO: We could extend this logic to Regular Credentials also. Having a Outlook Calendar credential would cause fallback to use that credential to create calendar and thus we could have MSTeams link
+      if (!isDelegationCredential({ credentialId: outlookCalendarCredential?.id })) {
+        log.warn(
+          "Falling back to Cal Video integration for Regular Credential as Outlook Calendar is not set as destination calendar"
+        );
+        evt["location"] = "integrations:daily";
+        evt["conferenceCredentialId"] = undefined;
+      }
+    }
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
     const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
@@ -252,6 +270,31 @@ export default class EventManager {
     const clonedCalEvent = cloneDeep(event);
     // Create the calendar event with the proper video call data
     results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
+
+    // If the location is MSTeams, update 'evt.videoCallData' with the url
+    if (evt.location === MSTeamsLocationType) {
+      const office365CalendarWithTeams = results.find(
+        (result) => result.type === "office365_calendar" && result.success && result.createdEvent?.url
+      );
+      if (office365CalendarWithTeams) {
+        evt.videoCallData = {
+          type: "office365_video",
+          id: office365CalendarWithTeams.createdEvent?.id,
+          password: "",
+          url: office365CalendarWithTeams.createdEvent?.url,
+        };
+        //responses data is later sent to webhook
+        if (evt.location && evt.responses) {
+          evt.responses["location"] = {
+            ...(evt.responses["location"] ?? {}),
+            value: {
+              optionValue: "",
+              value: evt.location,
+            },
+          };
+        }
+      }
+    }
 
     // Since the result can be a new calendar event or video event, we have to create a type guard
     // https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
@@ -327,6 +370,31 @@ export default class EventManager {
     const calendarReference = booking.references.find((reference) => reference.type.includes("_calendar"));
     if (calendarReference) {
       results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+
+      // If the location is MSTeams, update 'evt.videoCallData' with the url
+      if (evt.location === MSTeamsLocationType) {
+        const office365CalendarWithTeams = results.find(
+          (result) => result.type === "office365_calendar" && result.success && result.createdEvent?.url
+        );
+        if (office365CalendarWithTeams) {
+          evt.videoCallData = {
+            type: "office365_video",
+            id: office365CalendarWithTeams.createdEvent?.id,
+            password: "",
+            url: office365CalendarWithTeams.createdEvent?.url,
+          };
+          //responses data is later sent to webhook
+          if (evt.location && evt.responses) {
+            evt.responses["location"] = {
+              ...(evt.responses["location"] ?? {}),
+              value: {
+                optionValue: "",
+                value: evt.location,
+              },
+            };
+          }
+        }
+      }
     }
 
     const referencesToCreate = results.map((result) => {
