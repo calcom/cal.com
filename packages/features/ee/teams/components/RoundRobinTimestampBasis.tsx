@@ -15,11 +15,11 @@ const RoundRobinTimestampBasis = () => {
   }[] = [
     {
       value: RRTimestampBasis.CREATED_AT,
-      label: "Booking Created At",
+      label: t("booking_creation_time"),
     },
     {
       value: RRTimestampBasis.START_TIME,
-      label: "Booking Start Time",
+      label: t("meeting_start_time"),
     },
   ];
   return (
@@ -28,7 +28,7 @@ const RoundRobinTimestampBasis = () => {
       render={({ field: { value, onChange } }) => {
         return (
           <>
-            <h4 className="text-emphasis text-sm font-semibold leading-5">{t("timestamp_basis")}</h4>
+            <h4 className="text-emphasis text-sm font-semibold leading-5">{t("distribution_basis")}</h4>
             <p className="text-default text-sm leading-tight">{t("timestamp_basis_description")}</p>
             <div className="mt-4 w-48">
               <Select
