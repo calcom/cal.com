@@ -62,7 +62,7 @@ const buildWhereClauseForActiveBookings = ({
     };
   } | null;
   includeNoShowInRRCalculation: boolean;
-  rrTimestampBasis: RRTimestampBasis;
+  rrTimestampBasis?: RRTimestampBasis;
 }): Prisma.BookingWhereInput => ({
   OR: [
     {
@@ -89,7 +89,7 @@ const buildWhereClauseForActiveBookings = ({
   status: BookingStatus.ACCEPTED,
   eventTypeId,
   ...(startDate || endDate
-    ? rrTimestampBasis === RRTimestampBasis.CREATED_AT
+    ? !rrTimestampBasis || rrTimestampBasis === RRTimestampBasis.CREATED_AT
       ? {
           createdAt: {
             ...(startDate ? { gte: startDate } : {}),
@@ -314,7 +314,7 @@ export class BookingRepository {
       };
     } | null;
     includeNoShowInRRCalculation: boolean;
-    rrTimestampBasis: RRTimestampBasis;
+    rrTimestampBasis?: RRTimestampBasis;
   }) {
     const allBookings = await prisma.booking.findMany({
       where: buildWhereClauseForActiveBookings({
