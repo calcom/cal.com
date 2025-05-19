@@ -5,6 +5,7 @@ import type { serverSideTranslations } from "next-i18next/serverSideTranslations
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import getIP from "@calcom/lib/getIP";
+import type { PrismaClient } from "@calcom/prisma";
 import prisma, { readonlyPrisma } from "@calcom/prisma";
 import type { SelectedCalendar, User as PrismaUser } from "@calcom/prisma/client";
 
@@ -48,7 +49,7 @@ export type GetSessionFn =
   | (() => Promise<Session | null>);
 
 export type InnerContext = CreateInnerContextOptions & {
-  prisma: typeof prisma;
+  prisma: PrismaClient;
   insightsDb: typeof readonlyPrisma;
 };
 
