@@ -33,6 +33,7 @@ export class PermissionCheckService {
         ).as("role"),
       ])
       .where("Membership.userId", "=", userId)
+      .distinctOn("Membership.teamId")
       .execute();
 
     // Create a map of teamId to permissions
