@@ -490,9 +490,6 @@ async function getBookingsOfInterval({
   rrTimestampBasis: RRTimestampBasis;
   meetingStartTime?: Date;
 }) {
-  console.log(`interval ${interval}`);
-  console.log(`timestampBasis ${rrTimestampBasis}`);
-
   return await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventTypeId,
     users,
@@ -520,18 +517,6 @@ export async function getLuckyUser<
     virtualQueuesData,
     oooData,
   } = await fetchAllDataNeededForCalculations(getLuckyUserParams);
-  console.log(
-    `all data here ${JSON.stringify({
-      bookingsOfAvailableUsersOfInterval,
-      bookingsOfNotAvailableUsersOfInterval,
-      allRRHostsBookingsOfInterval,
-      allRRHostsCreatedInInterval,
-      organizersWithLastCreated,
-      attributeWeights,
-      virtualQueuesData,
-      oooData,
-    })}`
-  );
 
   const { luckyUser } = getLuckyUser_requiresDataToBePreFetched({
     ...getLuckyUserParams,
@@ -669,9 +654,7 @@ async function fetchAllDataNeededForCalculations<
   const { attributeWeights, virtualQueuesData } = await prepareQueuesAndAttributesData(getLuckyUserParams);
 
   const interval = getLuckyUserParams.eventType.team?.rrResetInterval ?? RRResetInterval.MONTH;
-  console.log(
-    `getLuckyUserParams.eventType.team?.rrTimestampBasis ${getLuckyUserParams.eventType.team?.rrTimestampBasis}`
-  );
+
   const rrTimestampBasis = getLuckyUserParams.eventType.team?.rrTimestampBasis ?? RRTimestampBasis.CREATED_AT;
 
   const [
