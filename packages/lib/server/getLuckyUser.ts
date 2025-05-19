@@ -69,7 +69,7 @@ interface GetLuckyUserParams<T extends PartialUser> {
     team: {
       parentId?: number | null;
       rrResetInterval: RRResetInterval | null;
-      timestampBasis: timestampBasis | null;
+      rrTimestampBasis: RRTimestampBasis | null;
     } | null;
     includeNoShowInRRCalculation: boolean;
   };
@@ -103,14 +103,14 @@ const endOfMonth = (date: Date) =>
 
 const getIntervalEndDate = ({
   interval,
-  timestampBasis,
+  rrTimestampBasis,
   meetingStartTime,
 }: {
   interval: RRResetInterval;
-  timestampBasis: RRTimestampBasis;
+  rrTimestampBasis: RRTimestampBasis;
   meetingStartTime?: Date;
 }) => {
-  if (timestampBasis === RRTimestampBasis.START_TIME) {
+  if (rrTimestampBasis === RRTimestampBasis.START_TIME) {
     if (!meetingStartTime) {
       throw new Error("Meeting start time is required");
     }
@@ -125,14 +125,14 @@ const getIntervalEndDate = ({
 
 const getIntervalStartDate = ({
   interval,
-  timestampBasis,
+  rrTimestampBasis,
   meetingStartTime,
 }: {
   interval: RRResetInterval;
-  timestampBasis: RRTimestampBasis;
+  rrTimestampBasis: RRTimestampBasis;
   meetingStartTime?: Date;
 }) => {
-  if (timestampBasis === RRTimestampBasis.START_TIME) {
+  if (rrTimestampBasis === RRTimestampBasis.START_TIME) {
     if (!meetingStartTime) {
       throw new Error("Meeting start time is required");
     }
@@ -453,15 +453,15 @@ async function getCalendarBusyTimesOfInterval(
     userLevelSelectedCalendars: SelectedCalendar[];
   }[],
   interval: RRResetInterval,
-  timestampBasis: RRTimestampBasis,
+  rrTimestampBasis: RRTimestampBasis,
   meetingStartTime?: Date
 ): Promise<{ userId: number; busyTimes: (EventBusyDate & { timeZone?: string })[] }[]> {
   return Promise.all(
     usersWithCredentials.map((user) =>
       getBusyCalendarTimes(
         user.credentials,
-        getIntervalStartDate({ interval, timestampBasis, meetingStartTime }).toISOString(),
-        getIntervalEndDate({ interval, timestampBasis, meetingStartTime }).toISOString(),
+        getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime }).toISOString(),
+        getIntervalEndDate({ interval, rrTimestampBasis, meetingStartTime }).toISOString(),
         user.userLevelSelectedCalendars,
         true,
         true
@@ -479,7 +479,7 @@ async function getBookingsOfInterval({
   virtualQueuesData,
   interval,
   includeNoShowInRRCalculation,
-  timestampBasis,
+  rrTimestampBasis,
   meetingStartTime,
 }: {
   eventTypeId: number;
@@ -487,17 +487,20 @@ async function getBookingsOfInterval({
   virtualQueuesData: VirtualQueuesDataType | null;
   interval: RRResetInterval;
   includeNoShowInRRCalculation: boolean;
-  timestampBasis: RRTimestampBasis;
+  rrTimestampBasis: RRTimestampBasis;
   meetingStartTime?: Date;
 }) {
+  console.log(`interval ${interval}`);
+  console.log(`timestampBasis ${rrTimestampBasis}`);
+
   return await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventTypeId,
     users,
-    startDate: getIntervalStartDate({ interval, timestampBasis, meetingStartTime }),
-    endDate: getIntervalEndDate({ interval, timestampBasis, meetingStartTime }),
+    startDate: getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime }),
+    endDate: getIntervalEndDate({ interval, rrTimestampBasis, meetingStartTime }),
     virtualQueuesData,
     includeNoShowInRRCalculation,
-    timestampBasis,
+    rrTimestampBasis,
   });
 }
 
@@ -517,6 +520,18 @@ export async function getLuckyUser<
     virtualQueuesData,
     oooData,
   } = await fetchAllDataNeededForCalculations(getLuckyUserParams);
+  console.log(
+    `all data here ${JSON.stringify({
+      bookingsOfAvailableUsersOfInterval,
+      bookingsOfNotAvailableUsersOfInterval,
+      allRRHostsBookingsOfInterval,
+      allRRHostsCreatedInInterval,
+      organizersWithLastCreated,
+      attributeWeights,
+      virtualQueuesData,
+      oooData,
+    })}`
+  );
 
   const { luckyUser } = getLuckyUser_requiresDataToBePreFetched({
     ...getLuckyUserParams,
@@ -654,7 +669,10 @@ async function fetchAllDataNeededForCalculations<
   const { attributeWeights, virtualQueuesData } = await prepareQueuesAndAttributesData(getLuckyUserParams);
 
   const interval = getLuckyUserParams.eventType.team?.rrResetInterval ?? RRResetInterval.MONTH;
-  const timestampBasis = getLuckyUserParams.eventType.team?.timestampBasis ?? RRTimestampBasis.CREATED_AT;
+  console.log(
+    `getLuckyUserParams.eventType.team?.rrTimestampBasis ${getLuckyUserParams.eventType.team?.rrTimestampBasis}`
+  );
+  const rrTimestampBasis = getLuckyUserParams.eventType.team?.rrTimestampBasis ?? RRTimestampBasis.CREATED_AT;
 
   const [
     userBusyTimesOfInterval,
@@ -667,7 +685,7 @@ async function fetchAllDataNeededForCalculations<
     getCalendarBusyTimesOfInterval(
       allRRHosts.map((host) => host.user),
       interval,
-      timestampBasis,
+      rrTimestampBasis,
       meetingStartTime
     ),
     getBookingsOfInterval({
@@ -678,7 +696,7 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
-      timestampBasis,
+      rrTimestampBasis,
       meetingStartTime,
     }),
 
@@ -688,7 +706,7 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
-      timestampBasis,
+      rrTimestampBasis,
       meetingStartTime,
     }),
 
@@ -700,7 +718,7 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
-      timestampBasis,
+      rrTimestampBasis,
       meetingStartTime,
     }),
 
@@ -712,7 +730,7 @@ async function fetchAllDataNeededForCalculations<
         eventTypeId: eventType.id,
         isFixed: false,
         createdAt: {
-          gte: getIntervalStartDate({ interval, timestampBasis, meetingStartTime }),
+          gte: getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime }),
         },
       },
     }),
@@ -788,8 +806,8 @@ async function fetchAllDataNeededForCalculations<
         in: allRRHosts.map((host) => host.user.id),
       },
       end: {
-        lte: getIntervalEndDate({ interval, timestampBasis, meetingStartTime }),
-        gte: getIntervalStartDate({ interval, timestampBasis, meetingStartTime }),
+        lte: getIntervalEndDate({ interval, rrTimestampBasis, meetingStartTime }),
+        gte: getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime }),
       },
     },
     select: {
