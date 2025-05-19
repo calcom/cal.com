@@ -6,6 +6,46 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { PermissionString } from "../types/permission-registry";
 import type { RoleService } from "./role.service";
 
+type DbPermission = {
+  resource: string | null;
+  action: string | null;
+};
+
+type DbRole = {
+  id: string | null;
+  permissions: DbPermission[];
+};
+
+type DbMembership = {
+  teamId: number;
+  role: DbRole | null;
+};
+
+export function transformDbPermissionsToTeamPermissions(
+  memberships: DbMembership[]
+): Record<number, { roleId: string; permissions: PermissionString[] }> {
+  const teamPermissions: Record<number, { roleId: string; permissions: PermissionString[] }> = {};
+
+  for (const membership of memberships) {
+    if (!membership.teamId || !membership.role?.id || !membership.role.permissions) continue;
+
+    const validPermissions = membership.role.permissions.filter(
+      (p): p is { resource: string; action: string } =>
+        typeof p.resource === "string" &&
+        typeof p.action === "string" &&
+        p.resource !== null &&
+        p.action !== null
+    );
+
+    teamPermissions[membership.teamId] = {
+      roleId: membership.role.id,
+      permissions: validPermissions.map((p) => `${p.resource}.${p.action}` as PermissionString),
+    };
+  }
+
+  return teamPermissions;
+}
+
 export class PermissionCheckService {
   constructor(private roleService: RoleService, private prisma: PrismaClient) {}
 
@@ -33,26 +73,9 @@ export class PermissionCheckService {
         ).as("role"),
       ])
       .where("Membership.userId", "=", userId)
-      .distinctOn("Membership.teamId")
       .execute();
 
-    // Create a map of teamId to permissions
-    const teamPermissions: Record<number, { roleId: string; permissions: PermissionString[] }> = {};
-
-    for (const membership of memberships) {
-      if (!membership.teamId || !membership.role) continue;
-
-      if (membership.teamId && membership.role?.id) {
-        teamPermissions[membership.teamId] = {
-          roleId: membership.role.id,
-          permissions: membership.role.permissions.map(
-            (p) => `${p.resource}.${p.action}` as PermissionString
-          ),
-        };
-      }
-    }
-
-    return teamPermissions;
+    return transformDbPermissionsToTeamPermissions(memberships);
   }
 
   async hasPermission(
