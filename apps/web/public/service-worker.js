@@ -39,14 +39,7 @@ self.addEventListener("push", async (event) => {
           self.registration.showNotification(notification.title, options);
         });
 
-        // Special handling for instant meetings
-        if (notificationData.data?.type === "INSTANT_MEETING") {
-          allClients.forEach(client => {
-            client.postMessage({
-              type: 'PLAY_NOTIFICATION_SOUND'
-            });
-          });
-        }
+        // Special handling for instant meetings removed
 
         const notificationOptions = {
           body: notificationData.body,
@@ -75,18 +68,7 @@ self.addEventListener("push", async (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   if (event.notification.data?.type === "INSTANT_MEETING") {
-    const stopSound = async () => {
-      const allClients = await clients.matchAll({
-        type: "window",
-        includeUncontrolled: true,
-      });
-
-      allClients.forEach(client => {
-        client.postMessage({
-          type: 'STOP_NOTIFICATION_SOUND'
-        });
-      });
-    };
+    // Notification click handler for instant meetings removed
   }
 
   if (!event.action) {
