@@ -1,6 +1,3 @@
--- AlterTable
-ALTER TABLE "RoutingFormResponseField" ALTER COLUMN "responseId" DROP NOT NULL;
-
 -- DropForeignKey
 ALTER TABLE "RoutingFormResponseDenormalized" DROP CONSTRAINT "RoutingFormResponseDenormalized_eventTypeId_fkey";
 
