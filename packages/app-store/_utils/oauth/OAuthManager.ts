@@ -80,6 +80,7 @@ export class OAuthManager {
   private autoCheckTokenExpiryOnRequest: boolean;
 
   constructor({
+    getCurrentTokenObject,
     resourceOwner,
     appSlug,
     currentTokenObject,
@@ -214,11 +215,17 @@ export class OAuthManager {
     const myLog = log.getSubLogger({
       prefix: [`getTokenObjectOrFetch:appSlug=${this.appSlug}`],
     });
-    const currentTokenObject = this.currentTokenObject ?? (await this.getCurrentTokenObject());
+    let currentTokenObject;
+    if (this.currentTokenObject) {
+      currentTokenObject = this.currentTokenObject;
+    } else {
+      this.currentTokenObject = currentTokenObject = await this.getCurrentTokenObject();
+    }
     const isExpired = await this.isTokenExpired(currentTokenObject);
     myLog.debug(
       "getTokenObjectOrFetch called",
       safeStringify({
+        currentTokenObjectHasAccessToken: !!currentTokenObject.access_token,
         isExpired,
         resourceOwner: this.resourceOwner,
       })
@@ -226,13 +233,13 @@ export class OAuthManager {
 
     if (!isExpired) {
       myLog.debug("Token is not expired. Returning the current token object");
-      return { token: this.normalizeNewlyReceivedToken(this.currentTokenObject), isUpdated: false };
+      return { token: this.normalizeNewlyReceivedToken(currentTokenObject), isUpdated: false };
     } else {
       const token = {
         // Keep the old token object as it is, as some integrations don't send back all the props e.g. refresh_token isn't sent again by Google Calendar
         // It also allows any other properties set to be retained.
         // Let's not use normalizedCurrentTokenObject here as `normalizeToken` could possible be not idempotent
-        ...this.currentTokenObject,
+        ...currentTokenObject,
         ...this.normalizeNewlyReceivedToken(await this.refreshOAuthToken()),
       };
       myLog.debug("Token is expired. So, returning new token object");
