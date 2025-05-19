@@ -14,13 +14,11 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     if (permissions) {
-      console.log("permissions", permissions);
       setTeamPermissions(permissions);
     }
   }, [permissions, setTeamPermissions]);
 
   if (isLoading) {
-    // You might want to show a loading state or handle this differently
     return null;
   }
 

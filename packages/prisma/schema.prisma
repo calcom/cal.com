@@ -2237,4 +2237,6 @@ model RolePermission {
 
   @@unique([roleId, resource, action])
   @@index([roleId])
+  // TODO: come back to this with indexs.
+  @@index([action])
 }

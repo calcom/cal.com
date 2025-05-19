@@ -72,6 +72,7 @@ export class PermissionCheckService {
         ).as("role"),
       ])
       .where("Membership.userId", "=", userId)
+      .distinctOn(["Membership.teamId"])
       .execute();
 
     return transformDbPermissionsToTeamPermissions(memberships);
@@ -119,6 +120,7 @@ export class PermissionCheckService {
 
   private async checkRolePermission(roleId: string, permission: PermissionString): Promise<boolean> {
     const [resource, action] = permission.split(".");
+    // TODO: make this kysely query
     const hasPermission = await this.prisma.rolePermission.findFirst({
       where: {
         roleId,

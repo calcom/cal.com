@@ -12,6 +12,7 @@ export class PermissionService {
   }
 
   getAllPermissions() {
+    // TODO: Rename this shit
     return getAllPermissions();
   }
 
