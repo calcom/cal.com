@@ -66,6 +66,12 @@ const prismaWithClientExtensions = prismaWithoutClientExtensions
 
 export const prisma = globalForPrisma.prismaWithClientExtensions || prismaWithClientExtensions;
 
+/**
+ * IMPORTANT: When using Prisma in tRPC procedures, DO NOT import this client directly.
+ * Instead, use ctx.prisma from the tRPC context, which will select the correct tenant based on the request host.
+ * @see packages/trpc/server/middlewares/prismaMiddleware.ts
+ */
+
 // This prisma instance is meant to be used only for READ operations.
 // If self hosting, feel free to leave INSIGHTS_DATABASE_URL as empty and `readonlyPrisma` will default to `prisma`.
 export const readonlyPrisma = process.env.INSIGHTS_DATABASE_URL
