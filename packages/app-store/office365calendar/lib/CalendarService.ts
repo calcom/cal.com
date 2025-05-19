@@ -504,9 +504,12 @@ export default class Office365CalendarService implements Calendar {
       office365Event.allowNewTimeProposals = true;
       office365Event.onlineMeetingProvider = "teamsForBusiness";
       // For new onlineMeetings and if these are rescheduled, location has to be undefined, so that MS Teams can show the location as 'Microsoft Teams Meeting' by default.
-      // For backward compatibility, .i.e meetings created before that were intended to be onlineMeetings but were not created as onlineMeetings we are setting location to null.
+      // For backward compatibility, .i.e meetings created before that were intended to be onlineMeetings but were not created as onlineMeetings we are setting location explicitly to 'Microsoft Teams Meeting'.
       // Otherwise it will show the location with a link for old rescheduled meetings.
-      office365Event.location = rescheduledEvent && !isRescheduledOnlineMeeting ? null : undefined;
+      office365Event.location =
+        rescheduledEvent && !isRescheduledOnlineMeeting
+          ? { displayName: "Microsoft Teams Meeting" }
+          : undefined;
     }
     return office365Event;
   };
