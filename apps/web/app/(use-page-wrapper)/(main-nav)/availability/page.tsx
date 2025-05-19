@@ -65,7 +65,7 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
         ...avail,
         startTime: new Date(avail.startTime),
         endTime: new Date(avail.endTime),
-        date: avail.date ? new Date(avail.date) : null,
+        date: avail.date ? new Date(avail.date) : undefined,
       })),
     })),
   };
