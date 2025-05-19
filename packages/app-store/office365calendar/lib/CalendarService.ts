@@ -257,7 +257,13 @@ export default class Office365CalendarService implements Calendar {
         body: JSON.stringify(this.translateEvent(formattedEvent)),
       });
 
-      const responseJson = await handleErrorsJson<NewCalendarEventType & { iCalUId: string }>(response);
+      const responseJson = await handleErrorsJson<
+        NewCalendarEventType & { iCalUId: string; onlineMeeting?: { joinUrl?: string } }
+      >(response);
+
+      if (responseJson?.onlineMeeting?.joinUrl) {
+        responseJson.url = responseJson?.onlineMeeting?.joinUrl;
+      }
 
       return { ...responseJson, iCalUID: responseJson.iCalUId };
     } catch (error) {
@@ -269,25 +275,28 @@ export default class Office365CalendarService implements Calendar {
 
   async updateEvent(uid: string, event: CalendarEvent): Promise<NewCalendarEventType> {
     try {
-      let existingBody = "";
+      let rescheduledEvent: Event | undefined;
       if (event.location === MSTeamsLocationType) {
         // Extract the existing body content to preserve the meeting blob, otherwise it breaks and converts it into non-onlineMeeting
         const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`, {
           method: "GET",
         });
 
-        const responseJson = await handleErrorsJson<
-          NewCalendarEventType & { body: { contentType: string; content: string } }
-        >(response);
-        existingBody = responseJson.body?.contentType === "html" ? responseJson.body.content : "";
+        rescheduledEvent = await handleErrorsJson<Event>(response);
       }
 
       const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`, {
         method: "PATCH",
-        body: JSON.stringify(this.translateEvent(event, existingBody)),
+        body: JSON.stringify(this.translateEvent(event, rescheduledEvent)),
       });
 
-      const responseJson = await handleErrorsJson<NewCalendarEventType & { iCalUId: string }>(response);
+      const responseJson = await handleErrorsJson<
+        NewCalendarEventType & { iCalUId: string; onlineMeeting?: { joinUrl?: string } }
+      >(response);
+
+      if (responseJson?.onlineMeeting?.joinUrl) {
+        responseJson.url = responseJson?.onlineMeeting?.joinUrl;
+      }
 
       return { ...responseJson, iCalUID: responseJson.iCalUId };
     } catch (error) {
@@ -417,15 +426,24 @@ export default class Office365CalendarService implements Calendar {
     });
   }
 
-  private translateEvent = (event: CalendarEvent, existingBody?: string) => {
+  private translateEvent = (event: CalendarEvent, rescheduledEvent?: Event) => {
     const isOnlineMeeting = event.location === MSTeamsLocationType;
-    const content = isOnlineMeeting
-      ? existingBody
-        ? `
-        ${existingBody}\n
-        ${getRichDescriptionHTML(event)}`.trim()
-        : getRichDescriptionHTML(event)
-      : getRichDescription(event);
+    const isRescheduledOnlineMeeting = rescheduledEvent ? rescheduledEvent.isOnlineMeeting : false;
+    const existingBody =
+      rescheduledEvent?.body?.contentType === "html" ? rescheduledEvent.body.content : undefined;
+
+    let content = "";
+    if (isOnlineMeeting) {
+      if (isRescheduledOnlineMeeting && existingBody) {
+        content = `
+        ${getRichDescriptionHTML(event)}<hr>
+        ${existingBody}`.trim();
+      } else {
+        content = getRichDescriptionHTML(event);
+      }
+    } else {
+      content = getRichDescription(event);
+    }
 
     const office365Event: Event = {
       subject: event.title,
@@ -485,7 +503,10 @@ export default class Office365CalendarService implements Calendar {
       office365Event.isOnlineMeeting = true;
       office365Event.allowNewTimeProposals = true;
       office365Event.onlineMeetingProvider = "teamsForBusiness";
-      office365Event.location = undefined; //This lets MS Teams automatically show location as 'Microsoft Teams Meeting'.
+      // For new onlineMeetings and if these are rescheduled, location has to be undefined, so that MS Teams can show the location as 'Microsoft Teams Meeting' by default.
+      // For backward compatibility, .i.e meetings created before that were intended to be onlineMeetings but were not created as onlineMeetings we are setting location to null.
+      // Otherwise it will show the location with a link for old rescheduled meetings.
+      office365Event.location = rescheduledEvent && !isRescheduledOnlineMeeting ? null : undefined;
     }
     return office365Event;
   };
