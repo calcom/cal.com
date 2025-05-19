@@ -14,7 +14,7 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { EventType, User } from "@prisma/client";
+import { EventType, User, Workflow } from "@prisma/client";
 import { advanceTo, clear } from "jest-date-mock";
 import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
@@ -22,6 +22,8 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { WorkflowReminderRepositoryFixture } from "test/fixtures/repository/workflow-reminder.repository.fixture";
+import { WorkflowRepositoryFixture } from "test/fixtures/repository/workflow.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
@@ -32,6 +34,7 @@ import {
   VERSION_2024_08_13,
   X_CAL_CLIENT_ID,
 } from "@calcom/platform-constants";
+import { AttendeeScheduledEmail, OrganizerScheduledEmail } from "@calcom/platform-libraries/emails";
 import {
   CreateEventTypeInput_2024_06_14,
   FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE,
@@ -60,6 +63,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let schedulesService: SchedulesService_2024_04_15;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
+    let workflowReminderRepositoryFixture: WorkflowReminderRepositoryFixture;
+    let workflowRepositoryFixture: WorkflowRepositoryFixture;
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
@@ -68,6 +73,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
     let eventTypeId: number;
     let eventType: EventType;
+    let eventTypeWithAttendeeSmsReminder: EventType;
+    let workflow: Workflow;
     const eventTypeSlug = `user-bookings-event-type-${randomString()}`;
     let recurringEventTypeId: number;
     const recurringEventTypeSlug = `user-bookings-event-type-${randomString()}`;
@@ -97,6 +104,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
       oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
+      workflowReminderRepositoryFixture = new WorkflowReminderRepositoryFixture(moduleRef);
+      workflowRepositoryFixture = new WorkflowRepositoryFixture(moduleRef);
 
       organization = await teamRepositoryFixture.create({
         name: `user-bookings-organization-${randomString()}`,
@@ -176,6 +185,85 @@ describe("Bookings Endpoints 2024-08-13", () => {
         },
         rating: 10,
       });
+
+      workflow = await workflowRepositoryFixture.create({
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+        trigger: "BEFORE_EVENT",
+        time: 24,
+        timeUnit: "HOUR",
+        position: 0,
+        isActiveOnAll: false,
+        name: "Attendee SMS Reminder",
+        steps: {
+          create: {
+            stepNumber: 1,
+            action: "SMS_ATTENDEE",
+            sendTo: null,
+            reminderBody:
+              "Hi {ATTENDEE}, this is a reminder that your meeting ({EVENT_NAME}) with {ORGANIZER} is on {EVENT_DATE_YYYY MMM D} at {EVENT_TIME_h:mma} {TIMEZONE}.",
+            emailSubject: "Reminder: {EVENT_NAME} - {EVENT_DATE_ddd, MMM D, YYYY h:mma}",
+            template: "REMINDER",
+            numberRequired: true,
+            sender: "Cal",
+            numberVerificationPending: false,
+            includeCalendarEvent: false,
+            verifiedAt: new Date(),
+          },
+        },
+      });
+
+      eventTypeWithAttendeeSmsReminder = await eventTypesRepositoryFixture.create(
+        {
+          title: "event with attendee sms reminder",
+          slug: "event-with-attendee-sms-reminder",
+          length: 15,
+          bookingFields: [
+            {
+              name: "smsReminderNumber",
+              type: "phone",
+              sources: [
+                {
+                  id: String(workflow.id),
+                  type: "workflow",
+                  label: "Workflow",
+                  editUrl: `/workflows/${workflow.id}`,
+                  fieldRequired: true,
+                },
+              ],
+              editable: "system",
+              required: true,
+              defaultLabel: "number_text_notifications",
+              defaultPlaceholder: "enter_phone_number",
+            },
+          ],
+          metadata: {
+            disableStandardEmails: {
+              all: {
+                attendee: true,
+                host: true,
+              },
+              confirmation: {
+                host: true,
+                attendee: true,
+              },
+            },
+          },
+          workflows: {
+            create: {
+              workflow: {
+                connect: {
+                  id: workflow.id,
+                },
+              },
+            },
+          },
+        },
+        user.id
+      );
 
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
@@ -1668,7 +1756,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
     describe("book by username and event type slug", () => {
       it("should not create a booking by if neither event type id nor username and event type slug provided", async () => {
-        const googleMeetUrl = "https://meet.google.com/abc-def-ghi";
         const body = {
           start: new Date(Date.UTC(2036, 0, 8, 15, 0, 0)).toISOString(),
           attendee: {
@@ -1677,7 +1764,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             timeZone: "Europe/Rome",
             language: "it",
           },
-          location: googleMeetUrl,
+          location: "https://meet.google.com/abc-def-ghi",
           bookingFieldsResponses: {
             customField: "customValue",
           },
@@ -2224,6 +2311,91 @@ describe("Bookings Endpoints 2024-08-13", () => {
             await bookingsRepositoryFixture.deleteById(data.id);
             await userRepositoryFixture.delete(attendee.id);
           });
+      });
+    });
+
+    describe("create booking with attendee sms reminder", () => {
+      it("should not be able create a booking if attendee sms reminder is missing", async () => {
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 8, 15, 0, 0)).toISOString(),
+          eventTypeId: eventTypeWithAttendeeSmsReminder.id,
+          attendee: {
+            name: "Mr Proper",
+            email: "mr_proper@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+        };
+
+        const response = await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(400);
+
+        expect(response.body.error.message).toEqual(
+          `Missing attendee phone number - it is required by the event type. Pass it as \"attendee.phoneNumber\" string in the request.`
+        );
+      });
+
+      it("should be able create a booking if attendee sms reminder is provided", async () => {
+        const phoneNumber = "+37122222222";
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 8, 15, 0, 0)).toISOString(),
+          eventTypeId: eventTypeWithAttendeeSmsReminder.id,
+          attendee: {
+            name: "Mr Proper",
+            email: "mr_proper@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+            phoneNumber,
+          },
+        };
+
+        const response = await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201);
+
+        const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        expect(responseBody.data).toBeDefined();
+        expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+        if (responseDataIsBooking(responseBody.data)) {
+          const data: BookingOutput_2024_08_13 = responseBody.data;
+          expect(data.id).toBeDefined();
+          expect(data.uid).toBeDefined();
+          expect(data.hosts.length).toEqual(1);
+          expect(data.hosts[0].id).toEqual(user.id);
+          expect(data.status).toEqual("accepted");
+          expect(data.start).toEqual(body.start);
+          expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 15, 15, 0)).toISOString());
+          expect(data.duration).toEqual(15);
+          expect(data.eventTypeId).toEqual(eventTypeWithAttendeeSmsReminder.id);
+          expect(data.attendees.length).toEqual(1);
+          expect(data.attendees[0]).toEqual({
+            name: body.attendee.name,
+            email: body.attendee.email,
+            timeZone: body.attendee.timeZone,
+            language: body.attendee.language,
+            phoneNumber: body.attendee.phoneNumber,
+            absent: false,
+          });
+          expect(data.bookingFieldsResponses).toEqual({
+            name: body.attendee.name,
+            email: body.attendee.email,
+            attendeePhoneNumber: body.attendee.phoneNumber,
+            smsReminderNumber: body.attendee.phoneNumber,
+          });
+          const dbBooking = await bookingsRepositoryFixture.getById(data.id);
+          expect(dbBooking?.smsReminderNumber).toEqual(phoneNumber);
+          const dbWorkflowReminder = await workflowReminderRepositoryFixture.getByBookingUid(data.uid);
+          expect(dbWorkflowReminder?.method).toEqual("SMS");
+        } else {
+          throw new Error("Invalid response data");
+        }
       });
     });
 
