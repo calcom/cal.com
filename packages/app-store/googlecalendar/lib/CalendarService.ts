@@ -49,6 +49,48 @@ import { metadata } from "../_metadata";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
 
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
+async function getDelegationUserCredentialInDb({
+  userId,
+  delegationCredentialId,
+}: {
+  userId: number;
+  delegationCredentialId: string;
+}) {
+  const delegationUserCredentialInDb = await prisma.credential.findFirst({
+    where: {
+      userId,
+      delegationCredentialId,
+    },
+  });
+  return delegationUserCredentialInDb;
+}
+
+async function ensureDelegationUserCredentialInDb({
+  userId,
+  delegationCredentialId,
+  inMemoryCredential,
+}: {
+  userId: number;
+  delegationCredentialId: string;
+  inMemoryCredential: CredentialForCalendarServiceWithEmail;
+}) {
+  let delegationUserCredentialInDb = await getDelegationUserCredentialInDb({
+    userId,
+    delegationCredentialId,
+  });
+
+  if (!delegationUserCredentialInDb) {
+    delegationUserCredentialInDb = await prisma.credential.create({
+      data: {
+        userId,
+        delegationCredentialId,
+        type: inMemoryCredential.type,
+        key: {},
+      },
+    });
+  }
+  return delegationUserCredentialInDb;
+}
 
 interface GoogleCalError extends Error {
   code?: number;
@@ -101,7 +143,6 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   private initGoogleAuth = (credential: CredentialForCalendarServiceWithEmail) => {
-    const currentTokenObject = getTokenObjectFromCredential(credential);
     const auth = new OAuthManager({
       // Keep it false because we are not using auth.request everywhere. That would be done later as it involves many google calendar sdk functionc calls and needs to be tested well.
       autoCheckTokenExpiryOnRequest: false,
@@ -116,7 +157,23 @@ export default class GoogleCalendarService implements Calendar {
         id: credential.userId,
       },
       appSlug: metadata.slug,
-      currentTokenObject,
+      getCurrentTokenObject: async () => {
+        let inDbCredential;
+        if (credential.delegatedToId && credential.userId) {
+          inDbCredential = await getDelegationUserCredentialInDb({
+            userId: credential.userId,
+            delegationCredentialId: credential.delegatedToId,
+          });
+          if (!inDbCredential) {
+            throw new Error(`Delegation user credential not found for credential ${credential.id}`);
+          }
+          return inDbCredential.key;
+        } else {
+          inDbCredential = credential;
+        }
+        const currentTokenObject = getTokenObjectFromCredential(inDbCredential);
+        return currentTokenObject;
+      },
       fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }) => {
         const myGoogleAuth = await this.getMyGoogleAuthSingleton();
         const fetchTokens = await myGoogleAuth.refreshToken(refreshToken);

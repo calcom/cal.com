@@ -65,6 +65,7 @@ type CredentialSyncVariables = {
  */
 export class OAuthManager {
   private currentTokenObject: z.infer<typeof OAuth2UniversalSchema>;
+  private getCurrentTokenObject: () => Promise<z.infer<typeof OAuth2UniversalSchema>>;
   private resourceOwner: ResourceOwner;
   private appSlug: string;
   private fetchNewTokenObject: FetchNewTokenObject;
@@ -137,11 +138,14 @@ export class OAuthManager {
     /**
      * The current token object.
      */
-    currentTokenObject: z.infer<typeof OAuth2UniversalSchema>;
+    currentTokenObject?: z.infer<typeof OAuth2UniversalSchema>;
+
+    getCurrentTokenObject?: () => Promise<z.infer<typeof OAuth2UniversalSchema>>;
     /**
      * The unique identifier of the app that the token is for. It is required to do credential syncing in self-hosting
      */
     appSlug: string;
+
     /**
      *
      * It could be null in case refresh_token isn't available. This is possible when credential sync happens from a third party who doesn't want to share refresh_token and credential syncing has been disabled after the sync has happened.
@@ -176,6 +180,7 @@ export class OAuthManager {
   }) {
     this.resourceOwner = resourceOwner;
     this.currentTokenObject = currentTokenObject;
+    this.getCurrentTokenObject = getCurrentTokenObject;
     this.appSlug = appSlug;
     this.fetchNewTokenObject = fetchNewTokenObject;
     this.isTokenObjectUnusable = isTokenObjectUnusable;
@@ -209,7 +214,8 @@ export class OAuthManager {
     const myLog = log.getSubLogger({
       prefix: [`getTokenObjectOrFetch:appSlug=${this.appSlug}`],
     });
-    const isExpired = await this.isTokenExpired(this.currentTokenObject);
+    const currentTokenObject = this.currentTokenObject ?? (await this.getCurrentTokenObject());
+    const isExpired = await this.isTokenExpired(currentTokenObject);
     myLog.debug(
       "getTokenObjectOrFetch called",
       safeStringify({
