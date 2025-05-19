@@ -494,6 +494,7 @@ export class EventTypeRepository {
       title: true,
       slug: true,
       description: true,
+      interfaceLanguage: true,
       length: true,
       isInstantEvent: true,
       instantMeetingExpiryTimeOffsetInSeconds: true,
