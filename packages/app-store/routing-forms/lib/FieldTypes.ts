@@ -9,7 +9,6 @@ export const enum RoutingFormFieldType {
   EMAIL = "email",
   ADDRESS = "address",
   MULTI_EMAILS = "multiemail",
-  CHECKBOX_GROUP = "checkboxGroup",
   CHECKBOX = "checkbox",
   RADIO_GROUP = "radio",
   URL = "url",
@@ -27,7 +26,6 @@ export const isValidRoutingFormFieldType = (type: string): type is RoutingFormFi
     RoutingFormFieldType.EMAIL,
     RoutingFormFieldType.ADDRESS,
     RoutingFormFieldType.MULTIPLE_EMAILS,
-    RoutingFormFieldType.CHECKBOX_GROUP,
     RoutingFormFieldType.CHECKBOX,
     RoutingFormFieldType.RADIO_GROUP,
     RoutingFormFieldType.URL,
@@ -77,10 +75,6 @@ export const FieldTypes = [
   },
   {
     label: "Checkbox Group",
-    value: RoutingFormFieldType.CHECKBOX_GROUP,
-  },
-  {
-    label: "Checkbox",
     value: RoutingFormFieldType.CHECKBOX,
   },
   {

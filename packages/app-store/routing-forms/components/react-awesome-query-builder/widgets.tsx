@@ -410,11 +410,10 @@ const RadioWidget = (props: SelectLikeComponentPropsRAQB) => {
   );
 };
 
-const CheckboxWidget = (props: TextLikeComponentPropsRAQB) => {
-  console.log({ props });
+const CheckboxWidget = (props: TextLikeComponentProps<boolean>) => {
   return (
     <div>
-      <label className="block">
+      <label className="flex items-center">
         <Checkbox
           disabled={props.readOnly}
           onCheckedChange={(checked) => {
@@ -423,8 +422,37 @@ const CheckboxWidget = (props: TextLikeComponentPropsRAQB) => {
           value={props.value}
           checked={props.value}
         />
-        <span className="text-emphasis me-2 ms-2 text-sm">{props.name ?? ""}</span>
+        <span className="text-emphasis me-2 ms-2 text-sm">{props.label}</span>
       </label>
+    </div>
+  );
+};
+
+const CheckboxGroupWidget = (props: SelectLikeComponentPropsRAQB<string[]>) => {
+  const { listValues, readOnly, setValue, value } = props;
+  const updatedValue = value || [];
+
+  return (
+    <div className="space-y-2">
+      {listValues.map((option, i) => {
+        return (
+          <label key={i} className="flex items-center">
+            <Checkbox
+              disabled={readOnly}
+              onCheckedChange={(checked) => {
+                const newValue = updatedValue.filter((v) => v !== option.value);
+                if (checked) {
+                  newValue.push(option.value);
+                }
+                setValue(newValue);
+              }}
+              value={option.value}
+              checked={value.includes(option.value)}
+            />
+            <span className="text-emphasis me-2 ms-2 text-sm">{option.title ?? ""}</span>
+          </label>
+        );
+      })}
     </div>
   );
 };
@@ -445,6 +473,7 @@ const widgets = {
   MultiEmailWidget,
   RadioWidget,
   CheckboxWidget,
+  CheckboxGroupWidget,
 };
 
 export default widgets;

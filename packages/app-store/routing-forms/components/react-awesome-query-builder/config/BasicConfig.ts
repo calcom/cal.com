@@ -287,14 +287,6 @@ const widgets: WidgetsWithoutFactory = {
     valuePlaceholder: "Select values",
     toJS: (val: any) => val,
   },
-  boolean: {
-    type: "boolean",
-    jsType: "boolean",
-    valueSrc: "value" as const,
-    valueLabel: "Boolean",
-    valuePlaceholder: "Select boolean",
-    toJS: (val: any) => val,
-  },
   address: {
     type: "address",
     jsType: "string",
@@ -327,12 +319,20 @@ const widgets: WidgetsWithoutFactory = {
     valuePlaceholder: "Select value",
     toJS: (val: any) => val,
   },
-  checkbox: {
-    type: "checkbox",
+  boolean: {
+    type: "boolean",
     jsType: "boolean",
     valueSrc: "value" as const,
     valueLabel: "Value",
     valuePlaceholder: "Select value",
+    toJS: (val: any) => val,
+  },
+  checkbox: {
+    type: "checkbox",
+    jsType: "array",
+    valueSrc: "value" as const,
+    valueLabel: "Value",
+    valuePlaceholder: "Select values",
     toJS: (val: any) => val,
   },
 };
@@ -436,6 +436,15 @@ const types: Types = {
     widgets: {
       multiselect: {
         operators: ["multiselect_equals", "multiselect_not_equals", "is_null", "is_not_null"],
+      },
+    },
+  },
+  boolean: {
+    defaultOperator: "equal",
+    mainWidget: "boolean",
+    widgets: {
+      boolean: {
+        operators: ["equal", "not_equal"],
       },
     },
   },

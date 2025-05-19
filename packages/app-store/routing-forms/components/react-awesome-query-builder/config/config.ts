@@ -76,10 +76,20 @@ function getTypes(configFor: ConfigFor) {
         ...BasicConfig.types.select.widgets,
       },
     },
-    checkbox: {
-      ...BasicConfig.types.text,
+    boolean: {
+      ...BasicConfig.types.boolean,
       widgets: {
-        ...BasicConfig.types.text.widgets,
+        ...BasicConfig.types.boolean.widgets,
+      },
+    },
+    checkbox: {
+      ...BasicConfig.types.multiselect,
+      widgets: {
+        ...BasicConfig.types.multiselect.widgets,
+        multiselect: {
+          ...BasicConfig.types.multiselect.widgets.multiselect,
+          operators: [...multiSelectOperators],
+        },
       },
     },
   };
