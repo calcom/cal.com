@@ -1,7 +1,15 @@
 import type { PrismaClient } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import type { PermissionString, Resource, CrudAction, CustomAction } from "../types/permission-registry";
 import { PermissionService } from "./permission.service";
+
+// These IDs must match the ones in the migration
+const DEFAULT_ROLE_IDS = {
+  [MembershipRole.OWNER]: "owner_role",
+  [MembershipRole.ADMIN]: "admin_role",
+  [MembershipRole.MEMBER]: "member_role",
+} as const;
 
 export class RoleService {
   private prisma: PrismaClient;
@@ -18,6 +26,18 @@ export class RoleService {
     teamId?: number;
     permissions: PermissionString[];
   }) {
+    // Check if role name conflicts with default roles
+    const existingRole = await this.prisma.role.findFirst({
+      where: {
+        name: data.name,
+        teamId: data.teamId,
+      },
+    });
+
+    if (existingRole) {
+      throw new Error(`Role with name "${data.name}" already exists`);
+    }
+
     // Validate permissions
     if (!this.permissionService.validatePermissions(data.permissions)) {
       throw new Error("Invalid permissions provided");
@@ -30,6 +50,8 @@ export class RoleService {
           name: data.name,
           description: data.description,
           teamId: data.teamId,
+          isDefault: false,
+          isGlobal: false,
         },
       });
 
@@ -47,6 +69,10 @@ export class RoleService {
 
       return { ...role, permissions };
     });
+  }
+
+  async getDefaultRoleId(role: MembershipRole): Promise<string> {
+    return DEFAULT_ROLE_IDS[role];
   }
 
   async assignRoleToMember(roleId: string, membershipId: number) {
@@ -90,6 +116,19 @@ export class RoleService {
   }
 
   async deleteRole(roleId: string) {
+    const role = await this.prisma.role.findUnique({
+      where: { id: roleId },
+    });
+
+    if (!role) {
+      throw new Error("Role not found");
+    }
+
+    // Don't allow deleting default roles
+    if (role.isDefault) {
+      throw new Error("Cannot delete default roles");
+    }
+
     return this.prisma.$transaction(async (tx) => {
       // Delete permissions first
       await tx.rolePermission.deleteMany({
@@ -106,30 +145,41 @@ export class RoleService {
   async getRole(roleId: string) {
     const role = await this.prisma.role.findUnique({
       where: { id: roleId },
+      include: {
+        permissions: true,
+      },
     });
 
     if (!role) return null;
 
-    const permissions = await this.getRolePermissions(roleId);
-    return { ...role, permissions };
+    return role;
   }
 
   async getTeamRoles(teamId: number) {
+    // Get both team-specific roles and default roles
     const roles = await this.prisma.role.findMany({
-      where: { teamId },
+      where: {
+        OR: [{ teamId }, { isDefault: true }],
+      },
+      include: {
+        permissions: true,
+      },
     });
 
-    const permissions = await this.prisma.rolePermission.findMany({
-      where: { roleId: { in: roles.map((r) => r.id) } },
-    });
-
-    return roles.map((role) => ({
-      ...role,
-      permissions: permissions.filter((p) => p.roleId === role.id),
-    }));
+    return roles;
   }
 
   async updateRolePermissions(roleId: string, permissions: PermissionString[]) {
+    const role = await this.getRole(roleId);
+    if (!role) {
+      throw new Error("Role not found");
+    }
+
+    // Don't allow updating default roles
+    if (role.isDefault) {
+      throw new Error("Cannot update default roles");
+    }
+
     // Validate permissions
     if (!this.permissionService.validatePermissions(permissions)) {
       throw new Error("Invalid permissions provided");
@@ -149,17 +199,7 @@ export class RoleService {
         }),
       });
 
-      const role = await tx.role.findUnique({
-        where: { id: roleId },
-      });
-
-      if (!role) return null;
-
-      const updatedPermissions = await tx.rolePermission.findMany({
-        where: { roleId },
-      });
-
-      return { ...role, permissions: updatedPermissions };
+      return this.getRole(roleId);
     });
   }
 }

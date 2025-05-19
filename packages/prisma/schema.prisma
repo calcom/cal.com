@@ -2212,15 +2212,19 @@ model Role {
   id          String           @id @default(cuid())
   name        String
   description String?
-  teamId      Int? // null for organization roles
+  teamId      Int? // null for global roles
   team        Team?            @relation(fields: [teamId], references: [id], onDelete: Cascade)
   permissions RolePermission[]
   memberships Membership[]
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
+  isGlobal    Boolean          @default(false)
+  isDefault   Boolean          @default(false) // Indicates if this is one of the default roles (OWNER, ADMIN, MEMBER)
 
   @@unique([name, teamId])
   @@index([teamId])
+  @@index([isGlobal])
+  @@index([isDefault])
 }
 
 model RolePermission {

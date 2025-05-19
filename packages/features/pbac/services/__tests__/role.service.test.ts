@@ -83,6 +83,72 @@ describe("RoleService", () => {
       expect(result?.permissions).toHaveLength(2);
     });
 
+    it("should return owner role with wildcard permissions", async () => {
+      const role = {
+        id: "owner_role",
+        name: "Owner",
+        isGlobal: true,
+        isDefault: true,
+      };
+
+      prismaMock.role.findUnique.mockResolvedValueOnce(role as any);
+      prismaMock.rolePermission.findMany.mockResolvedValueOnce([
+        { roleId: "owner_role", resource: "*", action: "*" },
+      ] as any);
+
+      const result = await service.getRole("owner_role");
+      expect(result).toBeDefined();
+      expect(result?.permissions).toHaveLength(1);
+      expect(result?.permissions[0]).toEqual({ roleId: "owner_role", resource: "*", action: "*" });
+    });
+
+    it("should return admin role with specific permissions", async () => {
+      const role = {
+        id: "admin_role",
+        name: "Admin",
+        isGlobal: true,
+        isDefault: true,
+      };
+
+      const adminPermissions = [
+        { roleId: "admin_role", resource: "booking", action: "*" },
+        { roleId: "admin_role", resource: "eventType", action: "*" },
+        { roleId: "admin_role", resource: "team", action: "invite" },
+        { roleId: "admin_role", resource: "team", action: "remove" },
+      ];
+
+      prismaMock.role.findUnique.mockResolvedValueOnce(role as any);
+      prismaMock.rolePermission.findMany.mockResolvedValueOnce(adminPermissions as any);
+
+      const result = await service.getRole("admin_role");
+      expect(result).toBeDefined();
+      expect(result?.permissions).toHaveLength(4);
+      expect(result?.permissions).toEqual(adminPermissions);
+    });
+
+    it("should return member role with basic permissions", async () => {
+      const role = {
+        id: "member_role",
+        name: "Member",
+        isGlobal: true,
+        isDefault: true,
+      };
+
+      const memberPermissions = [
+        { roleId: "member_role", resource: "booking", action: "read" },
+        { roleId: "member_role", resource: "eventType", action: "read" },
+        { roleId: "member_role", resource: "team", action: "read" },
+      ];
+
+      prismaMock.role.findUnique.mockResolvedValueOnce(role as any);
+      prismaMock.rolePermission.findMany.mockResolvedValueOnce(memberPermissions as any);
+
+      const result = await service.getRole("member_role");
+      expect(result).toBeDefined();
+      expect(result?.permissions).toHaveLength(3);
+      expect(result?.permissions).toEqual(memberPermissions);
+    });
+
     it("should return null for non-existent role", async () => {
       prismaMock.role.findUnique.mockResolvedValueOnce(null);
 
@@ -157,7 +223,23 @@ describe("RoleService", () => {
   });
 
   describe("deleteRole", () => {
-    it("should delete a role and its permissions", async () => {
+    it("should not allow deleting default roles", async () => {
+      const defaultRoleIds = ["owner_role", "admin_role", "member_role"];
+
+      for (const roleId of defaultRoleIds) {
+        const role = {
+          id: roleId,
+          isDefault: true,
+          isGlobal: true,
+        };
+
+        prismaMock.role.findUnique.mockResolvedValueOnce(role as any);
+
+        await expect(service.deleteRole(roleId)).rejects.toThrow("Cannot delete default role");
+      }
+    });
+
+    it("should delete a custom role and its permissions", async () => {
       const roleId = "role-id";
       const mockDeletedRole = { id: roleId };
 

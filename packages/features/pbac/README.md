@@ -262,7 +262,7 @@ model RolePermission {
 ### Server-Side (React Server Components)
 ```typescript
 import { cookies, headers } from "next/headers";
-import { checkSessionPermissionInTeam } from "@calcom/features/pbac/lib/server/checkPermissions";
+import { checkUserPermissionInTeam } from "@calcom/features/pbac/lib/server/checkPermissions";
 
 // In a Server Component
 export default async function TeamSettings({ params }: { params: { teamId: string } }) {
@@ -342,3 +342,83 @@ For a complete list of permissions, see [PERMISSIONS.md](./PERMISSIONS.md).
 ### Caching
 
 The client-side hooks automatically cache permission results for 5 minutes to reduce API calls. The cache can be invalidated by calling the TRPC mutation to update permissions. 
+
+## Default Roles and Permissions
+
+The system comes with three pre-configured default roles:
+
+### 1. Owner Role (owner_role)
+- Has full access to all resources via wildcard permission (`*.*`)
+- Automatically assigned to team/organization creators
+- Cannot be modified or deleted
+- Permissions:
+  ```typescript
+  "*.*" // Grants access to all actions on all resources
+  ```
+
+### 2. Admin Role (admin_role)
+- Has extensive management permissions
+- Can manage team settings and members
+- Permissions:
+  ```typescript
+  // Booking permissions
+  "booking.*"              // All booking operations
+  "booking.readTeamBookings"
+  "booking.readOrgBookings"
+  
+  // Event Type permissions
+  "eventType.*"           // All event type operations
+  
+  // Team management
+  "team.invite"
+  "team.remove"
+  "team.changeMemberRole"
+  
+  // Organization permissions
+  "organization.listMembers"
+  "organization.read"
+  "organization.update"
+  
+  // Other resource permissions
+  "apiKey.*"             // All API key operations
+  "routingForm.*"        // All routing form operations
+  "workflow.*"           // All workflow operations
+  "insights.read"        // Read access to insights
+  ```
+
+### 3. Member Role (member_role)
+- Basic read access to resources
+- Default role for new team members
+- Permissions:
+  ```typescript
+  "booking.read"
+  "eventType.read"
+  "team.read"
+  "organization.read"
+  "routingForm.read"
+  ```
+
+### Using Default Roles
+
+You can reference these roles programmatically using the constants provided in `@calcom/features/pbac/lib/constants`:
+
+```typescript
+import { DEFAULT_ROLES } from "@calcom/features/pbac/lib/constants";
+
+// Reference roles
+const ownerRoleId = DEFAULT_ROLES.OWNER;   // 'owner_role'
+const adminRoleId = DEFAULT_ROLES.ADMIN;    // 'admin_role'
+const memberRoleId = DEFAULT_ROLES.MEMBER;  // 'member_role'
+```
+
+### Role Assignment
+
+1. Default roles are automatically assigned during:
+   - Team creation (creator gets OWNER role)
+   - Member invitation (gets MEMBER role by default)
+   - Role changes through team management UI
+
+2. Roles can be changed by team owners and admins through:
+   - Team member management interface
+   - Organization member management interface
+   - API endpoints (with proper permissions)
