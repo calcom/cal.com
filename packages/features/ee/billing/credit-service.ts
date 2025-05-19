@@ -118,7 +118,7 @@ export class CreditService {
       .then(async (result) => {
         if (result?.lowCreditBalanceResult) {
           // send emails after transaction is successfully committed
-          await this.handleLowCreditBalanceResult(result.lowCreditBalanceResult);
+          await this._handleLowCreditBalanceResult(result.lowCreditBalanceResult);
         }
         return {
           teamId: result?.teamId,
@@ -465,7 +465,7 @@ export class CreditService {
     return null;
   }
 
-  private async handleLowCreditBalanceResult(result: LowCreditBalanceResult) {
+  private async _handleLowCreditBalanceResult(result: LowCreditBalanceResult) {
     if (!result) return;
 
     try {
@@ -513,7 +513,7 @@ export class CreditService {
         return result;
       })
       .then(async (result) => {
-        await this.handleLowCreditBalanceResult(result);
+        await this._handleLowCreditBalanceResult(result);
       });
   }
 
