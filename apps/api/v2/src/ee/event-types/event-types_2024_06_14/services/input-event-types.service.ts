@@ -221,6 +221,7 @@ export class InputEventTypesService_2024_06_14 {
     const systemCustomNameField = systemCustomFields?.find((field) => field.type === "name");
     const systemCustomEmailField = systemCustomFields?.find((field) => field.type === "email");
     const systemCustomTitleField = systemCustomFields?.find((field) => field.name === "title");
+    const systemCustomLocationField = systemCustomFields?.find((field) => field.name === "location");
     const systemCustomNotesField = systemCustomFields?.find((field) => field.name === "notes");
     const systemCustomGuestsField = systemCustomFields?.find((field) => field.name === "guests");
     const systemCustomRescheduleReasonField = systemCustomFields?.find(
@@ -230,7 +231,7 @@ export class InputEventTypesService_2024_06_14 {
     const defaultFieldsBefore: (SystemField | CustomField)[] = [
       systemCustomNameField || systemBeforeFieldName,
       systemCustomEmailField || systemBeforeFieldEmail,
-      systemBeforeFieldLocation,
+      systemCustomLocationField || systemBeforeFieldLocation,
     ];
 
     const defaultFieldsAfter = [
@@ -271,7 +272,8 @@ export class InputEventTypesService_2024_06_14 {
       field.name !== "title" &&
       field.name !== "notes" &&
       field.name !== "guests" &&
-      field.name !== "rescheduleReason"
+      field.name !== "rescheduleReason" &&
+      field.name !== "location"
     );
   }
 
