@@ -3222,6 +3222,7 @@
   "requires_credits_tooltip": "You need enough credits in your account to use this feature",
   "available_credits": "Available credits",
   "load_balancing_warning": "This will disable Load Balancing on all your Round Robin event types",
-  "rr_load_balancing_disabled": "Load Balancing is only available when the timestamp basis is set to Created At'",
+  "rr_load_balancing_disabled": "Load Balancing is only available when the timestamp basis is set to Booking Created At'",
+  "round_robin_settings_description": "Customize the default round robin settings for this team",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

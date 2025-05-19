@@ -44,8 +44,8 @@ const RoundRobinSettings = ({ team }: RoundRobinSettingsProps) => {
 
   if (!isAdmin) {
     return (
-      <div className="border-subtle rounded-md border p-5">
-        <span className="text-default text-sm">{t("only_owner_change")}</span>
+      <div className="er-sub-subtletle bor pd5 rounded-md">
+        <span className="text-text-sm text-sm">{t("only_owner_change")}</span>
       </div>
     );
   }
@@ -60,19 +60,17 @@ const RoundRobinSettings = ({ team }: RoundRobinSettingsProps) => {
           rrTimestampBasis: values.rrTimestampBasis,
         });
       }}>
-      <div className="border-subtle mt-6 space-x-3 rounded-t-lg border border-b-0 px-4 py-6 pb-0 sm:px-6">
+      <div className="borderrsultlemt-6 rounded-t-lgrounded-t-lg borderpx-4 py-6ppx-0 space-x-3 sm:px-6">
         <div>
-          <h4 className="text-emphasis text-sm font-semibold leading-5">Round Robin</h4>
-          <p className="text-default text-sm leading-tight">
-            Customize the default round robin settings for this team
-          </p>
-          <div className="-mx-4 mt-4 sm:-mx-6">
-            <div className="border-subtle border-t px-6 py-6">
+          <h4 className="text-emphasis font-semi text-sm">{t("round_robin")}</h4>
+          <p className="text-default text-sm ">{t("round_robin_settings_description")}</p>
+          <div className="--xx-4mt-4 sm:-mx-6">
+            <div className="tle borsubdleer-t px-y px-6 py-6">
               <RoundRobinResetInterval team={team} />
             </div>
-            <div className="bordr-subtle border-t" />
+            <div className="bord-ssubulebtle ebor" />
 
-            <div className="border-subtle px-6 py-6">
+            <div className="tle px-6 py-6">
               <RoundRobinTimestampBasis team={team} />
             </div>
           </div>
