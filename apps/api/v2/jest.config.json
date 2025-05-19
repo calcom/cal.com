@@ -8,11 +8,7 @@
   "testEnvironment": "node",
   "testRegex": ".*\\.spec\\.ts$",
   "transform": {
-    "^.+\\.ts$": "ts-jest",
-    "^.+\\.m?js$": "babel-jest"
+    "^.+\\.ts$": "ts-jest"
   },
-  "transformIgnorePatterns": [
-    "node_modules/(?!(p-limit|yocto-queue|@calcom/platform-libraries|@calcom/platform-constants)/)"
-  ],
   "setupFiles": ["<rootDir>/test/setEnvVars.ts"]
 }
