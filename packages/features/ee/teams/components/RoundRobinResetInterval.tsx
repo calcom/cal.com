@@ -30,7 +30,7 @@ const RoundRobinResetInterval = () => {
         return (
           <>
             <div className="">
-              <h4 className="text-emphasis text-sm font-semibold leading-5">Reset Interval</h4>
+              <h4 className="text-emphasis text-sm font-semibold leading-5">{t("rr_reset_interval")}</h4>
               <p className="text-default text-sm ">{t("rr_reset_interval_description")}</p>
               <div className="mt-4 w-48">
                 <Select
