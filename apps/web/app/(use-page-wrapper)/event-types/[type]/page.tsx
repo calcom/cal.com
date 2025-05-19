@@ -36,7 +36,7 @@ const getCachedEventType = unstable_cache(
     const caller = await createRouterCaller(eventTypesRouter, await getTRPCContext(headers, cookies));
     return await caller.get({ id: eventTypeId });
   },
-  ["eventTypes.get"],
+  ["viewer.eventTypes.get"],
   { revalidate: 3600 } // Cache for 1 hour
 );
 
