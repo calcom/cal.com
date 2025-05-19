@@ -5,7 +5,6 @@ import {
   checkMultiplePermissionsInTeam,
 } from "@calcom/features/pbac/lib/server/checkPermissions";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { RoleService } from "@calcom/features/pbac/services/role.service";
 import { CrudAction, CustomAction, Resource } from "@calcom/features/pbac/types/permission-registry";
 import type { PermissionString } from "@calcom/features/pbac/types/permission-registry";
 import { prisma } from "@calcom/prisma";
@@ -32,10 +31,9 @@ export const permissionsRouter = router({
   getUserPermissions: authedProcedure.query(async ({ ctx }) => {
     if (!ctx.user?.id) return {};
 
-    const roleService = new RoleService(prisma);
-    const PermissionCheck = new PermissionCheckService(roleService, prisma);
+    const permissionCheckService = new PermissionCheckService(prisma);
 
-    return await PermissionCheck.getUserPermissions(ctx.user.id);
+    return await permissionCheckService.getUserPermissions(ctx.user.id);
   }),
 
   checkPermission: authedProcedure

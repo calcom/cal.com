@@ -4,7 +4,6 @@ import kysely from "@calcom/kysely";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { PermissionString } from "../types/permission-registry";
-import type { RoleService } from "./role.service";
 
 type DbPermission = {
   resource: string | null;
@@ -47,7 +46,7 @@ export function transformDbPermissionsToTeamPermissions(
 }
 
 export class PermissionCheckService {
-  constructor(private roleService: RoleService, private prisma: PrismaClient) {}
+  constructor(private prisma: PrismaClient) {}
 
   async getUserPermissions(userId: number) {
     // Using kysely here got his query down by 67% in execution time

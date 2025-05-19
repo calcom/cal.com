@@ -1,7 +1,6 @@
 import { prisma } from "@calcom/prisma";
 
 import { PermissionCheckService } from "../../services/permission-check.service";
-import { RoleService } from "../../services/role.service";
 import type { PermissionString } from "../../types/permission-registry";
 
 export async function checkUserPermissionInTeam({
@@ -13,8 +12,7 @@ export async function checkUserPermissionInTeam({
   teamId: number;
   permission: PermissionString;
 }) {
-  const roleService = new RoleService(prisma);
-  const permissionCheckService = new PermissionCheckService(roleService, prisma);
+  const permissionCheckService = new PermissionCheckService(prisma);
   return permissionCheckService.hasPermission({ userId, teamId }, permission);
 }
 
@@ -27,7 +25,6 @@ export async function checkMultiplePermissionsInTeam({
   teamId: number;
   permissions: PermissionString[];
 }) {
-  const roleService = new RoleService(prisma);
-  const permissionCheckService = new PermissionCheckService(roleService, prisma);
+  const permissionCheckService = new PermissionCheckService(prisma);
   return permissionCheckService.hasPermissions({ userId, teamId }, permissions);
 }

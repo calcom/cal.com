@@ -5,16 +5,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { PermissionCheckService } from "../permission-check.service";
-import { RoleService } from "../role.service";
 
 describe("PermissionCheckService", () => {
-  let roleService: RoleService;
   let service: PermissionCheckService;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    roleService = new RoleService(prismaMock);
-    service = new PermissionCheckService(roleService, prismaMock);
+    service = new PermissionCheckService(prismaMock);
   });
 
   describe("hasPermission", () => {
