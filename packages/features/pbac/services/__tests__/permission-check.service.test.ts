@@ -26,6 +26,9 @@ describe("PermissionCheckService", () => {
         disableImpersonation: false,
         createdAt: new Date(),
         updatedAt: new Date(),
+        team: {
+          parentId: null,
+        },
       };
 
       prismaMock.membership.findUnique.mockResolvedValueOnce(membership);
@@ -52,6 +55,9 @@ describe("PermissionCheckService", () => {
         disableImpersonation: false,
         createdAt: new Date(),
         updatedAt: new Date(),
+        team: {
+          parentId: null,
+        },
       };
 
       prismaMock.membership.findFirst.mockResolvedValueOnce(membership);
@@ -71,6 +77,92 @@ describe("PermissionCheckService", () => {
       prismaMock.membership.findUnique.mockResolvedValueOnce(null);
 
       const result = await service.hasPermission({ membershipId: 999 }, "eventType.create");
+      expect(result).toBe(false);
+    });
+
+    it("should check permission in parent organization if team permission not found", async () => {
+      const teamMembership = {
+        id: 1,
+        teamId: 2,
+        userId: 1,
+        accepted: true,
+        role: "MEMBER" as MembershipRole,
+        customRoleId: "team_role",
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        team: {
+          parentId: 1, // Parent org ID
+        },
+      };
+
+      const orgMembership = {
+        id: 2,
+        teamId: 1,
+        userId: 1,
+        accepted: true,
+        role: "ADMIN" as MembershipRole,
+        customRoleId: "org_role",
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      // Mock team membership without the required permission
+      prismaMock.membership.findUnique.mockResolvedValueOnce(teamMembership);
+      prismaMock.rolePermission.findFirst.mockResolvedValueOnce(null);
+
+      // Mock org membership with the required permission
+      prismaMock.membership.findFirst.mockResolvedValueOnce(orgMembership);
+      prismaMock.rolePermission.findFirst.mockResolvedValueOnce({
+        id: "1",
+        roleId: "org_role",
+        resource: "eventType",
+        action: "create",
+        createdAt: new Date(),
+      });
+
+      const result = await service.hasPermission({ membershipId: 1 }, "eventType.create");
+      expect(result).toBe(true);
+    });
+
+    it("should return false if neither team nor org has permission", async () => {
+      const teamMembership = {
+        id: 1,
+        teamId: 2,
+        userId: 1,
+        accepted: true,
+        role: "MEMBER" as MembershipRole,
+        customRoleId: "team_role",
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        team: {
+          parentId: 1,
+        },
+      };
+
+      const orgMembership = {
+        id: 2,
+        teamId: 1,
+        userId: 1,
+        accepted: true,
+        role: "MEMBER" as MembershipRole,
+        customRoleId: "org_role",
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      // Mock team membership without permission
+      prismaMock.membership.findUnique.mockResolvedValueOnce(teamMembership);
+      prismaMock.rolePermission.findFirst.mockResolvedValueOnce(null);
+
+      // Mock org membership without permission
+      prismaMock.membership.findFirst.mockResolvedValueOnce(orgMembership);
+      prismaMock.rolePermission.findFirst.mockResolvedValueOnce(null);
+
+      const result = await service.hasPermission({ membershipId: 1 }, "eventType.create");
       expect(result).toBe(false);
     });
 
@@ -224,37 +316,95 @@ describe("PermissionCheckService", () => {
         disableImpersonation: false,
         createdAt: new Date(),
         updatedAt: new Date(),
+        team: {
+          parentId: null,
+        },
       };
 
       prismaMock.membership.findUnique.mockResolvedValueOnce(membership);
-
-      // Mock count for multiple permissions
       prismaMock.rolePermission.count.mockResolvedValueOnce(2); // Both permissions match
 
       const result = await service.hasPermissions({ membershipId: 1 }, ["eventType.create", "team.invite"]);
       expect(result).toBe(true);
     });
 
-    it("should return false if any permission is missing", async () => {
-      const membership = {
+    it("should check multiple permissions in parent organization if team permissions not found", async () => {
+      const teamMembership = {
         id: 1,
-        teamId: 1,
+        teamId: 2,
         userId: 1,
         accepted: true,
         role: "MEMBER" as MembershipRole,
-        customRoleId: "member_role",
+        customRoleId: "team_role",
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        team: {
+          parentId: 1,
+        },
+      };
+
+      const orgMembership = {
+        id: 2,
+        teamId: 1,
+        userId: 1,
+        accepted: true,
+        role: "ADMIN" as MembershipRole,
+        customRoleId: "org_role",
         disableImpersonation: false,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
-      prismaMock.membership.findFirst.mockResolvedValueOnce(membership);
+      // Mock team membership without required permissions
+      prismaMock.membership.findUnique.mockResolvedValueOnce(teamMembership);
       prismaMock.rolePermission.count.mockResolvedValueOnce(1); // Only one permission matches
 
-      const result = await service.hasPermissions({ userId: 1, teamId: 1 }, [
-        "eventType.read",
-        "eventType.create",
-      ]);
+      // Mock org membership with all required permissions
+      prismaMock.membership.findFirst.mockResolvedValueOnce(orgMembership);
+      prismaMock.rolePermission.count.mockResolvedValueOnce(2); // Both permissions match
+
+      const result = await service.hasPermissions({ membershipId: 1 }, ["eventType.create", "team.invite"]);
+      expect(result).toBe(true);
+    });
+
+    it("should return false if neither team nor org has all required permissions", async () => {
+      const teamMembership = {
+        id: 1,
+        teamId: 2,
+        userId: 1,
+        accepted: true,
+        role: "MEMBER" as MembershipRole,
+        customRoleId: "team_role",
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        team: {
+          parentId: 1,
+        },
+      };
+
+      const orgMembership = {
+        id: 2,
+        teamId: 1,
+        userId: 1,
+        accepted: true,
+        role: "MEMBER" as MembershipRole,
+        customRoleId: "org_role",
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      // Mock team membership with partial permissions
+      prismaMock.membership.findUnique.mockResolvedValueOnce(teamMembership);
+      prismaMock.rolePermission.count.mockResolvedValueOnce(1); // Only one permission matches
+
+      // Mock org membership with partial permissions
+      prismaMock.membership.findFirst.mockResolvedValueOnce(orgMembership);
+      prismaMock.rolePermission.count.mockResolvedValueOnce(1); // Only one permission matches
+
+      const result = await service.hasPermissions({ membershipId: 1 }, ["eventType.create", "team.invite"]);
       expect(result).toBe(false);
     });
 
