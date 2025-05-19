@@ -9,10 +9,14 @@ import type {
 } from "react-awesome-query-builder";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { AddressInput } from "@calcom/ui/components/address";
 import { Button as CalButton } from "@calcom/ui/components/button";
 import { TextArea } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
+import { Checkbox } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { MultiEmail } from "@calcom/ui/components/multiemail";
+import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
 
 const Select = dynamic(
   async () => (await import("@calcom/ui/components/form")).SelectWithValidation
@@ -70,7 +74,7 @@ export type TextLikeComponentProps<TVal extends string | string[] | boolean = st
   name?: string;
 };
 
-export type TextLikeComponentPropsRAQB<TVal extends string | boolean = string> =
+export type TextLikeComponentPropsRAQB<TVal extends string | string[] | boolean = string> =
   TextLikeComponentProps<TVal> & {
     customProps?: object;
     type?: "text" | "number" | "email" | "tel" | "url";
@@ -368,6 +372,63 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
 
 const Provider = ({ children }: ProviderProps) => children;
 
+const AddressWidget = (props: TextLikeComponentPropsRAQB) => {
+  const { name, value, setValue, readOnly } = props;
+
+  return <AddressInput id={name} value={value} onChange={(val) => setValue(val)} disabled={readOnly} />;
+};
+
+const URLWidget = (props: TextLikeComponentPropsRAQB) => <TextWidget {...props} type="url" />;
+
+const MultiEmailWidget = (props: TextLikeComponentPropsRAQB<string[]>) => {
+  return <MultiEmail {...props} />;
+};
+
+const RadioWidget = (props: SelectLikeComponentPropsRAQB) => {
+  if (!props.listValues) {
+    return null;
+  }
+
+  return (
+    <RadioGroup
+      disabled={props.readOnly}
+      value={props.value}
+      onValueChange={(e) => {
+        props.setValue(e);
+      }}>
+      <>
+        {props.listValues?.map((option, i) => (
+          <RadioField
+            label={option.title}
+            key={`option.${i}.radio`}
+            value={option.value}
+            id={`${name}.option.${i}.radio`}
+          />
+        ))}
+      </>
+    </RadioGroup>
+  );
+};
+
+const CheckboxWidget = (props: TextLikeComponentPropsRAQB) => {
+  console.log({ props });
+  return (
+    <div>
+      <label className="block">
+        <Checkbox
+          disabled={props.readOnly}
+          onCheckedChange={(checked) => {
+            props.setValue(checked);
+          }}
+          value={props.value}
+          checked={props.value}
+        />
+        <span className="text-emphasis me-2 ms-2 text-sm">{props.name ?? ""}</span>
+      </label>
+    </div>
+  );
+};
+
 const widgets = {
   TextWidget,
   TextAreaWidget,
@@ -379,6 +440,11 @@ const widgets = {
   ButtonGroup,
   Conjs,
   Provider,
+  AddressWidget,
+  URLWidget,
+  MultiEmailWidget,
+  RadioWidget,
+  CheckboxWidget,
 };
 
 export default widgets;

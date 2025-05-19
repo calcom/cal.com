@@ -4,3 +4,4 @@
 export { FormBuilder, FieldEditDialogForm, RhfFormField } from "./FormBuilder";
 export { FormBuilderField } from "./FormBuilderField";
 export { AddQuestionsForm } from "./AddQuestionsForm";
+export { fieldSchema } from "./schema";

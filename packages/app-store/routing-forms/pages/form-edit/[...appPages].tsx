@@ -2,23 +2,15 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { UseFormReturn } from "react-hook-form";
-import { Controller, useFieldArray, useWatch, useForm } from "react-hook-form";
+import { useFieldArray, useWatch } from "react-hook-form";
 import { Toaster } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
 import { AddQuestionsForm } from "@calcom/features/form-builder/AddQuestionsForm";
-import type { RhfFormField } from "@calcom/features/form-builder/FormBuilder";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard } from "@calcom/ui/components/card";
-import {
-  BooleanToggleGroupField,
-  Label,
-  SelectField,
-  TextField,
-  MultiOptionInput,
-} from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -26,7 +18,6 @@ import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
-import { FieldTypes } from "../../lib/FieldTypes";
 import type { RoutingFormWithResponseCount } from "../../types/types";
 
 export { getServerSideProps };
@@ -68,26 +59,8 @@ function Field({
     name: `${hookFieldNamespace}.label`,
   });
 
-  const identifier = useWatch({
-    control: hookForm.control,
-    name: `${hookFieldNamespace}.identifier`,
-  });
-
-  const fieldType = useWatch({
-    control: hookForm.control,
-    name: `${hookFieldNamespace}.type`,
-  });
-
   const preCountFieldLabel = label || routerField?.label || "Field";
   const fieldLabel = `${fieldIndex + 1}. ${preCountFieldLabel}`;
-
-  const fieldForm = useForm<RhfFormField>({
-    defaultValues: {},
-  });
-
-  const onUpdate = (field: RhfFormField) => {
-    console.log("onUpdate", field);
-  };
 
   return (
     <div data-testid="field">
@@ -100,109 +73,11 @@ function Field({
         }
         deleteField={router ? null : deleteField}>
         <div className="bg-default border-default w-full gap-3 rounded-2xl border p-3">
-          <div className="mb-3 w-full">
-            <TextField
-              data-testid={`${hookFieldNamespace}.label`}
-              disabled={!!router}
-              label="Label"
-              className="flex-grow"
-              placeholder={t("this_is_what_your_users_would_see")}
-              defaultValue={label || routerField?.label || "Field"}
-              required
-              {...hookForm.register(`${hookFieldNamespace}.label`)}
-              onChange={(e) => {
-                hookForm.setValue(`${hookFieldNamespace}.label`, e.target.value, { shouldDirty: true });
-              }}
-            />
-          </div>
-          <div className="mb-3 w-full">
-            <TextField
-              disabled={!!router}
-              label="Identifier"
-              name={`${hookFieldNamespace}.identifier`}
-              required
-              placeholder={t("identifies_name_field")}
-              value={identifier || routerField?.identifier || label || routerField?.label || ""}
-              onChange={(e) => {
-                hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value, { shouldDirty: true });
-              }}
-            />
-          </div>
-          <div className="mb-3 w-full">
-            <Controller
-              name={`${hookFieldNamespace}.type`}
-              control={hookForm.control}
-              defaultValue={routerField?.type}
-              render={({ field: { value, onChange } }) => {
-                const defaultValue = FieldTypes.find((fieldType) => fieldType.value === value);
-                return (
-                  <SelectField
-                    maxMenuHeight={200}
-                    styles={{
-                      singleValue: (baseStyles) => ({
-                        ...baseStyles,
-                        fontSize: "14px",
-                      }),
-                      option: (baseStyles) => ({
-                        ...baseStyles,
-                        fontSize: "14px",
-                      }),
-                    }}
-                    label="Type"
-                    isDisabled={!!router}
-                    containerClassName="data-testid-field-type"
-                    options={FieldTypes}
-                    onChange={(option) => {
-                      if (!option) {
-                        return;
-                      }
-                      onChange(option.value);
-                    }}
-                    defaultValue={defaultValue}
-                  />
-                );
-              }}
-            />
-          </div>
-          {["select", "multiselect"].includes(fieldType) ? (
-            <div className="bg-muted w-full rounded-[10px] p-2">
-              <Label className="text-subtle">{t("options")}</Label>
-              <MultiOptionInput
-                fieldArrayName={`${hookFieldNamespace}.options`}
-                disabled={!!router}
-                optionPlaceholders={["< 10", "10 - 100", "100 - 500", "> 500"]}
-                defaultNumberOfOptions={4}
-                pasteDelimiters={["\n", ","]}
-                showMoveButtons={true}
-                minOptions={1}
-                addOptionLabel={t("add_an_option")}
-                addOptionButtonColor="minimal"
-              />
-            </div>
-          ) : null}
-
-          <div className="w-[106px]">
-            <Controller
-              name={`${hookFieldNamespace}.required`}
-              control={hookForm.control}
-              defaultValue={routerField?.required}
-              render={({ field: { value, onChange } }) => {
-                return (
-                  <BooleanToggleGroupField
-                    variant="small"
-                    disabled={!!router}
-                    label={t("required")}
-                    value={value}
-                    onValueChange={onChange}
-                  />
-                );
-              }}
-            />
-          </div>
-        </div>
-
-        <div className="bg-default border-default w-full gap-3 rounded-2xl border p-3">
-          <AddQuestionsForm shouldConsiderRequired={() => true} fieldForm={fieldForm} onUpdate={onUpdate} />
+          <AddQuestionsForm
+            shouldConsiderRequired={() => true}
+            fieldForm={hookForm}
+            fieldNameSpace={hookFieldNamespace}
+          />
         </div>
       </FormCard>
     </div>

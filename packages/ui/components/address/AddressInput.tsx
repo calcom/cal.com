@@ -10,6 +10,7 @@ export type AddressInputProps = {
   required?: boolean;
   onChange: (val: string) => void;
   className?: string;
+  disabled?: boolean;
 };
 
 function AddressInput({ value, onChange, ...rest }: AddressInputProps) {

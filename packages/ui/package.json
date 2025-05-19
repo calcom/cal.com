@@ -56,6 +56,7 @@
     "./components/table/TableNew": "./components/table/TableNew.tsx",
     "./components/app-list-card/AppListCard": "./components/app-list-card/AppListCard.tsx",
     "./components/section": "./components/section/index.ts",
+    "./components/multiemail": "./components/multiemail/index.ts",
     "./__mocks__/ui": "./__mocks__/ui.tsx"
   },
   "license": "MIT",

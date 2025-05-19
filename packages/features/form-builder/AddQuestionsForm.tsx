@@ -1,8 +1,8 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { RhfFormField } from "form-builder/FormBuilder";
-import { useEffect, useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { Controller } from "react-hook-form";
+import { Controller, useWatch } from "react-hook-form";
 import { ZodError } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -26,23 +26,37 @@ import { excludeOrRequireEmailSchema } from "./schema";
 import { getFieldIdentifier } from "./utils/getFieldIdentifier";
 import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
+const withNamespace = (fieldNameSpace: string, field: string) => {
+  return fieldNameSpace ? `${fieldNameSpace}.${field}` : field;
+};
+
 export function AddQuestionsForm({
   fieldForm,
   shouldConsiderRequired,
-  onUpdate,
+  fieldNameSpace = "",
 }: {
   fieldForm: UseFormReturn<RhfFormField>;
   shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
-  onUpdate?: ((field: RhfFormField) => void) | undefined;
+  fieldNameSpace?: string;
 }) {
   const { t } = useLocale();
-  const formFieldType = fieldForm.getValues("type");
 
-  const fieldType = getCurrentFieldType(fieldForm);
+  const formFieldType = useMemo(
+    () => fieldForm.getValues(withNamespace(fieldNameSpace, "type")),
+    [fieldForm, fieldNameSpace]
+  );
 
-  const variantsConfig = fieldForm.watch("variantsConfig");
+  const fieldType = useMemo(
+    () => getCurrentFieldType(fieldForm, fieldNameSpace),
+    [fieldForm, fieldNameSpace]
+  );
 
-  const fieldTypes = Object.values(fieldTypesConfigMap);
+  const variantsConfig = useWatch({
+    control: fieldForm.control,
+    name: withNamespace(fieldNameSpace, "variantsConfig"),
+  });
+
+  const fieldTypes = useMemo(() => Object.values(fieldTypesConfigMap), []);
 
   useEffect(() => {
     if (!formFieldType) {
@@ -51,12 +65,12 @@ export function AddQuestionsForm({
 
     const variantsConfig = getVariantsConfig({
       type: formFieldType,
-      variantsConfig: fieldForm.getValues("variantsConfig"),
+      variantsConfig: fieldForm.getValues(withNamespace(fieldNameSpace, "variantsConfig")),
     });
 
     // We need to set the variantsConfig in the RHF instead of using a derived value because RHF won't have the variantConfig for the variant that's not rendered yet.
-    fieldForm.setValue("variantsConfig", variantsConfig);
-  }, [fieldForm, formFieldType]);
+    fieldForm.setValue(withNamespace(fieldNameSpace, "variantsConfig"), variantsConfig);
+  }, [fieldForm, fieldNameSpace, formFieldType]);
 
   return (
     <>
@@ -65,15 +79,15 @@ export function AddQuestionsForm({
         data-testid="test-field-type"
         id="test-field-type"
         isDisabled={
-          fieldForm.getValues("editable") === "system" ||
-          fieldForm.getValues("editable") === "system-but-optional"
+          fieldForm.getValues(withNamespace(fieldNameSpace, "editable")) === "system" ||
+          fieldForm.getValues(withNamespace(fieldNameSpace, "editable")) === "system-but-optional"
         }
         onChange={(e) => {
           const value = e?.value;
           if (!value) {
             return;
           }
-          fieldForm.setValue("type", value, { shouldDirty: true });
+          fieldForm.setValue(withNamespace(fieldNameSpace, "type"), value, { shouldDirty: true });
         }}
         value={fieldTypesConfigMap[formFieldType]}
         options={fieldTypes.filter((f) => !f.systemOnly)}
@@ -85,34 +99,42 @@ export function AddQuestionsForm({
             <>
               <InputField
                 required
-                {...fieldForm.register("name")}
+                {...fieldForm.register(withNamespace(fieldNameSpace, "name"))}
                 containerClassName="mt-6"
                 onChange={(e) => {
-                  fieldForm.setValue("name", getFieldIdentifier(e.target.value || ""), {
-                    shouldDirty: true,
-                  });
+                  fieldForm.setValue(
+                    withNamespace(fieldNameSpace, "name"),
+                    getFieldIdentifier(e.target.value || ""),
+                    {
+                      shouldDirty: true,
+                    }
+                  );
                 }}
                 disabled={
-                  fieldForm.getValues("editable") === "system" ||
-                  fieldForm.getValues("editable") === "system-but-optional"
+                  fieldForm.getValues(withNamespace(fieldNameSpace, "editable")) === "system" ||
+                  fieldForm.getValues(withNamespace(fieldNameSpace, "editable")) === "system-but-optional"
                 }
                 label={t("identifier")}
               />
               <CheckboxField
                 description={t("disable_input_if_prefilled")}
-                {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
+                {...fieldForm.register(withNamespace(fieldNameSpace, "disableOnPrefill"), {
+                  setValueAs: Boolean,
+                })}
               />
               <div>
                 {formFieldType === "boolean" ? (
-                  <CheckboxFieldLabel fieldForm={fieldForm} />
+                  <CheckboxFieldLabel fieldForm={fieldForm} fieldNameSpace={fieldNameSpace} />
                 ) : (
                   <InputField
-                    {...fieldForm.register("label")}
+                    {...fieldForm.register(withNamespace(fieldNameSpace, "label"))}
                     // System fields have a defaultLabel, so there a label is not required
                     required={
-                      !["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")
+                      !["system", "system-but-optional"].includes(
+                        fieldForm.getValues(withNamespace(fieldNameSpace, "editable")) || ""
+                      )
                     }
-                    placeholder={t(fieldForm.getValues("defaultLabel") || "")}
+                    placeholder={t(fieldForm.getValues(withNamespace(fieldNameSpace, "defaultLabel")) || "")}
                     containerClassName="mt-6"
                     label={t("label")}
                   />
@@ -121,15 +143,18 @@ export function AddQuestionsForm({
 
               {fieldType?.isTextType ? (
                 <InputField
-                  {...fieldForm.register("placeholder")}
+                  {...fieldForm.register(withNamespace(fieldNameSpace, "placeholder"))}
                   containerClassName="mt-6"
                   label={t("placeholder")}
-                  placeholder={t(fieldForm.getValues("defaultPlaceholder") || "")}
+                  placeholder={t(
+                    fieldForm.getValues(withNamespace(fieldNameSpace, "defaultPlaceholder")) || ""
+                  )}
                 />
               ) : null}
-              {fieldType?.needsOptions && !fieldForm.getValues("getOptionsAt") ? (
+              {fieldType?.needsOptions &&
+              !fieldForm.getValues(withNamespace(fieldNameSpace, "getOptionsAt")) ? (
                 <Controller
-                  name="options"
+                  name={withNamespace(fieldNameSpace, "options")}
                   render={({ field: { value, onChange } }) => {
                     return <Options onChange={onChange} value={value} className="mt-6" />;
                   }}
@@ -137,20 +162,24 @@ export function AddQuestionsForm({
               ) : null}
 
               {!!fieldType?.supportsLengthCheck ? (
-                <FieldWithLengthCheckSupport containerClassName="mt-6" fieldForm={fieldForm} />
+                <FieldWithLengthCheckSupport
+                  containerClassName="mt-6"
+                  fieldForm={fieldForm}
+                  fieldNameSpace={fieldNameSpace}
+                />
               ) : null}
 
               {formFieldType === "email" && (
                 <InputField
-                  {...fieldForm.register("requireEmails")}
+                  {...fieldForm.register(withNamespace(fieldNameSpace, "requireEmails"))}
                   containerClassName="mt-6"
                   onChange={(e) => {
                     try {
                       excludeOrRequireEmailSchema.parse(e.target.value);
-                      fieldForm.clearErrors("requireEmails");
+                      fieldForm.clearErrors(withNamespace(fieldNameSpace, "requireEmails"));
                     } catch (err) {
                       if (err instanceof ZodError) {
-                        fieldForm.setError("requireEmails", {
+                        fieldForm.setError(withNamespace(fieldNameSpace, "requireEmails"), {
                           message: err.errors[0]?.message || "Invalid input",
                         });
                       }
@@ -163,15 +192,15 @@ export function AddQuestionsForm({
 
               {formFieldType === "email" && (
                 <InputField
-                  {...fieldForm.register("excludeEmails")}
+                  {...fieldForm.register(withNamespace(fieldNameSpace, "excludeEmails"))}
                   containerClassName="mt-6"
                   onChange={(e) => {
                     try {
                       excludeOrRequireEmailSchema.parse(e.target.value);
-                      fieldForm.clearErrors("excludeEmails");
+                      fieldForm.clearErrors(withNamespace(fieldNameSpace, "excludeEmails"));
                     } catch (err) {
                       if (err instanceof ZodError) {
-                        fieldForm.setError("excludeEmails", {
+                        fieldForm.setError(withNamespace(fieldNameSpace, "excludeEmails"), {
                           message: err.errors[0]?.message || "Invalid input",
                         });
                       }
@@ -183,7 +212,7 @@ export function AddQuestionsForm({
               )}
 
               <Controller
-                name="required"
+                name={withNamespace(fieldNameSpace, "required")}
                 control={fieldForm.control}
                 render={({ field: { value, onChange } }) => {
                   const isRequired = shouldConsiderRequired
@@ -192,7 +221,7 @@ export function AddQuestionsForm({
                   return (
                     <BooleanToggleGroupField
                       data-testid="field-required"
-                      disabled={fieldForm.getValues("editable") === "system"}
+                      disabled={fieldForm.getValues(withNamespace(fieldNameSpace, "editable")) === "system"}
                       value={isRequired}
                       onValueChange={(val) => {
                         onChange(val);
@@ -210,32 +239,44 @@ export function AddQuestionsForm({
           throw new Error("Variants are currently supported only with text type");
         }
 
-        return <VariantFields variantsConfig={variantsConfig} fieldForm={fieldForm} />;
+        return (
+          <VariantFields
+            variantsConfig={variantsConfig}
+            fieldForm={fieldForm}
+            fieldNameSpace={fieldNameSpace}
+          />
+        );
       })()}
     </>
   );
 }
 
-function getCurrentFieldType(fieldForm: UseFormReturn<RhfFormField>) {
-  return fieldTypesConfigMap[fieldForm.watch("type") || "text"];
+function getCurrentFieldType(fieldForm: UseFormReturn<RhfFormField>, fieldNameSpace?: string) {
+  return fieldTypesConfigMap[fieldForm.watch(withNamespace(fieldNameSpace, "type")) || "text"];
 }
 
-const CheckboxFieldLabel = ({ fieldForm }: { fieldForm: UseFormReturn<RhfFormField> }) => {
+const CheckboxFieldLabel = ({
+  fieldForm,
+  fieldNameSpace,
+}: {
+  fieldForm: UseFormReturn<RhfFormField>;
+  fieldNameSpace?: string;
+}) => {
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
   return (
     <div className="mt-6">
       <Label>{t("label")}</Label>
       <Editor
-        getText={() => md.render(fieldForm.getValues("label") || "")}
+        getText={() => md.render(fieldForm.getValues(withNamespace(fieldNameSpace, "label")) || "")}
         setText={(value: string) => {
-          fieldForm.setValue("label", turndown(value), { shouldDirty: true });
+          fieldForm.setValue(withNamespace(fieldNameSpace, "label"), turndown(value), { shouldDirty: true });
         }}
         excludedToolbarItems={["blockType", "bold", "italic"]}
         disableLists
         firstRender={firstRender}
         setFirstRender={setFirstRender}
-        placeholder={t(fieldForm.getValues("defaultLabel") || "")}
+        placeholder={t(fieldForm.getValues(withNamespace(fieldNameSpace, "defaultLabel")) || "")}
       />
     </div>
   );
@@ -336,15 +377,18 @@ function VariantSelector() {
 function VariantFields({
   fieldForm,
   variantsConfig,
+  fieldNameSpace,
 }: {
   fieldForm: UseFormReturn<RhfFormField>;
   variantsConfig: RhfFormField["variantsConfig"];
+  fieldNameSpace?: string;
 }) {
   const { t } = useLocale();
   if (!variantsConfig) {
     throw new Error("VariantFields component needs variantsConfig");
   }
-  const fieldTypeConfigVariantsConfig = fieldTypesConfigMap[fieldForm.getValues("type")]?.variantsConfig;
+  const fieldTypeConfigVariantsConfig =
+    fieldTypesConfigMap[fieldForm.getValues(withNamespace(fieldNameSpace, "type"))]?.variantsConfig;
 
   if (!fieldTypeConfigVariantsConfig) {
     throw new Error("Configuration Issue: FieldType doesn't have `variantsConfig`");
@@ -360,7 +404,7 @@ function VariantFields({
     throw new Error("More than one other variant. Remove toggleLabel ");
   }
   const otherVariant = otherVariants[0];
-  const variantName = fieldForm.watch("variant") || defaultVariant;
+  const variantName = fieldForm.watch(withNamespace(fieldNameSpace, "variant")) || defaultVariant;
   const variantFields = variantsConfig.variants[variantName as keyof typeof variantsConfig].fields;
   /**
    * A variant that has just one field can be shown in a simpler way in UI.
@@ -376,7 +420,10 @@ function VariantFields({
           label={variantToggleLabel}
           data-testid="variant-toggle"
           onCheckedChange={(checked) => {
-            fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
+            fieldForm.setValue(
+              withNamespace(fieldNameSpace, "variant"),
+              checked ? otherVariant : defaultVariant
+            );
           }}
           classNames={{ container: "mt-2" }}
           tooltip={t("Toggle Variant")}
@@ -387,18 +434,18 @@ function VariantFields({
 
       <InputField
         required
-        {...fieldForm.register("name")}
+        {...fieldForm.register(withNamespace(fieldNameSpace, "name"))}
         containerClassName="mt-6"
         disabled={
-          fieldForm.getValues("editable") === "system" ||
-          fieldForm.getValues("editable") === "system-but-optional"
+          fieldForm.getValues(withNamespace(fieldNameSpace, "editable")) === "system" ||
+          fieldForm.getValues(withNamespace(fieldNameSpace, "editable")) === "system-but-optional"
         }
         label={t("identifier")}
       />
 
       <CheckboxField
         description={t("disable_input_if_prefilled")}
-        {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
+        {...fieldForm.register(withNamespace(fieldNameSpace, "disableOnPrefill"), { setValueAs: Boolean })}
       />
 
       <ul
@@ -422,14 +469,14 @@ function VariantFields({
                 </Label>
               )}
               <InputField
-                {...fieldForm.register(`${rhfVariantFieldPrefix}.label`)}
+                {...fieldForm.register(withNamespace(fieldNameSpace, `${rhfVariantFieldPrefix}.label`))}
                 value={f.label || ""}
                 placeholder={t(appUiFieldConfig?.defaultLabel || "")}
                 containerClassName="mt-6"
                 label={t("label")}
               />
               <InputField
-                {...fieldForm.register(`${rhfVariantFieldPrefix}.placeholder`)}
+                {...fieldForm.register(withNamespace(fieldNameSpace, `${rhfVariantFieldPrefix}.placeholder`))}
                 key={f.name}
                 value={f.placeholder || ""}
                 containerClassName="mt-6"
@@ -438,7 +485,7 @@ function VariantFields({
               />
 
               <Controller
-                name={`${rhfVariantFieldPrefix}.required`}
+                name={withNamespace(fieldNameSpace, `${rhfVariantFieldPrefix}.required`)}
                 control={fieldForm.control}
                 render={({ field: { onChange } }) => {
                   return (
@@ -466,13 +513,15 @@ function FieldWithLengthCheckSupport({
   fieldForm,
   containerClassName = "",
   className,
+  fieldNameSpace,
   ...rest
 }: {
   fieldForm: UseFormReturn<RhfFormField>;
   containerClassName?: string;
+  fieldNameSpace?: string;
 } & React.HTMLAttributes<HTMLDivElement>) {
   const { t } = useLocale();
-  const fieldType = getCurrentFieldType(fieldForm);
+  const fieldType = getCurrentFieldType(fieldForm, fieldNameSpace);
   if (!fieldType.supportsLengthCheck) {
     return null;
   }
@@ -482,7 +531,7 @@ function FieldWithLengthCheckSupport({
   return (
     <div className={classNames("grid grid-cols-2 gap-4", className)} {...rest}>
       <InputField
-        {...fieldForm.register("minLength", {
+        {...fieldForm.register(withNamespace(fieldNameSpace, "minLength"), {
           valueAsNumber: true,
         })}
         defaultValue={0}
@@ -490,15 +539,15 @@ function FieldWithLengthCheckSupport({
         label={t("min_characters")}
         type="number"
         onChange={(e) => {
-          fieldForm.setValue("minLength", parseInt(e.target.value ?? 0));
+          fieldForm.setValue(withNamespace(fieldNameSpace, "minLength"), parseInt(e.target.value ?? 0));
           // Ensure that maxLength field adjusts its restrictions
-          fieldForm.trigger("maxLength");
+          fieldForm.trigger(withNamespace(fieldNameSpace, "maxLength"));
         }}
         min={0}
-        max={fieldForm.getValues("maxLength") || maxAllowedMaxLength}
+        max={fieldForm.getValues(withNamespace(fieldNameSpace, "maxLength")) || maxAllowedMaxLength}
       />
       <InputField
-        {...fieldForm.register("maxLength", {
+        {...fieldForm.register(withNamespace(fieldNameSpace, "maxLength"), {
           valueAsNumber: true,
         })}
         defaultValue={maxAllowedMaxLength}
@@ -509,11 +558,14 @@ function FieldWithLengthCheckSupport({
           if (!supportsLengthCheck) {
             return;
           }
-          fieldForm.setValue("maxLength", parseInt(e.target.value ?? maxAllowedMaxLength));
+          fieldForm.setValue(
+            withNamespace(fieldNameSpace, "maxLength"),
+            parseInt(e.target.value ?? maxAllowedMaxLength)
+          );
           // Ensure that minLength field adjusts its restrictions
-          fieldForm.trigger("minLength");
+          fieldForm.trigger(withNamespace(fieldNameSpace, "minLength"));
         }}
-        min={fieldForm.getValues("minLength") || 0}
+        min={fieldForm.getValues(withNamespace(fieldNameSpace, "minLength")) || 0}
         max={maxAllowedMaxLength}
       />
     </div>
