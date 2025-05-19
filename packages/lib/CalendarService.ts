@@ -513,9 +513,19 @@ export default abstract class BaseCalendarService implements Calendar {
     try {
       const account = await this.getAccount();
 
+      let requestHeaders = this.headers;
+
+      if (
+        this.integrationName === "caldav_calendar" &&
+        this.credentials.username &&
+        this.credentials.password
+      ) {
+        requestHeaders = getBasicAuthHeaders(this.credentials);
+      }
+
       const calendars = (await fetchCalendars({
         account,
-        headers: this.headers,
+        headers: requestHeaders,
       })) /** @url https://github.com/natelindev/tsdav/pull/139 */ as (Omit<DAVCalendar, "displayName"> & {
         displayName?: string | Record<string, unknown>;
       })[];
@@ -565,12 +575,27 @@ export default abstract class BaseCalendarService implements Calendar {
   }: FetchObjectsWithOptionalExpandOptionsType): Promise<DAVObject[]> {
     const filteredCalendars = selectedCalendars.filter((sc) => sc.externalId);
     const fetchPromises = filteredCalendars.map(async (sc) => {
+      // Get the specific URL from the calendar
+      const calendarUrl = sc.externalId;
+
+      let requestHeaders = headers;
+
+      if (
+        this.integrationName === "caldav_calendar" &&
+        calendarUrl &&
+        calendarUrl !== this.url &&
+        this.credentials.username &&
+        this.credentials.password
+      ) {
+        requestHeaders = getBasicAuthHeaders(this.credentials);
+      }
+
       const response = await fetchCalendarObjects({
         urlFilter: (url) => this.isValidFormat(url),
         calendar: {
           url: sc.externalId,
         },
-        headers,
+        headers: requestHeaders,
         expand: true,
         timeRange: {
           start: startISOString,
@@ -624,6 +649,18 @@ export default abstract class BaseCalendarService implements Calendar {
     objectUrls?: string[] | null
   ) {
     try {
+      let requestHeaders = this.headers;
+
+      if (
+        this.integrationName === "caldav_calendar" &&
+        calId &&
+        calId !== this.url &&
+        this.credentials.username &&
+        this.credentials.password
+      ) {
+        requestHeaders = getBasicAuthHeaders(this.credentials);
+      }
+
       const objects = await fetchCalendarObjects({
         calendar: {
           url: calId,
@@ -636,7 +673,7 @@ export default abstract class BaseCalendarService implements Calendar {
                 end: dayjs(dateTo).utc().format(TIMEZONE_FORMAT),
               }
             : undefined,
-        headers: this.headers,
+        headers: requestHeaders,
       });
 
       const events = objects
