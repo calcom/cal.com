@@ -221,6 +221,7 @@ export interface CalendarEvent {
   delegationCredentialId?: string | null;
   domainWideDelegationCredentialId?: string | null;
   customReplyToEmail?: string | null;
+  rescheduledBy?: string;
 }
 
 export interface EntryPoint {

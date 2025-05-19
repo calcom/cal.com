@@ -937,27 +937,31 @@ function addAdvancedAttendeeWhereClause(
 
   switch (operator) {
     case "endsWith":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "like", `%${operand}`);
+      fullQuery = fullQuery.where(`Attendee.${key}`, "ilike", `%${operand}`);
       break;
 
     case "startsWith":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "like", `${operand}%`);
+      fullQuery = fullQuery.where(`Attendee.${key}`, "ilike", `${operand}%`);
       break;
 
     case "equals":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "=", `${operand}`);
+      fullQuery = fullQuery.where((eb) =>
+        eb(eb.fn<string>("lower", [`Attendee.${key}`]), "=", `${operand.toLowerCase()}`)
+      );
       break;
 
     case "notEquals":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "!=", `${operand}`);
+      fullQuery = fullQuery.where((eb) =>
+        eb(eb.fn<string>("lower", [`Attendee.${key}`]), "!=", `${operand.toLowerCase()}`)
+      );
       break;
 
     case "contains":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "like", `%${operand}%`);
+      fullQuery = fullQuery.where(`Attendee.${key}`, "ilike", `%${operand}%`);
       break;
 
     case "notContains":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "not like", `%${operand}%`);
+      fullQuery = fullQuery.where(`Attendee.${key}`, "not ilike", `%${operand}%`);
       break;
 
     case "isEmpty":
