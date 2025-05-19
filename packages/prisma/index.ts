@@ -67,9 +67,15 @@ const prismaWithClientExtensions = prismaWithoutClientExtensions
 export const prisma = globalForPrisma.prismaWithClientExtensions || prismaWithClientExtensions;
 
 /**
- * IMPORTANT: When using Prisma in tRPC procedures, DO NOT import this client directly.
- * Instead, use ctx.prisma from the tRPC context, which will select the correct tenant based on the request host.
- * @see packages/trpc/server/middlewares/prismaMiddleware.ts
+ * IMPORTANT: This global Prisma client is being deprecated.
+ * All database calls should be tenant-aware using one of the following approaches:
+ * 1. In tRPC procedures: Use ctx.prisma from the context
+ * 2. In API routes: Use withPrismaRoute HOC from @calcom/prisma/store/withPrismaRoute
+ * 3. In SSR functions: Use withPrismaSsr HOC from @calcom/prisma/store/withPrismaSsr
+ * 4. In utility functions: Accept prisma client as a parameter or use withPrismaClient from @calcom/prisma/store/withPrismaClient
+ * 5. In repository classes: Use setPrismaClient or accept it in the constructor
+ * @see packages/prisma/store/MIGRATION.md for migration examples
+ * @deprecated Use tenant-aware Prisma clients instead
  */
 
 // This prisma instance is meant to be used only for READ operations.
