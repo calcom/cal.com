@@ -67,11 +67,11 @@ const RoundRobinSettings = ({ team }: RoundRobinSettingsProps) => {
           <p className="text-default text-sm leading-tight">{t("round_robin_settings_description")}</p>
           <div className="-mx-4 mt-4 sm:-mx-6">
             <div className="border-subtle border-t px-6 py-6">
-              <RoundRobinResetInterval team={team} />
+              <RoundRobinResetInterval />
             </div>
-            <div className="bordr-subtle border-t" />{" "}
+            <div className="border-subtle border-t" />
             <div className="border-subtle px-6 py-6">
-              <RoundRobinTimestampBasis team={team} />
+              <RoundRobinTimestampBasis />
             </div>
           </div>
         </div>
