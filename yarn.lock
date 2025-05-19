@@ -2715,7 +2715,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.205"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.206"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -3788,13 +3788,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.205":
-  version: 0.0.205
-  resolution: "@calcom/platform-libraries@npm:0.0.205"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.206":
+  version: 0.0.206
+  resolution: "@calcom/platform-libraries@npm:0.0.206"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: f97736140daa0af59d2669bb1317be2b107176cace1342c2200217bca29e7beb6ba8450ee24d4c25d00a1747eb44d9cc851f7cb147efb2e43d827c11e0bd586a
+  checksum: c7cfceae4d6910ae0478886950096c0af79f38e6c2c4066e86bff7afa454a368b548a492bf34b145e813dae3b7b1ee540080233aa7fb3995fbf91d3ead1c286b
   languageName: node
   linkType: hard
 
