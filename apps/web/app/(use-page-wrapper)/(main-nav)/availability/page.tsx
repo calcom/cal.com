@@ -50,10 +50,23 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
   const _headers = await headers();
   const _cookies = await cookies();
 
-  const [me, availabilities] = await Promise.all([
+  const [me, cachedAvailabilities] = await Promise.all([
     getCachedMe(_headers, _cookies),
     getCachedAvailabilities(_headers, _cookies),
   ]);
+
+  const availabilities = {
+    ...cachedAvailabilities,
+    schedules: cachedAvailabilities.schedules.map((schedule) => ({
+      ...schedule,
+      availability: schedule.availability.map((avail) => ({
+        ...avail,
+        startTime: new Date(avail.startTime),
+        endTime: new Date(avail.endTime),
+        date: avail.date ? new Date(avail.date) : null,
+      })),
+    })),
+  };
 
   const organizationId = me.organization?.id ?? me.profiles[0]?.organizationId;
   const isOrgPrivate = organizationId
