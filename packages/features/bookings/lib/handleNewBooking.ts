@@ -35,6 +35,7 @@ import {
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getFullName } from "@calcom/features/form-builder/utils";
+import tasker from "@calcom/features/tasker";
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -44,7 +45,6 @@ import {
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import EventManager from "@calcom/lib/EventManager";
-import AnalyticsManager from "@calcom/lib/analyticsManager/analyticsManager";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import {
@@ -2167,15 +2167,15 @@ async function handler(
     const dubCredential = allCredentials.find((cred) => cred.appId === "dub");
     if (dubCredential) {
       try {
-        const dubManager = new AnalyticsManager(dubCredential);
-        if (dubManager) {
-          await dubManager.sendEvent({
+        await tasker.create("sendAnalyticsEvent", {
+          credentialId: dubCredential.id,
+          info: {
             id: dub_id,
             email: bookerEmail,
             name: fullName,
             eventName: "Cal.com lead",
-          });
-        }
+          },
+        });
       } catch (err) {
         console.error("Error sending dub lead: ", err);
       }
