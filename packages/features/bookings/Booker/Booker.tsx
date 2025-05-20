@@ -487,7 +487,7 @@ const BookerComponent = ({
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
                 unavailableTimeSlots={unavailableTimeSlots}
                 showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
-                eventDuration={event.data?.length}
+                event={event}
                 loadingStates={loadingStates}
                 renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
                 isVerificationCodeSending={isVerificationCodeSending}
@@ -573,8 +573,7 @@ const BookerComponent = ({
 
       <BookFormAsModal
         onCancel={() => setSelectedTimeslot(null)}
-        visible={bookerState === "booking" && shouldShowFormInDialog}
-        eventDuration={event.data?.length}>
+        visible={bookerState === "booking" && shouldShowFormInDialog}>
         {EventBooker}
       </BookFormAsModal>
       <Toaster position="bottom-right" />
