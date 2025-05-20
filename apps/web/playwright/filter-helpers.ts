@@ -22,10 +22,12 @@ export async function applySelectFilter(page: Page, columnId: string, value: str
     await selectFilter(page, columnId);
   }
   await openFilter(page, columnId);
-
-  await page.getByTestId(`select-filter-options-${columnId}`).getByRole("option", { name: value }).click();
-
+  await selectOptionValue(page, columnId, value);
   await page.keyboard.press("Escape");
+}
+
+export async function selectOptionValue(page: Page, columnId: string, value: string) {
+  await page.getByTestId(`select-filter-options-${columnId}`).getByRole("option", { name: value }).click();
 }
 
 export async function applyTextFilter(page: Page, columnId: string, operator: string, operand?: string) {

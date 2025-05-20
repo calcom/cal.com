@@ -10,6 +10,7 @@ import {
   applySelectFilter,
   applyTextFilter,
   applyNumberFilter,
+  selectOptionValue,
 } from "./filter-helpers";
 import { test } from "./lib/fixtures";
 
@@ -66,13 +67,16 @@ test.describe("Insights > Routing Filters", () => {
 
     await page.goto(`/insights/routing`);
 
-    await applySelectFilter(page, "formId", formName1);
+    await openFilter(page, "formId");
+    await selectOptionValue(page, "formId", formName1);
+    await page.keyboard.press("Escape");
 
     await expect(page.getByText(formName1)).toBeVisible();
     await expect(page.getByText(formName2)).toBeHidden();
 
-    await clearFilters(page);
-    await applySelectFilter(page, "formId", formName2);
+    await openFilter(page, "formId");
+    await selectOptionValue(page, "formId", formName2);
+    await page.keyboard.press("Escape");
 
     await expect(page.getByText(formName2)).toBeVisible();
     await expect(page.getByText(formName1)).toBeHidden();
@@ -283,7 +287,7 @@ test.describe("Insights > Routing Filters", () => {
     await page.goto(`/insights/routing`);
 
     await selectFilter(page, "bookingAttendees");
-    await page.getByTestId("filter-popover-trigger-bookingAttendees").click();
+    await openFilter(page, "bookingAttendees");
     await page.getByPlaceholder("Filter attendees by name or email").fill("John");
     await page.keyboard.press("Enter");
 
@@ -292,7 +296,7 @@ test.describe("Insights > Routing Filters", () => {
 
     await clearFilters(page);
     await selectFilter(page, "bookingAttendees");
-    await page.getByTestId("filter-popover-trigger-bookingAttendees").click();
+    await openFilter(page, "bookingAttendees");
     await page.getByPlaceholder("Filter attendees by name or email").fill("jane.smith@example");
     await page.keyboard.press("Enter");
 
@@ -301,7 +305,7 @@ test.describe("Insights > Routing Filters", () => {
 
     await clearFilters(page);
     await selectFilter(page, "bookingAttendees");
-    await page.getByTestId("filter-popover-trigger-bookingAttendees").click();
+    await openFilter(page, "bookingAttendees");
     await page.getByPlaceholder("Filter attendees by name or email").fill("JANE");
     await page.keyboard.press("Enter");
 
