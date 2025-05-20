@@ -95,8 +95,9 @@ Step 6: Enable Delegation Credential(To Be taken By Cal.com organization Owner/A
 ### Terminology
 
 - Delegation Credential: A Delegation Credential service account key along with user's email becomes the Delegation Credential which is an alternative to regular Credential in DB.
-- DWD: Domain Wide Delegation
-- non-dwd credential: Regular credentials that are stored in Credentials table
+- Delegation User Credential: A Delegation User Credential is a Credential record in DB that uses DelegationCredential record to actually access the user's calendar. A Credential record with delegationCredentialId set is a Delegation User Credential.
+- In-DB Delegation Credential: Another name for Delegation User Credential. This is used to build the CalendarCache records.
+- In-Memory Delegation Credential: It is a Credential like object but only in-memory and has id=-1. This is used to to connect with the third party Calendar. We might want to move away from In-Memory Delegation Credential to use In-DB Delegation Credential in future.
 
 ### How Delegation Credential works
 
@@ -107,6 +108,13 @@ Step 6: Enable Delegation Credential(To Be taken By Cal.com organization Owner/A
 
 - A Delegation Credential service account key along with user's email becomes the Delegation Credential which is an alternative to regular Credential in DB.
 - Delegation Credential doesn't completely replace the regular credentials. Delegation Credential gives access to the cal.com user's email in Google Calendar. So, if the user needs to connect to some other email's calendar, we need to use the regular credentials.
+
+### Cron Jobs
+
+Cron jobs ensure that for each and every member of the organization that has Delegation Credential enabled, corresponding SelectedCalendar records are there. These crons currently run every 5 minutes and process a batch in one run to avoid overloading the DB and third party CalendarAPIs, look at vercel.json for the up-to-date schedule.
+
+- `credentials` cron job creates Delegation User Credential records for all the members of the organization who don't have Delegation User Credentials yet. It also ensures that on disabling Delegation Credential, the Delegation User Credentials are deleted which automatically deletes the SelectedCalendars through DB cascade.
+- `selected-calendars` cron job creates SelectedCalendar records for all the Delegation User Credentials of the organization who don't have Selected Calendars yet.
 
 ### Important Points
 
@@ -122,23 +130,17 @@ Step 6: Enable Delegation Credential(To Be taken By Cal.com organization Owner/A
 1. Identify the logged in user's email
 2. Identify the domainWideDelegations for that email's domain
 3. Build in-memory credentials for the domainWideDelegations and use them along with the actual credentials(that user might have connected) of the user
-4. We don't show the non-dwd connected calendar(if there is a corresponding dwd connected calendar). Though we use the non-dwd credentials to identify the selected calendars, for the dwd connected calendar.
+4. We don't show the non DelegationCredential connected calendar(if there is a corresponding DelegationCredential connected calendar). Though we use the non DelegationCredential credentials to identify the selected calendars, for the DelegationCredential connected calendar.
 
 ### Impact of disabling Delegation Credential
 
-Disabling effectively stops generating in-memory delegation user credentials. So, any members who haven't manually connected their Calendar and thus their calendar connections were working only because of Delegation Credential, would have their connections broken.
+Disabling effectively stops generating in-memory delegation user credentials. So, any members who haven't manually connected their Calendar and thus their calendar connections were working only because of Delegation Credential, would have their calendar connections broken.
 
-#### What would not work correctly ?
-
-- Calendar won't be checked for conflicts. So, they could get booked at a time when they are marked busy in their calendar.
-  - Cal.com bookings would still be checked for conflicts.
-- Bookings might not appear in the attendee and host's Google Calendar. Because we would be unable to use the API to create the events in calendar and Google doesn't always add events to calendar automatically based on .ics file alone.
-- Cal Video would be used as the booking location instead of Google Meet.
-
-#### What would work correctly ?
-
-- Bookings would still go through. People relying on Salesforce for booking details, would face no issues.
-- Cal.com bookings would still be checked for conflicts.
+### Impact of enabling Delegation Credential
+- Existing calendar-cache records are re-used as we identify the relevant record by userId and key of CalendarCache record.
+  - Any updates to those calendar-cache records keep on working by using the non-delegation credential attached with the SelectedCalendar record.
+  - In case there is an error while watching the SelectedCalendar using non-delegation credential, we will delete the SelectedCalendar record and create a new one using Delegation User Credential.
+- For any new members, we create Credential records and SelectedCalendar records through cron jobs and thus their calendar-cache records will also be created.
 
 ### Notes when testing locally
 
@@ -146,3 +148,4 @@ Disabling effectively stops generating in-memory delegation user credentials. So
 - You could use Acme org and login as <owner1-acme@example.com>
 - Make sure to change the email of the user above to your workspace owner's email(other member's email might also work). This is necessary otherwise you won't be able to enable Delegation Credential for the organization.
   - Note: After changing the email, you would have to logout and login again
+
