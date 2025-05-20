@@ -35,12 +35,21 @@ type ApiHandler<T = any> = (
  */
 export function withPrismaApiHandler<T = any>(handler: ApiHandler<T>) {
   return async (req: NextApiRequest, res: NextApiResponse<T>) => {
-    const host = req.headers.host || "";
-    const tenant = getTenantFromHost(host);
+    try {
+      const host = req.headers.host || "";
+      const tenant = getTenantFromHost(host);
 
-    return runWithTenants(tenant, async () => {
-      const prisma = getPrisma(tenant);
-      return handler(req, res, prisma);
-    });
+      return runWithTenants(tenant, async () => {
+        const prisma = getPrisma(tenant);
+        return handler(req, res, prisma);
+      });
+    } catch (error) {
+      console.error(`[withPrismaApiHandler] Error:`, error);
+      return res.status(500).json({
+        error: "Database connection error",
+        message: error instanceof Error ? error.message : "Unknown error",
+        tenant: req.headers.host || "unknown",
+      } as unknown as T);
+    }
   };
 }
