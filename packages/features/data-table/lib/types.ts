@@ -270,7 +270,7 @@ export const ZSegmentStorage = z.record(
 
 export type UseSegments = (props: UseSegmentsProps) => UseSegmentsReturn;
 
-type UseSegmentsProps = {
+export type UseSegmentsProps = {
   tableIdentifier: string;
   activeFilters: ActiveFilters;
   sorting: SortingState;
@@ -290,7 +290,7 @@ type UseSegmentsProps = {
   setSearchTerm: (searchTerm: string | null) => void;
 };
 
-type UseSegmentsReturn = {
+export type UseSegmentsReturn = {
   segments: FilterSegmentOutput[];
   selectedSegment: FilterSegmentOutput | undefined;
   canSaveSegment: boolean;

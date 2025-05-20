@@ -8,6 +8,7 @@ import { useQueryState } from "nuqs";
 import { createContext, useCallback, useEffect, useRef, useMemo } from "react";
 
 import { useSegmentsNoop } from "./hooks/useSegmentsNoop";
+import { useSegmentsWithProp } from "./hooks/useSegmentsWithProp";
 import {
   activeFiltersParser,
   sortingParser,
@@ -74,6 +75,7 @@ interface DataTableProviderProps {
   children: React.ReactNode;
   ctaContainerClassName?: string;
   defaultPageSize?: number;
+  segments?: FilterSegmentOutput[];
 }
 
 export function DataTableProvider({
@@ -82,6 +84,7 @@ export function DataTableProvider({
   useSegments = useSegmentsNoop,
   defaultPageSize = DEFAULT_PAGE_SIZE,
   ctaContainerClassName = CTA_CONTAINER_CLASS_NAME,
+  segments,
 }: DataTableProviderProps) {
   const filterToOpen = useRef<string | undefined>(undefined);
   const [activeFilters, setActiveFilters] = useQueryState("activeFilters", activeFiltersParser);
@@ -163,27 +166,33 @@ export function DataTableProvider({
     [setPageSize, setPageIndex, defaultPageSize]
   );
 
-  const { segments, selectedSegment, canSaveSegment, setAndPersistSegmentId, isSegmentEnabled } = useSegments(
-    {
-      tableIdentifier,
-      activeFilters,
-      sorting,
-      columnVisibility,
-      columnSizing,
-      pageSize,
-      searchTerm,
-      defaultPageSize,
-      segmentId,
-      setSegmentId,
-      setActiveFilters,
-      setSorting,
-      setColumnVisibility,
-      setColumnSizing,
-      setPageSize,
-      setPageIndex,
-      setSearchTerm,
-    }
-  );
+  const segmentsProps = {
+    tableIdentifier,
+    activeFilters,
+    sorting,
+    columnVisibility,
+    columnSizing,
+    pageSize,
+    searchTerm,
+    defaultPageSize,
+    segmentId,
+    setSegmentId,
+    setActiveFilters,
+    setSorting,
+    setColumnVisibility,
+    setColumnSizing,
+    setPageSize,
+    setPageIndex,
+    setSearchTerm,
+  };
+
+  const {
+    segments: fetchedSegments,
+    selectedSegment,
+    canSaveSegment,
+    setAndPersistSegmentId,
+    isSegmentEnabled,
+  } = useSegmentsWithProp(segments, useSegments, segmentsProps);
 
   const clearAll = useCallback(
     (exclude?: string[]) => {
@@ -228,7 +237,7 @@ export function DataTableProvider({
         setPageSize: setPageSizeAndGoToFirstPage,
         limit: pageSize,
         offset: pageIndex * pageSize,
-        segments,
+        segments: fetchedSegments,
         selectedSegment,
         segmentId: segmentId || undefined,
         setSegmentId: setAndPersistSegmentId,
