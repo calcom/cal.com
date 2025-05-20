@@ -14135,6 +14135,7 @@
           },
           "address": {
             "type": "string",
+            "minLength": 1,
             "example": "123 Example St, City, Country"
           },
           "public": {

@@ -27,8 +27,7 @@ import {
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, BadRequestException } from "@nestjs/common";
 
-import { getUsersCredentials } from "@calcom/platform-libraries";
-import { getApps } from "@calcom/platform-libraries/app-store";
+import { getApps, getUsersCredentialsIncludeServiceAccountKey } from "@calcom/platform-libraries/app-store";
 import { validateCustomEventName, EventTypeMetaDataSchema } from "@calcom/platform-libraries/event-types";
 import {
   CreateEventTypeInput_2024_06_14,
@@ -475,7 +474,7 @@ export class InputEventTypesService_2024_06_14 {
       appSlug = "msteams";
     }
 
-    const credentials = await getUsersCredentials(user);
+    const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
 
     const foundApp = getApps(credentials, true).filter((app) => app.slug === appSlug)[0];
 
