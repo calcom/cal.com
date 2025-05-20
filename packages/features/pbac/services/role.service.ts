@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, RoleType } from "@calcom/prisma/enums";
 
 import type { PermissionString, Resource, CrudAction, CustomAction } from "../types/permission-registry";
 import { PermissionService } from "./permission.service";
@@ -50,8 +50,7 @@ export class RoleService {
           name: data.name,
           description: data.description,
           teamId: data.teamId,
-          isDefault: false,
-          isGlobal: false,
+          type: RoleType.CUSTOM,
         },
       });
 
@@ -125,7 +124,7 @@ export class RoleService {
     }
 
     // Don't allow deleting default roles
-    if (role.isDefault) {
+    if (role.type === RoleType.SYSTEM) {
       throw new Error("Cannot delete default roles");
     }
 
@@ -159,7 +158,7 @@ export class RoleService {
     // Get both team-specific roles and default roles
     const roles = await this.prisma.role.findMany({
       where: {
-        OR: [{ teamId }, { isDefault: true }],
+        OR: [{ teamId }, { type: RoleType.SYSTEM }],
       },
       include: {
         permissions: true,
@@ -176,7 +175,7 @@ export class RoleService {
     }
 
     // Don't allow updating default roles
-    if (role.isDefault) {
+    if (role.type === RoleType.SYSTEM) {
       throw new Error("Cannot update default roles");
     }
 

@@ -1,3 +1,6 @@
+-- CreateEnum
+CREATE TYPE "RoleType" AS ENUM ('SYSTEM', 'CUSTOM');
+
 -- AlterTable
 ALTER TABLE "Membership" ADD COLUMN     "customRoleId" TEXT;
 
@@ -9,6 +12,7 @@ CREATE TABLE "Role" (
     "teamId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "type" "RoleType" NOT NULL DEFAULT 'CUSTOM',
 
     CONSTRAINT "Role_pkey" PRIMARY KEY ("id")
 );
@@ -32,6 +36,9 @@ CREATE UNIQUE INDEX "Role_name_teamId_key" ON "Role"("name", "teamId");
 
 -- CreateIndex
 CREATE INDEX "RolePermission_roleId_idx" ON "RolePermission"("roleId");
+
+-- CreateIndex
+CREATE INDEX "RolePermission_action_idx" ON "RolePermission"("action");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "RolePermission_roleId_resource_action_key" ON "RolePermission"("roleId", "resource", "action");

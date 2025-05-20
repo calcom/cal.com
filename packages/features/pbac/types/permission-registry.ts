@@ -38,12 +38,12 @@ export type CrudScope = `${Resource}.${CrudAction}` | `${Resource}.*` | `*.*`;
 export type CustomScope = `${Resource}.${CustomAction}` | `${Resource}.*` | `*.*`;
 export type PermissionString = CrudScope | CustomScope;
 
-type PermissionDetails = {
+export type PermissionDetails = {
   description: string;
   category: string;
 };
 
-type ResourcePermissions = {
+export type ResourcePermissions = {
   [K in CrudAction | CustomAction]?: PermissionDetails;
 };
 
@@ -123,57 +123,4 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
     [CrudAction.Delete]: { description: "Delete API keys", category: "apiKey" },
     [CustomAction.Manage]: { description: "All actions on API keys", category: "apiKey" },
   },
-};
-
-// Helper function to check if a permission matches a pattern (including wildcards)
-export const permissionMatches = (pattern: PermissionString, permission: PermissionString): boolean => {
-  // Handle full wildcard
-  if (pattern === "*.*") return true;
-
-  const [patternResource, patternAction] = pattern.split(".") as [
-    Resource | "*",
-    CrudAction | CustomAction | "*"
-  ];
-  const [permissionResource, permissionAction] = permission.split(".") as [
-    Resource,
-    CrudAction | CustomAction
-  ];
-
-  // Check if resource matches (either exact match or wildcard)
-  const resourceMatches = patternResource === "*" || patternResource === permissionResource;
-
-  // Check if action matches (either exact match or wildcard)
-  const actionMatches = patternAction === "*" || patternAction === permissionAction;
-
-  return resourceMatches && actionMatches;
-};
-
-// Helper function to create a permission string
-export const createPermissionString = (
-  resource: Resource | "*",
-  action: CrudAction | CustomAction | "*",
-  isCustom = false
-): PermissionString => {
-  const prefix = isCustom ? "custom:" : "";
-  return `${prefix}${resource}.${action}` as PermissionString;
-};
-
-// Helper function to get all permissions as an array
-export const getAllPermissions = (): Array<
-  { resource: Resource; action: CrudAction | CustomAction } & PermissionDetails
-> => {
-  const permissions: Array<{ resource: Resource; action: CrudAction | CustomAction } & PermissionDetails> =
-    [];
-
-  Object.entries(PERMISSION_REGISTRY).forEach(([resource, actions]) => {
-    Object.entries(actions).forEach(([action, details]) => {
-      permissions.push({
-        resource: resource as Resource,
-        action: action as CrudAction | CustomAction,
-        ...details,
-      });
-    });
-  });
-
-  return permissions;
 };

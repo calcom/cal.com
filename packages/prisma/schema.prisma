@@ -2208,6 +2208,11 @@ model WorkflowOptOutContact {
   @@unique([type, value])
 }
 
+enum RoleType {
+  SYSTEM
+  CUSTOM
+}
+
 model Role {
   id          String           @id @default(cuid())
   name        String
@@ -2218,13 +2223,10 @@ model Role {
   memberships Membership[]
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
-  isGlobal    Boolean          @default(false)
-  isDefault   Boolean          @default(false) // Indicates if this is one of the default roles (OWNER, ADMIN, MEMBER)
+  type        RoleType         @default(CUSTOM)
 
   @@unique([name, teamId])
   @@index([teamId])
-  @@index([isGlobal])
-  @@index([isDefault])
 }
 
 model RolePermission {

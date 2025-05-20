@@ -1,5 +1,11 @@
-import type { PermissionString, Resource, CrudAction, CustomAction } from "../types/permission-registry";
-import { PERMISSION_REGISTRY, getAllPermissions } from "../types/permission-registry";
+import type {
+  PermissionString,
+  Resource,
+  CrudAction,
+  CustomAction,
+  PermissionDetails,
+} from "../types/permission-registry";
+import { PERMISSION_REGISTRY } from "../types/permission-registry";
 
 export class PermissionService {
   validatePermission(permission: PermissionString): boolean {
@@ -11,17 +17,63 @@ export class PermissionService {
     return permissions.every((permission) => this.validatePermission(permission));
   }
 
-  getAllPermissions() {
-    // TODO: Rename this shit
-    return getAllPermissions();
+  // Helper function to check if a permission matches a pattern (including wildcards)
+  permissionMatches(pattern: PermissionString, permission: PermissionString): boolean {
+    // Handle full wildcard
+    if (pattern === "*.*") return true;
+
+    const [patternResource, patternAction] = pattern.split(".") as [
+      Resource | "*",
+      CrudAction | CustomAction | "*"
+    ];
+    const [permissionResource, permissionAction] = permission.split(".") as [
+      Resource,
+      CrudAction | CustomAction
+    ];
+
+    // Check if resource matches (either exact match or wildcard)
+    const resourceMatches = patternResource === "*" || patternResource === permissionResource;
+
+    // Check if action matches (either exact match or wildcard)
+    const actionMatches = patternAction === "*" || patternAction === permissionAction;
+
+    return resourceMatches && actionMatches;
+  }
+
+  // Helper function to create a permission string
+  createPermissionString(
+    resource: Resource | "*",
+    action: CrudAction | CustomAction | "*",
+    isCustom = false
+  ): PermissionString {
+    const prefix = isCustom ? "custom:" : "";
+    return `${prefix}${resource}.${action}` as PermissionString;
+  }
+
+  // Helper function to get all permissions as an array
+  getAllPermissions(): Array<{ resource: Resource; action: CrudAction | CustomAction } & PermissionDetails> {
+    const permissions: Array<{ resource: Resource; action: CrudAction | CustomAction } & PermissionDetails> =
+      [];
+
+    Object.entries(PERMISSION_REGISTRY).forEach(([resource, actions]) => {
+      Object.entries(actions).forEach(([action, details]) => {
+        permissions.push({
+          resource: resource as Resource,
+          action: action as CrudAction | CustomAction,
+          ...details,
+        });
+      });
+    });
+
+    return permissions;
   }
 
   getPermissionsByCategory(category: string) {
-    return getAllPermissions().filter((p) => p.category === category);
+    return this.getAllPermissions().filter((p) => p.category === category);
   }
 
   getPermissionCategories(): string[] {
-    return Array.from(new Set(getAllPermissions().map((p) => p.category)));
+    return Array.from(new Set(this.getAllPermissions().map((p) => p.category)));
   }
 
   getPermissionsByResource(resource: Resource) {
@@ -36,6 +88,6 @@ export class PermissionService {
   }
 
   getPermissionsByAction(action: CrudAction | CustomAction) {
-    return getAllPermissions().filter((p) => p.action === action);
+    return this.getAllPermissions().filter((p) => p.action === action);
   }
 }
