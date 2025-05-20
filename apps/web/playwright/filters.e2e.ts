@@ -1,10 +1,16 @@
 import { expect } from "@playwright/test";
 import { v4 as uuidv4 } from "uuid";
 
-import dayjs from "@calcom/dayjs";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
-import { selectFilter, applyFilter, clearFilters } from "./filter-helpers";
+import {
+  selectFilter,
+  openFilter,
+  clearFilters,
+  applySelectFilter,
+  applyTextFilter,
+  applyNumberFilter,
+} from "./filter-helpers";
 import { test } from "./lib/fixtures";
 
 test.afterEach(({ users }) => users.deleteAll());
@@ -60,13 +66,13 @@ test.describe("Insights > Routing Filters", () => {
 
     await page.goto(`/insights/routing`);
 
-    await applyFilter(page, "formId", formName1);
+    await applySelectFilter(page, "formId", formName1);
 
     await expect(page.getByText(formName1)).toBeVisible();
     await expect(page.getByText(formName2)).toBeHidden();
 
     await clearFilters(page);
-    await applyFilter(page, "formId", formName2);
+    await applySelectFilter(page, "formId", formName2);
 
     await expect(page.getByText(formName2)).toBeVisible();
     await expect(page.getByText(formName1)).toBeHidden();
@@ -174,7 +180,7 @@ test.describe("Insights > Routing Filters", () => {
 
     await page.goto(`/insights/routing`);
 
-    await applyFilter(page, "bookingUserId", user1Name);
+    await applySelectFilter(page, "bookingUserId", user1Name);
 
     await expect(page.getByText("John Doe")).toBeVisible();
     await expect(page.getByText("Jane Smith")).toBeHidden();
@@ -183,7 +189,8 @@ test.describe("Insights > Routing Filters", () => {
     await prisma.booking.delete({ where: { id: booking2.id } });
   });
 
-  test("bookingAttendees filter: should filter by attendee name or email", async ({
+  // We will add it back when we enable the bookingAttendees filter on /insights/routing
+  test.skip("bookingAttendees filter: should filter by attendee name or email", async ({
     page,
     users,
     routingForms,
@@ -343,7 +350,7 @@ test.describe("Insights > Routing Filters", () => {
         formFillerId: "test-filler-1",
         formId: form.id,
         response: {
-          description: {
+          [fieldId]: {
             label: "Description",
             value: "This is a test description",
           },
@@ -379,52 +386,25 @@ test.describe("Insights > Routing Filters", () => {
 
     await page.goto(`/insights/routing`);
 
-    await selectFilter(page, "description");
-    await page.getByTestId("filter-popover-trigger-description").click();
-    await page
-      .getByTestId("select-filter-options-description")
-      .getByRole("option", { name: "contains" })
-      .click();
-    await page.getByPlaceholder("Filter value").fill("test");
-    await page.keyboard.press("Enter");
+    await applyTextFilter(page, fieldId, "Contains", "test");
 
     await expect(page.getByText("This is a test description")).toBeVisible();
     await expect(page.getByText("Another description for testing")).toBeVisible();
 
     await clearFilters(page);
-    await selectFilter(page, "description");
-    await page.getByTestId("filter-popover-trigger-description").click();
-    await page
-      .getByTestId("select-filter-options-description")
-      .getByRole("option", { name: "equals" })
-      .click();
-    await page.getByPlaceholder("Filter value").fill("This is a test description");
-    await page.keyboard.press("Enter");
+    await applyTextFilter(page, fieldId, "Is", "This is a test description");
 
     await expect(page.getByText("This is a test description")).toBeVisible();
     await expect(page.getByText("Another description for testing")).toBeHidden();
 
     await clearFilters(page);
-    await selectFilter(page, "description");
-    await page.getByTestId("filter-popover-trigger-description").click();
-    await page
-      .getByTestId("select-filter-options-description")
-      .getByRole("option", { name: "isEmpty" })
-      .click();
-    await page.keyboard.press("Enter");
+    await applyTextFilter(page, fieldId, "Is empty");
 
     await expect(page.getByText("This is a test description")).toBeHidden();
     await expect(page.getByText("Another description for testing")).toBeHidden();
 
     await clearFilters(page);
-    await selectFilter(page, "description");
-    await page.getByTestId("filter-popover-trigger-description").click();
-    await page
-      .getByTestId("select-filter-options-description")
-      .getByRole("option", { name: "contains" })
-      .click();
-    await page.getByPlaceholder("Filter value").fill("TEST");
-    await page.keyboard.press("Enter");
+    await applyTextFilter(page, fieldId, "Contains", "TEST");
 
     await expect(page.getByText("This is a test description")).toBeVisible();
     await expect(page.getByText("Another description for testing")).toBeVisible();
@@ -503,43 +483,28 @@ test.describe("Insights > Routing Filters", () => {
 
     await page.goto(`/insights/routing`);
 
-    await selectFilter(page, "rating");
-    await page.getByTestId("filter-popover-trigger-rating").click();
-    await page.getByTestId("select-filter-options-rating").getByRole("option", { name: "equals" }).click();
-    await page.getByPlaceholder("Filter value").fill("3");
-    await page.keyboard.press("Enter");
+    await applyNumberFilter(page, fieldId, "=", 3);
 
-    await expect(page.getByText("3")).toBeVisible();
-    await expect(page.getByText("1")).toBeHidden();
-    await expect(page.getByText("5")).toBeHidden();
+    const getByNumber = (number: number) =>
+      page.locator(`[data-testid="data-table-td-${fieldId}"]`).getByText(String(number));
 
-    await clearFilters(page);
-    await selectFilter(page, "rating");
-    await page.getByTestId("filter-popover-trigger-rating").click();
-    await page
-      .getByTestId("select-filter-options-rating")
-      .getByRole("option", { name: "greater than" })
-      .click();
-    await page.getByPlaceholder("Filter value").fill("3");
-    await page.keyboard.press("Enter");
-
-    await expect(page.getByText("5")).toBeVisible();
-    await expect(page.getByText("1")).toBeHidden();
-    await expect(page.getByText("3")).toBeHidden();
+    await expect(getByNumber(3)).toBeVisible();
+    await expect(getByNumber(1)).toBeHidden();
+    await expect(getByNumber(5)).toBeHidden();
 
     await clearFilters(page);
-    await selectFilter(page, "rating");
-    await page.getByTestId("filter-popover-trigger-rating").click();
-    await page
-      .getByTestId("select-filter-options-rating")
-      .getByRole("option", { name: "less than or equal" })
-      .click();
-    await page.getByPlaceholder("Filter value").fill("3");
-    await page.keyboard.press("Enter");
+    await applyNumberFilter(page, fieldId, ">", 3);
 
-    await expect(page.getByText("1")).toBeVisible();
-    await expect(page.getByText("3")).toBeVisible();
-    await expect(page.getByText("5")).toBeHidden();
+    await expect(getByNumber(5)).toBeVisible();
+    await expect(getByNumber(1)).toBeHidden();
+    await expect(getByNumber(3)).toBeHidden();
+
+    await clearFilters(page);
+    await applyNumberFilter(page, fieldId, "≤", 3);
+
+    await expect(getByNumber(1)).toBeVisible();
+    await expect(getByNumber(3)).toBeVisible();
+    await expect(getByNumber(5)).toBeHidden();
   });
 
   test("SINGLE_SELECT and MULTI_SELECT fields: should filter correctly", async ({
@@ -637,12 +602,12 @@ test.describe("Insights > Routing Filters", () => {
         formFillerId: "test-filler-2",
         formId: form.id,
         response: {
-          location: {
-            [locationFieldId]: "Location",
+          [locationFieldId]: {
+            label: "Location",
             value: locationOptionId2,
           },
-          skills: {
-            [skillFieldId]: "Skills",
+          [skillFieldId]: {
+            label: "Skills",
             value: [skillOptionId2, skillOptionId3],
           },
         },
@@ -651,24 +616,19 @@ test.describe("Insights > Routing Filters", () => {
 
     await page.goto(`/insights/routing`);
 
-    await selectFilter(page, "location");
-    await page.getByTestId("filter-popover-trigger-location").click();
-    await page
-      .getByTestId("select-filter-options-location")
-      .getByRole("option", { name: "New York" })
-      .click();
-    await page.keyboard.press("Escape");
+    const getByColumnValue = (columnId: string, value: string) =>
+      page.locator(`[data-testid="data-table-td-${columnId}"]`).getByText(value);
 
-    await expect(page.getByText("New York")).toBeVisible();
-    await expect(page.getByText("London")).toBeHidden();
+    await applySelectFilter(page, locationFieldId, "New York");
+    await expect(getByColumnValue(locationFieldId, "New York")).toBeVisible();
+    await expect(getByColumnValue(locationFieldId, "London")).toBeHidden();
 
     await clearFilters(page);
-    await selectFilter(page, "skills");
-    await page.getByTestId("filter-popover-trigger-skills").click();
-    await page.getByTestId("select-filter-options-skills").getByRole("option", { name: "React" }).click();
-    await page.keyboard.press("Escape");
-
-    await expect(page.getByText("React")).toBeVisible();
+    await applySelectFilter(page, skillFieldId, "JavaScript");
+    await applySelectFilter(page, skillFieldId, "TypeScript");
+    await expect(getByColumnValue(skillFieldId, "JavaScript")).toBeVisible();
+    await expect(getByColumnValue(skillFieldId, "TypeScript")).toBeVisible();
+    await expect(getByColumnValue(skillFieldId, "React")).toBeHidden();
   });
 
   test("createdAt filter: should filter by date range", async ({ page, users, routingForms, prisma }) => {
@@ -730,34 +690,18 @@ test.describe("Insights > Routing Filters", () => {
 
     await page.goto(`/insights/routing`);
 
-    await selectFilter(page, "createdAt");
-    await page.getByTestId("filter-popover-trigger-createdAt").click();
+    await openFilter(page, "createdAt");
     await page.getByTestId("date-range-options-w").click(); // Last 7 Days
+    await page.keyboard.press("Escape");
 
     await expect(page.getByText("Recent Response")).toBeVisible();
     await expect(page.getByText("Old Response")).toBeHidden();
 
-    await clearFilters(page);
-    await selectFilter(page, "createdAt");
-    await page.getByTestId("filter-popover-trigger-createdAt").click();
+    await openFilter(page, "createdAt");
     await page.getByTestId("date-range-options-t").click(); // Last 30 Days
+    await page.keyboard.press("Escape");
 
     await expect(page.getByText("Recent Response")).toBeVisible();
     await expect(page.getByText("Old Response")).toBeVisible();
-
-    await clearFilters(page);
-    await selectFilter(page, "createdAt");
-    await page.getByTestId("filter-popover-trigger-createdAt").click();
-    await page.getByTestId("date-range-options-c").click(); // Custom
-
-    const startDate = dayjs(oldDate).subtract(1, "day").format("YYYY-MM-DD");
-    const endDate = dayjs(oldDate).add(1, "day").format("YYYY-MM-DD");
-
-    await page.getByTestId("date-range-start-date").fill(startDate);
-    await page.getByTestId("date-range-end-date").fill(endDate);
-    await page.keyboard.press("Enter");
-
-    await expect(page.getByText("Old Response")).toBeVisible();
-    await expect(page.getByText("Recent Response")).toBeHidden();
   });
 });

@@ -9,18 +9,63 @@ export async function selectFilter(page: Page, columnId: string) {
   await page.getByTestId(`add-filter-item-${columnId}`).click();
 }
 
+export async function openFilter(page: Page, columnId: string) {
+  await page.getByTestId(`filter-popover-trigger-${columnId}`).click();
+}
+
 /**
  * Apply a filter with a specific value
  */
-export async function applyFilter(page: Page, columnId: string, value: string) {
+export async function applySelectFilter(page: Page, columnId: string, value: string) {
   const existingFilter = page.getByTestId(`filter-popover-trigger-${columnId}`);
   if (!(await existingFilter.isVisible())) {
     await selectFilter(page, columnId);
   }
-
-  await page.getByTestId(`filter-popover-trigger-${columnId}`).click();
+  await openFilter(page, columnId);
 
   await page.getByTestId(`select-filter-options-${columnId}`).getByRole("option", { name: value }).click();
+
+  await page.keyboard.press("Escape");
+}
+
+export async function applyTextFilter(page: Page, columnId: string, operator: string, operand?: string) {
+  const existingFilter = page.getByTestId(`filter-popover-trigger-${columnId}`);
+  if (!(await existingFilter.isVisible())) {
+    await selectFilter(page, columnId);
+  }
+  await openFilter(page, columnId);
+
+  await page.getByTestId(`text-filter-options-select-${columnId}`).click();
+  await page
+    .locator(`[data-testid="text-filter-options-${columnId}"] [id^="react-select-"]`)
+    .getByText(operator)
+    .first()
+    .click();
+  if (operand) {
+    await page.keyboard.press("Tab");
+    await page.keyboard.type(operand);
+  }
+  await page.keyboard.press("Enter");
+
+  await page.keyboard.press("Escape");
+}
+
+export async function applyNumberFilter(page: Page, columnId: string, operator: string, operand: number) {
+  const existingFilter = page.getByTestId(`filter-popover-trigger-${columnId}`);
+  if (!(await existingFilter.isVisible())) {
+    await selectFilter(page, columnId);
+  }
+  await openFilter(page, columnId);
+
+  await page.getByTestId(`number-filter-options-select-${columnId}`).click();
+  await page
+    .locator(`[data-testid="number-filter-options-${columnId}"] [id^="react-select-"]`)
+    .getByText(operator)
+    .first()
+    .click();
+  await page.keyboard.press("Tab");
+  await page.keyboard.type(String(operand));
+  await page.keyboard.press("Enter");
 
   await page.keyboard.press("Escape");
 }
