@@ -6,6 +6,7 @@ import { SENDER_ID } from "@calcom/lib/constants";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
+import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 const handleSendingSMS = async ({
@@ -93,9 +94,14 @@ export default abstract class SMSManager {
       select: { bookingFields: true },
     });
 
-    this._isSMSNotificationEnabled = !!eventType?.bookingFields?.find(
-      (field) => field.name === "attendeePhoneNumber" && field.enableSMSNotification
-    );
+    const parsedBookingFields = eventTypeBookingFields.parse(eventType?.bookingFields || []);
+
+    this._isSMSNotificationEnabled =
+      parsedBookingFields.length > 0
+        ? !!parsedBookingFields.find(
+            (field) => field.name === "attendeePhoneNumber" && field.enableSMSNotification
+          )
+        : true;
 
     return this._isSMSNotificationEnabled;
   }

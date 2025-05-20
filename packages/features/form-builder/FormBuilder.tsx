@@ -15,6 +15,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
+import { ToggleGroup } from "@calcom/ui/components/form";
 import {
   Switch,
   CheckboxField,
@@ -59,6 +60,7 @@ export const FormBuilder = function FormBuilder({
   LockedIcon,
   dataStore,
   shouldConsiderRequired,
+  showPhoneAndEmailToggle = false,
 }: {
   formProp: string;
   title: string;
@@ -66,6 +68,7 @@ export const FormBuilder = function FormBuilder({
   addFieldLabel: string;
   disabled: boolean;
   LockedIcon: false | JSX.Element;
+  showPhoneAndEmailToggle?: boolean;
   /**
    * A readonly dataStore that is used to lookup the options for the fields. It works in conjunction with the field.getOptionAt property which acts as the key in options
    */
@@ -95,6 +98,10 @@ export const FormBuilder = function FormBuilder({
     // HACK: It allows any property name to be used for instead of `fields` property name
     name: formProp as unknown as "fields",
   });
+
+  if (formProp === "bookingFields") {
+    console.log("fields", fields);
+  }
 
   const [fieldDialog, setFieldDialog] = useState({
     isOpen: false,
@@ -129,7 +136,56 @@ export const FormBuilder = function FormBuilder({
           {title}
           {LockedIcon}
         </div>
-        <p className="text-subtle mt-0.5 max-w-[280px] break-words text-sm sm:max-w-[500px]">{description}</p>
+        <div className="flex items-center justify-between">
+          <p className="text-subtle mt-0.5 max-w-[280px] break-words text-sm sm:max-w-[500px]">
+            {description}
+          </p>
+
+          {showPhoneAndEmailToggle && (
+            <ToggleGroup
+              defaultValue="email"
+              options={[
+                {
+                  value: "email",
+                  label: "Email",
+                },
+                {
+                  value: "phone",
+                  label: "Phone",
+                },
+              ]}
+              onValueChange={(value) => {
+                console.log("phone");
+                console.log("fields", fields);
+                const phoneFieldIndex = fields.findIndex((field) => field.name === "attendeePhoneNumber");
+                const emailFieldIndex = fields.findIndex((field) => field.name === "email");
+                if (value === "email") {
+                  update(emailFieldIndex, {
+                    ...fields[emailFieldIndex],
+                    hidden: false,
+                    required: true,
+                  });
+                  update(phoneFieldIndex, {
+                    ...fields[phoneFieldIndex],
+                    hidden: true,
+                    required: false,
+                  });
+                } else if (value === "phone") {
+                  update(emailFieldIndex, {
+                    ...fields[emailFieldIndex],
+                    hidden: true,
+                    required: false,
+                  });
+                  update(phoneFieldIndex, {
+                    ...fields[phoneFieldIndex],
+                    hidden: false,
+                    required: true,
+                  });
+                }
+              }}
+            />
+          )}
+        </div>
         <ul ref={parent} className="border-subtle divide-subtle mt-4 divide-y rounded-md border">
           {fields.map((field, index) => {
             let options = field.options ?? null;
@@ -481,7 +537,6 @@ function FieldEditDialog({
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
   const fieldName = fieldForm.getValues("name");
-  console.log("fieldTypes", fieldForm.getValues());
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>

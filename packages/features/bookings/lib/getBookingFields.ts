@@ -136,9 +136,9 @@ export const ensureBookingInputsHaveSystemFields = ({
   });
 
   const isEmailFieldOptional = !!bookingFields.find((field) => field.name === "email" && !field.required);
-  const isAttendeePhoneNumberFieldSMSNotificationEnabled = !!bookingFields.find(
-    (field) => field.name === "attendeePhoneNumber" && field.enableSMSNotification
-  );
+  const isAttendeePhoneNumberFieldSMSNotificationEnabled = bookingFields.length
+    ? !!bookingFields.find((field) => field.name === "attendeePhoneNumber" && field.enableSMSNotification)
+    : true;
 
   // These fields should be added before other user fields
   const systemBeforeFields: typeof bookingFields = [
