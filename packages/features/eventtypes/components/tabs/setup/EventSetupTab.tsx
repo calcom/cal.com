@@ -134,13 +134,24 @@ export type EventSetupTabProps = Pick<
   customClassNames?: EventSetupTabCustomClassNames;
 };
 export const EventSetupTab = (
-  props: EventSetupTabProps & { urlPrefix: string; hasOrgBranding: boolean; orgId?: number }
+  props: EventSetupTabProps & {
+    urlPrefix: string;
+    hasOrgBranding: boolean;
+    orgId?: number;
+    localeOptions?: { value: string; label: string }[];
+  }
 ) => {
   const { t } = useLocale();
   const isPlatform = useIsPlatform();
   const formMethods = useFormContext<FormValues>();
   const { eventType, team, urlPrefix, hasOrgBranding, customClassNames, orgId } = props;
   console.log("EventSetupTab.eventType", eventType);
+
+  const interfaceLanguageOptions =
+    props.localeOptions && props.localeOptions.length > 0
+      ? [{ label: t("visitors_browser_language"), value: "" }, ...props.localeOptions]
+      : [];
+
   const [multipleDuration, setMultipleDuration] = useState(
     formMethods.getValues("metadata")?.multipleDuration
   );
@@ -235,6 +246,34 @@ export const EventSetupTab = (
                 }}
                 disabled={!orgId}
                 tooltip={!orgId ? t("orgs_upgrade_to_enable_feature") : undefined}
+              />
+            </div>
+          )}
+          {!isPlatform && interfaceLanguageOptions.length > 0 && (
+            <div>
+              <Skeleton
+                as={Label}
+                loadingClassName="w-16"
+                htmlFor="interfaceLanguage"
+                className={customClassNames?.locationSection?.label}>
+                {t("interface_language")}
+                {shouldLockIndicator("interfaceLanguage")}
+              </Skeleton>
+              <Controller
+                name="interfaceLanguage"
+                control={formMethods.control}
+                defaultValue={eventType.interfaceLanguage ?? ""}
+                render={({ field: { value, onChange } }) => (
+                  <Select<{ label: string; value: string }>
+                    data-testid="event-interface-language"
+                    className="capitalize"
+                    options={interfaceLanguageOptions}
+                    onChange={(option) => {
+                      onChange(option?.value);
+                    }}
+                    value={interfaceLanguageOptions.find((option) => option.value === value)}
+                  />
+                )}
               />
             </div>
           )}
