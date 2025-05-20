@@ -55,6 +55,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let eventTypeId: number;
     let seatedEvent: EventType;
     let eventTypeWithBookingFields: EventType;
+    let eventTypeWithBookingFielsCustom: EventType;
     const eventTypeSlug = `booking-fields-2024-08-13-event-type-${randomString()}`;
     const eventTypeWithBookingFieldsSlug = `booking-fields-2024-08-13-event-type-${randomString()}`;
     const seatedEventTypeSlug = `booking-fields-2024-08-13-event-type-${randomString()}`;
@@ -331,6 +332,313 @@ describe("Bookings Endpoints 2024-08-13", () => {
         user.id
       );
 
+      eventTypeWithBookingFielsCustom = await eventTypesRepositoryFixture.create(
+        {
+          title: "test booking field types",
+          slug: "test-booking-field-types",
+          length: 30,
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              sources: [{ id: "default", type: "default", label: "Default" }],
+              variant: "fullName",
+              editable: "system",
+              required: true,
+              defaultLabel: "your_name",
+              variantsConfig: {
+                variants: {
+                  fullName: {
+                    fields: [
+                      {
+                        name: "fullName",
+                        type: "text",
+                        required: true,
+                      },
+                    ],
+                  },
+                  firstAndLastName: {
+                    fields: [
+                      {
+                        name: "firstName",
+                        type: "text",
+                        label: "",
+                        required: true,
+                        placeholder: "",
+                      },
+                      {
+                        name: "lastName",
+                        type: "text",
+                        label: "",
+                        required: false,
+                        placeholder: "",
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+            {
+              name: "email",
+              type: "email",
+              sources: [{ id: "default", type: "default", label: "Default" }],
+              editable: "system",
+              required: true,
+              defaultLabel: "email_address",
+            },
+            {
+              name: "location",
+              type: "radioInput",
+              sources: [{ id: "default", type: "default", label: "Default" }],
+              editable: "system",
+              required: false,
+              defaultLabel: "location",
+              getOptionsAt: "locations",
+              optionsInputs: {
+                phone: { type: "phone", required: true, placeholder: "" },
+                somewhereElse: { type: "text", required: true, placeholder: "" },
+                attendeeInPerson: { type: "address", required: true, placeholder: "" },
+              },
+              hideWhenJustOneOption: true,
+            },
+            {
+              name: "test-phone",
+              type: "phone",
+              label: "test-phone",
+              hidden: false,
+              sources: [{ id: "user", type: "user", label: "User", fieldRequired: true }],
+              editable: "user",
+              required: false,
+              disableOnPrefill: false,
+            },
+            {
+              name: "test-address",
+              type: "address",
+              label: "test-address",
+              hidden: false,
+              sources: [{ id: "user", type: "user", label: "User", fieldRequired: true }],
+              editable: "user",
+              required: false,
+              disableOnPrefill: false,
+            },
+            {
+              name: "test-text",
+              type: "text",
+              label: "test-text",
+              hidden: false,
+              sources: [{ id: "user", type: "user", label: "User", fieldRequired: true }],
+              editable: "user",
+              required: false,
+              disableOnPrefill: false,
+            },
+            {
+              name: "test-number",
+              type: "number",
+              label: "test-number",
+              hidden: false,
+              sources: [{ id: "user", type: "user", label: "User", fieldRequired: true }],
+              editable: "user",
+              required: false,
+              disableOnPrefill: false,
+            },
+            {
+              name: "test-textarea",
+              type: "textarea",
+              label: "test-textarea",
+              hidden: false,
+              sources: [{ id: "user", type: "user", label: "User", fieldRequired: true }],
+              editable: "user",
+              required: false,
+              disableOnPrefill: false,
+            },
+            {
+              name: "test-boolean",
+              type: "boolean",
+              label: "test-boolean",
+              hidden: false,
+              sources: [{ id: "user", type: "user", label: "User", fieldRequired: true }],
+              editable: "user",
+              required: false,
+              labelAsSafeHtml: "<p>test-boolean</p>\n",
+              disableOnPrefill: false,
+            },
+            {
+              name: "test-url",
+              type: "url",
+              label: "test-url",
+              hidden: false,
+              sources: [{ id: "user", type: "user", label: "User", fieldRequired: true }],
+              editable: "user",
+              required: false,
+              placeholder: "",
+              labelAsSafeHtml: "<p>test-url</p>\n",
+              disableOnPrefill: false,
+            },
+            {
+              name: "test-multiemail",
+              type: "multiemail",
+              label: "test-multiemail",
+              hidden: false,
+              sources: [
+                {
+                  id: "user",
+                  type: "user",
+                  label: "User",
+                  fieldRequired: true,
+                },
+              ],
+              editable: "user",
+              required: false,
+              disableOnPrefill: false,
+            },
+            {
+              name: "test-multiselect",
+              type: "multiselect",
+              label: "test-multiselect",
+              hidden: false,
+              options: [
+                {
+                  label: "apple",
+                  value: "apple",
+                },
+                {
+                  label: "orange",
+                  value: "orange",
+                },
+              ],
+              sources: [
+                {
+                  id: "user",
+                  type: "user",
+                  label: "User",
+                  fieldRequired: true,
+                },
+              ],
+              editable: "user",
+              required: false,
+              disableOnPrefill: false,
+            },
+            {
+              name: "test-checkbox",
+              type: "checkbox",
+              label: "test-checkbox",
+              hidden: false,
+              options: [
+                {
+                  label: "blue",
+                  value: "blue",
+                },
+                {
+                  label: "red",
+                  value: "red",
+                },
+              ],
+              sources: [
+                {
+                  id: "user",
+                  type: "user",
+                  label: "User",
+                  fieldRequired: true,
+                },
+              ],
+              editable: "user",
+              required: false,
+              disableOnPrefill: false,
+            },
+            {
+              name: "test-radio",
+              type: "radio",
+              label: "test-radio",
+              hidden: false,
+              options: [
+                {
+                  label: "pineapple",
+                  value: "pineapple",
+                },
+              ],
+              sources: [
+                {
+                  id: "user",
+                  type: "user",
+                  label: "User",
+                  fieldRequired: true,
+                },
+              ],
+              editable: "user",
+              required: false,
+              disableOnPrefill: false,
+            },
+            {
+              name: "test-select",
+              type: "select",
+              label: "test-select",
+              options: [
+                {
+                  label: "water",
+                  value: "water",
+                },
+                {
+                  label: "juice",
+                  value: "juice",
+                },
+              ],
+              sources: [
+                {
+                  id: "user",
+                  type: "user",
+                  label: "User",
+                  fieldRequired: true,
+                },
+              ],
+              editable: "user",
+              required: true,
+              placeholder: "",
+              disableOnPrefill: false,
+            },
+            {
+              name: "title",
+              type: "text",
+              hidden: true,
+              sources: [{ id: "default", type: "default", label: "Default" }],
+              editable: "system-but-optional",
+              required: true,
+              defaultLabel: "what_is_this_meeting_about",
+              defaultPlaceholder: "",
+            },
+            {
+              name: "notes",
+              type: "textarea",
+              sources: [{ id: "default", type: "default", label: "Default" }],
+              editable: "system-but-optional",
+              required: false,
+              defaultLabel: "additional_notes",
+              defaultPlaceholder: "share_additional_notes",
+            },
+            {
+              name: "guests",
+              type: "multiemail",
+              hidden: false,
+              sources: [{ id: "default", type: "default", label: "Default" }],
+              editable: "system-but-optional",
+              required: false,
+              defaultLabel: "additional_guests",
+              defaultPlaceholder: "email",
+            },
+            {
+              name: "rescheduleReason",
+              type: "textarea",
+              views: [{ id: "reschedule", label: "Reschedule View" }],
+              sources: [{ id: "default", type: "default", label: "Default" }],
+              editable: "system-but-optional",
+              required: false,
+              defaultLabel: "reason_for_reschedule",
+              defaultPlaceholder: "reschedule_placeholder",
+            },
+          ],
+        },
+        user.id
+      );
+
       bookingWithSplitName = await bookingsRepositoryFixture.create({
         user: {
           connect: {
@@ -540,6 +848,318 @@ describe("Bookings Endpoints 2024-08-13", () => {
               );
             }
           });
+      });
+    });
+
+    describe("Booking Field Type Validation", () => {
+      const basePayload = {
+        start: "2025-06-19T11:00:00.000Z",
+        attendee: {
+          name: "Charlie TypeTest",
+          email: "charlie.typetest@example.com",
+          timeZone: "Europe/Madrid",
+          language: "en",
+        },
+      };
+
+      it("should reject with 400 if 'test-phone' (phone) is not a string", async () => {
+        const payload = {
+          ...basePayload,
+          eventTypeId: eventTypeWithBookingFielsCustom.id,
+          bookingFieldsResponses: {
+            "test-phone": 12345,
+          },
+        };
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings`)
+          .send(payload)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+        expect(response.status).toBe(400);
+        expect(response.body.error.message).toBe(
+          "Invalid type for booking field 'test-phone'. Expected type string (compatible with field type 'phone'), but received number."
+        );
+      });
+
+      it("should reject with 400 if 'test-address' (address) is not a string", async () => {
+        const payload = {
+          ...basePayload,
+          eventTypeId: eventTypeWithBookingFielsCustom.id,
+          bookingFieldsResponses: {
+            "test-address": true,
+          },
+        };
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings`)
+          .send(payload)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+        expect(response.status).toBe(400);
+        expect(response.body.error.message).toBe(
+          "Invalid type for booking field 'test-address'. Expected type string (compatible with field type 'address'), but received boolean."
+        );
+      });
+
+      it("should reject with 400 if 'test-text' (text) is not a string", async () => {
+        const payload = {
+          ...basePayload,
+          eventTypeId: eventTypeWithBookingFielsCustom.id,
+          bookingFieldsResponses: {
+            "test-text": 123,
+          },
+        };
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings`)
+          .send(payload)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+        expect(response.status).toBe(400);
+        expect(response.body.error.message).toBe(
+          "Invalid type for booking field 'test-text'. Expected type string (compatible with field type 'text'), but received number."
+        );
+      });
+
+      it("should reject with 400 if 'test-number' (number) is not a number", async () => {
+        const payload = {
+          ...basePayload,
+          eventTypeId: eventTypeWithBookingFielsCustom.id,
+          bookingFieldsResponses: {
+            "test-number": "123",
+          },
+        };
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings`)
+          .send(payload)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+        expect(response.status).toBe(400);
+        expect(response.body.error.message).toBe(
+          "Invalid type for booking field 'test-number'. Expected type number (compatible with field type 'number'), but received string."
+        );
+      });
+
+      it("should reject with 400 if 'test-textarea' (textarea) is not a string", async () => {
+        const payload = {
+          ...basePayload,
+          eventTypeId: eventTypeWithBookingFielsCustom.id,
+          bookingFieldsResponses: {
+            "test-textarea": { text: "invalid" },
+          },
+        };
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings`)
+          .send(payload)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+        expect(response.status).toBe(400);
+        expect(response.body.error.message).toBe(
+          "Invalid type for booking field 'test-textarea'. Expected type string (compatible with field type 'textarea'), but received object."
+        );
+      });
+
+      it("should reject with 400 if 'test-boolean' (boolean) is not a boolean", async () => {
+        const payload = {
+          ...basePayload,
+          eventTypeId: eventTypeWithBookingFielsCustom.id,
+          bookingFieldsResponses: {
+            "test-boolean": "true",
+          },
+        };
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings`)
+          .send(payload)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+        expect(response.status).toBe(400);
+        expect(response.body.error.message).toBe(
+          "Invalid type for booking field 'test-boolean'. Expected type boolean (compatible with field type 'boolean'), but received string."
+        );
+      });
+
+      it("should reject with 400 if 'test-url' (url) is not a string", async () => {
+        const payload = {
+          ...basePayload,
+          eventTypeId: eventTypeWithBookingFielsCustom.id,
+          bookingFieldsResponses: {
+            "test-url": 12345,
+          },
+        };
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings`)
+          .send(payload)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+        expect(response.status).toBe(400);
+        expect(response.body.error.message).toBe(
+          "Invalid type for booking field 'test-url'. Expected type string (compatible with field type 'url'), but received number."
+        );
+      });
+
+      it("should reject with 400 if 'test-multiemail' (multiemail) is not an array", async () => {
+        const payload = {
+          ...basePayload,
+          eventTypeId: eventTypeWithBookingFielsCustom.id,
+          bookingFieldsResponses: {
+            "test-multiemail": "not-an-array@example.com",
+          },
+        };
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings`)
+          .send(payload)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+        expect(response.status).toBe(400);
+        expect(response.body.error.message).toBe(
+          "Invalid type for booking field 'test-multiemail'. Expected type array (compatible with field type 'multiemail'), but received string."
+        );
+      });
+
+      it("should reject with 400 if 'test-multiselect' (multiselect) is not an array", async () => {
+        const payload = {
+          ...basePayload,
+          eventTypeId: eventTypeWithBookingFielsCustom.id,
+          bookingFieldsResponses: {
+            "test-multiselect": "not-an-array",
+          },
+        };
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings`)
+          .send(payload)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+        expect(response.status).toBe(400);
+        expect(response.body.error.message).toBe(
+          "Invalid type for booking field 'test-multiselect'. Expected type array (compatible with field type 'multiselect'), but received string."
+        );
+      });
+
+      it("should reject with 400 if 'test-checkbox' (checkbox) is not an array", async () => {
+        const payload = {
+          ...basePayload,
+          eventTypeId: eventTypeWithBookingFielsCustom.id,
+          bookingFieldsResponses: {
+            "test-checkbox": true,
+          },
+        };
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings`)
+          .send(payload)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+        expect(response.status).toBe(400);
+        expect(response.body.error.message).toBe(
+          "Invalid type for booking field 'test-checkbox'. Expected type array (compatible with field type 'checkbox'), but received boolean."
+        );
+      });
+
+      it("should reject with 400 if 'test-radio' (radio) is not a string or number", async () => {
+        const payload = {
+          ...basePayload,
+          eventTypeId: eventTypeWithBookingFielsCustom.id,
+          bookingFieldsResponses: {
+            "test-radio": true,
+          },
+        };
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings`)
+          .send(payload)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+        expect(response.status).toBe(400);
+        expect(response.body.error.message).toBe(
+          "Invalid type for booking field 'test-radio'. Expected type string or number (compatible with field type 'radio'), but received boolean."
+        );
+      });
+
+      it("should reject with 400 if 'test-select' (select) is not a string or number", async () => {
+        const payload = {
+          ...basePayload,
+          eventTypeId: eventTypeWithBookingFielsCustom.id,
+          bookingFieldsResponses: {
+            "test-select": true,
+          },
+        };
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings`)
+          .send(payload)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+        expect(response.status).toBe(400);
+        expect(response.body.error.message).toBe(
+          "Invalid type for booking field 'test-select'. Expected type string or number (compatible with field type 'select'), but received boolean."
+        );
+      });
+
+      it("should throw BadRequestException for test-select field with invalid option", async () => {
+        const fieldName = "test-select";
+        const payload = {
+          ...basePayload,
+          eventTypeId: eventTypeWithBookingFielsCustom.id,
+          bookingFieldsResponses: {
+            [fieldName]: "INVALID_DRINK",
+          },
+        };
+
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings`)
+          .send(payload)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(400);
+
+        expect(response.body.error.message).toBe(
+          `Invalid option 'INVALID_DRINK' for booking field '${fieldName}'. Allowed options are: water, juice.`
+        );
+      });
+
+      it("should throw BadRequestException for test-radio field with invalid option", async () => {
+        const fieldName = "test-radio";
+        const payload = {
+          ...basePayload,
+          eventTypeId: eventTypeWithBookingFielsCustom.id,
+          bookingFieldsResponses: {
+            [fieldName]: "INVALID_FRUIT_FOR_RADIO",
+          },
+        };
+
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings`)
+          .send(payload)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(400);
+
+        expect(response.body.error.message).toBe(
+          `Invalid option 'INVALID_FRUIT_FOR_RADIO' for booking field '${fieldName}'. Allowed options are: pineapple.`
+        );
+      });
+
+      it("should throw BadRequestException for test-multiselect field with an invalid option", async () => {
+        const fieldName = "test-multiselect";
+        const payload = {
+          ...basePayload,
+          eventTypeId: eventTypeWithBookingFielsCustom.id,
+          bookingFieldsResponses: {
+            [fieldName]: ["apple", "INVALID_FRUIT"],
+          },
+        };
+
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings`)
+          .send(payload)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(400);
+
+        expect(response.body.error.message).toBe(
+          `One or more invalid options for booking field '${fieldName}'. Allowed options are: apple, orange.`
+        );
+      });
+
+      it("should throw BadRequestException for test-checkbox field with invalid options", async () => {
+        const fieldName = "test-checkbox";
+        const payload = {
+          ...basePayload,
+          eventTypeId: eventTypeWithBookingFielsCustom.id,
+          bookingFieldsResponses: {
+            [fieldName]: ["blue", "INVALID_COLOR"],
+          },
+        };
+
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings`)
+          .send(payload)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(400);
+
+        expect(response.body.error.message).toBe(
+          `One or more invalid options for booking field '${fieldName}'. Allowed options are: blue, red.`
+        );
       });
     });
 
