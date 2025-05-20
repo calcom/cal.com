@@ -158,7 +158,7 @@ export async function scanWorkflowBody(payload: string) {
   });
 }
 
-const iffyScanBody = async (body: string, workflowStepId: number) => {
+export const iffyScanBody = async (body: string, workflowStepId: number) => {
   try {
     const response = await fetch("https://api.iffy.com/api/v1/moderate", {
       method: "POST",
