@@ -841,7 +841,6 @@ model SelectedCalendar {
   @@unique([userId, integration, externalId, eventTypeId])
   @@unique([googleChannelId, eventTypeId])
   @@index([userId])
-  // @@index([integration]) // Covered by composite indexes starting with integration
   @@index([externalId])
   @@index([eventTypeId])
   @@index([credentialId])
