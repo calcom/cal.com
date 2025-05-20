@@ -135,9 +135,6 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 : { username: props.calUsername })}
               hostsLimit={3}
               allowUpdatingUrlParams={true}
-              handleSlotReservation={(timeslot) => {
-                console.log("Selected timeslot:", timeslot);
-              }}
             />
           </>
         )}

@@ -45,6 +45,7 @@ export class CalendarsService {
         ...credential,
         delegatedTo: null,
         delegatedToId: null,
+        delegationCredentialId: null,
       }))
       .filter((credential) => !!credential);
   }

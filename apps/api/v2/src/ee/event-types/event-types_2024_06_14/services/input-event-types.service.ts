@@ -27,8 +27,7 @@ import {
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, BadRequestException } from "@nestjs/common";
 
-import { getUsersCredentials } from "@calcom/platform-libraries";
-import { getApps } from "@calcom/platform-libraries/app-store";
+import { getApps, getUsersCredentialsIncludeServiceAccountKey } from "@calcom/platform-libraries/app-store";
 import { validateCustomEventName, EventTypeMetaDataSchema } from "@calcom/platform-libraries/event-types";
 import {
   CreateEventTypeInput_2024_06_14,
@@ -221,6 +220,7 @@ export class InputEventTypesService_2024_06_14 {
     const systemCustomNameField = systemCustomFields?.find((field) => field.type === "name");
     const systemCustomEmailField = systemCustomFields?.find((field) => field.type === "email");
     const systemCustomTitleField = systemCustomFields?.find((field) => field.name === "title");
+    const systemCustomLocationField = systemCustomFields?.find((field) => field.name === "location");
     const systemCustomNotesField = systemCustomFields?.find((field) => field.name === "notes");
     const systemCustomGuestsField = systemCustomFields?.find((field) => field.name === "guests");
     const systemCustomRescheduleReasonField = systemCustomFields?.find(
@@ -230,7 +230,7 @@ export class InputEventTypesService_2024_06_14 {
     const defaultFieldsBefore: (SystemField | CustomField)[] = [
       systemCustomNameField || systemBeforeFieldName,
       systemCustomEmailField || systemBeforeFieldEmail,
-      systemBeforeFieldLocation,
+      systemCustomLocationField || systemBeforeFieldLocation,
     ];
 
     const defaultFieldsAfter = [
@@ -271,7 +271,8 @@ export class InputEventTypesService_2024_06_14 {
       field.name !== "title" &&
       field.name !== "notes" &&
       field.name !== "guests" &&
-      field.name !== "rescheduleReason"
+      field.name !== "rescheduleReason" &&
+      field.name !== "location"
     );
   }
 
@@ -473,7 +474,7 @@ export class InputEventTypesService_2024_06_14 {
       appSlug = "msteams";
     }
 
-    const credentials = await getUsersCredentials(user);
+    const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
 
     const foundApp = getApps(credentials, true).filter((app) => app.slug === appSlug)[0];
 

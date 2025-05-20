@@ -22,8 +22,6 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
-export { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
-
 export { slugify } from "@calcom/lib/slugify";
 export { getBookingForReschedule };
 
