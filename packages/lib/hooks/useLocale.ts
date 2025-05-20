@@ -15,11 +15,15 @@ type useLocaleReturnType = {
 
 // @internal
 const useClientLocale = (namespace: Parameters<typeof useTranslation>[0] = "common"): useLocaleReturnType => {
-  const context = useAtomsContext();
+  const atomsContext = useAtomsContext();
   const { i18n, t } = useTranslation(namespace);
   const isLocaleReady = Object.keys(i18n).length > 0;
-  if (context?.clientId) {
-    return { i18n: context.i18n, t: context.t, isLocaleReady: true } as unknown as useLocaleReturnType;
+  if (atomsContext?.clientId) {
+    return {
+      i18n: atomsContext.i18n,
+      t: atomsContext.t,
+      isLocaleReady: true,
+    } as unknown as useLocaleReturnType;
   }
   return {
     i18n,
@@ -62,9 +66,6 @@ export const useLocale = (): useLocaleReturnType => {
     return serverI18nInstances.get(instanceKey);
   }
 
-  console.warn(
-    "useLocale hook is being used outside of App Router - hence this hook will use a global, client-side i18n which can cause a small flicker"
-  );
   return {
     t: clientI18n.t,
     isLocaleReady: clientI18n.isLocaleReady,
