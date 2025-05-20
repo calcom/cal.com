@@ -108,7 +108,7 @@ export class MyService {
 
 ### 4. tRPC Procedures
 
-**Migration Pattern**: Already handled with middleware, use `ctx.prisma`
+**Migration Pattern**: Already handled with tenant-aware context, use `ctx.prisma`
 
 **Before:**
 ```typescript
@@ -127,6 +127,8 @@ export const myProcedure = publicProcedure.query(async ({ ctx }) => {
   return users;
 });
 ```
+
+> Note: The tRPC context now directly uses tenant-aware Prisma clients based on the request host, eliminating the need for prismaMiddleware.
 
 ### 5. Repository Classes
 
