@@ -1,7 +1,7 @@
-import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole, RoleType } from "@calcom/prisma/enums";
 
-import type { PermissionString, Resource, CrudAction, CustomAction } from "../types/permission-registry";
+import { RoleRepository } from "../repository/role.repository";
+import type { PermissionString } from "../types/permission-registry";
 import { PermissionService } from "./permission.service";
 
 // These IDs must match the ones in the migration
@@ -12,11 +12,11 @@ const DEFAULT_ROLE_IDS = {
 } as const;
 
 export class RoleService {
-  private prisma: PrismaClient;
+  private repository: RoleRepository;
   private permissionService: PermissionService;
 
-  constructor(prisma: PrismaClient) {
-    this.prisma = prisma;
+  constructor() {
+    this.repository = new RoleRepository();
     this.permissionService = new PermissionService();
   }
 
@@ -27,13 +27,7 @@ export class RoleService {
     permissions: PermissionString[];
   }) {
     // Check if role name conflicts with default roles
-    const existingRole = await this.prisma.role.findFirst({
-      where: {
-        name: data.name,
-        teamId: data.teamId,
-      },
-    });
-
+    const existingRole = await this.repository.findRoleByName(data.name, data.teamId);
     if (existingRole) {
       throw new Error(`Role with name "${data.name}" already exists`);
     }
@@ -43,28 +37,17 @@ export class RoleService {
       throw new Error("Invalid permissions provided");
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    return this.repository.transaction(async (trx) => {
       // Create role
-      const role = await tx.role.create({
-        data: {
-          name: data.name,
-          description: data.description,
-          teamId: data.teamId,
-          type: RoleType.CUSTOM,
-        },
+      const role = await this.repository.createRole({
+        name: data.name,
+        description: data.description,
+        teamId: data.teamId,
+        type: RoleType.CUSTOM,
       });
 
       // Create permissions
-      await tx.rolePermission.createMany({
-        data: data.permissions.map((permission) => {
-          const [resource, action] = permission.split(".") as [Resource, CrudAction | CustomAction];
-          return { roleId: role.id, resource, action };
-        }),
-      });
-
-      const permissions = await tx.rolePermission.findMany({
-        where: { roleId: role.id },
-      });
+      const permissions = await this.repository.createRolePermissions(role.id, data.permissions);
 
       return { ...role, permissions };
     });
@@ -75,23 +58,16 @@ export class RoleService {
   }
 
   async assignRoleToMember(roleId: string, membershipId: number) {
-    return this.prisma.membership.update({
-      where: { id: membershipId },
-      data: { customRoleId: roleId },
-    });
+    return this.repository.updateMembershipRole(membershipId, roleId);
   }
 
   async getRolePermissions(roleId: string) {
-    return this.prisma.rolePermission.findMany({
-      where: { roleId },
-    });
+    const role = await this.repository.findRoleWithPermissions(roleId);
+    return role?.permissions ?? [];
   }
 
   async removeRoleFromMember(membershipId: number) {
-    return this.prisma.membership.update({
-      where: { id: membershipId },
-      data: { customRoleId: null },
-    });
+    return this.repository.updateMembershipRole(membershipId, null);
   }
 
   async changeUserRole(membershipId: number, roleId: string) {
@@ -101,24 +77,11 @@ export class RoleService {
       throw new Error("Role not found");
     }
 
-    return this.prisma.membership.update({
-      where: { id: membershipId },
-      data: { customRoleId: roleId },
-      include: {
-        customRole: {
-          include: {
-            permissions: true,
-          },
-        },
-      },
-    });
+    return this.repository.updateMembershipRole(membershipId, roleId);
   }
 
   async deleteRole(roleId: string) {
-    const role = await this.prisma.role.findUnique({
-      where: { id: roleId },
-    });
-
+    const role = await this.repository.findRoleWithPermissions(roleId);
     if (!role) {
       throw new Error("Role not found");
     }
@@ -128,44 +91,20 @@ export class RoleService {
       throw new Error("Cannot delete default roles");
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    return this.repository.transaction(async (trx) => {
       // Delete permissions first
-      await tx.rolePermission.deleteMany({
-        where: { roleId },
-      });
-
+      await this.repository.deleteRolePermissions(roleId);
       // Then delete the role
-      return tx.role.delete({
-        where: { id: roleId },
-      });
+      return this.repository.deleteRole(roleId);
     });
   }
 
   async getRole(roleId: string) {
-    const role = await this.prisma.role.findUnique({
-      where: { id: roleId },
-      include: {
-        permissions: true,
-      },
-    });
-
-    if (!role) return null;
-
-    return role;
+    return this.repository.findRoleWithPermissions(roleId);
   }
 
   async getTeamRoles(teamId: number) {
-    // Get both team-specific roles and default roles
-    const roles = await this.prisma.role.findMany({
-      where: {
-        OR: [{ teamId }, { type: RoleType.SYSTEM }],
-      },
-      include: {
-        permissions: true,
-      },
-    });
-
-    return roles;
+    return this.repository.findTeamRoles(teamId);
   }
 
   async updateRolePermissions(roleId: string, permissions: PermissionString[]) {
@@ -184,21 +123,12 @@ export class RoleService {
       throw new Error("Invalid permissions provided");
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    return this.repository.transaction(async (trx) => {
       // Delete existing permissions
-      await tx.rolePermission.deleteMany({
-        where: { roleId },
-      });
-
+      await this.repository.deleteRolePermissions(roleId);
       // Create new permissions
-      await tx.rolePermission.createMany({
-        data: permissions.map((permission) => {
-          const [resource, action] = permission.split(".") as [Resource, CrudAction | CustomAction];
-          return { roleId, resource, action };
-        }),
-      });
-
-      return this.getRole(roleId);
+      const newPermissions = await this.repository.createRolePermissions(roleId, permissions);
+      return { ...role, permissions: newPermissions };
     });
   }
 }
