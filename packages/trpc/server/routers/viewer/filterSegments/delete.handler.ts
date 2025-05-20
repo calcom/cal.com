@@ -17,7 +17,7 @@ export const deleteHandler = async ({
   const userId = ctx.user.id;
 
   // First, fetch the existing segment to check permissions
-  const existingSegment = await ctx.prisma.filterSegment.findFirst({
+  const existingSegment = await ctx.ctx.prisma.filterSegment.findFirst({
     where: {
       id,
       OR: [
@@ -55,7 +55,7 @@ export const deleteHandler = async ({
   }
 
   // Delete the filter segment
-  await ctx.prisma.filterSegment.delete({
+  await ctx.ctx.prisma.filterSegment.delete({
     where: { id },
   });
 

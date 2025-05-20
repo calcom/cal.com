@@ -28,7 +28,7 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
 
   if (fetchTeamMembersEntries) {
     // Get teams of context user
-    const teams = await ctx.prisma.membership.findMany({
+    const teams = await ctx.ctx.prisma.membership.findMany({
       where: {
         userId: ctx.user.id,
         accepted: true,
@@ -46,7 +46,7 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
       .map((team) => team.teamId);
 
     // Fetch team member userIds
-    const teamMembers = await ctx.prisma.team.findMany({
+    const teamMembers = await ctx.ctx.prisma.team.findMany({
       where: {
         id: {
           in: teams.map((team) => team.teamId),
@@ -109,11 +109,11 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
       : {}),
   };
 
-  const getTotalEntries = await ctx.prisma.outOfOfficeEntry.count({
+  const getTotalEntries = await ctx.ctx.prisma.outOfOfficeEntry.count({
     where: whereClause,
   });
 
-  const outOfOfficeEntries = await ctx.prisma.outOfOfficeEntry.findMany({
+  const outOfOfficeEntries = await ctx.ctx.prisma.outOfOfficeEntry.findMany({
     where: whereClause,
     select: {
       id: true,

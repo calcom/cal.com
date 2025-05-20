@@ -29,12 +29,12 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     }
   }
 
-  const webhookToDelete = await ctx.prisma.webhook.findFirst({
+  const webhookToDelete = await ctx.ctx.prisma.webhook.findFirst({
     where,
   });
 
   if (webhookToDelete) {
-    await ctx.prisma.webhook.delete({
+    await ctx.ctx.prisma.webhook.delete({
       where: {
         id: webhookToDelete.id,
       },

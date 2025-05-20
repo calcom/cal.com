@@ -32,7 +32,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const userId = ctx.user.id;
 
   if (teamId) {
-    const team = await ctx.prisma.team.findFirst({
+    const team = await ctx.ctx.prisma.team.findFirst({
       where: {
         id: teamId,
         members: {
@@ -55,7 +55,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   }
 
   try {
-    const workflow: Workflow = await ctx.prisma.workflow.create({
+    const workflow: Workflow = await ctx.ctx.prisma.workflow.create({
       data: {
         name: "",
         trigger: WorkflowTriggerEvents.BEFORE_EVENT,
@@ -74,7 +74,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       timeFormat: getTimeFormatStringFromUserTimeFormat(ctx.user.timeFormat),
     });
 
-    await ctx.ctx.prisma.workflowStep.create({
+    await ctx.ctx.ctx.prisma.workflowStep.create({
       data: {
         stepNumber: 1,
         action: WorkflowActions.EMAIL_ATTENDEE,

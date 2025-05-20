@@ -17,7 +17,7 @@ export const createHandler = async ({ ctx, input }: Options) => {
     input.teamId
   );
 
-  await ctx.prisma.dSyncTeamGroupMapping.create({
+  await ctx.ctx.prisma.dSyncTeamGroupMapping.create({
     data: {
       organizationId,
       teamId: input.teamId,

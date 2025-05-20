@@ -116,7 +116,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   if (!currentOrgId || !isUserAuthorizedToUpdate) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   if (input.slug) {
-    const userConflict = await ctx.prisma.team.findMany({
+    const userConflict = await ctx.ctx.prisma.team.findMany({
       where: {
         slug: input.slug,
         parent: {
@@ -128,7 +128,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       throw new TRPCError({ code: "CONFLICT", message: "Slug already in use." });
   }
 
-  const prevOrganisation = await ctx.prisma.team.findFirst({
+  const prevOrganisation = await ctx.ctx.prisma.team.findFirst({
     where: {
       id: currentOrgId,
     },

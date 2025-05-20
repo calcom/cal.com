@@ -23,7 +23,7 @@ export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOption
     isOrg: input.isOrg,
   });
 
-  const verificationToken = await ctx.prisma.verificationToken.findFirst({
+  const verificationToken = await ctx.ctx.prisma.verificationToken.findFirst({
     where: {
       identifier: input.email,
       teamId: input.teamId,

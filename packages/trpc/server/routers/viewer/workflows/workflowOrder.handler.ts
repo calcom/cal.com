@@ -49,7 +49,7 @@ export const workflowOrderHandler = async ({ ctx, input }: RoutingFormOrderOptio
     },
   });
 
-  const allWorkflows = await ctx.prisma.workflow.findMany({
+  const allWorkflows = await ctx.ctx.prisma.workflow.findMany({
     where: {
       OR: [
         {
@@ -87,7 +87,7 @@ export const workflowOrderHandler = async ({ ctx, input }: RoutingFormOrderOptio
 
   await Promise.all(
     input.ids.reverse().map((id, position) => {
-      return ctx.prisma.workflow.update({
+      return ctx.ctx.prisma.workflow.update({
         where: {
           id: id,
         },

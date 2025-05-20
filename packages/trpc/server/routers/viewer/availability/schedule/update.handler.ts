@@ -29,7 +29,7 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
 
   // Not able to update the schedule with userId where clause, so fetch schedule separately and then validate
   // Bug: https://github.com/prisma/prisma/issues/7290
-  const userSchedule = await ctx.prisma.schedule.findUnique({
+  const userSchedule = await ctx.ctx.prisma.schedule.findUnique({
     where: {
       id: input.scheduleId,
     },
@@ -77,7 +77,7 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
     };
   }
 
-  const schedule = await ctx.prisma.schedule.update({
+  const schedule = await ctx.ctx.prisma.schedule.update({
     where: {
       id: input.scheduleId,
     },

@@ -9,7 +9,7 @@ type ListOptions = {
 };
 
 export const listOwnedTeamsHandler = async ({ ctx }: ListOptions) => {
-  const user = await ctx.prisma.user.findFirst({
+  const user = await ctx.ctx.prisma.user.findFirst({
     where: {
       id: ctx.user.id,
     },

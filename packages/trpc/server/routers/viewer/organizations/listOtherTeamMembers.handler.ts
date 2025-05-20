@@ -59,7 +59,7 @@ export const listOtherTeamMembers = async ({ input }: ListOptions) => {
     };
   }
 
-  const team = await ctx.prisma.team.findUnique({
+  const team = await ctx.ctx.prisma.team.findUnique({
     where: {
       id: input.teamId,
     },
@@ -75,7 +75,7 @@ export const listOtherTeamMembers = async ({ input }: ListOptions) => {
     });
   }
 
-  const members = await ctx.prisma.membership.findMany({
+  const members = await ctx.ctx.prisma.membership.findMany({
     where: whereConditional,
     select: {
       id: true,

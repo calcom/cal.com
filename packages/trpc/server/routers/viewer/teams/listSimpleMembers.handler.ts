@@ -24,7 +24,7 @@ export const listSimpleMembers = async ({ ctx }: ListSimpleMembersOptions) => {
 
   // query all teams the user is a member of and the team is not private
   const teamsToQuery = (
-    await ctx.prisma.membership.findMany({
+    await ctx.ctx.prisma.membership.findMany({
       where: {
         userId: ctx.user.id,
         accepted: true,
@@ -47,7 +47,7 @@ export const listSimpleMembers = async ({ ctx }: ListSimpleMembersOptions) => {
 
   // Fetch unique users through memberships
   const members = (
-    await ctx.prisma.membership.findMany({
+    await ctx.ctx.prisma.membership.findMany({
       where: {
         accepted: true,
         teamId: { in: teamsToQuery },

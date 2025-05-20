@@ -10,7 +10,7 @@ type GetOptions = {
 
 const removeTwoFactorHandler = async ({ input }: GetOptions) => {
   const { userId } = input;
-  await ctx.prisma.user.update({
+  await ctx.ctx.prisma.user.update({
     where: {
       id: userId,
     },

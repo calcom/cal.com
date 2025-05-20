@@ -37,7 +37,7 @@ export const updateAppCredentialsHandler = async ({ ctx, input }: UpdateAppCrede
   const { user } = ctx;
 
   // Find user credential
-  const credential = await ctx.prisma.credential.findFirst({
+  const credential = await ctx.ctx.prisma.credential.findFirst({
     where: {
       id: input.credentialId,
       userId: user.id,
@@ -53,7 +53,7 @@ export const updateAppCredentialsHandler = async ({ ctx, input }: UpdateAppCrede
 
   const validatedKeys = await handleCustomValidations({ ctx, input, appId: credential.appId || "" });
 
-  const updated = await ctx.prisma.credential.update({
+  const updated = await ctx.ctx.prisma.credential.update({
     where: {
       id: credential.id,
     },

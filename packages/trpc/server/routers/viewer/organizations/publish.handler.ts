@@ -21,7 +21,7 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
 
   if (!(await isOrganisationAdmin(ctx.user.id, orgId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  const prevTeam = await ctx.prisma.team.findFirst({
+  const prevTeam = await ctx.ctx.prisma.team.findFirst({
     where: {
       id: orgId,
     },
@@ -63,10 +63,10 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
   }
 
   const { requestedSlug, ...newMetadata } = metadata.data;
-  let updatedTeam: Awaited<ReturnType<typeof ctx.prisma.team.update>>;
+  let updatedTeam: Awaited<ReturnType<typeof ctx.ctx.prisma.team.update>>;
 
   try {
-    updatedTeam = await ctx.prisma.team.update({
+    updatedTeam = await ctx.ctx.prisma.team.update({
       where: { id: orgId },
       data: {
         slug: requestedSlug,

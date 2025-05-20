@@ -17,7 +17,7 @@ type AdminUpdateOptions = {
 
 export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
   const { id, organizationSettings, ...restInput } = input;
-  const existingOrg = await ctx.prisma.team.findUnique({
+  const existingOrg = await ctx.ctx.prisma.team.findUnique({
     where: {
       id: id,
     },
@@ -88,7 +88,7 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
 export default adminUpdateHandler;
 
 async function throwIfSlugConflicts({ id, slug }: { id: number; slug: string }) {
-  const organizationsWithSameSlug = await ctx.prisma.team.findMany({
+  const organizationsWithSameSlug = await ctx.ctx.prisma.team.findMany({
     where: {
       slug: slug,
       parentId: null,

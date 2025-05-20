@@ -19,7 +19,7 @@ export const skipTeamTrialsHandler = async ({ ctx }: SkipTeamTrialsOptions) => {
   if (IS_SELF_HOSTED) return { success: true };
 
   try {
-    await ctx.prisma.user.update({
+    await ctx.ctx.prisma.user.update({
       where: {
         id: ctx.user.id,
       },
@@ -28,7 +28,7 @@ export const skipTeamTrialsHandler = async ({ ctx }: SkipTeamTrialsOptions) => {
       },
     });
 
-    const ownedTeams = await ctx.prisma.team.findMany({
+    const ownedTeams = await ctx.ctx.prisma.team.findMany({
       where: {
         members: {
           some: {

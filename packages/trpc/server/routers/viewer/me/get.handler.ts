@@ -31,7 +31,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     upId: session.upId,
   });
 
-  const secondaryEmails = await ctx.prisma.secondaryEmail.findMany({
+  const secondaryEmails = await ctx.ctx.prisma.secondaryEmail.findMany({
     where: {
       userId: user.id,
     },
@@ -44,7 +44,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
 
   let passwordAdded = false;
   if (user.identityProvider !== IdentityProvider.CAL && input?.includePasswordAdded) {
-    const userWithPassword = await ctx.prisma.user.findUnique({
+    const userWithPassword = await ctx.ctx.prisma.user.findUnique({
       where: {
         id: user.id,
       },
@@ -59,7 +59,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
 
   let identityProviderEmail = "";
   if (user.identityProviderId) {
-    const account = await ctx.prisma.account.findUnique({
+    const account = await ctx.ctx.prisma.account.findUnique({
       where: {
         provider_providerAccountId: {
           provider: user.identityProvider.toLocaleLowerCase(),
@@ -94,7 +94,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
       };
 
   const isTeamAdminOrOwner =
-    (await ctx.prisma.membership.findFirst({
+    (await ctx.ctx.prisma.membership.findFirst({
       where: {
         userId: user.id,
         accepted: true,

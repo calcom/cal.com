@@ -11,7 +11,7 @@ type GetOptions = {
 const lockUserAccountHandler = async ({ input }: GetOptions) => {
   const { userId, locked } = input;
 
-  const user = await ctx.prisma.user.update({
+  const user = await ctx.ctx.prisma.user.update({
     where: {
       id: userId,
     },

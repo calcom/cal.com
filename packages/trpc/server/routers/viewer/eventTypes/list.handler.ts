@@ -13,7 +13,7 @@ export const listHandler = async ({ ctx }: ListOptions) => {
     identifier: `eventTypes:list:${ctx.user.id}`,
     rateLimitingType: "common",
   });
-  return await ctx.prisma.eventType.findMany({
+  return await ctx.ctx.prisma.eventType.findMany({
     where: {
       userId: ctx.user.id,
       team: null,

@@ -16,7 +16,7 @@ type CreateOptions = {
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const { user } = ctx;
   if (input.eventTypeId) {
-    const eventType = await ctx.prisma.eventType.findUnique({
+    const eventType = await ctx.ctx.prisma.eventType.findUnique({
       where: {
         id: input.eventTypeId,
       },
@@ -55,12 +55,12 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   data.timeZone = user.timeZone;
 
-  const schedule = await ctx.prisma.schedule.create({
+  const schedule = await ctx.ctx.prisma.schedule.create({
     data,
   });
 
   if (!user.defaultScheduleId) {
-    await ctx.prisma.user.update({
+    await ctx.ctx.prisma.user.update({
       where: {
         id: user.id,
       },

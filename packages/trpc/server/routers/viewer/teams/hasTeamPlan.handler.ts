@@ -9,7 +9,7 @@ type HasTeamPlanOptions = {
 export const hasTeamPlanHandler = async ({ ctx }: HasTeamPlanOptions) => {
   const userId = ctx.user.id;
 
-  const hasTeamPlan = await ctx.prisma.membership.findFirst({
+  const hasTeamPlan = await ctx.ctx.prisma.membership.findFirst({
     where: {
       accepted: true,
       userId,

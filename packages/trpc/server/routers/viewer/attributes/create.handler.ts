@@ -34,7 +34,7 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
 
   let attributes: Attribute;
   try {
-    attributes = await ctx.prisma.attribute.create({
+    attributes = await ctx.ctx.prisma.attribute.create({
       data: {
         slug,
         name: input.name,
@@ -54,7 +54,7 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
   // Only assign options for the types that have options
   // TEXT/NUMBER don't have options
   if (typeHasOptions) {
-    await ctx.prisma.attributeOption.createMany({
+    await ctx.ctx.prisma.attributeOption.createMany({
       data: uniqueOptions.map(({ value, isGroup }) => ({
         attributeId: attributes.id,
         value,

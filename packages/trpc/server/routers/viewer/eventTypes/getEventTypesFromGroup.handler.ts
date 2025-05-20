@@ -151,7 +151,7 @@ export const getEventTypesFromGroup = async ({
 
   const mappedEventTypes: MappedEventType[] = await Promise.all(eventTypes.map(mapEventType));
 
-  const membership = await ctx.prisma.membership.findFirst({
+  const membership = await ctx.ctx.prisma.membership.findFirst({
     where: {
       userId: ctx.user.id,
       teamId: teamId ?? 0,

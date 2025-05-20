@@ -19,7 +19,7 @@ export const getFacetedValuesHandler = async ({ ctx }: DeleteOptions) => {
     throw new TRPCError({ code: "NOT_FOUND", message: "Organization not found" });
   }
   const [teams, attributes] = await Promise.all([
-    ctx.prisma.team.findMany({
+    ctx.ctx.prisma.team.findMany({
       where: {
         parentId: organizationId,
       },
@@ -28,7 +28,7 @@ export const getFacetedValuesHandler = async ({ ctx }: DeleteOptions) => {
         name: true,
       },
     }),
-    ctx.prisma.attribute.findMany({
+    ctx.ctx.prisma.attribute.findMany({
       where: { teamId: organizationId },
       select: {
         id: true,

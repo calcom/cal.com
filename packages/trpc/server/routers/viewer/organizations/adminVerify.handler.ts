@@ -13,7 +13,7 @@ type AdminVerifyOptions = {
 };
 
 export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
-  const foundOrg = await ctx.prisma.team.findFirst({
+  const foundOrg = await ctx.ctx.prisma.team.findFirst({
     where: {
       id: input.orgId,
       isOrganization: true,
@@ -38,7 +38,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
 
   const acceptedEmailDomain = foundOrg.members[0].user.email.split("@")[1];
 
-  await ctx.prisma.organizationSettings.update({
+  await ctx.ctx.prisma.organizationSettings.update({
     where: {
       organizationId: input.orgId,
     },
@@ -47,7 +47,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
     },
   });
 
-  const foundUsersWithMatchingEmailDomain = await ctx.prisma.user.findMany({
+  const foundUsersWithMatchingEmailDomain = await ctx.ctx.prisma.user.findMany({
     where: {
       email: {
         endsWith: acceptedEmailDomain,
@@ -75,7 +75,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
 
   const usersNotHavingProfileWithTheOrg = users.filter((user) => user.profiles.length === 0);
   await prisma.$transaction([
-    ctx.prisma.membership.updateMany({
+    ctx.ctx.prisma.membership.updateMany({
       where: {
         userId: {
           in: userIds,
@@ -96,7 +96,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
       },
     }),
 
-    ctx.prisma.user.updateMany({
+    ctx.ctx.prisma.user.updateMany({
       where: {
         id: {
           in: userIds,

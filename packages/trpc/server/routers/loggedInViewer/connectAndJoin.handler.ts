@@ -30,7 +30,7 @@ export const Handler = async ({ ctx, input }: Options) => {
 
   const tOrganizer = await getTranslation(user?.locale ?? "en", "common");
 
-  const instantMeetingToken = await ctx.prisma.instantMeetingToken.findUnique({
+  const instantMeetingToken = await ctx.ctx.prisma.instantMeetingToken.findUnique({
     select: {
       expires: true,
       teamId: true,
@@ -83,7 +83,7 @@ export const Handler = async ({ ctx, input }: Options) => {
   }
 
   // Update User in Booking
-  const updatedBooking = await ctx.prisma.booking.update({
+  const updatedBooking = await ctx.ctx.prisma.booking.update({
     where: {
       id: instantMeetingToken.booking.id,
     },

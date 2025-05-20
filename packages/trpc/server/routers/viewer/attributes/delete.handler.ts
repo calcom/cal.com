@@ -20,7 +20,7 @@ const deleteAttributeHandler = async ({ input, ctx }: DeleteOptions) => {
     });
   }
 
-  const attribute = await ctx.prisma.attribute.delete({
+  const attribute = await ctx.ctx.prisma.attribute.delete({
     where: {
       teamId: org.id,
       id: input.id,

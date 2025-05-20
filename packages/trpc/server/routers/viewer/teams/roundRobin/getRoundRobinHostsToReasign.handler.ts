@@ -52,8 +52,8 @@ async function getTeamHostsFromDB({
   };
 
   const [totalCount, _hosts] = await Promise.all([
-    ctx.prisma.host.count({ where: queryWhere }),
-    ctx.prisma.host.findMany({
+    ctx.ctx.prisma.host.count({ where: queryWhere }),
+    ctx.ctx.prisma.host.findMany({
       where: queryWhere,
       select: {
         isFixed: true,
@@ -98,7 +98,7 @@ async function getTeamHostsFromDB({
 }
 
 async function getEventTypeFromDB(eventTypeId: number, prisma: PrismaClient) {
-  return ctx.prisma.eventType.findUniqueOrThrow({
+  return ctx.ctx.prisma.eventType.findUniqueOrThrow({
     where: { id: eventTypeId },
   });
 }
@@ -111,7 +111,7 @@ export const getRoundRobinHostsToReassign = async ({ ctx, input }: GetRoundRobin
     prefix: ["gettingRoundRobinHostsToReassign", `${bookingId}`],
   });
 
-  const booking = await ctx.prisma.booking.findUniqueOrThrow({
+  const booking = await ctx.ctx.prisma.booking.findUniqueOrThrow({
     where: { id: bookingId },
     select: {
       userId: true,

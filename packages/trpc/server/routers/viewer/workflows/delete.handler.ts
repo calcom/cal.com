@@ -16,7 +16,7 @@ type DeleteOptions = {
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   const { id } = input;
 
-  const workflowToDelete = await ctx.prisma.workflow.findFirst({
+  const workflowToDelete = await ctx.ctx.prisma.workflow.findFirst({
     where: {
       id,
     },
@@ -37,7 +37,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  const scheduledReminders = await ctx.prisma.workflowReminder.findMany({
+  const scheduledReminders = await ctx.ctx.prisma.workflowReminder.findMany({
     where: {
       workflowStep: {
         workflowId: id,
@@ -61,7 +61,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   await removeSmsReminderFieldForEventTypes({ activeOnToRemove, workflowId: workflowToDelete.id, isOrg });
 
   // automatically deletes all steps and reminders connected to this workflow
-  await ctx.prisma.workflow.deleteMany({
+  await ctx.ctx.prisma.workflow.deleteMany({
     where: {
       id,
     },

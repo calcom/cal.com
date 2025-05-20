@@ -19,7 +19,7 @@ export const createAccountPasswordHandler = async ({ ctx }: CreateAccountPasswor
     throw new TRPCError({ code: "FORBIDDEN", message: "cannot_create_account_password_cal_provider" });
   }
 
-  const userWithPassword = await ctx.prisma.user.findUnique({
+  const userWithPassword = await ctx.ctx.prisma.user.findUnique({
     where: {
       id: user.id,
     },

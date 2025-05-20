@@ -24,7 +24,7 @@ export const bulkUpdateToDefaultAvailabilityHandler = async ({
     });
   }
 
-  return await ctx.prisma.eventType.updateMany({
+  return await ctx.ctx.prisma.eventType.updateMany({
     where: {
       id: {
         in: eventTypeIds,

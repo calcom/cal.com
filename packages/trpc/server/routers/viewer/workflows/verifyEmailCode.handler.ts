@@ -28,7 +28,7 @@ export const verifyEmailCodeHandler = async ({ ctx, input }: VerifyEmailCodeOpti
 
   if (!isValidToken) throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_code" });
 
-  await ctx.prisma.verifiedEmail.create({
+  await ctx.ctx.prisma.verifiedEmail.create({
     data: {
       email,
       userId: id,

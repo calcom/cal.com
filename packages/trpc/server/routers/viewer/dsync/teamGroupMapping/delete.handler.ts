@@ -14,7 +14,7 @@ type Options = {
 export const deleteHandler = async ({ ctx, input }: Options) => {
   await userCanCreateTeamGroupMapping(ctx.user, ctx.user.organizationId, input.teamId);
 
-  await ctx.prisma.dSyncTeamGroupMapping.delete({
+  await ctx.ctx.prisma.dSyncTeamGroupMapping.delete({
     where: {
       teamId_groupName: {
         teamId: input.teamId,

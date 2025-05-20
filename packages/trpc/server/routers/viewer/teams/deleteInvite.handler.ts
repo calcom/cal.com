@@ -15,7 +15,7 @@ type DeleteInviteOptions = {
 export const deleteInviteHandler = async ({ ctx, input }: DeleteInviteOptions) => {
   const { token } = input;
 
-  const verificationToken = await ctx.prisma.verificationToken.findFirst({
+  const verificationToken = await ctx.ctx.prisma.verificationToken.findFirst({
     where: {
       token: token,
     },
@@ -29,7 +29,7 @@ export const deleteInviteHandler = async ({ ctx, input }: DeleteInviteOptions) =
   if (!verificationToken.teamId || !(await isTeamAdmin(ctx.user.id, verificationToken.teamId)))
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  await ctx.prisma.verificationToken.delete({ where: { id: verificationToken.id } });
+  await ctx.ctx.prisma.verificationToken.delete({ where: { id: verificationToken.id } });
 };
 
 export default deleteInviteHandler;

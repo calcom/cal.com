@@ -25,7 +25,7 @@ const unlinkConnectedAccount = async ({ ctx }: UpdateProfileOptions) => {
     // Fail silently if we don't have a record in the account table
   }
   // Fall back to the default identity provider
-  const _user = await ctx.prisma.user.update({
+  const _user = await ctx.ctx.prisma.user.update({
     where: {
       id: user.id,
       identityProvider: IdentityProvider.GOOGLE,

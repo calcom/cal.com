@@ -10,7 +10,7 @@ type AdminGetAllOptions = {
 };
 
 export const adminGetUnverifiedHandler = async ({}: AdminGetAllOptions) => {
-  const allOrgs = await ctx.prisma.team.findMany({
+  const allOrgs = await ctx.ctx.prisma.team.findMany({
     where: {
       isOrganization: true,
     },

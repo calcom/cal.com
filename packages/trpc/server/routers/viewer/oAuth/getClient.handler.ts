@@ -7,7 +7,7 @@ type GetClientOptions = {
 export const getClientHandler = async ({ input }: GetClientOptions) => {
   const { clientId } = input;
 
-  const client = await ctx.prisma.oAuthClient.findFirst({
+  const client = await ctx.ctx.prisma.oAuthClient.findFirst({
     where: {
       clientId,
     },

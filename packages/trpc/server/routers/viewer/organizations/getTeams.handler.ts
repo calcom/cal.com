@@ -14,7 +14,7 @@ export async function getTeamsHandler({ ctx }: GetTeamsHandler) {
 
   if (!currentUserOrgId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  const allOrgTeams = await ctx.prisma.team.findMany({
+  const allOrgTeams = await ctx.ctx.prisma.team.findMany({
     where: {
       parentId: currentUserOrgId,
     },

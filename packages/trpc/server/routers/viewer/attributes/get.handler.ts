@@ -22,7 +22,7 @@ const getAttributeHandler = async ({ input, ctx }: GetOptions) => {
     });
   }
 
-  const attribute = await ctx.prisma.attribute.findUnique({
+  const attribute = await ctx.ctx.prisma.attribute.findUnique({
     where: {
       teamId: org.id,
       id: input.id,

@@ -17,7 +17,7 @@ export const getInternalNotesPresetsHandler = async ({ ctx, input }: UpdateMembe
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  return await ctx.prisma.internalNotePreset.findMany({
+  return await ctx.ctx.prisma.internalNotePreset.findMany({
     where: {
       teamId: input.teamId,
     },

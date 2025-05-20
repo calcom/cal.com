@@ -34,7 +34,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   }
 
   if (input.eventTypeId) {
-    const parentManagedEvt = await ctx.prisma.eventType.findFirst({
+    const parentManagedEvt = await ctx.ctx.prisma.eventType.findFirst({
       where: {
         id: input.eventTypeId,
         parentId: {
@@ -58,7 +58,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   let newWebhook: Webhook;
   try {
-    newWebhook = await ctx.prisma.webhook.create({
+    newWebhook = await ctx.ctx.prisma.webhook.create({
       data: webhookData,
     });
   } catch (error) {

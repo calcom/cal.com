@@ -17,7 +17,7 @@ export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentials
   const userAdminTeams = await UserRepository.getUserAdminTeams(ctx.user.id);
   const userAdminTeamsIds = userAdminTeams?.teams?.map(({ team }) => team.id) ?? [];
 
-  const credentials = await ctx.prisma.credential.findMany({
+  const credentials = await ctx.ctx.prisma.credential.findMany({
     where: {
       OR: [
         { userId: user.id },

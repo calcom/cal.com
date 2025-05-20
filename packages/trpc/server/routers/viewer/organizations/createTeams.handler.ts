@@ -42,7 +42,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
   }
 
   // Validate user membership role
-  const userMembershipRole = await ctx.prisma.membership.findFirst({
+  const userMembershipRole = await ctx.ctx.prisma.membership.findFirst({
     where: {
       userId: organizationOwner.id,
       teamId: orgId,
@@ -62,7 +62,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
     throw new NotAuthorizedError();
   }
 
-  const organization = await ctx.prisma.team.findFirst({
+  const organization = await ctx.ctx.prisma.team.findFirst({
     where: { id: orgId },
     select: { slug: true, id: true, metadata: true },
   });
@@ -82,7 +82,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
   }
 
   const [teamSlugs, userSlugs] = [
-    await ctx.prisma.team.findMany({ where: { parentId: orgId }, select: { slug: true } }),
+    await ctx.ctx.prisma.team.findMany({ where: { parentId: orgId }, select: { slug: true } }),
     await UserRepository.findManyByOrganization({ organizationId: orgId }),
   ];
 
@@ -117,7 +117,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
   await prisma.$transaction(
     teamNames.flatMap((name) => {
       if (!duplicatedSlugs.includes(slugify(name))) {
-        return ctx.prisma.team.create({
+        return ctx.ctx.prisma.team.create({
           data: {
             name,
             parentId: orgId,
@@ -184,7 +184,7 @@ async function moveTeam({
   };
   creationSource: CreationSource;
 }) {
-  const team = await ctx.prisma.team.findUnique({
+  const team = await ctx.ctx.prisma.team.findUnique({
     where: {
       id: teamId,
     },
@@ -231,7 +231,7 @@ async function moveTeam({
   newSlug = newSlug ?? team.slug;
   const orgMetadata = teamMetadataSchema.parse(org.metadata);
   try {
-    await ctx.prisma.team.update({
+    await ctx.ctx.prisma.team.update({
       where: {
         id: teamId,
       },
@@ -341,7 +341,7 @@ async function addTeamRedirect({
   }
   const orgUrlPrefix = getOrgFullOrigin(orgSlug);
 
-  await ctx.prisma.tempOrgRedirect.upsert({
+  await ctx.ctx.prisma.tempOrgRedirect.upsert({
     where: {
       from_type_fromOrgId: {
         type: RedirectType.Team,

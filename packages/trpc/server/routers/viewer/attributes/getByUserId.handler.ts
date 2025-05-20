@@ -36,7 +36,7 @@ const getByUserIdHandler = async ({ input, ctx }: GetOptions) => {
   }
 
   // Ensure user is apart of the organization
-  const membership = await ctx.prisma.membership.findFirst({
+  const membership = await ctx.ctx.prisma.membership.findFirst({
     where: {
       userId: input.userId,
       teamId: org.id,
@@ -55,7 +55,7 @@ const getByUserIdHandler = async ({ input, ctx }: GetOptions) => {
 };
 
 async function getMembershipAttributes(membershipId: number) {
-  return await ctx.prisma.attributeToUser.findMany({
+  return await ctx.ctx.prisma.attributeToUser.findMany({
     where: {
       member: {
         id: membershipId,

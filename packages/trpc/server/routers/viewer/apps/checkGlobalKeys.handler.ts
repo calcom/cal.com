@@ -9,7 +9,7 @@ type checkForGlobalKeys = {
 };
 
 export const checkForGlobalKeysHandler = async ({ input }: checkForGlobalKeys) => {
-  const appIsGloballyInstalled = await ctx.prisma.app.findUnique({
+  const appIsGloballyInstalled = await ctx.ctx.prisma.app.findUnique({
     where: {
       slug: input.slug,
     },

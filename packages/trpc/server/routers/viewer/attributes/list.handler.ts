@@ -18,7 +18,7 @@ const listHandler = async (opts: GetOptions) => {
     });
   }
 
-  return await ctx.prisma.attribute.findMany({
+  return await ctx.ctx.prisma.attribute.findMany({
     where: {
       teamId: org.id,
     },

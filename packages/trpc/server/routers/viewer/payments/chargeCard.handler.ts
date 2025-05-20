@@ -19,7 +19,7 @@ interface ChargeCardHandlerOptions {
 export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions) => {
   const { prisma } = ctx;
 
-  const booking = await ctx.prisma.booking.findFirst({
+  const booking = await ctx.ctx.prisma.booking.findFirst({
     where: {
       id: input.bookingId,
     },
@@ -87,7 +87,7 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     : { userId: ctx.user.id };
 
   if (booking.eventType?.teamId) {
-    const userIsInTeam = await ctx.prisma.membership.findFirst({
+    const userIsInTeam = await ctx.ctx.prisma.membership.findFirst({
       where: {
         userId: ctx.user.id,
         teamId: booking.eventType?.teamId,
@@ -99,7 +99,7 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     }
   }
 
-  const paymentCredential = await ctx.prisma.credential.findFirst({
+  const paymentCredential = await ctx.ctx.prisma.credential.findFirst({
     where: {
       ...idToSearchObject,
       appId: booking.payment[0].appId,

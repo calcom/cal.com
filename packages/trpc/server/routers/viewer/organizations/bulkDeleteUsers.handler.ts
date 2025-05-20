@@ -25,7 +25,7 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // Loop over all users in input.userIds and remove all memberships for the organization including child teams
-  const deleteMany = ctx.prisma.membership.deleteMany({
+  const deleteMany = ctx.ctx.prisma.membership.deleteMany({
     where: {
       userId: {
         in: input.userIds,
@@ -41,7 +41,7 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
     },
   });
 
-  const removeOrgrelation = ctx.prisma.user.updateMany({
+  const removeOrgrelation = ctx.ctx.prisma.user.updateMany({
     where: {
       id: {
         in: input.userIds,
@@ -56,7 +56,7 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
     },
   });
 
-  const removeManagedEventTypes = ctx.prisma.eventType.deleteMany({
+  const removeManagedEventTypes = ctx.ctx.prisma.eventType.deleteMany({
     where: {
       userId: {
         in: input.userIds,
@@ -74,7 +74,7 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
     },
   });
 
-  const removeHostAssignment = ctx.prisma.host.deleteMany({
+  const removeHostAssignment = ctx.ctx.prisma.host.deleteMany({
     where: {
       userId: {
         in: input.userIds,

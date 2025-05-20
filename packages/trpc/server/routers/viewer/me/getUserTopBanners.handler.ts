@@ -15,7 +15,7 @@ type Props = {
 };
 
 const checkInvalidGoogleCalendarCredentials = async ({ ctx }: Props) => {
-  const userCredentials = await ctx.prisma.credential.findMany({
+  const userCredentials = await ctx.ctx.prisma.credential.findMany({
     where: {
       userId: ctx.user.id,
       type: "google_calendar",

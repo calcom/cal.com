@@ -7,7 +7,7 @@ type ListWithTeamOptions = {
 };
 
 export const listWithTeamHandler = async ({ ctx }: ListWithTeamOptions) => {
-  return await ctx.prisma.eventType.findMany({
+  return await ctx.ctx.prisma.eventType.findMany({
     where: {
       OR: [
         { userId: ctx.user.id },

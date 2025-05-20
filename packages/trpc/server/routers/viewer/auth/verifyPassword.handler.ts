@@ -13,7 +13,7 @@ type VerifyPasswordOptions = {
 };
 
 export const verifyPasswordHandler = async ({ input, ctx }: VerifyPasswordOptions) => {
-  const userPassword = await ctx.prisma.userPassword.findUnique({
+  const userPassword = await ctx.ctx.prisma.userPassword.findUnique({
     where: {
       userId: ctx.user.id,
     },

@@ -14,7 +14,7 @@ type EventTypeOrderOptions = {
 export const eventTypeOrderHandler = async ({ ctx, input }: EventTypeOrderOptions) => {
   const { user } = ctx;
 
-  const allEventTypes = await ctx.prisma.eventType.findMany({
+  const allEventTypes = await ctx.ctx.prisma.eventType.findMany({
     select: {
       id: true,
     },
@@ -53,7 +53,7 @@ export const eventTypeOrderHandler = async ({ ctx, input }: EventTypeOrderOption
   }
   await Promise.all(
     input.ids.reverse().map((id, position) => {
-      return ctx.prisma.eventType.update({
+      return ctx.ctx.prisma.eventType.update({
         where: {
           id,
         },

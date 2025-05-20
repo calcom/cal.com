@@ -11,7 +11,7 @@ export const updateHandler = async ({ input }: UpdateOptions) => {
     licenseKey: input.licenseKey,
   };
 
-  await ctx.prisma.deployment.upsert({ where: { id: 1 }, create: data, update: data });
+  await ctx.ctx.prisma.deployment.upsert({ where: { id: 1 }, create: data, update: data });
 
   return;
 };

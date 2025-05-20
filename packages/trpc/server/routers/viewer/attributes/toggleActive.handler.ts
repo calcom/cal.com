@@ -21,7 +21,7 @@ const toggleActiveHandler = async ({ input, ctx }: GetOptions) => {
   }
 
   // Ensure that this users org owns the attribute
-  const attribute = await ctx.prisma.attribute.findUnique({
+  const attribute = await ctx.ctx.prisma.attribute.findUnique({
     where: {
       id: input.attributeId,
       teamId: org.id,
@@ -40,7 +40,7 @@ const toggleActiveHandler = async ({ input, ctx }: GetOptions) => {
   }
 
   // Toggle the attribute
-  await ctx.prisma.attribute.update({
+  await ctx.ctx.prisma.attribute.update({
     where: {
       id: input.attributeId,
     },

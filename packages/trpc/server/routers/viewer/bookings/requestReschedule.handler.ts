@@ -43,7 +43,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const { user } = ctx;
   const { bookingId, rescheduleReason: cancellationReason } = input;
   log.debug("Started", safeStringify({ bookingId, cancellationReason, user }));
-  const bookingToReschedule = await ctx.prisma.booking.findFirstOrThrow({
+  const bookingToReschedule = await ctx.ctx.prisma.booking.findFirstOrThrow({
     select: {
       id: true,
       uid: true,
@@ -97,7 +97,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   const bookingBelongsToTeam = !!bookingToReschedule.eventType?.teamId;
 
-  const userTeams = await ctx.prisma.user.findUniqueOrThrow({
+  const userTeams = await ctx.ctx.prisma.user.findUniqueOrThrow({
     where: {
       id: user.id,
     },
@@ -126,7 +126,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   let event: Partial<EventType> = {};
   if (bookingToReschedule.eventTypeId) {
-    event = await ctx.prisma.eventType.findFirstOrThrow({
+    event = await ctx.ctx.prisma.eventType.findFirstOrThrow({
       select: {
         title: true,
         schedulingType: true,
@@ -137,7 +137,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       },
     });
   }
-  await ctx.prisma.booking.update({
+  await ctx.ctx.prisma.booking.update({
     where: {
       id: bookingToReschedule.id,
     },

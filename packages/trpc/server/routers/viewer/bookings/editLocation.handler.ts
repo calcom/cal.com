@@ -96,7 +96,7 @@ async function updateBookingLocationInDb({
     };
   });
 
-  await ctx.prisma.booking.update({
+  await ctx.ctx.prisma.booking.update({
     where: {
       id: booking.id,
     },

@@ -11,7 +11,7 @@ type GetOptions = {
 export const verifyWorkflows = async ({ input }: GetOptions) => {
   const { userId } = input;
 
-  await ctx.prisma.workflowStep.updateMany({
+  await ctx.ctx.prisma.workflowStep.updateMany({
     where: {
       workflow: {
         userId,

@@ -34,7 +34,7 @@ export const getHandler = async ({ ctx, input }: Options) => {
     });
   }
 
-  const dsyncData = await ctx.prisma.dSyncData.findUnique({
+  const dsyncData = await ctx.ctx.prisma.dSyncData.findUnique({
     where: {
       organizationId: input.organizationId,
     },

@@ -29,7 +29,7 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
   // To call getCalendar we need
 
   // Ensure that the user has access to all of the credentialIds
-  const nonDelegationCredentials = await ctx.prisma.credential.findMany({
+  const nonDelegationCredentials = await ctx.ctx.prisma.credential.findMany({
     where: {
       id: {
         in: uniqueCredentialIds,

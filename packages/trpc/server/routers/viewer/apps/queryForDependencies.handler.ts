@@ -19,7 +19,7 @@ export const queryForDependenciesHandler = async ({ ctx, input }: QueryForDepend
   await Promise.all(
     input.map(async (dependency) => {
       const appId = dependency;
-      const dbCredential = await ctx.prisma.credential.findFirst({
+      const dbCredential = await ctx.ctx.prisma.credential.findFirst({
         where: {
           appId,
           userId: ctx.user.id,

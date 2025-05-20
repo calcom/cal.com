@@ -15,7 +15,7 @@ type SetInviteExpirationOptions = {
 export const setInviteExpirationHandler = async ({ ctx, input }: SetInviteExpirationOptions) => {
   const { token, expiresInDays } = input;
 
-  const verificationToken = await ctx.prisma.verificationToken.findFirst({
+  const verificationToken = await ctx.ctx.prisma.verificationToken.findFirst({
     where: {
       token: token,
     },
@@ -33,7 +33,7 @@ export const setInviteExpirationHandler = async ({ ctx, input }: SetInviteExpira
     ? new Date(Date.now() + expiresInDays * oneDay)
     : new Date("9999-12-31T23:59:59Z"); //maximum possible date incase the link is set to never expire
 
-  await ctx.prisma.verificationToken.update({
+  await ctx.ctx.prisma.verificationToken.update({
     where: { token },
     data: {
       expires,

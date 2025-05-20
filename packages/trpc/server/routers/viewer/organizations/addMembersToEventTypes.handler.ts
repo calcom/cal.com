@@ -41,7 +41,7 @@ export async function addMembersToEventTypesHandler({ ctx, input }: AddBulkToEve
     }))
   );
 
-  return await ctx.prisma.host.createMany({
+  return await ctx.ctx.prisma.host.createMany({
     data,
     // skip if user already a host in eventType
     skipDuplicates: true,

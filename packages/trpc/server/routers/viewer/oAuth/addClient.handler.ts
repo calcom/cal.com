@@ -12,7 +12,7 @@ export const addClientHandler = async ({ input }: AddClientOptions) => {
   const [hashedSecret, secret] = generateSecret();
   const clientId = randomBytes(32).toString("hex");
 
-  const client = await ctx.prisma.oAuthClient.create({
+  const client = await ctx.ctx.prisma.oAuthClient.create({
     data: {
       name,
       redirectUri,

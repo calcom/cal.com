@@ -33,7 +33,7 @@ async function getTeamMembers({
   limit: number;
   searchString?: string | null;
 }) {
-  const memberships = await ctx.prisma.membership.findMany({
+  const memberships = await ctx.ctx.prisma.membership.findMany({
     where: {
       teamId: {
         in: teamId ? [teamId] : teamIds,
@@ -100,7 +100,7 @@ async function buildMember(member: Member, dateFrom: Dayjs, dateTo: Dayjs) {
     };
   }
 
-  const schedule = await ctx.prisma.schedule.findUnique({
+  const schedule = await ctx.ctx.prisma.schedule.findUnique({
     where: { id: member.user.defaultScheduleId },
     select: { availability: true, timeZone: true },
   });
@@ -139,7 +139,7 @@ async function getInfoForAllTeams({ ctx, input }: GetOptions) {
   const { cursor, limit, searchString } = input;
 
   // Get all teamIds for the user
-  const teamIds = await ctx.prisma.membership
+  const teamIds = await ctx.ctx.prisma.membership
     .findMany({
       where: {
         userId: ctx.user.id,
@@ -191,7 +191,7 @@ export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) =>
     teamMembers = teamAllInfo.teamMembers;
     totalTeamMembers = teamAllInfo.totalTeamMembers;
   } else {
-    const isMember = await ctx.prisma.membership.findFirst({
+    const isMember = await ctx.ctx.prisma.membership.findFirst({
       where: {
         teamId,
         userId: ctx.user.id,
@@ -204,7 +204,7 @@ export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) =>
     } else {
       const { cursor, limit } = input;
 
-      totalTeamMembers = await ctx.prisma.membership.count({
+      totalTeamMembers = await ctx.ctx.prisma.membership.count({
         where: {
           teamId: teamId,
           ...(searchString
@@ -246,7 +246,7 @@ export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) =>
   let belongsToTeam = true;
 
   if (totalTeamMembers === 0) {
-    const membership = await ctx.prisma.membership.findFirst({
+    const membership = await ctx.ctx.prisma.membership.findFirst({
       where: {
         userId: ctx.user.id,
       },

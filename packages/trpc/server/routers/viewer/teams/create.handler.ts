@@ -55,7 +55,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     throw new TRPCError({ code: "FORBIDDEN", message: "org_admins_can_create_new_teams" });
   }
 
-  const slugCollisions = await ctx.prisma.team.findFirst({
+  const slugCollisions = await ctx.ctx.prisma.team.findFirst({
     where: {
       slug: slug,
       // If this is under an org, check that the team doesn't already exist
@@ -91,7 +91,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       };
   }
 
-  const createdTeam = await ctx.prisma.team.create({
+  const createdTeam = await ctx.ctx.prisma.team.create({
     data: {
       slug,
       name,
@@ -111,7 +111,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       logo: await resizeBase64Image(input.logo),
       teamId: createdTeam.id,
     });
-    await ctx.prisma.team.update({
+    await ctx.ctx.prisma.team.update({
       where: {
         id: createdTeam.id,
       },

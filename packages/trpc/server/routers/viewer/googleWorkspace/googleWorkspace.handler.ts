@@ -22,7 +22,7 @@ const credentialsSchema = z.object({
 });
 
 export const checkForGWorkspace = async ({ ctx }: CheckForGCalOptions) => {
-  const gWorkspacePresent = await ctx.prisma.credential.findFirst({
+  const gWorkspacePresent = await ctx.ctx.prisma.credential.findFirst({
     where: {
       type: "google_workspace_directory",
       userId: ctx.user.id,
@@ -37,7 +37,7 @@ export const getUsersFromGWorkspace = async ({}: CheckForGCalOptions) => {
   if (!client_id || typeof client_id !== "string") throw new Error("Google client_id missing.");
   if (!client_secret || typeof client_secret !== "string") throw new Error("Google client_secret missing.");
 
-  const hasExistingCredentials = await ctx.prisma.credential.findFirst({
+  const hasExistingCredentials = await ctx.ctx.prisma.credential.findFirst({
     where: {
       type: "google_workspace_directory",
     },
@@ -69,7 +69,7 @@ export const getUsersFromGWorkspace = async ({}: CheckForGCalOptions) => {
 
 export const removeCurrentGoogleWorkspaceConnection = async ({ ctx }: CheckForGCalOptions) => {
   // There should only ever be one google_workspace_directory credential per user but we delete many as we can't make type unique
-  const gWorkspacePresent = await ctx.prisma.credential.deleteMany({
+  const gWorkspacePresent = await ctx.ctx.prisma.credential.deleteMany({
     where: {
       type: "google_workspace_directory",
       userId: ctx.user.id,

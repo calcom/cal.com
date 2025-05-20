@@ -7,7 +7,7 @@ type ListOptions = {
 };
 
 export const listHandler = async ({ ctx }: ListOptions) => {
-  return await ctx.prisma.apiKey.findMany({
+  return await ctx.ctx.prisma.apiKey.findMany({
     where: {
       userId: ctx.user.id,
       OR: [

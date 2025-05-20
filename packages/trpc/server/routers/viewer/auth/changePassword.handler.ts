@@ -21,7 +21,7 @@ export const changePasswordHandler = async ({ input, ctx }: ChangePasswordOption
   const { user } = ctx;
 
   if (user.identityProvider !== IdentityProvider.CAL) {
-    const userWithPassword = await ctx.prisma.user.findUnique({
+    const userWithPassword = await ctx.ctx.prisma.user.findUnique({
       where: {
         id: user.id,
       },
@@ -34,7 +34,7 @@ export const changePasswordHandler = async ({ input, ctx }: ChangePasswordOption
     }
   }
 
-  const currentPasswordQuery = await ctx.prisma.userPassword.findFirst({
+  const currentPasswordQuery = await ctx.ctx.prisma.userPassword.findFirst({
     where: { userId: user.id },
   });
 
@@ -58,7 +58,7 @@ export const changePasswordHandler = async ({ input, ctx }: ChangePasswordOption
   }
 
   const hashedPassword = await hashPassword(newPassword);
-  await ctx.prisma.userPassword.upsert({
+  await ctx.ctx.prisma.userPassword.upsert({
     where: {
       userId: user.id,
     },

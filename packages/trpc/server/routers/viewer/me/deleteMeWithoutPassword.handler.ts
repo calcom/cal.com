@@ -10,7 +10,7 @@ type DeleteMeWithoutPasswordOptions = {
 };
 
 export const deleteMeWithoutPasswordHandler = async ({ ctx }: DeleteMeWithoutPasswordOptions) => {
-  const user = await ctx.prisma.user.findUnique({
+  const user = await ctx.ctx.prisma.user.findUnique({
     where: {
       email: ctx.user.email.toLowerCase(),
     },
@@ -31,7 +31,7 @@ export const deleteMeWithoutPasswordHandler = async ({ ctx }: DeleteMeWithoutPas
   await deleteStripeCustomer(user).catch(console.warn);
 
   // Remove my account
-  await ctx.prisma.user.delete({
+  await ctx.ctx.prisma.user.delete({
     where: {
       id: ctx.user.id,
     },

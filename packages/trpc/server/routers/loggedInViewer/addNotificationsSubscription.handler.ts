@@ -30,16 +30,16 @@ export const addNotificationsSubscriptionHandler = async ({ ctx, input }: AddSec
     });
   }
 
-  const existingSubscription = await ctx.prisma.notificationsSubscriptions.findFirst({
+  const existingSubscription = await ctx.ctx.prisma.notificationsSubscriptions.findFirst({
     where: { userId: user.id },
   });
 
   if (!existingSubscription) {
-    await ctx.prisma.notificationsSubscriptions.create({
+    await ctx.ctx.prisma.notificationsSubscriptions.create({
       data: { userId: user.id, subscription },
     });
   } else {
-    await ctx.prisma.notificationsSubscriptions.update({
+    await ctx.ctx.prisma.notificationsSubscriptions.update({
       where: { id: existingSubscription.id },
       data: { userId: user.id, subscription },
     });

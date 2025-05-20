@@ -31,7 +31,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (input.slug) {
-    const userConflict = await ctx.prisma.team.findMany({
+    const userConflict = await ctx.ctx.prisma.team.findMany({
       where: {
         slug: input.slug,
       },
@@ -39,7 +39,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     if (userConflict.some((t) => t.id !== input.id)) return;
   }
 
-  const prevTeam = await ctx.prisma.team.findFirst({
+  const prevTeam = await ctx.ctx.prisma.team.findFirst({
     where: {
       id: input.id,
     },
@@ -97,7 +97,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  const updatedTeam = await ctx.prisma.team.update({
+  const updatedTeam = await ctx.ctx.prisma.team.update({
     where: { id: input.id },
     data,
   });
@@ -107,7 +107,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     if (updatedTeam.slug === prevTeam.slug) return;
 
     // Fetch parent team slug to construct toUrl
-    const parentTeam = await ctx.prisma.team.findUnique({
+    const parentTeam = await ctx.ctx.prisma.team.findUnique({
       where: {
         id: updatedTeam.parentId,
       },
@@ -125,7 +125,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const toUrlOld = `${orgUrlPrefix}/${prevTeam.slug}`;
     const toUrlNew = `${orgUrlPrefix}/${updatedTeam.slug}`;
 
-    await ctx.prisma.tempOrgRedirect.updateMany({
+    await ctx.ctx.prisma.tempOrgRedirect.updateMany({
       where: {
         type: RedirectType.Team,
         toUrl: toUrlOld,

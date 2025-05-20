@@ -55,9 +55,9 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
     };
   }
 
-  const totalMembers = await ctx.ctx.prisma.membership.count({ where: whereCondition });
+  const totalMembers = await ctx.ctx.ctx.prisma.membership.count({ where: whereCondition });
 
-  const teamMembers = await ctx.ctx.prisma.membership.findMany({
+  const teamMembers = await ctx.ctx.ctx.prisma.membership.findMany({
     where: whereCondition,
     select: {
       id: true,
@@ -123,7 +123,7 @@ const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], team
   if (isTargetingOrg) {
     return isOrgAdminOrOwner || !isOrgPrivate;
   }
-  const team = await ctx.ctx.prisma.team.findUnique({
+  const team = await ctx.ctx.ctx.prisma.team.findUnique({
     where: {
       id: teamId,
     },
@@ -135,7 +135,7 @@ const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], team
     return true;
   }
 
-  const membership = await ctx.ctx.prisma.membership.findFirst({
+  const membership = await ctx.ctx.ctx.prisma.membership.findFirst({
     where: {
       teamId,
       userId: ctx.user.id,

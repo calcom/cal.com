@@ -29,7 +29,7 @@ export const getAllSchedulesByUserIdHandler = async ({ ctx, input }: GetOptions)
     });
   }
 
-  const schedules = await ctx.prisma.schedule.findMany({
+  const schedules = await ctx.ctx.prisma.schedule.findMany({
     where: {
       userId: input.userId,
     },

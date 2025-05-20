@@ -46,7 +46,7 @@ const checkCanUserAccessConnectedApps = async (
   userIds: number[]
 ) => {
   // Check if the user is a member of the team or an admin/owner of the org
-  const team = await ctx.prisma.team.findUnique({
+  const team = await ctx.ctx.prisma.team.findUnique({
     where: { id: teamId },
     select: {
       id: true,
@@ -62,7 +62,7 @@ const checkCanUserAccessConnectedApps = async (
     throw new Error("Team not found");
   }
 
-  const isMember = await ctx.prisma.membership.findFirst({
+  const isMember = await ctx.ctx.prisma.membership.findFirst({
     where: {
       userId: user.id,
       teamId: teamId,
@@ -71,7 +71,7 @@ const checkCanUserAccessConnectedApps = async (
 
   const isOrgAdminOrOwner =
     team.parent &&
-    (await ctx.prisma.membership.findFirst({
+    (await ctx.ctx.prisma.membership.findFirst({
       where: {
         userId: user.id,
         teamId: team.parent.id,
@@ -84,7 +84,7 @@ const checkCanUserAccessConnectedApps = async (
   }
 
   // Check if all userIds belong to the team
-  const teamMembers = await ctx.prisma.membership.findMany({
+  const teamMembers = await ctx.ctx.prisma.membership.findMany({
     where: {
       teamId,
       userId: {
@@ -115,7 +115,7 @@ export const getUserConnectedAppsHandler = async ({ ctx, input }: GetUserConnect
   const userConnectedAppsMap: Record<number, Apps[]> = {};
 
   for (const userId of userIds) {
-    const cred = ctx.prisma.credential.findMany({
+    const cred = ctx.ctx.prisma.credential.findMany({
       where: {
         userId,
       },

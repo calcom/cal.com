@@ -18,7 +18,7 @@ type EditOptions = {
 export const editHandler = async ({ input, ctx }: EditOptions) => {
   const { id, ...data } = input;
 
-  const webhook = await ctx.prisma.webhook.findFirst({
+  const webhook = await ctx.ctx.prisma.webhook.findFirst({
     where: {
       id,
     },
@@ -35,7 +35,7 @@ export const editHandler = async ({ input, ctx }: EditOptions) => {
     }
   }
 
-  const updatedWebhook = await ctx.prisma.webhook.update({
+  const updatedWebhook = await ctx.ctx.prisma.webhook.update({
     where: {
       id,
     },

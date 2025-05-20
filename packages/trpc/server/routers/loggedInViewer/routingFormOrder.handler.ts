@@ -14,7 +14,7 @@ type RoutingFormOrderOptions = {
 export const routingFormOrderHandler = async ({ ctx, input }: RoutingFormOrderOptions) => {
   const { user } = ctx;
 
-  const forms = await ctx.prisma.app_RoutingForms_Form.findMany({
+  const forms = await ctx.ctx.prisma.app_RoutingForms_Form.findMany({
     where: {
       OR: [
         {
@@ -58,7 +58,7 @@ export const routingFormOrderHandler = async ({ ctx, input }: RoutingFormOrderOp
 
   await Promise.all(
     input.ids.reverse().map((id, position) => {
-      return ctx.prisma.app_RoutingForms_Form.update({
+      return ctx.ctx.prisma.app_RoutingForms_Form.update({
         where: {
           id: id,
         },

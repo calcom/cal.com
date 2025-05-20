@@ -22,7 +22,7 @@ export const submitFeedbackHandler = async ({ ctx, input }: SubmitFeedbackOption
     comment: comment,
   };
 
-  await ctx.prisma.feedback.create({
+  await ctx.ctx.prisma.feedback.create({
     data: {
       date: dayjs().toISOString(),
       userId: ctx.user.id,

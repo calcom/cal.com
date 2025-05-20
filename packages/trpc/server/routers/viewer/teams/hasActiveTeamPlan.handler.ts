@@ -11,7 +11,7 @@ type HasActiveTeamPlanOptions = {
 export const hasActiveTeamPlanHandler = async ({ ctx }: HasActiveTeamPlanOptions) => {
   if (IS_SELF_HOSTED) return { isActive: true, isTrial: false };
 
-  const teams = await ctx.prisma.team.findMany({
+  const teams = await ctx.ctx.prisma.team.findMany({
     where: {
       members: {
         some: {

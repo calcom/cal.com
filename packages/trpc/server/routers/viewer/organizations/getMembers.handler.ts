@@ -18,7 +18,7 @@ export const getMembersHandler = async ({ input, ctx }: CreateOptions) => {
 
   if (isOrgPrivate && !isOrgAdmin) return [];
 
-  const teamQuery = await ctx.prisma.team.findUnique({
+  const teamQuery = await ctx.ctx.prisma.team.findUnique({
     where: {
       id: ctx.user.organizationId,
     },
@@ -56,7 +56,7 @@ export const getMembersHandler = async ({ input, ctx }: CreateOptions) => {
   });
 
   if (teamIdToExclude && teamQuery?.members) {
-    const excludedteamUsers = await ctx.prisma.team.findUnique({
+    const excludedteamUsers = await ctx.ctx.prisma.team.findUnique({
       where: {
         id: teamIdToExclude,
       },

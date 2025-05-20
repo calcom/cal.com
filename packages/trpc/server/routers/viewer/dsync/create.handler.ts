@@ -45,7 +45,7 @@ export const createHandler = async ({ ctx, input }: Options) => {
     throw new TRPCError({ code: "BAD_REQUEST", message: error.message });
   }
 
-  await ctx.prisma.dSyncData.create({
+  await ctx.ctx.prisma.dSyncData.create({
     data: {
       directoryId: data.id,
       tenant,

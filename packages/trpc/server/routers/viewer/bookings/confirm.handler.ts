@@ -51,7 +51,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     platformClientParams,
   } = input;
 
-  const booking = await ctx.prisma.booking.findUniqueOrThrow({
+  const booking = await ctx.ctx.prisma.booking.findUniqueOrThrow({
     where: {
       id: bookingId,
     },
@@ -149,7 +149,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
 
   // If booking requires payment and is not paid, we don't allow confirmation
   if (confirmed && booking.payment.length > 0 && !booking.paid) {
-    await ctx.prisma.booking.update({
+    await ctx.ctx.prisma.booking.update({
       where: {
         id: bookingId,
       },
@@ -182,7 +182,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     };
   });
 
-  const organizerOrganizationProfile = await ctx.prisma.profile.findFirst({
+  const organizerOrganizationProfile = await ctx.ctx.prisma.profile.findFirst({
     where: {
       userId: user.id,
     },
@@ -243,7 +243,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
   if (recurringEventId) {
     if (
-      !(await ctx.prisma.booking.findFirst({
+      !(await ctx.ctx.prisma.booking.findFirst({
         where: {
           recurringEventId,
           id: booking.id,
@@ -261,7 +261,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     }
   }
   if (recurringEventId && recurringEvent) {
-    const groupedRecurringBookings = await ctx.prisma.booking.groupBy({
+    const groupedRecurringBookings = await ctx.ctx.prisma.booking.groupBy({
       where: {
         recurringEventId: booking.recurringEventId,
       },
@@ -305,7 +305,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     if (recurringEventId) {
       // The booking to reject is a recurring event and comes from /booking/upcoming, proceeding to mark all related
       // bookings as rejected.
-      await ctx.prisma.booking.updateMany({
+      await ctx.ctx.prisma.booking.updateMany({
         where: {
           recurringEventId,
           status: BookingStatus.PENDING,
@@ -325,7 +325,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       }
       // end handle refunds.
 
-      await ctx.prisma.booking.update({
+      await ctx.ctx.prisma.booking.update({
         where: {
           id: bookingId,
         },
@@ -406,14 +406,14 @@ const checkIfUserIsAuthorizedToConfirmBooking = async ({
   // Check if user is associated with the event type
   if (eventTypeId) {
     const [loggedInUserAsHostOfEventType, loggedInUserAsUserOfEventType] = await Promise.all([
-      ctx.prisma.eventType.findUnique({
+      ctx.ctx.prisma.eventType.findUnique({
         where: {
           id: eventTypeId,
           hosts: { some: { userId: loggedInUserId } },
         },
         select: { id: true },
       }),
-      ctx.prisma.eventType.findUnique({
+      ctx.ctx.prisma.eventType.findUnique({
         where: {
           id: eventTypeId,
           users: { some: { id: loggedInUserId } },
@@ -427,7 +427,7 @@ const checkIfUserIsAuthorizedToConfirmBooking = async ({
 
   // Check if the user is an admin/owner of the team the booking belongs to
   if (teamId) {
-    const membership = await ctx.prisma.membership.findFirst({
+    const membership = await ctx.ctx.prisma.membership.findFirst({
       where: {
         userId: loggedInUserId,
         teamId: teamId,

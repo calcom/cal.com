@@ -13,7 +13,7 @@ type AcceptOrLeaveOptions = {
 
 export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions) => {
   if (input.accept) {
-    const teamMembership = await ctx.prisma.membership.update({
+    const teamMembership = await ctx.ctx.prisma.membership.update({
       where: {
         userId_teamId: { userId: ctx.user.id, teamId: input.teamId },
       },
@@ -28,7 +28,7 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
     const team = teamMembership.team;
 
     if (team.parentId) {
-      await ctx.prisma.membership.update({
+      await ctx.ctx.prisma.membership.update({
         where: {
           userId_teamId: { userId: ctx.user.id, teamId: team.parentId },
         },
@@ -57,7 +57,7 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
     await updateNewTeamMemberEventTypes(ctx.user.id, input.teamId);
   } else {
     try {
-      const membership = await ctx.prisma.membership.delete({
+      const membership = await ctx.ctx.prisma.membership.delete({
         where: {
           userId_teamId: { userId: ctx.user.id, teamId: input.teamId },
         },
@@ -67,7 +67,7 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
       });
 
       if (membership.team.parentId) {
-        await ctx.prisma.membership.delete({
+        await ctx.ctx.prisma.membership.delete({
           where: {
             userId_teamId: { userId: ctx.user.id, teamId: membership.team.parentId },
           },

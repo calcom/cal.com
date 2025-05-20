@@ -17,7 +17,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
     AND: [{ appId: !input?.appId ? null : input.appId }],
   };
 
-  const user = await ctx.prisma.user.findFirst({
+  const user = await ctx.ctx.prisma.user.findFirst({
     where: {
       id: ctx.user.id,
     },
@@ -28,7 +28,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
 
   if (Array.isArray(where.AND)) {
     if (input?.eventTypeId) {
-      const managedParentEvt = await ctx.prisma.eventType.findFirst({
+      const managedParentEvt = await ctx.ctx.prisma.eventType.findFirst({
         where: {
           id: input.eventTypeId,
           parentId: {
@@ -58,7 +58,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
     }
   }
 
-  return await ctx.prisma.webhook.findMany({
+  return await ctx.ctx.prisma.webhook.findMany({
     where,
   });
 };

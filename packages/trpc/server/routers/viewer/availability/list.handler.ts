@@ -10,7 +10,7 @@ type ListOptions = {
 export const listHandler = async ({ ctx }: ListOptions) => {
   const { user } = ctx;
 
-  const schedules = await ctx.prisma.schedule.findMany({
+  const schedules = await ctx.ctx.prisma.schedule.findMany({
     where: {
       userId: user.id,
     },
@@ -36,7 +36,7 @@ export const listHandler = async ({ ctx }: ListOptions) => {
     defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
 
     if (!user.defaultScheduleId) {
-      await ctx.prisma.user.update({
+      await ctx.ctx.prisma.user.update({
         where: {
           id: user.id,
         },

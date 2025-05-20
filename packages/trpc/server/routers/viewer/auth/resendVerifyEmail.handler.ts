@@ -31,7 +31,7 @@ export const resendVerifyEmail = async ({ input, ctx }: ResendEmailOptions) => {
   let secondaryEmail;
   // If the input which is coming is not the current user's email, it could be a secondary email
   if (input?.email && input?.email !== ctx.user.email) {
-    secondaryEmail = await ctx.prisma.secondaryEmail.findUnique({
+    secondaryEmail = await ctx.ctx.prisma.secondaryEmail.findUnique({
       where: {
         email: input.email,
         userId: ctx.user.id,

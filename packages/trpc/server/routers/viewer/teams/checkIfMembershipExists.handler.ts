@@ -11,7 +11,7 @@ type CheckIfMembershipExistsOptions = {
 const checkIfMembershipExistsHandler = async ({ ctx, input }: CheckIfMembershipExistsOptions) => {
   const { teamId, value } = input;
 
-  const membership = await ctx.prisma.membership.findFirst({
+  const membership = await ctx.ctx.prisma.membership.findFirst({
     where: {
       teamId,
       user: {

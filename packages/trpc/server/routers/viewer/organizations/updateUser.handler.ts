@@ -22,7 +22,7 @@ type UpdateUserOptions = {
 };
 
 const applyRoleToAllTeams = async (userId: number, teamIds: number[], role: MembershipRole) => {
-  await ctx.prisma.membership.updateMany({
+  await ctx.ctx.prisma.membership.updateMany({
     where: {
       userId,
       teamId: {
@@ -60,7 +60,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   }
 
   // Is requested user a member of the organization?
-  const requestedMember = await ctx.prisma.membership.findFirst({
+  const requestedMember = await ctx.ctx.prisma.membership.findFirst({
     where: {
       userId: input.userId,
       teamId: organizationId,
@@ -131,13 +131,13 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
 
   // Update user
   const transactions: PrismaPromise<User | Membership | Profile>[] = [
-    ctx.prisma.user.update({
+    ctx.ctx.prisma.user.update({
       where: {
         id: input.userId,
       },
       data,
     }),
-    ctx.prisma.membership.update({
+    ctx.ctx.prisma.membership.update({
       where: {
         userId_teamId: {
           userId: input.userId,
@@ -152,7 +152,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
 
   if (hasUsernameUpdated) {
     transactions.push(
-      ctx.prisma.profile.update({
+      ctx.ctx.prisma.profile.update({
         where: {
           userId_organizationId: {
             userId: input.userId,

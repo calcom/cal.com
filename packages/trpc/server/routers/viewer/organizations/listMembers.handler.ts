@@ -37,7 +37,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const expand = input.expand;
   const filters = input.filters || [];
 
-  const allAttributeOptions = await ctx.prisma.attributeOption.findMany({
+  const allAttributeOptions = await ctx.ctx.prisma.attributeOption.findMany({
     where: {
       attribute: {
         teamId: organizationId,
@@ -183,11 +183,11 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     }));
   }
 
-  const totalCountPromise = ctx.prisma.membership.count({
+  const totalCountPromise = ctx.ctx.prisma.membership.count({
     where: whereClause,
   });
 
-  const teamMembersPromise = ctx.prisma.membership.findMany({
+  const teamMembersPromise = ctx.ctx.prisma.membership.findMany({
     where: whereClause,
     select: {
       id: true,
@@ -240,7 +240,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
       let attributes;
 
       if (expand?.includes("attributes")) {
-        attributes = await ctx.prisma.attributeToUser
+        attributes = await ctx.ctx.prisma.attributeToUser
           .findMany({
             where: {
               memberId: membership.id,

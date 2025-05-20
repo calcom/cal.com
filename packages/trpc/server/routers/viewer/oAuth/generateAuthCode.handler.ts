@@ -17,7 +17,7 @@ type AddClientOptions = {
 
 export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) => {
   const { clientId, scopes, teamSlug } = input;
-  const client = await ctx.prisma.oAuthClient.findFirst({
+  const client = await ctx.ctx.prisma.oAuthClient.findFirst({
     where: {
       clientId,
     },
@@ -34,7 +34,7 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
   const authorizationCode = generateAuthorizationCode();
 
   const team = teamSlug
-    ? await ctx.prisma.team.findFirst({
+    ? await ctx.ctx.prisma.team.findFirst({
         where: {
           slug: teamSlug,
           members: {
@@ -53,7 +53,7 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  await ctx.prisma.accessCode.create({
+  await ctx.ctx.prisma.accessCode.create({
     data: {
       code: authorizationCode,
       clientId,

@@ -130,4 +130,10 @@ if (require.main === module) {
   processAllFiles().catch(console.error);
 }
 
-export { processFile, processFiles, findAllHandlerFiles, processBatch, processAllFiles };
+module.exports = {
+  processFile,
+  processFiles,
+  findAllHandlerFiles,
+  processBatch,
+  processAllFiles,
+};

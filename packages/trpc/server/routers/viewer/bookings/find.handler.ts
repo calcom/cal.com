@@ -13,7 +13,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   const { prisma } = ctx;
   const { bookingUid } = input;
 
-  const booking = await ctx.prisma.booking.findUnique({
+  const booking = await ctx.ctx.prisma.booking.findUnique({
     where: {
       uid: bookingUid,
     },

@@ -93,7 +93,7 @@ export async function getBookings({
   skip: number;
 }) {
   const membershipIdsWhereUserIsAdminOwner = (
-    await ctx.prisma.membership.findMany({
+    await ctx.ctx.prisma.membership.findMany({
       where: {
         userId: user.id,
         role: {
@@ -562,7 +562,7 @@ export async function getBookings({
     recurringInfoExtended,
     // We need all promises to be successful, so we are not using Promise.allSettled
   ] = await Promise.all([
-    ctx.prisma.booking.groupBy({
+    ctx.ctx.prisma.booking.groupBy({
       by: ["recurringEventId"],
       _min: {
         startTime: true,
@@ -577,7 +577,7 @@ export async function getBookings({
         userId: user.id,
       },
     }),
-    ctx.prisma.booking.groupBy({
+    ctx.ctx.prisma.booking.groupBy({
       by: ["recurringEventId", "status", "startTime"],
       _min: {
         startTime: true,
@@ -644,7 +644,7 @@ export async function getBookings({
 
       let rescheduler = null;
       if (booking.fromReschedule) {
-        const rescheduledBooking = await ctx.prisma.booking.findUnique({
+        const rescheduledBooking = await ctx.ctx.prisma.booking.findUnique({
           where: {
             uid: booking.fromReschedule,
           },
@@ -682,7 +682,7 @@ async function getEventTypeIdsFromTeamIdsFilter(prisma: PrismaClient, teamIds?: 
   }
 
   const [directTeamEventTypeIds, parentTeamEventTypeIds] = await Promise.all([
-    ctx.prisma.eventType
+    ctx.ctx.prisma.eventType
       .findMany({
         where: {
           teamId: { in: teamIds },
@@ -693,7 +693,7 @@ async function getEventTypeIdsFromTeamIdsFilter(prisma: PrismaClient, teamIds?: 
       })
       .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
 
-    ctx.prisma.eventType
+    ctx.ctx.prisma.eventType
       .findMany({
         where: {
           parent: {
@@ -719,7 +719,7 @@ async function getAttendeeEmailsFromUserIdsFilter(
     return;
   }
 
-  const attendeeEmailsFromUserIdsFilter = await ctx.prisma.user
+  const attendeeEmailsFromUserIdsFilter = await ctx.ctx.prisma.user
     .findMany({
       where: {
         id: {
@@ -747,7 +747,7 @@ async function getEventTypeIdsFromEventTypeIdsFilter(prisma: PrismaClient, event
     return undefined;
   }
   const [directEventTypeIds, parentEventTypeIds] = await Promise.all([
-    ctx.prisma.eventType
+    ctx.ctx.prisma.eventType
       .findMany({
         where: {
           id: { in: eventTypeIds },
@@ -758,7 +758,7 @@ async function getEventTypeIdsFromEventTypeIdsFilter(prisma: PrismaClient, event
       })
       .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
 
-    ctx.prisma.eventType
+    ctx.ctx.prisma.eventType
       .findMany({
         where: {
           parent: {
@@ -791,7 +791,7 @@ async function getEventTypeIdsWhereUserIsAdminOrOwner(
   membershipCondition: PrismaClientType.MembershipListRelationFilter
 ) {
   const [directTeamEventTypeIds, parentTeamEventTypeIds] = await Promise.all([
-    ctx.prisma.eventType
+    ctx.ctx.prisma.eventType
       .findMany({
         where: {
           team: {
@@ -804,7 +804,7 @@ async function getEventTypeIdsWhereUserIsAdminOrOwner(
       })
       .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
 
-    ctx.prisma.eventType
+    ctx.ctx.prisma.eventType
       .findMany({
         where: {
           parent: {
@@ -841,7 +841,7 @@ async function getUserIdsAndEmailsWhereUserIsAdminOrOwner(
   membershipCondition: PrismaClientType.MembershipListRelationFilter,
   orgId?: number | null
 ): Promise<[number[], string[]]> {
-  const users = await ctx.prisma.user.findMany({
+  const users = await ctx.ctx.prisma.user.findMany({
     where: {
       teams: {
         some: {

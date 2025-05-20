@@ -19,7 +19,7 @@ export const getMembershipbyUserHandler = async ({ ctx, input }: GetMembershipby
     });
   }
 
-  return await ctx.prisma.membership.findUnique({
+  return await ctx.ctx.prisma.membership.findUnique({
     where: {
       userId_teamId: {
         userId: input.memberId,

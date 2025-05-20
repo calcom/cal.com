@@ -23,7 +23,7 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
 
   // get requested user from database and ensure they are in the same organization
   const [requestedUser, membership, teams] = await prisma.$transaction([
-    ctx.prisma.user.findFirst({
+    ctx.ctx.prisma.user.findFirst({
       where: { id: input.userId },
       select: {
         id: true,
@@ -47,7 +47,7 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
       },
     }),
     // Query on accepted as we don't want the user to be able to get this much info on a user that hasn't accepted the invite
-    ctx.prisma.membership.findFirst({
+    ctx.ctx.prisma.membership.findFirst({
       where: {
         userId: input.userId,
         teamId: currentUser.organizationId,
@@ -57,7 +57,7 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
         role: true,
       },
     }),
-    ctx.prisma.membership.findMany({
+    ctx.ctx.prisma.membership.findMany({
       where: {
         userId: input.userId,
         team: {

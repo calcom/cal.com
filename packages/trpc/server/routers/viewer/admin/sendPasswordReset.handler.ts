@@ -16,7 +16,7 @@ type GetOptions = {
 const sendPasswordResetHandler = async ({ input }: GetOptions) => {
   const { userId } = input;
 
-  const user = await ctx.prisma.user.findUnique({
+  const user = await ctx.ctx.prisma.user.findUnique({
     where: {
       id: userId,
     },
@@ -35,7 +35,7 @@ const sendPasswordResetHandler = async ({ input }: GetOptions) => {
 
   const expiry = dayjs().add(PASSWORD_RESET_EXPIRY_HOURS, "hours").toDate();
 
-  const passwordResetToken = await ctx.prisma.resetPasswordRequest.create({
+  const passwordResetToken = await ctx.ctx.prisma.resetPasswordRequest.create({
     data: {
       email: user.email,
       expires: expiry,

@@ -25,7 +25,7 @@ const bulkAssignAttributesHandler = async ({ input, ctx }: GetOptions) => {
   const attributeTypes = new Map<string, string>();
 
   // Ensure this organization can access these attributes and attribute options
-  const attributes = await ctx.prisma.attribute.findMany({
+  const attributes = await ctx.ctx.prisma.attribute.findMany({
     where: {
       id: {
         in: input.attributes.map((attribute) => attribute.id),

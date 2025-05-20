@@ -43,7 +43,7 @@ export const updateUserDefaultConferencingAppHandler = async ({
     }
   }
 
-  await ctx.prisma.user.update({
+  await ctx.ctx.prisma.user.update({
     where: {
       id: ctx.user.id,
     },

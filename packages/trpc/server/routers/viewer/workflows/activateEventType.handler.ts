@@ -25,7 +25,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
   const { eventTypeId, workflowId } = input;
 
   // Check that event type belong to the user or team
-  const userEventType = await ctx.prisma.eventType.findFirst({
+  const userEventType = await ctx.ctx.prisma.eventType.findFirst({
     where: {
       id: eventTypeId,
       OR: [
@@ -59,7 +59,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authorized to edit this event type" });
 
   // Check that the workflow belongs to the user or team
-  const eventTypeWorkflow = await ctx.prisma.workflow.findFirst({
+  const eventTypeWorkflow = await ctx.ctx.prisma.workflow.findFirst({
     where: {
       id: workflowId,
       OR: [
@@ -107,7 +107,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
 
   //check if event type is already active
   const isActive =
-    !!(await ctx.prisma.workflowsOnEventTypes.findFirst({
+    !!(await ctx.ctx.prisma.workflowsOnEventTypes.findFirst({
       where: {
         workflowId,
         eventTypeId,
@@ -120,7 +120,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
 
   if (isActive) {
     // disable workflow for this event type & delete all reminders
-    const remindersToDelete = await ctx.prisma.workflowReminder.findMany({
+    const remindersToDelete = await ctx.ctx.prisma.workflowReminder.findMany({
       where: {
         booking: {
           eventTypeId: eventTypeId,
@@ -142,7 +142,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
 
     await WorkflowRepository.deleteAllWorkflowReminders(remindersToDelete);
 
-    await ctx.prisma.workflowsOnEventTypes.deleteMany({
+    await ctx.ctx.prisma.workflowsOnEventTypes.deleteMany({
       where: {
         workflowId,
         eventTypeId: { in: [eventTypeId].concat(userEventType.children.map((ch) => ch.id)) },
@@ -150,7 +150,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
     });
 
     if (eventTypeWorkflow.isActiveOnAll) {
-      await ctx.prisma.workflow.update({
+      await ctx.ctx.prisma.workflow.update({
         where: {
           id: workflowId,
         },
@@ -163,7 +163,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
 
       //get all event types of team or user
       if (eventTypeWorkflow.teamId) {
-        allEventTypes = await ctx.prisma.eventType.findMany({
+        allEventTypes = await ctx.ctx.prisma.eventType.findMany({
           where: {
             id: {
               not: eventTypeId,
@@ -172,7 +172,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
           },
         });
       } else {
-        const allEventTypesWithLocked = await ctx.prisma.eventType.findMany({
+        const allEventTypesWithLocked = await ctx.ctx.prisma.eventType.findMany({
           where: {
             id: {
               not: eventTypeId,
@@ -191,7 +191,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
 
       // activate all event types on the workflow
       for (const eventType of allEventTypes) {
-        await ctx.prisma.workflowsOnEventTypes.upsert({
+        await ctx.ctx.prisma.workflowsOnEventTypes.upsert({
           create: {
             workflowId,
             eventTypeId: eventType.id,
@@ -213,7 +213,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       eventTypeWorkflow.trigger == WorkflowTriggerEvents.AFTER_EVENT
     ) {
       // activate workflow and schedule reminders for existing bookings
-      const bookingsForReminders = await ctx.prisma.booking.findMany({
+      const bookingsForReminders = await ctx.ctx.prisma.booking.findMany({
         where: {
           OR: [
             { eventTypeId },
@@ -447,7 +447,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       }
     }
 
-    await ctx.prisma.workflowsOnEventTypes.createMany({
+    await ctx.ctx.prisma.workflowsOnEventTypes.createMany({
       data: [
         {
           workflowId,

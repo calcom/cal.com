@@ -18,7 +18,7 @@ type UpdateOptions = {
 export const setPasswordHandler = async ({ ctx, input }: UpdateOptions) => {
   const { newPassword } = input;
 
-  const user = await ctx.prisma.user.findFirst({
+  const user = await ctx.ctx.prisma.user.findFirst({
     where: {
       id: ctx.user.id,
     },
@@ -44,7 +44,7 @@ export const setPasswordHandler = async ({ ctx, input }: UpdateOptions) => {
     });
 
   const hashedPassword = await hashPassword(newPassword);
-  await ctx.prisma.userPassword.upsert({
+  await ctx.ctx.prisma.userPassword.upsert({
     where: {
       userId: ctx.user.id,
     },

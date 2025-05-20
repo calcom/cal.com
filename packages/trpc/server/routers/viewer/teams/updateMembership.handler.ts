@@ -19,7 +19,7 @@ export const updateMembershipHandler = async ({ ctx, input }: UpdateMembershipOp
     });
   }
 
-  return await ctx.prisma.membership.update({
+  return await ctx.ctx.prisma.membership.update({
     where: {
       userId_teamId: {
         userId: input.memberId,

@@ -20,7 +20,7 @@ export async function removeHostsFromEventTypesHandler({ ctx, input }: RemoveHos
 
   const { userIds, eventTypeIds } = input;
 
-  return await ctx.prisma.host.deleteMany({
+  return await ctx.ctx.prisma.host.deleteMany({
     where: {
       eventTypeId: {
         in: eventTypeIds,

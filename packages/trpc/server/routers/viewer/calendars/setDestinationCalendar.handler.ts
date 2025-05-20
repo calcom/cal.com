@@ -86,7 +86,7 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
 
   if (eventTypeId) {
     if (
-      !(await ctx.prisma.eventType.findFirst({
+      !(await ctx.ctx.prisma.eventType.findFirst({
         where: {
           id: eventTypeId,
           userId: user.id,
