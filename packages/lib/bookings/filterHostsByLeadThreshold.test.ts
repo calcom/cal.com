@@ -1,12 +1,9 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
 
-import prisma from "@calcom/prisma";
 import { RRResetInterval } from "@calcom/prisma/enums";
 
 import { getOrderedListOfLuckyUsers } from "../server/getLuckyUser";
 import { filterHostsByLeadThreshold, errorCodes } from "./filterHostsByLeadThreshold";
-
-// Import the original Prisma client
 
 // Mocking setup
 const prismaMock = {
@@ -16,7 +13,7 @@ const prismaMock = {
 };
 
 // Use `vi.spyOn` to make `prisma.booking.groupBy` call the mock instead
-vi.spyOn(prisma.booking, "groupBy").mockImplementation(prismaMock.booking.groupBy);
+vi.spyOn(prismaMock.booking, "groupBy").mockImplementation(prismaMock.booking.groupBy);
 
 vi.mock("../server/getLuckyUser", () => ({
   getOrderedListOfLuckyUsers: vi.fn(),
