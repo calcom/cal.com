@@ -38,6 +38,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const org = isValidOrgDomain ? currentOrgDomain : null;
+  if (!org) {
+    return {
+      notFound: true,
+    } as const;
+  }
   const session = await getServerSession({ req: context.req });
   const eventData = await EventRepository.getPublicEvent(
     {
@@ -50,7 +55,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     session?.user?.id
   );
 
-  if (!eventData || !org) {
+  if (!eventData) {
     return {
       notFound: true,
     } as const;
