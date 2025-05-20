@@ -390,7 +390,7 @@ export const bookingMetadataSchema = z
   .object({
     videoCallUrl: z.string().optional(),
   })
-  .and(z.record(z.string()))
+  .passthrough()
   .nullable()
   .describe("BookingMetadata");
 
