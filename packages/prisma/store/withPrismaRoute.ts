@@ -11,7 +11,7 @@ export function withPrismaRoute(handler: HandlerFn) {
     const host = req.headers.get("host") || "";
     const tenant = getTenantFromHost(host);
 
-    return runWithTenants(async () => {
+    return runWithTenants(tenant, async () => {
       const prisma = getPrisma(tenant);
       return await handler(req, prisma);
     });

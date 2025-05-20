@@ -11,7 +11,7 @@ export function withPrismaSsr<P = any>(
     const host = ctx.req.headers.host || "";
     const tenant = getTenantFromHost(host);
 
-    return runWithTenants(async () => {
+    return runWithTenants(tenant, async () => {
       const prisma = getPrisma(tenant);
       return await handler(ctx, prisma);
     });

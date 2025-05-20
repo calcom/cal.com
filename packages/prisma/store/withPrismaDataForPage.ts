@@ -12,7 +12,7 @@ export async function withPrismaDataForPage<T>(
     throw new Error("Missing or invalid x-tenant-id header");
   }
 
-  return runWithTenants(async () => {
+  return runWithTenants(tenantHeader, async () => {
     const prisma = getPrisma(tenantHeader);
     return loader(prisma);
   });
