@@ -69,23 +69,24 @@ model Host {
 }
 
 model EventType {
-  id          Int     @id @default(autoincrement())
+  id                Int     @id @default(autoincrement())
   /// @zod.min(1)
-  title       String
+  title             String
   /// @zod.custom(imports.eventTypeSlug)
-  slug        String
-  description String?
-  position    Int     @default(0)
+  slug              String
+  description       String?
+  interfaceLanguage String?
+  position          Int     @default(0)
   /// @zod.custom(imports.eventTypeLocations)
-  locations   Json?
+  locations         Json?
   /// @zod.min(1)
-  length      Int
-  offsetStart Int     @default(0)
-  hidden      Boolean @default(false)
-  hosts       Host[]
-  users       User[]  @relation("user_eventtype")
-  owner       User?   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
-  userId      Int?
+  length            Int
+  offsetStart       Int     @default(0)
+  hidden            Boolean @default(false)
+  hosts             Host[]
+  users             User[]  @relation("user_eventtype")
+  owner             User?   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
+  userId            Int?
 
   profileId Int?
   profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
@@ -684,17 +685,17 @@ enum BookingStatus {
 }
 
 model Booking {
-  id                           Int                            @id @default(autoincrement())
-  uid                          String                         @unique
+  id                           Int                               @id @default(autoincrement())
+  uid                          String                            @unique
   // (optional) UID based on slot start/end time & email against duplicates
-  idempotencyKey               String?                        @unique
-  user                         User?                          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  idempotencyKey               String?                           @unique
+  user                         User?                             @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                       Int?
   // User's email at the time of booking
   /// @zod.custom(imports.emailSchema)
   userPrimaryEmail             String?
   references                   BookingReference[]
-  eventType                    EventType?                     @relation(fields: [eventTypeId], references: [id])
+  eventType                    EventType?                        @relation(fields: [eventTypeId], references: [id])
   eventTypeId                  Int?
   title                        String
   description                  String?
@@ -705,17 +706,17 @@ model Booking {
   endTime                      DateTime
   attendees                    Attendee[]
   location                     String?
-  createdAt                    DateTime                       @default(now())
-  updatedAt                    DateTime?                      @updatedAt
-  status                       BookingStatus                  @default(ACCEPTED)
-  paid                         Boolean                        @default(false)
+  createdAt                    DateTime                          @default(now())
+  updatedAt                    DateTime?                         @updatedAt
+  status                       BookingStatus                     @default(ACCEPTED)
+  paid                         Boolean                           @default(false)
   payment                      Payment[]
-  destinationCalendar          DestinationCalendar?           @relation(fields: [destinationCalendarId], references: [id])
+  destinationCalendar          DestinationCalendar?              @relation(fields: [destinationCalendarId], references: [id])
   destinationCalendarId        Int?
   cancellationReason           String?
   rejectionReason              String?
   reassignReason               String?
-  reassignBy                   User?                          @relation("reassignByUser", fields: [reassignById], references: [id])
+  reassignBy                   User?                             @relation("reassignByUser", fields: [reassignById], references: [id])
   reassignById                 Int?
   dynamicEventSlugRef          String?
   dynamicGroupSlugRef          String?
@@ -728,15 +729,15 @@ model Booking {
   seatsReferences              BookingSeat[]
   /// @zod.custom(imports.bookingMetadataSchema)
   metadata                     Json?
-  isRecorded                   Boolean                        @default(false)
-  iCalUID                      String?                        @default("")
-  iCalSequence                 Int                            @default(0)
+  isRecorded                   Boolean                           @default(false)
+  iCalUID                      String?                           @default("")
+  iCalSequence                 Int                               @default(0)
   instantMeetingToken          InstantMeetingToken?
   rating                       Int?
   ratingFeedback               String?
-  noShowHost                   Boolean?                       @default(false)
+  noShowHost                   Boolean?                          @default(false)
   scheduledTriggers            WebhookScheduledTriggers[]
-  oneTimePassword              String?                        @unique @default(uuid())
+  oneTimePassword              String?                           @unique @default(uuid())
   /// @zod.email()
   cancelledBy                  String?
   /// @zod.email()
@@ -747,6 +748,7 @@ model Booking {
   internalNote                 BookingInternalNote[]
   creationSource               CreationSource?
   tracking                     Tracking?
+  routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
 
   @@index([eventTypeId])
@@ -1116,14 +1118,33 @@ model App_RoutingForms_FormResponse {
   createdAt    DateTime              @default(now())
   updatedAt    DateTime?             @updatedAt
 
-  routedToBookingUid String?  @unique
+  routedToBookingUid        String?                           @unique
   // We should not cascade delete the booking, because we want to keep the form response even if the routedToBooking is deleted
-  routedToBooking    Booking? @relation(fields: [routedToBookingUid], references: [uid])
-  chosenRouteId      String?
+  routedToBooking           Booking?                          @relation(fields: [routedToBookingUid], references: [uid])
+  chosenRouteId             String?
+  routingFormResponseFields RoutingFormResponseField[]
+  routingFormResponses      RoutingFormResponseDenormalized[]
 
   @@unique([formFillerId, formId])
   @@index([formFillerId])
   @@index([formId])
+  @@index([routedToBookingUid])
+}
+
+model RoutingFormResponseField {
+  id               Int                             @id @default(autoincrement())
+  responseId       Int
+  fieldId          String
+  valueString      String?
+  valueNumber      Decimal?
+  valueStringArray String[]
+  response         App_RoutingForms_FormResponse   @relation(fields: [responseId], references: [id], map: "RoutingFormResponseField_response_fkey", onDelete: Cascade)
+  denormalized     RoutingFormResponseDenormalized @relation("DenormalizedResponseToFields", fields: [responseId], references: [id], onDelete: Cascade)
+
+  @@index([responseId])
+  @@index([fieldId])
+  @@index([valueNumber])
+  @@index([valueStringArray], type: Gin)
 }
 
 view RoutingFormResponse {
@@ -1153,6 +1174,46 @@ view RoutingFormResponse {
   utm_campaign                     String?
   utm_term                         String?
   utm_content                      String?
+}
+
+model RoutingFormResponseDenormalized {
+  id                      Int                           @id
+  formId                  String
+  formName                String
+  formTeamId              Int?
+  formUserId              Int
+  booking                 Booking?                      @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  bookingUid              String?
+  bookingId               Int?
+  bookingStatus           BookingStatus?
+  bookingStatusOrder      Int?
+  bookingCreatedAt        DateTime?                     @db.Timestamp(3)
+  bookingStartTime        DateTime?                     @db.Timestamp(3)
+  bookingEndTime          DateTime?                     @db.Timestamp(3)
+  bookingUserId           Int?
+  bookingUserName         String?
+  bookingUserEmail        String?
+  bookingUserAvatarUrl    String?
+  bookingAssignmentReason String?
+  eventTypeId             Int?
+  eventTypeParentId       Int?
+  eventTypeSchedulingType String?
+  createdAt               DateTime                      @db.Timestamp(3)
+  utm_source              String?
+  utm_medium              String?
+  utm_campaign            String?
+  utm_term                String?
+  utm_content             String?
+  response                App_RoutingForms_FormResponse @relation(fields: [id], references: [id], onDelete: Cascade)
+  fields                  RoutingFormResponseField[]    @relation("DenormalizedResponseToFields")
+
+  @@index([formId])
+  @@index([formTeamId])
+  @@index([formUserId])
+  @@index([formId, createdAt])
+  @@index([bookingId])
+  @@index([bookingUserId])
+  @@index([eventTypeId, eventTypeParentId])
 }
 
 model Feedback {
