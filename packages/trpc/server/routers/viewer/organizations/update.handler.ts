@@ -49,6 +49,10 @@ const updateOrganizationSettings = async ({
     data.orgProfileRedirectsToVerifiedDomain = input.orgProfileRedirectsToVerifiedDomain;
   }
 
+  if (input.hasOwnProperty("disablePhoneOnlySMSNotifications")) {
+    data.disablePhoneOnlySMSNotifications = input.disablePhoneOnlySMSNotifications;
+  }
+
   // If no settings values have changed lets skip this update
   if (Object.keys(data).length === 0) return;
 

@@ -8,7 +8,6 @@ import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
 import { AppsRepository } from "@/modules/apps/apps.repository";
-import { ConferencingModule } from "@/modules/conferencing/conferencing.module";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
@@ -19,7 +18,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [PrismaModule, MembershipsModule, TokensModule, SelectedCalendarsModule, ConferencingModule],
+  imports: [PrismaModule, MembershipsModule, TokensModule, SelectedCalendarsModule],
   providers: [
     EventTypesRepository_2024_06_14,
     EventTypesService_2024_06_14,

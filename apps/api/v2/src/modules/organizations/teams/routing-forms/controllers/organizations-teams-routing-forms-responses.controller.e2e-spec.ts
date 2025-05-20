@@ -35,7 +35,7 @@ describe("Organizations Teams Routing Forms Responses", () => {
 
   let org: Team;
   let orgTeam: Team;
-  let routingFormResponseId: string;
+  let routingFormResponseId: number;
   const authEmail = `organizations-teams-routing-forms-responses-user-${randomString()}@api.com`;
   let user: User;
   let apiKeyString: string;
@@ -43,8 +43,7 @@ describe("Organizations Teams Routing Forms Responses", () => {
   let routingFormId: string;
   const routingFormResponses = [
     {
-      id: 1,
-      formFillerId: "cm78tvkvd0001kh8jq0tu5iq9",
+      formFillerId: `${randomString()}`,
       response: {
         "participant-field": {
           label: "participant",
@@ -184,7 +183,6 @@ describe("Organizations Teams Routing Forms Responses", () => {
         const responseData = responseBody.data;
         expect(responseData).toBeDefined();
         expect(responseData.length).toEqual(1);
-        expect(responseData[0].id).toEqual(routingFormResponses[0].id);
         expect(responseData[0].response).toEqual(routingFormResponses[0].response);
         expect(responseData[0].formFillerId).toEqual(routingFormResponses[0].formFillerId);
         expect(responseData[0].createdAt).toEqual(routingFormResponses[0].createdAt.toISOString());
@@ -248,6 +246,8 @@ describe("Organizations Teams Routing Forms Responses", () => {
   });
 
   afterAll(async () => {
+    await routingFormsRepositoryFixture.deleteResponse(routingFormResponseId);
+    await routingFormsRepositoryFixture.delete(routingFormId);
     await userRepositoryFixture.deleteByEmail(user.email);
     await organizationsRepositoryFixture.delete(org.id);
     await app.close();
