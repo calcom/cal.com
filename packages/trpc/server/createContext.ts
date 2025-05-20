@@ -6,8 +6,14 @@ import type { serverSideTranslations } from "next-i18next/serverSideTranslations
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import getIP from "@calcom/lib/getIP";
 import type { PrismaClient } from "@calcom/prisma";
-import prisma, { readonlyPrisma } from "@calcom/prisma";
+import { readonlyPrisma } from "@calcom/prisma";
 import type { SelectedCalendar, User as PrismaUser } from "@calcom/prisma/client";
+import {
+  getPrismaFromHost,
+  runWithTenants,
+  setCurrentTenant,
+  getTenantFromHost,
+} from "@calcom/prisma/store/prismaStore";
 
 import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
 
@@ -21,6 +27,7 @@ export type CreateInnerContextOptions = {
   sourceIp?: string;
   session?: Session | null;
   locale: string;
+  host?: string;
   user?:
     | Omit<
         PrismaUser,
@@ -63,8 +70,10 @@ export type InnerContext = CreateInnerContextOptions & {
  * @see https://trpc.io/docs/context#inner-and-outer-context
  */
 export async function createContextInner(opts: CreateInnerContextOptions): Promise<InnerContext> {
+  const tenantPrisma = opts.host ? getPrismaFromHost(opts.host) : undefined;
+
   return {
-    prisma,
+    prisma: tenantPrisma || readonlyPrisma,
     insightsDb: readonlyPrisma,
     ...opts,
   };
@@ -88,13 +97,21 @@ export const createContext = async (
   // This type may not be accurate if this request is coming from SSG init but they both should satisfy the requirements of getIP.
   // TODO: @sean - figure out a way to make getIP be happy with trpc req. params
   const sourceIp = getIP(req as NextApiRequest);
-  const session = !!sessionGetter ? await sessionGetter({ req, res }) : null;
-  const contextInner = await createContextInner({ locale, session, sourceIp });
-  return {
-    ...contextInner,
-    req,
-    res,
-  };
+
+  const host = req.headers?.host || "";
+  const tenant = getTenantFromHost(host);
+
+  return await runWithTenants(tenant, async () => {
+    setCurrentTenant(tenant);
+
+    const session = !!sessionGetter ? await sessionGetter({ req, res }) : null;
+    const contextInner = await createContextInner({ locale, session, sourceIp, host });
+    return {
+      ...contextInner,
+      req,
+      res,
+    };
+  });
 };
 
 export type TRPCContext = Awaited<ReturnType<typeof createContext>>;
