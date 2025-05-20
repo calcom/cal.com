@@ -7,7 +7,6 @@ import {
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { CrudAction, CustomAction, Resource } from "@calcom/features/pbac/types/permission-registry";
 import type { PermissionString } from "@calcom/features/pbac/types/permission-registry";
-import { prisma } from "@calcom/prisma";
 
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
@@ -31,7 +30,7 @@ export const permissionsRouter = router({
   getUserPermissions: authedProcedure.query(async ({ ctx }) => {
     if (!ctx.user?.id) return {};
 
-    const permissionCheckService = new PermissionCheckService(prisma);
+    const permissionCheckService = new PermissionCheckService();
 
     return await permissionCheckService.getUserPermissions(ctx.user.id);
   }),
