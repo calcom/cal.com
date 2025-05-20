@@ -83,7 +83,7 @@ export function DataTableProvider({
   useSegments = useSegmentsNoop,
   defaultPageSize = DEFAULT_PAGE_SIZE,
   ctaContainerClassName = CTA_CONTAINER_CLASS_NAME,
-  segments,
+  segments: providedSegments,
 }: DataTableProviderProps) {
   const filterToOpen = useRef<string | undefined>(undefined);
   const [activeFilters, setActiveFilters] = useQueryState("activeFilters", activeFiltersParser);
@@ -165,32 +165,28 @@ export function DataTableProvider({
     [setPageSize, setPageIndex, defaultPageSize]
   );
 
-  const {
-    segments: fetchedSegments,
-    selectedSegment,
-    canSaveSegment,
-    setAndPersistSegmentId,
-    isSegmentEnabled,
-  } = useSegments({
-    tableIdentifier,
-    activeFilters,
-    sorting,
-    columnVisibility,
-    columnSizing,
-    pageSize,
-    searchTerm,
-    defaultPageSize,
-    segmentId,
-    setSegmentId,
-    setActiveFilters,
-    setSorting,
-    setColumnVisibility,
-    setColumnSizing,
-    setPageSize,
-    setPageIndex,
-    setSearchTerm,
-    segments,
-  });
+  const { segments, selectedSegment, canSaveSegment, setAndPersistSegmentId, isSegmentEnabled } = useSegments(
+    {
+      tableIdentifier,
+      activeFilters,
+      sorting,
+      columnVisibility,
+      columnSizing,
+      pageSize,
+      searchTerm,
+      defaultPageSize,
+      segmentId,
+      setSegmentId,
+      setActiveFilters,
+      setSorting,
+      setColumnVisibility,
+      setColumnSizing,
+      setPageSize,
+      setPageIndex,
+      setSearchTerm,
+      segments: providedSegments,
+    }
+  );
 
   const clearAll = useCallback(
     (exclude?: string[]) => {
@@ -235,7 +231,7 @@ export function DataTableProvider({
         setPageSize: setPageSizeAndGoToFirstPage,
         limit: pageSize,
         offset: pageIndex * pageSize,
-        segments: fetchedSegments,
+        segments,
         selectedSegment,
         segmentId: segmentId || undefined,
         setSegmentId: setAndPersistSegmentId,
