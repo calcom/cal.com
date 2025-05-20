@@ -898,7 +898,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     },
   ];
   const previewTab = tabs.find((tab) => tab.name === "Preview");
-  const x = eventTypeData;
+
   return (
     <DialogContent
       enableOverflow
