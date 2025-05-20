@@ -2,6 +2,7 @@ import publicProcedure from "../../procedures/publicProcedure";
 import { router } from "../../trpc";
 import { ZUserEmailVerificationRequiredSchema } from "./checkIfUserEmailVerificationRequired.schema";
 import { ZMarkHostAsNoShowInputSchema } from "./markHostAsNoShow.schema";
+import { event } from "./procedures/event";
 import { session } from "./procedures/session";
 import { ZSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
 import { ZStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
@@ -34,6 +35,7 @@ export const publicViewerRouter = router({
     const { default: handler } = await import("./stripeCheckoutSession.handler");
     return handler(opts);
   }),
+  event,
   ssoConnections: publicProcedure.query(async () => {
     const { default: handler } = await import("./ssoConnections.handler");
     return handler();

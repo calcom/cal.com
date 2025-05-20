@@ -19,7 +19,7 @@ import { useSlots } from "@calcom/features/bookings/Booker/components/hooks/useS
 import { useVerifyCode } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
 import { useVerifyEmail } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
-import { useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
+import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { getLastBookingResponse } from "@calcom/features/bookings/Booker/utils/lastBookingResponse";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
@@ -28,20 +28,25 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 type BookerWebWrapperAtomProps = BookerProps & {
-  eventData: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
+  eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
 };
 
 export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  const event = {
-    data: props.eventData,
-    isSuccess: true,
-    isError: false,
-    isPending: false,
-  };
+  const clientFetchedEvent = useEvent({
+    disabled: !!props.eventData,
+    fromRedirectOfNonOrgLink: props.entity.fromRedirectOfNonOrgLink,
+  });
+  const event = props.eventData
+    ? {
+        data: props.eventData,
+        isSuccess: true,
+        isError: false,
+        isPending: false,
+      }
+    : clientFetchedEvent;
 
   const bookerLayout = useBookerLayout(event.data);
 
