@@ -1,7 +1,6 @@
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/lib/CalendarManager";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
-import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -87,7 +86,7 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
 
   if (eventTypeId) {
     if (
-      !(await prisma.eventType.findFirst({
+      !(await ctx.prisma.eventType.findFirst({
         where: {
           id: eventTypeId,
           userId: user.id,

@@ -1,6 +1,5 @@
 import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { canAccess } from "@calcom/features/ee/sso/lib/saml";
-import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -35,7 +34,7 @@ export const getHandler = async ({ ctx, input }: Options) => {
     });
   }
 
-  const dsyncData = await prisma.dSyncData.findUnique({
+  const dsyncData = await ctx.prisma.dSyncData.findUnique({
     where: {
       organizationId: input.organizationId,
     },

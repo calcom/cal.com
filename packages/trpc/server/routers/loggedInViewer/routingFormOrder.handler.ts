@@ -1,4 +1,3 @@
-import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -15,7 +14,7 @@ type RoutingFormOrderOptions = {
 export const routingFormOrderHandler = async ({ ctx, input }: RoutingFormOrderOptions) => {
   const { user } = ctx;
 
-  const forms = await prisma.app_RoutingForms_Form.findMany({
+  const forms = await ctx.prisma.app_RoutingForms_Form.findMany({
     where: {
       OR: [
         {
@@ -59,7 +58,7 @@ export const routingFormOrderHandler = async ({ ctx, input }: RoutingFormOrderOp
 
   await Promise.all(
     input.ids.reverse().map((id, position) => {
-      return prisma.app_RoutingForms_Form.update({
+      return ctx.prisma.app_RoutingForms_Form.update({
         where: {
           id: id,
         },

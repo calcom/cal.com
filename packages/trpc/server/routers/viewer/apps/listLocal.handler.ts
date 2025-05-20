@@ -21,7 +21,7 @@ export const listLocalHandler = async ({ ctx, input }: ListLocalOptions) => {
   const category = input.category;
   const localApps = getLocalAppMetadata();
 
-  const dbApps = await prisma.app.findMany({
+  const dbApps = await ctx.prisma.app.findMany({
     where: {
       categories: {
         has: AppCategories[category as keyof typeof AppCategories],

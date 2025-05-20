@@ -1,5 +1,4 @@
 import { bulkUpdateEventsToDefaultLocation } from "@calcom/lib/bulkUpdateEventsToDefaultLocation";
-import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TBulkUpdateToDefaultLocationInputSchema } from "./bulkUpdateToDefaultLocation.schema";

@@ -1,4 +1,3 @@
-import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -20,7 +19,7 @@ export const getFacetedValuesHandler = async ({ ctx }: DeleteOptions) => {
     throw new TRPCError({ code: "NOT_FOUND", message: "Organization not found" });
   }
   const [teams, attributes] = await Promise.all([
-    prisma.team.findMany({
+    ctx.prisma.team.findMany({
       where: {
         parentId: organizationId,
       },
@@ -29,7 +28,7 @@ export const getFacetedValuesHandler = async ({ ctx }: DeleteOptions) => {
         name: true,
       },
     }),
-    prisma.attribute.findMany({
+    ctx.prisma.attribute.findMany({
       where: { teamId: organizationId },
       select: {
         id: true,

@@ -1,5 +1,4 @@
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -24,7 +23,7 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
 
   // get requested user from database and ensure they are in the same organization
   const [requestedUser, membership, teams] = await prisma.$transaction([
-    prisma.user.findFirst({
+    ctx.prisma.user.findFirst({
       where: { id: input.userId },
       select: {
         id: true,
@@ -48,7 +47,7 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
       },
     }),
     // Query on accepted as we don't want the user to be able to get this much info on a user that hasn't accepted the invite
-    prisma.membership.findFirst({
+    ctx.prisma.membership.findFirst({
       where: {
         userId: input.userId,
         teamId: currentUser.organizationId,
@@ -58,7 +57,7 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
         role: true,
       },
     }),
-    prisma.membership.findMany({
+    ctx.prisma.membership.findMany({
       where: {
         userId: input.userId,
         team: {

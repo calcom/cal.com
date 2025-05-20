@@ -1,5 +1,3 @@
-import { prisma } from "@calcom/prisma";
-
 import type { TGetClientInputSchema } from "./getClient.schema";
 
 type GetClientOptions = {
@@ -9,7 +7,7 @@ type GetClientOptions = {
 export const getClientHandler = async ({ input }: GetClientOptions) => {
   const { clientId } = input;
 
-  const client = await prisma.oAuthClient.findFirst({
+  const client = await ctx.prisma.oAuthClient.findFirst({
     where: {
       clientId,
     },

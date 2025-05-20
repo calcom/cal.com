@@ -3,7 +3,6 @@ import type { Prisma } from "@prisma/client";
 import { v4 } from "uuid";
 
 import { updateTriggerForExistingBookings } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import { prisma } from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -35,7 +34,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   }
 
   if (input.eventTypeId) {
-    const parentManagedEvt = await prisma.eventType.findFirst({
+    const parentManagedEvt = await ctx.prisma.eventType.findFirst({
       where: {
         id: input.eventTypeId,
         parentId: {
@@ -59,7 +58,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   let newWebhook: Webhook;
   try {
-    newWebhook = await prisma.webhook.create({
+    newWebhook = await ctx.prisma.webhook.create({
       data: webhookData,
     });
   } catch (error) {

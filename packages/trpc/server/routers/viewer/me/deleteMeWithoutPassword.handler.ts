@@ -1,6 +1,5 @@
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -11,7 +10,7 @@ type DeleteMeWithoutPasswordOptions = {
 };
 
 export const deleteMeWithoutPasswordHandler = async ({ ctx }: DeleteMeWithoutPasswordOptions) => {
-  const user = await prisma.user.findUnique({
+  const user = await ctx.prisma.user.findUnique({
     where: {
       email: ctx.user.email.toLowerCase(),
     },
@@ -32,7 +31,7 @@ export const deleteMeWithoutPasswordHandler = async ({ ctx }: DeleteMeWithoutPas
   await deleteStripeCustomer(user).catch(console.warn);
 
   // Remove my account
-  await prisma.user.delete({
+  await ctx.prisma.user.delete({
     where: {
       id: ctx.user.id,
     },

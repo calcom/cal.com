@@ -1,6 +1,5 @@
 import { hasReadPermissionsForUserId } from "@calcom/lib/hasEditPermissionForUser";
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -30,7 +29,7 @@ export const getAllSchedulesByUserIdHandler = async ({ ctx, input }: GetOptions)
     });
   }
 
-  const schedules = await prisma.schedule.findMany({
+  const schedules = await ctx.prisma.schedule.findMany({
     where: {
       userId: input.userId,
     },

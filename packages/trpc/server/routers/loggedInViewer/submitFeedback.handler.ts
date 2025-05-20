@@ -1,7 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { sendFeedbackEmail } from "@calcom/emails";
 import { sendFeedbackFormbricks } from "@calcom/lib/formbricks";
-import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TSubmitFeedbackInputSchema } from "./submitFeedback.schema";
@@ -23,7 +22,7 @@ export const submitFeedbackHandler = async ({ ctx, input }: SubmitFeedbackOption
     comment: comment,
   };
 
-  await prisma.feedback.create({
+  await ctx.prisma.feedback.create({
     data: {
       date: dayjs().toISOString(),
       userId: ctx.user.id,

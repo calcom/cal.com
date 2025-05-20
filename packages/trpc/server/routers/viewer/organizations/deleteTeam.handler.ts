@@ -1,5 +1,3 @@
-import { prisma } from "@calcom/prisma";
-
 import type { TDeleteTeamInputSchema } from "./deleteTeam.schema";
 
 type DeleteOptions = {
@@ -8,13 +6,13 @@ type DeleteOptions = {
 
 export const deleteTeamHandler = async ({ input }: DeleteOptions) => {
   // delete all memberships
-  await prisma.membership.deleteMany({
+  await ctx.prisma.membership.deleteMany({
     where: {
       teamId: input.teamId,
     },
   });
 
-  await prisma.team.delete({
+  await ctx.prisma.team.delete({
     where: {
       id: input.teamId,
     },

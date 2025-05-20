@@ -1,4 +1,3 @@
-import { prisma } from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
@@ -16,9 +15,9 @@ type GetOptions = {
 const setSMSLockState = async ({ input }: GetOptions) => {
   const { userId, username, teamId, teamSlug, lock } = input;
   if (userId) {
-    const userToUpdate = await prisma.user.findUnique({ where: { id: userId } });
+    const userToUpdate = await ctx.prisma.user.findUnique({ where: { id: userId } });
     if (!userToUpdate) throw new TRPCError({ code: "BAD_REQUEST", message: "User not found" });
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await ctx.prisma.user.update({
       where: {
         id: userId,
       },
@@ -29,14 +28,14 @@ const setSMSLockState = async ({ input }: GetOptions) => {
     });
     return { name: updatedUser.username, locked: lock };
   } else if (username) {
-    const userToUpdate = await prisma.user.findFirst({
+    const userToUpdate = await ctx.prisma.user.findFirst({
       where: {
         username,
         profiles: { none: {} },
       },
     });
     if (!userToUpdate) throw new TRPCError({ code: "BAD_REQUEST", message: "User not found" });
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await ctx.prisma.user.update({
       where: {
         id: userToUpdate.id,
       },
@@ -47,13 +46,13 @@ const setSMSLockState = async ({ input }: GetOptions) => {
     });
     return { name: updatedUser.username, locked: lock };
   } else if (teamId) {
-    const teamToUpdate = await prisma.team.findUnique({
+    const teamToUpdate = await ctx.prisma.team.findUnique({
       where: {
         id: teamId,
       },
     });
     if (!teamToUpdate) throw new TRPCError({ code: "BAD_REQUEST", message: "Team not found" });
-    const updatedTeam = await prisma.team.update({
+    const updatedTeam = await ctx.prisma.team.update({
       where: {
         id: teamId,
       },
@@ -64,14 +63,14 @@ const setSMSLockState = async ({ input }: GetOptions) => {
     });
     return { name: updatedTeam.slug, locked: lock };
   } else if (teamSlug) {
-    const teamToUpdate = await prisma.team.findFirst({
+    const teamToUpdate = await ctx.prisma.team.findFirst({
       where: {
         slug: teamSlug,
         parentId: null,
       },
     });
     if (!teamToUpdate) throw new TRPCError({ code: "BAD_REQUEST", message: "Team not found" });
-    const updatedTeam = await prisma.team.update({
+    const updatedTeam = await ctx.prisma.team.update({
       where: {
         id: teamToUpdate.id,
       },

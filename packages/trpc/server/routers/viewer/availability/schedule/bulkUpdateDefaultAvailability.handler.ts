@@ -1,5 +1,3 @@
-import { prisma } from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../../types";
@@ -26,7 +24,7 @@ export const bulkUpdateToDefaultAvailabilityHandler = async ({
     });
   }
 
-  return await prisma.eventType.updateMany({
+  return await ctx.prisma.eventType.updateMany({
     where: {
       id: {
         in: eventTypeIds,

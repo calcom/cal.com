@@ -29,7 +29,7 @@ export const toggleHandler = async ({ input, ctx }: ToggleOptions) => {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "App metadata could not be found" });
   }
 
-  const app = await prisma.app.upsert({
+  const app = await ctx.prisma.app.upsert({
     where: {
       slug,
     },
@@ -60,7 +60,7 @@ export const toggleHandler = async ({ input, ctx }: ToggleOptions) => {
       )
     ) {
       // Find all users with the app credentials
-      const appCredentials = await prisma.credential.findMany({
+      const appCredentials = await ctx.prisma.credential.findMany({
         where: {
           appId: app.slug,
         },
@@ -97,7 +97,7 @@ export const toggleHandler = async ({ input, ctx }: ToggleOptions) => {
         })
       );
     } else {
-      const eventTypesWithApp = await prisma.eventType.findMany({
+      const eventTypesWithApp = await ctx.prisma.eventType.findMany({
         where: {
           metadata: {
             path: ["apps", app.slug as string, "enabled"],
@@ -122,7 +122,7 @@ export const toggleHandler = async ({ input, ctx }: ToggleOptions) => {
         eventTypesWithApp.map(async (eventType) => {
           // TODO: This update query can be removed by merging it with
           // the previous `findMany` query, if that query returns certain values.
-          await prisma.eventType.update({
+          await ctx.prisma.eventType.update({
             where: {
               id: eventType.id,
             },

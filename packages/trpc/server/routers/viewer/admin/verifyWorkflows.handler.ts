@@ -1,5 +1,3 @@
-import { prisma } from "@calcom/prisma";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TAdminVerifyWorkflowsSchema } from "./verifyWorkflows.schema";
 
@@ -13,7 +11,7 @@ type GetOptions = {
 export const verifyWorkflows = async ({ input }: GetOptions) => {
   const { userId } = input;
 
-  await prisma.workflowStep.updateMany({
+  await ctx.prisma.workflowStep.updateMany({
     where: {
       workflow: {
         userId,

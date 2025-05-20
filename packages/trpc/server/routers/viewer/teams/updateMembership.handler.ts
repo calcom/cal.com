@@ -1,4 +1,3 @@
-import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -20,7 +19,7 @@ export const updateMembershipHandler = async ({ ctx, input }: UpdateMembershipOp
     });
   }
 
-  return await prisma.membership.update({
+  return await ctx.prisma.membership.update({
     where: {
       userId_teamId: {
         userId: input.memberId,

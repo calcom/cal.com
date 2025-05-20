@@ -4,7 +4,6 @@ import { deleteUser } from "@calcom/features/users/lib/userDeletionService";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { HttpError } from "@calcom/lib/http-error";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";
-import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -21,7 +20,7 @@ export const deleteMeHandler = async ({ ctx, input }: DeleteMeOptions) => {
   // TODO: First check password is part of input and meets requirements.
 
   // Check if input.password is correct
-  const user = await prisma.user.findUnique({
+  const user = await ctx.prisma.user.findUnique({
     where: {
       email: ctx.user.email.toLowerCase(),
     },

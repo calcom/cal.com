@@ -1,5 +1,4 @@
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
-import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -17,7 +16,7 @@ type DeleteOptions = {
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   const { id } = input;
 
-  const workflowToDelete = await prisma.workflow.findFirst({
+  const workflowToDelete = await ctx.prisma.workflow.findFirst({
     where: {
       id,
     },
@@ -38,7 +37,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  const scheduledReminders = await prisma.workflowReminder.findMany({
+  const scheduledReminders = await ctx.prisma.workflowReminder.findMany({
     where: {
       workflowStep: {
         workflowId: id,
@@ -62,7 +61,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   await removeSmsReminderFieldForEventTypes({ activeOnToRemove, workflowId: workflowToDelete.id, isOrg });
 
   // automatically deletes all steps and reminders connected to this workflow
-  await prisma.workflow.deleteMany({
+  await ctx.prisma.workflow.deleteMany({
     where: {
       id,
     },

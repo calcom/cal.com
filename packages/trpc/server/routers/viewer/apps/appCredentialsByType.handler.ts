@@ -1,6 +1,5 @@
 import { getAllDelegationCredentialsForUserByAppType } from "@calcom/lib/delegationCredential/server";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema";
@@ -18,7 +17,7 @@ export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentials
   const userAdminTeams = await UserRepository.getUserAdminTeams(ctx.user.id);
   const userAdminTeamsIds = userAdminTeams?.teams?.map(({ team }) => team.id) ?? [];
 
-  const credentials = await prisma.credential.findMany({
+  const credentials = await ctx.prisma.credential.findMany({
     where: {
       OR: [
         { userId: user.id },

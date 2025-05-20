@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import { prisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -13,6 +13,7 @@ import type { TListMembersInputSchema } from "./listMembers.schema";
 type ListMembersHandlerOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    prisma: PrismaClient;
   };
   input: TListMembersInputSchema;
 };
@@ -54,9 +55,9 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
     };
   }
 
-  const totalMembers = await prisma.membership.count({ where: whereCondition });
+  const totalMembers = await ctx.ctx.prisma.membership.count({ where: whereCondition });
 
-  const teamMembers = await prisma.membership.findMany({
+  const teamMembers = await ctx.ctx.prisma.membership.findMany({
     where: whereCondition,
     select: {
       id: true,
@@ -122,7 +123,7 @@ const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], team
   if (isTargetingOrg) {
     return isOrgAdminOrOwner || !isOrgPrivate;
   }
-  const team = await prisma.team.findUnique({
+  const team = await ctx.ctx.prisma.team.findUnique({
     where: {
       id: teamId,
     },
@@ -134,7 +135,7 @@ const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], team
     return true;
   }
 
-  const membership = await prisma.membership.findFirst({
+  const membership = await ctx.ctx.prisma.membership.findFirst({
     where: {
       teamId,
       userId: ctx.user.id,

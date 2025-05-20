@@ -1,5 +1,4 @@
 import userCanCreateTeamGroupMapping from "@calcom/features/ee/dsync/lib/server/userCanCreateTeamGroupMapping";
-import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { ZDeleteInputSchema } from "./delete.schema";
@@ -15,7 +14,7 @@ type Options = {
 export const deleteHandler = async ({ ctx, input }: Options) => {
   await userCanCreateTeamGroupMapping(ctx.user, ctx.user.organizationId, input.teamId);
 
-  await prisma.dSyncTeamGroupMapping.delete({
+  await ctx.prisma.dSyncTeamGroupMapping.delete({
     where: {
       teamId_groupName: {
         teamId: input.teamId,

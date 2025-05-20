@@ -14,7 +14,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   const { prisma } = ctx;
   const { bookingId } = input;
 
-  const booking = await prisma.booking.findUnique({
+  const booking = await ctx.prisma.booking.findUnique({
     where: {
       id: bookingId,
       status: BookingStatus.ACCEPTED,

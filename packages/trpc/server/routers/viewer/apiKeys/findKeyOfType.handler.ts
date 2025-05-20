@@ -1,4 +1,3 @@
-import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -18,7 +17,7 @@ export const findKeyOfTypeHandler = async ({ ctx, input }: FindKeyOfTypeOptions)
   /** Only admin or owner can create apiKeys of team (if teamId is passed) */
   await checkPermissions({ userId, teamId, role: { in: [MembershipRole.OWNER, MembershipRole.ADMIN] } });
 
-  return await prisma.apiKey.findMany({
+  return await ctx.prisma.apiKey.findMany({
     where: {
       teamId,
       userId,

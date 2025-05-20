@@ -1,5 +1,3 @@
-import { prisma } from "@calcom/prisma";
-
 import type { TrpcSessionUser } from "../../../types";
 
 type CheckForGCalOptions = {
@@ -9,7 +7,7 @@ type CheckForGCalOptions = {
 };
 
 export const checkForGCalHandler = async ({ ctx }: CheckForGCalOptions) => {
-  const gCalPresent = await prisma.credential.findFirst({
+  const gCalPresent = await ctx.prisma.credential.findFirst({
     where: {
       type: "google_calendar",
       userId: ctx.user.id,

@@ -6,7 +6,6 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
-import { prisma } from "@calcom/prisma";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -43,7 +42,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
   }
 
   // Validate user membership role
-  const userMembershipRole = await prisma.membership.findFirst({
+  const userMembershipRole = await ctx.prisma.membership.findFirst({
     where: {
       userId: organizationOwner.id,
       teamId: orgId,
@@ -63,7 +62,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
     throw new NotAuthorizedError();
   }
 
-  const organization = await prisma.team.findFirst({
+  const organization = await ctx.prisma.team.findFirst({
     where: { id: orgId },
     select: { slug: true, id: true, metadata: true },
   });
@@ -83,7 +82,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
   }
 
   const [teamSlugs, userSlugs] = [
-    await prisma.team.findMany({ where: { parentId: orgId }, select: { slug: true } }),
+    await ctx.prisma.team.findMany({ where: { parentId: orgId }, select: { slug: true } }),
     await UserRepository.findManyByOrganization({ organizationId: orgId }),
   ];
 
@@ -118,7 +117,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
   await prisma.$transaction(
     teamNames.flatMap((name) => {
       if (!duplicatedSlugs.includes(slugify(name))) {
-        return prisma.team.create({
+        return ctx.prisma.team.create({
           data: {
             name,
             parentId: orgId,
@@ -185,7 +184,7 @@ async function moveTeam({
   };
   creationSource: CreationSource;
 }) {
-  const team = await prisma.team.findUnique({
+  const team = await ctx.prisma.team.findUnique({
     where: {
       id: teamId,
     },
@@ -232,7 +231,7 @@ async function moveTeam({
   newSlug = newSlug ?? team.slug;
   const orgMetadata = teamMetadataSchema.parse(org.metadata);
   try {
-    await prisma.team.update({
+    await ctx.prisma.team.update({
       where: {
         id: teamId,
       },
@@ -342,7 +341,7 @@ async function addTeamRedirect({
   }
   const orgUrlPrefix = getOrgFullOrigin(orgSlug);
 
-  await prisma.tempOrgRedirect.upsert({
+  await ctx.prisma.tempOrgRedirect.upsert({
     where: {
       from_type_fromOrgId: {
         type: RedirectType.Team,

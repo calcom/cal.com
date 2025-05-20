@@ -2,7 +2,6 @@ import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { prisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -22,7 +21,7 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
 
   if (!(await isOrganisationAdmin(ctx.user.id, orgId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  const prevTeam = await prisma.team.findFirst({
+  const prevTeam = await ctx.prisma.team.findFirst({
     where: {
       id: orgId,
     },
@@ -64,10 +63,10 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
   }
 
   const { requestedSlug, ...newMetadata } = metadata.data;
-  let updatedTeam: Awaited<ReturnType<typeof prisma.team.update>>;
+  let updatedTeam: Awaited<ReturnType<typeof ctx.prisma.team.update>>;
 
   try {
-    updatedTeam = await prisma.team.update({
+    updatedTeam = await ctx.prisma.team.update({
       where: { id: orgId },
       data: {
         slug: requestedSlug,

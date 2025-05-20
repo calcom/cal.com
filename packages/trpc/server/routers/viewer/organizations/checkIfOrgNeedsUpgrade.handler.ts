@@ -1,5 +1,4 @@
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
-import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -15,7 +14,7 @@ export async function checkIfOrgNeedsUpgradeHandler({ ctx }: GetUpgradeableOptio
   if (!IS_TEAM_BILLING_ENABLED) return [];
 
   // Get all teams/orgs where the user is an owner
-  let teams = await prisma.membership.findMany({
+  let teams = await ctx.prisma.membership.findMany({
     where: {
       user: {
         id: ctx.user.id,

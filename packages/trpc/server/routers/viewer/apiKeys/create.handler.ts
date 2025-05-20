@@ -1,7 +1,7 @@
 import { v4 } from "uuid";
 
 import { generateUniqueAPIKey } from "@calcom/ee/api-keys/lib/apiKeys";
-import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -10,6 +10,7 @@ import type { TCreateInputSchema } from "./create.schema";
 
 type CreateHandlerOptions = {
   ctx: {
+    prisma: PrismaClient;
     user: NonNullable<TrpcSessionUser>;
   };
   input: TCreateInputSchema;
@@ -25,7 +26,7 @@ export const createHandler = async ({ ctx, input }: CreateHandlerOptions) => {
   /** Only admin or owner can create apiKeys of team (if teamId is passed) */
   await checkPermissions({ userId, teamId, role: { in: [MembershipRole.OWNER, MembershipRole.ADMIN] } });
 
-  await prisma.apiKey.create({
+  await ctx.prisma.apiKey.create({
     data: {
       id: v4(),
       userId: ctx.user.id,

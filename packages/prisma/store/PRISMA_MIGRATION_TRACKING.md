@@ -4,17 +4,17 @@ This document tracks the migration of all files that need to be converted to use
 
 ## Migration Summary
 
-| Category | Total Files | Migrated | Remaining |
-|----------|-------------|----------|-----------|
-| API Routes (App Router) | 58 | 0 | 58 |
-| API Routes (Pages Router) | 121 | 0 | 121 |
-| NestJS API (v2) | 32 | 0 | 32 |
-| tRPC Procedures | 145 | 145 | 0 |
-| Repository Classes | 35 | 0 | 35 |
-| Utility Functions | 168 | 0 | 168 |
-| Test Files | 112 | 0 | 112 |
-| Cron Jobs | 35 | 0 | 35 |
-| **Total** | **706** | **145** | **561** |
+| Category | Total Files | Migrated | Remaining | Status |
+|----------|-------------|----------|-----------|--------|
+| API Routes (App Router) | 58 | 0 | 58 | 🔴 Not Started |
+| API Routes (Pages Router) | 121 | 0 | 121 | 🔴 Not Started |
+| NestJS API (v2) | 32 | 0 | 32 | 🔴 Not Started |
+| tRPC Procedures | 248 | 248 | 0 | 🟢 Completed |
+| Repository Classes | 35 | 0 | 35 | 🔴 Not Started |
+| Utility Functions | 168 | 0 | 168 | 🔴 Not Started |
+| Test Files | 112 | 0 | 112 | 🔴 Not Started |
+| Cron Jobs | 35 | 0 | 35 | 🔴 Not Started |
+| **Total** | **809** | **248** | **561** | 🟡 In Progress |
 
 ## Migration Patterns
 

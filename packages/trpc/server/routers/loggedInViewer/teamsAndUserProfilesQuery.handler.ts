@@ -20,7 +20,7 @@ type TeamsAndUserProfileOptions = {
 export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProfileOptions) => {
   const { prisma } = ctx;
 
-  const user = await prisma.user.findUnique({
+  const user = await ctx.prisma.user.findUnique({
     where: {
       id: ctx.user.id,
     },

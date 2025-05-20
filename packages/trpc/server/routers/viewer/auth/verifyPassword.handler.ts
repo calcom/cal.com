@@ -1,5 +1,4 @@
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
-import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -14,7 +13,7 @@ type VerifyPasswordOptions = {
 };
 
 export const verifyPasswordHandler = async ({ input, ctx }: VerifyPasswordOptions) => {
-  const userPassword = await prisma.userPassword.findUnique({
+  const userPassword = await ctx.prisma.userPassword.findUnique({
     where: {
       userId: ctx.user.id,
     },

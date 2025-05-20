@@ -1,4 +1,3 @@
-import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TListFilterSegmentsInputSchema } from "./list.schema";
@@ -23,7 +22,7 @@ export const listHandler = async ({
   const userId = ctx.user.id;
 
   // Get all teams that the user is a member of
-  const userTeamIds = await prisma.membership
+  const userTeamIds = await ctx.prisma.membership
     .findMany({
       where: {
         userId,
@@ -36,7 +35,7 @@ export const listHandler = async ({
     .then((memberships) => memberships.map((m) => m.teamId));
 
   // Fetch both user-scoped and team-scoped segments
-  const segments = await prisma.filterSegment.findMany({
+  const segments = await ctx.prisma.filterSegment.findMany({
     where: {
       tableIdentifier,
       OR: [

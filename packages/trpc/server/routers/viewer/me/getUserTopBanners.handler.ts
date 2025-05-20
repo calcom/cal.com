@@ -1,6 +1,5 @@
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/lib/CalendarManager";
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential/server";
-import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -16,7 +15,7 @@ type Props = {
 };
 
 const checkInvalidGoogleCalendarCredentials = async ({ ctx }: Props) => {
-  const userCredentials = await prisma.credential.findMany({
+  const userCredentials = await ctx.prisma.credential.findMany({
     where: {
       userId: ctx.user.id,
       type: "google_calendar",

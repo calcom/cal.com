@@ -5,7 +5,7 @@ import { getLocalAppMetadata } from "@calcom/app-store/utils";
 import type { PrismaClient } from "@calcom/prisma";
 import type { AppCategories } from "@calcom/prisma/enums";
 
-// import prisma from "@calcom/prisma";
+//
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -30,7 +30,7 @@ export const saveKeysHandler = async ({ ctx, input }: SaveKeysOptions) => {
   if (!appMetadata?.dirName && appMetadata?.categories)
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "App metadata could not be found" });
 
-  await ctx.prisma.app.upsert({
+  await ctx.ctx.prisma.app.upsert({
     where: {
       slug: input.slug,
     },

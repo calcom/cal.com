@@ -1,7 +1,6 @@
 import { createHash } from "crypto";
 
 import { totpRawCheck } from "@calcom/lib/totp";
-import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -29,7 +28,7 @@ export const verifyEmailCodeHandler = async ({ ctx, input }: VerifyEmailCodeOpti
 
   if (!isValidToken) throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_code" });
 
-  await prisma.verifiedEmail.create({
+  await ctx.prisma.verifiedEmail.create({
     data: {
       email,
       userId: id,

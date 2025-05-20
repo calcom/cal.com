@@ -3,7 +3,6 @@ import type { Prisma } from "@prisma/client";
 import { renameDomain } from "@calcom/lib/domainManager/organization";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { HttpError } from "@calcom/lib/http-error";
-import { prisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -18,7 +17,7 @@ type AdminUpdateOptions = {
 
 export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
   const { id, organizationSettings, ...restInput } = input;
-  const existingOrg = await prisma.team.findUnique({
+  const existingOrg = await ctx.prisma.team.findUnique({
     where: {
       id: id,
     },
@@ -89,7 +88,7 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
 export default adminUpdateHandler;
 
 async function throwIfSlugConflicts({ id, slug }: { id: number; slug: string }) {
-  const organizationsWithSameSlug = await prisma.team.findMany({
+  const organizationsWithSameSlug = await ctx.prisma.team.findMany({
     where: {
       slug: slug,
       parentId: null,

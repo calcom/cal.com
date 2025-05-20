@@ -1,4 +1,3 @@
-import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 type ListInvitesOptions = {
@@ -9,7 +8,7 @@ type ListInvitesOptions = {
 
 export const listInvitesHandler = async ({ ctx }: ListInvitesOptions) => {
   const userId = ctx.user.id;
-  return await prisma.membership.findMany({
+  return await ctx.prisma.membership.findMany({
     where: {
       user: {
         id: userId,

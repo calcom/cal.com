@@ -1,5 +1,4 @@
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { prisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -11,7 +10,7 @@ type AdminGetAllOptions = {
 };
 
 export const adminGetUnverifiedHandler = async ({}: AdminGetAllOptions) => {
-  const allOrgs = await prisma.team.findMany({
+  const allOrgs = await ctx.prisma.team.findMany({
     where: {
       isOrganization: true,
     },

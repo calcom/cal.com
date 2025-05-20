@@ -12,7 +12,6 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import { prisma } from "@calcom/prisma";
 import type { Booking, BookingReference } from "@calcom/prisma/client";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
@@ -97,7 +96,7 @@ async function updateBookingLocationInDb({
     };
   });
 
-  await prisma.booking.update({
+  await ctx.prisma.booking.update({
     where: {
       id: booking.id,
     },

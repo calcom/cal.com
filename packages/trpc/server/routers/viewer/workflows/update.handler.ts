@@ -36,7 +36,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const { user } = ctx;
   const { id, name, activeOn, steps, trigger, time, timeUnit, isActiveOnAll } = input;
 
-  const userWorkflow = await ctx.prisma.workflow.findUnique({
+  const userWorkflow = await ctx.ctx.prisma.workflow.findUnique({
     where: {
       id,
     },
@@ -93,7 +93,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (!isOrg) {
     // activeOn are event types ids
-    const activeOnEventTypes = await ctx.prisma.eventType.findMany({
+    const activeOnEventTypes = await ctx.ctx.prisma.eventType.findMany({
       where: {
         id: {
           in: activeOn,
@@ -116,7 +116,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
     let oldActiveOnEventTypes: { id: number; children: { id: number }[] }[];
     if (userWorkflow.isActiveOnAll) {
-      oldActiveOnEventTypes = await ctx.prisma.eventType.findMany({
+      oldActiveOnEventTypes = await ctx.ctx.prisma.eventType.findMany({
         where: {
           ...(userWorkflow.teamId ? { teamId: userWorkflow.teamId } : { userId: userWorkflow.userId }),
         },
@@ -131,7 +131,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
     } else {
       oldActiveOnEventTypes = (
-        await ctx.prisma.workflowsOnEventTypes.findMany({
+        await ctx.ctx.prisma.workflowsOnEventTypes.findMany({
           where: {
             workflowId: id,
           },
@@ -177,14 +177,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     await deleteRemindersOfActiveOnIds({ removedActiveOnIds, workflowSteps: userWorkflow.steps, isOrg });
 
     //update active on
-    await ctx.prisma.workflowsOnEventTypes.deleteMany({
+    await ctx.ctx.prisma.workflowsOnEventTypes.deleteMany({
       where: {
         workflowId: id,
       },
     });
 
     //create all workflow - eventtypes relationships
-    await ctx.prisma.workflowsOnEventTypes.createMany({
+    await ctx.ctx.prisma.workflowsOnEventTypes.createMany({
       data: activeOnWithChildren.map((eventTypeId) => ({
         workflowId: id,
         eventTypeId,
@@ -194,7 +194,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     // activeOn are team ids
     if (userWorkflow.isActiveOnAll) {
       oldActiveOnIds = (
-        await ctx.prisma.team.findMany({
+        await ctx.ctx.prisma.team.findMany({
           where: {
             parent: {
               id: userWorkflow.teamId ?? 0,
@@ -207,7 +207,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       ).map((team) => team.id);
     } else {
       oldActiveOnIds = (
-        await ctx.prisma.workflowsOnTeams.findMany({
+        await ctx.ctx.prisma.workflowsOnTeams.findMany({
           where: {
             workflowId: id,
           },
@@ -241,13 +241,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
 
     //update active on
-    await ctx.prisma.workflowsOnTeams.deleteMany({
+    await ctx.ctx.prisma.workflowsOnTeams.deleteMany({
       where: {
         workflowId: id,
       },
     });
 
-    await ctx.prisma.workflowsOnTeams.createMany({
+    await ctx.ctx.prisma.workflowsOnTeams.createMany({
       data: activeOn.map((teamId) => ({
         workflowId: id,
         teamId,
@@ -306,7 +306,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       newStep = rest;
     }
 
-    const remindersFromStep = await ctx.prisma.workflowReminder.findMany({
+    const remindersFromStep = await ctx.ctx.prisma.workflowReminder.findMany({
       where: {
         workflowStepId: oldStep.id,
       },
@@ -326,7 +326,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       // cancel all workflow reminders from deleted steps
       await WorkflowRepository.deleteAllWorkflowReminders(remindersFromStep);
 
-      await ctx.prisma.workflowStep.delete({
+      await ctx.ctx.prisma.workflowStep.delete({
         where: {
           id: oldStep.id,
         },
@@ -373,7 +373,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
       const didBodyChange = newStep.reminderBody !== oldStep.reminderBody;
 
-      await ctx.prisma.workflowStep.update({
+      await ctx.ctx.prisma.workflowStep.update({
         where: {
           id: oldStep.id,
         },
@@ -458,7 +458,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     //create new steps
     const createdSteps = await Promise.all(
       addedSteps.map((step) =>
-        ctx.prisma.workflowStep.create({
+        ctx.ctx.prisma.workflowStep.create({
           data: {
             ...step,
             numberVerificationPending: false,
@@ -490,7 +490,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   //update trigger, name, time, timeUnit
-  await ctx.prisma.workflow.update({
+  await ctx.ctx.prisma.workflow.update({
     where: {
       id,
     },
@@ -503,7 +503,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     },
   });
 
-  const workflow = await ctx.prisma.workflow.findFirst({
+  const workflow = await ctx.ctx.prisma.workflow.findFirst({
     where: {
       id,
     },

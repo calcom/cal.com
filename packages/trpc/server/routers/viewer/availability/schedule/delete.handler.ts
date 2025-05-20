@@ -1,5 +1,3 @@
-import { prisma } from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../../types";
@@ -15,7 +13,7 @@ type DeleteOptions = {
 export const deleteHandler = async ({ input, ctx }: DeleteOptions) => {
   const { user } = ctx;
 
-  const scheduleToDelete = await prisma.schedule.findFirst({
+  const scheduleToDelete = await ctx.prisma.schedule.findFirst({
     where: {
       id: input.scheduleId,
     },
@@ -30,7 +28,7 @@ export const deleteHandler = async ({ input, ctx }: DeleteOptions) => {
   // if this is the last remaining schedule of the user then this would be the default schedule and so cannot remove it
   if (user.defaultScheduleId === input.scheduleId) {
     // set a new default or unset default if no other schedule
-    const scheduleToSetAsDefault = await prisma.schedule.findFirst({
+    const scheduleToSetAsDefault = await ctx.prisma.schedule.findFirst({
       where: {
         userId: user.id,
         NOT: {
@@ -45,7 +43,7 @@ export const deleteHandler = async ({ input, ctx }: DeleteOptions) => {
     // to throw the error if there arent any other schedules
     if (!scheduleToSetAsDefault) throw new TRPCError({ code: "BAD_REQUEST" });
 
-    await prisma.user.update({
+    await ctx.prisma.user.update({
       where: {
         id: user.id,
       },
@@ -54,7 +52,7 @@ export const deleteHandler = async ({ input, ctx }: DeleteOptions) => {
       },
     });
   }
-  await prisma.schedule.delete({
+  await ctx.prisma.schedule.delete({
     where: {
       id: input.scheduleId,
     },

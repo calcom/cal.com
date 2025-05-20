@@ -1,6 +1,5 @@
 import { InternalTeamBilling } from "@calcom/ee/billing/teams/internal-team-billing";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
-import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 type HasActiveTeamPlanOptions = {
@@ -12,7 +11,7 @@ type HasActiveTeamPlanOptions = {
 export const hasActiveTeamPlanHandler = async ({ ctx }: HasActiveTeamPlanOptions) => {
   if (IS_SELF_HOSTED) return { isActive: true, isTrial: false };
 
-  const teams = await prisma.team.findMany({
+  const teams = await ctx.prisma.team.findMany({
     where: {
       members: {
         some: {

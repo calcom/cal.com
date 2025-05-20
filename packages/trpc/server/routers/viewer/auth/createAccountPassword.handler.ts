@@ -1,5 +1,4 @@
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
-import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -20,7 +19,7 @@ export const createAccountPasswordHandler = async ({ ctx }: CreateAccountPasswor
     throw new TRPCError({ code: "FORBIDDEN", message: "cannot_create_account_password_cal_provider" });
   }
 
-  const userWithPassword = await prisma.user.findUnique({
+  const userWithPassword = await ctx.prisma.user.findUnique({
     where: {
       id: user.id,
     },

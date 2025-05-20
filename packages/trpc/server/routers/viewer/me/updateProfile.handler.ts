@@ -17,7 +17,6 @@ import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams"
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
-import { prisma } from "@calcom/prisma";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -121,7 +120,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     | undefined;
   const primaryEmailVerified = user.emailVerified;
   if (hasEmailBeenChanged) {
-    secondaryEmail = await prisma.secondaryEmail.findUnique({
+    secondaryEmail = await ctx.prisma.secondaryEmail.findUnique({
       where: {
         email: input.email,
         userId: user.id,
@@ -160,7 +159,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
 
   if (input.completedOnboarding) {
-    const userTeams = await prisma.user.findFirst({
+    const userTeams = await ctx.prisma.user.findFirst({
       where: {
         id: user.id,
       },
@@ -182,7 +181,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
 
   if (travelSchedules) {
-    const existingSchedules = await prisma.travelSchedule.findMany({
+    const existingSchedules = await ctx.prisma.travelSchedule.findMany({
       where: {
         userId: user.id,
       },
@@ -193,7 +192,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         !travelSchedules || !travelSchedules.find((scheduleInput) => scheduleInput.id === schedule.id)
     );
 
-    await prisma.travelSchedule.deleteMany({
+    await ctx.prisma.travelSchedule.deleteMany({
       where: {
         userId: user.id,
         id: {
@@ -202,7 +201,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       },
     });
 
-    await prisma.travelSchedule.createMany({
+    await ctx.prisma.travelSchedule.createMany({
       data: travelSchedules
         .filter((schedule) => !schedule.id)
         .map((schedule) => {
@@ -239,7 +238,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   let updatedUser: Prisma.UserGetPayload<typeof updatedUserSelect>;
 
   try {
-    updatedUser = await prisma.user.update({
+    updatedUser = await ctx.prisma.user.update({
       where: {
         id: user.id,
       },
@@ -263,7 +262,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
     if (!user.defaultScheduleId) {
       // set default schedule if not already set
-      await prisma.user.update({
+      await ctx.prisma.user.update({
         where: {
           id: user.id,
         },
@@ -273,7 +272,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       });
     }
 
-    await prisma.schedule.updateMany({
+    await ctx.prisma.schedule.updateMany({
       where: {
         id: defaultScheduleId,
       },
@@ -319,7 +318,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       .filter((secondaryEmail) => secondaryEmail.isDeleted)
       .map((secondaryEmail) => secondaryEmail.id);
     if (recordsToDelete.length) {
-      await prisma.secondaryEmail.deleteMany({
+      await ctx.prisma.secondaryEmail.deleteMany({
         where: {
           id: {
             in: recordsToDelete,
@@ -331,7 +330,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
     const modifiedRecords = secondaryEmails.filter((secondaryEmail) => !secondaryEmail.isDeleted);
     if (modifiedRecords.length) {
-      const secondaryEmailsFromDB = await prisma.secondaryEmail.findMany({
+      const secondaryEmailsFromDB = await ctx.prisma.secondaryEmail.findMany({
         where: {
           id: {
             in: secondaryEmails.map((secondaryEmail) => secondaryEmail.id),
@@ -350,7 +349,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
           emailVerified = null;
         }
 
-        return prisma.secondaryEmail.update({
+        return ctx.prisma.secondaryEmail.update({
           where: {
             id: updated.id,
             userId: updatedUser.id,

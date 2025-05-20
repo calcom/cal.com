@@ -25,7 +25,7 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
   const uid = req?.cookies?.uid || uuid();
   const { slotUtcStartDate, slotUtcEndDate, eventTypeId, bookingUid, _isDryRun } = input;
   const releaseAt = dayjs.utc().add(parseInt(MINUTES_TO_BOOK), "minutes").format();
-  const eventType = await prisma.eventType.findUnique({
+  const eventType = await ctx.prisma.eventType.findUnique({
     where: { id: eventTypeId },
     select: { users: { select: { id: true } }, seatsPerTimeSlot: true },
   });
@@ -42,7 +42,7 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
   // If this is a seated event then don't reserve a slot
   if (eventType.seatsPerTimeSlot) {
     // Check to see if this is the last attendee
-    const bookingWithAttendees = await prisma.booking.findFirst({
+    const bookingWithAttendees = await ctx.prisma.booking.findFirst({
       where: { uid: bookingUid },
       select: { attendees: true },
     });
@@ -73,7 +73,7 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
         // Also, we must not block all the users' slots, we must use routedTeamMemberIds if set like we do in getSchedule.
         // We could even improve it by identifying the next person being booked now that we have a queue of assignees.
         eventType.users.map((user) =>
-          prisma.selectedSlots.upsert({
+          ctx.prisma.selectedSlots.upsert({
             where: { selectedSlotUnique: { userId: user.id, slotUtcStartDate, slotUtcEndDate, uid } },
             update: {
               slotUtcStartDate,

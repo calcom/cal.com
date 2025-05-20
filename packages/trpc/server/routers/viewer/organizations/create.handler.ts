@@ -14,7 +14,6 @@ import { createDomain } from "@calcom/lib/domainManager/organization";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -95,7 +94,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     creationSource,
   } = input;
 
-  const loggedInUser = await prisma.user.findUnique({
+  const loggedInUser = await ctx.prisma.user.findUnique({
     where: {
       id: ctx.user.id,
     },
@@ -148,13 +147,13 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     throw new TRPCError({ code: "FORBIDDEN", message: "You need to have minimum published teams." });
   }
 
-  let orgOwner = await prisma.user.findUnique({
+  let orgOwner = await ctx.prisma.user.findUnique({
     where: {
       email: orgOwnerEmail,
     },
   });
 
-  const hasAnOrgWithSameSlug = await prisma.team.findFirst({
+  const hasAnOrgWithSameSlug = await ctx.prisma.team.findFirst({
     where: {
       slug: slug,
       parentId: null,
@@ -189,7 +188,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   if (!isOrganizationConfigured) {
     // Otherwise, we proceed to send an administrative email to admins regarding
     // the need to configure DNS registry to support the newly created org
-    const instanceAdmins = await prisma.user.findMany({
+    const instanceAdmins = await ctx.prisma.user.findMany({
       where: { role: UserPermissionRole.ADMIN },
       select: { email: true },
     });
@@ -312,7 +311,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       user: { ...orgOwner, organizationId: organization.id },
     });
 
-    await prisma.availability.createMany({
+    await ctx.prisma.availability.createMany({
       data: availability.map((schedule) => ({
         days: schedule.days,
         startTime: schedule.startTime,

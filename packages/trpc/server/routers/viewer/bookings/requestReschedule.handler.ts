@@ -21,7 +21,6 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { deleteMeeting } from "@calcom/lib/videoClient";
-import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
@@ -44,7 +43,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const { user } = ctx;
   const { bookingId, rescheduleReason: cancellationReason } = input;
   log.debug("Started", safeStringify({ bookingId, cancellationReason, user }));
-  const bookingToReschedule = await prisma.booking.findFirstOrThrow({
+  const bookingToReschedule = await ctx.prisma.booking.findFirstOrThrow({
     select: {
       id: true,
       uid: true,
@@ -98,7 +97,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   const bookingBelongsToTeam = !!bookingToReschedule.eventType?.teamId;
 
-  const userTeams = await prisma.user.findUniqueOrThrow({
+  const userTeams = await ctx.prisma.user.findUniqueOrThrow({
     where: {
       id: user.id,
     },
@@ -127,7 +126,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   let event: Partial<EventType> = {};
   if (bookingToReschedule.eventTypeId) {
-    event = await prisma.eventType.findFirstOrThrow({
+    event = await ctx.prisma.eventType.findFirstOrThrow({
       select: {
         title: true,
         schedulingType: true,
@@ -138,7 +137,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       },
     });
   }
-  await prisma.booking.update({
+  await ctx.prisma.booking.update({
     where: {
       id: bookingToReschedule.id,
     },

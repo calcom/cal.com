@@ -1,7 +1,6 @@
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { ensureAtleastAdminPermissions, getTeamOrThrow } from "./inviteMember/utils";
@@ -24,7 +23,7 @@ export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOption
     isOrg: input.isOrg,
   });
 
-  const verificationToken = await prisma.verificationToken.findFirst({
+  const verificationToken = await ctx.prisma.verificationToken.findFirst({
     where: {
       identifier: input.email,
       teamId: input.teamId,

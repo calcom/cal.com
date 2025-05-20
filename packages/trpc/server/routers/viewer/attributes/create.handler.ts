@@ -1,5 +1,4 @@
 import slugify from "@calcom/lib/slugify";
-import prisma from "@calcom/prisma";
 import type { Attribute } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -35,7 +34,7 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
 
   let attributes: Attribute;
   try {
-    attributes = await prisma.attribute.create({
+    attributes = await ctx.prisma.attribute.create({
       data: {
         slug,
         name: input.name,
@@ -55,7 +54,7 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
   // Only assign options for the types that have options
   // TEXT/NUMBER don't have options
   if (typeHasOptions) {
-    await prisma.attributeOption.createMany({
+    await ctx.prisma.attributeOption.createMany({
       data: uniqueOptions.map(({ value, isGroup }) => ({
         attributeId: attributes.id,
         value,

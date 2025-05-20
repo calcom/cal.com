@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-import prisma from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -24,7 +22,7 @@ const getAttributeHandler = async ({ input, ctx }: GetOptions) => {
     });
   }
 
-  const attribute = await prisma.attribute.findUnique({
+  const attribute = await ctx.prisma.attribute.findUnique({
     where: {
       teamId: org.id,
       id: input.id,

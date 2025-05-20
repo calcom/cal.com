@@ -1,7 +1,6 @@
 import { TeamBilling } from "@calcom/ee/billing/teams";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
-import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -26,7 +25,7 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // Loop over all users in input.userIds and remove all memberships for the organization including child teams
-  const deleteMany = prisma.membership.deleteMany({
+  const deleteMany = ctx.prisma.membership.deleteMany({
     where: {
       userId: {
         in: input.userIds,
@@ -42,7 +41,7 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
     },
   });
 
-  const removeOrgrelation = prisma.user.updateMany({
+  const removeOrgrelation = ctx.prisma.user.updateMany({
     where: {
       id: {
         in: input.userIds,
@@ -57,7 +56,7 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
     },
   });
 
-  const removeManagedEventTypes = prisma.eventType.deleteMany({
+  const removeManagedEventTypes = ctx.prisma.eventType.deleteMany({
     where: {
       userId: {
         in: input.userIds,
@@ -75,7 +74,7 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
     },
   });
 
-  const removeHostAssignment = prisma.host.deleteMany({
+  const removeHostAssignment = ctx.prisma.host.deleteMany({
     where: {
       userId: {
         in: input.userIds,

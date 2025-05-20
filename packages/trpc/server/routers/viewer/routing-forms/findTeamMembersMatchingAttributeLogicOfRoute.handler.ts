@@ -75,7 +75,7 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
 
   const { formId, response, route, isPreview, _enablePerf, _concurrency } = input;
 
-  const form = await prisma.app_RoutingForms_Form.findFirst({
+  const form = await ctx.prisma.app_RoutingForms_Form.findFirst({
     where: {
       id: formId,
       ...entityPrismaWhereClause({ userId: user.id }),

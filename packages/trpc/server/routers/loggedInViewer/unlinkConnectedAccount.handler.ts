@@ -1,6 +1,5 @@
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
 
-import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -26,7 +25,7 @@ const unlinkConnectedAccount = async ({ ctx }: UpdateProfileOptions) => {
     // Fail silently if we don't have a record in the account table
   }
   // Fall back to the default identity provider
-  const _user = await prisma.user.update({
+  const _user = await ctx.prisma.user.update({
     where: {
       id: user.id,
       identityProvider: IdentityProvider.GOOGLE,

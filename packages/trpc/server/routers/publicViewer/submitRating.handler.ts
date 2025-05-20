@@ -1,5 +1,3 @@
-import { prisma } from "@calcom/prisma";
-
 import type { TSubmitRatingInputSchema } from "./submitRating.schema";
 
 type SubmitRatingOptions = {
@@ -8,7 +6,7 @@ type SubmitRatingOptions = {
 
 export const submitRatingHandler = async ({ input }: SubmitRatingOptions) => {
   const { bookingUid, rating, comment } = input;
-  await prisma.booking.update({
+  await ctx.ctx.ctx.prisma.booking.update({
     where: {
       uid: bookingUid,
     },

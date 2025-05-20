@@ -1,5 +1,4 @@
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
-import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -19,7 +18,7 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
   // Only owners can award owner role.
   if (input.role === MembershipRole.OWNER && !(await isTeamOwner(ctx.user?.id, input.teamId)))
     throw new TRPCError({ code: "UNAUTHORIZED" });
-  const memberships = await prisma.membership.findMany({
+  const memberships = await ctx.prisma.membership.findMany({
     where: {
       teamId: input.teamId,
     },
@@ -55,7 +54,7 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
     });
   }
 
-  const membership = await prisma.membership.update({
+  const membership = await ctx.prisma.membership.update({
     where: {
       userId_teamId: { userId: input.memberId, teamId: input.teamId },
     },

@@ -1,5 +1,4 @@
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
-import { prisma } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -18,7 +17,7 @@ export const stripeCustomerHandler = async ({ ctx }: StripeCustomerOptions) => {
 
   const billingService = new StripeBillingService();
 
-  const user = await prisma.user.findUnique({
+  const user = await ctx.prisma.user.findUnique({
     where: {
       id: userId,
     },
@@ -42,7 +41,7 @@ export const stripeCustomerHandler = async ({ ctx }: StripeCustomerOptions) => {
         userId: userId.toString(),
       },
     });
-    await prisma.user.update({
+    await ctx.prisma.user.update({
       where: {
         id: userId,
       },

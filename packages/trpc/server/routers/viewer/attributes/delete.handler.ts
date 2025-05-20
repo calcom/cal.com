@@ -1,5 +1,3 @@
-import prisma from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -22,7 +20,7 @@ const deleteAttributeHandler = async ({ input, ctx }: DeleteOptions) => {
     });
   }
 
-  const attribute = await prisma.attribute.delete({
+  const attribute = await ctx.prisma.attribute.delete({
     where: {
       teamId: org.id,
       id: input.id,

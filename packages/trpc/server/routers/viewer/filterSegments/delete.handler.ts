@@ -1,4 +1,3 @@
-import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -18,7 +17,7 @@ export const deleteHandler = async ({
   const userId = ctx.user.id;
 
   // First, fetch the existing segment to check permissions
-  const existingSegment = await prisma.filterSegment.findFirst({
+  const existingSegment = await ctx.prisma.filterSegment.findFirst({
     where: {
       id,
       OR: [
@@ -56,7 +55,7 @@ export const deleteHandler = async ({
   }
 
   // Delete the filter segment
-  await prisma.filterSegment.delete({
+  await ctx.prisma.filterSegment.delete({
     where: { id },
   });
 

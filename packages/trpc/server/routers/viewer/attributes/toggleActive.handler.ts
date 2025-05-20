@@ -1,5 +1,3 @@
-import prisma from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -23,7 +21,7 @@ const toggleActiveHandler = async ({ input, ctx }: GetOptions) => {
   }
 
   // Ensure that this users org owns the attribute
-  const attribute = await prisma.attribute.findUnique({
+  const attribute = await ctx.prisma.attribute.findUnique({
     where: {
       id: input.attributeId,
       teamId: org.id,
@@ -42,7 +40,7 @@ const toggleActiveHandler = async ({ input, ctx }: GetOptions) => {
   }
 
   // Toggle the attribute
-  await prisma.attribute.update({
+  await ctx.prisma.attribute.update({
     where: {
       id: input.attributeId,
     },

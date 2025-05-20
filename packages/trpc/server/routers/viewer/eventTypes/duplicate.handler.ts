@@ -2,7 +2,6 @@ import { Prisma } from "@prisma/client";
 
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -26,7 +25,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       description: newDescription,
       length: newLength,
     } = input;
-    const eventType = await prisma.eventType.findUnique({
+    const eventType = await ctx.prisma.eventType.findUnique({
       where: {
         id: originalEventTypeId,
       },
@@ -54,7 +53,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
     // Validate user is owner of event type or in the team
     if (eventType.userId !== ctx.user.id) {
       if (eventType.teamId) {
-        const isMember = await prisma.membership.findFirst({
+        const isMember = await ctx.prisma.membership.findFirst({
           where: {
             userId: ctx.user.id,
             teamId: eventType.teamId,
@@ -126,7 +125,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
 
     // Validate the secondary email
     if (!!secondaryEmailId) {
-      const secondaryEmail = await prisma.secondaryEmail.findUnique({
+      const secondaryEmail = await ctx.prisma.secondaryEmail.findUnique({
         where: {
           id: secondaryEmailId,
           userId: ctx.user.id,
@@ -154,12 +153,12 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
           eventTypeId: newEventType.id,
         };
       });
-      await prisma.eventTypeCustomInput.createMany({
+      await ctx.prisma.eventTypeCustomInput.createMany({
         data: customInputsData,
       });
     }
     if (hashedLink.length > 0) {
-      await prisma.hashedLink.create({
+      await ctx.prisma.hashedLink.create({
         data: {
           link: generateHashedLink(users[0]?.id ?? newEventType.teamId),
           eventType: {
@@ -174,7 +173,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
         return { eventTypeId: newEventType.id, workflowId: workflow.workflowId };
       });
 
-      await prisma.workflowsOnEventTypes.createMany({
+      await ctx.prisma.workflowsOnEventTypes.createMany({
         data: relationCreateData,
       });
     }

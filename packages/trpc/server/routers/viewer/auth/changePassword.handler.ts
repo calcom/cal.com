@@ -1,7 +1,6 @@
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { validPassword } from "@calcom/features/auth/lib/validPassword";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
-import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -22,7 +21,7 @@ export const changePasswordHandler = async ({ input, ctx }: ChangePasswordOption
   const { user } = ctx;
 
   if (user.identityProvider !== IdentityProvider.CAL) {
-    const userWithPassword = await prisma.user.findUnique({
+    const userWithPassword = await ctx.prisma.user.findUnique({
       where: {
         id: user.id,
       },
@@ -35,7 +34,7 @@ export const changePasswordHandler = async ({ input, ctx }: ChangePasswordOption
     }
   }
 
-  const currentPasswordQuery = await prisma.userPassword.findFirst({
+  const currentPasswordQuery = await ctx.prisma.userPassword.findFirst({
     where: { userId: user.id },
   });
 
@@ -59,7 +58,7 @@ export const changePasswordHandler = async ({ input, ctx }: ChangePasswordOption
   }
 
   const hashedPassword = await hashPassword(newPassword);
-  await prisma.userPassword.upsert({
+  await ctx.prisma.userPassword.upsert({
     where: {
       userId: user.id,
     },

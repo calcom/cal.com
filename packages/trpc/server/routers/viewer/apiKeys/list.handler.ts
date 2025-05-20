@@ -1,5 +1,3 @@
-import prisma from "@calcom/prisma";
-
 import type { TrpcSessionUser } from "../../../types";
 
 type ListOptions = {
@@ -9,7 +7,7 @@ type ListOptions = {
 };
 
 export const listHandler = async ({ ctx }: ListOptions) => {
-  return await prisma.apiKey.findMany({
+  return await ctx.prisma.apiKey.findMany({
     where: {
       userId: ctx.user.id,
       OR: [

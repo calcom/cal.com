@@ -34,7 +34,7 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
 
   // If no teamIds are provided, we query all teams the user is a member of
   if (!input?.teamIds?.length) {
-    const memberships = await prisma.membership.findMany({
+    const memberships = await ctx.prisma.membership.findMany({
       where: {
         userId: ctx.user.id,
         accepted: true,
@@ -46,7 +46,7 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
     });
     teamsToQuery = memberships.map((m) => m.teamId);
   } else {
-    const memberships = await prisma.membership.findMany({
+    const memberships = await ctx.prisma.membership.findMany({
       where: {
         teamId: { in: input.teamIds },
         userId: ctx.user.id,
@@ -72,7 +72,7 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
   ];
 
   // Fetch unique users through memberships
-  const memberships = await prisma.membership.findMany({
+  const memberships = await ctx.prisma.membership.findMany({
     where: {
       accepted: true,
       teamId: { in: teamsToQuery },

@@ -1,7 +1,6 @@
 import { randomBytes } from "crypto";
 
 import dayjs from "@calcom/dayjs";
-import { prisma } from "@calcom/prisma";
 import type { AccessScope } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -18,7 +17,7 @@ type AddClientOptions = {
 
 export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) => {
   const { clientId, scopes, teamSlug } = input;
-  const client = await prisma.oAuthClient.findFirst({
+  const client = await ctx.prisma.oAuthClient.findFirst({
     where: {
       clientId,
     },
@@ -35,7 +34,7 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
   const authorizationCode = generateAuthorizationCode();
 
   const team = teamSlug
-    ? await prisma.team.findFirst({
+    ? await ctx.prisma.team.findFirst({
         where: {
           slug: teamSlug,
           members: {
@@ -54,7 +53,7 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  await prisma.accessCode.create({
+  await ctx.prisma.accessCode.create({
     data: {
       code: authorizationCode,
       clientId,

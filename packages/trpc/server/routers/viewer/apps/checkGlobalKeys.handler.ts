@@ -1,5 +1,3 @@
-import { prisma } from "@calcom/prisma";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { CheckGlobalKeysSchemaType } from "./checkGlobalKeys.schema";
 
@@ -11,7 +9,7 @@ type checkForGlobalKeys = {
 };
 
 export const checkForGlobalKeysHandler = async ({ input }: checkForGlobalKeys) => {
-  const appIsGloballyInstalled = await prisma.app.findUnique({
+  const appIsGloballyInstalled = await ctx.prisma.app.findUnique({
     where: {
       slug: input.slug,
     },

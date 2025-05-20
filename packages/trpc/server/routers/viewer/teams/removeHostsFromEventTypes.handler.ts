@@ -1,5 +1,4 @@
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
-import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -21,7 +20,7 @@ export async function removeHostsFromEventTypesHandler({ ctx, input }: RemoveHos
   // check if user is admin or owner of team
   if (!isTeamAdminOrOwner) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  return await prisma.host.deleteMany({
+  return await ctx.prisma.host.deleteMany({
     where: {
       eventTypeId: {
         in: eventTypeIds,

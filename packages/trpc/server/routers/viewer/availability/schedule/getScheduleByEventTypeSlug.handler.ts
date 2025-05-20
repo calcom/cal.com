@@ -15,7 +15,7 @@ type GetOptions = {
 const EMPTY_SCHEDULE = [[], [], [], [], [], [], []];
 
 export const getScheduleByEventSlugHandler = async ({ ctx, input }: GetOptions) => {
-  const foundScheduleForSlug = await ctx.prisma.eventType.findFirst({
+  const foundScheduleForSlug = await ctx.ctx.prisma.eventType.findFirst({
     where: {
       slug: input.eventSlug,
       userId: ctx.user.id,
@@ -28,7 +28,7 @@ export const getScheduleByEventSlugHandler = async ({ ctx, input }: GetOptions) 
   try {
     // This looks kinda weird that we throw straight in the catch - its so that we can return a default schedule if the user has not completed onboarding @shiraz will loveme for this
     if (!foundScheduleForSlug?.scheduleId) {
-      const foundUserDefaultId = await ctx.prisma.user.findUnique({
+      const foundUserDefaultId = await ctx.ctx.prisma.user.findUnique({
         where: {
           id: ctx.user.id,
         },

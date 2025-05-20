@@ -1,7 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
-import { prisma } from "@calcom/prisma";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -30,7 +29,7 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
   // To call getCalendar we need
 
   // Ensure that the user has access to all of the credentialIds
-  const nonDelegationCredentials = await prisma.credential.findMany({
+  const nonDelegationCredentials = await ctx.prisma.credential.findMany({
     where: {
       id: {
         in: uniqueCredentialIds,
