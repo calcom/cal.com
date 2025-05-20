@@ -16,13 +16,13 @@ import { useBookerTime } from "../hooks/useBookerTime";
 const BookEventFormWrapper = ({
   children,
   onCancel,
-  eventLength,
+  eventDuration,
 }: {
   onCancel: () => void;
   children: ReactNode;
-  eventLength: number;
+  eventDuration?: number;
 }) => {
-  return <BookEventFormWrapperComponent child={children} eventLength={eventLength} onCancel={onCancel} />;
+  return <BookEventFormWrapperComponent child={children} eventLength={eventDuration} onCancel={onCancel} />;
 };
 
 const PlatformBookEventFormWrapper = ({

@@ -74,6 +74,7 @@ type SlotItemProps = {
   unavailableTimeSlots?: string[];
   confirmButtonDisabled?: boolean;
   handleSlotClick?: (slot: Slot, isOverlapping: boolean) => void;
+  eventDuration?: number;
 };
 
 const SlotItem = ({
@@ -95,6 +96,7 @@ const SlotItem = ({
   unavailableTimeSlots = [],
   confirmButtonDisabled,
   confirmStepClassNames,
+  eventDuration,
 }: SlotItemProps) => {
   const { t } = useLocale();
 
@@ -127,7 +129,7 @@ const SlotItem = ({
 
   const { isOverlapping, overlappingTimeEnd, overlappingTimeStart } = useCheckOverlapWithOverlay({
     start: computedDateWithUsersTimezone,
-    selectedDuration: eventData?.length ?? 0,
+    selectedDuration: eventDuration ?? 0,
     offset,
   });
 

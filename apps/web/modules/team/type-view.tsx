@@ -50,6 +50,7 @@ function Type({
           isInstantMeeting={isInstantMeeting}
           hideBranding={isBrandingHidden}
           isTeamEvent
+          eventData={eventData}
           entity={{ ...eventData.entity, eventTypeId: eventData?.eventTypeId }}
           durationConfig={eventData.metadata?.multipleDuration}
           /* TODO: Currently unused, evaluate it is needed-
