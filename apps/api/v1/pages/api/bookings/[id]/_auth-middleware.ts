@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
@@ -85,4 +85,4 @@ async function authMiddleware(req: NextApiRequest) {
     throw new HttpError({ statusCode: 403, message: "You are not authorized" });
 }
 
-export default authMiddleware;
+export default withPrismaApiHandler(authMiddleware);

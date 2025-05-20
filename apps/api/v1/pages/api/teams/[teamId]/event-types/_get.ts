@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 import { z } from "zod";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
 
@@ -70,4 +70,4 @@ async function getHandler(req: NextApiRequest) {
   return { event_types: data.map((eventType) => schemaEventTypeReadPublic.parse(eventType)) };
 }
 
-export default defaultResponder(getHandler);
+export default withPrismaApiHandler(defaultResponder(getHandler));

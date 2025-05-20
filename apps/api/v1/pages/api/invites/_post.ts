@@ -2,8 +2,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
 import type { TInviteMemberInputSchema } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.schema";
@@ -73,4 +73,4 @@ async function checkPermissions(req: NextApiRequest, body: TInviteMemberInputSch
   if (!membership) throw new HttpError({ statusCode: 403, message: "You can't add members to this team" });
 }
 
-export default defaultResponder(postHandler);
+export default withPrismaApiHandler(defaultResponder(postHandler));

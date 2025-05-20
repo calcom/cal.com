@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { schemaCredentialDeleteParams } from "~/lib/validations/credential-sync";
 
@@ -57,4 +57,4 @@ async function handler(req: NextApiRequest) {
   return { credentialDeleted: credential };
 }
 
-export default defaultResponder(handler);
+export default withPrismaApiHandler(defaultResponder(handler));

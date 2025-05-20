@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { schemaEventTypeCustomInputPublic } from "~/lib/validations/event-type-custom-input";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
@@ -41,4 +41,4 @@ export async function getHandler(req: NextApiRequest) {
   return { event_type_custom_input: schemaEventTypeCustomInputPublic.parse(data) };
 }
 
-export default defaultResponder(getHandler);
+export default withPrismaApiHandler(defaultResponder(getHandler));

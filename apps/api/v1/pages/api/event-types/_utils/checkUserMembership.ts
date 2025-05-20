@@ -1,7 +1,8 @@
-import type { NextApiRequest } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 /**
  * Checks if a user, identified by the provided userId, is a member of the team associated
@@ -13,7 +14,11 @@ import prisma from "@calcom/prisma";
  *                     if the event type doesn't belong to any team,
  *                     or if the user isn't a member of the associated team.
  */
-export default async function checkUserMembership(req: NextApiRequest) {
+export default withPrismaApiHandler(async function checkUserMembership(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  prisma: PrismaClient
+) {
   const { body } = req;
   /** These are already parsed upstream, we can assume they're good here. */
   const parentId = Number(body.parentId);
@@ -55,4 +60,4 @@ export default async function checkUserMembership(req: NextApiRequest) {
       message: "User is not a team member.",
     });
   }
-}
+});

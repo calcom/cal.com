@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { schemaBookingReadPublic } from "~/lib/validations/booking";
 import { schemaQuerySingleOrMultipleExpand } from "~/lib/validations/shared/queryExpandRelations";
@@ -109,4 +109,4 @@ export async function getHandler(req: NextApiRequest) {
   return { booking: schemaBookingReadPublic.parse(booking) };
 }
 
-export default defaultResponder(getHandler);
+export default withPrismaApiHandler(defaultResponder(getHandler));

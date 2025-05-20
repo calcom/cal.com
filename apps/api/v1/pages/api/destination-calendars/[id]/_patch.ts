@@ -1,13 +1,13 @@
 import type { Prisma } from "@prisma/client";
-import type { NextApiRequest } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 import type { z } from "zod";
 
 import { getCalendarCredentialsWithoutDelegation, getConnectedCalendars } from "@calcom/lib/CalendarManager";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import {
   schemaDestinationCalendarEditBodyParams,
@@ -82,7 +82,7 @@ type UserCredentialType = {
   invalid: boolean | null;
 };
 
-export async function patchHandler(req: NextApiRequest) {
+export async function patchHandler(req: NextApiRequest, res: NextApiResponse, prisma: PrismaClient) {
   const { userId, isSystemWideAdmin, query, body } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const parsedBody = schemaDestinationCalendarEditBodyParams.parse(body);
@@ -315,4 +315,4 @@ function validateIntegrationInput(parsedBody: z.infer<typeof schemaDestinationCa
   }
 }
 
-export default defaultResponder(patchHandler);
+export default withPrismaApiHandler(defaultResponder(patchHandler));

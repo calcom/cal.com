@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { schemaEventTypeCustomInputPublic } from "~/lib/validations/event-type-custom-input";
 
@@ -37,4 +37,4 @@ async function getHandler(req: NextApiRequest) {
   return { event_type_custom_inputs: data.map((v) => schemaEventTypeCustomInputPublic.parse(v)) };
 }
 
-export default defaultResponder(getHandler);
+export default withPrismaApiHandler(defaultResponder(getHandler));

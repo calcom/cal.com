@@ -3,8 +3,8 @@ import type { NextApiRequest } from "next";
 import { getCalendarCredentialsWithoutDelegation, getConnectedCalendars } from "@calcom/lib/CalendarManager";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import {
   schemaDestinationCalendarReadPublic,
@@ -140,4 +140,4 @@ async function checkPermissions(req: NextApiRequest, userId: number) {
   // TODO:: Add support for team event types with validation
 }
 
-export default defaultResponder(postHandler);
+export default withPrismaApiHandler(defaultResponder(postHandler));

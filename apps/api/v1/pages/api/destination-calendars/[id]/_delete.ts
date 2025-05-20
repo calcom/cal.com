@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
@@ -40,4 +40,4 @@ export async function deleteHandler(req: NextApiRequest) {
   return { message: `OK, Destination Calendar removed successfully` };
 }
 
-export default defaultResponder(deleteHandler);
+export default withPrismaApiHandler(defaultResponder(deleteHandler));

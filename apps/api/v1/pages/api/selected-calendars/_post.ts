@@ -4,7 +4,7 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import {
   schemaSelectedCalendarBodyParams,
@@ -76,4 +76,4 @@ async function postHandler(req: NextApiRequest) {
   };
 }
 
-export default defaultResponder(postHandler);
+export default withPrismaApiHandler(defaultResponder(postHandler));

@@ -1,6 +1,6 @@
 import type { NextApiRequest } from "next";
 
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
@@ -18,4 +18,4 @@ async function authMiddleware(req: NextApiRequest) {
   });
 }
 
-export default authMiddleware;
+export default withPrismaApiHandler(authMiddleware);

@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import {
   schemaBookingCreateBodyParams,
@@ -84,4 +84,4 @@ async function postHandler(req: NextApiRequest) {
   };
 }
 
-export default defaultResponder(postHandler);
+export default withPrismaApiHandler(defaultResponder(postHandler));

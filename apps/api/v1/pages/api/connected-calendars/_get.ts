@@ -5,7 +5,7 @@ import { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/l
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { extractUserIdsFromQuery } from "~/lib/utils/extractUserIdsFromQuery";
 import { schemaConnectedCalendarsReadPublic } from "~/lib/validations/connected-calendar";
@@ -142,4 +142,4 @@ async function getConnectedCalendars(users: UserWithCalendars[]) {
   return schemaConnectedCalendarsReadPublic.parse(mapped);
 }
 
-export default defaultResponder(getHandler);
+export default withPrismaApiHandler(defaultResponder(getHandler));

@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
 
@@ -43,4 +43,4 @@ export async function deleteHandler(req: NextApiRequest) {
   return { message: `Webhook with id: ${id} deleted successfully` };
 }
 
-export default defaultResponder(deleteHandler);
+export default withPrismaApiHandler(defaultResponder(deleteHandler));

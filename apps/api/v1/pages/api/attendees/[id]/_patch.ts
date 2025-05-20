@@ -3,7 +3,7 @@ import type { z } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { schemaAttendeeEditBodyParams, schemaAttendeeReadPublic } from "~/lib/validations/attendee";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
@@ -74,4 +74,4 @@ async function checkPermissions(req: NextApiRequest, body: z.infer<typeof schema
   }
 }
 
-export default defaultResponder(patchHandler);
+export default withPrismaApiHandler(defaultResponder(patchHandler));

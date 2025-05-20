@@ -4,7 +4,7 @@ import type { NextApiRequest } from "next";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { schemaCreateScheduleBodyParams, schemaSchedulePublic } from "~/lib/validations/schedule";
 
@@ -111,4 +111,4 @@ async function postHandler(req: NextApiRequest) {
   };
 }
 
-export default defaultResponder(postHandler);
+export default withPrismaApiHandler(defaultResponder(postHandler));

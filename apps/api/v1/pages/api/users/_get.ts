@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
 import { schemaQuerySingleOrMultipleUserEmails } from "~/lib/validations/shared/queryUserEmail";
@@ -67,4 +67,4 @@ export async function getHandler(req: NextApiRequest) {
   return { users, total };
 }
 
-export default withMiddleware("pagination")(defaultResponder(getHandler));
+export default withPrismaApiHandler(withMiddleware("pagination")(defaultResponder(getHandler)));

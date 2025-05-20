@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 import type { Ensure } from "@calcom/types/utils";
 
 import { apiKeyPublicSchema } from "~/lib/validations/api-key";
@@ -38,4 +38,4 @@ async function getHandler(req: CustomNextApiRequest) {
   return { api_keys: data.map((v) => apiKeyPublicSchema.parse(v)) };
 }
 
-export default defaultResponder(getHandler);
+export default withPrismaApiHandler(defaultResponder(getHandler));

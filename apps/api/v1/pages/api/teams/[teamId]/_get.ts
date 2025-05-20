@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { schemaQueryTeamId } from "~/lib/validations/shared/queryTeamId";
 import { schemaTeamReadPublic } from "~/lib/validations/team";
@@ -46,4 +46,4 @@ export async function getHandler(req: NextApiRequest) {
   return { team: schemaTeamReadPublic.parse(data) };
 }
 
-export default defaultResponder(getHandler);
+export default withPrismaApiHandler(defaultResponder(getHandler));

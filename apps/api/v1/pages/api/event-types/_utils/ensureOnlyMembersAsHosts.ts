@@ -1,14 +1,17 @@
-import type { NextApiRequest } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 import type { z } from "zod";
 
-import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import type { schemaEventTypeCreateBodyParams } from "~/lib/validations/event-type";
 
-export default async function ensureOnlyMembersAsHosts(
+export default withPrismaApiHandler(async function ensureOnlyMembersAsHosts(
   req: NextApiRequest,
-  body: Pick<z.infer<typeof schemaEventTypeCreateBodyParams>, "hosts" | "teamId">
+  res: NextApiResponse,
+  prisma: PrismaClient
 ) {
+  const body = req.body as Pick<z.infer<typeof schemaEventTypeCreateBodyParams>, "hosts" | "teamId">;
   if (body.teamId && body.hosts && body.hosts.length > 0) {
     const teamMemberCount = await prisma.membership.count({
       where: {
@@ -20,4 +23,4 @@ export default async function ensureOnlyMembersAsHosts(
       throw new Error("You can only add members of the team to a team event type.");
     }
   }
-}
+});

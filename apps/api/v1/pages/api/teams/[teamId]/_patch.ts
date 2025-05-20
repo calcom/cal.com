@@ -5,7 +5,7 @@ import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/pay
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { TRPCError } from "@trpc/server";
 
@@ -141,4 +141,4 @@ export async function patchHandler(req: NextApiRequest) {
   return result;
 }
 
-export default defaultResponder(patchHandler);
+export default withPrismaApiHandler(defaultResponder(patchHandler));

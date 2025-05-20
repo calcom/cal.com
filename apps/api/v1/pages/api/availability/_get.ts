@@ -4,9 +4,9 @@ import { z } from "zod";
 import { getUserAvailability } from "@calcom/lib/getUserAvailability";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 
 /**
@@ -249,4 +249,4 @@ async function handler(req: NextApiRequest) {
   return settled;
 }
 
-export default defaultResponder(handler);
+export default withPrismaApiHandler(defaultResponder(handler));

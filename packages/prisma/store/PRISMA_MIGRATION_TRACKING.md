@@ -7,14 +7,14 @@ This document tracks the migration of all files that need to be converted to use
 | Category | Total Files | Migrated | Remaining | Status |
 |----------|-------------|----------|-----------|--------|
 | API Routes (App Router) | 58 | 29 | 29 | 🟡 In Progress |
-| API Routes (Pages Router) | 121 | 0 | 121 | 🔴 Not Started |
+| API Routes (Pages Router) | 146 | 92 | 54 | 🟡 In Progress |
 | NestJS API (v2) | 32 | 0 | 32 | 🔴 Not Started |
 | tRPC Procedures | 248 | 248 | 0 | 🟢 Completed |
 | Repository Classes | 35 | 0 | 35 | 🔴 Not Started |
 | Utility Functions | 168 | 0 | 168 | 🔴 Not Started |
 | Test Files | 112 | 0 | 112 | 🔴 Not Started |
 | Cron Jobs | 35 | 0 | 35 | 🔴 Not Started |
-| **Total** | **809** | **277** | **532** | 🟡 In Progress |
+| **Total** | **834** | **369** | **465** | 🟡 In Progress |
 
 ## Migration Patterns
 

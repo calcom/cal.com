@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import {
   schemaAvailabilityEditBodyParams,
@@ -84,4 +84,4 @@ export async function patchHandler(req: NextApiRequest) {
   return { availability: schemaAvailabilityReadPublic.parse(availability) };
 }
 
-export default defaultResponder(patchHandler);
+export default withPrismaApiHandler(defaultResponder(patchHandler));

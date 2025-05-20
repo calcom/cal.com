@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
 import { schemaWebhookEditBodyParams, schemaWebhookReadPublic } from "~/lib/validations/webhook";
@@ -103,4 +103,4 @@ export async function patchHandler(req: NextApiRequest) {
   return { webhook: schemaWebhookReadPublic.parse(result) };
 }
 
-export default defaultResponder(patchHandler);
+export default withPrismaApiHandler(defaultResponder(patchHandler));

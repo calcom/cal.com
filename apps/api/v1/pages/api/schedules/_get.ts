@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { schemaSchedulePublic } from "~/lib/validations/schedule";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
@@ -97,4 +97,4 @@ async function handler(req: NextApiRequest) {
   return { schedules: data.map((s) => schemaSchedulePublic.parse(s)) };
 }
 
-export default defaultResponder(handler);
+export default withPrismaApiHandler(defaultResponder(handler));

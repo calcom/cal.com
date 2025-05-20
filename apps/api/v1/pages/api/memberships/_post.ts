@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { membershipCreateBodySchema, schemaMembershipPublic } from "~/lib/validations/membership";
 
@@ -55,4 +55,4 @@ async function checkPermissions(req: NextApiRequest) {
   if (!membership) throw new HttpError({ statusCode: 403, message: "You can't add members to this team" });
 }
 
-export default defaultResponder(postHandler);
+export default withPrismaApiHandler(defaultResponder(postHandler));

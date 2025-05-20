@@ -2,7 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
@@ -66,4 +66,4 @@ async function checkPermissions(req: NextApiRequest) {
     throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 
-export default defaultResponder(deleteHandler);
+export default withPrismaApiHandler(defaultResponder(deleteHandler));

@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { schemaAttendeeReadPublic } from "~/lib/validations/attendee";
 
@@ -39,4 +39,4 @@ async function handler(req: NextApiRequest) {
   return { attendees };
 }
 
-export default defaultResponder(handler);
+export default withPrismaApiHandler(defaultResponder(handler));
