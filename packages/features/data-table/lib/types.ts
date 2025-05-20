@@ -288,6 +288,7 @@ export type UseSegmentsProps = {
   setPageSize: (pageSize: number) => void;
   setPageIndex: (pageIndex: number) => void;
   setSearchTerm: (searchTerm: string | null) => void;
+  segments?: FilterSegmentOutput[];
 };
 
 export type UseSegmentsReturn = {

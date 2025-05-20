@@ -8,7 +8,6 @@ import { useQueryState } from "nuqs";
 import { createContext, useCallback, useEffect, useRef, useMemo } from "react";
 
 import { useSegmentsNoop } from "./hooks/useSegmentsNoop";
-import { useSegmentsWithProp } from "./hooks/useSegmentsWithProp";
 import {
   activeFiltersParser,
   sortingParser,
@@ -192,7 +191,10 @@ export function DataTableProvider({
     canSaveSegment,
     setAndPersistSegmentId,
     isSegmentEnabled,
-  } = useSegmentsWithProp(segments, useSegments, segmentsProps);
+  } = useSegments({
+    ...segmentsProps,
+    segments,
+  });
 
   const clearAll = useCallback(
     (exclude?: string[]) => {
