@@ -10,23 +10,23 @@ export async function getAffectedMembersForDisable({
 }: {
   delegationCredentialId: string;
 }) {
-  const credential = await DelegationCredentialRepository.findById({ id: delegationCredentialId });
-  const noMembersAffected = [];
-  if (!credential) {
-    return noMembersAffected;
+  const delegationCredential = await DelegationCredentialRepository.findById({ id: delegationCredentialId });
+  if (!delegationCredential) {
+    // If we cant find the delegation credential, we assume no members were affected
+    return [];
   }
-  const lastEnabledAt = credential.lastEnabledAt;
+  const lastEnabledAt = delegationCredential.lastEnabledAt;
   if (!lastEnabledAt) {
     log.info(
       `Delegation credential ${delegationCredentialId} has no lastEnabledAt, so assuming no members were affected`
     );
-    return noMembersAffected;
+    return [];
   }
 
   // Find members who joined after the delegation credential was last enabled
   const membershipsThatCouldPotentiallyBeAffected =
     await MembershipRepository.findMembershipsCreatedAfterTimeIncludeUser({
-      organizationId: credential.organizationId,
+      organizationId: delegationCredential.organizationId,
       time: lastEnabledAt,
     });
 
