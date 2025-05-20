@@ -450,7 +450,17 @@ export const enrichHostsWithDelegationCredentials = async <
       },
     };
   });
-  log.debug("enrichHostsWithDelegationCredentials", safeStringify({ enrichedHosts, orgId }));
+  log.debug(
+    "enrichHostsWithDelegationCredentials",
+    safeStringify({
+      enrichedHosts: enrichedHosts.map((host) => {
+        return {
+          userId: host.user.id,
+        };
+      }),
+      orgId,
+    })
+  );
   return enrichedHosts;
 };
 

@@ -93,7 +93,7 @@ export async function createCredentialForCalendarService({
       })
     : createInMemoryCredential({
         userId: defaultUser.id,
-        delegationCredentialId,
+        delegationCredentialId: delegationCredentialId!,
         delegatedTo,
       });
 
@@ -134,9 +134,11 @@ export async function createInMemoryDelegationCredentialForCalendarService({
 export const createMockJWTInstance = ({
   email = "user@example.com",
   authorizeError,
+  tokenExpiryDate,
 }: {
   email?: string;
   authorizeError?: { response?: { data?: { error?: string } } } | Error;
+  tokenExpiryDate?: number;
 }) => {
   console.log("createMockJWTInstance", { email, authorizeError });
   const mockJWTInstance = {
@@ -151,7 +153,10 @@ export const createMockJWTInstance = ({
     // @ts-ignore
     authorize: authorizeError
       ? vi.fn().mockRejectedValue(authorizeError)
-      : vi.fn().mockResolvedValue(MOCK_JWT_TOKEN),
+      : vi.fn().mockResolvedValue({
+          ...MOCK_JWT_TOKEN,
+          expiry_date: tokenExpiryDate ?? MOCK_JWT_TOKEN.expiry_date,
+        }),
     createScoped: vi.fn(),
     getRequestMetadataAsync: vi.fn(),
     fetchIdToken: vi.fn(),

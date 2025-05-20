@@ -11,6 +11,7 @@ import {
   calendarMock,
   adminMock,
   MOCK_JWT_TOKEN,
+  MOCK_OAUTH2_TOKEN,
 } from "../__mocks__/googleapis";
 
 import { expect, test, beforeEach, vi, describe } from "vitest";
@@ -62,6 +63,7 @@ async function expectNoCredentialsInDb() {
 
 async function expectCredentialsInDb(credentials: CredentialForCalendarServiceWithEmail[]) {
   const credentialsInDb = await prismock.credential.findMany({});
+  expect(credentialsInDb.length).toBe(credentials.length);
   expect(credentialsInDb).toEqual(expect.arrayContaining(credentials));
 }
 
@@ -118,6 +120,68 @@ describe("GoogleCalendarService credential handling", () => {
         }),
       ]);
     });
+
+    test("JWT token is reused when not expired when listCalendars is called again on a new instance of CalendarService", async () => {
+      const jwtTokenThatHasNotExpired = {
+        ...MOCK_JWT_TOKEN,
+        expiry_date: Date.now() + 1000 * 60 * 60 * 24,
+      };
+      createMockJWTInstance({
+        tokenExpiryDate: jwtTokenThatHasNotExpired.expiry_date,
+      });
+      const credentialWithDelegation = await createInMemoryDelegationCredentialForCalendarService({
+        user: { email: "user@example.com" },
+        delegatedTo: defaultDelegatedCredential,
+        delegationCredentialId: "delegation-credential-id-1",
+      });
+
+      console.log("TESTS: credentialWithDelegation", credentialWithDelegation);
+
+      mockSuccessfulCalendarListFetch();
+      await expectNoCredentialsInDb();
+      console.log("TESTS: First instance of CalendarService");
+      const calendarService1 = new CalendarService({
+        ...credentialWithDelegation,
+      });
+      await calendarService1.listCalendars();
+      await expectCredentialsInDb([
+        expect.objectContaining({
+          delegationCredentialId: credentialWithDelegation.delegationCredentialId,
+          key: jwtTokenThatHasNotExpired,
+          userId: credentialWithDelegation.userId,
+        }),
+      ]);
+
+      const existingCredential = await prismock.credential.findFirst({
+        where: {
+          delegationCredentialId: credentialWithDelegation.delegationCredentialId,
+          userId: credentialWithDelegation.userId,
+        },
+      });
+      expect(existingCredential).toBeDefined();
+      console.log("TESTS: Second instance of CalendarService");
+      createMockJWTInstance({
+        authorizeError: {
+          response: {
+            data: {
+              error: "I_WOULD_ERROR_IF_YOU_USE_ME",
+            },
+          },
+        },
+      });
+      const calendarService2 = new CalendarService({
+        ...credentialWithDelegation,
+      });
+      await calendarService2.listCalendars();
+      await expectCredentialsInDb([
+        expect.objectContaining({
+          // Same credential should be reused
+          id: existingCredential?.id,
+          delegationCredentialId: credentialWithDelegation.delegationCredentialId,
+          key: jwtTokenThatHasNotExpired,
+        }),
+      ]);
+    });
   });
 
   describe("Non-Delegation Credential", () => {
@@ -132,6 +196,12 @@ describe("GoogleCalendarService credential handling", () => {
       expect(calendarMock.calendar_v3.Calendar).toHaveBeenCalledWith({
         auth: getLastCreatedOAuth2Client(),
       });
+      await expectCredentialsInDb([
+        expect.objectContaining({
+          id: regularCredential.id,
+          key: MOCK_OAUTH2_TOKEN,
+        }),
+      ]);
     });
   });
 

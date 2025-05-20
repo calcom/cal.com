@@ -440,6 +440,41 @@ describe("Credential Sync Disabled", () => {
         return auth.getTokenObjectOrFetch();
       }).rejects.toThrowError("fetchNewTokenObject error");
     });
+
+    test("when currentTokenObject is not set, but getCurrentTokenObject is set", async () => {
+      const userId = 1;
+      const getCurrentTokenObject = vi.fn().mockResolvedValue(getDummyTokenObject());
+      const auth = new OAuthManager({
+        credentialSyncVariables: useCredentialSyncVariables,
+        resourceOwner: {
+          type: "user",
+          id: userId,
+        },
+        appSlug: "demo-app",
+        isTokenExpired: async () => {
+          return false;
+        },
+        isAccessTokenUnusable: async () => {
+          return null;
+        },
+        getCurrentTokenObject: getCurrentTokenObject,
+        fetchNewTokenObject: async () => {
+          return generateJsonResponse({ json: getDummyTokenObject() });
+        },
+        updateTokenObject: vi.fn(),
+        invalidateTokenObject: vi.fn(),
+        expireAccessToken: vi.fn(),
+        isTokenObjectUnusable: async () => {
+          return null;
+        },
+      });
+      const tokenObject = await auth.getTokenObjectOrFetch();
+      expect(getCurrentTokenObject).toHaveBeenCalled();
+      expect(tokenObject).toEqual({
+        token: expect.objectContaining(getDummyTokenObject()),
+        isUpdated: false,
+      });
+    });
   });
 
   describe("API: `request`", () => {
