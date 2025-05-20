@@ -85,7 +85,13 @@ const handleCalendarsToUnwatch = async () => {
           if (error instanceof Error) {
             errorMessage = error.message;
           }
-          log.error(`Error unwatching calendar ${externalId}`, safeStringify(error));
+          log.error(
+            `Error unwatching calendar ${externalId}`,
+            safeStringify({
+              selectedCalendarId: id,
+              error: errorMessage,
+            })
+          );
           await SelectedCalendarRepository.setErrorInUnwatching({
             id,
             error: `${errorMessage}`,
@@ -123,7 +129,13 @@ const handleCalendarsToWatch = async () => {
           if (error instanceof Error) {
             errorMessage = error.message;
           }
-          log.error(`Error watching calendar ${externalId}`, safeStringify(error));
+          log.error(
+            `Error watching calendar ${externalId}`,
+            safeStringify({
+              selectedCalendarId: id,
+              error: errorMessage,
+            })
+          );
           await SelectedCalendarRepository.setErrorInWatching({
             id,
             error: `${errorMessage}`,
