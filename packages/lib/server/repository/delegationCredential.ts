@@ -175,6 +175,8 @@ export class DelegationCredentialRepository {
       domain: string;
       enabled: boolean;
       organizationId: number;
+      lastEnabledAt: Date;
+      lastDisabledAt: Date;
     }>;
   }) {
     const { workspacePlatformId, organizationId, ...rest } = data;

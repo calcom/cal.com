@@ -339,7 +339,7 @@ export class MembershipRepository {
   }
 
   /**
-   * Returns members who joined after the delegation credential was last enabled (i.e., would lose access if disabled).
+   * Returns members who joined after the given time
    */
   static async findMembershipsCreatedAfterTimeIncludeUser({
     organizationId,

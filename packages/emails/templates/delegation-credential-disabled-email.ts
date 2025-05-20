@@ -27,7 +27,7 @@ export default class DelegationCredentialDisabledEmail extends BaseEmail {
     return {
       from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: this.recipientEmail,
-      subject: `You might need to connect your Calendar`,
+      subject: `You might need to connect your ${this.connectionName} Calendar`,
       html: await this.getHtml(),
       text: this.getTextBody(),
     };
@@ -36,7 +36,7 @@ export default class DelegationCredentialDisabledEmail extends BaseEmail {
   async getHtml() {
     return `
       <div style="font-family: Arial, sans-serif;">
-        <h2>Action Required: Connect your ${this.workspacePlatformName} Calendar</h2>
+        <h2>Action Required: Connect your ${this.connectionName} Calendar</h2>
         <p>
           ${this.recipientName ? `Hi ${this.recipientName},` : "Hello,"}
         </p>

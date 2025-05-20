@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { calendar_v3 } from "@googleapis/calendar";
 import type { Prisma } from "@prisma/client";
-import type { Credentials } from "google-auth-library";
-import { OAuth2Client, JWT, type GaxiosOptions, type GaxiosResponse } from "googleapis-common";
+import { OAuth2Client, JWT } from "googleapis-common";
+import type { GaxiosResponse } from "googleapis-common";
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 
@@ -49,9 +49,6 @@ import { metadata } from "../_metadata";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
 
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
-global.fetch = () => {
-  throw new Error("Fetch is not allowed");
-};
 
 interface GoogleCalError extends Error {
   code?: number;
@@ -74,82 +71,6 @@ type GoogleChannelProps = {
   expiration?: string | null;
 };
 
-class MyDelegatedGoogleAuth extends JWT {
-  constructor(
-    email: string | undefined,
-    keyFile: string | undefined,
-    key: string | undefined,
-    scopes: string | string[],
-    subject: string | undefined,
-    keyId: string | undefined
-  ) {
-    super(email, keyFile, key, scopes, subject, keyId);
-  }
-
-  async authorize(
-    callback?: ((err: Error | null, result?: Credentials) => void) | undefined
-  ): Promise<Credentials> {
-    const currentTokenFirst10 = this.credentials?.access_token?.substring(0, 10);
-    log.info(
-      `MyDelegatedGoogleAuth: authorize called. Current access_token (first 10 chars): ${
-        currentTokenFirst10 || "N/A"
-      }`
-    );
-    try {
-      const beforeTime = Date.now();
-      const result = await super.authorize(callback);
-      const afterTime = Date.now();
-      console.log("authorize time", afterTime - beforeTime);
-      const newToken = this.credentials?.access_token;
-      const tokenExpiry = this.credentials?.expiry_date;
-      log.info(
-        `MyDelegatedGoogleAuth: authorize success. New access_token (first 10 chars): ${
-          newToken || "N/A"
-        }, Expiry: ${tokenExpiry || "N/A"}`
-      );
-      return result;
-    } catch (error) {
-      log.error("MyDelegatedGoogleAuth: authorize error.", safeStringify(error));
-      throw error;
-    }
-  }
-
-  /**
-   * Override the request method to log details of outgoing Google API requests
-   * made via JWT (delegated) authentication.
-   */
-  async request<T>(opts: GaxiosOptions): Promise<GaxiosResponse<T>> {
-    // Explicitly log if this is a token request
-    if (opts.url && opts.url.includes("oauth2.googleapis.com/token")) {
-      log.info(
-        `MyDelegatedGoogleAuth Outgoing TOKEN Request: Method=${opts.method}, URL=${opts.url}`,
-        safeStringify({ params: opts.params, subject: this.subject })
-      );
-    } else {
-      log.info(
-        `MyDelegatedGoogleAuth Outgoing API Request: Method=${opts.method}, URL=${opts.url}`,
-        safeStringify({ params: opts.params, subject: this.subject })
-      );
-    }
-
-    if (opts.data) {
-      log.debug("MyDelegatedGoogleAuth Request Payload:", safeStringify(opts.data));
-    }
-
-    try {
-      const response = await super.request<T>(opts);
-      log.debug("MyDelegatedGoogleAuth Response Status:", response.status);
-      return response;
-    } catch (error) {
-      log.error(
-        "MyDelegatedGoogleAuth Request Error:",
-        safeStringify({ error, url: opts.url, method: opts.method, subject: this.subject })
-      );
-      throw error;
-    }
-  }
-}
-
 export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
   private auth: ReturnType<typeof this.initGoogleAuth>;
@@ -157,9 +78,6 @@ export default class GoogleCalendarService implements Calendar {
   private credential: CredentialForCalendarServiceWithEmail;
   private myGoogleAuth!: MyGoogleAuth;
   private oAuthManagerInstance!: OAuthManager;
-  private delegatedAuthClient?: MyDelegatedGoogleAuth;
-  private delegatedCalendarClient?: calendar_v3.Calendar;
-
   constructor(credential: CredentialForCalendarServiceWithEmail) {
     this.integrationName = "google_calendar";
     this.credential = credential;
@@ -279,48 +197,21 @@ export default class GoogleCalendarService implements Calendar {
       };
     };
   }) => {
-    if (this.delegatedAuthClient && this.delegatedCalendarClient) {
-      try {
-        this.log.debug(
-          "Attempting to re-use and re-authorize cached MyDelegatedGoogleAuth client for delegation."
-        );
-        await this.delegatedAuthClient.authorize(); // Let JWT library handle token validity
-        this.log.info(
-          "Successfully re-used and re-authorized cached MyDelegatedGoogleAuth client for delegation."
-        );
-        return this.delegatedCalendarClient;
-      } catch (error) {
-        this.log.warn(
-          "Failed to re-authorize cached MyDelegatedGoogleAuth client for delegation. A new client will be created.",
-          safeStringify(error)
-        );
-        // Invalidate the cache so we definitely create a new one
-        this.delegatedAuthClient = undefined;
-        this.delegatedCalendarClient = undefined;
-      }
-    }
-
-    this.log.debug("Creating new MyDelegatedGoogleAuth client for delegation.");
     const serviceAccountClientEmail = delegationCredential.serviceAccountKey.client_email;
     const serviceAccountClientId = delegationCredential.serviceAccountKey.client_id;
     const serviceAccountPrivateKey = delegationCredential.serviceAccountKey.private_key;
 
-    const authClient = new MyDelegatedGoogleAuth(
-      serviceAccountClientEmail,
-      undefined,
-      serviceAccountPrivateKey,
-      ["https://www.googleapis.com/auth/calendar"],
-      emailToImpersonate,
-      undefined
-    );
+    const authClient = new JWT({
+      email: serviceAccountClientEmail,
+      key: serviceAccountPrivateKey,
+      scopes: ["https://www.googleapis.com/auth/calendar"],
+      subject: emailToImpersonate,
+    });
 
     try {
       await authClient.authorize();
     } catch (error) {
-      this.log.error(
-        "DelegationCredential: Error authorizing NEW delegation credential client",
-        safeStringify(error)
-      );
+      this.log.error("DelegationCredential: Error authorizing delegation credential", JSON.stringify(error));
 
       if ((error as any).response?.data?.error === "unauthorized_client") {
         throw new CalendarAppDelegationCredentialClientIdNotAuthorizedError(
@@ -347,15 +238,9 @@ export default class GoogleCalendarService implements Calendar {
       })
     );
 
-    const calendarClientInstance = new calendar_v3.Calendar({
+    return new calendar_v3.Calendar({
       auth: authClient,
     });
-
-    // Cache the new client and calendar instance
-    this.delegatedAuthClient = authClient;
-    this.delegatedCalendarClient = calendarClientInstance;
-
-    return calendarClientInstance;
   };
 
   public authedCalendar = async () => {
@@ -996,7 +881,6 @@ export default class GoogleCalendarService implements Calendar {
       );
       throw error;
     }
-    return [];
   }
 
   /**
@@ -1380,45 +1264,6 @@ class MyGoogleAuth extends OAuth2Client {
   }
 
   async refreshToken(token: string | null | undefined) {
-    // Specific logging for refresh token attempts can also be done here if needed,
-    // but the overridden 'request' method below will catch the actual HTTP call.
-    log.info("MyGoogleAuth: Attempting to refresh token.");
     return super.refreshToken(token);
-  }
-
-  /**
-   * Override the request method to log details of outgoing Google API requests.
-   * This method is called internally by OAuth2Client for all API interactions.
-   */
-  async request<T>(opts: GaxiosOptions): Promise<GaxiosResponse<T>> {
-    // Explicitly log if this is a token request
-    if (opts.url && opts.url.includes("oauth2.googleapis.com/token")) {
-      log.info(
-        `MyGoogleAuth Outgoing TOKEN Request: Method=${opts.method}, URL=${opts.url}`,
-        safeStringify({ params: opts.params })
-      );
-    } else {
-      log.info(
-        `MyGoogleAuth Outgoing API Request: Method=${opts.method}, URL=${opts.url}`,
-        safeStringify({ params: opts.params })
-      );
-    }
-
-    // Optionally log the request body, but be cautious with sensitive information.
-    if (opts.data) {
-      // You might want to selectively log parts of the payload or avoid logging it altogether
-      // if it contains PII or other sensitive data.
-      log.debug("MyGoogleAuth Request Payload:", safeStringify(opts.data));
-    }
-
-    try {
-      const response = await super.request<T>(opts);
-      // You could also log aspects of the response if needed
-      // log.debug("MyGoogleAuth Response Status:", response.status);
-      return response;
-    } catch (error) {
-      log.error("MyGoogleAuth Request Error:", safeStringify({ error, url: opts.url, method: opts.method }));
-      throw error;
-    }
   }
 }

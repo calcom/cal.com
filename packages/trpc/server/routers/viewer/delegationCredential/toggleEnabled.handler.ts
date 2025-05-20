@@ -50,21 +50,26 @@ export async function toggleDelegationCredentialEnabled(
     throw new Error("Delegation credential not found");
   }
 
-  if (input.enabled === currentDelegationCredential.enabled) {
+  const shouldBeEnabled = input.enabled;
+
+  if (shouldBeEnabled === currentDelegationCredential.enabled) {
+    // Already enabled or disabled, so no need to do anything
     return currentDelegationCredential;
   }
 
-  if (input.enabled) {
+  if (shouldBeEnabled) {
     await assertWorkspaceConfigured({
       delegationCredentialId: input.id,
       user: loggedInUser,
     });
   }
 
-  if (!input.enabled) {
+  if (!shouldBeEnabled) {
     const affectedMemberships = await getAffectedMembersForDisable({ delegationCredentialId: input.id });
-    const connectionName =
-      currentDelegationCredential.workspacePlatform?.slug === "google" ? "Google Calendar" : "Microsoft 365";
+    const connectionName = currentDelegationCredential.workspacePlatform?.name;
+    if (!connectionName) {
+      log.error(`Delegation credential ${input.id} has no workspace platform name`);
+    }
     for (const membership of affectedMemberships) {
       if (membership.email) {
         await sendDelegationCredentialDisabledEmail({
@@ -79,9 +84,11 @@ export async function toggleDelegationCredentialEnabled(
   const updatedDelegationCredential = await DelegationCredentialRepository.updateById({
     id: input.id,
     data: {
-      enabled: input.enabled,
-      lastEnabledAt: input.enabled ? new Date() : undefined,
-      lastDisabledAt: input.enabled ? undefined : new Date(),
+      enabled: shouldBeEnabled,
+      // Don't touch lastEnabledAt if we are disabling
+      lastEnabledAt: shouldBeEnabled ? new Date() : undefined,
+      // Don't touch lastDisabledAt if we are enabling
+      lastDisabledAt: shouldBeEnabled ? undefined : new Date(),
     },
   });
 
