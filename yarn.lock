@@ -2736,7 +2736,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.197"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.208"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -3649,7 +3649,6 @@ __metadata:
     "@formbricks/js": ^2.1.0
     "@sendgrid/client": ^7.7.0
     "@vercel/og": ^0.6.3
-    bcryptjs: ^2.4.3
     city-timezones: ^1.2.1
     i18next: ^23.2.3
     ical.js: ^1.4.0
@@ -3848,13 +3847,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.197":
-  version: 0.0.197
-  resolution: "@calcom/platform-libraries@npm:0.0.197"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.208":
+  version: 0.0.208
+  resolution: "@calcom/platform-libraries@npm:0.0.208"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 023f9771eaf51b759146c224c23436448405753337bfb9e44ca52cb9ba15d684634cf7f608a4531eece7c790626277752bac67d9badeadc4761111a0453b480d
+  checksum: bee3d47c331a210e452fd5b26ed75075f4906f07ba44903385ee2ddd764e4a6294eca0795a207fd875e8483d2beb60e6546dc4b9bda8a78e028b7a47ac5f2275
   languageName: node
   linkType: hard
 
@@ -4698,7 +4697,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@changesets/cli@npm:^2.26.1":
+"@changesets/changelog-github@npm:^0.5.1":
+  version: 0.5.1
+  resolution: "@changesets/changelog-github@npm:0.5.1"
+  dependencies:
+    "@changesets/get-github-info": ^0.6.0
+    "@changesets/types": ^6.1.0
+    dotenv: ^8.1.0
+  checksum: 7a538fcbde5a13522d856e3b29c27685922b25c1ab268a735eaddf078045a97f2ebc3ba54a610147266acaadcab939f5c01a172e38bb9adf0128fea886a50fce
+  languageName: node
+  linkType: hard
+
+"@changesets/cli@npm:2.29.4":
   version: 2.29.4
   resolution: "@changesets/cli@npm:2.29.4"
   dependencies:
@@ -4769,6 +4779,16 @@ __metadata:
     picocolors: ^1.1.0
     semver: ^7.5.3
   checksum: eef7fa4d9629a13ce25bb83c2f657969cd2903cbe7ebe0e5a260f2639d7a3ad43bca220bc2356262067dd3f2ade9597cabdfa64523bd2f2f961a3d8200b48977
+  languageName: node
+  linkType: hard
+
+"@changesets/get-github-info@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "@changesets/get-github-info@npm:0.6.0"
+  dependencies:
+    dataloader: ^1.4.0
+    node-fetch: ^2.5.0
+  checksum: 753173bda536aa79cb0502f59ce13889b23ae8463d04893d43ff22966818060837d9db4052b6cbfbd95dfb242fbfd38890a38c56832948e83bf358a47812b708
   languageName: node
   linkType: hard
 
@@ -23256,7 +23276,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "calcom-monorepo@workspace:."
   dependencies:
-    "@changesets/cli": ^2.26.1
+    "@changesets/changelog-github": ^0.5.1
+    "@changesets/cli": 2.29.4
     "@daily-co/daily-js": ^0.76.0
     "@jetstreamapp/soql-parser-js": ^6.1.0
     "@next/third-parties": ^14.2.5
@@ -25574,6 +25595,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dataloader@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "dataloader@npm:1.4.0"
+  checksum: e2c93d43afde68980efc0cd9ff48e9851116e27a9687f863e02b56d46f7e7868cc762cd6dcbaf4197e1ca850a03651510c165c2ae24b8e9843fd894002ad0e20
+  languageName: node
+  linkType: hard
+
 "dataloader@npm:^2.2.3":
   version: 2.2.3
   resolution: "dataloader@npm:2.2.3"
@@ -26415,6 +26443,13 @@ __metadata:
   version: 16.0.1
   resolution: "dotenv@npm:16.0.1"
   checksum: f459ffce07b977b7f15d8cc4ee69cdff77d4dd8c5dc8c85d2d485ee84655352c2415f9dd09d42b5b5985ced3be186130871b34e2f3e2569ebc72fbc2e8096792
+  languageName: node
+  linkType: hard
+
+"dotenv@npm:^8.1.0":
+  version: 8.6.0
+  resolution: "dotenv@npm:8.6.0"
+  checksum: 38e902c80b0666ab59e9310a3d24ed237029a7ce34d976796349765ac96b8d769f6df19090f1f471b77a25ca391971efde8a1ea63bb83111bd8bec8e5cc9b2cd
   languageName: node
   linkType: hard
 
@@ -38887,7 +38922,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-fetch@npm:2.7.0, node-fetch@npm:^2.0.0, node-fetch@npm:^2.6.12, node-fetch@npm:^2.6.9, node-fetch@npm:^2.7.0":
+"node-fetch@npm:2.7.0, node-fetch@npm:^2.0.0, node-fetch@npm:^2.5.0, node-fetch@npm:^2.6.12, node-fetch@npm:^2.6.9, node-fetch@npm:^2.7.0":
   version: 2.7.0
   resolution: "node-fetch@npm:2.7.0"
   dependencies:

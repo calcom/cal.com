@@ -295,7 +295,7 @@ export class MembershipRepository {
     };
   }
 
-  static async getAdminMembership(userId: number, teamId: number) {
+  static async getAdminOrOwnerMembership(userId: number, teamId: number) {
     return prisma.membership.findFirst({
       where: {
         userId,

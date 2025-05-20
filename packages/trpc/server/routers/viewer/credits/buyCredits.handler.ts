@@ -24,15 +24,28 @@ export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
 
   const { quantity, teamId } = input;
 
-  const adminMembership = await MembershipRepository.getAdminMembership(ctx.user.id, teamId);
+  if (teamId) {
+    const adminMembership = await MembershipRepository.getAdminOrOwnerMembership(ctx.user.id, teamId);
 
-  if (!adminMembership) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-    });
+    if (!adminMembership) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+      });
+    }
+  } else {
+    // if user id is part of a team, user can't buy credits for themselves
+    const memberships = await MembershipRepository.findAllAcceptedMemberships(ctx.user.id);
+
+    if (memberships.length > 0) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+      });
+    }
   }
 
-  const redirect_uri = `${WEBAPP_URL}/settings/teams/${teamId}/billing`;
+  const redirect_uri = teamId
+    ? `${WEBAPP_URL}/settings/teams/${teamId}/billing`
+    : `${WEBAPP_URL}/settings/billing`;
 
   const billingService = new StripeBillingService();
 
@@ -41,7 +54,10 @@ export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
     quantity,
     successUrl: redirect_uri,
     cancelUrl: redirect_uri,
-    metadata: { teamId: teamId.toString() },
+    metadata: {
+      ...(teamId && { teamId: teamId.toString() }),
+      userId: ctx.user.id.toString(),
+    },
   });
 
   return { sessionUrl: checkoutUrl };

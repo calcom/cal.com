@@ -20,6 +20,7 @@ import { UsersRepository, UserWithProfile } from "@/modules/users/users.reposito
 import { ConflictException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
+import { DateTime } from "luxon";
 import { z } from "zod";
 
 import {
@@ -59,13 +60,17 @@ type CreatedBooking = {
   start: string;
 };
 
-const eventTypeBookingFieldSchema = z.object({
-  name: z.string(),
-  required: z.boolean(),
-  editable: z.string(),
-});
+const eventTypeBookingFieldSchema = z
+  .object({
+    name: z.string(),
+    required: z.boolean(),
+    editable: z.string(),
+    type: z.string(),
+    options: z.array(z.object({ value: z.string() })).optional(),
+  })
+  .passthrough();
 
-const eventTypeBookingFieldsSchema = z.array(eventTypeBookingFieldSchema);
+export const eventTypeBookingFieldsSchema = z.array(eventTypeBookingFieldSchema);
 
 export type EventTypeWithOwnerAndTeam = EventType & { owner: User | null; team: Team | null };
 
@@ -171,34 +176,185 @@ export class BookingsService_2024_08_13 {
   }
 
   async hasRequiredBookingFieldsResponses(body: CreateBookingInput, eventType: EventType | null) {
-    const bookingFields = { ...body.bookingFieldsResponses, attendeePhoneNumber: body.attendee.phoneNumber };
+    const bookingFieldsResponses: Record<string, unknown> = {
+      ...body.bookingFieldsResponses,
+      attendeePhoneNumber: body.attendee.phoneNumber,
+      smsReminderNumber: body.attendee.phoneNumber,
+    };
     if (!eventType?.bookingFields) {
       return true;
     }
 
-    // note(Lauris): we filter out system fields, because some of them are set by default and name and email are passed in the body.attendee
+    // note(Lauris): we filter out system fields, because some of them are set by default and name and email are passed in the body.attendee. Only exception
+    // is smsReminderNumber, because if it is required and not passed sms workflow won't work.
     const eventTypeBookingFields = eventTypeBookingFieldsSchema
       .parse(eventType.bookingFields)
-      .filter((field) => !field.editable.startsWith("system"));
+      .filter((field) => !field.editable.startsWith("system") || field.name === "smsReminderNumber");
 
     if (!eventTypeBookingFields.length) {
       return true;
     }
 
-    for (const field of eventTypeBookingFields) {
-      if (field.required && !(field.name in bookingFields)) {
-        if (field.name === "attendeePhoneNumber") {
+    for (const eventTypeBookingField of eventTypeBookingFields) {
+      if (
+        eventTypeBookingField.required &&
+        (bookingFieldsResponses[eventTypeBookingField.name] === null ||
+          bookingFieldsResponses[eventTypeBookingField.name] === undefined)
+      ) {
+        if (
+          eventTypeBookingField.name === "attendeePhoneNumber" ||
+          eventTypeBookingField.name === "smsReminderNumber"
+        ) {
           throw new BadRequestException(
-            `Missing attendee phone number - it is required by the event type. Pass it as "attendee.phoneNumber" in the request.`
+            `Missing attendee phone number - it is required by the event type. Pass it as "attendee.phoneNumber" string in the request.`
           );
         }
         throw new BadRequestException(
-          `Missing required booking field response: ${field.name} - it is required by the event type booking fields, but missing in the bookingFieldsResponses. You can fetch the event type with ID ${eventType.id} to see the required fields.`
+          `Missing required booking field response: ${eventTypeBookingField.name} - it is required by the event type booking fields, but missing in the bookingFieldsResponses. You can fetch the event type with ID ${eventType.id} to see the required fields.`
         );
+      }
+
+      const bookingFieldResponseValue = bookingFieldsResponses[eventTypeBookingField.name];
+      if (bookingFieldResponseValue !== undefined) {
+        const bookingFieldResponseValueType = typeof bookingFieldResponseValue;
+        let expectedBookingFieldResponseValueType = "";
+        let isValidType = false;
+        const eventTypeBookingFieldType = eventTypeBookingField.type;
+
+        switch (eventTypeBookingFieldType) {
+          case "phone":
+            expectedBookingFieldResponseValueType = "string";
+            isValidType = bookingFieldResponseValueType === "string";
+            break;
+          case "address":
+            expectedBookingFieldResponseValueType = "string";
+            isValidType = bookingFieldResponseValueType === "string";
+            break;
+          case "text":
+            expectedBookingFieldResponseValueType = "string";
+            isValidType = bookingFieldResponseValueType === "string";
+            break;
+          case "number":
+            expectedBookingFieldResponseValueType = "number";
+            isValidType = bookingFieldResponseValueType === "number";
+            break;
+          case "textarea":
+            expectedBookingFieldResponseValueType = "string";
+            isValidType = bookingFieldResponseValueType === "string";
+            break;
+          case "multiemail":
+            expectedBookingFieldResponseValueType = "array";
+            isValidType = Array.isArray(bookingFieldResponseValue);
+            break;
+          case "boolean":
+            expectedBookingFieldResponseValueType = "boolean";
+            isValidType = bookingFieldResponseValueType === "boolean";
+            break;
+          case "select":
+            expectedBookingFieldResponseValueType = "string or number";
+            isValidType =
+              bookingFieldResponseValueType === "string" || bookingFieldResponseValueType === "number";
+            if (isValidType && Array.isArray(eventTypeBookingField.options)) {
+              const submittedValue = bookingFieldResponseValue as string | number;
+              const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
+              if (!this.isValidSingleOptionValue(submittedValue, allowedOptionValues)) {
+                throw new BadRequestException(
+                  `Invalid option '${submittedValue}' for booking field '${
+                    eventTypeBookingField.name
+                  }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
+                );
+              }
+            }
+            break;
+          case "multiselect":
+            expectedBookingFieldResponseValueType = "array";
+            isValidType = Array.isArray(bookingFieldResponseValue);
+            if (isValidType && Array.isArray(eventTypeBookingField.options)) {
+              const submittedValues = bookingFieldResponseValue as (string | number)[];
+              const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
+              if (!this.areValidMultipleOptionValues(submittedValues, allowedOptionValues)) {
+                throw new BadRequestException(
+                  `One or more invalid options for booking field '${
+                    eventTypeBookingField.name
+                  }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
+                );
+              }
+            }
+            break;
+          case "checkbox":
+            expectedBookingFieldResponseValueType = "array";
+            isValidType = Array.isArray(bookingFieldResponseValue);
+            if (isValidType && Array.isArray(eventTypeBookingField.options)) {
+              const submittedValues = bookingFieldResponseValue as (string | number)[];
+              const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
+              if (!this.areValidMultipleOptionValues(submittedValues, allowedOptionValues)) {
+                throw new BadRequestException(
+                  `One or more invalid options for booking field '${
+                    eventTypeBookingField.name
+                  }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
+                );
+              }
+            }
+            break;
+          case "radio":
+            expectedBookingFieldResponseValueType = "string or number";
+            isValidType =
+              bookingFieldResponseValueType === "string" || bookingFieldResponseValueType === "number";
+            if (isValidType && Array.isArray(eventTypeBookingField.options)) {
+              const submittedValue = bookingFieldResponseValue as string | number;
+              const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
+              if (!this.isValidSingleOptionValue(submittedValue, allowedOptionValues)) {
+                throw new BadRequestException(
+                  `Invalid option '${submittedValue}' for booking field '${
+                    eventTypeBookingField.name
+                  }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
+                );
+              }
+            }
+            break;
+          case "url":
+            expectedBookingFieldResponseValueType = "string";
+            isValidType = bookingFieldResponseValueType === "string";
+            break;
+          default:
+            // note(Lauris): by default pass the field if we have a missing "case" in the switch
+            isValidType = true;
+            break;
+        }
+
+        if (!isValidType) {
+          throw new BadRequestException(
+            `Invalid type for booking field '${eventTypeBookingField.name}'. Expected type ${expectedBookingFieldResponseValueType} (compatible with field type '${eventTypeBookingFieldType}'), but received ${bookingFieldResponseValueType}.`
+          );
+        }
       }
     }
 
     return true;
+  }
+
+  private isValidSingleOptionValue(
+    bookingFieldResponseValue: string | number,
+    eventTypeBookingFieldOptions: string[]
+  ): boolean {
+    if (eventTypeBookingFieldOptions.length === 0) {
+      // note(Lauris): If no options defined, cannot validate against them, so pass.
+      return true;
+    }
+    return eventTypeBookingFieldOptions.some((val) => val === String(bookingFieldResponseValue));
+  }
+
+  private areValidMultipleOptionValues(
+    bookingFieldResponseValues: (string | number)[],
+    eventTypeBookingFieldOptions: string[]
+  ): boolean {
+    if (eventTypeBookingFieldOptions.length === 0) {
+      // note(Lauris): If no options defined, cannot validate against them, so pass.
+      return true;
+    }
+    return bookingFieldResponseValues.every((submittedVal) =>
+      eventTypeBookingFieldOptions.some((allowedVal) => allowedVal === String(submittedVal))
+    );
   }
 
   async createInstantBooking(
@@ -594,6 +750,20 @@ export class BookingsService_2024_08_13 {
   async markAbsent(bookingUid: string, bookingOwnerId: number, body: MarkAbsentBookingInput_2024_08_13) {
     const bodyTransformed = this.inputService.transformInputMarkAbsentBooking(body);
     const bookingBefore = await this.bookingsRepository.getByUid(bookingUid);
+
+    if (!bookingBefore) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} not found.`);
+    }
+
+    const nowUtc = DateTime.utc();
+    const bookingStartTimeUtc = DateTime.fromJSDate(bookingBefore.startTime, { zone: "utc" });
+
+    if (nowUtc < bookingStartTimeUtc) {
+      throw new BadRequestException(
+        `Bookings can only be marked as absent after their scheduled start time. Current time in UTC+0: ${nowUtc.toISO()}, Booking start time in UTC+0: ${bookingStartTimeUtc.toISO()}`
+      );
+    }
+
     const platformClientParams = bookingBefore?.eventTypeId
       ? await this.platformBookingsService.getOAuthClientParams(bookingBefore.eventTypeId)
       : undefined;

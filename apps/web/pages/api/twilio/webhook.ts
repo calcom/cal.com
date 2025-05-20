@@ -76,7 +76,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const creditService = new CreditService();
 
   if (countryCode === "US" || countryCode === "CA") {
-    // SMS to US and CA are free on a team plan
+    // SMS to US and CA are free
     let teamIdToCharge = parsedTeamId;
 
     if (!teamIdToCharge && parsedUserId) {
@@ -92,15 +92,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       teamIdToCharge = teamMembership?.teamId;
     }
 
-    if (teamIdToCharge) {
-      await creditService.chargeCredits({
-        teamId: teamIdToCharge,
-        bookingUid: parsedBookingUid,
-        smsSid,
-        credits: 0,
-      });
-      return res.status(200).send(`SMS to US and CA are free on a team plan. Credits set to 0`);
-    }
+    await creditService.chargeCredits({
+      teamId: teamIdToCharge,
+      userId: !teamIdToCharge ? parsedUserId : undefined,
+      bookingUid: parsedBookingUid,
+      smsSid,
+      credits: 0,
+    });
+
+    return res.status(200).send(`SMS to US and CA are free. Credits set to 0`);
   }
 
   let orgId;
@@ -140,7 +140,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const credits = price ? creditService.calculateCreditsFromPrice(price) : null;
 
-  const chargedTeamId = await creditService.chargeCredits({
+  const chargedUserOrTeamId = await creditService.chargeCredits({
     credits,
     teamId: parsedTeamId,
     userId: parsedUserId,
@@ -148,10 +148,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     bookingUid: parsedBookingUid,
   });
 
-  if (chargedTeamId) {
+  if (chargedUserOrTeamId) {
     return res.status(200).send(
       `Expense log with ${credits ? credits : "no"} credits created for
-                teamId ${chargedTeamId}`
+             ${
+               chargedUserOrTeamId.teamId
+                 ? `teamId ${chargedUserOrTeamId.teamId}`
+                 : `userId ${chargedUserOrTeamId.userId}`
+             }`
     );
   }
   // this should never happen - even when out of credits we still charge a team
