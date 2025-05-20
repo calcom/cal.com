@@ -3029,7 +3029,6 @@
   "you_do_not_have_permission_to_create_an_organization_for_this_email": "אין לך הרשאה ליצור ארגון עבור כתובת האימייל הזו",
   "you_do_not_have_permission_to_migrate_one_or_more_of_the_teams": "אין לך הרשאה להעביר אחד או יותר מהצוותים",
   "organization_has_subscription_already": "לארגון כבר יש מנוי",
-  "rr_reset_interval": "מרווח איפוס סבב",
   "interval": "מרווח",
   "rr_reset_interval_description": "קובע באיזו תדירות מתאפס מונה ההזמנות בסבב כדי להבטיח חלוקה מאוזנת.",
   "daily": "יומי",

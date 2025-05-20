@@ -3029,7 +3029,6 @@
   "you_do_not_have_permission_to_create_an_organization_for_this_email": "Δεν έχετε άδεια να δημιουργήσετε οργανισμό για αυτό το email",
   "you_do_not_have_permission_to_migrate_one_or_more_of_the_teams": "Δεν έχετε άδεια να μεταφέρετε μία ή περισσότερες από τις ομάδες",
   "organization_has_subscription_already": "Ο οργανισμός έχει ήδη συνδρομή",
-  "rr_reset_interval": "Διάστημα επαναφοράς Round Robin",
   "interval": "Διάστημα",
   "rr_reset_interval_description": "Καθορίζει πόσο συχνά επαναφέρεται ο μετρητής κρατήσεων round robin για να διασφαλιστεί η ισορροπημένη κατανομή.",
   "daily": "Καθημερινά",

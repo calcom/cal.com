@@ -3029,7 +3029,6 @@
   "you_do_not_have_permission_to_create_an_organization_for_this_email": "អ្នកមិនមានសិទ្ធិបង្កើតអង្គការសម្រាប់អ៊ីមែលនេះទេ",
   "you_do_not_have_permission_to_migrate_one_or_more_of_the_teams": "អ្នកមិនមានសិទ្ធិផ្លាស់ប្តូរក្រុមមួយឬច្រើនទេ",
   "organization_has_subscription_already": "អង្គការមានការជាវជាប្រចាំរួចហើយ",
-  "rr_reset_interval": "ចន្លោះពេលកំណត់ឡើងវិញនៃ Round Robin",
   "interval": "ចន្លោះពេល",
   "rr_reset_interval_description": "កំណត់ថាតើញឹកញាប់ប៉ុណ្ណាដែលការរាប់ការកក់ round robin ត្រូវកំណត់ឡើងវិញដើម្បីធានាការចែកចាយស្មើគ្នា។",
   "daily": "ប្រចាំថ្ងៃ",

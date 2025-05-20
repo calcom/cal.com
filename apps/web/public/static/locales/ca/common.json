@@ -3029,7 +3029,6 @@
   "you_do_not_have_permission_to_create_an_organization_for_this_email": "No teniu permís per crear una organització per a aquest correu electrònic",
   "you_do_not_have_permission_to_migrate_one_or_more_of_the_teams": "No teniu permís per migrar un o més dels equips",
   "organization_has_subscription_already": "L'organització ja té una subscripció",
-  "rr_reset_interval": "Interval de reinici del Round Robin",
   "interval": "Interval",
   "rr_reset_interval_description": "Determina amb quina freqüència es reinicia el comptador de reserves del round robin per assegurar una distribució equilibrada.",
   "daily": "Diàriament",

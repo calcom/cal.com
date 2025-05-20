@@ -3029,7 +3029,6 @@
   "you_do_not_have_permission_to_create_an_organization_for_this_email": "Nemáte oprávnenie vytvoriť organizáciu pre tento e-mail",
   "you_do_not_have_permission_to_migrate_one_or_more_of_the_teams": "Nemáte oprávnenie migrovať jeden alebo viac tímov",
   "organization_has_subscription_already": "Organizácia už má predplatné",
-  "rr_reset_interval": "Interval resetovania Round Robin",
   "interval": "Interval",
   "rr_reset_interval_description": "Určuje, ako často sa resetuje počet rezervácií v systéme round robin, aby sa zabezpečila vyvážená distribúcia.",
   "daily": "Denne",

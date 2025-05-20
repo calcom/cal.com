@@ -3029,7 +3029,6 @@
   "you_do_not_have_permission_to_create_an_organization_for_this_email": "Sinulla ei ole oikeutta luoda organisaatiota tälle sähköpostiosoitteelle",
   "you_do_not_have_permission_to_migrate_one_or_more_of_the_teams": "Sinulla ei ole oikeutta siirtää yhtä tai useampaa tiimiä",
   "organization_has_subscription_already": "Organisaatiolla on jo tilaus",
-  "rr_reset_interval": "Round Robin -nollausväli",
   "interval": "Aikaväli",
   "rr_reset_interval_description": "Määrittää, kuinka usein round robin -varauslaskuri nollataan tasapainoisen jakelun varmistamiseksi.",
   "daily": "Päivittäin",

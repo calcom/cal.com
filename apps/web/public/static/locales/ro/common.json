@@ -3029,7 +3029,6 @@
   "you_do_not_have_permission_to_create_an_organization_for_this_email": "Nu aveți permisiunea de a crea o organizație pentru acest email",
   "you_do_not_have_permission_to_migrate_one_or_more_of_the_teams": "Nu aveți permisiunea de a migra una sau mai multe dintre echipe",
   "organization_has_subscription_already": "Organizația are deja un abonament",
-  "rr_reset_interval": "Interval de resetare Round Robin",
   "interval": "Interval",
   "rr_reset_interval_description": "Determină cât de des se resetează numărul de rezervări round robin pentru a asigura o distribuție echilibrată.",
   "daily": "Zilnic",
