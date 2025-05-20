@@ -5,7 +5,7 @@ import type {
   ApiResponse,
   ApiErrorResponse,
   ApiSuccessResponse,
-  ReserveSlotInput,
+  ReserveSlotInput_2024_04_15,
 } from "@calcom/platform-types";
 
 import http from "../lib/http";
@@ -24,8 +24,8 @@ export const useReserveSlot = (
     },
   }
 ) => {
-  const reserveSlot = useMutation<ApiResponse<string>, unknown, ReserveSlotInput>({
-    mutationFn: (props: ReserveSlotInput) => {
+  const reserveSlot = useMutation<ApiResponse<string>, unknown, ReserveSlotInput_2024_04_15>({
+    mutationFn: (props: ReserveSlotInput_2024_04_15) => {
       return http.post<ApiResponse<string>>("/slots/reserve", props).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
           return res.data;
