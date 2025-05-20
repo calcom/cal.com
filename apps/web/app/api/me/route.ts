@@ -1,15 +1,16 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { performance } from "@calcom/lib/server/perfObserver";
+import type { PrismaClient } from "@calcom/prisma";
+import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-async function getHandler() {
+async function getHandler(req: Request, prisma: PrismaClient) {
   const prePrismaDate = performance.now();
-  const prisma = (await import("@calcom/prisma")).default;
+
   const preSessionDate = performance.now();
 
   // Create a legacy request object for compatibility
@@ -42,4 +43,4 @@ async function getHandler() {
   return response;
 }
 
-export const GET = defaultResponderForAppDir(getHandler);
+export const GET = withPrismaRoute(getHandler);

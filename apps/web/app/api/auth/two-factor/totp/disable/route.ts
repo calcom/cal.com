@@ -1,4 +1,3 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
@@ -9,12 +8,13 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";
-import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/client";
+import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-async function handler(req: NextRequest) {
+async function handler(req: NextRequest, prisma: PrismaClient) {
   const body = await parseRequestData(req);
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
@@ -116,4 +116,4 @@ async function handler(req: NextRequest) {
   return NextResponse.json({ message: "Two factor disabled" });
 }
 
-export const POST = defaultResponderForAppDir(handler);
+export const POST = withPrismaRoute(handler);

@@ -1,14 +1,14 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseUrlFormData } from "app/api/parseRequestData";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
+import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
-async function handler(req: NextRequest) {
+async function handler(req: NextRequest, prisma: PrismaClient) {
   const { code, client_id, client_secret, grant_type, redirect_uri } = await parseUrlFormData(req);
   if (grant_type !== "authorization_code") {
     return NextResponse.json({ message: "grant_type invalid" }, { status: 400 });
@@ -90,4 +90,4 @@ async function handler(req: NextRequest) {
   return NextResponse.json({ access_token, refresh_token }, { status: 200 });
 }
 
-export const POST = defaultResponderForAppDir(handler);
+export const POST = withPrismaRoute(handler);

@@ -1,4 +1,3 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { OAuth2Client } from "googleapis-common";
 import { cookies, headers } from "next/headers";
 import type { NextRequest } from "next/server";
@@ -10,7 +9,8 @@ import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwI
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
+import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -18,7 +18,7 @@ const stateSchema = z.object({
   teamId: z.string(),
 });
 
-async function getHandler(request: NextRequest) {
+async function getHandler(request: NextRequest, prisma: PrismaClient) {
   try {
     const headersList = await headers();
     const cookiesList = await cookies();
@@ -86,4 +86,4 @@ async function getHandler(request: NextRequest) {
   }
 }
 
-export const GET = defaultResponderForAppDir(getHandler);
+export const GET = withPrismaRoute(getHandler);

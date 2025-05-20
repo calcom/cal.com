@@ -1,6 +1,5 @@
 import type { DirectorySyncEvent, DirectorySyncRequest } from "@boxyhq/saml-jackson";
 import type { Params } from "app/_types";
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -11,7 +10,8 @@ import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { DIRECTORY_IDS_TO_LOG } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
+import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
 
 const log = logger.getSubLogger({ prefix: ["[scim]"] });
 
@@ -58,27 +58,52 @@ const querySchema = z.object({
 });
 
 // This is the handler for the SCIM API requests
-async function getHandler(request: NextRequest, { params }: { params: Promise<Params> }) {
+async function getHandler(
+  request: NextRequest,
+  { params }: { params: Promise<Params> },
+  prisma: PrismaClient
+) {
   return handleScimRequest(request, "GET", params);
 }
 
-async function postHandler(request: NextRequest, { params }: { params: Promise<Params> }) {
+async function postHandler(
+  request: NextRequest,
+  { params }: { params: Promise<Params> },
+  prisma: PrismaClient
+) {
   return handleScimRequest(request, "POST", params);
 }
 
-async function putHandler(request: NextRequest, { params }: { params: Promise<Params> }) {
+async function putHandler(
+  request: NextRequest,
+  { params }: { params: Promise<Params> },
+  prisma: PrismaClient
+) {
   return handleScimRequest(request, "PUT", params);
 }
 
-async function patchHandler(request: NextRequest, { params }: { params: Promise<Params> }) {
+async function patchHandler(
+  request: NextRequest,
+  { params }: { params: Promise<Params> },
+  prisma: PrismaClient
+) {
   return handleScimRequest(request, "PATCH", params);
 }
 
-async function deleteHandler(request: NextRequest, { params }: { params: Promise<Params> }) {
+async function deleteHandler(
+  request: NextRequest,
+  { params }: { params: Promise<Params> },
+  prisma: PrismaClient
+) {
   return handleScimRequest(request, "DELETE", params);
 }
 
-async function handleScimRequest(request: NextRequest, method: string, params: Promise<Params>) {
+async function handleScimRequest(
+  request: NextRequest,
+  method: string,
+  params: Promise<Params>,
+  prisma: PrismaClient
+) {
   const parsed = querySchema.safeParse(await params);
   if (!parsed.success || parsed.data.directory.length === 0) {
     return NextResponse.json({ error: "Missing directory parameters" }, { status: 400 });
@@ -147,8 +172,8 @@ async function handleScimRequest(request: NextRequest, method: string, params: P
 
   return NextResponse.json(data, { status });
 }
-export const GET = defaultResponderForAppDir(getHandler);
-export const POST = defaultResponderForAppDir(postHandler);
-export const PATCH = defaultResponderForAppDir(patchHandler);
-export const DELETE = defaultResponderForAppDir(deleteHandler);
-export const PUT = defaultResponderForAppDir(putHandler);
+export const GET = withPrismaRoute(getHandler);
+export const POST = withPrismaRoute(postHandler);
+export const PATCH = withPrismaRoute(patchHandler);
+export const DELETE = withPrismaRoute(deleteHandler);
+export const PUT = withPrismaRoute(putHandler);

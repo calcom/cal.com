@@ -1,5 +1,4 @@
 import type { Prisma } from "@prisma/client";
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -8,13 +7,14 @@ import dayjs from "@calcom/dayjs";
 import { sendMonthlyDigestEmails } from "@calcom/emails/email-manager";
 import { EventsInsights } from "@calcom/features/insights/server/events";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
+import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
 
 const querySchema = z.object({
   page: z.coerce.number().min(0).optional().default(0),
 });
 
-async function postHandler(request: NextRequest) {
+async function postHandler(request: NextRequest, prisma: PrismaClient) {
   const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");
 
   if (process.env.CRON_API_KEY !== apiKey) {
@@ -315,4 +315,4 @@ async function postHandler(request: NextRequest) {
   return NextResponse.json({ ok: true });
 }
 
-export const POST = defaultResponderForAppDir(postHandler);
+export const POST = withPrismaRoute(postHandler);

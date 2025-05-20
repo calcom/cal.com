@@ -1,12 +1,12 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
 import { headers, cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
+import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { bookingsRouter } from "@calcom/trpc/server/routers/viewer/bookings/_router";
 import { createCallerFactory } from "@calcom/trpc/server/trpc";
@@ -28,7 +28,7 @@ const querySchema = z.object({
   userId: z.string(),
 });
 
-async function getHandler(request: NextRequest) {
+async function getHandler(request: NextRequest, prisma: PrismaClient) {
   const url = new URL(request.url);
   const queryParams = Object.fromEntries(request.nextUrl.searchParams.entries());
 
@@ -51,7 +51,7 @@ async function getHandler(request: NextRequest) {
   }
 }
 
-async function postHandler(request: NextRequest) {
+async function postHandler(request: NextRequest, prisma: PrismaClient) {
   const url = new URL(request.url);
   const queryParams = Object.fromEntries(request.nextUrl.searchParams.entries());
 
@@ -75,7 +75,8 @@ async function handleBookingAction(
   bookingUid: string,
   userId: string,
   request: NextRequest,
-  reason?: string
+  reason?: string,
+  prisma: PrismaClient
 ) {
   const url = new URL(request.url);
   const booking = await prisma.booking.findUnique({
@@ -93,7 +94,7 @@ async function handleBookingAction(
   });
 
   /** We shape the session as required by tRPC router */
-  async function sessionGetter() {
+  async function sessionGetter(req: Request, prisma: PrismaClient) {
     return {
       user: {
         id: Number(userId),
@@ -151,5 +152,5 @@ async function handleBookingAction(
   return NextResponse.redirect(`${url.origin}/booking/${booking.uid}`);
 }
 
-export const GET = defaultResponderForAppDir(getHandler);
-export const POST = defaultResponderForAppDir(postHandler);
+export const GET = withPrismaRoute(getHandler);
+export const POST = withPrismaRoute(postHandler);

@@ -1,4 +1,3 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { createHmac } from "crypto";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
@@ -6,7 +5,8 @@ import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { IS_PLAIN_CHAT_ENABLED } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
+import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -20,7 +20,7 @@ const responseSchema = z.object({
   userTier: z.enum(["free", "teams", "enterprise"]),
 });
 
-async function handler() {
+async function handler(req: Request, prisma: PrismaClient) {
   // Early return if Plain Chat is not enabled
   if (!IS_PLAIN_CHAT_ENABLED) {
     return NextResponse.json({ error: "Plain Chat is not enabled" }, { status: 404 });
@@ -85,4 +85,4 @@ async function handler() {
   return NextResponse.json(response);
 }
 
-export const POST = defaultResponderForAppDir(handler);
+export const POST = withPrismaRoute(handler);

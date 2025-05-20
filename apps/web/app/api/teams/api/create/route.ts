@@ -1,4 +1,3 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
@@ -6,8 +5,9 @@ import { z } from "zod";
 
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { HttpError } from "@calcom/lib/http-error";
-import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
 import { _MembershipModel as Membership, _TeamModel as Team } from "@calcom/prisma/zod";
 
 const querySchema = z.object({
@@ -24,7 +24,7 @@ type CheckoutSessionMetadata = z.infer<typeof checkoutSessionMetadataSchema>;
 export const schemaTeamReadPublic = Team.omit({});
 export const schemaMembershipPublic = Membership.merge(z.object({ team: Team }).partial());
 
-async function handler(request: NextRequest) {
+async function handler(request: NextRequest, prisma: PrismaClient) {
   try {
     const { session_id } = querySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
 
@@ -74,7 +74,7 @@ async function handler(request: NextRequest) {
   }
 }
 
-async function getCheckoutSession(sessionId: string) {
+async function getCheckoutSession(sessionId: string, prisma: PrismaClient) {
   const checkoutSession = await stripe.checkout.sessions.retrieve(sessionId, {
     expand: ["subscription"],
   });
@@ -114,4 +114,4 @@ function getCheckoutSessionMetadata(
   return parseCheckoutSessionMetadata.data;
 }
 
-export const GET = defaultResponderForAppDir(handler);
+export const GET = withPrismaRoute(handler);

@@ -1,4 +1,3 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -6,10 +5,11 @@ import dayjs from "@calcom/dayjs";
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { CreditType } from "@calcom/prisma/enums";
+import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
 
-async function postHandler(req: NextRequest) {
+async function postHandler(req: NextRequest, prisma: PrismaClient) {
   const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
 
   if (process.env.CRON_API_KEY !== apiKey) {
@@ -114,4 +114,4 @@ async function postHandler(req: NextRequest) {
   return NextResponse.json({ ok: true, pricesUpdated });
 }
 
-export const POST = defaultResponderForAppDir(postHandler);
+export const POST = withPrismaRoute(postHandler);
