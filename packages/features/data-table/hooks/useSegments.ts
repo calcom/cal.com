@@ -39,11 +39,11 @@ export const useSegments: UseSegments = ({
 
   // Recalculate date ranges based on the current timestamp
   const segments = useMemo(() => {
-    // If segments are provided, use them directly
-    if (providedSegments) return providedSegments;
+    const segmentsSource = providedSegments || rawSegments;
 
-    if (!rawSegments) return [];
-    return rawSegments.map((segment) => ({
+    if (!segmentsSource) return [];
+
+    return segmentsSource.map((segment) => ({
       ...segment,
       activeFilters: segment.activeFilters.map((filter) => {
         if (isDateRangeFilterValue(filter.v)) {

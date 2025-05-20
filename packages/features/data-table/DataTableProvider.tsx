@@ -165,7 +165,13 @@ export function DataTableProvider({
     [setPageSize, setPageIndex, defaultPageSize]
   );
 
-  const segmentsProps = {
+  const {
+    segments: fetchedSegments,
+    selectedSegment,
+    canSaveSegment,
+    setAndPersistSegmentId,
+    isSegmentEnabled,
+  } = useSegments({
     tableIdentifier,
     activeFilters,
     sorting,
@@ -183,16 +189,6 @@ export function DataTableProvider({
     setPageSize,
     setPageIndex,
     setSearchTerm,
-  };
-
-  const {
-    segments: fetchedSegments,
-    selectedSegment,
-    canSaveSegment,
-    setAndPersistSegmentId,
-    isSegmentEnabled,
-  } = useSegments({
-    ...segmentsProps,
     segments,
   });
 
