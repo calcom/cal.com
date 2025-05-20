@@ -11,6 +11,9 @@ import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
+// ✅ Import the JoinVideoCallButton component
+import { JoinVideoCallButton } from "@/components/JoinVideoCallButton";
+
 const querySchema = z.object({
   type: z
     .string()
@@ -32,6 +35,7 @@ export const generateMetadata = async () => {
 
 const ServerPage = async ({ params }: PageProps) => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+
   if (!session?.user?.id) {
     return redirect("/auth/login");
   }
@@ -40,14 +44,26 @@ const ServerPage = async ({ params }: PageProps) => {
   if (!parsed.success) {
     throw new Error("Invalid Event Type id");
   }
+
   const eventTypeId = parsed.data.type;
   const caller = await createRouterCaller(eventTypesRouter);
   const data = await caller.get({ id: eventTypeId });
+
   if (!data?.eventType) {
     throw new Error("This event type does not exist");
   }
 
-  return <EventTypeWebWrapper data={data} id={eventTypeId} />;
+  return (
+    <>
+      {/* Render the event details */}
+      <EventTypeWebWrapper data={data} id={eventTypeId} />
+
+      {/* ✅ Render the Join Video Call button if videoCallUrl is present */}
+      <div className="mt-6">
+        <JoinVideoCallButton videoCallUrl={data.eventType?.location?.joinUrl} />
+      </div>
+    </>
+  );
 };
 
 export default ServerPage;
