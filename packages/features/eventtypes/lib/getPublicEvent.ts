@@ -54,6 +54,7 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
     id: true,
     title: true,
     description: true,
+    interfaceLanguage: true,
     eventName: true,
     slug: true,
     isInstantEvent: true,
@@ -526,6 +527,7 @@ export const getPublicEvent = async (
     assignAllTeamMembers: event.assignAllTeamMembers,
     disableCancelling: event.disableCancelling,
     disableRescheduling: event.disableRescheduling,
+    interfaceLanguage: event.interfaceLanguage,
   };
 };
 

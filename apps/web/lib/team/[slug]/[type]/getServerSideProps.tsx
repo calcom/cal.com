@@ -142,6 +142,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         title: eventData.title,
         users: eventHostsUserData,
         hidden: eventData.hidden,
+        interfaceLanguage: eventData.interfaceLanguage,
       },
       booking,
       user: teamSlug,
@@ -207,6 +208,7 @@ const getTeamWithEventsData = async (
           hidden: true,
           disableCancelling: true,
           disableRescheduling: true,
+          interfaceLanguage: true,
           hosts: {
             take: 3,
             select: {
