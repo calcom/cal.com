@@ -388,7 +388,7 @@ describe("Credential Sync Disabled", () => {
         appSlug: "demo-app",
         currentTokenObject: getDummyTokenObject(),
         fetchNewTokenObject: async () => {
-          throw new Error("testError");
+          throw new Error("fetchNewTokenObject error");
         },
         isTokenObjectUnusable: async () => {
           return null;
@@ -403,7 +403,7 @@ describe("Credential Sync Disabled", () => {
 
       expect(async () => {
         return auth.getTokenObjectOrFetch();
-      }).rejects.toThrowError("Invalid token response");
+      }).rejects.toThrowError("fetchNewTokenObject error");
     });
 
     test("if fetchNewTokenObject throws error that's handled by isTokenObjectUnusable then auth.getTokenObjectOrFetch would still throw error but a different one as access_token won't be available", async () => {
@@ -421,7 +421,7 @@ describe("Credential Sync Disabled", () => {
         appSlug: "demo-app",
         currentTokenObject: getDummyTokenObject(),
         fetchNewTokenObject: async () => {
-          throw new Error("testError");
+          throw new Error("fetchNewTokenObject error");
         },
         isTokenObjectUnusable: async () => {
           return {
@@ -438,7 +438,7 @@ describe("Credential Sync Disabled", () => {
 
       expect(async () => {
         return auth.getTokenObjectOrFetch();
-      }).rejects.toThrowError("Invalid token response");
+      }).rejects.toThrowError("fetchNewTokenObject error");
     });
   });
 

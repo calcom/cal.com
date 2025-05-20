@@ -498,6 +498,11 @@ export class OAuthManager {
     } else if (tokenStatus === TokenStatus.UNUSABLE_ACCESS_TOKEN) {
       await this.expireAccessToken();
     }
+
+    if (json && json.myFetchError) {
+      // Throw error back as it isn't a valid token response and we can't process it further
+      throw new Error(json.myFetchError);
+    }
     const parsedToken = OAuth2UniversalSchemaWithCalcomBackwardCompatibility.safeParse(json);
     if (!parsedToken.success) {
       myLog.error(
