@@ -1,10 +1,15 @@
 import dayjs from "@calcom/dayjs";
-import prisma from "@calcom/prisma";
+import prisma, { type PrismaTransaction } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { CreditType } from "@calcom/prisma/enums";
 
 export class CreditsRepository {
-  static async findCreditBalance({ teamId, userId }: { teamId?: number; userId?: number }) {
+  static async findCreditBalance(
+    { teamId, userId }: { teamId?: number; userId?: number },
+    tx?: PrismaTransaction
+  ) {
+    const prismaClient = tx ?? prisma;
+
     const select = {
       id: true,
       additionalCredits: true,
@@ -13,7 +18,7 @@ export class CreditsRepository {
     };
 
     if (teamId) {
-      return await prisma.creditBalance.findUnique({
+      return await prismaClient.creditBalance.findUnique({
         where: {
           teamId,
         },
@@ -22,20 +27,25 @@ export class CreditsRepository {
     }
 
     if (userId) {
-      return await prisma.creditBalance.findUnique({
+      return await prismaClient.creditBalance.findUnique({
         where: { userId },
         select,
       });
     }
   }
 
-  static async findCreditBalanceWithTeamOrUser({
-    teamId,
-    userId,
-  }: {
-    teamId?: number | null;
-    userId?: number | null;
-  }) {
+  static async findCreditBalanceWithTeamOrUser(
+    {
+      teamId,
+      userId,
+    }: {
+      teamId?: number | null;
+      userId?: number | null;
+    },
+    tx?: PrismaTransaction
+  ) {
+    const prismaClient = tx ?? prisma;
+
     const select = {
       id: true,
       additionalCredits: true,
@@ -69,7 +79,7 @@ export class CreditsRepository {
       },
     };
     if (teamId) {
-      return await prisma.creditBalance.findUnique({
+      return await prismaClient.creditBalance.findUnique({
         where: {
           teamId,
         },
@@ -78,15 +88,17 @@ export class CreditsRepository {
     }
 
     if (userId) {
-      return await prisma.creditBalance.findUnique({
+      return await prismaClient.creditBalance.findUnique({
         where: { userId },
         select,
       });
     }
   }
 
-  static async findCreditBalanceWithExpenseLogs({ teamId }: { teamId: number }) {
-    return await prisma.creditBalance.findUnique({
+  static async findCreditBalanceWithExpenseLogs({ teamId }: { teamId: number }, tx?: PrismaTransaction) {
+    const prismaClient = tx ?? prisma;
+
+    return await prismaClient.creditBalance.findUnique({
       where: {
         teamId,
       },
@@ -109,33 +121,37 @@ export class CreditsRepository {
     });
   }
 
-  static async updateCreditBalance({
-    id,
-    teamId,
-    userId,
-    data,
-  }: {
-    id?: string;
-    teamId?: number | null;
-    userId?: number | null;
-    data: Prisma.CreditBalanceUncheckedUpdateInput;
-  }) {
+  static async updateCreditBalance(
+    {
+      id,
+      teamId,
+      userId,
+      data,
+    }: {
+      id?: string;
+      teamId?: number | null;
+      userId?: number | null;
+      data: Prisma.CreditBalanceUncheckedUpdateInput;
+    },
+    tx?: PrismaTransaction
+  ) {
+    const prismaClient = tx ?? prisma;
     if (id) {
-      return prisma.creditBalance.update({
+      return prismaClient.creditBalance.update({
         where: { id },
         data,
       });
     }
 
     if (teamId) {
-      return prisma.creditBalance.update({
+      return prismaClient.creditBalance.update({
         where: { teamId },
         data,
       });
     }
 
     if (userId) {
-      return prisma.creditBalance.update({
+      return prismaClient.creditBalance.update({
         where: { userId },
         data,
       });
@@ -144,14 +160,17 @@ export class CreditsRepository {
     return null;
   }
 
-  static async createCreditBalance(data: Prisma.CreditBalanceUncheckedCreateInput) {
-    return prisma.creditBalance.create({
+  static async createCreditBalance(data: Prisma.CreditBalanceUncheckedCreateInput, tx?: PrismaTransaction) {
+    return (tx ?? prisma).creditBalance.create({
       data,
     });
   }
 
-  static async createCreditExpenseLog(data: Prisma.CreditExpenseLogUncheckedCreateInput) {
-    return prisma.creditExpenseLog.create({
+  static async createCreditExpenseLog(
+    data: Prisma.CreditExpenseLogUncheckedCreateInput,
+    tx?: PrismaTransaction
+  ) {
+    return (tx ?? prisma).creditExpenseLog.create({
       data,
     });
   }
