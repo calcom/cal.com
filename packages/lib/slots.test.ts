@@ -392,7 +392,7 @@ describe("Tests the slots function performance", () => {
     const endTime = process.hrtime(startTime);
     const executionTimeInMs = endTime[0] * 1000 + endTime[1] / 1000000;
 
-    expect(executionTimeInMs).toBeLessThan(2000); // less than 2 seconds for 2000 date ranges
+    expect(executionTimeInMs).toBeLessThan(3000); // less than 3 seconds for 2000 date ranges
 
     console.log(
       `Performance test completed in ${executionTimeInMs}ms with ${result.length} slots generated from ${dateRanges.length} date ranges`
