@@ -318,4 +318,42 @@ export class TeamRepository {
       },
     });
   }
+
+  static async getTeamOrThrow(teamId: number) {
+    const team = await prisma.team.findUnique({
+      where: {
+        id: teamId,
+      },
+      select: {
+        ...teamSelect,
+        organizationSettings: {
+          select: {
+            allowSEOIndexing: true,
+            orgProfileRedirectsToVerifiedDomain: true,
+            orgAutoAcceptEmail: true,
+          },
+        },
+        parent: {
+          select: {
+            ...teamSelect,
+            organizationSettings: {
+              select: {
+                allowSEOIndexing: true,
+                orgProfileRedirectsToVerifiedDomain: true,
+                orgAutoAcceptEmail: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!team)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: `Team not found`,
+      });
+
+    return { ...team, metadata: teamMetadataSchema.parse(team.metadata) };
+  }
 }

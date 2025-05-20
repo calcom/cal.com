@@ -1,10 +1,11 @@
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
-import { ensureAtleastAdminPermissions, getTeamOrThrow } from "./inviteMember/utils";
+import { ensureAtleastAdminPermissions } from "./inviteMember/utils";
 import type { TResendInvitationInputSchema } from "./resendInvitation.schema";
 
 type InviteMemberOptions = {
@@ -15,7 +16,7 @@ type InviteMemberOptions = {
 };
 
 export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOptions) => {
-  const team = await getTeamOrThrow(input.teamId);
+  const team = await TeamRepository.getTeamOrThrow(input.teamId);
 
   await ensureAtleastAdminPermissions({
     userId: ctx.user.id,
