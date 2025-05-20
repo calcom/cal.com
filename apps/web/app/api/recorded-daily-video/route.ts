@@ -51,10 +51,6 @@ const getProxyDownloadLinkOfCalVideo = async (recordingId: string) => {
 };
 
 export async function postHandler(request: NextRequest) {
-  if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
-    return NextResponse.json({ message: "No SendGrid API key or email" }, { status: 405 });
-  }
-
   const body = await request.json();
 
   if (testRequestSchema.safeParse(body).success) {

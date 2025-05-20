@@ -42,6 +42,9 @@ const getUserBooking = async (uid: string) => {
           timeZone: true,
           phoneNumber: true,
         },
+        orderBy: {
+          id: "asc",
+        },
       },
       eventTypeId: true,
       eventType: {
@@ -56,6 +59,15 @@ const getUserBooking = async (uid: string) => {
       seatsReferences: {
         select: {
           referenceUid: true,
+        },
+      },
+      tracking: {
+        select: {
+          utm_source: true,
+          utm_medium: true,
+          utm_campaign: true,
+          utm_term: true,
+          utm_content: true,
         },
       },
     },
