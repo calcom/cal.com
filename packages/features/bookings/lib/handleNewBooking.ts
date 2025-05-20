@@ -897,7 +897,6 @@ async function handler(
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
   const allCredentials = await getAllCredentialsIncludeServiceAccountKey(organizerUser, eventType);
-  console.log("allCredentials: ", JSON.stringify(allCredentials, null, 2));
 
   // If the Organizer himself is rescheduling, the booker should be sent the communication in his timezone and locale.
   const attendeeInfoOnReschedule =
