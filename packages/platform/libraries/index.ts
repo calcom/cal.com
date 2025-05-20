@@ -25,6 +25,8 @@ import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/
 export { slugify } from "@calcom/lib/slugify";
 export { getBookingForReschedule };
 
+export type { EventBusyDate } from "@calcom/types/Calendar";
+
 export { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 
 export { getUsernameList } from "@calcom/lib/defaultEvents";
