@@ -1,6 +1,8 @@
-import { createRouterCaller } from "app/_trpc/context";
-import type { PageProps } from "app/_types";
+import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
+import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
+import { unstable_cache } from "next/cache";
+import { cookies, headers } from "next/headers";
 
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
@@ -21,16 +23,38 @@ export const generateMetadata = async () => {
   );
 };
 
+const getCachedMe = unstable_cache(
+  async (headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
+    const meCaller = await createRouterCaller(meRouter, await getTRPCContext(headers, cookies));
+    return await meCaller.get();
+  },
+  ["viewer.me.get"],
+  { revalidate: 3600 } // Cache for 1 hour
+);
+
+const getCachedAvailabilities = unstable_cache(
+  async (headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
+    const availabilityCaller = await createRouterCaller(
+      availabilityRouter,
+      await getTRPCContext(headers, cookies)
+    );
+    return await availabilityCaller.list();
+  },
+  ["viewer.availability.list"],
+  { revalidate: 3600 } // Cache for 1 hour
+);
+
 const Page = async ({ searchParams: _searchParams }: PageProps) => {
   const searchParams = await _searchParams;
   const t = await getTranslate();
+  const _headers = await headers();
+  const _cookies = await cookies();
 
-  const [meCaller, availabilityCaller] = await Promise.all([
-    createRouterCaller(meRouter),
-    createRouterCaller(availabilityRouter),
+  const [me, availabilities] = await Promise.all([
+    getCachedMe(_headers, _cookies),
+    getCachedAvailabilities(_headers, _cookies),
   ]);
 
-  const [me, availabilities] = await Promise.all([meCaller.get(), availabilityCaller.list()]);
   const organizationId = me.organization?.id ?? me.profiles[0]?.organizationId;
   const isOrgPrivate = organizationId
     ? await OrganizationRepository.checkIfPrivate({
