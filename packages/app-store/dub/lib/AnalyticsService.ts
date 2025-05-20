@@ -27,7 +27,7 @@ export default class DubService implements AnalyticsService {
 
     const { client_id, client_secret } = appKeys;
 
-    if (!client_id && !client_secret) {
+    if (!client_id !! !client_secret) {
       this.log.error("Dub.co app keys missing!");
       return;
     }
@@ -59,7 +59,6 @@ export default class DubService implements AnalyticsService {
   private async refreshAccessToken(refreshToken: string): Promise<DubOAuthToken | undefined> {
     try {
       if (!refreshToken) return;
-      debugger;
       const newToken: DubOAuthToken = await refreshOAuthTokens(
         async () => {
           const response = await fetch(`https://api.dub.co/oauth/token`, {
