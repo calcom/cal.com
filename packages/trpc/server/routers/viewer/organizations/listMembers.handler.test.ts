@@ -5,22 +5,23 @@ import { prisma } from "@calcom/prisma";
 
 import { listMembersHandler } from "./listMembers.handler";
 
-const prismaMock = {
-  membership: {
-    findMany: vi.fn().mockResolvedValue([]),
-    count: vi.fn().mockResolvedValue(0),
-  },
-  attributeOption: {
-    findMany: vi.fn().mockResolvedValue([
-      { id: "1", value: "value1", isGroup: false },
-      { id: "2", value: "value2", isGroup: false },
-    ]),
-  },
-};
+vi.mock("@calcom/prisma", () => {
+  // Move prismaMock *inside* the factory function
+  const prismaMock = {
+    membership: {
+      findMany: vi.fn().mockResolvedValue([]),
+      count: vi.fn().mockResolvedValue(0),
+    },
+    attributeOption: {
+      findMany: vi.fn().mockResolvedValue([
+        { id: "1", value: "value1", isGroup: false },
+        { id: "2", value: "value2", isGroup: false },
+      ]),
+    },
+  };
 
-vi.spyOn(prisma.membership, "findMany").mockImplementation(prismaMock.membership.findMany);
-vi.spyOn(prisma.membership, "count").mockImplementation(prismaMock.membership.count);
-vi.spyOn(prisma.attributeOption, "findMany").mockImplementation(prismaMock.attributeOption.findMany);
+  return { prisma: prismaMock };
+});
 
 const ORGANIZATION_ID = 123;
 
