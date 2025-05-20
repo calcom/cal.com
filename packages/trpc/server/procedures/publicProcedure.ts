@@ -1,7 +1,6 @@
-import perfMiddleware from "../middlewares/perfMiddleware";
-import prismaMiddleware from "../middlewares/prismaMiddleware";
-import { tRPCContext } from "../trpc";
+import { t } from "@calcom/trpc/server/trpc";
 
-const publicProcedure = tRPCContext.procedure.use(perfMiddleware).use(prismaMiddleware);
+import { perfMiddleware } from "../middlewares/perfMiddleware";
+import { sessionMiddleware } from "../middlewares/sessionMiddleware";
 
-export default publicProcedure;
+export const publicProcedure = t.procedure.use(sessionMiddleware).use(perfMiddleware);

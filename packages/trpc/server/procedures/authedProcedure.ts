@@ -1,33 +1,32 @@
-import perfMiddleware from "../middlewares/perfMiddleware";
-import prismaMiddleware from "../middlewares/prismaMiddleware";
-import { isAdminMiddleware, isAuthed, isOrgAdminMiddleware } from "../middlewares/sessionMiddleware";
-import { procedure } from "../trpc";
-import publicProcedure from "./publicProcedure";
+import { t } from "@calcom/trpc/server/trpc";
 
-/*interface IRateLimitOptions {
-  intervalInMs: number;
-  limit: number;
-}
-const isRateLimitedByUserIdMiddleware = ({ intervalInMs, limit }: IRateLimitOptions) =>
-  middleware(({ ctx, next }) => {
-      // validate user exists
-      if (!ctx.user) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
+import { TRPCError } from "@trpc/server";
 
-      const { isRateLimited } = rateLimit({ intervalInMs }).check(limit, ctx.user.id.toString());
+import { perfMiddleware } from "../middlewares/perfMiddleware";
+import { sessionMiddleware } from "../middlewares/sessionMiddleware";
 
-      if (isRateLimited) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+export const authedProcedure = t.procedure
+  .use(sessionMiddleware)
+  .use(perfMiddleware)
+  .use(({ ctx, next }) => {
+    if (!ctx.session?.user?.id) throw new TRPCError({ code: "UNAUTHORIZED" });
+    return next({ ctx: { ...ctx, user: ctx.session.user } });
+  });
 
-      return next({ ctx: { user: ctx.user, session: ctx.session } });
-    });
-*/
-const authedProcedure = procedure.use(perfMiddleware).use(prismaMiddleware).use(isAuthed);
-/*export const authedRateLimitedProcedure = ({ intervalInMs, limit }: IRateLimitOptions) =>
-authedProcedure.use(isRateLimitedByUserIdMiddleware({ intervalInMs, limit }));*/
-export const authedAdminProcedure = publicProcedure.use(isAdminMiddleware);
-export const authedOrgAdminProcedure = publicProcedure.use(isOrgAdminMiddleware);
+export const authedAdminProcedure = t.procedure
+  .use(sessionMiddleware)
+  .use(perfMiddleware)
+  .use(({ ctx, next }) => {
+    if (!ctx.session?.user?.id || !ctx.session?.user?.role || ctx.session.user.role !== "ADMIN")
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    return next({ ctx: { ...ctx, user: ctx.session.user } });
+  });
 
-export default authedProcedure;
+export const authedOrgAdminProcedure = t.procedure
+  .use(sessionMiddleware)
+  .use(perfMiddleware)
+  .use(({ ctx, next }) => {
+    if (!ctx.session?.user?.id || !ctx.session?.user?.organizationId)
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    return next({ ctx: { ...ctx, user: ctx.session.user } });
+  });
