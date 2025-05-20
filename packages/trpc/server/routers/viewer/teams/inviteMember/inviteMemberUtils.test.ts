@@ -19,6 +19,12 @@ import {
   checkInputEmailIsValid,
 } from "./utils";
 
+vi.mock("@calcom/prisma", () => {
+  return {
+    prisma: vi.fn(),
+  };
+});
+
 vi.mock("@calcom/lib/server/queries/teams", () => {
   return {
     isTeamAdmin: vi.fn(),
