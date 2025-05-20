@@ -8,13 +8,11 @@ import { ZNoShowInputSchema } from "./markNoShow.schema";
 import { teamsAndUserProfilesQuery } from "./procedures/teamsAndUserProfilesQuery";
 import { ZRemoveNotificationsSubscriptionInputSchema } from "./removeNotificationsSubscription.schema";
 import { ZRoutingFormOrderInputSchema } from "./routingFormOrder.schema";
-import { ZSubmitFeedbackInputSchema } from "./submitFeedback.schema";
 
 type AppsRouterHandlerCache = {
   stripeCustomer?: typeof import("./stripeCustomer.handler").stripeCustomerHandler;
   eventTypeOrder?: typeof import("./eventTypeOrder.handler").eventTypeOrderHandler;
   routingFormOrder?: typeof import("./routingFormOrder.handler").routingFormOrderHandler;
-  submitFeedback?: typeof import("./submitFeedback.handler").submitFeedbackHandler;
   teamsAndUserProfilesQuery?: typeof import("./teamsAndUserProfilesQuery.handler").teamsAndUserProfilesQuery;
   connectAndJoin?: typeof import("./connectAndJoin.handler").Handler;
   addSecondaryEmail?: typeof import("./addSecondaryEmail.handler").addSecondaryEmailHandler;
@@ -46,11 +44,6 @@ export const loggedInViewerRouter = router({
     return routingFormOrderHandler({ ctx, input });
   }),
 
-  //Comment for PR: eventTypePosition is not used anywhere
-  submitFeedback: authedProcedure.input(ZSubmitFeedbackInputSchema).mutation(async ({ ctx, input }) => {
-    const { submitFeedbackHandler } = await import("./submitFeedback.handler");
-    return submitFeedbackHandler({ ctx, input });
-  }),
   teamsAndUserProfilesQuery,
   connectAndJoin: authedProcedure.input(ZConnectAndJoinInputSchema).mutation(async ({ ctx, input }) => {
     const { Handler } = await import("./connectAndJoin.handler");
