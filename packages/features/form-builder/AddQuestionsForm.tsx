@@ -2,7 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { RhfFormField } from "form-builder/FormBuilder";
 import { useState, useMemo, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { Controller, useWatch } from "react-hook-form";
+import { Controller } from "react-hook-form";
 import { ZodError } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -46,15 +46,9 @@ export function AddQuestionsForm({
     [fieldForm, fieldNameSpace]
   );
 
-  const fieldType = useMemo(
-    () => getCurrentFieldType(fieldForm, fieldNameSpace),
-    [fieldForm, fieldNameSpace]
-  );
+  const fieldType = getCurrentFieldType(fieldForm, fieldNameSpace);
 
-  const variantsConfig = useWatch({
-    control: fieldForm.control,
-    name: withNamespace(fieldNameSpace, "variantsConfig"),
-  });
+  const variantsConfig = fieldForm.watch(withNamespace(fieldNameSpace, "variantsConfig"));
 
   const fieldTypes = useMemo(() => Object.values(fieldTypesConfigMap), []);
 
@@ -70,7 +64,7 @@ export function AddQuestionsForm({
 
     // We need to set the variantsConfig in the RHF instead of using a derived value because RHF won't have the variantConfig for the variant that's not rendered yet.
     fieldForm.setValue(withNamespace(fieldNameSpace, "variantsConfig"), variantsConfig);
-  }, [fieldForm, fieldNameSpace, formFieldType]);
+  }, [fieldForm]);
 
   return (
     <>
