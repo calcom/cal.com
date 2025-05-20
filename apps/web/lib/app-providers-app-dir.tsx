@@ -12,7 +12,6 @@ import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/p
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
-import { PermissionProvider } from "@calcom/features/pbac/context/PermissionProvider";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import useIsThemeSupported from "@lib/hooks/useIsThemeSupported";
@@ -122,9 +121,7 @@ const AppProviders = (props: PageWrapperProps) => {
             isThemeSupported={isThemeSupported}
             isBookingPage={props.isBookingPage || isBookingPage}>
             <FeatureFlagsProvider>
-              <PermissionProvider>
-                <OrgBrandProvider>{props.children}</OrgBrandProvider>
-              </PermissionProvider>
+              <OrgBrandProvider>{props.children}</OrgBrandProvider>
             </FeatureFlagsProvider>
           </CalcomThemeProvider>
         </TooltipProvider>
