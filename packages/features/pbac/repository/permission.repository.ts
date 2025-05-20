@@ -149,6 +149,6 @@ export class PermissionRepository {
       )
       .executeTakeFirstOrThrow();
 
-    return matchingPermissionsCount.count >= permissions.length;
+    return Number(matchingPermissionsCount.count) >= permissions.length;
   }
 }

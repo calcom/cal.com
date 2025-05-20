@@ -55,7 +55,6 @@ export type PermissionRegistry = {
 export const PERMISSION_REGISTRY: PermissionRegistry = {
   [Resource.All]: {
     [CrudAction.All]: { description: "All actions on all resources", category: "system" },
-    [CustomAction.All]: { description: "All custom actions on all resources", category: "system" },
   },
   [Resource.EventType]: {
     [CrudAction.Create]: { description: "Create event types", category: "event" },
