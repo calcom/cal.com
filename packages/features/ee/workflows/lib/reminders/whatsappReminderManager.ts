@@ -10,6 +10,10 @@ import {
 } from "@calcom/prisma/enums";
 
 import { isAttendeeAction } from "../actionHelperFunctions";
+import {
+  getContentSidForTemplate,
+  getContentVariablesForTemplate,
+} from "../reminders/templates/whatsapp/ContentSidMapping";
 import { scheduleSmsOrFallbackEmail, sendSmsOrFallbackEmail } from "./messageDispatcher";
 import type { ScheduleTextReminderArgs, timeUnitLowerCase } from "./smsReminderManager";
 import { deleteScheduledSMSReminder } from "./smsReminderManager";
@@ -76,6 +80,8 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
     action === WorkflowActions.WHATSAPP_ATTENDEE ? evt.organizer.name : evt.attendees[0].name;
   const timeZone =
     action === WorkflowActions.WHATSAPP_ATTENDEE ? evt.attendees[0].timeZone : evt.organizer.timeZone;
+
+  const contentSid = getContentSidForTemplate(template);
 
   let textMessage = message;
 
