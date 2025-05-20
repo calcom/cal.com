@@ -6,11 +6,22 @@ import * as EmailManager from "@calcom/emails/email-manager";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
+import prisma from "@calcom/prisma";
 import { CreditType } from "@calcom/prisma/enums";
 
-import { CreditService } from "./credit-service";
+import { CreditService as OriginalCreditService } from "./credit-service";
 import { StripeBillingService } from "./stripe-billling-service";
 import { InternalTeamBilling } from "./teams/internal-team-billing";
+
+const MOCK_TX = prisma;
+
+vi.mock("@calcom/prisma", () => {
+  return {
+    default: {
+      $transaction: vi.fn((fn) => fn(MOCK_TX)),
+    },
+  };
+});
 
 vi.mock("stripe");
 
@@ -40,6 +51,39 @@ vi.mock("@calcom/emails/email-manager");
 vi.mock("../workflows/lib/reminders/reminderScheduler", () => ({
   cancelScheduledMessagesAndScheduleEmails: vi.fn(),
 }));
+
+// Create a testable version of CreditService that exposes protected methods
+class CreditService extends OriginalCreditService {
+  public async _getTeamWithAvailableCredits(
+    params: Parameters<OriginalCreditService["_getTeamWithAvailableCredits"]>[0]
+  ) {
+    return super._getTeamWithAvailableCredits(params);
+  }
+
+  public async _getUserOrTeamToCharge(
+    params: Parameters<OriginalCreditService["_getUserOrTeamToCharge"]>[0]
+  ) {
+    return super._getUserOrTeamToCharge(params);
+  }
+
+  public async _createExpenseLog(props: Parameters<OriginalCreditService["_createExpenseLog"]>[0]) {
+    return super._createExpenseLog(props);
+  }
+
+  public async _handleLowCreditBalance(
+    params: Parameters<OriginalCreditService["_handleLowCreditBalance"]>[0]
+  ) {
+    return super._handleLowCreditBalance(params);
+  }
+
+  public async _getAllCreditsForTeam(params: Parameters<OriginalCreditService["_getAllCreditsForTeam"]>[0]) {
+    return super._getAllCreditsForTeam(params);
+  }
+
+  public async _getAllCredits(params: Parameters<OriginalCreditService["_getAllCredits"]>[0]) {
+    return super._getAllCredits(params);
+  }
+}
 
 describe("CreditService", () => {
   let creditService: CreditService;
@@ -182,11 +226,11 @@ describe("CreditService", () => {
           user: null,
         });
 
-        vi.spyOn(CreditService.prototype, "getTeamWithAvailableCredits").mockResolvedValue(null);
+        vi.spyOn(CreditService.prototype, "_getTeamWithAvailableCredits").mockResolvedValue(null);
 
         vi.spyOn(EmailManager, "sendCreditBalanceLowWarningEmails").mockResolvedValue();
 
-        vi.spyOn(CreditService.prototype, "getAllCreditsForTeam").mockResolvedValue({
+        vi.spyOn(CreditService.prototype, "_getAllCreditsForTeam").mockResolvedValue({
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: 20,
           additionalCredits: 60,
@@ -206,7 +250,8 @@ describe("CreditService", () => {
             creditType: CreditType.MONTHLY,
             credits: 5,
             smsSid: "sms-123",
-          })
+          }),
+          MOCK_TX
         );
 
         expect(EmailManager.sendCreditBalanceLowWarningEmails).toHaveBeenCalled();
@@ -243,7 +288,7 @@ describe("CreditService", () => {
 
         vi.spyOn(EmailManager, "sendCreditBalanceLimitReachedEmails").mockResolvedValue();
 
-        vi.spyOn(CreditService.prototype, "getAllCreditsForTeam").mockResolvedValue({
+        vi.spyOn(CreditService.prototype, "_getAllCreditsForTeam").mockResolvedValue({
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: -1,
           additionalCredits: 0,
@@ -263,7 +308,8 @@ describe("CreditService", () => {
             creditType: CreditType.ADDITIONAL,
             credits: 5,
             smsSid: "sms-123",
-          })
+          }),
+          MOCK_TX
         );
 
         expect(EmailManager.sendCreditBalanceLimitReachedEmails).toHaveBeenCalled();
@@ -272,7 +318,7 @@ describe("CreditService", () => {
 
     describe("getUserOrTeamToCharge", () => {
       it("should return team with remaining credits when teamId is provided", async () => {
-        vi.spyOn(CreditService.prototype, "getAllCreditsForTeam").mockResolvedValue({
+        vi.spyOn(CreditService.prototype, "_getAllCreditsForTeam").mockResolvedValue({
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: 100,
           additionalCredits: 50,
@@ -291,7 +337,7 @@ describe("CreditService", () => {
       });
 
       it("should use additional credits when monthly credits are out", async () => {
-        vi.spyOn(CreditService.prototype, "getAllCreditsForTeam").mockResolvedValue({
+        vi.spyOn(CreditService.prototype, "_getAllCreditsForTeam").mockResolvedValue({
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: 0,
           additionalCredits: 50,
@@ -319,7 +365,7 @@ describe("CreditService", () => {
           warningSentAt: null,
         });
 
-        vi.spyOn(CreditService.prototype, "getTeamWithAvailableCredits").mockResolvedValue({
+        vi.spyOn(CreditService.prototype, "_getTeamWithAvailableCredits").mockResolvedValue({
           teamId: 1,
           availableCredits: 150,
           creditType: CreditType.MONTHLY,
@@ -395,7 +441,6 @@ describe("CreditService", () => {
         vi.spyOn(CreditService.prototype, "getMonthlyCredits").mockResolvedValue(500);
 
         const result = await creditService.getAllCreditsForTeam(1);
-        console.log(`tesult ${JSON.stringify(result)}`);
         expect(result).toEqual({
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: 420, // 500 - (50 + 30)
@@ -430,7 +475,7 @@ describe("CreditService", () => {
           limitReachedAt: null,
           warningSentAt: null,
         });
-        vi.spyOn(CreditService.prototype, "getTeamWithAvailableCredits").mockResolvedValue(null);
+        vi.spyOn(CreditService.prototype, "_getTeamWithAvailableCredits").mockResolvedValue(null);
 
         const hasAvailableCredits = await creditService.hasAvailableCredits({ userId: 1 });
         expect(hasAvailableCredits).toBe(true);
@@ -446,7 +491,7 @@ describe("CreditService", () => {
           warningSentAt: null,
         });
 
-        vi.spyOn(CreditService.prototype, "getTeamWithAvailableCredits").mockResolvedValue(null);
+        vi.spyOn(CreditService.prototype, "_getTeamWithAvailableCredits").mockResolvedValue(null);
 
         const result = await creditService.hasAvailableCredits({ userId: 1 });
         expect(result).toBe(false);
@@ -476,11 +521,11 @@ describe("CreditService", () => {
           team: null,
         });
 
-        vi.spyOn(CreditService.prototype, "getTeamWithAvailableCredits").mockResolvedValue(null);
+        vi.spyOn(CreditService.prototype, "_getTeamWithAvailableCredits").mockResolvedValue(null);
 
         vi.spyOn(EmailManager, "sendCreditBalanceLowWarningEmails").mockResolvedValue();
 
-        vi.spyOn(CreditService.prototype, "getAllCredits").mockResolvedValue({
+        vi.spyOn(CreditService.prototype, "_getAllCredits").mockResolvedValue({
           totalMonthlyCredits: 0,
           totalRemainingMonthlyCredits: 0,
           additionalCredits: 10,
@@ -500,7 +545,8 @@ describe("CreditService", () => {
             creditType: CreditType.ADDITIONAL,
             credits: 5,
             smsSid: "sms-123",
-          })
+          }),
+          MOCK_TX
         );
 
         expect(EmailManager.sendCreditBalanceLowWarningEmails).toHaveBeenCalled();
@@ -538,9 +584,9 @@ describe("CreditService", () => {
 
         vi.spyOn(EmailManager, "sendCreditBalanceLimitReachedEmails").mockResolvedValue();
 
-        vi.spyOn(CreditService.prototype, "getTeamWithAvailableCredits").mockResolvedValue(null);
+        vi.spyOn(CreditService.prototype, "_getTeamWithAvailableCredits").mockResolvedValue(null);
 
-        vi.spyOn(CreditService.prototype, "getAllCredits").mockResolvedValue({
+        vi.spyOn(CreditService.prototype, "_getAllCredits").mockResolvedValue({
           totalMonthlyCredits: 0,
           totalRemainingMonthlyCredits: 0,
           additionalCredits: 2,
@@ -560,7 +606,8 @@ describe("CreditService", () => {
             creditType: CreditType.ADDITIONAL,
             credits: 5,
             smsSid: "sms-123",
-          })
+          }),
+          MOCK_TX
         );
 
         expect(EmailManager.sendCreditBalanceLimitReachedEmails).toHaveBeenCalled();
@@ -569,9 +616,9 @@ describe("CreditService", () => {
 
     describe("getUserOrTeamToCharge", () => {
       it("should return user with remaining credits when userId is provided", async () => {
-        vi.spyOn(CreditService.prototype, "getTeamWithAvailableCredits").mockResolvedValue(null);
+        vi.spyOn(CreditService.prototype, "_getTeamWithAvailableCredits").mockResolvedValue(null);
 
-        vi.spyOn(CreditService.prototype, "getAllCredits").mockResolvedValue({
+        vi.spyOn(CreditService.prototype, "_getAllCredits").mockResolvedValue({
           totalMonthlyCredits: 0,
           totalRemainingMonthlyCredits: 0,
           additionalCredits: 10,
