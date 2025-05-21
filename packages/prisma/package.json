@@ -14,7 +14,8 @@
     "db-studio": "yarn prisma studio",
     "db-up": "docker compose up -d || docker-compose up -d",
     "dx": "yarn db-setup",
-    "post-install": "node generate.js",
+    "generate-schemas": "prisma generate && prisma format",
+    "post-install": "yarn generate-schemas",
     "seed-app-store": "ts-node --transpile-only ./seed-app-store.ts",
     "delete-app": "ts-node --transpile-only ./delete-app.ts",
     "seed-insights": "ts-node --transpile-only ./seed-insights.ts"
@@ -31,8 +32,7 @@
     "prisma": "^5.4.2",
     "prisma-kysely": "^1.7.1",
     "ts-node": "^10.9.1",
-    "zod": "^3.22.4",
-    "zod-prisma-types": "^3.2.4"
+    "zod": "^3.22.4"
   },
   "main": "index.ts",
   "types": "index.d.ts",
