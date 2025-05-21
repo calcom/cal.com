@@ -547,7 +547,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const isCalVideoLocationActive = locations
     ? locations.some((location) => location.type === "integrations:daily")
-    : eventType.locations?.some((location) => location.type === "integrations:daily");
+    : (eventType.locations as { type: string }[] | undefined)?.some(
+        (location) => location.type === "integrations:daily"
+      );
 
   if (eventType.calVideoSettings && !isCalVideoLocationActive) {
     await ctx.prisma.calVideoSettings.delete({
