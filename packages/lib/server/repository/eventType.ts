@@ -823,6 +823,8 @@ export class EventTypeRepository {
         maxLeadThreshold: true,
         includeNoShowInRRCalculation: true,
         useEventLevelSelectedCalendars: true,
+        restrictionScheduleId: true,
+        useBookerTimezone: true,
         team: {
           select: {
             id: true,

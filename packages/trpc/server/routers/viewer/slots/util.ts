@@ -496,14 +496,97 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
 
   let availableTimeSlots: typeof timeSlots = [];
   const bookerClientUid = ctx?.req?.cookies?.uid;
+  console.log("eventType--->", eventType);
+  if (eventType.restrictionScheduleId) {
+    const restrictionSchedule = await prisma.schedule.findUnique({
+      where: { id: eventType.restrictionScheduleId },
+      include: { availability: true },
+    });
+
+    if (restrictionSchedule) {
+      console.log(
+        "Initial timeSlots:",
+        timeSlots.map((slot) => ({
+          time: slot.time.format(),
+          timeInTimezone: slot.time.tz(input.timeZone).format(),
+        }))
+      );
+
+      console.log("Restriction Schedule:", {
+        schedule: restrictionSchedule,
+        availability: restrictionSchedule.availability.map((a) => ({
+          days: a.days,
+          startTime: a.startTime,
+          endTime: a.endTime,
+          date: a.date,
+          startTimeInBookerTz: dayjs
+            .tz(a.startTime, restrictionSchedule.timeZone)
+            .tz(input.timeZone)
+            .format(),
+          endTimeInBookerTz: dayjs.tz(a.endTime, restrictionSchedule.timeZone).tz(input.timeZone).format(),
+        })),
+      });
+
+      const timezone = eventType.useBookerTimezone ? input.timeZone : restrictionSchedule.timeZone;
+      console.log("Timezone values:", {
+        useBookerTimezone: eventType.useBookerTimezone,
+        bookerTimezone: input.timeZone,
+        restrictionScheduleTimezone: restrictionSchedule.timeZone,
+        finalTimezone: timezone,
+      });
+
+      availableTimeSlots = timeSlots.filter((slot) => {
+        // Always work in the booker's timezone
+        const slotTime = dayjs(slot.time).tz(input.timeZone);
+        const dayOfWeek = slotTime.day();
+        const timeStr = slotTime.format("HH:mm");
+
+        const dateOverride = restrictionSchedule.availability.find(
+          (a) => a.date && dayjs(a.date).tz(input.timeZone).isSame(slotTime, "day")
+        );
+
+        if (dateOverride) {
+          // Keep the same time values but in booker's timezone
+          const overrideStart = dayjs
+            .tz(dateOverride.startTime, restrictionSchedule.timeZone)
+            .format("HH:mm");
+          const overrideEnd = dayjs.tz(dateOverride.endTime, restrictionSchedule.timeZone).format("HH:mm");
+          return timeStr >= overrideStart && timeStr <= overrideEnd;
+        }
+
+        const dayAvailability = restrictionSchedule.availability.find(
+          (a) => !a.date && a.days.includes(dayOfWeek)
+        );
+
+        if (dayAvailability) {
+          // Keep the same time values but in booker's timezone
+          const dayStart = dayjs.tz(dayAvailability.startTime, restrictionSchedule.timeZone).format("HH:mm");
+          const dayEnd = dayjs.tz(dayAvailability.endTime, restrictionSchedule.timeZone).format("HH:mm");
+          return timeStr >= dayStart && timeStr <= dayEnd;
+        }
+
+        return false;
+      });
+
+      console.log(
+        "Final availableTimeSlots:",
+        availableTimeSlots.map((slot) => ({
+          time: slot.time.format(),
+          timeInTimezone: slot.time.tz(input.timeZone).format(),
+        }))
+      );
+    } else {
+      availableTimeSlots = timeSlots;
+    }
+  } else {
+    availableTimeSlots = timeSlots;
+  }
 
   const reservedSlots = await _getReservedSlotsAndCleanupExpired({
     bookerClientUid,
     eventTypeId: eventType.id,
     usersWithCredentials,
   });
-
-  availableTimeSlots = timeSlots;
 
   const availabilityCheckProps = {
     eventLength: input.duration || eventType.length,

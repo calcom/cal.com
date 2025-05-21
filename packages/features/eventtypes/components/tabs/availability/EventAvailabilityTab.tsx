@@ -274,8 +274,15 @@ const EventTypeScheduleDetails = memo(
         </div>
         <div className="bg-muted border-subtle flex flex-col justify-center gap-2 rounded-b-md border p-6 sm:flex-row sm:justify-between">
           <div className="flex flex-col gap-2">
-            <span className="text-default flex items-center justify-center text-sm sm:justify-start">
-              <Icon name="globe" className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
+            <span
+              className={classNames(
+                "text-default flex items-center justify-center text-sm sm:justify-start",
+                useBookerTimezone && "text-muted line-through"
+              )}>
+              <Icon
+                name="globe"
+                className={classNames("h-3.5 w-3.5 ltr:mr-2 rtl:ml-2", useBookerTimezone && "text-muted")}
+              />
               {scheduleQueryData?.timeZone || <SkeletonText className="block h-5 w-32" />}
             </span>
             {fieldName === "restrictionSchedule" && (
@@ -337,24 +344,23 @@ const EventTypeSchedule = ({
   const scheduleId = watch(formFieldName);
 
   useEffect(() => {
-    if (fieldName === "restrictionSchedule") {
-      // For restriction schedule, always use the stored value from eventType
-      const storedValue = eventType.restrictionScheduleId;
-      if (storedValue !== undefined && storedValue !== scheduleId) {
-        setValue(formFieldName, storedValue, {
-          shouldDirty: true,
-        });
+    // after data is loaded.
+    if (schedulesQueryData && scheduleId !== 0 && !scheduleId) {
+      let newValue;
+      if (fieldName === "restrictionSchedule") {
+        // For restriction schedule, use the stored value from eventType
+        newValue = eventType.restrictionScheduleId;
+      } else {
+        // For main schedule, use default schedule if not managed event
+        newValue = isManagedEventType ? 0 : schedulesQueryData.find((schedule) => schedule.isDefault)?.id;
       }
-    } else if (schedulesQueryData && scheduleId !== 0 && !scheduleId) {
-      // For main schedule, use default schedule if not managed event
-      const newValue = isManagedEventType ? 0 : schedulesQueryData.find((schedule) => schedule.isDefault)?.id;
       if (!newValue && newValue !== 0) return;
       setValue(formFieldName, newValue, {
         shouldDirty: true,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scheduleId, schedulesQueryData, fieldName]);
+  }, [scheduleId, schedulesQueryData]);
 
   if (isSchedulesPending || !schedulesQueryData) {
     return <SelectSkeletonLoader />;
@@ -434,7 +440,13 @@ const EventTypeSchedule = ({
                 isDisabled={shouldLockDisableProps(formFieldName).disabled}
                 isSearchable={false}
                 onChange={(selected) => {
-                  if (selected) onChange(selected.value);
+                  if (selected) {
+                    onChange(selected.value);
+                    // If this is a restriction schedule, ensure we have a value
+                    if (fieldName === "restrictionSchedule" && selected.value) {
+                      setValue("restrictionScheduleId", selected.value, { shouldDirty: true });
+                    }
+                  }
                 }}
                 className={classNames(
                   "block w-full min-w-0 flex-1 rounded-sm text-sm",
@@ -648,8 +660,8 @@ const useRestrictionScheduleState = (initialRestrictionScheduleId: number | null
   const toggleRestrictScheduleState = (checked: boolean) => {
     setRestrictScheduleForHosts(checked);
     if (!checked) {
-      setValue("restrictionScheduleId", null);
-      setValue("useBookerTimezone", false);
+      setValue("restrictionScheduleId", null, { shouldDirty: true });
+      setValue("useBookerTimezone", false, { shouldDirty: true });
     }
   };
 
