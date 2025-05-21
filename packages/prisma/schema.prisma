@@ -12,13 +12,6 @@ generator client {
   previewFeatures = ["views"]
 }
 
-generator zod {
-  provider         = "zod-prisma-types"
-  output           = "./zod"
-  useMultipleFiles = true
-  writeBarrelFiles = true /// for now
-}
-
 generator kysely {
   provider = "prisma-kysely"
   output   = "../kysely"
