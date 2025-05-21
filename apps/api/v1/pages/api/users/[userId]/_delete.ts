@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 import { deleteUser } from "@calcom/features/users/lib/userDeletionService";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
+import prisma from "@calcom/prisma";
 
 import { schemaQueryUserId } from "~/lib/validations/shared/queryUserId";
 
@@ -59,4 +59,4 @@ export async function deleteHandler(req: NextApiRequest) {
   return { message: `User with id: ${user.id} deleted successfully` };
 }
 
-export default withPrismaApiHandler(defaultResponder(deleteHandler));
+export default defaultResponder(deleteHandler);

@@ -6,7 +6,7 @@ import {
   getRecordingsOfCalVideoByRoomName,
   getDownloadLinkOfCalVideoByRecordingId,
 } from "@calcom/lib/videoClient";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
+import prisma from "@calcom/prisma";
 import type { RecordingItemSchema } from "@calcom/prisma/zod-utils";
 import type { PartialReference } from "@calcom/types/EventManager";
 
@@ -98,4 +98,4 @@ export async function getHandler(req: NextApiRequest) {
   return res;
 }
 
-export default withPrismaApiHandler(defaultResponder(getHandler));
+export default defaultResponder(getHandler);

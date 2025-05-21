@@ -7,8 +7,8 @@ import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { schemaMembershipPublic } from "~/lib/validations/membership";
 import { schemaTeamCreateBodyParams, schemaTeamReadPublic } from "~/lib/validations/team";
@@ -246,4 +246,4 @@ const generateTeamCheckoutSession = async ({
   return session;
 };
 
-export default withPrismaApiHandler(defaultResponder(postHandler));
+export default defaultResponder(postHandler);

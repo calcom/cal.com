@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
+import prisma from "@calcom/prisma";
 
 import { schemaBookingReferenceReadPublic } from "~/lib/validations/booking-reference";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
@@ -42,4 +42,4 @@ export async function getHandler(req: NextApiRequest) {
   return { booking_reference: schemaBookingReferenceReadPublic.parse(booking_reference) };
 }
 
-export default withPrismaApiHandler(defaultResponder(getHandler));
+export default defaultResponder(getHandler);

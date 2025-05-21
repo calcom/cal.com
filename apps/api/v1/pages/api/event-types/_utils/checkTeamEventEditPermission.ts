@@ -1,18 +1,15 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest } from "next";
 import type { z } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
-import type { PrismaClient } from "@calcom/prisma";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
+import prisma from "@calcom/prisma";
 
 import type { schemaEventTypeCreateBodyParams } from "~/lib/validations/event-type";
 
-export default withPrismaApiHandler(async function checkTeamEventEditPermission(
+export default async function checkTeamEventEditPermission(
   req: NextApiRequest,
-  res: NextApiResponse,
-  prisma: PrismaClient
+  body: Pick<z.infer<typeof schemaEventTypeCreateBodyParams>, "teamId" | "userId">
 ) {
-  const body = req.body as Pick<z.infer<typeof schemaEventTypeCreateBodyParams>, "teamId" | "userId">;
   if (body.teamId) {
     const membership = await prisma.membership.findFirst({
       where: {
@@ -30,4 +27,4 @@ export default withPrismaApiHandler(async function checkTeamEventEditPermission(
       });
     }
   }
-});
+}

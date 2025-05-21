@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
+import prisma from "@calcom/prisma";
 
 import {
   membershipEditBodySchema,
@@ -73,4 +73,4 @@ async function checkPermissions(req: NextApiRequest) {
   }
 }
 
-export default withPrismaApiHandler(defaultResponder(patchHandler));
+export default defaultResponder(patchHandler);

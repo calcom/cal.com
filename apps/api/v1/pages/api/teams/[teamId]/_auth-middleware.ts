@@ -2,8 +2,8 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
+import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { schemaQueryTeamId } from "~/lib/validations/shared/queryTeamId";
 
@@ -45,4 +45,4 @@ export async function canUserAccessTeamWithRole(
   return team;
 }
 
-export default withPrismaApiHandler(authMiddleware);
+export default authMiddleware;

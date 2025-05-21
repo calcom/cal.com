@@ -5,7 +5,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import type { UpdateArguments } from "@calcom/lib/server/repository/selectedCalendar";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
+import prisma from "@calcom/prisma";
 
 import {
   schemaSelectedCalendarPublic,
@@ -73,4 +73,4 @@ export async function patchHandler(req: NextApiRequest) {
   return { selected_calendar: schemaSelectedCalendarPublic.parse(result) };
 }
 
-export default withPrismaApiHandler(defaultResponder(patchHandler));
+export default defaultResponder(patchHandler);

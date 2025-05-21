@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
+import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
 import { buildWhereClause } from "~/lib/utils/bookings/get/buildWhereClause";
@@ -392,4 +392,4 @@ const handleOrgWideAdminArgs = async ({
   }
 };
 
-export default withPrismaApiHandler(withMiddleware("pagination")(defaultResponder(handler)));
+export default withMiddleware("pagination")(defaultResponder(handler));

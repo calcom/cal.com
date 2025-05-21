@@ -3,8 +3,8 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { schemaQueryUserId } from "~/lib/validations/shared/queryUserId";
 import { schemaUserEditBodyParams, schemaUserReadPublic } from "~/lib/validations/user";
@@ -138,4 +138,4 @@ export async function patchHandler(req: NextApiRequest) {
   return { user };
 }
 
-export default withPrismaApiHandler(defaultResponder(patchHandler));
+export default defaultResponder(patchHandler);

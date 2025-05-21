@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
+import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
 import type { PaymentsResponse } from "~/lib/types";
@@ -41,4 +41,4 @@ async function allPayments({ userId }: NextApiRequest, res: NextApiResponse<Paym
       });
 }
 // NO POST FOR PAYMENTS FOR NOW
-export default withPrismaApiHandler(withMiddleware("HTTP_GET")(allPayments));
+export default withMiddleware("HTTP_GET")(allPayments);

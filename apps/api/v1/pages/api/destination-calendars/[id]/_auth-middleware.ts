@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
+import prisma from "@calcom/prisma";
 
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
@@ -30,4 +30,4 @@ async function authMiddleware(req: NextApiRequest) {
     throw new HttpError({ statusCode: 404, message: "Destination calendar not found" });
 }
 
-export default withPrismaApiHandler(authMiddleware);
+export default authMiddleware;

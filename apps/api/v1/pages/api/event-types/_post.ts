@@ -3,8 +3,8 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { schemaEventTypeCreateBodyParams, schemaEventTypeReadPublic } from "~/lib/validations/event-type";
 import { canUserAccessTeamWithRole } from "~/pages/api/teams/[teamId]/_auth-middleware";
@@ -335,4 +335,4 @@ async function checkPermissions(req: NextApiRequest) {
     throw new HttpError({ statusCode: 400, message: "`userId` or `teamId` required" });
 }
 
-export default withPrismaApiHandler(defaultResponder(postHandler));
+export default defaultResponder(postHandler);

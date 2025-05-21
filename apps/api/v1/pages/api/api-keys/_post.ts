@@ -5,7 +5,7 @@ import { v4 } from "uuid";
 import { generateUniqueAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
+import prisma from "@calcom/prisma";
 
 import { apiKeyCreateBodySchema, apiKeyPublicSchema } from "~/lib/validations/api-key";
 
@@ -43,4 +43,4 @@ async function postHandler(req: NextApiRequest) {
   };
 }
 
-export default withPrismaApiHandler(defaultResponder(postHandler));
+export default defaultResponder(postHandler);

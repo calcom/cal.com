@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
+import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
 import type { PaymentResponse } from "~/lib/types";
@@ -66,6 +66,4 @@ export async function paymentById(
       );
   }
 }
-export default withPrismaApiHandler(
-  withMiddleware("HTTP_GET")(withValidQueryIdTransformParseInt(paymentById))
-);
+export default withMiddleware("HTTP_GET")(withValidQueryIdTransformParseInt(paymentById));

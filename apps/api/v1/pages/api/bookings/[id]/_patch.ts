@@ -3,7 +3,7 @@ import type { z } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
+import prisma from "@calcom/prisma";
 
 import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
 import { schemaBookingEditBodyParams, schemaBookingReadPublic } from "~/lib/validations/booking";
@@ -133,4 +133,4 @@ async function checkPermissions(req: NextApiRequest, body: z.infer<typeof schema
   }
 }
 
-export default withPrismaApiHandler(defaultResponder(patchHandler));
+export default defaultResponder(patchHandler);

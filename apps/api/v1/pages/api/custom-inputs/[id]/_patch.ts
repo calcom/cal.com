@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
+import prisma from "@calcom/prisma";
 
 import {
   schemaEventTypeCustomInputEditBodyParams,
@@ -84,4 +84,4 @@ export async function patchHandler(req: NextApiRequest) {
   return { event_type_custom_input: schemaEventTypeCustomInputPublic.parse(result) };
 }
 
-export default withPrismaApiHandler(defaultResponder(patchHandler));
+export default defaultResponder(patchHandler);

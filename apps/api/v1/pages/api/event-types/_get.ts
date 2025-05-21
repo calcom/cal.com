@@ -1,9 +1,9 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import prisma from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
 import { schemaQuerySlug } from "~/lib/validations/shared/querySlug";
@@ -42,7 +42,7 @@ import getCalLink from "./_utils/getCalLink";
  *       404:
  *         description: No event types were found
  */
-async function getHandler(req: NextApiRequest, res: NextApiResponse, prisma: PrismaClient) {
+async function getHandler(req: NextApiRequest) {
   const { userId, isSystemWideAdmin } = req;
   const userIds = req.query.userId ? extractUserIdsFromQuery(req) : [userId];
   const { slug } = schemaQuerySlug.parse(req.query);
@@ -133,4 +133,4 @@ async function defaultScheduleId<T extends DefaultScheduleIdEventTypeBase>({
   });
 }
 
-export default withPrismaApiHandler(defaultResponder(getHandler));
+export default defaultResponder(getHandler);

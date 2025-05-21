@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
+import prisma from "@calcom/prisma";
 
 import { membershipIdSchema } from "~/lib/validations/membership";
 
@@ -15,4 +15,4 @@ async function authMiddleware(req: NextApiRequest) {
   if (!membership) throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 
-export default withPrismaApiHandler(authMiddleware);
+export default authMiddleware;

@@ -2,8 +2,8 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
 
 import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
@@ -100,4 +100,4 @@ async function checkPermissions<T extends BaseEventTypeCheckPermissions>(
   throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 
-export default withPrismaApiHandler(defaultResponder(getHandler));
+export default defaultResponder(getHandler);

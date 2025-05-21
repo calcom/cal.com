@@ -2,7 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
+import prisma from "@calcom/prisma";
 
 import { membershipIdSchema } from "~/lib/validations/membership";
 
@@ -100,4 +100,4 @@ async function checkPermissions(req: NextApiRequest) {
   }
 }
 
-export default withPrismaApiHandler(defaultResponder(deleteHandler));
+export default defaultResponder(deleteHandler);

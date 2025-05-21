@@ -6,7 +6,7 @@ import {
   getTranscriptsAccessLinkFromRecordingId,
   checkIfRoomNameMatchesInRecording,
 } from "@calcom/lib/videoClient";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
+import prisma from "@calcom/prisma";
 import type { PartialReference } from "@calcom/types/EventManager";
 
 import { getTranscriptFromRecordingId } from "~/lib/validations/shared/queryIdTransformParseInt";
@@ -89,4 +89,4 @@ const checkIfRecordingBelongsToBooking = async (bookingId: number, recordingId: 
   }
 };
 
-export default withPrismaApiHandler(defaultResponder(getHandler));
+export default defaultResponder(getHandler);

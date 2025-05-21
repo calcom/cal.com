@@ -1,8 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import type { PrismaClient } from "@calcom/prisma";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
+import prisma from "@calcom/prisma";
 
 /**
  * Checks if a user, identified by the provided userId, has ownership (or admin rights) over
@@ -14,11 +13,7 @@ import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler"
  *                     if the parent event type doesn't belong to any team,
  *                     or if the user doesn't have ownership or admin rights to the associated team.
  */
-export default withPrismaApiHandler(async function checkParentEventOwnership(
-  req: NextApiRequest,
-  res: NextApiResponse,
-  prisma: PrismaClient
-) {
+export default async function checkParentEventOwnership(req: NextApiRequest) {
   const { userId, body } = req;
   /** These are already parsed upstream, we can assume they're good here. */
   const parentId = Number(body.parentId);
@@ -56,4 +51,4 @@ export default withPrismaApiHandler(async function checkParentEventOwnership(
       message: "User is not authorized to access the team to which the parent event type belongs.",
     });
   }
-});
+}

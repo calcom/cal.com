@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
+import prisma from "@calcom/prisma";
 
 import { schemaCredentialGetParams } from "~/lib/validations/credential-sync";
 
@@ -59,4 +59,4 @@ async function handler(req: NextApiRequest) {
   return { credentials };
 }
 
-export default withPrismaApiHandler(defaultResponder(handler));
+export default defaultResponder(handler);

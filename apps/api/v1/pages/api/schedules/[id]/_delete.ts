@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
+import prisma from "@calcom/prisma";
 
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
@@ -45,4 +45,4 @@ export async function deleteHandler(req: NextApiRequest) {
   return { message: `Schedule with id: ${id} deleted successfully` };
 }
 
-export default withPrismaApiHandler(defaultResponder(deleteHandler));
+export default defaultResponder(deleteHandler);
