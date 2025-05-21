@@ -40,6 +40,8 @@ export const sendSMS = async ({
   userId,
   teamId,
   isWhatsapp = false,
+  contentSid,
+  contentVariables,
 }: {
   phoneNumber: string;
   body: string;
@@ -48,8 +50,10 @@ export const sendSMS = async ({
   userId?: number | null;
   teamId?: number | null;
   isWhatsapp?: boolean;
+  contentSid?: string;
+  contentVariables?: Record<string, string>;
 }) => {
-  log.silly("sendSMS", JSON.stringify({ phoneNumber, body, sender, userId, teamId }));
+  log.silly("sendSMS", JSON.stringify({ phoneNumber, body, sender, userId, teamId, contentSid }));
 
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
 
@@ -80,15 +84,32 @@ export const sendSMS = async ({
     });
   }
 
-  const response = await twilio.messages.create({
-    body: body,
-    messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
-    to: getSMSNumber(phoneNumber, isWhatsapp),
-    from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender || getDefaultSender(),
-    statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
-  });
+  if (isWhatsapp) {
+    const messageOptions: any = {
+      contentSid: contentSid,
+      to: getSMSNumber(phoneNumber, isWhatsapp),
+      from: getDefaultSender(isWhatsapp),
+      statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
+      messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
+    };
 
-  return response;
+    if (contentVariables) {
+      messageOptions.contentVariables = JSON.stringify(contentVariables);
+    }
+
+    const response = await twilio.messages.create(messageOptions);
+    return response;
+  } else {
+    const response = await twilio.messages.create({
+      body: body,
+      messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
+      to: getSMSNumber(phoneNumber),
+      from: sender || getDefaultSender(),
+      statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
+    });
+
+    return response;
+  }
 };
 
 const getStatusCallbackUrl = (userId?: number | null, teamId?: number | null, bookingUid?: string | null) => {
@@ -108,6 +129,8 @@ export const scheduleSMS = async ({
   userId,
   teamId,
   isWhatsapp = false,
+  contentSid,
+  contentVariables,
 }: {
   phoneNumber: string;
   body: string;
@@ -117,6 +140,8 @@ export const scheduleSMS = async ({
   userId?: number | null;
   teamId?: number | null;
   isWhatsapp?: boolean;
+  contentSid?: string;
+  contentVariables?: Record<string, string>;
 }) => {
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
 
@@ -145,17 +170,37 @@ export const scheduleSMS = async ({
       rateLimitingType: "smsMonth",
     });
   }
-  const response = await twilio.messages.create({
-    body,
-    messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
-    to: getSMSNumber(phoneNumber, isWhatsapp),
-    scheduleType: "fixed",
-    sendAt: scheduledDate,
-    from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender || getDefaultSender(),
-    statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
-  });
 
-  return response;
+  if (isWhatsapp) {
+    const messageOptions: any = {
+      contentSid: contentSid,
+      to: getSMSNumber(phoneNumber, isWhatsapp),
+      scheduleType: "fixed",
+      sendAt: scheduledDate,
+      from: getDefaultSender(isWhatsapp),
+      statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
+      messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
+    };
+
+    if (contentVariables) {
+      messageOptions.contentVariables = JSON.stringify(contentVariables);
+    }
+
+    const response = await twilio.messages.create(messageOptions);
+    return response;
+  } else {
+    const response = await twilio.messages.create({
+      body,
+      messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
+      to: getSMSNumber(phoneNumber),
+      scheduleType: "fixed",
+      sendAt: scheduledDate,
+      from: sender || getDefaultSender(),
+      statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
+    });
+
+    return response;
+  }
 };
 
 export const cancelSMS = async (referenceId: string) => {
