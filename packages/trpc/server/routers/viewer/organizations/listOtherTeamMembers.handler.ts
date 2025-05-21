@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import z from "zod";
 
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
