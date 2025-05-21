@@ -113,7 +113,7 @@ type EventTypeScheduleProps = {
   eventType: EventTypeSetup;
   teamMembers: TeamMember[];
   customClassNames?: UserAvailabilityCustomClassNames;
-  fieldName?: "schedule" | "restrictionScheduleId";
+  fieldName?: "schedule" | "restrictionSchedule";
   scheduleQueryData?: ScheduleQueryData;
   restrictionScheduleQueryData?: ScheduleQueryData;
   isSchedulePending?: boolean;
@@ -301,14 +301,16 @@ const EventTypeSchedule = ({
     useLockedFieldsManager({ eventType, translate: t, formMethods });
   const { watch, setValue } = formMethods;
 
-  const scheduleId = watch(fieldName);
+  // Map the fieldName to the actual form field name
+  const formFieldName = fieldName === "restrictionSchedule" ? "restrictionScheduleId" : fieldName;
+  const scheduleId = watch(formFieldName);
 
   useEffect(() => {
     // after data is loaded.
     if (schedulesQueryData && scheduleId !== 0 && !scheduleId) {
       const newValue = isManagedEventType ? 0 : schedulesQueryData.find((schedule) => schedule.isDefault)?.id;
       if (!newValue && newValue !== 0) return;
-      setValue(fieldName, newValue, {
+      setValue(formFieldName, newValue, {
         shouldDirty: true,
       });
     }
@@ -378,10 +380,10 @@ const EventTypeSchedule = ({
             customClassNames?.availabilitySelect?.label
           )}>
           {t("availability")}
-          {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator(fieldName)}
+          {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator(formFieldName)}
         </label>
         <Controller
-          name={fieldName}
+          name={formFieldName}
           render={({ field: { onChange, value } }) => {
             const optionValue: AvailabilityOption | undefined = options.find(
               (option) => option.value === value
@@ -390,7 +392,7 @@ const EventTypeSchedule = ({
               <Select
                 placeholder={t("select")}
                 options={options}
-                isDisabled={shouldLockDisableProps(fieldName).disabled}
+                isDisabled={shouldLockDisableProps(formFieldName).disabled}
                 isSearchable={false}
                 onChange={(selected) => {
                   if (selected) onChange(selected.value);
@@ -408,7 +410,7 @@ const EventTypeSchedule = ({
           }}
         />
       </div>
-      {scheduleId !== 0 && (fieldName === "schedule" || fieldName === "restrictionScheduleId") ? (
+      {scheduleId !== 0 && (fieldName === "schedule" || fieldName === "restrictionSchedule") ? (
         <EventTypeScheduleDetails
           {...rest}
           scheduleQueryData={currentScheduleQueryData}
@@ -657,7 +659,7 @@ const UseTeamEventScheduleSettingsToggle = ({
         <EventTypeSchedule
           customClassNames={customClassNames?.userAvailability}
           eventType={eventType}
-          fieldName="restrictionScheduleId"
+          fieldName="restrictionSchedule"
           {...rest}
         />
       </SettingsToggle>
