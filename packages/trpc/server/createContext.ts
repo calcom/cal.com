@@ -5,15 +5,10 @@ import type { serverSideTranslations } from "next-i18next/serverSideTranslations
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import getIP from "@calcom/lib/getIP";
-import type { PrismaClient } from "@calcom/prisma";
-import { readonlyPrisma } from "@calcom/prisma";
+import prisma, { readonlyPrisma } from "@calcom/prisma";
 import type { SelectedCalendar, User as PrismaUser } from "@calcom/prisma/client";
-import {
-  getPrismaFromHost,
-  runWithTenants,
-  setCurrentTenant,
-  getTenantFromHost,
-} from "@calcom/prisma/store/prismaStore";
+import { runWithTenants, setCurrentTenant } from "@calcom/prisma/store/prismaStore";
+import { getTenantFromHost } from "@calcom/prisma/store/tenants";
 
 import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
 
@@ -27,7 +22,6 @@ export type CreateInnerContextOptions = {
   sourceIp?: string;
   session?: Session | null;
   locale: string;
-  host?: string;
   user?:
     | Omit<
         PrismaUser,
@@ -56,7 +50,7 @@ export type GetSessionFn =
   | (() => Promise<Session | null>);
 
 export type InnerContext = CreateInnerContextOptions & {
-  prisma: PrismaClient;
+  prisma: typeof prisma;
   insightsDb: typeof readonlyPrisma;
 };
 
@@ -70,10 +64,8 @@ export type InnerContext = CreateInnerContextOptions & {
  * @see https://trpc.io/docs/context#inner-and-outer-context
  */
 export async function createContextInner(opts: CreateInnerContextOptions): Promise<InnerContext> {
-  const tenantPrisma = opts.host ? getPrismaFromHost(opts.host) : undefined;
-
   return {
-    prisma: tenantPrisma || readonlyPrisma,
+    prisma,
     insightsDb: readonlyPrisma,
     ...opts,
   };
@@ -105,7 +97,7 @@ export const createContext = async (
     setCurrentTenant(tenant);
 
     const session = !!sessionGetter ? await sessionGetter({ req, res }) : null;
-    const contextInner = await createContextInner({ locale, session, sourceIp, host });
+    const contextInner = await createContextInner({ locale, session, sourceIp });
     return {
       ...contextInner,
       req,
