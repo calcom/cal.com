@@ -9,7 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { SystemField } from "../../../lib/SystemField";
-import { MemoizedField } from "./MemoizedField";
+import BookingFieldItem from "./BookingFieldItem";
 
 export const BookingFields = ({
   fields,
@@ -135,7 +135,7 @@ export const BookingFields = ({
         }
 
         return (
-          <MemoizedField className="mb-4" field={{ ...field, hidden }} readOnly={readOnly} key={index} />
+          <BookingFieldItem key={index} field={field} hidden={hidden} readOnly={readOnly} className="mb-4" />
         );
       })}
     </div>

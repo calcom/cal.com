@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRef, useEffect, useMemo, useCallback } from "react";
+import { useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -114,34 +114,19 @@ export const useBookingForm = ({
     }
   };
 
-  // Memoize form errors to prevent unnecessary re-renders
-  const errors = useMemo(
-    () => ({
-      hasFormErrors: Boolean(bookingForm.formState.errors["globalError"]),
-      formErrors: bookingForm.formState.errors["globalError"],
-    }),
-    [bookingForm.formState.errors]
-  );
+  const errors = {
+    hasFormErrors: Boolean(bookingForm.formState.errors["globalError"]),
+    formErrors: bookingForm.formState.errors["globalError"],
+  };
 
-  // Memoize form field values
-  const formEmail = useMemo(() => email, [email]);
-  const formName = useMemo(() => name, [name]);
-
-  // Memoize beforeVerifyEmail callback
-  const memoizedBeforeVerifyEmail = useCallback(beforeVerifyEmail, [bookingForm, event, t]);
-
-  // Return a memoized object to prevent unnecessary re-renders
-  return useMemo(
-    () => ({
-      bookingForm,
-      bookerFormErrorRef,
-      key,
-      formEmail,
-      formName,
-      beforeVerifyEmail: memoizedBeforeVerifyEmail,
-      formErrors: errors,
-      errors,
-    }),
-    [bookingForm, bookerFormErrorRef, key, formEmail, formName, memoizedBeforeVerifyEmail, errors]
-  );
+  return {
+    bookingForm,
+    bookerFormErrorRef,
+    key,
+    formEmail: email,
+    formName: name,
+    beforeVerifyEmail,
+    formErrors: errors,
+    errors,
+  };
 };
