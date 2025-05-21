@@ -17,7 +17,7 @@ export const stripeCustomerHandler = async ({ ctx }: StripeCustomerOptions) => {
 
   const billingService = new StripeBillingService();
 
-  const user = await ctx.ctx.prisma.user.findUnique({
+  const user = await ctx.prisma.user.findUnique({
     where: {
       id: userId,
     },
@@ -41,7 +41,7 @@ export const stripeCustomerHandler = async ({ ctx }: StripeCustomerOptions) => {
         userId: userId.toString(),
       },
     });
-    await ctx.ctx.prisma.user.update({
+    await ctx.prisma.user.update({
       where: {
         id: userId,
       },
