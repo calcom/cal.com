@@ -306,8 +306,16 @@ const EventTypeSchedule = ({
   const scheduleId = watch(formFieldName);
 
   useEffect(() => {
-    // after data is loaded.
-    if (schedulesQueryData && scheduleId !== 0 && !scheduleId) {
+    if (fieldName === "restrictionSchedule") {
+      // For restriction schedule, always use the stored value from eventType
+      const storedValue = eventType.restrictionScheduleId;
+      if (storedValue !== undefined && storedValue !== scheduleId) {
+        setValue(formFieldName, storedValue, {
+          shouldDirty: true,
+        });
+      }
+    } else if (schedulesQueryData && scheduleId !== 0 && !scheduleId) {
+      // For main schedule, use default schedule if not managed event
       const newValue = isManagedEventType ? 0 : schedulesQueryData.find((schedule) => schedule.isDefault)?.id;
       if (!newValue && newValue !== 0) return;
       setValue(formFieldName, newValue, {
@@ -315,7 +323,7 @@ const EventTypeSchedule = ({
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scheduleId, schedulesQueryData]);
+  }, [scheduleId, schedulesQueryData, fieldName]);
 
   if (isSchedulesPending || !schedulesQueryData) {
     return <SelectSkeletonLoader />;
