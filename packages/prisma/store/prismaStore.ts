@@ -37,6 +37,12 @@ export function runWithTenants<T>(tenant?: Tenant | (() => Promise<T>), fn?: () 
     fn = tenant as () => Promise<T>;
     tenant = undefined;
   }
+  const existingStore = als.getStore();
+  if (existingStore && existingStore.currentTenant === tenant) {
+    // Already in the right context, just run the function
+    return fn!();
+  }
+  // Otherwise, create a new context
   return als.run({ clients: {}, currentTenant: tenant as Tenant | undefined } as Store, fn!);
 }
 
