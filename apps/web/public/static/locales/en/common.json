@@ -3222,5 +3222,7 @@
   "available_credits": "Available credits",
   "choose_restriction_schedule": "Add restriction schedule",
   "choose_restriction_schedule_description": "Enable this if you want to restrict the availability of hosts for this event type based on a restriction schedule. This only removes the slots that are not in the restriction schedule, it does not add any new slots.",
+  "use_booker_timezone": "Use booker's timezone",
+  "use_booker_timezone_info": "Apply the selected restriction schedule in the booker's timezone",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

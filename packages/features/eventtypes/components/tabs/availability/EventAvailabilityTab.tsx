@@ -18,6 +18,7 @@ import type {
   Host,
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
+import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { weekStartNum } from "@calcom/lib/weekstart";
@@ -188,14 +189,29 @@ const EventTypeScheduleDetails = memo(
     user,
     editAvailabilityRedirectUrl,
     customClassNames,
-  }: EventTypeScheduleDetailsProps) => {
+    fieldName,
+    useBookerTimezone: initialUseBookerTimezone,
+  }: EventTypeScheduleDetailsProps & {
+    fieldName?: "schedule" | "restrictionSchedule";
+    useBookerTimezone?: boolean;
+  }) => {
     const timeFormat = user?.timeFormat;
     const { t, i18n } = useLocale();
+    const formMethods = useFormContext<FormValues>();
+    const { setValue, watch } = formMethods;
 
     const weekStart = weekStartNum(user?.weekStart);
 
     const filterDays = (dayNum: number) =>
       scheduleQueryData?.schedule?.filter((item) => item.days.includes((dayNum + weekStart) % 7)) || [];
+
+    const useBookerTimezone = watch("useBookerTimezone");
+
+    useEffect(() => {
+      if (fieldName === "restrictionSchedule" && useBookerTimezone === undefined) {
+        setValue("useBookerTimezone", initialUseBookerTimezone || false, { shouldDirty: false });
+      }
+    }, [fieldName, useBookerTimezone, setValue, initialUseBookerTimezone]);
 
     return (
       <div>
@@ -257,10 +273,25 @@ const EventTypeScheduleDetails = memo(
           </ol>
         </div>
         <div className="bg-muted border-subtle flex flex-col justify-center gap-2 rounded-b-md border p-6 sm:flex-row sm:justify-between">
-          <span className="text-default flex items-center justify-center text-sm sm:justify-start">
-            <Icon name="globe" className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
-            {scheduleQueryData?.timeZone || <SkeletonText className="block h-5 w-32" />}
-          </span>
+          <div className="flex flex-col gap-2">
+            <span className="text-default flex items-center justify-center text-sm sm:justify-start">
+              <Icon name="globe" className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
+              {scheduleQueryData?.timeZone || <SkeletonText className="block h-5 w-32" />}
+            </span>
+            {fieldName === "restrictionSchedule" && (
+              <div className="ltr:mr-2 rtl:ml-2">
+                <CheckboxField
+                  checked={useBookerTimezone}
+                  disabled={isSchedulePending}
+                  description={t("use_booker_timezone")}
+                  informationIconText={t("use_booker_timezone_info")}
+                  onChange={(e) => {
+                    setValue("useBookerTimezone", e.target.checked, { shouldDirty: true });
+                  }}
+                />
+              </div>
+            )}
+          </div>
           {!!scheduleQueryData?.id &&
             !scheduleQueryData.isManaged &&
             !scheduleQueryData.readOnly &&
@@ -424,6 +455,8 @@ const EventTypeSchedule = ({
           scheduleQueryData={currentScheduleQueryData}
           isSchedulePending={isCurrentSchedulePending}
           customClassNames={customClassNames?.availabilityTable}
+          fieldName={fieldName}
+          useBookerTimezone={eventType.useBookerTimezone}
         />
       ) : (
         isManagedEventType &&
