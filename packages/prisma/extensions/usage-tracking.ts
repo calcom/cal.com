@@ -1,8 +1,7 @@
 import { waitUntil } from "@vercel/functions";
 
 import { UsageEvent, LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
-
-import { Prisma } from "../client";
+import { Prisma } from "@calcom/prisma/client";
 
 async function incrementUsage(event?: UsageEvent) {
   try {

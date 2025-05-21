@@ -1,4 +1,4 @@
-import { Prisma } from "../client";
+import { Prisma } from "@calcom/prisma/client";
 
 type TeamFindArgs =
   | Prisma.TeamFindUniqueArgs
