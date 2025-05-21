@@ -1,4 +1,5 @@
 import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
+import { prisma } from "@calcom/prisma";
 // import dayjs from "@calcom/dayjs";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -16,7 +17,7 @@ type ListOptions = {
 export const listHandler = async ({ ctx, input }: ListOptions) => {
   const workflows: WorkflowType[] = [];
 
-  const org = await ctx.ctx.prisma.team.findFirst({
+  const org = await prisma.team.findFirst({
     where: {
       isOrganization: true,
       children: {
@@ -37,7 +38,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
   });
 
   if (org) {
-    const activeOrgWorkflows = await ctx.ctx.prisma.workflow.findMany({
+    const activeOrgWorkflows = await prisma.workflow.findMany({
       where: {
         team: {
           id: org.id,
@@ -103,7 +104,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
   }
 
   if (input && input.teamId) {
-    const teamWorkflows: WorkflowType[] = await ctx.ctx.prisma.workflow.findMany({
+    const teamWorkflows: WorkflowType[] = await prisma.workflow.findMany({
       where: {
         team: {
           id: input.teamId,
@@ -159,7 +160,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
   }
 
   if (input && input.userId) {
-    const userWorkflows: WorkflowType[] = await ctx.ctx.prisma.workflow.findMany({
+    const userWorkflows: WorkflowType[] = await prisma.workflow.findMany({
       where: {
         userId: ctx.user.id,
       },
@@ -200,7 +201,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
     return { workflows };
   }
 
-  const allWorkflows = await ctx.ctx.prisma.workflow.findMany({
+  const allWorkflows = await prisma.workflow.findMany({
     where: {
       OR: [
         { userId: ctx.user.id },

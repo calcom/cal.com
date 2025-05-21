@@ -1,3 +1,5 @@
+import { prisma } from "@calcom/prisma";
+
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -14,7 +16,7 @@ export async function getTeamsHandler({ ctx }: GetTeamsHandler) {
 
   if (!currentUserOrgId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  const allOrgTeams = await ctx.ctx.prisma.team.findMany({
+  const allOrgTeams = await prisma.team.findMany({
     where: {
       parentId: currentUserOrgId,
     },

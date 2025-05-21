@@ -1,3 +1,5 @@
+import { prisma } from "@calcom/prisma";
+
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -18,7 +20,7 @@ const listHandler = async (opts: GetOptions) => {
     });
   }
 
-  return await ctx.ctx.prisma.attribute.findMany({
+  return await prisma.attribute.findMany({
     where: {
       teamId: org.id,
     },

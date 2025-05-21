@@ -4,6 +4,7 @@ import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 import {
   MembershipRole,
@@ -32,7 +33,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const userId = ctx.user.id;
 
   if (teamId) {
-    const team = await ctx.ctx.prisma.team.findFirst({
+    const team = await prisma.team.findFirst({
       where: {
         id: teamId,
         members: {
@@ -55,7 +56,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   }
 
   try {
-    const workflow: Workflow = await ctx.ctx.prisma.workflow.create({
+    const workflow: Workflow = await prisma.workflow.create({
       data: {
         name: "",
         trigger: WorkflowTriggerEvents.BEFORE_EVENT,
@@ -74,7 +75,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       timeFormat: getTimeFormatStringFromUserTimeFormat(ctx.user.timeFormat),
     });
 
-    await ctx.ctx.ctx.prisma.workflowStep.create({
+    await ctx.prisma.workflowStep.create({
       data: {
         stepNumber: 1,
         action: WorkflowActions.EMAIL_ATTENDEE,

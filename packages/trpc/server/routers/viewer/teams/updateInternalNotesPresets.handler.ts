@@ -1,4 +1,5 @@
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
+import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -25,7 +26,7 @@ export const updateInternalNotesPresetsHandler = async ({
   }
 
   // Get existing presets to handle deletions
-  const existingPresets = await ctx.ctx.prisma.internalNotePreset.findMany({
+  const existingPresets = await prisma.internalNotePreset.findMany({
     where: {
       teamId: input.teamId,
     },
@@ -42,7 +43,7 @@ export const updateInternalNotesPresetsHandler = async ({
 
   // Delete removed presets
   if (idsToDelete.length > 0) {
-    await ctx.ctx.prisma.internalNotePreset.deleteMany({
+    await prisma.internalNotePreset.deleteMany({
       where: {
         id: {
           in: idsToDelete,
@@ -57,7 +58,7 @@ export const updateInternalNotesPresetsHandler = async ({
     input.presets.map((preset) => {
       if (preset.id && preset.id !== -1) {
         // Update existing preset
-        return ctx.ctx.prisma.internalNotePreset.update({
+        return prisma.internalNotePreset.update({
           where: {
             id: preset.id,
             teamId: input.teamId,
@@ -69,7 +70,7 @@ export const updateInternalNotesPresetsHandler = async ({
         });
       } else {
         // Create new preset
-        return ctx.ctx.prisma.internalNotePreset.create({
+        return prisma.internalNotePreset.create({
           data: {
             name: preset.name,
             cancellationReason: preset.cancellationReason,

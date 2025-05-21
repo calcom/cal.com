@@ -1,5 +1,6 @@
 import type { TFormSchema } from "@calcom/app-store/routing-forms/trpc/forms.schema";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
+import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { entries } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -49,7 +50,7 @@ export const workflowOrderHandler = async ({ ctx, input }: RoutingFormOrderOptio
     },
   });
 
-  const allWorkflows = await ctx.ctx.prisma.workflow.findMany({
+  const allWorkflows = await prisma.workflow.findMany({
     where: {
       OR: [
         {
@@ -87,7 +88,7 @@ export const workflowOrderHandler = async ({ ctx, input }: RoutingFormOrderOptio
 
   await Promise.all(
     input.ids.reverse().map((id, position) => {
-      return ctx.ctx.prisma.workflow.update({
+      return prisma.workflow.update({
         where: {
           id: id,
         },

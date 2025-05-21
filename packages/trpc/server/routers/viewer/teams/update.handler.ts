@@ -1,11 +1,10 @@
-import type { Prisma } from "@prisma/client";
-
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import { uploadLogo } from "@calcom/lib/server/avatar";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
+import { prisma } from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -31,7 +30,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (input.slug) {
-    const userConflict = await ctx.ctx.prisma.team.findMany({
+    const userConflict = await prisma.team.findMany({
       where: {
         slug: input.slug,
       },
@@ -39,7 +38,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     if (userConflict.some((t) => t.id !== input.id)) return;
   }
 
-  const prevTeam = await ctx.ctx.prisma.team.findFirst({
+  const prevTeam = await prisma.team.findFirst({
     where: {
       id: input.id,
     },
@@ -97,7 +96,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  const updatedTeam = await ctx.ctx.prisma.team.update({
+  const updatedTeam = await prisma.team.update({
     where: { id: input.id },
     data,
   });
@@ -107,7 +106,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     if (updatedTeam.slug === prevTeam.slug) return;
 
     // Fetch parent team slug to construct toUrl
-    const parentTeam = await ctx.ctx.prisma.team.findUnique({
+    const parentTeam = await prisma.team.findUnique({
       where: {
         id: updatedTeam.parentId,
       },
@@ -125,7 +124,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const toUrlOld = `${orgUrlPrefix}/${prevTeam.slug}`;
     const toUrlNew = `${orgUrlPrefix}/${updatedTeam.slug}`;
 
-    await ctx.ctx.prisma.tempOrgRedirect.updateMany({
+    await prisma.tempOrgRedirect.updateMany({
       where: {
         type: RedirectType.Team,
         toUrl: toUrlOld,

@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -16,7 +16,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateScheduleOptions)
   try {
     const { scheduleId } = input;
     const { user } = ctx;
-    const schedule = await ctx.ctx.prisma.schedule.findUnique({
+    const schedule = await prisma.schedule.findUnique({
       where: {
         id: scheduleId,
       },
@@ -57,7 +57,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateScheduleOptions)
       },
     };
 
-    const newSchedule = await ctx.ctx.prisma.schedule.create({
+    const newSchedule = await prisma.schedule.create({
       data,
     });
 

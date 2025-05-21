@@ -1,3 +1,4 @@
+import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -9,14 +10,14 @@ type BookingUnconfirmedCountOptions = {
 
 export const bookingUnconfirmedCountHandler = async ({ ctx }: BookingUnconfirmedCountOptions) => {
   const { user } = ctx;
-  const count = await ctx.ctx.prisma.booking.count({
+  const count = await prisma.booking.count({
     where: {
       status: BookingStatus.PENDING,
       userId: user.id,
       endTime: { gt: new Date() },
     },
   });
-  const recurringGrouping = await ctx.ctx.prisma.booking.groupBy({
+  const recurringGrouping = await prisma.booking.groupBy({
     by: ["recurringEventId"],
     _count: {
       recurringEventId: true,

@@ -1,3 +1,4 @@
+import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -25,7 +26,7 @@ export const createHandler = async ({
       });
     }
 
-    const membership = await ctx.ctx.prisma.membership.findFirst({
+    const membership = await prisma.membership.findFirst({
       where: {
         userId,
         teamId,
@@ -53,7 +54,7 @@ export const createHandler = async ({
   }
 
   // Create the filter segment
-  const filterSegment = await ctx.ctx.prisma.filterSegment.create({
+  const filterSegment = await prisma.filterSegment.create({
     data: {
       ...filterData,
       scope,

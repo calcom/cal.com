@@ -1,3 +1,5 @@
+import { prisma } from "@calcom/prisma";
+
 import type { TUpdateInputSchema } from "./update.schema";
 
 type UpdateOptions = {
@@ -11,7 +13,7 @@ export const updateHandler = async ({ input }: UpdateOptions) => {
     licenseKey: input.licenseKey,
   };
 
-  await ctx.ctx.prisma.deployment.upsert({ where: { id: 1 }, create: data, update: data });
+  await prisma.deployment.upsert({ where: { id: 1 }, create: data, update: data });
 
   return;
 };

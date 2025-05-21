@@ -1,3 +1,4 @@
+import { prisma } from "@calcom/prisma";
 import type { AttributeType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -36,7 +37,7 @@ const getByUserIdHandler = async ({ input, ctx }: GetOptions) => {
   }
 
   // Ensure user is apart of the organization
-  const membership = await ctx.ctx.prisma.membership.findFirst({
+  const membership = await prisma.membership.findFirst({
     where: {
       userId: input.userId,
       teamId: org.id,
@@ -55,7 +56,7 @@ const getByUserIdHandler = async ({ input, ctx }: GetOptions) => {
 };
 
 async function getMembershipAttributes(membershipId: number) {
-  return await ctx.ctx.prisma.attributeToUser.findMany({
+  return await prisma.attributeToUser.findMany({
     where: {
       member: {
         id: membershipId,

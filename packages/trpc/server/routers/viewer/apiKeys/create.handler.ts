@@ -1,6 +1,7 @@
 import { v4 } from "uuid";
 
 import { generateUniqueAPIKey } from "@calcom/ee/api-keys/lib/apiKeys";
+import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -26,7 +27,7 @@ export const createHandler = async ({ ctx, input }: CreateHandlerOptions) => {
   /** Only admin or owner can create apiKeys of team (if teamId is passed) */
   await checkPermissions({ userId, teamId, role: { in: [MembershipRole.OWNER, MembershipRole.ADMIN] } });
 
-  await ctx.ctx.prisma.apiKey.create({
+  await prisma.apiKey.create({
     data: {
       id: v4(),
       userId: ctx.user.id,

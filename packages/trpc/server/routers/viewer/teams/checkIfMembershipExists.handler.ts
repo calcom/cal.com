@@ -1,3 +1,5 @@
+import { prisma } from "@calcom/prisma";
+
 import type { TrpcSessionUser } from "../../../types";
 import type { TCheckIfMembershipExistsInputSchema } from "./checkIfMembershipExists.schema";
 
@@ -11,7 +13,7 @@ type CheckIfMembershipExistsOptions = {
 const checkIfMembershipExistsHandler = async ({ ctx, input }: CheckIfMembershipExistsOptions) => {
   const { teamId, value } = input;
 
-  const membership = await ctx.ctx.prisma.membership.findFirst({
+  const membership = await prisma.membership.findFirst({
     where: {
       teamId,
       user: {

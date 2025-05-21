@@ -1,3 +1,5 @@
+import { prisma } from "@calcom/prisma";
+
 import type { TGetBookingAttendeesInputSchema } from "./getBookingAttendees.schema";
 
 type GetBookingAttendeesOptions = {
@@ -6,7 +8,7 @@ type GetBookingAttendeesOptions = {
 };
 
 export const getBookingAttendeesHandler = async ({ ctx: _ctx, input }: GetBookingAttendeesOptions) => {
-  const bookingSeat = await ctx.ctx.prisma.bookingSeat.findUniqueOrThrow({
+  const bookingSeat = await prisma.bookingSeat.findUniqueOrThrow({
     where: {
       referenceUid: input.seatReferenceUid,
     },

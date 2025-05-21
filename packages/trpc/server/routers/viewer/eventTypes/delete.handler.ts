@@ -1,3 +1,5 @@
+import { prisma } from "@calcom/prisma";
+
 import type { TrpcSessionUser } from "../../../types";
 import type { TDeleteInputSchema } from "./delete.schema";
 
@@ -11,13 +13,13 @@ type DeleteOptions = {
 export const deleteHandler = async ({ ctx: _ctx, input }: DeleteOptions) => {
   const { id } = input;
 
-  await ctx.ctx.prisma.eventTypeCustomInput.deleteMany({
+  await prisma.eventTypeCustomInput.deleteMany({
     where: {
       eventTypeId: id,
     },
   });
 
-  await ctx.ctx.prisma.eventType.delete({
+  await prisma.eventType.delete({
     where: {
       id,
     },

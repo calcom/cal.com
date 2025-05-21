@@ -1,3 +1,4 @@
+import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 type HasTeamPlanOptions = {
@@ -9,7 +10,7 @@ type HasTeamPlanOptions = {
 export const hasTeamPlanHandler = async ({ ctx }: HasTeamPlanOptions) => {
   const userId = ctx.user.id;
 
-  const hasTeamPlan = await ctx.ctx.prisma.membership.findFirst({
+  const hasTeamPlan = await prisma.membership.findFirst({
     where: {
       accepted: true,
       userId,

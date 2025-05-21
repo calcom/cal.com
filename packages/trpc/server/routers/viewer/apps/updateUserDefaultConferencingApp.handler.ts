@@ -2,6 +2,7 @@ import z from "zod";
 
 import getApps from "@calcom/app-store/utils";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
+import { prisma } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -43,7 +44,7 @@ export const updateUserDefaultConferencingAppHandler = async ({
     }
   }
 
-  await ctx.ctx.prisma.user.update({
+  await prisma.user.update({
     where: {
       id: ctx.user.id,
     },

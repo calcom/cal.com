@@ -2,6 +2,7 @@ import type { GetServerSidePropsContext, NextApiResponse } from "next";
 
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -24,7 +25,7 @@ export const addSecondaryEmailHandler = async ({ ctx, input }: AddSecondaryEmail
     identifier: `addSecondaryEmail.${user.email}`,
   });
 
-  const existingPrimaryEmail = await ctx.ctx.prisma.user.findUnique({
+  const existingPrimaryEmail = await prisma.user.findUnique({
     where: {
       email: input.email,
     },
@@ -34,7 +35,7 @@ export const addSecondaryEmailHandler = async ({ ctx, input }: AddSecondaryEmail
     throw new TRPCError({ code: "BAD_REQUEST", message: "Email already taken" });
   }
 
-  const existingSecondaryEmail = await ctx.ctx.prisma.secondaryEmail.findUnique({
+  const existingSecondaryEmail = await prisma.secondaryEmail.findUnique({
     where: {
       email: input.email,
     },
@@ -44,7 +45,7 @@ export const addSecondaryEmailHandler = async ({ ctx, input }: AddSecondaryEmail
     throw new TRPCError({ code: "BAD_REQUEST", message: "Email already taken" });
   }
 
-  const updatedData = await ctx.ctx.prisma.secondaryEmail.create({
+  const updatedData = await prisma.secondaryEmail.create({
     data: { ...input, userId: user.id },
   });
 

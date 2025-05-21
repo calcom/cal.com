@@ -2,6 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { sendPasswordResetEmail } from "@calcom/emails";
 import { PASSWORD_RESET_EXPIRY_HOURS } from "@calcom/features/auth/lib/passwordResetRequest";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TAdminPasswordResetSchema } from "./sendPasswordReset.schema";
@@ -16,7 +17,7 @@ type GetOptions = {
 const sendPasswordResetHandler = async ({ input }: GetOptions) => {
   const { userId } = input;
 
-  const user = await ctx.ctx.prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: {
       id: userId,
     },
@@ -35,7 +36,7 @@ const sendPasswordResetHandler = async ({ input }: GetOptions) => {
 
   const expiry = dayjs().add(PASSWORD_RESET_EXPIRY_HOURS, "hours").toDate();
 
-  const passwordResetToken = await ctx.ctx.prisma.resetPasswordRequest.create({
+  const passwordResetToken = await prisma.resetPasswordRequest.create({
     data: {
       email: user.email,
       expires: expiry,

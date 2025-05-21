@@ -1,6 +1,5 @@
-import type { Prisma } from "@prisma/client";
-
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -41,7 +40,7 @@ export async function addMembersToEventTypesHandler({ ctx, input }: AddBulkToEve
     }))
   );
 
-  return await ctx.ctx.prisma.host.createMany({
+  return await prisma.host.createMany({
     data,
     // skip if user already a host in eventType
     skipDuplicates: true,

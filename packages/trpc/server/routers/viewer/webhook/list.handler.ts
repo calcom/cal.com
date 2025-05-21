@@ -1,5 +1,4 @@
-import type { Prisma } from "@prisma/client";
-
+import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TListInputSchema } from "./list.schema";
@@ -17,7 +16,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
     AND: [{ appId: !input?.appId ? null : input.appId }],
   };
 
-  const user = await ctx.ctx.prisma.user.findFirst({
+  const user = await prisma.user.findFirst({
     where: {
       id: ctx.user.id,
     },
@@ -28,7 +27,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
 
   if (Array.isArray(where.AND)) {
     if (input?.eventTypeId) {
-      const managedParentEvt = await ctx.ctx.prisma.eventType.findFirst({
+      const managedParentEvt = await prisma.eventType.findFirst({
         where: {
           id: input.eventTypeId,
           parentId: {
@@ -58,7 +57,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
     }
   }
 
-  return await ctx.ctx.prisma.webhook.findMany({
+  return await prisma.webhook.findMany({
     where,
   });
 };

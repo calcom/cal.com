@@ -1,3 +1,5 @@
+import { prisma } from "@calcom/prisma";
+
 import type { TrpcSessionUser } from "../../../types";
 import type { TEditInputSchema } from "./edit.schema";
 
@@ -13,7 +15,7 @@ export const editHandler = async ({ ctx, input }: EditOptions) => {
 
   const {
     apiKeys: [updatedApiKey],
-  } = await ctx.ctx.prisma.user.update({
+  } = await prisma.user.update({
     where: {
       id: ctx.user.id,
     },

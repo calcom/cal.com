@@ -1,4 +1,5 @@
 import slugify from "@calcom/lib/slugify";
+import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -26,7 +27,7 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
   // If an option is removed, it is to be removed from contains of corresponding group as well if any
   const options = getOptionsWithValidContains(input.options);
 
-  const foundAttribute = await ctx.ctx.prisma.attribute.findUnique({
+  const foundAttribute = await prisma.attribute.findUnique({
     where: {
       id: input.attributeId,
       teamId: org.id,
@@ -43,7 +44,7 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
     });
   }
 
-  const attributes = await ctx.ctx.prisma.attribute.update({
+  const attributes = await prisma.attribute.update({
     where: {
       id: input.attributeId,
     },
@@ -125,7 +126,7 @@ async function validateOptionsBelongToAttribute(
     .map((option) => option.id!);
 
   // Check all ids of options passed in are owned by the attribute
-  const optionsWithIdOwnedByAttribute = await ctx.ctx.prisma.attributeOption.findMany({
+  const optionsWithIdOwnedByAttribute = await prisma.attributeOption.findMany({
     where: {
       id: {
         in: optionsWithId,

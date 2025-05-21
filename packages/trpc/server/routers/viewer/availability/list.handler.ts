@@ -1,3 +1,5 @@
+import { prisma } from "@calcom/prisma";
+
 import type { TrpcSessionUser } from "../../../types";
 import { getDefaultScheduleId } from "./util";
 
@@ -10,7 +12,7 @@ type ListOptions = {
 export const listHandler = async ({ ctx }: ListOptions) => {
   const { user } = ctx;
 
-  const schedules = await ctx.ctx.prisma.schedule.findMany({
+  const schedules = await prisma.schedule.findMany({
     where: {
       userId: user.id,
     },
@@ -36,7 +38,7 @@ export const listHandler = async ({ ctx }: ListOptions) => {
     defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
 
     if (!user.defaultScheduleId) {
-      await ctx.ctx.prisma.user.update({
+      await prisma.user.update({
         where: {
           id: user.id,
         },

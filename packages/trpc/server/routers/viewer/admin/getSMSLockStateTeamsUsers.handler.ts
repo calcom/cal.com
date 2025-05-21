@@ -1,3 +1,4 @@
+import { prisma } from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/client";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -26,27 +27,27 @@ const getSMSLockStateTeamsUsers = async ({ ctx }: GetOptions) => {
     logoUrl: true,
   };
 
-  const lockedUsers = await ctx.ctx.prisma.user.findMany({
+  const lockedUsers = await prisma.user.findMany({
     where: {
       smsLockState: SMSLockState.LOCKED,
     },
     select: userSelect,
   });
-  const reviewNeededUsers = await ctx.ctx.prisma.user.findMany({
+  const reviewNeededUsers = await prisma.user.findMany({
     where: {
       smsLockState: SMSLockState.REVIEW_NEEDED,
     },
     select: userSelect,
   });
 
-  const lockedTeams = await ctx.ctx.prisma.team.findMany({
+  const lockedTeams = await prisma.team.findMany({
     where: {
       smsLockState: SMSLockState.LOCKED,
     },
     select: teamSelect,
   });
 
-  const reviewNeededTeams = await ctx.ctx.prisma.team.findMany({
+  const reviewNeededTeams = await prisma.team.findMany({
     where: {
       smsLockState: SMSLockState.REVIEW_NEEDED,
     },

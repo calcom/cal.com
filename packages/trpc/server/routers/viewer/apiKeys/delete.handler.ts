@@ -1,3 +1,5 @@
+import { prisma } from "@calcom/prisma";
+
 import type { TrpcSessionUser } from "../../../types";
 import type { TDeleteInputSchema } from "./delete.schema";
 
@@ -11,13 +13,13 @@ type DeleteOptions = {
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   const { id } = input;
 
-  const apiKeyToDelete = await ctx.ctx.prisma.apiKey.findFirst({
+  const apiKeyToDelete = await prisma.apiKey.findFirst({
     where: {
       id,
     },
   });
 
-  await ctx.ctx.prisma.user.update({
+  await prisma.user.update({
     where: {
       id: ctx.user.id,
     },
@@ -32,7 +34,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
 
   //remove all existing zapier webhooks, as we always have only one zapier API key and the running zaps won't work any more if this key is deleted
   if (apiKeyToDelete && apiKeyToDelete.appId === "zapier") {
-    await ctx.ctx.prisma.webhook.deleteMany({
+    await prisma.webhook.deleteMany({
       where: {
         userId: ctx.user.id,
         appId: "zapier",

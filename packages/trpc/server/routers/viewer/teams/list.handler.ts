@@ -1,3 +1,4 @@
+import { prisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -11,7 +12,7 @@ type ListOptions = {
 };
 
 export const listHandler = async ({ ctx, input }: ListOptions) => {
-  const memberships = await ctx.ctx.prisma.membership.findMany({
+  const memberships = await prisma.membership.findMany({
     where: {
       // Show all the teams this user belongs to regardless of the team being part of the user's org or not
       // We don't want to restrict in the listing here. If we need to restrict a situation where a user is part of the org along with being part of a non-org team, we should do that instead of filtering out from here

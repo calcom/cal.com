@@ -1,10 +1,9 @@
-import type { Prisma } from "@prisma/client";
-
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { uploadLogo } from "@calcom/lib/server/avatar";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
+import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -116,7 +115,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   if (!currentOrgId || !isUserAuthorizedToUpdate) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   if (input.slug) {
-    const userConflict = await ctx.ctx.prisma.team.findMany({
+    const userConflict = await prisma.team.findMany({
       where: {
         slug: input.slug,
         parent: {
@@ -128,7 +127,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       throw new TRPCError({ code: "CONFLICT", message: "Slug already in use." });
   }
 
-  const prevOrganisation = await ctx.ctx.prisma.team.findFirst({
+  const prevOrganisation = await prisma.team.findFirst({
     where: {
       id: currentOrgId,
     },

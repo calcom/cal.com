@@ -1,9 +1,8 @@
-import type { Prisma } from "@prisma/client";
-
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -151,7 +150,7 @@ export const getEventTypesFromGroup = async ({
 
   const mappedEventTypes: MappedEventType[] = await Promise.all(eventTypes.map(mapEventType));
 
-  const membership = await ctx.ctx.prisma.membership.findFirst({
+  const membership = await prisma.membership.findFirst({
     where: {
       userId: ctx.user.id,
       teamId: teamId ?? 0,

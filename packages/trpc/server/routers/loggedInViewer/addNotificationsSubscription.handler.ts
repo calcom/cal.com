@@ -1,6 +1,7 @@
 import { subscriptionSchema } from "@calcom/features/instant-meeting/schema";
 import { sendNotification } from "@calcom/features/notifications/sendNotification";
 import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -30,16 +31,16 @@ export const addNotificationsSubscriptionHandler = async ({ ctx, input }: AddSec
     });
   }
 
-  const existingSubscription = await ctx.ctx.prisma.notificationsSubscriptions.findFirst({
+  const existingSubscription = await prisma.notificationsSubscriptions.findFirst({
     where: { userId: user.id },
   });
 
   if (!existingSubscription) {
-    await ctx.ctx.prisma.notificationsSubscriptions.create({
+    await prisma.notificationsSubscriptions.create({
       data: { userId: user.id, subscription },
     });
   } else {
-    await ctx.ctx.prisma.notificationsSubscriptions.update({
+    await prisma.notificationsSubscriptions.update({
       where: { id: existingSubscription.id },
       data: { userId: user.id, subscription },
     });

@@ -1,3 +1,4 @@
+import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -17,7 +18,7 @@ export const updateHandler = async ({
   const userId = ctx.user.id;
 
   // First, fetch the existing segment to check permissions
-  const existingSegment = await ctx.ctx.prisma.filterSegment.findFirst({
+  const existingSegment = await prisma.filterSegment.findFirst({
     where: {
       id,
       ...(input.scope === "TEAM"
@@ -54,7 +55,7 @@ export const updateHandler = async ({
   }
 
   // Update the filter segment with only the allowed fields
-  const updatedSegment = await ctx.ctx.prisma.filterSegment.update({
+  const updatedSegment = await prisma.filterSegment.update({
     where: { id },
     data: {
       name,

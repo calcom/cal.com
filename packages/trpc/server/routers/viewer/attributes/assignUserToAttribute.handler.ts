@@ -1,5 +1,6 @@
 import { getWhereClauseForAttributeOptionsManagedByCalcom } from "@calcom/lib/service/attribute/server/utils";
 import slugify from "@calcom/lib/slugify";
+import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -24,7 +25,7 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
   }
 
   // Ensure this organization can access these attributes and attribute options
-  const attributes = await ctx.ctx.prisma.attribute.findMany({
+  const attributes = await prisma.attribute.findMany({
     where: {
       id: {
         in: input.attributes.map((attribute) => attribute.id),
@@ -53,7 +54,7 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
 
   const attributeOptionIds = Array.from(new Set(arrayOfAttributeOptionIds));
 
-  const attributeOptions = await ctx.ctx.prisma.attributeOption.findMany({
+  const attributeOptions = await prisma.attributeOption.findMany({
     where: {
       id: {
         in: attributeOptionIds,
@@ -76,7 +77,7 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
     });
   }
 
-  const membership = await ctx.ctx.prisma.membership.findFirst({
+  const membership = await prisma.membership.findFirst({
     where: {
       userId: input.userId,
       teamId: org.id,
@@ -105,7 +106,7 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
       const valueAsString = String(attribute.value);
 
       // Check if it is already the value
-      const existingAttributeOption = await ctx.ctx.prisma.attributeToUser.findFirst({
+      const existingAttributeOption = await prisma.attributeToUser.findFirst({
         where: {
           memberId: membership.id,
           attributeOption: {
@@ -126,7 +127,7 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
 
       if (existingAttributeOption) {
         // Update the value if it already exists
-        await ctx.ctx.prisma.attributeOption.update({
+        await prisma.attributeOption.update({
           where: {
             id: existingAttributeOption.attributeOption.id,
           },
@@ -138,7 +139,7 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
         return;
       }
 
-      await ctx.ctx.prisma.attributeOption.create({
+      await prisma.attributeOption.create({
         data: {
           value: valueAsString,
           slug: slugify(valueAsString),
@@ -161,7 +162,7 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
       const options = attribute.options;
 
       // Delete all users attributes for this attribute that are not in the options list
-      await ctx.ctx.prisma.attributeToUser.deleteMany({
+      await prisma.attributeToUser.deleteMany({
         where: {
           attributeOption: {
             attribute: {
@@ -180,7 +181,7 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
 
       options?.map(async (option) => {
         // Assign the attribute option to the user
-        await ctx.ctx.prisma.attributeToUser.upsert({
+        await prisma.attributeToUser.upsert({
           where: {
             memberId_attributeOptionId: {
               memberId: membership.id,
@@ -202,7 +203,7 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
 
     // Delete the attribute from the user
     if (!attribute.value && !attribute.options) {
-      await ctx.ctx.prisma.attributeToUser.deleteMany({
+      await prisma.attributeToUser.deleteMany({
         where: {
           memberId: membership.id,
           ...getWhereClauseForAttributeOptionsManagedByCalcom(),

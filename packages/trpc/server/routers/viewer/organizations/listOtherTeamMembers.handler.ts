@@ -1,8 +1,8 @@
-import type { Prisma } from "@prisma/client";
 import z from "zod";
 
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -59,7 +59,7 @@ export const listOtherTeamMembers = async ({ input }: ListOptions) => {
     };
   }
 
-  const team = await ctx.ctx.prisma.team.findUnique({
+  const team = await prisma.team.findUnique({
     where: {
       id: input.teamId,
     },
@@ -75,7 +75,7 @@ export const listOtherTeamMembers = async ({ input }: ListOptions) => {
     });
   }
 
-  const members = await ctx.ctx.prisma.membership.findMany({
+  const members = await prisma.membership.findMany({
     where: whereConditional,
     select: {
       id: true,

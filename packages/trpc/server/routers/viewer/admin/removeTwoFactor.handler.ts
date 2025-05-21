@@ -1,3 +1,5 @@
+import { prisma } from "@calcom/prisma";
+
 import type { TrpcSessionUser } from "../../../types";
 import type { TAdminRemoveTwoFactor } from "./removeTwoFactor.schema";
 
@@ -10,7 +12,7 @@ type GetOptions = {
 
 const removeTwoFactorHandler = async ({ input }: GetOptions) => {
   const { userId } = input;
-  await ctx.ctx.prisma.user.update({
+  await prisma.user.update({
     where: {
       id: userId,
     },

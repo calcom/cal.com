@@ -1,3 +1,4 @@
+import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TRemoveNotificationsSubscriptionInputSchema } from "./removeNotificationsSubscription.schema";
@@ -13,14 +14,14 @@ export const removeNotificationsSubscriptionHandler = async ({ ctx }: AddSeconda
   const { user } = ctx;
 
   // We just use findFirst because there will only be single unique subscription for a user
-  const subscriptionToDelete = await ctx.ctx.ctx.ctx.prisma.notificationsSubscriptions.findFirst({
+  const subscriptionToDelete = await prisma.notificationsSubscriptions.findFirst({
     where: {
       userId: user.id,
     },
   });
 
   if (subscriptionToDelete) {
-    await ctx.ctx.ctx.ctx.prisma.notificationsSubscriptions.delete({
+    await prisma.notificationsSubscriptions.delete({
       where: {
         id: subscriptionToDelete.id,
       },

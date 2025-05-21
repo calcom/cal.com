@@ -15,7 +15,7 @@ type GetOptions = {
 const EMPTY_SCHEDULE = [[], [], [], [], [], [], []];
 
 export const getScheduleByUserIdHandler = async ({ ctx, input }: GetOptions) => {
-  const foundUserDefaultId = await ctx.ctx.ctx.prisma.user.findUnique({
+  const foundUserDefaultId = await ctx.prisma.user.findUnique({
     where: {
       id: input.userId,
     },

@@ -1,6 +1,7 @@
 import { InternalTeamBilling } from "@calcom/ee/billing/teams/internal-team-billing";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TSkipTeamTrialsInputSchema } from "./skipTeamTrials.schema";
@@ -19,7 +20,7 @@ export const skipTeamTrialsHandler = async ({ ctx }: SkipTeamTrialsOptions) => {
   if (IS_SELF_HOSTED) return { success: true };
 
   try {
-    await ctx.ctx.prisma.user.update({
+    await prisma.user.update({
       where: {
         id: ctx.user.id,
       },
@@ -28,7 +29,7 @@ export const skipTeamTrialsHandler = async ({ ctx }: SkipTeamTrialsOptions) => {
       },
     });
 
-    const ownedTeams = await ctx.ctx.prisma.team.findMany({
+    const ownedTeams = await prisma.team.findMany({
       where: {
         members: {
           some: {
