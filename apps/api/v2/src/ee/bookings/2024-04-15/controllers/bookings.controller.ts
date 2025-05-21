@@ -135,9 +135,13 @@ export class BookingsController_2024_04_15 {
       },
     });
 
+    let nextCursor = null;
+    if (bookings.totalCount > (cursor ?? 0) + (limit ?? 10)) {
+      nextCursor = (cursor ?? 0) + (limit ?? 10);
+    }
     return {
       status: SUCCESS_STATUS,
-      data: bookings,
+      data: { ...bookings, nextCursor },
     };
   }
 

@@ -19,6 +19,7 @@ import { encryptServiceAccountKey } from "@calcom/platform-libraries";
 import {
   addDelegationCredential,
   toggleDelegationCredentialEnabled,
+  type TServiceAccountKeySchema,
 } from "@calcom/platform-libraries/app-store";
 
 @Injectable()
@@ -126,12 +127,17 @@ export class OrganizationsDelegationCredentialService {
     delegationCredentialId: string,
     serviceAccountKey: GoogleServiceAccountKeyInput | MicrosoftServiceAccountKeyInput
   ) {
-    const encryptedServiceAccountKey = encryptServiceAccountKey(serviceAccountKey);
+    // First encrypt the service account key
+    const encryptedServiceAccountKey = encryptServiceAccountKey(
+      serviceAccountKey as TServiceAccountKeySchema
+    );
+    const prismaJsonValue = JSON.parse(JSON.stringify(encryptedServiceAccountKey));
+
     const delegationCredential =
       await this.organizationsDelegationCredentialRepository.updateIncludeWorkspacePlatform(
         delegationCredentialId,
         {
-          serviceAccountKey: encryptedServiceAccountKey,
+          serviceAccountKey: prismaJsonValue,
         }
       );
     return delegationCredential;
