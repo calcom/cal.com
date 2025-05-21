@@ -507,7 +507,6 @@ export const insightsRouter = router({
 
       // Get date ranges directly instead of using timeline
       const dateRanges = EventsInsights.getDateRanges(startDate, endDate, timeView);
-      console.log("💡 TEST", dateRanges);
       if (!dateRanges.length) {
         return [];
       }
