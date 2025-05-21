@@ -576,6 +576,8 @@ export class EventTypeRepository {
           },
         },
       },
+      restrictionScheduleId: true,
+      useBookerTimezone: true,
       users: {
         select: userSelect,
       },
@@ -587,6 +589,12 @@ export class EventTypeRepository {
         },
       },
       instantMeetingSchedule: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      restrictionSchedule: {
         select: {
           id: true,
           name: true,

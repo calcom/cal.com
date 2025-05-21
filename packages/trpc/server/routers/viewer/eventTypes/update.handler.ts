@@ -83,6 +83,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     description: newDescription,
     title: newTitle,
     seatsPerTimeSlot,
+    restrictionScheduleId,
     ...rest
   } = input;
 
@@ -292,6 +293,18 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     };
   } else if (schedule === null) {
     data.instantMeetingSchedule = {
+      disconnect: true,
+    };
+  }
+
+  if (restrictionScheduleId) {
+    data.restrictionSchedule = {
+      connect: {
+        id: restrictionScheduleId,
+      },
+    };
+  } else if (restrictionScheduleId === null || restrictionScheduleId === 0) {
+    data.restrictionSchedule = {
       disconnect: true,
     };
   }

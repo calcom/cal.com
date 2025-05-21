@@ -70,4 +70,18 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   maxLeadThreshold: true,
   useEventLevelSelectedCalendars: true,
   customReplyToEmail: true,
+  restrictionScheduleId: true,
+  useBookerTimezone: true,
+  schedule: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+  instantMeetingSchedule: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
 });

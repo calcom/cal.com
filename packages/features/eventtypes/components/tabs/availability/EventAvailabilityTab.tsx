@@ -113,6 +113,11 @@ type EventTypeScheduleProps = {
   eventType: EventTypeSetup;
   teamMembers: TeamMember[];
   customClassNames?: UserAvailabilityCustomClassNames;
+  fieldName?: "schedule" | "restrictionScheduleId";
+  scheduleQueryData?: ScheduleQueryData;
+  restrictionScheduleQueryData?: ScheduleQueryData;
+  isSchedulePending?: boolean;
+  isRestrictionSchedulePending?: boolean;
 } & Omit<EventTypeScheduleDetailsProps, "customClassNames"> &
   Omit<EventTypeTeamScheduleProps, "customClassNames">;
 
@@ -283,6 +288,11 @@ const EventTypeSchedule = ({
   schedulesQueryData,
   isSchedulesPending,
   customClassNames,
+  fieldName = "schedule",
+  scheduleQueryData,
+  restrictionScheduleQueryData,
+  isSchedulePending,
+  isRestrictionSchedulePending,
   ...rest
 }: EventTypeScheduleProps) => {
   const { t } = useLocale();
@@ -291,14 +301,14 @@ const EventTypeSchedule = ({
     useLockedFieldsManager({ eventType, translate: t, formMethods });
   const { watch, setValue } = formMethods;
 
-  const scheduleId = watch("schedule");
+  const scheduleId = watch(fieldName);
 
   useEffect(() => {
     // after data is loaded.
     if (schedulesQueryData && scheduleId !== 0 && !scheduleId) {
       const newValue = isManagedEventType ? 0 : schedulesQueryData.find((schedule) => schedule.isDefault)?.id;
       if (!newValue && newValue !== 0) return;
-      setValue("schedule", newValue, {
+      setValue(fieldName, newValue, {
         shouldDirty: true,
       });
     }
@@ -349,6 +359,11 @@ const EventTypeSchedule = ({
     });
   }
 
+  const currentScheduleQueryData =
+    fieldName === "schedule" ? scheduleQueryData : restrictionScheduleQueryData;
+  const isCurrentSchedulePending =
+    fieldName === "schedule" ? isSchedulePending : isRestrictionSchedulePending;
+
   return (
     <div>
       <div
@@ -363,10 +378,10 @@ const EventTypeSchedule = ({
             customClassNames?.availabilitySelect?.label
           )}>
           {t("availability")}
-          {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator("schedule")}
+          {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator(fieldName)}
         </label>
         <Controller
-          name="schedule"
+          name={fieldName}
           render={({ field: { onChange, value } }) => {
             const optionValue: AvailabilityOption | undefined = options.find(
               (option) => option.value === value
@@ -375,7 +390,7 @@ const EventTypeSchedule = ({
               <Select
                 placeholder={t("select")}
                 options={options}
-                isDisabled={shouldLockDisableProps("schedule").disabled}
+                isDisabled={shouldLockDisableProps(fieldName).disabled}
                 isSearchable={false}
                 onChange={(selected) => {
                   if (selected) onChange(selected.value);
@@ -393,16 +408,23 @@ const EventTypeSchedule = ({
           }}
         />
       </div>
-      {scheduleId !== 0 ? (
-        <EventTypeScheduleDetails {...rest} customClassNames={customClassNames?.availabilityTable} />
+      {scheduleId !== 0 && (fieldName === "schedule" || fieldName === "restrictionScheduleId") ? (
+        <EventTypeScheduleDetails
+          {...rest}
+          scheduleQueryData={currentScheduleQueryData}
+          isSchedulePending={isCurrentSchedulePending}
+          customClassNames={customClassNames?.availabilityTable}
+        />
       ) : (
-        isManagedEventType && (
+        isManagedEventType &&
+        fieldName === "schedule" && (
           <p className="!mt-2 ml-1 text-sm text-gray-600">{t("members_default_schedule_description")}</p>
         )
       )}
     </div>
   );
 };
+
 const TeamMemberSchedule = ({
   host,
   index,
@@ -575,6 +597,25 @@ const useCommonScheduleState = (initialScheduleId: number | null) => {
   };
 };
 
+const useRestrictionScheduleState = (initialRestrictionScheduleId: number | null) => {
+  const { setValue } = useFormContext<FormValues>();
+  const [restrictScheduleForHosts, setRestrictScheduleForHosts] = useState(!!initialRestrictionScheduleId);
+
+  // Toggle function for restriction schedule
+  const toggleRestrictScheduleState = (checked: boolean) => {
+    setRestrictScheduleForHosts(checked);
+    if (!checked) {
+      setValue("restrictionScheduleId", null);
+      setValue("useBookerTimezone", false);
+    }
+  };
+
+  return {
+    restrictScheduleForHosts,
+    toggleRestrictScheduleState,
+  };
+};
+
 const UseTeamEventScheduleSettingsToggle = ({
   eventType,
   customClassNames,
@@ -582,6 +623,9 @@ const UseTeamEventScheduleSettingsToggle = ({
 }: UseTeamEventScheduleSettingsToggle) => {
   const { t } = useLocale();
   const { useHostSchedulesForTeamEvent, toggleScheduleState } = useCommonScheduleState(eventType.schedule);
+  const { restrictScheduleForHosts, toggleRestrictScheduleState } = useRestrictionScheduleState(
+    eventType.restrictionScheduleId
+  );
   return (
     <div className="border-subtle space-y-6 rounded-lg border p-6">
       <SettingsToggle
@@ -589,10 +633,10 @@ const UseTeamEventScheduleSettingsToggle = ({
         onCheckedChange={toggleScheduleState}
         title={t("choose_common_schedule_team_event")}
         description={t("choose_common_schedule_team_event_description")}>
-        {/* handles the state for which 'schedule' ID is set, as it's unknown until the Select dropdown is loaded */}
         <EventTypeSchedule
           customClassNames={customClassNames?.userAvailability}
           eventType={eventType}
+          fieldName="schedule"
           {...rest}
         />
       </SettingsToggle>
@@ -605,6 +649,18 @@ const UseTeamEventScheduleSettingsToggle = ({
           />
         </div>
       )}
+      <SettingsToggle
+        checked={restrictScheduleForHosts}
+        onCheckedChange={toggleRestrictScheduleState}
+        title={t("choose_restriction_schedule")}
+        description={t("choose_restriction_schedule_description")}>
+        <EventTypeSchedule
+          customClassNames={customClassNames?.userAvailability}
+          eventType={eventType}
+          fieldName="restrictionScheduleId"
+          {...rest}
+        />
+      </SettingsToggle>
     </div>
   );
 };

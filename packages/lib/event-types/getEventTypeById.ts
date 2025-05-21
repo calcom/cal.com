@@ -112,6 +112,8 @@ export const getEventTypeById = async ({
       rawEventType.schedule?.id ||
       (!rawEventType.team ? rawEventType.users[0]?.defaultScheduleId : null) ||
       null,
+    restrictionScheduleId: rawEventType.restrictionScheduleId || null,
+    useBookerTimezone: rawEventType.useBookerTimezone || false,
     instantMeetingSchedule: rawEventType.instantMeetingSchedule?.id || null,
     scheduleName: rawEventType.schedule?.name || null,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
