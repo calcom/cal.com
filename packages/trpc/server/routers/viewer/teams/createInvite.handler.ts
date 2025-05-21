@@ -2,6 +2,7 @@ import { randomBytes } from "crypto";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
+import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -23,7 +24,7 @@ export const createInviteHandler = async ({ ctx, input }: CreateInviteOptions) =
   const isOrganizationOrATeamInOrganization = !!(membership.team?.parentId || membership.team.isOrganization);
 
   if (input.token) {
-    const existingToken = await ctx.ctx.prisma.verificationToken.findFirst({
+    const existingToken = await prisma.verificationToken.findFirst({
       where: { token: input.token, identifier: `invite-link-for-teamId-${teamId}`, teamId },
     });
     if (!existingToken) throw new TRPCError({ code: "NOT_FOUND" });
@@ -34,7 +35,7 @@ export const createInviteHandler = async ({ ctx, input }: CreateInviteOptions) =
   }
 
   const token = randomBytes(32).toString("hex");
-  await ctx.ctx.prisma.verificationToken.create({
+  await prisma.verificationToken.create({
     data: {
       identifier: `invite-link-for-teamId-${teamId}`,
       token,

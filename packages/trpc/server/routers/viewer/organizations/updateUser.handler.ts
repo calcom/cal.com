@@ -6,6 +6,7 @@ import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkRegularUsername } from "@calcom/lib/server/checkRegularUsername";
 import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -22,7 +23,7 @@ type UpdateUserOptions = {
 };
 
 const applyRoleToAllTeams = async (userId: number, teamIds: number[], role: MembershipRole) => {
-  await ctx.ctx.prisma.membership.updateMany({
+  await prisma.membership.updateMany({
     where: {
       userId,
       teamId: {
@@ -60,7 +61,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   }
 
   // Is requested user a member of the organization?
-  const requestedMember = await ctx.ctx.prisma.membership.findFirst({
+  const requestedMember = await prisma.membership.findFirst({
     where: {
       userId: input.userId,
       teamId: organizationId,
@@ -131,13 +132,13 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
 
   // Update user
   const transactions: PrismaPromise<User | Membership | Profile>[] = [
-    ctx.ctx.prisma.user.update({
+    prisma.user.update({
       where: {
         id: input.userId,
       },
       data,
     }),
-    ctx.ctx.prisma.membership.update({
+    prisma.membership.update({
       where: {
         userId_teamId: {
           userId: input.userId,
@@ -152,7 +153,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
 
   if (hasUsernameUpdated) {
     transactions.push(
-      ctx.ctx.prisma.profile.update({
+      prisma.profile.update({
         where: {
           userId_organizationId: {
             userId: input.userId,

@@ -1,4 +1,5 @@
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -20,7 +21,7 @@ export async function removeHostsFromEventTypesHandler({ ctx, input }: RemoveHos
 
   const { userIds, eventTypeIds } = input;
 
-  return await ctx.ctx.prisma.host.deleteMany({
+  return await prisma.host.deleteMany({
     where: {
       eventTypeId: {
         in: eventTypeIds,

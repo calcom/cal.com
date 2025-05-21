@@ -1,6 +1,7 @@
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
 import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
@@ -37,7 +38,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const expand = input.expand;
   const filters = input.filters || [];
 
-  const allAttributeOptions = await ctx.ctx.prisma.attributeOption.findMany({
+  const allAttributeOptions = await prisma.attributeOption.findMany({
     where: {
       attribute: {
         teamId: organizationId,
@@ -183,11 +184,11 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     }));
   }
 
-  const totalCountPromise = ctx.ctx.prisma.membership.count({
+  const totalCountPromise = prisma.membership.count({
     where: whereClause,
   });
 
-  const teamMembersPromise = ctx.ctx.prisma.membership.findMany({
+  const teamMembersPromise = prisma.membership.findMany({
     where: whereClause,
     select: {
       id: true,
@@ -240,7 +241,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
       let attributes;
 
       if (expand?.includes("attributes")) {
-        attributes = await ctx.ctx.prisma.attributeToUser
+        attributes = await prisma.attributeToUser
           .findMany({
             where: {
               memberId: membership.id,

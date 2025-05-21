@@ -3,6 +3,7 @@ import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { uploadLogo } from "@calcom/lib/server/avatar";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -55,7 +56,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     throw new TRPCError({ code: "FORBIDDEN", message: "org_admins_can_create_new_teams" });
   }
 
-  const slugCollisions = await ctx.ctx.prisma.team.findFirst({
+  const slugCollisions = await prisma.team.findFirst({
     where: {
       slug: slug,
       // If this is under an org, check that the team doesn't already exist
@@ -91,7 +92,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       };
   }
 
-  const createdTeam = await ctx.ctx.prisma.team.create({
+  const createdTeam = await prisma.team.create({
     data: {
       slug,
       name,
@@ -111,7 +112,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       logo: await resizeBase64Image(input.logo),
       teamId: createdTeam.id,
     });
-    await ctx.ctx.prisma.team.update({
+    await prisma.team.update({
       where: {
         id: createdTeam.id,
       },

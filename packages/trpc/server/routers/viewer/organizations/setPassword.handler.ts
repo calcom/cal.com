@@ -2,6 +2,7 @@ import { createHash } from "crypto";
 
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
+import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -18,7 +19,7 @@ type UpdateOptions = {
 export const setPasswordHandler = async ({ ctx, input }: UpdateOptions) => {
   const { newPassword } = input;
 
-  const user = await ctx.ctx.prisma.user.findFirst({
+  const user = await prisma.user.findFirst({
     where: {
       id: ctx.user.id,
     },
@@ -44,7 +45,7 @@ export const setPasswordHandler = async ({ ctx, input }: UpdateOptions) => {
     });
 
   const hashedPassword = await hashPassword(newPassword);
-  await ctx.ctx.prisma.userPassword.upsert({
+  await prisma.userPassword.upsert({
     where: {
       userId: ctx.user.id,
     },
