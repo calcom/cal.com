@@ -1,12 +1,10 @@
+import type { EventType as PrismaEventType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
-import { createTenantRepository } from "@calcom/lib/server/repository/repositoryFactory";
-import type { PrismaClient } from "@calcom/prisma";
-import { availabilityUserSelect } from "@calcom/prisma";
+import { prisma, availabilityUserSelect } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { getTenantAwarePrisma } from "@calcom/prisma/store/prismaStore";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
 import type { Ensure } from "@calcom/types/utils";
 
@@ -70,20 +68,6 @@ function usersWithSelectedCalendars<
 }
 
 export class EventTypeRepository {
-  private static _prisma: PrismaClient;
-
-  static setPrismaClient(prisma: PrismaClient) {
-    this._prisma = prisma;
-  }
-
-  static get prisma() {
-    if (this._prisma) {
-      return this._prisma;
-    }
-
-    return getTenantAwarePrisma();
-  }
-
   private static generateCreateEventTypeData = (eventTypeCreateData: IEventType) => {
     const {
       userId,
@@ -139,13 +123,13 @@ export class EventTypeRepository {
   };
 
   static async create(data: IEventType) {
-    return await this.prisma.eventType.create({
+    return await prisma.eventType.create({
       data: this.generateCreateEventTypeData(data),
     });
   }
 
   static async createMany(data: IEventType[]) {
-    return await this.prisma.eventType.createMany({
+    return await prisma.eventType.createMany({
       data: data.map((d) => this.generateCreateEventTypeData(d)),
     });
   }
@@ -197,7 +181,7 @@ export class EventTypeRepository {
 
     if (!profileId) {
       // Lookup is by userId
-      return await this.prisma.eventType.findMany({
+      return await prisma.eventType.findMany({
         where: {
           userId: lookupTarget.id,
           ...where,
@@ -213,7 +197,7 @@ export class EventTypeRepository {
     if (profile?.movedFromUser) {
       // Because the user has been moved to this profile, we need to get all user events except those that belong to some other profile
       // This is because those event-types that are created after moving to profile would have profileId but existing event-types would have profileId set to null
-      return await this.prisma.eventType.findMany({
+      return await prisma.eventType.findMany({
         where: {
           OR: [
             // Existing events
@@ -241,7 +225,7 @@ export class EventTypeRepository {
         orderBy,
       });
     } else {
-      return await this.prisma.eventType.findMany({
+      return await prisma.eventType.findMany({
         where: {
           OR: [
             {
@@ -301,7 +285,7 @@ export class EventTypeRepository {
 
     if (!profileId) {
       // Lookup is by userId
-      return await this.prisma.eventType.findMany({
+      return await prisma.eventType.findMany({
         where: {
           userId: lookupTarget.id,
           ...where,
@@ -317,7 +301,7 @@ export class EventTypeRepository {
     if (profile?.movedFromUser) {
       // Because the user has been moved to this profile, we need to get all user events except those that belong to some other profile
       // This is because those event-types that are created after moving to profile would have profileId but existing event-types would have profileId set to null
-      return await this.prisma.eventType.findMany({
+      return await prisma.eventType.findMany({
         where: {
           OR: [
             // Existing events
@@ -345,7 +329,7 @@ export class EventTypeRepository {
         orderBy,
       });
     } else {
-      return await this.prisma.eventType.findMany({
+      return await prisma.eventType.findMany({
         where: {
           OR: [
             {
@@ -410,7 +394,7 @@ export class EventTypeRepository {
       },
     };
 
-    const teamMembership = await this.prisma.membership.findFirst({
+    const teamMembership = await prisma.membership.findFirst({
       where: {
         OR: [
           {
@@ -438,7 +422,7 @@ export class EventTypeRepository {
 
     if (!teamMembership) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-    return await this.prisma.eventType.findMany({
+    return await prisma.eventType.findMany({
       where: {
         teamId,
         ...where,
@@ -451,7 +435,7 @@ export class EventTypeRepository {
   }
 
   static async findAllByUserId({ userId }: { userId: number }) {
-    return await this.prisma.eventType.findMany({
+    return await prisma.eventType.findMany({
       where: {
         userId,
       },
@@ -459,7 +443,7 @@ export class EventTypeRepository {
   }
 
   static async findTitleById({ id }: { id: number }) {
-    return await this.prisma.eventType.findUnique({
+    return await prisma.eventType.findUnique({
       where: {
         id,
       },
@@ -697,7 +681,7 @@ export class EventTypeRepository {
     // This is more efficient than using a complex join with team.members in the query
     const userTeamIds = await MembershipRepository.findUserTeamIds({ userId });
 
-    return await this.prisma.eventType.findFirst({
+    return await prisma.eventType.findFirst({
       where: {
         AND: [
           {
@@ -727,7 +711,7 @@ export class EventTypeRepository {
   }
 
   static async findByIdMinimal({ id }: { id: number }) {
-    return await this.prisma.eventType.findUnique({
+    return await prisma.eventType.findUnique({
       where: {
         id,
       },
@@ -735,7 +719,7 @@ export class EventTypeRepository {
   }
 
   static async findByIdIncludeHostsAndTeam({ id }: { id: number }) {
-    const eventType = await this.prisma.eventType.findUnique({
+    const eventType = await prisma.eventType.findUnique({
       where: {
         id,
       },
@@ -778,7 +762,7 @@ export class EventTypeRepository {
   }
 
   static async findAllByTeamIdIncludeManagedEventTypes({ teamId }: { teamId?: number }) {
-    return await this.prisma.eventType.findMany({
+    return await prisma.eventType.findMany({
       where: {
         OR: [
           {
@@ -795,7 +779,7 @@ export class EventTypeRepository {
   }
 
   static async findForSlots({ id }: { id: number }) {
-    const eventType = await this.prisma.eventType.findUnique({
+    const eventType = await prisma.eventType.findUnique({
       where: {
         id,
       },
@@ -932,5 +916,3 @@ export class EventTypeRepository {
     return user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventTypeId);
   }
 }
-
-export const createEventTypeRepository = (host?: string) => createTenantRepository(EventTypeRepository, host);
