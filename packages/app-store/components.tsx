@@ -137,7 +137,8 @@ export const AppDependencyComponent = ({
                         {t("this_app_requires_connected_account", {
                           appName,
                           dependencyName: dependency.name,
-                        }).replaceAll(/&#x2F;/g, "/")}
+                          interpolation: { escapeValue: false },
+                        })}
                       </span>
                     </div>
                   </div>
@@ -155,7 +156,8 @@ export const AppDependencyComponent = ({
                     {t("this_app_requires_connected_account", {
                       appName,
                       dependencyName: dependency.name,
-                    }).replaceAll(/&#x2F;/g, "/")}
+                      interpolation: { escapeValue: false },
+                    })}
                   </span>
 
                   <div>
