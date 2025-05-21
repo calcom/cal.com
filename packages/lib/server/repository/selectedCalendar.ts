@@ -67,7 +67,9 @@ export class SelectedCalendarRepository {
     const conflictingCalendar = await SelectedCalendarRepository.findConflicting(data);
 
     if (conflictingCalendar) {
-      throw new Error("Selected calendar already exists");
+      throw new Error(
+        `Selected calendar already exists for userId: ${data.userId}, integration: ${data.integration}, externalId: ${data.externalId}, eventTypeId: ${data.eventTypeId}`
+      );
     }
 
     return await prisma.selectedCalendar.create({
@@ -121,6 +123,14 @@ export class SelectedCalendarRepository {
     return await prisma.selectedCalendar.delete({
       where: {
         id: calendarsToDelete[0].id,
+      },
+    });
+  }
+
+  static async deleteById({ id }: { id: string }) {
+    return await prisma.selectedCalendar.delete({
+      where: {
+        id,
       },
     });
   }

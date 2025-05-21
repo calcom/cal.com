@@ -61,7 +61,7 @@ export const CreditBalanceLowWarningEmail = (
       <div style={{ textAlign: "center", marginTop: "24px" }}>
         <CallToAction
           label={user.t("buy_credits")}
-          href={`${WEBAPP_URL}/settings/teams/${user.id}/billing`}
+          href={`${WEBAPP_URL}/settings/billing`}
           endIconName="linkIcon"
         />
       </div>
