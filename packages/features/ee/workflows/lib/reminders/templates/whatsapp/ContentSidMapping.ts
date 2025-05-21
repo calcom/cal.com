@@ -33,8 +33,7 @@ export const getContentVariablesForTemplate = (variables: {
     "2": attendeeName || "",
     "3": eventName || "",
     "4": eventDate || "",
-    "5": startTime || "",
-    "6": timeZone || "",
+    "5": `${startTime ?? ""} ${timeZone ?? ""}`,
   };
 
   return commonVariables;
