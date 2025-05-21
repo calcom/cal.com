@@ -28,7 +28,9 @@ const RoundRobinTimestampBasis = () => {
       render={({ field: { value, onChange } }) => {
         return (
           <>
-            <h4 className="text-emphasis text-sm font-semibold leading-5">{t("distribution_basis")}</h4>
+            <h4 className="text-emphasis text-sm font-semibold leading-5">
+              {t("distribution_basis_weighted_rr")}
+            </h4>
             <p className="text-default text-sm leading-tight">{t("timestamp_basis_description")}</p>
             <div className="mt-4 w-48">
               <Select
