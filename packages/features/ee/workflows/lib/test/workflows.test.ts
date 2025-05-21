@@ -642,11 +642,11 @@ describe("scheduleBookingReminders", () => {
           {
             name: "Workflow",
             userId: 101,
-            trigger: "AFTER_EVENT",
+            trigger: "BEFORE_EVENT",
             action: "SMS_NUMBER",
             template: "REMINDER",
             activeOn: [],
-            time: 3,
+            time: 20,
             timeUnit: TimeUnit.HOUR,
             sendTo: "000",
           },
@@ -744,10 +744,10 @@ describe("scheduleBookingReminders", () => {
     );
 
     const expectedScheduledDates = [
-      new Date("2024-05-21T12:15:00.000"),
-      new Date("2024-05-21T12:30:00.000Z"),
-      new Date("2024-06-01T08:00:00.000Z"),
-      new Date("2024-06-02T08:00:00.000Z"),
+      new Date("2024-05-20T13:00:00.000"),
+      new Date("2024-05-20T13:15:00.000Z"),
+      new Date("2024-05-31T08:30:00.000Z"),
+      new Date("2024-06-01T08:30:00.000Z"),
     ];
 
     scheduledWorkflowReminders.forEach((reminder, index) => {
