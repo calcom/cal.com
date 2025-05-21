@@ -109,7 +109,9 @@ export async function scanWorkflowBody(payload: string) {
         },
       });
     }
-  } else {
+  }
+
+  if (!process.env.IFFY_API_KEY) {
     log.info("IFFY_API_KEY not set, skipping scan");
     await prisma.workflowStep.updateMany({
       where: {
