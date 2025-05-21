@@ -1,5 +1,7 @@
+import type { Prisma } from "@prisma/client";
+
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { prisma } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 

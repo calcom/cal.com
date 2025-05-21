@@ -1,5 +1,5 @@
 import slugify from "@calcom/lib/slugify";
-import { prisma } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import type { Attribute } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 

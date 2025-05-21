@@ -1,5 +1,5 @@
 import slugify from "@calcom/lib/slugify";
-import { prisma } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 

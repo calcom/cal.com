@@ -1,8 +1,7 @@
 import { v4 } from "uuid";
 
 import { generateUniqueAPIKey } from "@calcom/ee/api-keys/lib/apiKeys";
-import { prisma } from "@calcom/prisma";
-import type { PrismaClient } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -11,7 +10,6 @@ import type { TCreateInputSchema } from "./create.schema";
 
 type CreateHandlerOptions = {
   ctx: {
-    prisma: PrismaClient;
     user: NonNullable<TrpcSessionUser>;
   };
   input: TCreateInputSchema;
