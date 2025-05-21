@@ -3,8 +3,12 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
+import { getCurrentVersion } from "./prepublish.js";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+main();
 
 async function main() {
   try {
@@ -13,6 +17,9 @@ async function main() {
     const librariesPackageJsonPath = path.join(librariesPath, "package.json");
     const librariesPackageJson = JSON.parse(fs.readFileSync(librariesPackageJsonPath, "utf8"));
     const publishedVersion = librariesPackageJson.version;
+
+    // Wait for the npm registry to reflect our published version
+    await waitForNewestNpmRelease(publishedVersion);
 
     // Reset libraries package.json version to 0.0.0
     librariesPackageJson.version = "0.0.0";
@@ -55,4 +62,36 @@ async function main() {
   }
 }
 
-main();
+async function waitForNewestNpmRelease(publishedVersion) {
+  console.log(`Waiting for npm registry to update with version ${publishedVersion}...`);
+  let npmVersion;
+  let attempts = 0;
+  const maxAttempts = 12;
+
+  while (true) {
+    attempts++;
+    npmVersion = await getCurrentVersion();
+
+    if (publishedVersion === npmVersion) {
+      console.log(
+        `Version match confirmed (${publishedVersion}) after ${attempts} attempts. Proceeding with updates...`
+      );
+      break;
+    }
+
+    if (attempts >= maxAttempts) {
+      console.log(
+        `Reached maximum attempts (${maxAttempts}). Latest npm version: ${npmVersion}, local version: ${publishedVersion}`
+      );
+      console.log("Proceeding with updates anyway...");
+      break;
+    }
+
+    console.log(
+      `Attempt ${attempts}/${maxAttempts}: npm version (${npmVersion}) doesn't match local version (${publishedVersion}) yet. Retrying in 5 seconds...`
+    );
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+  }
+
+  return npmVersion;
+}
