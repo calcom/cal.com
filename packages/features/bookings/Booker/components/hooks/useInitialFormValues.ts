@@ -105,7 +105,7 @@ export function useInitialFormValues({
         // `guests` because the `name` of the corresponding bookingField is `guests`
         guests: prefillFormParams.guests,
       });
-      const parsedLastBookingResponse = z.record(z.any()).nullish().parse(lastBookingResponse);
+      const parsedLastBookingResponse = z.record(z.string(), z.any()).nullish().parse(lastBookingResponse);
 
       const defaultUserValues = {
         email:

@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import z from "zod";
+import { z } from "zod";
 
 import { findPaymentCredentials } from "@calcom/app-store/paypal/api/webhook";
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";

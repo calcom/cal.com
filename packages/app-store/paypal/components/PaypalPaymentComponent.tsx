@@ -1,5 +1,5 @@
 import Link from "next/link";
-import z from "zod";
+import { z } from "zod";
 
 interface IPaypalPaymentComponentProps {
   payment: {

@@ -1,5 +1,5 @@
 import type { NextMiddleware } from "next-api-middleware";
-import z from "zod";
+import { z } from "zod";
 
 const withPage = z.object({
   page: z.coerce.number().min(1).optional().default(1),

@@ -1,7 +1,7 @@
 import type { Booking, Payment, PaymentOption, Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
-import z from "zod";
+import { z } from "zod";
 
 import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails";
 import { ErrorCode } from "@calcom/lib/errorCodes";

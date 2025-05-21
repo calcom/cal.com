@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import z from "zod";
+import { z } from "zod";
 
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { UserRepository } from "@calcom/lib/server/repository/user";

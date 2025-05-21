@@ -1,7 +1,7 @@
 "use client";
 
 import { useWatch } from "react-hook-form";
-import { ZodError } from "zod";
+import type { ZodError } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -43,8 +43,9 @@ export default function WebhookTestDisclosure() {
               mutation.mutate({ url: subscriberUrl, secret: webhookSecret, type: "PING", payloadTemplate });
             } catch (error) {
               //this catches invalid subscriberUrl before calling the mutation
-              if (error instanceof ZodError) {
-                const errorMessage = error.errors.map((e) => e.message).join(", ");
+              if (error && typeof error === "object" && "name" in error && error.name === "ZodError") {
+                const zodError = error as ZodError;
+                const errorMessage = zodError.errors.map((e) => e.message).join(", ");
                 showToast(errorMessage, "error");
               } else {
                 showToast(t("unexpected_error_try_again"), "error");

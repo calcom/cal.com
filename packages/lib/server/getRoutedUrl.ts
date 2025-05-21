@@ -2,7 +2,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { stringify } from "querystring";
 import { v4 as uuidv4 } from "uuid";
-import z from "zod";
+import { z } from "zod";
 
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";

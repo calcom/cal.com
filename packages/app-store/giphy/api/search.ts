@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { z, ZodError } from "zod";
+import type { ZodError } from "zod";
+import { z } from "zod";
 
 import prisma from "@calcom/prisma";
 
@@ -52,8 +53,9 @@ function validate(handler: (req: NextApiRequest, res: NextApiResponse) => Promis
       try {
         searchSchema.parse(req.body);
       } catch (error) {
-        if (error instanceof ZodError && error?.name === "ZodError") {
-          return res.status(400).json(error?.issues);
+        if (error && typeof error === "object" && "name" in error && error.name === "ZodError") {
+          const zodError = error as ZodError;
+          return res.status(400).json(zodError?.issues);
         }
         return res.status(402);
       }

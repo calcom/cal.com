@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import z from "zod";
+import { z } from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
