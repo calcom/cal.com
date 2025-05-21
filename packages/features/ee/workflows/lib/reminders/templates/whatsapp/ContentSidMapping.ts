@@ -29,12 +29,12 @@ export const getContentVariablesForTemplate = (variables: {
   const { name, attendeeName, eventName, eventDate, startTime, timeZone } = variables;
 
   const commonVariables: Record<string, string> = {
-    name: name || "",
-    attendee: attendeeName || "",
-    event_name: eventName || "",
-    event_date: eventDate || "",
-    start_time: startTime || "",
-    timezone: timeZone || "",
+    "1": name || "",
+    "2": attendeeName || "",
+    "3": eventName || "",
+    "4": eventDate || "",
+    "5": startTime || "",
+    "6": timeZone || "",
   };
 
   return commonVariables;

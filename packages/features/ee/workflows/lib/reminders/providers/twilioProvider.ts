@@ -90,6 +90,7 @@ export const sendSMS = async ({
       to: getSMSNumber(phoneNumber, isWhatsapp),
       from: getDefaultSender(isWhatsapp),
       statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
+      messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
     };
 
     if (contentVariables) {
