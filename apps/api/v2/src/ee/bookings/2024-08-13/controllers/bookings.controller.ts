@@ -62,7 +62,6 @@ import {
   CreateRecurringBookingInput_2024_08_13,
   DeclineBookingInput_2024_08_13,
   UpdateBookingInput_2024_08_13,
-  UpdateBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
 
 @Controller({
@@ -402,7 +401,7 @@ export class BookingsController_2024_08_13 {
   async updateBooking(
     @Param("bookingUid") bookingUid: string,
     @Body() body: UpdateBookingInput_2024_08_13
-  ): Promise<UpdateBookingOutput_2024_08_13> {
+  ): Promise<GetBookingOutput_2024_08_13> {
     const updatedBooking = await this.bookingsService.updateBooking(bookingUid, body);
 
     return {
