@@ -1,12 +1,36 @@
+import type { Prisma } from "@prisma/client";
 import { PrismaClient } from "@prisma/client";
+import { withAccelerate } from "@prisma/extension-accelerate";
 import { AsyncLocalStorage } from "async_hooks";
 
+import { bookingIdempotencyKeyExtension } from "../extensions/booking-idempotency-key";
+import { disallowUndefinedDeleteUpdateManyExtension } from "../extensions/disallow-undefined-delete-update-many";
+import { excludeLockedUsersExtension } from "../extensions/exclude-locked-users";
+import { excludePendingPaymentsExtension } from "../extensions/exclude-pending-payment-teams";
+import { usageTrackingExtention } from "../extensions/usage-tracking";
+import { bookingReferenceMiddleware } from "../middleware";
 import type { Tenant } from "./tenants";
 import { getTenantFromHost, tenantToDatabaseUrl } from "./tenants";
 
-type Store = { clients: Record<Tenant, PrismaClient>; currentTenant?: Tenant };
+export type PrismaClientWithExtensions = ReturnType<typeof getPrismaClient>;
+
+type Store = { clients: Record<Tenant, PrismaClientWithExtensions>; currentTenant?: Tenant };
 
 const als = new AsyncLocalStorage<Store>();
+
+const getPrismaClient = (options?: Prisma.PrismaClientOptions) => {
+  const _prisma = new PrismaClient(options);
+  // If any changed on middleware server restart is required
+  // TODO: Migrate it to $extends
+  bookingReferenceMiddleware(_prisma);
+  return _prisma
+    .$extends(usageTrackingExtention())
+    .$extends(excludeLockedUsersExtension())
+    .$extends(excludePendingPaymentsExtension())
+    .$extends(bookingIdempotencyKeyExtension())
+    .$extends(disallowUndefinedDeleteUpdateManyExtension())
+    .$extends(withAccelerate());
+};
 
 export function runWithTenants<T>(tenant?: Tenant | (() => Promise<T>), fn?: () => Promise<T>) {
   if (fn === undefined && typeof tenant === "function") {
@@ -16,7 +40,7 @@ export function runWithTenants<T>(tenant?: Tenant | (() => Promise<T>), fn?: () 
   return als.run({ clients: {}, currentTenant: tenant as Tenant | undefined } as Store, fn!);
 }
 
-export function getPrisma(tenant: Tenant) {
+export function getPrisma(tenant: Tenant, options?: Prisma.PrismaClientOptions) {
   const store = als.getStore();
   if (!store)
     throw new Error("Prisma Store not initialized. You must wrap your handler with runWithTenants.");
@@ -26,7 +50,8 @@ export function getPrisma(tenant: Tenant) {
 
     if (!url) throw new Error(`Missing DB URL for tenant: ${tenant}`);
 
-    store.clients[tenant] = new PrismaClient({
+    store.clients[tenant] = getPrismaClient({
+      ...options,
       datasources: { db: { url } },
     });
   }
@@ -44,14 +69,14 @@ export function getPrismaFromHost(host: string) {
  * Must be called within a context where the current tenant has been set (e.g. within a withPrismaRoute handler).
  * @returns The Prisma client for the current tenant
  */
-export function getTenantAwarePrisma() {
+export function getTenantAwarePrisma(options?: Prisma.PrismaClientOptions) {
   const store = als.getStore();
   if (!store)
     throw new Error("Prisma Store not initialized. You must wrap your handler with runWithTenants.");
   if (!store.currentTenant)
     throw new Error("Current tenant not set. You must specify a tenant when calling runWithTenants.");
 
-  return getPrisma(store.currentTenant);
+  return getPrisma(store.currentTenant, options);
 }
 
 /**
@@ -79,6 +104,6 @@ export async function cleanupPrismaConnections(tenant?: Tenant) {
     delete store.clients[tenant];
   } else if (!tenant) {
     await Promise.all(Object.values(store.clients).map((client) => client.$disconnect()));
-    store.clients = {} as Record<Tenant, PrismaClient>;
+    store.clients = {} as Record<Tenant, PrismaClientWithExtensions>;
   }
 }
