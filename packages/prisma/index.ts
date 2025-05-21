@@ -8,6 +8,7 @@ import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
 import { usageTrackingExtention } from "./extensions/usage-tracking";
 import { bookingReferenceMiddleware } from "./middleware";
+import { getTenantAwarePrisma } from "./store/prismaStore";
 
 const prismaOptions: Prisma.PrismaClientOptions = {};
 
@@ -64,7 +65,18 @@ const prismaWithClientExtensions = prismaWithoutClientExtensions
   .$extends(disallowUndefinedDeleteUpdateManyExtension())
   .$extends(withAccelerate());
 
-export const prisma = globalForPrisma.prismaWithClientExtensions || prismaWithClientExtensions;
+export const prisma = new Proxy({} as PrismaClientWithExtensions, {
+  get(target, prop) {
+    try {
+      const tenantPrisma = getTenantAwarePrisma();
+      return Reflect.get(tenantPrisma, prop);
+    } catch (error) {
+      throw new Error(
+        "Prisma was called outside of runWithTenants. Please wrap your code with runWithTenants or use a tenant-aware approach."
+      );
+    }
+  },
+});
 
 /**
  * IMPORTANT: This global Prisma client is being deprecated.
