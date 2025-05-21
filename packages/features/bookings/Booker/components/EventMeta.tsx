@@ -156,7 +156,7 @@ export const EventMeta = ({
         <m.div {...fadeInUp} layout transition={{ ...fadeInUp.transition, delay: 0.3 }}>
           <EventMembers
             schedulingType={event.schedulingType}
-            users={event.subsetOfUsers}
+            users={event.users}
             profile={event.profile}
             entity={event.entity}
             isPrivateLink={isPrivateLink}
