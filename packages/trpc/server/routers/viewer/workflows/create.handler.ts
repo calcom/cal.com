@@ -4,8 +4,8 @@ import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import {
   MembershipRole,
   TimeUnit,
