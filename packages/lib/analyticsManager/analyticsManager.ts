@@ -18,7 +18,6 @@ export default class AnalyticsManager {
     this.analyticsService = analyticsService;
 
     if (!this.analyticsService) {
-      console.log("💀 Error initializing Analytics service");
       log.error("Analytics service initialization failed");
     }
 

@@ -35,7 +35,6 @@ import {
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getFullName } from "@calcom/features/form-builder/utils";
-import tasker from "@calcom/features/tasker";
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -45,6 +44,7 @@ import {
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import EventManager from "@calcom/lib/EventManager";
+import { handleAnalyticsEvents } from "@calcom/lib/analyticsManager/handleAnalyticsEvents";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import {
@@ -2161,25 +2161,16 @@ async function handler(
     loggerWithEventDetails.error("Error while scheduling no show triggers", JSON.stringify({ error }));
   }
 
-  const { dub_id } = rawBookingData;
-
-  if (dub_id && !isDryRun) {
-    const dubCredential = allCredentials.find((cred) => cred.appId === "dub");
-    if (dubCredential) {
-      try {
-        await tasker.create("sendAnalyticsEvent", {
-          credentialId: dubCredential.id,
-          info: {
-            id: dub_id,
-            email: bookerEmail,
-            name: fullName,
-            eventName: "Cal.com lead",
-          },
-        });
-      } catch (err) {
-        console.error("Error sending dub lead: ", err);
-      }
-    }
+  if (!isDryRun) {
+    await handleAnalyticsEvents({
+      credentials: allCredentials,
+      rawBookingData,
+      bookingInfo: {
+        name: fullName,
+        email: bookerEmail,
+        eventName: "Cal.com lead",
+      },
+    });
   }
 
   // TODO: Refactor better so this booking object is not passed

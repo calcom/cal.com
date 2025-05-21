@@ -22,7 +22,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const { client_id, redirect_uris } = await getParsedAppKeysFromSlug("dub", dubAppKeysSchema);
 
-  const oauthUrl = `https://app.dub.co/oauth/authorize?client_id=${client_id}&redirect_uri=${redirect_uris}&response_type=code&scope=${scopeString}`;
+  const url = new URL("https://app.dub.co/oauth/authorize");
+  url.searchParams.append("client_id", client_id);
+  url.searchParams.append("redirect_uri", redirect_uris);
+  url.searchParams.append("response_type", "code");
+  url.searchParams.append("scope", scopeString);
+  const oauthUrl = url.toString();
 
   return res.status(200).json({ url: oauthUrl });
 }

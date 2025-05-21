@@ -1,7 +1,7 @@
 import { Dub } from "dub-package";
 
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import type { AnalyticsService, SendEventProps } from "@calcom/types/AnalyticsService";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
@@ -81,8 +81,8 @@ export default class DubService implements AnalyticsService {
 
       newToken.expiry_date = Date.now() + newToken.expires_in * 1000;
 
-      await prisma.credential.update({
-        where: { id: this.credential.id },
+      await CredentialRepository.updateCredentialById({
+        id: this.credential.id,
         data: { key: newToken as any },
       });
 

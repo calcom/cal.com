@@ -50,7 +50,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (result.status !== 200) {
-    console.log("invalid result");
     let errorMessage = "Something wrong with Dub Api";
     try {
       const responseBody = await result.json();
