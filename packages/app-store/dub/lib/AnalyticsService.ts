@@ -27,7 +27,7 @@ export default class DubService implements AnalyticsService {
 
     const { client_id, client_secret } = appKeys;
 
-    if (!client_id !! !client_secret) {
+    if (!client_id || !client_secret) {
       this.log.error("Dub.co app keys missing!");
       return;
     }
