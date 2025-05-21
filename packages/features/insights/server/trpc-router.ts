@@ -504,30 +504,14 @@ export const insightsRouter = router({
       });
 
       const { whereCondition: whereConditional } = r;
-      const timeline = await EventsInsights.getTimeLine(timeView, startDate, endDate);
 
-      if (!timeline) {
+      // Get date ranges directly instead of using timeline
+      const dateRanges = EventsInsights.getDateRanges(startDate, endDate, timeView);
+      console.log("💡 TEST", dateRanges);
+      if (!dateRanges.length) {
         return [];
       }
 
-      const dateFormat: string = timeView === "year" ? "YYYY" : timeView === "month" ? "MMM YYYY" : "ll";
-
-      // Align date ranges consistently with weeks starting on Monday
-      const dateRanges = timeline.map((date) => {
-        let startOfRange = dayjs.utc(date).startOf(timeView);
-        let endOfRange = dayjs.utc(date).endOf(timeView);
-
-        if (timeView === "week") {
-          startOfRange = dayjs.utc(date).day(1); // Start at Monday in UTC
-          endOfRange = startOfRange.add(6, "day").endOf("day"); // End at Sunday in UTC
-        }
-
-        return {
-          startDate: startOfRange.toISOString(),
-          endDate: endOfRange.toISOString(),
-          formattedDate: startOfRange.format(dateFormat), // Align formatted date for consistency
-        };
-      });
       // Fetch counts grouped by status for the entire range
       const countsByStatus = await EventsInsights.countGroupedByStatusForRanges(
         whereConditional,
@@ -535,6 +519,7 @@ export const insightsRouter = router({
         endDate,
         timeView
       );
+
       const result = dateRanges.map(({ formattedDate }) => {
         const EventData = {
           Month: formattedDate,
@@ -726,9 +711,9 @@ export const insightsRouter = router({
     });
 
     const timeView = EventsInsights.getTimeView("week", startDate, endDate);
-    const timeLine = await EventsInsights.getTimeLine("week", startDate, endDate);
+    const dateRanges = EventsInsights.getDateRanges(startDate, endDate, "week");
 
-    if (!timeLine) {
+    if (!dateRanges.length) {
       return [];
     }
 
@@ -750,8 +735,9 @@ export const insightsRouter = router({
 
     const resultMap = new Map<string, { totalDuration: number; count: number }>();
 
-    for (const date of timeLine) {
-      resultMap.set(dayjs(date).startOf(startOfEndOf).format("ll"), { totalDuration: 0, count: 0 });
+    // Initialize the map with all date ranges
+    for (const range of dateRanges) {
+      resultMap.set(dayjs(range.startDate).format("ll"), { totalDuration: 0, count: 0 });
     }
 
     for (const booking of allBookings) {

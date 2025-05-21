@@ -269,32 +269,6 @@ class EventsInsights {
     return csat;
   };
 
-  static getTimeLine = async (timeView: TimeViewType, startDate: Dayjs, endDate: Dayjs) => {
-    let resultTimeLine: string[] = [];
-
-    if (timeView) {
-      switch (timeView) {
-        case "day":
-          resultTimeLine = this.getDailyTimeline(startDate, endDate);
-          break;
-        case "week":
-          resultTimeLine = this.getWeekTimeline(startDate, endDate);
-          break;
-        case "month":
-          resultTimeLine = this.getMonthTimeline(startDate, endDate);
-          break;
-        case "year":
-          resultTimeLine = this.getYearTimeline(startDate, endDate);
-          break;
-        default:
-          resultTimeLine = this.getWeekTimeline(startDate, endDate);
-          break;
-      }
-    }
-
-    return resultTimeLine;
-  };
-
   static getTimeView = (timeView: TimeViewType, startDate: Dayjs, endDate: Dayjs) => {
     let resultTimeView = timeView;
 
@@ -306,59 +280,6 @@ class EventsInsights {
 
     return resultTimeView;
   };
-
-  static getDailyTimeline(startDate: Dayjs, endDate: Dayjs): string[] {
-    const now = dayjs();
-    const endOfDay = now.endOf("day");
-    let pivotDate = dayjs(startDate);
-    const dates: string[] = [];
-    while ((pivotDate.isBefore(endDate) || pivotDate.isSame(endDate)) && pivotDate.isBefore(endOfDay)) {
-      dates.push(pivotDate.format("YYYY-MM-DD"));
-      pivotDate = pivotDate.add(1, "day");
-    }
-    return dates;
-  }
-
-  static getWeekTimeline(startDate: Dayjs, endDate: Dayjs): string[] {
-    let pivotDate = dayjs(endDate);
-    const dates: string[] = [];
-
-    // Add the endDate as the last date in the timeline
-    dates.push(pivotDate.format("YYYY-MM-DD"));
-
-    // Move backwards in 6-day increments until reaching or passing the startDate
-    while (pivotDate.isAfter(startDate)) {
-      pivotDate = pivotDate.subtract(7, "day");
-      if (pivotDate.isBefore(startDate)) {
-        break;
-      }
-      dates.push(pivotDate.format("YYYY-MM-DD"));
-    }
-
-    // Reverse the array to have the timeline in ascending order
-    return dates.reverse();
-  }
-
-  static getMonthTimeline(startDate: Dayjs, endDate: Dayjs) {
-    let pivotDate = dayjs(startDate);
-    const dates = [];
-    while (pivotDate.isBefore(endDate)) {
-      pivotDate = pivotDate.set("month", pivotDate.get("month") + 1);
-
-      dates.push(pivotDate.format("YYYY-MM-DD"));
-    }
-    return dates;
-  }
-
-  static getYearTimeline(startDate: Dayjs, endDate: Dayjs) {
-    const pivotDate = dayjs(startDate);
-    const dates = [];
-    while (pivotDate.isBefore(endDate)) {
-      pivotDate.set("year", pivotDate.get("year") + 1);
-      dates.push(pivotDate.format("YYYY-MM-DD"));
-    }
-    return dates;
-  }
 
   static getPercentage = (actualMetric: number, previousMetric: number) => {
     const differenceActualVsPrevious = actualMetric - previousMetric;
@@ -372,6 +293,52 @@ class EventsInsights {
     }
 
     return result;
+  };
+
+  static getDateRanges = (startDate: Dayjs, endDate: Dayjs, timeView: TimeViewType) => {
+    const ranges: { startDate: string; endDate: string; formattedDate: string }[] = [];
+    let currentDate = dayjs.utc(startDate).startOf("day");
+    const utcEndDate = dayjs.utc(endDate);
+    const dateFormat = timeView === "year" ? "YYYY" : timeView === "month" ? "MMM YYYY" : "ll";
+
+    while (currentDate.isBefore(utcEndDate) || currentDate.isSame(utcEndDate, "day")) {
+      let periodStart = currentDate.startOf(timeView);
+      let periodEnd = currentDate.endOf(timeView);
+
+      // For week view, ensure we start on Monday and end on Sunday
+      if (timeView === "week") {
+        periodStart = currentDate.day(1); // Monday
+        periodEnd = periodStart.add(6, "day").endOf("day"); // Sunday
+      }
+
+      // Don't go beyond the requested date range
+      if (periodStart.isBefore(startDate)) {
+        periodStart = dayjs.utc(startDate).startOf("day");
+      }
+      if (periodEnd.isAfter(utcEndDate)) {
+        periodEnd = dayjs.utc(endDate).endOf("day");
+      }
+
+      ranges.push({
+        startDate: periodStart.toISOString(),
+        endDate: periodEnd.toISOString(),
+        formattedDate: timeView === "year" ? periodStart.format("YYYY") : periodStart.format(dateFormat),
+      });
+
+      // Move to next period
+      if (timeView === "day") {
+        currentDate = currentDate.add(1, "day");
+      } else if (timeView === "week") {
+        currentDate = currentDate.add(1, "week");
+      } else if (timeView === "month") {
+        currentDate = currentDate.add(1, "month");
+      } else {
+        // For year view, we need to ensure we move to the start of next year
+        currentDate = currentDate.add(1, "year").startOf("year");
+      }
+    }
+
+    return ranges;
   };
 
   static getCsvData = async (
