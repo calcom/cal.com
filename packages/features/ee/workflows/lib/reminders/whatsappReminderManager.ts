@@ -1,5 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import {
   WorkflowTriggerEvents,
@@ -8,7 +9,12 @@ import {
   WorkflowMethods,
 } from "@calcom/prisma/enums";
 
-import * as twilio from "./providers/twilioProvider";
+import { isAttendeeAction } from "../actionHelperFunctions";
+import {
+  getContentSidForTemplate,
+  getContentVariablesForTemplate,
+} from "../reminders/templates/whatsapp/ContentSidMapping";
+import { scheduleSmsOrFallbackEmail, sendSmsOrFallbackEmail } from "./messageDispatcher";
 import type { ScheduleTextReminderArgs, timeUnitLowerCase } from "./smsReminderManager";
 import { deleteScheduledSMSReminder } from "./smsReminderManager";
 import {
@@ -74,7 +80,21 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
     action === WorkflowActions.WHATSAPP_ATTENDEE ? evt.organizer.name : evt.attendees[0].name;
   const timeZone =
     action === WorkflowActions.WHATSAPP_ATTENDEE ? evt.attendees[0].timeZone : evt.organizer.timeZone;
+  const locale = evt.organizer.language.locale;
+  const timeFormat = evt.organizer.timeFormat;
 
+  const contentSid = getContentSidForTemplate(template);
+  const contentVariables = getContentVariablesForTemplate({
+    name,
+    attendeeName,
+    eventName: evt.title,
+    eventDate: dayjs(startTime).tz(timeZone).locale(locale).format("YYYY MMM D"),
+    startTime: dayjs(startTime)
+      .tz(timeZone)
+      .locale(locale)
+      .format(timeFormat || "h:mma"),
+    timeZone,
+  });
   let textMessage = message;
 
   switch (template) {
@@ -82,9 +102,9 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       textMessage =
         whatsappReminderTemplate(
           false,
-          evt.organizer.language.locale,
+          locale,
           action,
-          evt.organizer.timeFormat,
+          timeFormat,
           evt.startTime,
           evt.title,
           timeZone,
@@ -96,9 +116,9 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       textMessage =
         whatsappEventCancelledTemplate(
           false,
-          evt.organizer.language.locale,
+          locale,
           action,
-          evt.organizer.timeFormat,
+          timeFormat,
           evt.startTime,
           evt.title,
           timeZone,
@@ -110,9 +130,9 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       textMessage =
         whatsappEventRescheduledTemplate(
           false,
-          evt.organizer.language.locale,
+          locale,
           action,
-          evt.organizer.timeFormat,
+          timeFormat,
           evt.startTime,
           evt.title,
           timeZone,
@@ -124,9 +144,9 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       textMessage =
         whatsappEventCompletedTemplate(
           false,
-          evt.organizer.language.locale,
+          locale,
           action,
-          evt.organizer.timeFormat,
+          timeFormat,
           evt.startTime,
           evt.title,
           timeZone,
@@ -138,9 +158,9 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       textMessage =
         whatsappReminderTemplate(
           false,
-          evt.organizer.language.locale,
+          locale,
           action,
-          evt.organizer.timeFormat,
+          timeFormat,
           evt.startTime,
           evt.title,
           timeZone,
@@ -159,7 +179,26 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
     ) {
       try {
-        await twilio.sendSMS(reminderPhone, textMessage, "", userId, teamId, true);
+        await sendSmsOrFallbackEmail({
+          twilioData: {
+            phoneNumber: reminderPhone,
+            body: textMessage,
+            sender: "",
+            bookingUid: evt.uid,
+            userId,
+            teamId,
+            isWhatsapp: true,
+            contentSid,
+            contentVariables,
+          },
+          fallbackData: isAttendeeAction(action)
+            ? {
+                email: evt.attendees[0].email,
+                t: await getTranslation(evt.attendees[0].language.locale ?? "en", "common"),
+                replyTo: evt.organizer.email,
+              }
+            : undefined,
+        });
       } catch (error) {
         console.log(`Error sending WHATSAPP with error ${error}`);
       }
@@ -168,23 +207,36 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
         triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) &&
       scheduledDate
     ) {
-      // Can only schedule at least 60 minutes in advance and at most 7 days in advance
+      // schedule at least 15 minutes in advance and at most 2 hours in advance
       if (
-        currentDate.isBefore(scheduledDate.subtract(1, "hour")) &&
-        !scheduledDate.isAfter(currentDate.add(7, "day"))
+        currentDate.isBefore(scheduledDate.subtract(15, "minute")) &&
+        !scheduledDate.isAfter(currentDate.add(2, "hour"))
       ) {
         try {
-          const scheduledWHATSAPP = await twilio.scheduleSMS(
-            reminderPhone,
-            textMessage,
-            scheduledDate.toDate(),
-            "",
-            userId,
-            teamId,
-            true
-          );
+          const scheduledNotification = await scheduleSmsOrFallbackEmail({
+            twilioData: {
+              phoneNumber: reminderPhone,
+              body: textMessage,
+              scheduledDate: scheduledDate.toDate(),
+              sender: "",
+              bookingUid: evt.uid ?? "",
+              userId,
+              teamId,
+              isWhatsapp: true,
+              contentSid,
+              contentVariables,
+            },
+            fallbackData: isAttendeeAction(action)
+              ? {
+                  email: evt.attendees[0].email,
+                  t: await getTranslation(evt.attendees[0].language.locale ?? "en", "common"),
+                  replyTo: evt.organizer.email,
+                  workflowStepId,
+                }
+              : undefined,
+          });
 
-          if (scheduledWHATSAPP) {
+          if (scheduledNotification?.sid) {
             await prisma.workflowReminder.create({
               data: {
                 bookingUid: uid,
@@ -192,7 +244,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
                 method: WorkflowMethods.WHATSAPP,
                 scheduledDate: scheduledDate.toDate(),
                 scheduled: true,
-                referenceId: scheduledWHATSAPP.sid,
+                referenceId: scheduledNotification.sid,
                 seatReferenceId: seatReferenceUid,
               },
             });
@@ -200,8 +252,8 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
         } catch (error) {
           console.log(`Error scheduling WHATSAPP with error ${error}`);
         }
-      } else if (scheduledDate.isAfter(currentDate.add(7, "day"))) {
-        // Write to DB and send to CRON if scheduled reminder date is past 7 days
+      } else if (scheduledDate.isAfter(currentDate.add(2, "hour"))) {
+        // Write to DB and send to CRON if scheduled reminder date is past 2 hours from now
         await prisma.workflowReminder.create({
           data: {
             bookingUid: uid,

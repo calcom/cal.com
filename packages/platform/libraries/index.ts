@@ -109,7 +109,8 @@ export { paymentDataSelect };
 export { getClientSecretFromPayment };
 
 export { confirmHandler as confirmBookingHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
-
+export { groupMembershipAttributes } from "@calcom/trpc/server/routers/viewer/attributes/getByUserId.handler";
+export type { GroupedAttribute } from "@calcom/trpc/server/routers/viewer/attributes/getByUserId.handler";
 export { getBookingFieldsWithSystemFields };
 
 export { getRoutedUrl };

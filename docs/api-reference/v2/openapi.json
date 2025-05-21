@@ -1617,6 +1617,7 @@
             "description": "The number of items to return",
             "example": 10,
             "schema": {
+              "default": 100,
               "type": "number"
             }
           },
@@ -1627,6 +1628,7 @@
             "description": "The number of items to skip",
             "example": 0,
             "schema": {
+              "default": 0,
               "type": "number"
             }
           },
@@ -3137,6 +3139,80 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetBookingsOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Bookings"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/bookings/{bookingUid}/references": {
+      "get": {
+        "operationId": "OrganizationsTeamsBookingsController_getBookingReferences",
+        "summary": "Get 'Booking References' for a booking",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter booking references by type",
+            "example": "google_calendar",
+            "schema": {
+              "enum": [
+                "google_calendar",
+                "office365_calendar",
+                "daily_video",
+                "google_video",
+                "office365_video",
+                "zoom_video"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingReferencesOutput_2024_08_13"
                 }
               }
             }
@@ -5283,6 +5359,7 @@
             "description": "The number of items to return",
             "example": 10,
             "schema": {
+              "default": 100,
               "type": "number"
             }
           },
@@ -5293,6 +5370,7 @@
             "description": "The number of items to skip",
             "example": 0,
             "schema": {
+              "default": 0,
               "type": "number"
             }
           }
@@ -6592,6 +6670,7 @@
             "description": "The number of items to return",
             "example": 10,
             "schema": {
+              "default": 100,
               "type": "number"
             }
           },
@@ -6602,6 +6681,7 @@
             "description": "The number of items to skip",
             "example": 0,
             "schema": {
+              "default": 0,
               "type": "number"
             }
           },
@@ -7110,6 +7190,72 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CalendarLinksOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
+    "/v2/bookings/{bookingUid}/references": {
+      "get": {
+        "operationId": "BookingsController_2024_08_13_getBookingReferences",
+        "summary": "Get 'Booking References' for a booking",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-08-13"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter booking references by type",
+            "example": "google_calendar",
+            "schema": {
+              "enum": [
+                "google_calendar",
+                "office365_calendar",
+                "daily_video",
+                "google_video",
+                "office365_video",
+                "zoom_video"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingReferencesOutput_2024_08_13"
                 }
               }
             }
@@ -9870,7 +10016,7 @@
       "get": {
         "operationId": "SlotsController_2024_09_04_getAvailableSlots",
         "summary": "Find out when is an event type ready to be booked.",
-        "description": "\n      There are 4 ways to get available slots for event type of an individual user:\n\n      1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      3. By event type slug + username + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.\n\n      And 3 ways to get available slots for team event type:\n\n      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      3. By team event type slug + team slug + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked.\n      Optional parameters are:\n      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.\n      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.\n      - slotFormat: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use \"range\" as value.\n      ",
+        "description": "\n      There are 4 ways to get available slots for event type of an individual user:\n\n      1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      3. By event type slug + username + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.\n\n      And 3 ways to get available slots for team event type:\n\n      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      3. By team event type slug + team slug + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked.\n      Optional parameters are:\n      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.\n      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.\n      - format: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use \"range\" as value.\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -9947,7 +10093,7 @@
             "schema": {}
           },
           {
-            "name": "slotFormat",
+            "name": "format",
             "required": false,
             "in": "query",
             "description": "Format of slot times in response. Use 'range' to get start and end times. Use 'time' or omit this query parameter to get only start time.",
@@ -10976,7 +11122,7 @@
       },
       "patch": {
         "operationId": "TeamsMembershipsController_updateTeamMembership",
-        "summary": "Create a membership",
+        "summary": "Update membership",
         "parameters": [
           {
             "name": "Authorization",
@@ -13541,6 +13687,20 @@
         },
         "required": ["slug"]
       },
+      "LocationDefaultFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "example": "location",
+            "description": "only allowed value for type is `location`. This booking field is displayed only when event type has 2 or more locations in order to allow person doing the booking pick the location."
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": ["slug"]
+      },
       "NotesDefaultFieldInput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -13724,6 +13884,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/TitleDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/LocationDefaultFieldInput_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/NotesDefaultFieldInput_2024_06_14"
@@ -14059,8 +14222,7 @@
               "eightxeight-video",
               "discord-video",
               "demodesk-video",
-              "campfire-video",
-              "around-video"
+              "campfire-video"
             ],
             "example": "cal-video"
           },
@@ -14284,6 +14446,9 @@
           "hidden": {
             "type": "boolean",
             "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "label": {
+            "type": "string"
           }
         },
         "required": ["isDefault", "slug", "type", "required", "hidden"]
@@ -14293,7 +14458,7 @@
         "properties": {
           "slug": {
             "type": "string",
-            "enum": ["name", "email", "title", "notes", "guests"],
+            "enum": ["title", "location", "notes", "guests", "rescheduleReason"],
             "example": "rescheduleReason",
             "description": "only allowed value for type is `rescheduleReason`",
             "default": "rescheduleReason"
@@ -14333,7 +14498,7 @@
         "properties": {
           "slug": {
             "type": "string",
-            "enum": ["name", "email", "title", "notes", "guests"],
+            "enum": ["title", "location", "notes", "guests", "rescheduleReason"],
             "example": "title",
             "description": "only allowed value for type is `title`",
             "default": "title"
@@ -14373,7 +14538,7 @@
         "properties": {
           "slug": {
             "type": "string",
-            "enum": ["name", "email", "title", "notes", "guests"],
+            "enum": ["title", "location", "notes", "guests", "rescheduleReason"],
             "example": "notes",
             "description": "only allowed value for type is `notes`",
             "default": "notes"
@@ -14413,7 +14578,7 @@
         "properties": {
           "slug": {
             "type": "string",
-            "enum": ["name", "email", "title", "notes", "guests"],
+            "enum": ["title", "location", "notes", "guests", "rescheduleReason"],
             "example": "guests",
             "description": "only allowed value for type is `guests`",
             "default": "guests"
@@ -15512,6 +15677,9 @@
                   "$ref": "#/components/schemas/TitleDefaultFieldInput_2024_06_14"
                 },
                 {
+                  "$ref": "#/components/schemas/LocationDefaultFieldInput_2024_06_14"
+                },
+                {
                   "$ref": "#/components/schemas/NotesDefaultFieldInput_2024_06_14"
                 },
                 {
@@ -15833,118 +16001,6 @@
           }
         },
         "required": ["status", "data"]
-      },
-      "ConferencingAppsOutputDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number",
-            "description": "Id of the conferencing app credentials"
-          },
-          "type": {
-            "type": "string",
-            "example": "google_video",
-            "description": "Type of conferencing app"
-          },
-          "userId": {
-            "type": "number",
-            "description": "Id of the user associated to the conferencing app"
-          },
-          "invalid": {
-            "type": "boolean",
-            "nullable": true,
-            "example": true,
-            "description": "Whether if the connection is working or not."
-          }
-        },
-        "required": ["id", "type", "userId"]
-      },
-      "ConferencingAppOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ConferencingAppsOutputDto"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "GetConferencingAppsOauthUrlResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          }
-        },
-        "required": ["status"]
-      },
-      "ConferencingAppsOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ConferencingAppsOutputDto"
-            }
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "SetDefaultConferencingAppOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          }
-        },
-        "required": ["status"]
-      },
-      "DefaultConferencingAppsOutputDto": {
-        "type": "object",
-        "properties": {
-          "appSlug": {
-            "type": "string"
-          },
-          "appLink": {
-            "type": "string"
-          }
-        }
-      },
-      "GetDefaultConferencingAppOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/DefaultConferencingAppsOutputDto"
-          }
-        },
-        "required": ["status"]
-      },
-      "DisconnectConferencingAppOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          }
-        },
-        "required": ["status"]
       },
       "OrgTeamOutputDto": {
         "type": "object",
@@ -16823,6 +16879,114 @@
         "type": "object",
         "properties": {}
       },
+      "BaseAttribute": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "name"]
+      },
+      "TextAttribute": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "option": {
+            "type": "string"
+          },
+          "optionId": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "name", "type", "option", "optionId"]
+      },
+      "NumberAttribute": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "option": {
+            "type": "number"
+          },
+          "optionId": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "name", "type", "option", "optionId"]
+      },
+      "SingleSelectAttribute": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "option": {
+            "type": "string"
+          },
+          "optionId": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "name", "type", "option", "optionId"]
+      },
+      "MultiSelectAttributeOption": {
+        "type": "object",
+        "properties": {
+          "optionId": {
+            "type": "string"
+          },
+          "option": {
+            "type": "string"
+          }
+        },
+        "required": ["optionId", "option"]
+      },
+      "MultiSelectAttribute": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MultiSelectAttributeOption"
+            }
+          }
+        },
+        "required": ["id", "name", "type", "options"]
+      },
       "MembershipUserOutputDto": {
         "type": "object",
         "properties": {
@@ -16850,7 +17014,7 @@
         },
         "required": ["email"]
       },
-      "TeamMembershipOutput": {
+      "OrganizationMembershipOutput": {
         "type": "object",
         "properties": {
           "id": {
@@ -16874,9 +17038,28 @@
           },
           "user": {
             "$ref": "#/components/schemas/MembershipUserOutputDto"
+          },
+          "attributes": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/TextAttribute"
+                },
+                {
+                  "$ref": "#/components/schemas/NumberAttribute"
+                },
+                {
+                  "$ref": "#/components/schemas/SingleSelectAttribute"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiSelectAttribute"
+                }
+              ]
+            }
           }
         },
-        "required": ["id", "userId", "teamId", "accepted", "role", "user"]
+        "required": ["id", "userId", "teamId", "accepted", "role", "user", "attributes"]
       },
       "GetAllOrgMemberships": {
         "type": "object",
@@ -16887,7 +17070,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/TeamMembershipOutput"
+            "$ref": "#/components/schemas/OrganizationMembershipOutput"
           }
         },
         "required": ["status", "data"]
@@ -16924,7 +17107,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/TeamMembershipOutput"
+            "$ref": "#/components/schemas/OrganizationMembershipOutput"
           }
         },
         "required": ["status", "data"]
@@ -16938,7 +17121,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/TeamMembershipOutput"
+            "$ref": "#/components/schemas/OrganizationMembershipOutput"
           }
         },
         "required": ["status", "data"]
@@ -16952,7 +17135,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/TeamMembershipOutput"
+            "$ref": "#/components/schemas/OrganizationMembershipOutput"
           }
         },
         "required": ["status", "data"]
@@ -16981,7 +17164,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/TeamMembershipOutput"
+            "$ref": "#/components/schemas/OrganizationMembershipOutput"
           }
         },
         "required": ["status", "data"]
@@ -17044,6 +17227,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/TitleDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/LocationDefaultFieldInput_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/NotesDefaultFieldInput_2024_06_14"
@@ -17837,6 +18023,9 @@
                   "$ref": "#/components/schemas/TitleDefaultFieldInput_2024_06_14"
                 },
                 {
+                  "$ref": "#/components/schemas/LocationDefaultFieldInput_2024_06_14"
+                },
+                {
                   "$ref": "#/components/schemas/NotesDefaultFieldInput_2024_06_14"
                 },
                 {
@@ -18109,6 +18298,34 @@
           }
         },
         "required": ["status", "data"]
+      },
+      "TeamMembershipOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "userId": {
+            "type": "number"
+          },
+          "teamId": {
+            "type": "number"
+          },
+          "accepted": {
+            "type": "boolean"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["MEMBER", "OWNER", "ADMIN"]
+          },
+          "disableImpersonation": {
+            "type": "boolean"
+          },
+          "user": {
+            "$ref": "#/components/schemas/MembershipUserOutputDto"
+          }
+        },
+        "required": ["id", "userId", "teamId", "accepted", "role", "user"]
       },
       "OrgTeamMembershipsOutputResponseDto": {
         "type": "object",
@@ -19117,6 +19334,118 @@
         },
         "required": ["status", "data"]
       },
+      "ConferencingAppsOutputDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Id of the conferencing app credentials"
+          },
+          "type": {
+            "type": "string",
+            "example": "google_video",
+            "description": "Type of conferencing app"
+          },
+          "userId": {
+            "type": "number",
+            "description": "Id of the user associated to the conferencing app"
+          },
+          "invalid": {
+            "type": "boolean",
+            "nullable": true,
+            "example": true,
+            "description": "Whether if the connection is working or not."
+          }
+        },
+        "required": ["id", "type", "userId"]
+      },
+      "ConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ConferencingAppsOutputDto"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetConferencingAppsOauthUrlResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          }
+        },
+        "required": ["status"]
+      },
+      "ConferencingAppsOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConferencingAppsOutputDto"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "SetDefaultConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          }
+        },
+        "required": ["status"]
+      },
+      "DefaultConferencingAppsOutputDto": {
+        "type": "object",
+        "properties": {
+          "appSlug": {
+            "type": "string"
+          },
+          "appLink": {
+            "type": "string"
+          }
+        }
+      },
+      "GetDefaultConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DefaultConferencingAppsOutputDto"
+          }
+        },
+        "required": ["status"]
+      },
+      "DisconnectConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          }
+        },
+        "required": ["status"]
+      },
       "GoogleServiceAccountKeyInput": {
         "type": "object",
         "properties": {
@@ -19837,7 +20166,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "number"
           },
           "formId": {
             "type": "string"
@@ -20315,8 +20644,7 @@
               "eightxeight-video",
               "discord-video",
               "demodesk-video",
-              "campfire-video",
-              "around-video"
+              "campfire-video"
             ]
           }
         },
@@ -21830,6 +22158,60 @@
         },
         "required": ["status", "data"]
       },
+      "PaginationMetaDto": {
+        "type": "object",
+        "properties": {
+          "totalItems": {
+            "type": "number",
+            "minimum": 0,
+            "description": "The total number of items available across all pages, matching the query criteria.",
+            "example": 123
+          },
+          "remainingItems": {
+            "type": "number",
+            "minimum": 0,
+            "description": "The number of items remaining to be fetched *after* the current page. Calculated as: `totalItems - (skip + itemsPerPage)`.",
+            "example": 103
+          },
+          "itemsPerPage": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The maximum number of items requested per page.",
+            "example": 10
+          },
+          "currentPage": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The current page number being returned.",
+            "example": 2
+          },
+          "totalPages": {
+            "type": "number",
+            "minimum": 0,
+            "description": "The total number of pages available.",
+            "example": 13
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a subsequent page available after the current one.",
+            "example": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a preceding page available before the current one.",
+            "example": true
+          }
+        },
+        "required": [
+          "totalItems",
+          "remainingItems",
+          "itemsPerPage",
+          "currentPage",
+          "totalPages",
+          "hasNextPage",
+          "hasPreviousPage"
+        ]
+      },
       "GetBookingsOutput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -21858,11 +22240,14 @@
             },
             "description": "Array of booking data, which can contain either BookingOutput objects or RecurringBookingOutput objects"
           },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetaDto"
+          },
           "error": {
             "type": "object"
           }
         },
-        "required": ["status", "data"]
+        "required": ["status", "data", "pagination"]
       },
       "RescheduleBookingInput_2024_08_13": {
         "type": "object",
@@ -22123,6 +22508,47 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CalendarLink"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "BookingReference": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "The type of the booking reference"
+          },
+          "eventUid": {
+            "type": "string",
+            "description": "The event uid of the booking"
+          },
+          "destinationCalendarId": {
+            "type": "string",
+            "nullable": true,
+            "description": "The id of the calendar the event is created in"
+          },
+          "id": {
+            "type": "number",
+            "description": "The id of the booking reference"
+          }
+        },
+        "required": ["type", "eventUid", "destinationCalendarId", "id"]
+      },
+      "BookingReferencesOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "object",
+            "description": "The status of the request, always 'success' for successful responses",
+            "example": "success"
+          },
+          "data": {
+            "description": "Booking References",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingReference"
             }
           }
         },
