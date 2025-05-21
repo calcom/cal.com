@@ -296,6 +296,10 @@ class EventsInsights {
   };
 
   static getDateRanges = (startDate: Dayjs, endDate: Dayjs, timeView: TimeViewType) => {
+    if (!["day", "week", "month", "year"].includes(timeView)) {
+      return [];
+    }
+
     const ranges: { startDate: string; endDate: string; formattedDate: string }[] = [];
     let currentDate = dayjs.utc(startDate).startOf("day");
     const utcEndDate = dayjs.utc(endDate);
@@ -332,7 +336,7 @@ class EventsInsights {
         currentDate = currentDate.add(1, "week");
       } else if (timeView === "month") {
         currentDate = currentDate.add(1, "month");
-      } else {
+      } else if (timeView === "year") {
         // For year view, we need to ensure we move to the start of next year
         currentDate = currentDate.add(1, "year").startOf("year");
       }

@@ -140,5 +140,15 @@ describe("EventsInsights", () => {
         formattedDate: startDate.format("ll"),
       });
     });
+
+    it("should return empty array for invalid timeView", () => {
+      const startDate = dayjs.utc("2025-05-01");
+      const endDate = dayjs.utc("2025-05-03");
+      // @ts-expect-error - Testing invalid timeView value
+      const ranges = EventsInsights.getDateRanges(startDate, endDate, "invalid");
+
+      expect(ranges).toHaveLength(0);
+      expect(ranges).toEqual([]);
+    });
   });
 });
