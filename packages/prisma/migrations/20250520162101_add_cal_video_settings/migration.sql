@@ -1,9 +1,9 @@
 -- CreateTable
 CREATE TABLE "CalVideoSettings" (
     "eventTypeId" INTEGER NOT NULL,
-    "enabled" BOOLEAN NOT NULL DEFAULT false,
     "disableRecordingForOrganizer" BOOLEAN NOT NULL DEFAULT false,
     "disableRecordingForGuests" BOOLEAN NOT NULL DEFAULT false,
+    "redirectUrlOnExit" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL
 );

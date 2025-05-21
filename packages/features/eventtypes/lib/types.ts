@@ -152,8 +152,9 @@ export type FormValues = {
   isRRWeightsEnabled: boolean;
   maxLeadThreshold?: number;
   calVideoSettings?: {
-    disableRecordingForOrganizer: boolean;
-    disableRecordingForGuests: boolean;
+    disableRecordingForOrganizer?: boolean;
+    disableRecordingForGuests?: boolean;
+    redirectUrlOnExit?: string;
   };
 };
 

@@ -2,7 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Controller, useFieldArray } from "react-hook-form";
+import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
@@ -13,6 +13,7 @@ import type {
   LocationFormValues,
   EventTypeSetupProps,
   CheckboxClassNames,
+  FormValues,
 } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import type {
@@ -25,11 +26,12 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
+import { SettingsToggle } from "@calcom/ui/components/form";
 import { Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
-export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locations">;
+export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locations" | "calVideoSettings">;
 export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["locationOptions"];
 export type TDestinationCalendar = { integration: string } | null;
 export type TPrefillLocation = { credentialId?: number; type: string };
@@ -128,6 +130,8 @@ const Locations: React.FC<LocationsProps> = ({
     control,
     name: "locations",
   });
+
+  const formMethods = useFormContext<FormValues>();
 
   const locationOptions = props.locationOptions.map((locationOption) => {
     const options = locationOption.options.filter((option) => {
@@ -328,6 +332,53 @@ const Locations: React.FC<LocationsProps> = ({
                     </div>
                   </button>
                 )}
+              </div>
+
+              <div className="bg-muted mt-2 space-y-2 rounded-lg px-4 py-2">
+                <div className="w-full">
+                  <div className="flex flex-col gap-2">
+                    <SettingsToggle
+                      title={t("disable_recording_for_guests")}
+                      labelClassName="text-sm"
+                      checked={eventType.calVideoSettings?.disableRecordingForGuests}
+                      onCheckedChange={(e) => {
+                        formMethods.setValue("calVideoSettings.disableRecordingForGuests", e, {
+                          shouldDirty: true,
+                        });
+                      }}
+                    />
+                    <SettingsToggle
+                      title={t("disable_recording_for_organizer")}
+                      labelClassName="text-sm"
+                      checked={eventType.calVideoSettings?.disableRecordingForOrganizer}
+                      onCheckedChange={(e) => {
+                        formMethods.setValue("calVideoSettings.disableRecordingForOrganizer", e, {
+                          shouldDirty: true,
+                        });
+                      }}
+                    />
+                    <Input
+                      name="calVideoSettings.redirectUrlOnExit"
+                      placeholder={t("enter_redirect_url_on_exit")}
+                      type="text"
+                      required
+                      onChange={(e) => {
+                        console.log("e", e);
+                        if (e.target.value) {
+                          formMethods.setValue("calVideoSettings.redirectUrlOnExit", e.target.value, {
+                            shouldDirty: true,
+                          });
+                        } else {
+                          formMethods.setValue("calVideoSettings.redirectUrlOnExit", undefined, {
+                            shouldDirty: true,
+                          });
+                        }
+                      }}
+                      value={eventType.calVideoSettings?.redirectUrlOnExit}
+                      className="my-0 max-w-xl"
+                    />
+                  </div>
+                </div>
               </div>
 
               {eventLocationType?.organizerInputType && (

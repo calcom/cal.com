@@ -15,6 +15,7 @@ import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
+import type { CalVideoSettings } from "@calcom/prisma/client";
 
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
@@ -24,11 +25,11 @@ const checkShowRecordingButton = ({
   isOrganizer,
 }: {
   hasTeamPlan: boolean;
-  calVideoSettings: CalVideoSettings;
+  calVideoSettings?: CalVideoSettings | null;
   isOrganizer: boolean;
 }) => {
   if (!hasTeamPlan) return false;
-  if (!calVideoSettings || !calVideoSettings.enabled) return true;
+  if (!calVideoSettings) return true;
 
   if (isOrganizer) {
     return !calVideoSettings.disableRecordingForOrganizer;
@@ -161,8 +162,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     : false;
 
   const showRecordingButton = checkShowRecordingButton({
-    hasTeamPlan,
-    calVideoSettings: bookingObj.eventType.calVideoSettings,
+    hasTeamPlan: !!hasTeamPlan,
+    calVideoSettings: bookingObj.eventType?.calVideoSettings,
     isOrganizer: sessionUserId === bookingObj.user?.id,
   });
 

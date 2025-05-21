@@ -679,9 +679,9 @@ export class EventTypeRepository {
       useEventLevelSelectedCalendars: true,
       calVideoSettings: {
         select: {
-          enabled: true,
           disableRecordingForGuests: true,
           disableRecordingForOrganizer: true,
+          redirectUrlOnExit: true,
         },
       },
     });

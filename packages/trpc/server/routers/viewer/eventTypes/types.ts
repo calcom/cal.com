@@ -27,9 +27,9 @@ const aiPhoneCallConfig = z
 
 const calVideoSettingsSchema = z
   .object({
-    enabled: z.boolean(),
     disableRecordingForGuests: z.boolean().optional(),
     disableRecordingForOrganizer: z.boolean().optional(),
+    redirectUrlOnExit: z.string().optional(),
   })
   .optional();
 

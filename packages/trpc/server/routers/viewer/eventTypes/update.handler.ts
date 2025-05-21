@@ -118,9 +118,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       },
       calVideoSettings: {
         select: {
-          enabled: true,
           disableRecordingForOrganizer: true,
           disableRecordingForGuests: true,
+          redirectUrlOnExit: true,
         },
       },
       children: {
@@ -527,26 +527,19 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (calVideoSettings) {
-    if (calVideoSettings.enabled) {
-      await ctx.prisma.calVideoSettings.upsert({
-        where: { eventTypeId: id },
-        update: {
-          enabled: calVideoSettings.enabled,
-          disableRecordingForGuests: calVideoSettings.disableRecordingForGuests,
-          disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer,
-        },
-        create: {
-          enabled: calVideoSettings.enabled,
-          disableRecordingForGuests: calVideoSettings.disableRecordingForGuests,
-          disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer,
-          eventTypeId: id,
-        },
-      });
-    } else if (!calVideoSettings.enabled && eventType.calVideoSettings) {
-      await ctx.prisma.calVideoSettings.delete({
-        where: { eventTypeId: id },
-      });
-    }
+    await ctx.prisma.calVideoSettings.upsert({
+      where: { eventTypeId: id },
+      update: {
+        disableRecordingForGuests: calVideoSettings.disableRecordingForGuests,
+        disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer,
+        redirectUrlOnExit: calVideoSettings.redirectUrlOnExit,
+      },
+      create: {
+        disableRecordingForGuests: calVideoSettings.disableRecordingForGuests,
+        disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer,
+        eventTypeId: id,
+      },
+    });
   }
 
   // Logic for updating `fieldTranslations`
