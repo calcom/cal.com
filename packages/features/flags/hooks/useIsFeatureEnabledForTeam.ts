@@ -11,9 +11,6 @@ export const useIsFeatureEnabledForTeam = ({
   teamId?: number;
   feature: keyof AppFlags;
 }) => {
-  if (!teamId || !teamFeatures) {
-    return false;
-  }
-
+  if (!teamId || !teamFeatures?.[teamId]) return false;
   return teamFeatures[teamId][feature];
 };
