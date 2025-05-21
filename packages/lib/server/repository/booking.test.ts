@@ -236,7 +236,7 @@ describe("BookingRepository", () => {
         users: [{ id: 1, email: "organizer1@example.com" }],
         eventTypeId: 1,
         startDate: new Date("2025-06-01T00:00:00.000Z"),
-        endDate: new Date("2025-06-31T23:59:00.000Z"),
+        endDate: new Date("2025-06-30T23:59:00.000Z"),
         includeNoShowInRRCalculation: true,
         virtualQueuesData: null,
         rrTimestampBasis: RRTimestampBasis.START_TIME,
