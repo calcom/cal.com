@@ -655,7 +655,10 @@ async function fetchAllDataNeededForCalculations<
 
   const interval = getLuckyUserParams.eventType.team?.rrResetInterval ?? RRResetInterval.MONTH;
 
-  const rrTimestampBasis = getLuckyUserParams.eventType.team?.rrTimestampBasis ?? RRTimestampBasis.CREATED_AT;
+  const rrTimestampBasis =
+    eventType.isRRWeightsEnabled && getLuckyUserParams.eventType.team?.rrTimestampBasis
+      ? getLuckyUserParams.eventType.team.rrTimestampBasis
+      : RRTimestampBasis.CREATED_AT;
 
   const [
     userBusyTimesOfInterval,
