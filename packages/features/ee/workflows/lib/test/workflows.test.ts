@@ -760,6 +760,81 @@ describe("scheduleBookingReminders", () => {
       }
     });
   });
+
+  test("should not schedule reminders if date is already in the past", async ({}) => {
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      defaultScheduleId: null,
+      schedules: [TestData.schedules.IstMorningShift],
+    });
+
+    const pastBooking = {
+      uid: "past-booking-uid",
+      eventTypeId: 1,
+      userId: 101,
+      status: BookingStatus.ACCEPTED,
+      startTime: `2024-05-21T09:00:00.000Z`,
+      endTime: `2024-05-21T09:15:00.000Z`,
+      attendees: [{ email: "attendee@example.com", locale: "en" }],
+    };
+
+    await createBookingScenario(
+      getScenarioData({
+        workflows: [
+          {
+            name: "Past Workflow",
+            userId: 101,
+            trigger: "BEFORE_EVENT",
+            action: "EMAIL_HOST",
+            template: "REMINDER",
+            activeOn: [],
+            time: 5,
+            timeUnit: TimeUnit.DAY,
+          },
+        ],
+        eventTypes: mockEventTypes,
+        bookings: [pastBooking],
+        organizer,
+      })
+    );
+
+    const workflow = await prismock.workflow.findFirst({
+      select: workflowSelect,
+    });
+
+    const bookings = await prismock.booking.findMany({
+      where: {
+        userId: organizer.id,
+      },
+      select: bookingSelect,
+    });
+
+    expect(workflow).not.toBeNull();
+
+    if (!workflow) return;
+
+    await scheduleBookingReminders(
+      bookings,
+      workflow.steps,
+      workflow.time,
+      workflow.timeUnit,
+      workflow.trigger,
+      organizer.id,
+      null, //teamId
+      false //isOrg
+    );
+
+    const tasks = await prismock.task.findMany({
+      where: {
+        type: "sendWorkflowEmails",
+      },
+    });
+
+    // No tasks should be created for past reminders
+    expect(tasks.length).toBe(0);
+  });
 });
 
 describe("deleteWorkfowRemindersOfRemovedMember", () => {
