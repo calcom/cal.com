@@ -69,17 +69,16 @@ model Host {
   @@index([scheduleId])
 }
 
-/// @zod.import(["import * as imports from '../../zod-utils'"])
 model EventType {
   id                Int     @id @default(autoincrement())
   /// @zod.string.min(1)
   title             String
-  /// @zod.custom.use(imports.eventTypeSlug)
+  /// @zod.import(["import { eventTypeSlug } from '../../zod-utils'"]).custom.use(eventTypeSlug)
   slug              String
   description       String?
   interfaceLanguage String?
   position          Int     @default(0)
-  /// @zod.custom.use(imports.eventTypeLocations)
+  /// @zod.import(["import { eventTypeLocations } from '../../zod-utils'"]).custom.use(eventTypeLocations)
   locations         Json?
   /// @zod.number.min(1)
   length            Int
@@ -106,13 +105,13 @@ model EventType {
   parentId                           Int?
   parent                             EventType?             @relation("managed_eventtype", fields: [parentId], references: [id], onDelete: Cascade)
   children                           EventType[]            @relation("managed_eventtype")
-  /// @zod.custom.use(imports.eventTypeBookingFields)
+  /// @zod.import(["import { eventTypeBookingFields } from '../../zod-utils'"]).custom.use(eventTypeBookingFields)
   bookingFields                      Json?
   timeZone                           String?
   periodType                         PeriodType             @default(UNLIMITED)
-  /// @zod.custom.use(imports.coerceToDate)
+  /// @zod.import(["import { coerceToDate } from '../../zod-utils'"]).custom.use(coerceToDate)
   periodStartDate                    DateTime?
-  /// @zod.custom.use(imports.coerceToDate)
+  /// @zod.import(["import { coerceToDate } from '../../zod-utils'"]).custom.use(coerceToDate)
   periodEndDate                      DateTime?
   periodDays                         Int?
   periodCountCalendarDays            Boolean?
@@ -124,7 +123,7 @@ model EventType {
   canSendCalVideoTranscriptionEmails Boolean                @default(true)
 
   autoTranslateDescriptionEnabled         Boolean                   @default(false)
-  /// @zod.custom.use(imports.recurringEventType)
+  /// @zod.import(["import { recurringEventType } from '../../zod-utils'"]).custom.use(recurringEventType)
   recurringEvent                          Json?
   disableGuests                           Boolean                   @default(false)
   hideCalendarNotes                       Boolean                   @default(false)
@@ -147,15 +146,15 @@ model EventType {
   // currency is deprecated. It has now moved to metadata.apps.stripe.currency. Plan to drop this column.
   currency                                String                    @default("usd")
   slotInterval                            Int?
-  /// @zod.custom.use(imports.EventTypeMetaDataSchema)
+  /// @zod.import(["import { EventTypeMetaDataSchema } from '../../zod-utils'"]).custom.use(EventTypeMetaDataSchema)
   metadata                                Json?
-  /// @zod.custom.use(imports.successRedirectUrl)
+  /// @zod.import(["import { successRedirectUrl } from '../../zod-utils'"]).custom.use(successRedirectUrl)
   successRedirectUrl                      String?
   forwardParamsSuccessRedirect            Boolean?                  @default(true)
   workflows                               WorkflowsOnEventTypes[]
-  /// @zod.custom.use(imports.intervalLimitsType)
+  /// @zod.import(["import { intervalLimitsType } from '../../zod-utils'"]).custom.use(intervalLimitsType)
   bookingLimits                           Json?
-  /// @zod.custom.use(imports.intervalLimitsType)
+  /// @zod.import(["import { intervalLimitsType } from '../../zod-utils'"]).custom.use(intervalLimitsType)
   durationLimits                          Json?
   isInstantEvent                          Boolean                   @default(false)
   instantMeetingExpiryTimeOffsetInSeconds Int                       @default(90)
@@ -165,7 +164,7 @@ model EventType {
   assignAllTeamMembers                    Boolean                   @default(false)
   // It is applicable only when assignAllTeamMembers is true and it filters out all the team members using rrSegmentQueryValue
   assignRRMembersUsingSegment             Boolean                   @default(false)
-  /// @zod.custom.use(imports.rrSegmentQueryValueSchema)
+  /// @zod.import(["import { rrSegmentQueryValueSchema } from '../../zod-utils'"]).custom.use(rrSegmentQueryValueSchema)
   rrSegmentQueryValue                     Json?
   useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
   aiPhoneCallConfig                       AIPhoneCallConfiguration?
@@ -179,7 +178,7 @@ model EventType {
   /// @zod.import(["import { emailSchema } from '@calcom/lib/emailSchema'"]).custom.use(emailSchema)
   customReplyToEmail                      String?
 
-  /// @zod.custom.use(imports.eventTypeColor)
+  /// @zod.import(["import { eventTypeColor } from '../../zod-utils'"]).custom.use(eventTypeColor)
   eventTypeColor                   Json?
   rescheduleWithSameRoundRobinHost Boolean @default(false)
 
