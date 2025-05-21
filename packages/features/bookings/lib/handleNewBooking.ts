@@ -1450,6 +1450,7 @@ async function handler(
     await WorkflowRepository.deleteAllWorkflowReminders(originalRescheduledBooking.workflowReminders);
 
     evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
+    evt.rescheduledBy = reqBody.rescheduledBy;
 
     // If organizer is changed in RR event then we need to delete the previous host destination calendar events
     const previousHostDestinationCalendar = originalRescheduledBooking?.destinationCalendar
@@ -1602,6 +1603,7 @@ async function handler(
         additionalNotes, // Resets back to the additionalNote input and not the override value
         cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
       };
+      const cancelledRRHostEvt = cloneDeep(copyEventAdditionalInfo);
       loggerWithEventDetails.debug("Emails: Sending rescheduled emails for booking confirmation");
 
       /*
@@ -1624,11 +1626,28 @@ async function handler(
         }
         if (originalRescheduledBooking.user) {
           const translate = await getTranslation(originalRescheduledBooking.user.locale ?? "en", "common");
+          const originalOrganizer = originalRescheduledBooking.user;
+
           originalBookingMemberEmails.push({
             ...originalRescheduledBooking.user,
             name: originalRescheduledBooking.user.name || "",
             language: { translate, locale: originalRescheduledBooking.user.locale ?? "en" },
           });
+
+          if (changedOrganizer) {
+            cancelledRRHostEvt.title = originalRescheduledBooking.title;
+            cancelledRRHostEvt.startTime =
+              dayjs(originalRescheduledBooking?.startTime).utc().format() ||
+              copyEventAdditionalInfo.startTime;
+            cancelledRRHostEvt.endTime =
+              dayjs(originalRescheduledBooking?.endTime).utc().format() || copyEventAdditionalInfo.endTime;
+            cancelledRRHostEvt.organizer = {
+              email: originalOrganizer.email,
+              name: originalOrganizer.name || "",
+              timeZone: originalOrganizer.timeZone,
+              language: { translate, locale: originalOrganizer.locale || "en" },
+            };
+          }
         }
 
         const newBookingMemberEmails: Person[] =
@@ -1671,7 +1690,7 @@ async function handler(
             members: newBookedMembers,
             eventTypeMetadata: eventType.metadata,
           });
-          sendRoundRobinCancelledEmailsAndSMS(copyEventAdditionalInfo, cancelledMembers, eventType.metadata);
+          sendRoundRobinCancelledEmailsAndSMS(cancelledRRHostEvt, cancelledMembers, eventType.metadata);
         }
       } else {
         if (!isDryRun) {
