@@ -2,7 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Controller, useFieldArray } from "react-hook-form";
+import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
@@ -13,6 +13,7 @@ import type {
   LocationFormValues,
   EventTypeSetupProps,
   CheckboxClassNames,
+  FormValues,
 } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import type {
@@ -25,6 +26,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
+import { TextField } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -129,6 +131,8 @@ const Locations: React.FC<LocationsProps> = ({
     control,
     name: "locations",
   });
+
+  const formMethods = useFormContext<FormValues>();
 
   const locationOptions = props.locationOptions.map((locationOption) => {
     const options = locationOption.options.filter((option) => {
@@ -336,7 +340,7 @@ const Locations: React.FC<LocationsProps> = ({
               </div>
 
               {isCalVideo && (
-                <div className="bg-muted mt-2 space-y-2 rounded-lg px-4 py-2">
+                <div className="bg-muted mt-2 space-y-2 rounded-lg p-4">
                   <div className="w-full">
                     <div className="flex flex-col gap-2">
                       <Controller
@@ -368,21 +372,12 @@ const Locations: React.FC<LocationsProps> = ({
                         }}
                       />
 
-                      <Controller
-                        name="calVideoSettings.redirectUrlOnExit"
+                      <TextField
+                        label={t("enter_redirect_url_on_exit_description")}
                         defaultValue={eventType.calVideoSettings?.redirectUrlOnExit || ""}
-                        render={({ field: { onChange, value } }) => {
-                          return (
-                            <Input
-                              name="calVideoSettings.redirectUrlOnExit"
-                              placeholder={t("enter_redirect_url_on_exit_description")}
-                              type="text"
-                              onChange={onChange}
-                              value={value || ""}
-                              className="my-0 max-w-md"
-                            />
-                          );
-                        }}
+                        data-testid="calVideoSettings.redirectUrlOnExit"
+                        containerClassName="mt-2"
+                        {...formMethods.register("calVideoSettings.redirectUrlOnExit")}
                       />
                     </div>
                   </div>

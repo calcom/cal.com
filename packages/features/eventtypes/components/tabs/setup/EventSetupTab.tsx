@@ -51,80 +51,6 @@ export type EventSetupTabCustomClassNames = {
   };
 };
 
-type CalVideoSettings = {
-  disableRecordingForGuests: boolean;
-  disableRecordingForOrganizer: boolean;
-};
-
-const CalVideoSettings = () => {
-  const { t } = useLocale();
-  const formMethods = useFormContext<FormValues>();
-  const settings = formMethods.watch("calVideoSettings");
-  const locations = formMethods.watch("locations");
-
-  const doesLocationHaveCalVideo = locations.some((location) => location.type === "integrations:daily");
-
-  if (!doesLocationHaveCalVideo) return null;
-
-  return (
-    <div className="mt-4">
-      <Controller
-        name="calVideoSettings"
-        render={() => (
-          <SettingsToggle
-            labelClassName={classNames("text-sm")}
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(
-              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              true && "rounded-b-none"
-            )}
-            title={t("customize_calvideo_settings")}
-            description={t("calvideo_settings_description")}
-            checked={true}
-            onCheckedChange={(e) => {
-              formMethods.setValue(
-                "calVideoSettings",
-                e
-                  ? {
-                      disableRecordingForGuests: false,
-                      disableRecordingForOrganizer: false,
-                    }
-                  : undefined,
-                {
-                  shouldDirty: true,
-                }
-              );
-            }}
-            childrenClassName={classNames("lg:ml-0")}>
-            <div className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
-              <SettingsToggle
-                title={t("disable_recording_for_guests")}
-                labelClassName="text-sm"
-                checked={settings?.disableRecordingForGuests}
-                onCheckedChange={(e) => {
-                  formMethods.setValue("calVideoSettings.disableRecordingForGuests", e, {
-                    shouldDirty: true,
-                  });
-                }}
-              />
-              <SettingsToggle
-                title={t("disable_recording_for_organizer")}
-                labelClassName="text-sm"
-                checked={settings?.disableRecordingForOrganizer}
-                onCheckedChange={(e) => {
-                  formMethods.setValue("calVideoSettings.disableRecordingForOrganizer", e, {
-                    shouldDirty: true,
-                  });
-                }}
-              />
-            </div>
-          </SettingsToggle>
-        )}
-      />
-    </div>
-  );
-};
-
 export type EventSetupTabProps = Pick<
   EventTypeSetupProps,
   "eventType" | "locationOptions" | "team" | "teamMembers" | "destinationCalendar"
@@ -143,7 +69,6 @@ export const EventSetupTab = (
   const isPlatform = useIsPlatform();
   const formMethods = useFormContext<FormValues>();
   const { eventType, team, urlPrefix, hasOrgBranding, customClassNames, orgId } = props;
-  console.log("EventSetupTab.eventType", eventType);
 
   const interfaceLanguageOptions =
     props.localeOptions && props.localeOptions.length > 0
