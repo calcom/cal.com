@@ -10,7 +10,7 @@ import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 
 import { getSafe } from "./getSafe";
 
-function getNewSearchParams(args: {
+export function getNewSearchParams(args: {
   query: Record<string, string | null | undefined | boolean>;
   searchParams?: URLSearchParams;
   isEmbed?: boolean;
