@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 import { getDefaultLocations } from "@calcom/lib/server/getDefaultLocations";
