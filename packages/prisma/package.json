@@ -33,7 +33,7 @@
     "prisma-kysely": "^1.8.0",
     "ts-node": "^10.9.1",
     "zod": "^3.22.4",
-    "zod-prisma": "^0.5.4"
+    "zod-prisma-types": "^3.2.4"
   },
   "main": "index.ts",
   "types": "index.d.ts",

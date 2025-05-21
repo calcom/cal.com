@@ -67,7 +67,7 @@ tsconfig.tsbuildinfo
 
 # Prisma generated files
 packages/prisma/client/*
-packages/prisma/zod/*.ts
+packages/prisma/zod/**/*.ts
 packages/prisma/enums
 
 # Builds
