@@ -1,12 +1,12 @@
 import type { Params } from "app/_types";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { AVATAR_FALLBACK, WEBAPP_URL } from "@calcom/lib/constants";
 import { convertSvgToPng } from "@calcom/lib/server/imageUtils";
-import type { PrismaClient } from "@calcom/prisma";
-import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
+import prisma from "@calcom/prisma";
 
 const querySchema = z.object({
   uuid: z.string().transform((objectKey) => objectKey.split(".")[0]),
@@ -27,7 +27,7 @@ const handleValidationError = (error: z.ZodError): NextResponse => {
   );
 };
 
-async function handler(req: NextRequest, { params }: { params: Promise<Params> }, prisma: PrismaClient) {
+async function handler(req: NextRequest, { params }: { params: Promise<Params> }) {
   const result = querySchema.safeParse(await params);
   if (!result.success) {
     return handleValidationError(result.error);
@@ -77,4 +77,4 @@ async function handler(req: NextRequest, { params }: { params: Promise<Params> }
   });
 }
 
-export const GET = withPrismaRoute(handler);
+export const GET = defaultResponderForAppDir(handler);

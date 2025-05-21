@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -17,8 +18,6 @@ import {
   WEBAPP_URL,
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import type { PrismaClient } from "@calcom/prisma";
-import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -111,7 +110,7 @@ function isValidLogoType(type: string): type is LogoType {
   return type in logoDefinitions;
 }
 
-async function getTeamLogos(subdomain: string, isValidOrgDomain: boolean, prisma: PrismaClient) {
+async function getTeamLogos(subdomain: string, isValidOrgDomain: boolean) {
   try {
     if (
       // if not cal.com
@@ -164,7 +163,7 @@ async function getTeamLogos(subdomain: string, isValidOrgDomain: boolean, prisma
 /**
  * This API endpoint is used to serve the logo associated with a team if no logo is found we serve our default logo
  */
-async function getHandler(request: NextRequest, prisma: PrismaClient) {
+async function getHandler(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const parsedQuery = logoApiSchema.parse(Object.fromEntries(searchParams.entries()));
 
@@ -220,4 +219,4 @@ async function getHandler(request: NextRequest, prisma: PrismaClient) {
   }
 }
 
-export const GET = withPrismaRoute(getHandler);
+export const GET = defaultResponderForAppDir(getHandler);

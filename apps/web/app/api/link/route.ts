@@ -1,12 +1,12 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
-import type { PrismaClient } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
-import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { bookingsRouter } from "@calcom/trpc/server/routers/viewer/bookings/_router";
 import { createCallerFactory } from "@calcom/trpc/server/trpc";
@@ -54,7 +54,7 @@ const createSessionGetter = (userId: number) => async () => {
   };
 };
 
-async function handler(request: NextRequest, prisma: PrismaClient) {
+async function handler(request: NextRequest) {
   const url = new URL(request.url);
   const searchParams = request.nextUrl.searchParams;
 
@@ -107,4 +107,4 @@ async function handler(request: NextRequest, prisma: PrismaClient) {
   return NextResponse.redirect(`${url.origin}/booking/${bookingUid}`);
 }
 
-export const GET = withPrismaRoute(handler);
+export const GET = defaultResponderForAppDir(handler);

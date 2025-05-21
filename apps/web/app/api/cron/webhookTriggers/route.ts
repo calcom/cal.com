@@ -1,11 +1,11 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { handleWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/handleWebhookScheduledTriggers";
-import type { PrismaClient } from "@calcom/prisma";
-import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
+import prisma from "@calcom/prisma";
 
-async function postHandler(req: NextRequest, prisma: PrismaClient) {
+async function postHandler(req: NextRequest) {
   const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
 
   if (process.env.CRON_API_KEY !== apiKey) {
@@ -17,4 +17,4 @@ async function postHandler(req: NextRequest, prisma: PrismaClient) {
   return NextResponse.json({ ok: true });
 }
 
-export const POST = withPrismaRoute(postHandler);
+export const POST = defaultResponderForAppDir(postHandler);

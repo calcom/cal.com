@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -5,10 +6,9 @@ import { NextResponse } from "next/server";
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { emailSchema } from "@calcom/lib/emailSchema";
-import type { PrismaClient } from "@calcom/prisma";
-import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
+import prisma from "@calcom/prisma";
 
-async function handler(req: NextRequest, prisma: PrismaClient) {
+async function handler(req: NextRequest) {
   const body = await parseRequestData(req);
   const email = emailSchema.transform((val) => val.toLowerCase()).safeParse(body?.email);
 
@@ -46,4 +46,4 @@ async function handler(req: NextRequest, prisma: PrismaClient) {
   }
 }
 
-export const POST = withPrismaRoute(handler);
+export const POST = defaultResponderForAppDir(handler);

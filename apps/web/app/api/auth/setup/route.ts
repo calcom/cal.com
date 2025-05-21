@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -8,10 +9,9 @@ import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { HttpError } from "@calcom/lib/http-error";
 import slugify from "@calcom/lib/slugify";
-import type { PrismaClient } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
-import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
 
 const querySchema = z.object({
   username: z
@@ -25,7 +25,7 @@ const querySchema = z.object({
   }),
 });
 
-async function handler(req: NextRequest, prisma: PrismaClient) {
+async function handler(req: NextRequest) {
   const userCount = await prisma.user.count();
   if (userCount !== 0) {
     throw new HttpError({ statusCode: 400, message: "No setup needed." });
@@ -59,4 +59,4 @@ async function handler(req: NextRequest, prisma: PrismaClient) {
   return NextResponse.json({ message: "First admin user created successfully." });
 }
 
-export const POST = withPrismaRoute(handler);
+export const POST = defaultResponderForAppDir(handler);

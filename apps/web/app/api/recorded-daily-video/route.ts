@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { createHmac } from "crypto";
 import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
@@ -17,8 +18,7 @@ import {
   getDownloadLinkOfCalVideoByRecordingId,
   submitBatchProcessorTranscriptionJob,
 } from "@calcom/lib/videoClient";
-import type { PrismaClient } from "@calcom/prisma";
-import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
+import prisma from "@calcom/prisma";
 import { getBooking } from "@calcom/web/lib/daily-webhook/getBooking";
 import { getBookingReference } from "@calcom/web/lib/daily-webhook/getBookingReference";
 import { getCalendarEvent } from "@calcom/web/lib/daily-webhook/getCalendarEvent";
@@ -51,7 +51,7 @@ const getDownloadLinkOfCalVideo = async (recordingId: string) => {
   return downloadLink;
 };
 
-export async function postHandler(request: NextRequest, prisma: PrismaClient) {
+export async function postHandler(request: NextRequest) {
   const body = await request.json();
 
   if (testRequestSchema.safeParse(body).success) {
@@ -225,4 +225,4 @@ export async function postHandler(request: NextRequest, prisma: PrismaClient) {
   }
 }
 
-export const POST = withPrismaRoute(postHandler);
+export const POST = defaultResponderForAppDir(postHandler);

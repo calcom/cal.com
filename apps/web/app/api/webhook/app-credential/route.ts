@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import z from "zod";
@@ -6,8 +7,7 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { CREDENTIAL_SYNC_SECRET, CREDENTIAL_SYNC_SECRET_HEADER_NAME } from "@calcom/lib/constants";
 import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
-import type { PrismaClient } from "@calcom/prisma";
-import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
+import prisma from "@calcom/prisma";
 
 const appCredentialWebhookRequestBodySchema = z.object({
   // UserId of the cal.com user
@@ -17,7 +17,7 @@ const appCredentialWebhookRequestBodySchema = z.object({
   keys: z.string(),
 });
 
-async function postHandler(request: NextRequest, prisma: PrismaClient) {
+async function postHandler(request: NextRequest) {
   if (!APP_CREDENTIAL_SHARING_ENABLED) {
     return NextResponse.json({ message: "Credential sharing is not enabled" }, { status: 403 });
   }
@@ -103,4 +103,4 @@ async function postHandler(request: NextRequest, prisma: PrismaClient) {
   }
 }
 
-export const POST = withPrismaRoute(postHandler);
+export const POST = defaultResponderForAppDir(postHandler);

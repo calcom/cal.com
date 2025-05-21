@@ -6,15 +6,15 @@ This document tracks the migration of all files that need to be converted to use
 
 | Category | Total Files | Migrated | Remaining | Status |
 |----------|-------------|----------|-----------|--------|
-| API Routes (App Router) | 58 | 29 | 29 | 🟡 In Progress |
-| API Routes (Pages Router) | 146 | 92 | 54 | 🟡 In Progress |
+| API Routes (App Router) | 58 | 0 | 58 | 🔴 Not Started |
+| API Routes (Pages Router) | 121 | 0 | 121 | 🔴 Not Started |
 | NestJS API (v2) | 32 | 0 | 32 | 🔴 Not Started |
 | tRPC Procedures | 248 | 248 | 0 | 🟢 Completed |
 | Repository Classes | 35 | 0 | 35 | 🔴 Not Started |
 | Utility Functions | 168 | 0 | 168 | 🔴 Not Started |
 | Test Files | 112 | 0 | 112 | 🔴 Not Started |
 | Cron Jobs | 35 | 0 | 35 | 🔴 Not Started |
-| **Total** | **834** | **369** | **465** | 🟡 In Progress |
+| **Total** | **809** | **248** | **561** | 🟡 In Progress |
 
 ## Migration Patterns
 
@@ -108,7 +108,7 @@ export class MyService {
 
 ### 4. tRPC Procedures
 
-**Migration Pattern**: Already handled with tenant-aware context, use `ctx.prisma`
+**Migration Pattern**: Already handled with middleware, use `ctx.prisma`
 
 **Before:**
 ```typescript
@@ -127,8 +127,6 @@ export const myProcedure = publicProcedure.query(async ({ ctx }) => {
   return users;
 });
 ```
-
-> Note: The tRPC context now directly uses tenant-aware Prisma clients based on the request host, eliminating the need for prismaMiddleware.
 
 ### 5. Repository Classes
 

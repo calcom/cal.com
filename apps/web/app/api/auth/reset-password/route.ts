@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -5,9 +6,8 @@ import { z } from "zod";
 
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { validPassword } from "@calcom/features/auth/lib/validPassword";
-import type { PrismaClient } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
-import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
 
 const passwordResetRequestSchema = z.object({
   password: z.string().refine(validPassword, () => ({
@@ -16,7 +16,7 @@ const passwordResetRequestSchema = z.object({
   requestId: z.string(), // format doesn't matter.
 });
 
-async function handler(req: NextRequest, prisma: PrismaClient) {
+async function handler(req: NextRequest) {
   const body = await parseRequestData(req);
 
   const { password: rawPassword, requestId: rawRequestId } = passwordResetRequestSchema.parse(body);
@@ -64,7 +64,7 @@ async function handler(req: NextRequest, prisma: PrismaClient) {
   return NextResponse.json({ message: "Password reset." }, { status: 201 });
 }
 
-async function expireResetPasswordRequest(rawRequestId: string, prisma: PrismaClient) {
+async function expireResetPasswordRequest(rawRequestId: string) {
   await prisma.resetPasswordRequest.update({
     where: {
       id: rawRequestId,
@@ -76,4 +76,4 @@ async function expireResetPasswordRequest(rawRequestId: string, prisma: PrismaCl
   });
 }
 
-export const POST = withPrismaRoute(handler);
+export const POST = defaultResponderForAppDir(handler);

@@ -1,4 +1,5 @@
 import type { Params } from "app/_types";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -10,8 +11,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
-import type { PrismaClient } from "@calcom/prisma";
-import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
+import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -21,7 +21,7 @@ const querySchema = z.object({
   session_id: z.string().min(1),
 });
 
-async function getHandler(req: NextRequest, { params }: { params: Promise<Params> }, prisma: PrismaClient) {
+async function getHandler(req: NextRequest, { params }: { params: Promise<Params> }) {
   try {
     const searchParams = req.nextUrl.searchParams;
     const { team: id, session_id } = querySchema.parse({
@@ -105,4 +105,4 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
   }
 }
 
-export const GET = withPrismaRoute(getHandler);
+export const GET = defaultResponderForAppDir(getHandler);

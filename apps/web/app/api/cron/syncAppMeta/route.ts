@@ -1,11 +1,11 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
 import logger from "@calcom/lib/logger";
-import type { PrismaClient } from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { AppCategories, Prisma } from "@calcom/prisma/client";
-import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
 
 const isDryRun = process.env.CRON_ENABLE_APP_SYNC !== "true";
 const log = logger.getSubLogger({
@@ -16,7 +16,7 @@ const log = logger.getSubLogger({
  * syncAppMeta makes sure any app metadata that has been replicated into the database
  * remains synchronized with any changes made to the app config files.
  */
-async function postHandler(request: NextRequest, prisma: PrismaClient) {
+async function postHandler(request: NextRequest) {
   const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");
 
   if (process.env.CRON_API_KEY !== apiKey) {
@@ -64,4 +64,4 @@ async function postHandler(request: NextRequest, prisma: PrismaClient) {
   return NextResponse.json({ ok: true });
 }
 
-export const POST = withPrismaRoute(postHandler);
+export const POST = defaultResponderForAppDir(postHandler);

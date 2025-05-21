@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
@@ -5,9 +6,8 @@ import { z } from "zod";
 
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { HttpError } from "@calcom/lib/http-error";
-import type { PrismaClient } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
 
 const querySchema = z.object({
   session_id: z.string().min(1),
@@ -23,7 +23,7 @@ const generateRandomString = () => {
   return Math.random().toString(36).substring(2, 10);
 };
 
-async function getHandler(req: NextRequest, prisma: PrismaClient) {
+async function getHandler(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
   const { session_id } = querySchema.parse({
     session_id: searchParams.get("session_id"),
@@ -91,4 +91,4 @@ async function getHandler(req: NextRequest, prisma: PrismaClient) {
   );
 }
 
-export const GET = withPrismaRoute(getHandler);
+export const GET = defaultResponderForAppDir(getHandler);

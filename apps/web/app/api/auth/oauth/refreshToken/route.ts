@@ -1,14 +1,14 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseUrlFormData } from "app/api/parseRequestData";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import type { PrismaClient } from "@calcom/prisma";
-import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
+import prisma from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
-async function handler(req: NextRequest, prisma: PrismaClient) {
+async function handler(req: NextRequest) {
   const { client_id, client_secret, grant_type } = await parseUrlFormData(req);
 
   if (!client_id || !client_secret) {
@@ -65,4 +65,4 @@ async function handler(req: NextRequest, prisma: PrismaClient) {
   return NextResponse.json({ access_token }, { status: 200 });
 }
 
-export const POST = withPrismaRoute(handler);
+export const POST = defaultResponderForAppDir(handler);

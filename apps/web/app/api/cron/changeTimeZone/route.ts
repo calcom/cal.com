@@ -1,9 +1,9 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
-import type { PrismaClient } from "@calcom/prisma";
-import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
+import prisma from "@calcom/prisma";
 import { getDefaultScheduleId } from "@calcom/trpc/server/routers/viewer/availability/util";
 
 const travelScheduleSelect = {
@@ -21,7 +21,7 @@ const travelScheduleSelect = {
   },
 };
 
-async function postHandler(request: NextRequest, prisma: PrismaClient) {
+async function postHandler(request: NextRequest) {
   const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");
 
   if (process.env.CRON_API_KEY !== apiKey) {
@@ -169,4 +169,4 @@ async function postHandler(request: NextRequest, prisma: PrismaClient) {
   return NextResponse.json({ timeZonesChanged });
 }
 
-export const POST = withPrismaRoute(postHandler);
+export const POST = defaultResponderForAppDir(postHandler);

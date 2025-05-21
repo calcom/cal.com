@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
 import crypto from "crypto";
 import { cookies, headers } from "next/headers";
@@ -10,13 +11,12 @@ import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
-import type { PrismaClient } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
-import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-async function postHandler(req: NextRequest, prisma: PrismaClient) {
+async function postHandler(req: NextRequest) {
   const body = await parseRequestData(req);
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
@@ -83,4 +83,4 @@ async function postHandler(req: NextRequest, prisma: PrismaClient) {
   return NextResponse.json({ secret, keyUri, dataUri, backupCodes });
 }
 
-export const POST = withPrismaRoute(postHandler);
+export const POST = defaultResponderForAppDir(postHandler);
