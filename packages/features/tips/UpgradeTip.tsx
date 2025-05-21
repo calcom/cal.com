@@ -45,10 +45,10 @@ export function UpgradeTip({
   return (
     <>
       <div className="relative flex min-h-[295px] w-full items-center justify-between overflow-hidden rounded-lg pb-10">
-        <picture className="absolute min-h-[295px] w-full rounded-lg object-cover">
+        <picture className="absolute min-h-[295px] w-full rounded-lg object-contain">
           <source srcSet={imageSrc} media="(prefers-color-scheme: dark)" />
           <img
-            className="absolute min-h-[295px] w-full select-none rounded-lg object-cover object-left md:object-center"
+            className="absolute min-h-[295px] w-full select-none rounded-lg object-contain object-left md:object-center"
             src={imageSrc}
             loading="lazy"
             alt={title}
