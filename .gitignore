@@ -66,7 +66,7 @@ tsconfig.tsbuildinfo
 .turbo
 
 # Prisma generated files
-packages/prisma/zod/*.ts
+packages/prisma/zod/**/*.ts
 packages/prisma/enums
 
 # Builds
