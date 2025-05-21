@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import { renameDomain } from "@calcom/lib/domainManager/organization";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { HttpError } from "@calcom/lib/http-error";
