@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
