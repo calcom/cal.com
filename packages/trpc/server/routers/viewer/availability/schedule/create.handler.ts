@@ -1,4 +1,5 @@
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
@@ -16,7 +17,7 @@ type CreateOptions = {
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const { user } = ctx;
   if (input.eventTypeId) {
-    const eventType = await ctx.ctx.prisma.eventType.findUnique({
+    const eventType = await prisma.eventType.findUnique({
       where: {
         id: input.eventTypeId,
       },
@@ -55,12 +56,12 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   data.timeZone = user.timeZone;
 
-  const schedule = await ctx.ctx.prisma.schedule.create({
+  const schedule = await prisma.schedule.create({
     data,
   });
 
   if (!user.defaultScheduleId) {
-    await ctx.ctx.prisma.user.update({
+    await prisma.user.update({
       where: {
         id: user.id,
       },

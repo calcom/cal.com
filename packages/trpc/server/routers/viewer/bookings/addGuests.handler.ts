@@ -5,6 +5,7 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
+import { prisma } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -22,7 +23,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
   const { user } = ctx;
   const { bookingId, guests } = input;
 
-  const booking = await ctx.ctx.prisma.booking.findFirst({
+  const booking = await prisma.booking.findFirst({
     where: {
       id: bookingId,
     },
@@ -54,7 +55,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     throw new TRPCError({ code: "FORBIDDEN", message: "you_do_not_have_permission" });
   }
 
-  const organizer = await ctx.ctx.prisma.user.findFirstOrThrow({
+  const organizer = await prisma.user.findFirstOrThrow({
     where: {
       id: booking.userId || 0,
     },
@@ -88,7 +89,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     };
   });
 
-  const bookingAttendees = await ctx.ctx.prisma.booking.update({
+  const bookingAttendees = await prisma.booking.update({
     where: {
       id: bookingId,
     },

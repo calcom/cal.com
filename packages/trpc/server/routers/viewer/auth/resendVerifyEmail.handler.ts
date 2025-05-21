@@ -1,6 +1,7 @@
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -31,7 +32,7 @@ export const resendVerifyEmail = async ({ input, ctx }: ResendEmailOptions) => {
   let secondaryEmail;
   // If the input which is coming is not the current user's email, it could be a secondary email
   if (input?.email && input?.email !== ctx.user.email) {
-    secondaryEmail = await ctx.ctx.prisma.secondaryEmail.findUnique({
+    secondaryEmail = await prisma.secondaryEmail.findUnique({
       where: {
         email: input.email,
         userId: ctx.user.id,

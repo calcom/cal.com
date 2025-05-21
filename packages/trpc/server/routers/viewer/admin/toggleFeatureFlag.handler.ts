@@ -17,7 +17,7 @@ export const toggleFeatureFlagHandler = async (opts: GetOptions) => {
   const { prisma, user } = ctx;
   const { slug, enabled } = input;
   await handleFeatureToggle(opts);
-  return ctx.ctx.prisma.feature.update({
+  return prisma.feature.update({
     where: { slug },
     data: { enabled, updatedBy: user.id },
   });
@@ -31,6 +31,6 @@ async function handleFeatureToggle({ ctx, input }: GetOptions) {
   // If we're disabling the calendar cache, clear it
   if (slug === "calendar-cache" && enabled === false) {
     logger.info("Clearing calendar cache");
-    await ctx.ctx.prisma.calendarCache.deleteMany();
+    await prisma.calendarCache.deleteMany();
   }
 }

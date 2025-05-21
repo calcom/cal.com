@@ -1,6 +1,7 @@
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { hasEditPermissionForUserID } from "@calcom/lib/hasEditPermissionForUser";
 import { transformScheduleToAvailabilityForAtom } from "@calcom/lib/schedules/transformers/for-atom";
+import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -29,7 +30,7 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
 
   // Not able to update the schedule with userId where clause, so fetch schedule separately and then validate
   // Bug: https://github.com/prisma/prisma/issues/7290
-  const userSchedule = await ctx.ctx.prisma.schedule.findUnique({
+  const userSchedule = await prisma.schedule.findUnique({
     where: {
       id: input.scheduleId,
     },
@@ -77,7 +78,7 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
     };
   }
 
-  const schedule = await ctx.ctx.prisma.schedule.update({
+  const schedule = await prisma.schedule.update({
     where: {
       id: input.scheduleId,
     },
