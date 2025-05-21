@@ -84,7 +84,7 @@ export const sendSMS = async ({
     });
   }
 
-  if (isWhatsapp && contentSid) {
+  if (isWhatsapp) {
     const messageOptions: any = {
       contentSid: contentSid,
       to: getSMSNumber(phoneNumber, isWhatsapp),
@@ -170,7 +170,7 @@ export const scheduleSMS = async ({
     });
   }
 
-  if (isWhatsapp && contentSid) {
+  if (isWhatsapp) {
     const messageOptions: any = {
       contentSid: contentSid,
       to: getSMSNumber(phoneNumber, isWhatsapp),
