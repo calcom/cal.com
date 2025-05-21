@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
