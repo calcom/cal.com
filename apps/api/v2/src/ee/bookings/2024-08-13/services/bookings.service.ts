@@ -22,6 +22,7 @@ import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
 import { z } from "zod";
 
+import { LocationObject } from "@calcom/lib/location";
 import {
   handleNewRecurringBooking,
   getTranslation,
@@ -33,8 +34,11 @@ import {
   handleMarkNoShow,
   confirmBookingHandler,
   getCalendarLinks,
+  getDefaultConferencingAppLocation,
+  getLocationValueForDB,
 } from "@calcom/platform-libraries";
 import { handleNewBooking } from "@calcom/platform-libraries";
+import { enrichUsersWithDelegationCredentials } from "@calcom/platform-libraries/app-store";
 import {
   CreateBookingInput_2024_08_13,
   CreateBookingInput,
@@ -53,7 +57,6 @@ import {
 } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 import { EventType, User, Team } from "@calcom/prisma/client";
-import { BookingStatus } from "@calcom/prisma/enums";
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -809,28 +812,50 @@ export class BookingsService_2024_08_13 {
   }
 
   async updateBooking(bookingUid: string, body: UpdateBookingInput_2024_08_13) {
-    const booking = await this.bookingsRepository.getByUid(bookingUid);
-    if (!booking) {
-      throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    let bookingLocation = "";
+    const { location } = body;
+    if (!location) {
+      throw new NotFoundException(`Location not found `);
     }
 
-    const updatedBooking = await this.bookingsRepository.getByUid(bookingUid);
-
-    if (!updatedBooking) {
-      throw new NotFoundException(`Failed to update booking with uid=${bookingUid}`);
+    const existingBooking = await this.bookingsRepository.getByUid(bookingUid);
+    if (!existingBooking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} not found`);
     }
 
-    return {
-      id: updatedBooking.id,
-      uid: updatedBooking.uid,
-      title: updatedBooking.title,
-      description: updatedBooking.description,
-      // status: updatedBooking.status as unknown as "cancelled" | "accepted" | "rejected" | "pending",
-      status: updatedBooking.status as unknown as BookingStatus,
-      location: updatedBooking.location,
-      createdAt: updatedBooking.createdAt.toISOString(),
-      updatedAt: updatedBooking.updatedAt?.toISOString(),
-      metadata: updatedBooking.metadata,
-    };
+    if (existingBooking.user === null) {
+      throw new NotFoundException(`No user found for booking with uid=${bookingUid}`);
+    }
+
+    if (typeof location === "object" && location.type === "organizersDefaultApp") {
+      const enrichedUser = await enrichUsersWithDelegationCredentials({
+        orgId: null,
+        users: [
+          {
+            id: existingBooking.user.id,
+            email: existingBooking.user.email,
+            credentials: existingBooking.user.credentials,
+          },
+        ],
+      });
+
+      bookingLocation = getDefaultConferencingAppLocation(
+        existingBooking.user.metadata,
+        enrichedUser[0].credentials
+      );
+    } else if (typeof location === "object") {
+      const transformedLocation = this.inputService.transformLocation(location);
+      const { bookingLocation: bookingLocationForDB } = getLocationValueForDB(
+        transformedLocation?.optionValue || transformedLocation?.value,
+        existingBooking.eventType?.locations as unknown as LocationObject[]
+      );
+      bookingLocation = bookingLocationForDB;
+    }
+
+    const updatedBooking = await this.bookingsRepository.updateBooking(bookingUid, {
+      location: bookingLocation,
+    });
+
+    return this.getBooking(updatedBooking.uid);
   }
 }
