@@ -5,11 +5,11 @@ import { getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
-import { FormBuilderField } from "@calcom/features/form-builder/FormBuilderField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { SystemField } from "../../../lib/SystemField";
+import { MemoizedField } from "./MemoizedField";
 
 export const BookingFields = ({
   fields,
@@ -135,7 +135,7 @@ export const BookingFields = ({
         }
 
         return (
-          <FormBuilderField className="mb-4" field={{ ...field, hidden }} readOnly={readOnly} key={index} />
+          <MemoizedField className="mb-4" field={{ ...field, hidden }} readOnly={readOnly} key={index} />
         );
       })}
     </div>
