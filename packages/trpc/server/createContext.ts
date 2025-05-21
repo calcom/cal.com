@@ -7,7 +7,7 @@ import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import getIP from "@calcom/lib/getIP";
 import prisma, { readonlyPrisma } from "@calcom/prisma";
 import type { SelectedCalendar, User as PrismaUser } from "@calcom/prisma/client";
-import { runWithTenants, setCurrentTenant } from "@calcom/prisma/store/prismaStore";
+import { runWithTenants } from "@calcom/prisma/store/prismaStore";
 import { getTenantFromHost } from "@calcom/prisma/store/tenants";
 
 import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
@@ -94,8 +94,6 @@ export const createContext = async (
   const tenant = getTenantFromHost(host);
 
   return await runWithTenants(tenant, async () => {
-    setCurrentTenant(tenant);
-
     const session = !!sessionGetter ? await sessionGetter({ req, res }) : null;
     const contextInner = await createContextInner({ locale, session, sourceIp });
     return {

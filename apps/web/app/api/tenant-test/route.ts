@@ -1,26 +1,9 @@
 import { NextResponse } from "next/server";
 
 import { prisma } from "@calcom/prisma";
-import { getPrismaFromHost, runWithTenants } from "@calcom/prisma/store/prismaStore";
+import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
 
-export async function GET(req: Request) {
-  const host = req.headers.get("host") || "";
-
-  const globalUsers = await prisma.user.findFirst({
-    select: { id: true, name: true },
-  });
-
-  return runWithTenants(async () => {
-    const tenantPrisma = getPrismaFromHost(host);
-    const tenantUsers = await tenantPrisma.user.findFirst({
-      select: { id: true, name: true },
-    });
-
-    return NextResponse.json({
-      host,
-      globalUsers,
-      tenantUsers,
-      isSame: globalUsers?.id === tenantUsers?.id,
-    });
-  });
-}
+export const GET = withPrismaRoute(async (req) => {
+  const user = await prisma.user.findFirst({ where: { id: 1 }, select: { id: true, name: true } });
+  return NextResponse.json({ user });
+});

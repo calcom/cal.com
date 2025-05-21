@@ -1,13 +1,11 @@
-import type { PrismaClient } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getPrisma, runWithTenants } from "./prismaStore";
+import { runWithTenants } from "./prismaStore";
 import { getTenantFromHost } from "./tenants";
 
 type ApiHandler<T = any> = (
   req: NextApiRequest,
-  res: NextApiResponse<T>,
-  prisma: PrismaClient
+  res: NextApiResponse<T>
 ) => Promise<void | NextApiResponse<T>>;
 
 /**
@@ -17,16 +15,8 @@ type ApiHandler<T = any> = (
  * @example
  * ```typescript
  * import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
- * import { getTenantAwarePrisma } from "@calcom/prisma/store/prismaStore";
  *
- * async function handler(req, res, prisma) {
- *   // Option 1: Use the injected prisma client
- *   // const users = await prisma.user.findMany();
- *
- *   // Option 2: Use getTenantAwarePrisma() anywhere in your code
- *   const prisma = getTenantAwarePrisma();
- *   const users = await prisma.user.findMany();
- *
+ * async function handler(req, res) {
  *   res.status(200).json({ users });
  * }
  *
@@ -39,10 +29,7 @@ export function withPrismaApiHandler<T = any>(handler: ApiHandler<T>) {
       const host = req.headers.host || "";
       const tenant = getTenantFromHost(host);
 
-      return runWithTenants(tenant, async () => {
-        const prisma = getPrisma(tenant);
-        return handler(req, res, prisma);
-      });
+      return runWithTenants(tenant, async () => handler(req, res));
     } catch (error) {
       console.error(`[withPrismaApiHandler] Error:`, error);
       return res.status(500).json({

@@ -1,12 +1,9 @@
-import type { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-import { getTenantAwarePrisma } from "@calcom/prisma/store/prismaStore";
+import { prisma } from "@calcom/prisma";
 import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
 
-async function handler(req: Request, _prisma: PrismaClient) {
-  const prisma = getTenantAwarePrisma();
-
+async function handler(req: Request) {
   const users = await prisma.user.findMany({
     select: { id: true, name: true, email: true },
     take: 5,

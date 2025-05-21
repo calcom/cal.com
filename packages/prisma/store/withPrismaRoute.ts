@@ -1,10 +1,9 @@
-import type { PrismaClient } from "@prisma/client";
 import type { NextRequest } from "next/server";
 
-import { getPrisma, runWithTenants } from "./prismaStore";
+import { runWithTenants } from "./prismaStore";
 import { getTenantFromHost } from "./tenants";
 
-type HandlerFn = (req: NextRequest, prisma: PrismaClient) => Promise<Response>;
+type HandlerFn = (req: NextRequest) => Promise<Response>;
 
 /**
  * Higher-order function that wraps a Next.js App Router route handler with tenant-aware Prisma client.
@@ -13,14 +12,8 @@ type HandlerFn = (req: NextRequest, prisma: PrismaClient) => Promise<Response>;
  * @example
  * ```typescript
  * import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
- * import { getTenantAwarePrisma } from "@calcom/prisma/store/prismaStore";
  *
- * async function handler(req: Request, prisma: PrismaClient) {
- *   // Option 1: Use the injected prisma client
- *   // const users = await prisma.user.findMany();
- *
- *   // Option 2: Use getTenantAwarePrisma() anywhere in your code
- *   const prisma = getTenantAwarePrisma();
+ * async function handler(req: Request) {
  *   const users = await prisma.user.findMany();
  *
  *   return Response.json({ users });
@@ -34,11 +27,7 @@ export function withPrismaRoute(handler: HandlerFn) {
     try {
       const host = req.headers.get("host") || "";
       const tenant = getTenantFromHost(host);
-
-      return runWithTenants(tenant, async () => {
-        const prisma = getPrisma(tenant);
-        return await handler(req, prisma);
-      });
+      return runWithTenants(tenant, async () => handler(req));
     } catch (error) {
       console.error(`[withPrismaRoute] Error:`, error);
       return new Response(

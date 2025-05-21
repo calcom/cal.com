@@ -42,6 +42,11 @@ export function runWithTenants<T>(tenant?: Tenant | (() => Promise<T>), fn?: () 
     // Already in the right context, just run the function
     return fn!();
   }
+  if (existingStore) {
+    // Update currentTenant in the existing context
+    existingStore.currentTenant = tenant as Tenant | undefined;
+    return fn!();
+  }
   // Otherwise, create a new context
   return als.run({ clients: {}, currentTenant: tenant as Tenant | undefined } as Store, fn!);
 }
@@ -83,17 +88,6 @@ export function getTenantAwarePrisma(options?: Prisma.PrismaClientOptions) {
     throw new Error("Current tenant not set. You must specify a tenant when calling runWithTenants.");
 
   return getPrisma(store.currentTenant, options);
-}
-
-/**
- * Sets the current tenant for the active store.
- * @param tenant The tenant to set as current
- */
-export function setCurrentTenant(tenant: Tenant) {
-  const store = als.getStore();
-  if (!store)
-    throw new Error("Prisma Store not initialized. You must wrap your handler with runWithTenants.");
-  store.currentTenant = tenant;
 }
 
 /**
