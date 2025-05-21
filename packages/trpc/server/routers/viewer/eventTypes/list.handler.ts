@@ -1,4 +1,5 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
 
@@ -13,7 +14,7 @@ export const listHandler = async ({ ctx }: ListOptions) => {
     identifier: `eventTypes:list:${ctx.user.id}`,
     rateLimitingType: "common",
   });
-  return await ctx.ctx.prisma.eventType.findMany({
+  return await prisma.eventType.findMany({
     where: {
       userId: ctx.user.id,
       team: null,

@@ -1,5 +1,7 @@
 import { randomBytes, createHash } from "crypto";
 
+import { prisma } from "@calcom/prisma";
+
 import type { TAddClientInputSchema } from "./addClient.schema";
 
 type AddClientOptions = {
@@ -12,7 +14,7 @@ export const addClientHandler = async ({ input }: AddClientOptions) => {
   const [hashedSecret, secret] = generateSecret();
   const clientId = randomBytes(32).toString("hex");
 
-  const client = await ctx.ctx.prisma.oAuthClient.create({
+  const client = await prisma.oAuthClient.create({
     data: {
       name,
       redirectUri,

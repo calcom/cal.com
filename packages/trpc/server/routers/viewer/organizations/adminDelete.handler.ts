@@ -1,5 +1,6 @@
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -16,7 +17,7 @@ type AdminDeleteOption = {
 };
 
 export const adminDeleteHandler = async ({ input }: AdminDeleteOption) => {
-  const foundOrg = await ctx.ctx.prisma.team.findUnique({
+  const foundOrg = await prisma.team.findUnique({
     where: {
       id: input.orgId,
       isOrganization: true,
@@ -47,7 +48,7 @@ export const adminDeleteHandler = async ({ input }: AdminDeleteOption) => {
   await deleteAllRedirectsForUsers(foundOrg.members.map((member) => member.user));
 
   await renameUsersToAvoidUsernameConflicts(foundOrg.members.map((member) => member.user));
-  await ctx.ctx.prisma.team.delete({
+  await prisma.team.delete({
     where: {
       id: input.orgId,
     },
@@ -70,7 +71,7 @@ async function renameUsersToAvoidUsernameConflicts(users: { id: number; username
       log.warn(`User ${user.id} has no username, defaulting to ${currentUsername}`);
     }
 
-    await ctx.ctx.prisma.user.update({
+    await prisma.user.update({
       where: {
         id: user.id,
       },
@@ -93,7 +94,7 @@ async function deleteAllRedirectsForUsers(users: { username: string | null }[]) 
         } => !!user.username
       )
       .map((user) =>
-        ctx.ctx.prisma.tempOrgRedirect.deleteMany({
+        prisma.tempOrgRedirect.deleteMany({
           where: {
             from: user.username,
             type: RedirectType.User,

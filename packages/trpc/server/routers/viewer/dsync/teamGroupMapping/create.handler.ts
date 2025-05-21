@@ -1,4 +1,5 @@
 import userCanCreateTeamGroupMapping from "@calcom/features/ee/dsync/lib/server/userCanCreateTeamGroupMapping";
+import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { ZCreateInputSchema } from "./create.schema";
@@ -17,7 +18,7 @@ export const createHandler = async ({ ctx, input }: Options) => {
     input.teamId
   );
 
-  await ctx.ctx.prisma.dSyncTeamGroupMapping.create({
+  await prisma.dSyncTeamGroupMapping.create({
     data: {
       organizationId,
       teamId: input.teamId,

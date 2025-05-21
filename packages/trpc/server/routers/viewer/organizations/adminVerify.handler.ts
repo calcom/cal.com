@@ -1,4 +1,5 @@
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -13,7 +14,7 @@ type AdminVerifyOptions = {
 };
 
 export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
-  const foundOrg = await ctx.ctx.prisma.team.findFirst({
+  const foundOrg = await prisma.team.findFirst({
     where: {
       id: input.orgId,
       isOrganization: true,
@@ -38,7 +39,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
 
   const acceptedEmailDomain = foundOrg.members[0].user.email.split("@")[1];
 
-  await ctx.ctx.prisma.organizationSettings.update({
+  await prisma.organizationSettings.update({
     where: {
       organizationId: input.orgId,
     },
@@ -47,7 +48,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
     },
   });
 
-  const foundUsersWithMatchingEmailDomain = await ctx.ctx.prisma.user.findMany({
+  const foundUsersWithMatchingEmailDomain = await prisma.user.findMany({
     where: {
       email: {
         endsWith: acceptedEmailDomain,
@@ -75,7 +76,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
 
   const usersNotHavingProfileWithTheOrg = users.filter((user) => user.profiles.length === 0);
   await prisma.$transaction([
-    ctx.ctx.prisma.membership.updateMany({
+    prisma.membership.updateMany({
       where: {
         userId: {
           in: userIds,
@@ -96,7 +97,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
       },
     }),
 
-    ctx.ctx.prisma.user.updateMany({
+    prisma.user.updateMany({
       where: {
         id: {
           in: userIds,

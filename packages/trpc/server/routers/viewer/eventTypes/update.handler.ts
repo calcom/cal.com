@@ -86,7 +86,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     ...rest
   } = input;
 
-  const eventType = await ctx.ctx.ctx.prisma.eventType.findUniqueOrThrow({
+  const eventType = await ctx.prisma.eventType.findUniqueOrThrow({
     where: { id },
     select: {
       title: true,
@@ -263,7 +263,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (schedule) {
     // Check that the schedule belongs to the user
-    const userScheduleQuery = await ctx.ctx.ctx.prisma.schedule.findFirst({
+    const userScheduleQuery = await ctx.prisma.schedule.findFirst({
       where: {
         userId: ctx.user.id,
         id: schedule,
@@ -306,7 +306,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   if (teamId && hosts) {
     // check if all hosts can be assigned (memberships that have accepted invite)
     const memberships =
-      (await ctx.ctx.ctx.prisma.membership.findMany({
+      (await ctx.prisma.membership.findMany({
         where: {
           teamId,
           accepted: true,
@@ -374,7 +374,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (input.metadata?.disableStandardEmails?.confirmation) {
     //check if user is allowed to disabled standard emails
-    const workflows = await ctx.ctx.ctx.prisma.workflow.findMany({
+    const workflows = await ctx.prisma.workflow.findMany({
       where: {
         activeOn: {
           some: {
@@ -411,7 +411,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       break;
     }
   }
-  const connectedLinks = await ctx.ctx.ctx.prisma.hashedLink.findMany({
+  const connectedLinks = await ctx.prisma.hashedLink.findMany({
     where: {
       eventTypeId: input.id,
     },
@@ -431,7 +431,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       (link) => !multiplePrivateLinks.includes(link)
     );
     if (singleLinksToBeDeleted.length > 0) {
-      await ctx.ctx.ctx.prisma.hashedLink.deleteMany({
+      await ctx.prisma.hashedLink.deleteMany({
         where: {
           eventTypeId: input.id,
           link: {
@@ -441,7 +441,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
     }
     if (multiplePrivateLinksToBeInserted.length > 0) {
-      await ctx.ctx.ctx.prisma.hashedLink.createMany({
+      await ctx.prisma.hashedLink.createMany({
         data: multiplePrivateLinksToBeInserted.map((link) => {
           return {
             link: link,
@@ -453,7 +453,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   } else {
     // Delete all the single-use links for this event.
     if (connectedMultiplePrivateLinks.length > 0) {
-      await ctx.ctx.ctx.prisma.hashedLink.deleteMany({
+      await ctx.prisma.hashedLink.deleteMany({
         where: {
           eventTypeId: input.id,
           link: {
@@ -470,7 +470,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   // Validate the secondary email
   if (secondaryEmailId) {
-    const secondaryEmail = await ctx.ctx.ctx.prisma.secondaryEmail.findUnique({
+    const secondaryEmail = await ctx.prisma.secondaryEmail.findUnique({
       where: {
         id: secondaryEmailId,
         userId: ctx.user.id,
@@ -493,7 +493,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (aiPhoneCallConfig) {
     if (aiPhoneCallConfig.enabled) {
-      await ctx.ctx.ctx.prisma.aIPhoneCallConfiguration.upsert({
+      await ctx.prisma.aIPhoneCallConfiguration.upsert({
         where: {
           eventTypeId: id,
         },
@@ -510,7 +510,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
     } else if (!aiPhoneCallConfig.enabled && eventType.aiPhoneCallConfig) {
-      await ctx.ctx.ctx.prisma.aIPhoneCallConfiguration.delete({
+      await ctx.prisma.aIPhoneCallConfiguration.delete({
         where: {
           eventTypeId: id,
         },
@@ -545,7 +545,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   });
   let updatedEventType: Prisma.EventTypeGetPayload<{ select: typeof updatedEventTypeSelect }>;
   try {
-    updatedEventType = await ctx.ctx.ctx.prisma.eventType.update({
+    updatedEventType = await ctx.prisma.eventType.update({
       where: { id },
       data,
       select: updatedEventTypeSelect,

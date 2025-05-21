@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -21,7 +22,7 @@ type GetOptions = {
 
 export const getOtherTeamHandler = async ({ input }: GetOptions) => {
   // No need to validate if user is admin of org as we already do that on authedOrgAdminProcedure
-  const team = await ctx.ctx.prisma.team.findFirst({
+  const team = await prisma.team.findFirst({
     where: {
       id: input.teamId,
     },

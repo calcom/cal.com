@@ -1,5 +1,6 @@
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -28,7 +29,7 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
 
   if (fetchTeamMembersEntries) {
     // Get teams of context user
-    const teams = await ctx.ctx.prisma.membership.findMany({
+    const teams = await prisma.membership.findMany({
       where: {
         userId: ctx.user.id,
         accepted: true,
@@ -46,7 +47,7 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
       .map((team) => team.teamId);
 
     // Fetch team member userIds
-    const teamMembers = await ctx.ctx.prisma.team.findMany({
+    const teamMembers = await prisma.team.findMany({
       where: {
         id: {
           in: teams.map((team) => team.teamId),
@@ -109,11 +110,11 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
       : {}),
   };
 
-  const getTotalEntries = await ctx.ctx.prisma.outOfOfficeEntry.count({
+  const getTotalEntries = await prisma.outOfOfficeEntry.count({
     where: whereClause,
   });
 
-  const outOfOfficeEntries = await ctx.ctx.prisma.outOfOfficeEntry.findMany({
+  const outOfOfficeEntries = await prisma.outOfOfficeEntry.findMany({
     where: whereClause,
     select: {
       id: true,

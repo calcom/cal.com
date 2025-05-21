@@ -1,4 +1,5 @@
 import userCanCreateTeamGroupMapping from "@calcom/features/ee/dsync/lib/server/userCanCreateTeamGroupMapping";
+import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -13,7 +14,7 @@ export const getHandler = async ({ ctx }: Options) => {
   const { organizationId } = await userCanCreateTeamGroupMapping(ctx.user, ctx.user.organizationId);
 
   // Get org teams
-  const teamsQuery = await ctx.ctx.prisma.team.findMany({
+  const teamsQuery = await prisma.team.findMany({
     where: {
       parentId: organizationId,
     },
@@ -24,7 +25,7 @@ export const getHandler = async ({ ctx }: Options) => {
     },
   });
 
-  const directoryId = await ctx.ctx.prisma.dSyncData.findFirst({
+  const directoryId = await prisma.dSyncData.findFirst({
     where: {
       organizationId,
     },
@@ -37,7 +38,7 @@ export const getHandler = async ({ ctx }: Options) => {
     throw new TRPCError({ code: "NOT_FOUND", message: "Could not find directory id" });
   }
 
-  const teamGroupMappingQuery = await ctx.ctx.prisma.dSyncTeamGroupMapping.findMany({
+  const teamGroupMappingQuery = await prisma.dSyncTeamGroupMapping.findMany({
     where: {
       directoryId: directoryId.directoryId,
     },

@@ -1,5 +1,6 @@
 import { sendBookingRedirectNotification } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -29,7 +30,7 @@ export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDel
       throw new TRPCError({ code: "NOT_FOUND", message: "only_admin_can_delete_ooo" });
     }
     oooUserId = input.userId;
-    const oooUser = await ctx.ctx.prisma.user.findUnique({
+    const oooUser = await prisma.user.findUnique({
       where: { id: input.userId },
       select: { username: true, email: true },
     });
@@ -39,7 +40,7 @@ export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDel
     }
   }
 
-  const deletedOutOfOfficeEntry = await ctx.ctx.prisma.outOfOfficeEntry.delete({
+  const deletedOutOfOfficeEntry = await prisma.outOfOfficeEntry.delete({
     where: {
       uuid: input.outOfOfficeUid,
       /** Validate outOfOfficeEntry belongs to the user deleting it or is admin*/
