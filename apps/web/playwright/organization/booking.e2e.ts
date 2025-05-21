@@ -430,10 +430,10 @@ test.describe("Bookings", () => {
           await hostUser.apiLogin();
 
           // Cancel the booking
-          await page.goto(`/booking/${bookingUid}`);
-          await page.getByTestId("cancel").click();
-          await page.getByTestId("confirm_cancel").click();
-          await page.waitForResponse((response) => response.url().includes("/api/cancel"));
+          await page.goto(`/booking/${bookingUid}?cancel=true`);
+          await submitAndWaitForResponse(page, "/api/cancel", {
+            action: () => page.locator('[data-testid="confirm_cancel"]').click(),
+          });
 
           // Logout and go back to booking page
           await page.goto("/auth/logout");
