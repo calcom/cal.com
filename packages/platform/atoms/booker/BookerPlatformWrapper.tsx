@@ -147,6 +147,7 @@ export const BookerPlatformWrapper = (
     return getUsernameList(username ?? "").length > 1;
   }, [username]);
 
+  // we need these two hooks useEventType and useTeamEventType for calendar
   const { isSuccess, isError, isPending, data } = useEventType(username, props.eventSlug, props.isTeamEvent);
   const {
     isSuccess: isTeamSuccess,
@@ -203,6 +204,7 @@ export const BookerPlatformWrapper = (
     event.data.length = props.duration;
   }
 
+  // this is what we need for calendar view
   const bookerLayout = useBookerLayout(event.data);
   useInitializeBookerStore({
     ...props,
