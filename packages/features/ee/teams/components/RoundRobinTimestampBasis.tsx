@@ -32,7 +32,7 @@ const RoundRobinTimestampBasis = () => {
               {t("distribution_basis_weighted_rr")}
             </h4>
             <p className="text-default text-sm leading-tight">{t("timestamp_basis_description")}</p>
-            <div className="mt-4 w-48">
+            <div className="mt-4 w-52">
               <Select
                 options={timestampBasisOptions}
                 value={timestampBasisOptions.find((opt) => opt.value === value)}
