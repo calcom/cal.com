@@ -132,6 +132,8 @@ const commons = {
   rrResetInterval: null,
   interfaceLanguage: null,
   customReplyToEmail: null,
+  restrictionScheduleId: null,
+  useBookerTimezone: false,
 };
 
 export const dynamicEvent = {

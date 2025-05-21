@@ -520,7 +520,9 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
     });
 
     if (restrictionSchedule) {
-      const timezone = eventType.useBookerTimezone ? input.timeZone : restrictionSchedule.timeZone;
+      const timezone = eventType.useBookerTimezone
+        ? input.timeZone
+        : restrictionSchedule.timeZone || undefined;
 
       availableTimeSlots = timeSlots.filter((slot) => {
         // Always work in the booker's timezone
@@ -534,10 +536,8 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
 
         if (dateOverride) {
           // Keep the same time values but in booker's timezone
-          const overrideStart = dayjs
-            .tz(dateOverride.startTime, restrictionSchedule.timeZone)
-            .format("HH:mm");
-          const overrideEnd = dayjs.tz(dateOverride.endTime, restrictionSchedule.timeZone).format("HH:mm");
+          const overrideStart = dayjs.tz(dateOverride.startTime, timezone).format("HH:mm");
+          const overrideEnd = dayjs.tz(dateOverride.endTime, timezone).format("HH:mm");
           return timeStr >= overrideStart && timeStr <= overrideEnd;
         }
 
@@ -547,8 +547,8 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
 
         if (dayAvailability) {
           // Keep the same time values but in booker's timezone
-          const dayStart = dayjs.tz(dayAvailability.startTime, restrictionSchedule.timeZone).format("HH:mm");
-          const dayEnd = dayjs.tz(dayAvailability.endTime, restrictionSchedule.timeZone).format("HH:mm");
+          const dayStart = dayjs.tz(dayAvailability.startTime, timezone).format("HH:mm");
+          const dayEnd = dayjs.tz(dayAvailability.endTime, timezone).format("HH:mm");
           return timeStr >= dayStart && timeStr <= dayEnd;
         }
 

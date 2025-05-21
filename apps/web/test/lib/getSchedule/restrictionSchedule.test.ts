@@ -9,7 +9,7 @@ import { expect } from "./expects";
 describe("Restriction Schedule Tests", () => {
   test("should filter slots based on restriction schedule availability", async () => {
     const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-    const { dateString: plus2DateString } = getDate({ dateIncrement: 2, weekday: true });
+    const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
     console.log("plus1DateString:", plus1DateString);
     console.log("plus2DateString:", plus2DateString);
@@ -47,6 +47,10 @@ describe("Restriction Schedule Tests", () => {
       ],
       users: [
         {
+          name: "John Doe",
+          email: "john.doe@example.com",
+          username: "johndoe",
+          timeZone: "Europe/London",
           id: 101,
           schedules: [
             {
@@ -108,7 +112,7 @@ describe("Restriction Schedule Tests", () => {
 
   test("should handle date overrides in restriction schedule", async () => {
     const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-    const { dateString: plus2DateString } = getDate({ dateIncrement: 2, weekday: true });
+    const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
     console.log("plus1DateString:", plus1DateString);
     console.log("plus2DateString:", plus2DateString);
@@ -152,6 +156,10 @@ describe("Restriction Schedule Tests", () => {
       ],
       users: [
         {
+          name: "John Doe",
+          email: "john.doe@example.com",
+          username: "johndoe",
+          timeZone: "Europe/London",
           id: 101,
           schedules: [
             {
@@ -213,7 +221,7 @@ describe("Restriction Schedule Tests", () => {
 
   test("should respect useBookerTimezone setting", async () => {
     const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-    const { dateString: plus2DateString } = getDate({ dateIncrement: 2, weekday: true });
+    const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
     console.log("plus1DateString:", plus1DateString);
     console.log("plus2DateString:", plus2DateString);
@@ -251,6 +259,10 @@ describe("Restriction Schedule Tests", () => {
       users: [
         {
           id: 101,
+          name: "John Doe",
+          email: "john.doe@example.com",
+          username: "johndoe",
+          timeZone: "Europe/London",
           schedules: [
             {
               id: 1,
@@ -313,7 +325,7 @@ describe("Restriction Schedule Tests", () => {
 describe("No Restriction Schedule Tests", () => {
   test("should not filter slots when restriction schedule is not set", async () => {
     const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-    const { dateString: plus2DateString } = getDate({ dateIncrement: 2, weekday: true });
+    const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
     vi.setSystemTime("2025-05-24T00:00:00Z");
 
@@ -331,6 +343,10 @@ describe("No Restriction Schedule Tests", () => {
       users: [
         {
           id: 101,
+          name: "John Doe",
+          email: "john.doe@example.com",
+          username: "johndoe",
+          timeZone: "Europe/London",
           schedules: [
             {
               id: 1,
@@ -396,7 +412,7 @@ describe("No Restriction Schedule Tests", () => {
 
   test("should not filter slots when restriction schedule is set but not linked to event type", async () => {
     const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-    const { dateString: plus2DateString } = getDate({ dateIncrement: 2, weekday: true });
+    const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
     vi.setSystemTime("2025-05-24T00:00:00Z");
 
@@ -428,6 +444,10 @@ describe("No Restriction Schedule Tests", () => {
       users: [
         {
           id: 101,
+          name: "John Doe",
+          email: "john.doe@example.com",
+          username: "johndoe",
+          timeZone: "Europe/London",
           schedules: [
             {
               id: 1,
