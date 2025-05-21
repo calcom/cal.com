@@ -24,9 +24,9 @@ export const buildBaseWhereCondition = async ({
   isAll,
   ctx,
 }: BuildBaseWhereConditionType): Promise<{
-  whereCondition: Prisma.BookingTimeStatusWhereInput;
+  whereCondition: Prisma.BookingTimeStatusDenormalizedWhereInput;
 }> => {
-  const conditions: Prisma.BookingTimeStatusWhereInput[] = [];
+  const conditions: Prisma.BookingTimeStatusDenormalizedWhereInput[] = [];
 
   // EventType Filter
   if (eventTypeId) {
@@ -127,7 +127,7 @@ export const buildBaseWhereCondition = async ({
     });
   }
 
-  let whereCondition: Prisma.BookingTimeStatusWhereInput = {};
+  let whereCondition: Prisma.BookingTimeStatusDenormalizedWhereInput = {};
 
   if (conditions.length === 1) {
     whereCondition = conditions[0];
