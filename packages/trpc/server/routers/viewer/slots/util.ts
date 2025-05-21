@@ -496,48 +496,29 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
 
   let availableTimeSlots: typeof timeSlots = [];
   const bookerClientUid = ctx?.req?.cookies?.uid;
-  console.log("eventType--->", eventType);
   if (eventType.restrictionScheduleId) {
     const restrictionSchedule = await prisma.schedule.findUnique({
       where: { id: eventType.restrictionScheduleId },
-      include: { availability: true },
+      select: {
+        id: true,
+        timeZone: true,
+        availability: {
+          select: {
+            days: true,
+            startTime: true,
+            endTime: true,
+            date: true,
+          },
+        },
+      },
     });
 
     if (restrictionSchedule) {
-      console.log(
-        "Initial timeSlots:",
-        timeSlots.map((slot) => ({
-          time: slot.time.format(),
-          timeInTimezone: slot.time.tz(input.timeZone).format(),
-        }))
-      );
-
-      console.log("Restriction Schedule:", {
-        schedule: restrictionSchedule,
-        availability: restrictionSchedule.availability.map((a) => ({
-          days: a.days,
-          startTime: a.startTime,
-          endTime: a.endTime,
-          date: a.date,
-          startTimeInBookerTz: dayjs
-            .tz(a.startTime, restrictionSchedule.timeZone)
-            .tz(input.timeZone)
-            .format(),
-          endTimeInBookerTz: dayjs.tz(a.endTime, restrictionSchedule.timeZone).tz(input.timeZone).format(),
-        })),
-      });
-
       const timezone = eventType.useBookerTimezone ? input.timeZone : restrictionSchedule.timeZone;
-      console.log("Timezone values:", {
-        useBookerTimezone: eventType.useBookerTimezone,
-        bookerTimezone: input.timeZone,
-        restrictionScheduleTimezone: restrictionSchedule.timeZone,
-        finalTimezone: timezone,
-      });
 
       availableTimeSlots = timeSlots.filter((slot) => {
         // Always work in the booker's timezone
-        const slotTime = dayjs(slot.time).tz(input.timeZone);
+        const slotTime = dayjs(slot.time).tz(timezone);
         const dayOfWeek = slotTime.day();
         const timeStr = slotTime.format("HH:mm");
 
@@ -567,14 +548,6 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
 
         return false;
       });
-
-      console.log(
-        "Final availableTimeSlots:",
-        availableTimeSlots.map((slot) => ({
-          time: slot.time.format(),
-          timeInTimezone: slot.time.tz(input.timeZone).format(),
-        }))
-      );
     } else {
       availableTimeSlots = timeSlots;
     }
