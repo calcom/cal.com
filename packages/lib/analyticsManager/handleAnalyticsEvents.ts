@@ -1,3 +1,4 @@
+import tasker from "@calcom/features/tasker";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 interface HandleAnalyticsEventsProps {
@@ -17,7 +18,7 @@ export const handleAnalyticsEvents = async ({
 }: HandleAnalyticsEventsProps) => {
   const { dub_id } = await rawBookingData;
 
-  if (!dub_id && typeof dub_id !== "string") return;
+  if (!dub_id || typeof dub_id !== "string") return;
 
   const dubCredential = credentials.find((cred) => cred.appId === "dub");
 
