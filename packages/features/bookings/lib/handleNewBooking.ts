@@ -1,4 +1,8 @@
 import type { DestinationCalendar } from "@prisma/client";
+import {
+  getDefaultConferencingAppLocation,
+  getOrganizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+} from "bookings/lib/getDefaultConferencingAppLocation";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import short, { uuid } from "short-uuid";
@@ -11,7 +15,6 @@ import {
   MeetLocationType,
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
-import { getAppFromSlug } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import {
@@ -47,10 +50,7 @@ import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import EventManager from "@calcom/lib/EventManager";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
-import {
-  enrichHostsWithDelegationCredentials,
-  getFirstDelegationConferencingCredentialAppLocation,
-} from "@calcom/lib/delegationCredential/server";
+import { enrichHostsWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getEventName, updateHostInEventName } from "@calcom/lib/event";
@@ -76,7 +76,6 @@ import {
   eventTypeAppMetadataOptionalSchema,
   eventTypeMetaDataSchemaWithTypedApps,
 } from "@calcom/prisma/zod-utils";
-import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
@@ -873,26 +872,16 @@ async function handler(
     }
   }
 
-  const organizationDefaultLocation = getFirstDelegationConferencingCredentialAppLocation({
-    credentials: firstUser.credentials,
-  });
-
   // use host default
   if (locationBodyString == OrganizerDefaultConferencingAppType) {
-    const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
-    const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
-    if (organizerMetadata?.defaultConferencingApp?.appSlug) {
-      const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
-      locationBodyString = app?.appData?.location?.type || locationBodyString;
-      if (isManagedEventType || isTeamEventType) {
-        organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
-          organizerMetadata?.defaultConferencingApp?.appLink;
-      }
-    } else if (organizationDefaultLocation) {
-      locationBodyString = organizationDefaultLocation;
-    } else {
-      locationBodyString = "integrations:daily";
-    }
+    locationBodyString = getDefaultConferencingAppLocation(organizerUser.metadata, firstUser.credentials);
+    organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
+      getOrganizerOrFirstDynamicGroupMemberDefaultLocationUrl(
+        organizerUser.metadata,
+        isManagedEventType,
+        isTeamEventType,
+        organizerOrFirstDynamicGroupMemberDefaultLocationUrl
+      );
   }
 
   const invitee: Invitee = [
