@@ -189,7 +189,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
 
           return {
             id: attribute.id,
-            header: t(attribute.name.toLowerCase().replace(/\s+/g, "_")) || attribute.name,
+            header: attribute.name,
             meta: {
               filter: { type: filterType },
             },
