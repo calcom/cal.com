@@ -45,7 +45,7 @@ export const isAvailableHandler = async ({
     : [];
 
   // Map all slots to their availability status
-  const slotsWithStatus: TIsAvailableOutputSchema["slots"] = slots.map((slot) => {
+  let slotsWithStatus: TIsAvailableOutputSchema["slots"] = slots.map((slot) => {
     const isReserved = reservedSlots.some(
       (reservedSlot) =>
         reservedSlot.slotUtcStartDate.toISOString() === slot.utcStartIso &&
@@ -77,6 +77,43 @@ export const isAvailableHandler = async ({
       status: timeStatus.reason ?? "available",
     };
   });
+
+  // Apply onlyShowFirstAvailableSlot restriction if enabled
+  if (eventType.onlyShowFirstAvailableSlot) {
+    const slotsByDay: Record<string, TIsAvailableOutputSchema["slots"]> = {};
+
+    slotsWithStatus.forEach((slot) => {
+      const dateStr = slot.utcStartIso.split("T")[0];
+      if (!slotsByDay[dateStr]) {
+        slotsByDay[dateStr] = [];
+      }
+      slotsByDay[dateStr].push(slot);
+    });
+
+    // For each day, only keep the first available slot and mark others as unavailable
+    const filteredSlots: TIsAvailableOutputSchema["slots"] = [];
+
+    Object.keys(slotsByDay).forEach((date) => {
+      const sortedDaySlots = slotsByDay[date].sort((a, b) => a.utcStartIso.localeCompare(b.utcStartIso));
+      const firstAvailableSlot = sortedDaySlots.find((slot) => slot.status === "available");
+
+      sortedDaySlots.forEach((slot) => {
+        if (slot === firstAvailableSlot) {
+          filteredSlots.push(slot);
+        } else if (slot.status !== "available") {
+          filteredSlots.push(slot);
+        } else {
+          filteredSlots.push({
+            ...slot,
+            status: "reserved" as const,
+            realStatus: "available" as const,
+          });
+        }
+      });
+    });
+
+    slotsWithStatus = filteredSlots;
+  }
 
   return {
     slots: slotsWithStatus,

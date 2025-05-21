@@ -73,10 +73,12 @@ export const isTimeSlotAvailable = ({
   scheduleData,
   slotToCheckInIso,
   quickAvailabilityChecks,
+  eventType,
 }: {
   scheduleData: ScheduleData | null;
   slotToCheckInIso: SlotInIsoFormat;
   quickAvailabilityChecks: QuickAvailabilityCheck[];
+  eventType?: { onlyShowFirstAvailableSlot?: boolean };
 }) => {
   const isUnavailableAsPerQuickCheck =
     quickAvailabilityChecks &&
@@ -95,6 +97,15 @@ export const isTimeSlotAvailable = ({
   // If the date is not in ISO format, we could erroneously consider the slot unavailable, so be on the safe side and consider it available
   // Though this could be a false positive, it's better to consider the slot available than unavailable
   if (!dateInGMT) return true;
+
+  // If onlyShowFirstAvailableSlot is enabled, check if this is the first available slot of the day
+  if (eventType?.onlyShowFirstAvailableSlot) {
+    const slotsForDay = scheduleData.slots[dateInGMT] || [];
+    const firstAvailableSlot = slotsForDay[0];
+    if (!firstAvailableSlot || firstAvailableSlot.time !== slotToCheckInIso) {
+      return false;
+    }
+  }
 
   return _isSlotPresentInSchedule({
     scheduleData,
