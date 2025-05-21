@@ -156,7 +156,7 @@ export const generateGuestMeetingTokenFromOwnerMeetingToken = async ({
   redirectUrlOnExit?: string | null;
 }) => {
   if (!meetingToken) return null;
-  console.log("redirectUrlOnExit", redirectUrlOnExit);
+
   const token = await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);
   const guestMeetingToken = await postToDailyAPI("/meeting-tokens", {
     properties: {
@@ -168,10 +168,7 @@ export const generateGuestMeetingTokenFromOwnerMeetingToken = async ({
         redirect_on_meeting_exit: redirectUrlOnExit,
       }),
     },
-  }).then((res) => {
-    console.log("generateGuestMeetingTokenFromOwnerMeetingToken", res);
-    return meetingTokenSchema.parse(res);
-  });
+  }).then(meetingTokenSchema.parse);
 
   return guestMeetingToken.token;
 };
