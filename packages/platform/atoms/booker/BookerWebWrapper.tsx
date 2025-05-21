@@ -47,8 +47,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       }
     : clientFetchedEvent;
 
-  const bookerLayout = useBookerLayout(event.data);
-
+  const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
   const selectedDate = searchParams?.get("date");
   const isRedirect = searchParams?.get("redirected") === "true" || false;
   const fromUserNameRedirected = searchParams?.get("username") || "";
