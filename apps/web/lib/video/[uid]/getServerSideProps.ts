@@ -15,9 +15,13 @@ import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
-import type { CalVideoSettings } from "@calcom/prisma/client";
 
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
+
+type CalVideoSettings = {
+  disableRecordingForGuests: boolean;
+  disableRecordingForOrganizer: boolean;
+};
 
 const checkShowRecordingButton = ({
   hasTeamPlan,
@@ -130,10 +134,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   // set meetingPassword for guests
   if (sessionUserId !== bookingObj.user?.id) {
-    const guestMeetingPassword = await generateGuestMeetingTokenFromOwnerMeetingToken(
-      videoReferencePassword,
-      sessionUserId
-    );
+    const guestMeetingPassword = await generateGuestMeetingTokenFromOwnerMeetingToken({
+      meetingToken: videoReferencePassword,
+      userId: sessionUserId,
+      redirectUrlOnExit: bookingObj.eventType?.calVideoSettings?.redirectUrlOnExit,
+    });
 
     bookingObj.references.forEach((bookRef) => {
       bookRef.meetingPassword = guestMeetingPassword;

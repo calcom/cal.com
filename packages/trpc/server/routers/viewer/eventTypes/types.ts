@@ -27,9 +27,25 @@ const aiPhoneCallConfig = z
 
 const calVideoSettingsSchema = z
   .object({
-    disableRecordingForGuests: z.boolean().optional(),
-    disableRecordingForOrganizer: z.boolean().optional(),
-    redirectUrlOnExit: z.string().optional(),
+    disableRecordingForGuests: z.boolean().optional().nullable(),
+    disableRecordingForOrganizer: z.boolean().optional().nullable(),
+    redirectUrlOnExit: z
+      .string()
+      .transform((val, ctx) => {
+        if (val === "") return null;
+        try {
+          new URL(val);
+          return val;
+        } catch (e) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Invalid URL",
+          });
+          return z.NEVER;
+        }
+      })
+      .optional()
+      .nullable(),
   })
   .optional();
 

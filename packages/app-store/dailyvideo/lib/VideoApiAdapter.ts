@@ -146,12 +146,17 @@ export const updateMeetingTokenIfExpired = async ({
   return meetingToken;
 };
 
-export const generateGuestMeetingTokenFromOwnerMeetingToken = async (
-  meetingToken: string | null,
-  userId?: number
-) => {
+export const generateGuestMeetingTokenFromOwnerMeetingToken = async ({
+  meetingToken,
+  userId,
+  redirectUrlOnExit,
+}: {
+  meetingToken: string | null;
+  userId?: number;
+  redirectUrlOnExit?: string | null;
+}) => {
   if (!meetingToken) return null;
-
+  console.log("redirectUrlOnExit", redirectUrlOnExit);
   const token = await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);
   const guestMeetingToken = await postToDailyAPI("/meeting-tokens", {
     properties: {
@@ -159,8 +164,14 @@ export const generateGuestMeetingTokenFromOwnerMeetingToken = async (
       exp: token.exp,
       enable_recording_ui: false,
       user_id: userId,
+      ...(!!redirectUrlOnExit && {
+        redirect_on_meeting_exit: redirectUrlOnExit,
+      }),
     },
-  }).then(meetingTokenSchema.parse);
+  }).then((res) => {
+    console.log("generateGuestMeetingTokenFromOwnerMeetingToken", res);
+    return meetingTokenSchema.parse(res);
+  });
 
   return guestMeetingToken.token;
 };

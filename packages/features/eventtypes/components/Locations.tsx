@@ -2,7 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import { Controller, useFieldArray } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
@@ -13,7 +13,6 @@ import type {
   LocationFormValues,
   EventTypeSetupProps,
   CheckboxClassNames,
-  FormValues,
 } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import type {
@@ -130,8 +129,6 @@ const Locations: React.FC<LocationsProps> = ({
     control,
     name: "locations",
   });
-
-  const formMethods = useFormContext<FormValues>();
 
   const locationOptions = props.locationOptions.map((locationOption) => {
     const options = locationOption.options.filter((option) => {
@@ -257,6 +254,8 @@ const Locations: React.FC<LocationsProps> = ({
           const eventLocationType = getEventLocationType(field.type);
           const defaultLocation = field;
 
+          const isCalVideo = field.type === "integrations:daily";
+
           const option = getLocationFromType(field.type, locationOptions);
           return (
             <li key={field.id}>
@@ -319,7 +318,9 @@ const Locations: React.FC<LocationsProps> = ({
                     data-testid={`delete-locations.${index}.type`}
                     className={classNames("min-h-9 block h-9 px-2", customClassNames?.removeLocationButton)}
                     type="button"
-                    onClick={() => remove(index)}
+                    onClick={() => {
+                      remove(index);
+                    }}
                     aria-label={t("remove")}>
                     <div className="h-4 w-4">
                       <Icon
@@ -334,52 +335,59 @@ const Locations: React.FC<LocationsProps> = ({
                 )}
               </div>
 
-              <div className="bg-muted mt-2 space-y-2 rounded-lg px-4 py-2">
-                <div className="w-full">
-                  <div className="flex flex-col gap-2">
-                    <SettingsToggle
-                      title={t("disable_recording_for_guests")}
-                      labelClassName="text-sm"
-                      checked={eventType.calVideoSettings?.disableRecordingForGuests}
-                      onCheckedChange={(e) => {
-                        formMethods.setValue("calVideoSettings.disableRecordingForGuests", e, {
-                          shouldDirty: true,
-                        });
-                      }}
-                    />
-                    <SettingsToggle
-                      title={t("disable_recording_for_organizer")}
-                      labelClassName="text-sm"
-                      checked={eventType.calVideoSettings?.disableRecordingForOrganizer}
-                      onCheckedChange={(e) => {
-                        formMethods.setValue("calVideoSettings.disableRecordingForOrganizer", e, {
-                          shouldDirty: true,
-                        });
-                      }}
-                    />
-                    <Input
-                      name="calVideoSettings.redirectUrlOnExit"
-                      placeholder={t("enter_redirect_url_on_exit")}
-                      type="text"
-                      required
-                      onChange={(e) => {
-                        console.log("e", e);
-                        if (e.target.value) {
-                          formMethods.setValue("calVideoSettings.redirectUrlOnExit", e.target.value, {
-                            shouldDirty: true,
-                          });
-                        } else {
-                          formMethods.setValue("calVideoSettings.redirectUrlOnExit", undefined, {
-                            shouldDirty: true,
-                          });
-                        }
-                      }}
-                      value={eventType.calVideoSettings?.redirectUrlOnExit}
-                      className="my-0 max-w-xl"
-                    />
+              {isCalVideo && (
+                <div className="bg-muted mt-2 space-y-2 rounded-lg px-4 py-2">
+                  <div className="w-full">
+                    <div className="flex flex-col gap-2">
+                      <Controller
+                        name="calVideoSettings.disableRecordingForGuests"
+                        defaultValue={!!eventType.calVideoSettings?.disableRecordingForGuests}
+                        render={({ field: { onChange, value } }) => {
+                          return (
+                            <SettingsToggle
+                              title={t("disable_recording_for_guests")}
+                              labelClassName="text-sm"
+                              checked={value}
+                              onCheckedChange={onChange}
+                            />
+                          );
+                        }}
+                      />
+                      <Controller
+                        name="calVideoSettings.disableRecordingForOrganizer"
+                        defaultValue={!!eventType.calVideoSettings?.disableRecordingForOrganizer}
+                        render={({ field: { onChange, value } }) => {
+                          return (
+                            <SettingsToggle
+                              title={t("disable_recording_for_organizer")}
+                              labelClassName="text-sm"
+                              checked={value}
+                              onCheckedChange={onChange}
+                            />
+                          );
+                        }}
+                      />
+
+                      <Controller
+                        name="calVideoSettings.redirectUrlOnExit"
+                        defaultValue={eventType.calVideoSettings?.redirectUrlOnExit || ""}
+                        render={({ field: { onChange, value } }) => {
+                          return (
+                            <Input
+                              name="calVideoSettings.redirectUrlOnExit"
+                              placeholder={t("enter_redirect_url_on_exit_description")}
+                              type="text"
+                              onChange={onChange}
+                              value={value || ""}
+                              className="my-0 max-w-md"
+                            />
+                          );
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {eventLocationType?.organizerInputType && (
                 <div className="mt-2 space-y-2">

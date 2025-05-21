@@ -91,6 +91,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     where: { id },
     select: {
       title: true,
+      locations: true,
       description: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
@@ -530,15 +531,27 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     await ctx.prisma.calVideoSettings.upsert({
       where: { eventTypeId: id },
       update: {
-        disableRecordingForGuests: calVideoSettings.disableRecordingForGuests,
-        disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer,
-        redirectUrlOnExit: calVideoSettings.redirectUrlOnExit,
+        disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
+        disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
+        redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
+        updatedAt: new Date(),
       },
       create: {
-        disableRecordingForGuests: calVideoSettings.disableRecordingForGuests,
-        disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer,
+        disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
+        disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
+        redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
         eventTypeId: id,
       },
+    });
+  }
+
+  const isCalVideoLocationActive = locations
+    ? locations.some((location) => location.type === "integrations:daily")
+    : eventType.locations?.some((location) => location.type === "integrations:daily");
+
+  if (eventType.calVideoSettings && !isCalVideoLocationActive) {
+    await ctx.prisma.calVideoSettings.delete({
+      where: { eventTypeId: id },
     });
   }
 
