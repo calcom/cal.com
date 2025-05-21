@@ -96,8 +96,8 @@ const mockBookings = [
     eventTypeId: 1,
     userId: 101,
     status: BookingStatus.ACCEPTED,
-    startTime: `2024-05-20T09:00:00.000Z`,
-    endTime: `2024-05-20T09:15:00.000Z`,
+    startTime: `2024-05-21T09:00:00.000Z`,
+    endTime: `2024-05-21T09:15:00.000Z`,
     attendees: [{ email: "attendee@example.com", locale: "en" }],
   },
   {
@@ -105,8 +105,8 @@ const mockBookings = [
     eventTypeId: 1,
     userId: 101,
     status: BookingStatus.ACCEPTED,
-    startTime: `2024-05-20T09:15:00.000Z`,
-    endTime: `2024-05-20T09:30:00.000Z`,
+    startTime: `2024-05-21T09:15:00.000Z`,
+    endTime: `2024-05-21T09:30:00.000Z`,
     attendees: [{ email: "attendee@example.com", locale: "en" }],
   },
   {
@@ -518,8 +518,8 @@ describe("scheduleBookingReminders", () => {
     );
 
     const expectedScheduledDates = [
-      new Date("2024-05-20T08:00:00.000"),
-      new Date("2024-05-20T08:15:00.000Z"),
+      new Date("2024-05-21T08:00:00.000"),
+      new Date("2024-05-21T08:15:00.000Z"),
       new Date("2024-06-01T03:30:00.000Z"),
       new Date("2024-06-02T03:30:00.000Z"),
     ];
@@ -604,8 +604,8 @@ describe("scheduleBookingReminders", () => {
     );
 
     const expectedScheduledDates = [
-      new Date("2024-05-20T10:15:00.000"),
-      new Date("2024-05-20T10:30:00.000Z"),
+      new Date("2024-05-21T10:15:00.000"),
+      new Date("2024-05-21T10:30:00.000Z"),
       new Date("2024-06-01T06:00:00.000Z"),
       new Date("2024-06-02T06:00:00.000Z"),
     ];
@@ -642,11 +642,11 @@ describe("scheduleBookingReminders", () => {
           {
             name: "Workflow",
             userId: 101,
-            trigger: "AFTER_EVENT",
+            trigger: "BEFORE_EVENT",
             action: "SMS_NUMBER",
             template: "REMINDER",
             activeOn: [],
-            time: 3,
+            time: 20,
             timeUnit: TimeUnit.HOUR,
             sendTo: "000",
           },
@@ -710,13 +710,13 @@ describe("scheduleBookingReminders", () => {
     expectSMSWorkflowToBeTriggered({
       sms,
       toNumber: "000",
-      includedString: "2024 May 20 at 2:30pm Asia/Kolkata",
+      includedString: "2024 May 21 at 2:30pm Asia/Kolkata",
     });
 
     expectSMSWorkflowToBeTriggered({
       sms,
       toNumber: "000",
-      includedString: "2024 May 20 at 2:45pm Asia/Kolkata",
+      includedString: "2024 May 21 at 2:45pm Asia/Kolkata",
     });
 
     // sms are too far in future
@@ -744,10 +744,10 @@ describe("scheduleBookingReminders", () => {
     );
 
     const expectedScheduledDates = [
-      new Date("2024-05-20T12:15:00.000"),
-      new Date("2024-05-20T12:30:00.000Z"),
-      new Date("2024-06-01T08:00:00.000Z"),
-      new Date("2024-06-02T08:00:00.000Z"),
+      new Date("2024-05-20T13:00:00.000"),
+      new Date("2024-05-20T13:15:00.000Z"),
+      new Date("2024-05-31T08:30:00.000Z"),
+      new Date("2024-06-01T08:30:00.000Z"),
     ];
 
     scheduledWorkflowReminders.forEach((reminder, index) => {
@@ -759,6 +759,81 @@ describe("scheduleBookingReminders", () => {
         expect(reminder.scheduled).toBe(false);
       }
     });
+  });
+
+  test("should not schedule reminders if date is already in the past", async ({}) => {
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      defaultScheduleId: null,
+      schedules: [TestData.schedules.IstMorningShift],
+    });
+
+    const pastBooking = {
+      uid: "past-booking-uid",
+      eventTypeId: 1,
+      userId: 101,
+      status: BookingStatus.ACCEPTED,
+      startTime: `2024-05-21T09:00:00.000Z`,
+      endTime: `2024-05-21T09:15:00.000Z`,
+      attendees: [{ email: "attendee@example.com", locale: "en" }],
+    };
+
+    await createBookingScenario(
+      getScenarioData({
+        workflows: [
+          {
+            name: "Past Workflow",
+            userId: 101,
+            trigger: "BEFORE_EVENT",
+            action: "EMAIL_HOST",
+            template: "REMINDER",
+            activeOn: [],
+            time: 5,
+            timeUnit: TimeUnit.DAY,
+          },
+        ],
+        eventTypes: mockEventTypes,
+        bookings: [pastBooking],
+        organizer,
+      })
+    );
+
+    const workflow = await prismock.workflow.findFirst({
+      select: workflowSelect,
+    });
+
+    const bookings = await prismock.booking.findMany({
+      where: {
+        userId: organizer.id,
+      },
+      select: bookingSelect,
+    });
+
+    expect(workflow).not.toBeNull();
+
+    if (!workflow) return;
+
+    await scheduleBookingReminders(
+      bookings,
+      workflow.steps,
+      workflow.time,
+      workflow.timeUnit,
+      workflow.trigger,
+      organizer.id,
+      null, //teamId
+      false //isOrg
+    );
+
+    const tasks = await prismock.task.findMany({
+      where: {
+        type: "sendWorkflowEmails",
+      },
+    });
+
+    // No tasks should be created for past reminders
+    expect(tasks.length).toBe(0);
   });
 });
 
