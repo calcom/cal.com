@@ -3172,5 +3172,10 @@
   "matching": "Dopasowanie",
   "event_redirect": "Przekierowanie wydarzenia",
   "reset_form": "Zresetuj formularz",
+  "monthly_credits": "Kredyty miesięczne",
+  "total_credits": "Suma kredytów: {{totalCredits}}",
+  "remaining_credits": "Pozostałe kredyty: {{remainingCredits}}",
+  "additional_credits": "Dodatkowe kredyty",
+  "view_and_manage_credits_description": "Przeglądaj i zarządzaj kredytami na wysyłanie wiadomości SMS. Jeden kredyt jest wart 1¢ (USD). <0>Dowiedz się więcej</0>",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
