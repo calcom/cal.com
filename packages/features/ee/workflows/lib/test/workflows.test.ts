@@ -96,8 +96,8 @@ const mockBookings = [
     eventTypeId: 1,
     userId: 101,
     status: BookingStatus.ACCEPTED,
-    startTime: `2024-05-20T09:00:00.000Z`,
-    endTime: `2024-05-20T09:15:00.000Z`,
+    startTime: `2024-05-21T09:00:00.000Z`,
+    endTime: `2024-05-21T09:15:00.000Z`,
     attendees: [{ email: "attendee@example.com", locale: "en" }],
   },
   {
@@ -105,8 +105,8 @@ const mockBookings = [
     eventTypeId: 1,
     userId: 101,
     status: BookingStatus.ACCEPTED,
-    startTime: `2024-05-20T09:15:00.000Z`,
-    endTime: `2024-05-20T09:30:00.000Z`,
+    startTime: `2024-05-21T09:15:00.000Z`,
+    endTime: `2024-05-21T09:30:00.000Z`,
     attendees: [{ email: "attendee@example.com", locale: "en" }],
   },
   {
@@ -518,8 +518,8 @@ describe("scheduleBookingReminders", () => {
     );
 
     const expectedScheduledDates = [
-      new Date("2024-05-20T08:00:00.000"),
-      new Date("2024-05-20T08:15:00.000Z"),
+      new Date("2024-05-21T08:00:00.000"),
+      new Date("2024-05-21T08:15:00.000Z"),
       new Date("2024-06-01T03:30:00.000Z"),
       new Date("2024-06-02T03:30:00.000Z"),
     ];
@@ -604,8 +604,8 @@ describe("scheduleBookingReminders", () => {
     );
 
     const expectedScheduledDates = [
-      new Date("2024-05-20T10:15:00.000"),
-      new Date("2024-05-20T10:30:00.000Z"),
+      new Date("2024-05-21T10:15:00.000"),
+      new Date("2024-05-21T10:30:00.000Z"),
       new Date("2024-06-01T06:00:00.000Z"),
       new Date("2024-06-02T06:00:00.000Z"),
     ];
@@ -710,13 +710,13 @@ describe("scheduleBookingReminders", () => {
     expectSMSWorkflowToBeTriggered({
       sms,
       toNumber: "000",
-      includedString: "2024 May 20 at 2:30pm Asia/Kolkata",
+      includedString: "2024 May 21 at 2:30pm Asia/Kolkata",
     });
 
     expectSMSWorkflowToBeTriggered({
       sms,
       toNumber: "000",
-      includedString: "2024 May 20 at 2:45pm Asia/Kolkata",
+      includedString: "2024 May 21 at 2:45pm Asia/Kolkata",
     });
 
     // sms are too far in future
@@ -744,8 +744,8 @@ describe("scheduleBookingReminders", () => {
     );
 
     const expectedScheduledDates = [
-      new Date("2024-05-20T12:15:00.000"),
-      new Date("2024-05-20T12:30:00.000Z"),
+      new Date("2024-05-21T12:15:00.000"),
+      new Date("2024-05-21T12:30:00.000Z"),
       new Date("2024-06-01T08:00:00.000Z"),
       new Date("2024-06-02T08:00:00.000Z"),
     ];
