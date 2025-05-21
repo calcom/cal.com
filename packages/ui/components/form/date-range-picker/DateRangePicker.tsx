@@ -54,7 +54,9 @@ export function DatePickerWithRange({
           onDatesChange({ startDate: dates.startDate, endDate: date });
         }
       } else {
-        if (date < dates.startDate) {
+        if (date.getTime() === dates.startDate.getTime() || date.getTime() === dates.endDate.getTime()) {
+          onDatesChange({ startDate: date, endDate: undefined });
+        } else if (date < dates.startDate) {
           onDatesChange({ startDate: date, endDate: undefined });
         } else {
           onDatesChange({ startDate: dates.startDate, endDate: date });
