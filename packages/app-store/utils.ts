@@ -37,6 +37,7 @@ export type CredentialDataWithTeamName = CredentialForCalendarService & {
   team?: {
     name: string;
   } | null;
+  delegationCredentialId?: string | null;
 };
 
 export const ALL_APPS = Object.values(ALL_APPS_MAP);

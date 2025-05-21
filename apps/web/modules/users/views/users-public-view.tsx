@@ -135,7 +135,16 @@ export function UserPage(props: PageProps) {
                   <div className="flex flex-wrap items-center">
                     <h2 className="text-default pr-2 text-sm font-semibold">{type.title}</h2>
                   </div>
-                  <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
+                  <EventTypeDescription
+                    eventType={{
+                      ...type,
+                      hideOrganizerEmail: false,
+                      includeNoShowInRRCalculation: false,
+                      customReplyToEmail: null,
+                    }}
+                    isPublic={true}
+                    shortenDescription
+                  />
                 </div>
               </Link>
             ))}

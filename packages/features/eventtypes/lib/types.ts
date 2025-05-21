@@ -91,6 +91,7 @@ export type FormValues = {
   multiplePrivateLinks: string[] | undefined;
   eventTypeColor: z.infer<typeof eventTypeColor>;
   customReplyToEmail: string | null;
+  hideOrganizerEmail: boolean;
   locations: EventLocation[];
   aiPhoneCallConfig: PhoneCallConfig;
   customInputs: CustomInputParsed[];
@@ -149,6 +150,7 @@ export type FormValues = {
   forwardParamsSuccessRedirect: boolean | null;
   secondaryEmailId?: number;
   isRRWeightsEnabled: boolean;
+  includeNoShowInRRCalculation: boolean;
   maxLeadThreshold?: number;
 };
 

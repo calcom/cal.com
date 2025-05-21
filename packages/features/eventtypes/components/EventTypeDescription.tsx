@@ -22,6 +22,9 @@ export type EventTypeDescriptionProps = {
   > & {
     descriptionAsSafeHTML?: string | null;
     recurringEvent: Prisma.JsonValue;
+    hideOrganizerEmail?: boolean;
+    includeNoShowInRRCalculation?: boolean;
+    customReplyToEmail?: string | null;
   };
   className?: string;
   shortenDescription?: boolean;
