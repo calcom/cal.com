@@ -459,9 +459,8 @@ test.describe("Bookings", () => {
     await page.goto("/bookings/upcoming", { waitUntil: "domcontentloaded" });
     await bookingsGetResponse1;
 
-    await page.locator('[data-testid="add-filter-button"]').click();
-    await page.locator('[data-testid="add-filter-item-userId"]').click();
-    await page.locator('[data-testid="filter-popover-trigger-userId"]').click();
+    await addFilter(page, "userId");
+    await openFilter(page, "userId");
     const bookingsGetResponse2 = page.waitForResponse((response) =>
       /\/api\/trpc\/bookings\/get.*/.test(response.url())
     );
