@@ -840,18 +840,21 @@ export const sendCreditBalanceLimitReachedEmails = async ({
 export const sendDelegationCredentialDisabledEmail = async ({
   recipientEmail,
   recipientName,
-  connectionName,
+  calendarAppName,
+  conferencingAppName,
 }: {
   recipientEmail: string;
   recipientName?: string;
-  connectionName: string;
+  calendarAppName: string;
+  conferencingAppName: string;
 }) => {
   await sendEmail(
     () =>
       new DelegationCredentialDisabledEmail({
         recipientEmail,
         recipientName,
-        connectionName,
+        calendarAppName,
+        conferencingAppName,
       })
   );
 };
