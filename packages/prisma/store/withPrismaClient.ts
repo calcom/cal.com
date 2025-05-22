@@ -1,35 +1,37 @@
-import type { PrismaClient } from "@prisma/client";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
-import { runWithTenants, getPrismaFromHost, getPrisma } from "./prismaStore";
+import { runWithTenants } from "./prismaStore";
 import { Tenant } from "./tenants";
 
-export type PrismaCallback<T> = (prisma: PrismaClient) => Promise<T>;
+type Params = {
+  [param: string]: string | string[] | undefined;
+};
 
-export function withPrismaClient<T>(
-  headers: Headers | Record<string, string>,
-  callback: PrismaCallback<T>
-): Promise<T> {
-  const host = typeof headers.get === "function" ? headers.get("host") : headers["host"] || "";
-  return withPrismaHost<T>(host, callback);
-}
+type Handler<T extends NextResponse | Response = NextResponse> = (
+  req: NextRequest,
+  ctx: { params: Promise<Params> }
+) => Promise<T>;
 
-export function withPrismaHost<T>(host: string, callback: PrismaCallback<T>): Promise<T> {
-  return runWithTenants(async () => {
-    const prisma = getPrismaFromHost(host);
-    return callback(prisma);
-  });
-}
-
-export function withMultiTenantPrisma<T>(
-  callback: (tenantPrisma: Record<string, PrismaClient>) => Promise<T>
-): Promise<T> {
-  return runWithTenants(async () => {
-    const tenantClients: Record<string, PrismaClient> = {};
-
-    for (const tenant of Object.values(Tenant)) {
-      tenantClients[tenant] = getPrisma(tenant as Tenant);
+/**
+ * Runs the provided handler once for each tenant (US and EU) in an isolated context and merges the results.
+ *
+ * This is intended for use in cron handlers only, as these are called internally by the system.
+ * Using this in externally-facing endpoints (e.g., user-facing API routes) is not supported and may result in only one tenant being processed.
+ *
+ * @param handler - The handler function to run for each tenant. Should match the signature of a Next.js API handler.
+ * @returns A handler that, when called, runs the original handler for each tenant and returns a merged JSON response keyed by tenant.
+ */
+export function withMultiTenantPrisma<T extends NextResponse | Response = NextResponse>(
+  handler: Handler<T>
+): (req: NextRequest, ctx: { params: Promise<Params> }) => Promise<NextResponse> {
+  return async (req: NextRequest, ctx: { params: Promise<Params> }) => {
+    const results: Record<string, any> = {};
+    for (const tenant of [Tenant.US, Tenant.EU]) {
+      const response = await runWithTenants(tenant, async () => handler(req, ctx));
+      const data = response instanceof Response ? await response.json() : response;
+      results[tenant] = data;
     }
-
-    return callback(tenantClients);
-  });
+    return NextResponse.json(results);
+  };
 }

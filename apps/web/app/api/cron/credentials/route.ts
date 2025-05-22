@@ -11,6 +11,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
+import { withMultiTenantPrisma } from "@calcom/prisma/store/withPrismaClient";
 
 import { defaultResponderForAppDir } from "../../defaultResponderForAppDir";
 
@@ -161,4 +162,4 @@ const handler = async (request: NextRequest) => {
   return NextResponse.json(response);
 };
 
-export const GET = defaultResponderForAppDir(handler);
+export const GET = withMultiTenantPrisma(defaultResponderForAppDir(handler));

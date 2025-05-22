@@ -1,8 +1,9 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 
 import { GET as handler } from "@calcom/features/tasker/api/cron";
+import { withMultiTenantPrisma } from "@calcom/prisma/store/withPrismaClient";
 
-export const GET = defaultResponderForAppDir(handler);
+export const GET = withMultiTenantPrisma(defaultResponderForAppDir(handler));
 
 /**
  * This runs each minute and we need fresh data each time

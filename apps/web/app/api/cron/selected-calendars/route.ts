@@ -13,6 +13,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { withMultiTenantPrisma } from "@calcom/prisma/store/withPrismaClient";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 import type { Ensure } from "@calcom/types/utils";
 
@@ -184,4 +185,4 @@ const handler = async (request: NextRequest) => {
   return NextResponse.json(await handleCreateSelectedCalendars());
 };
 
-export const GET = defaultResponderForAppDir(handler);
+export const GET = withMultiTenantPrisma(defaultResponderForAppDir(handler));

@@ -5,6 +5,7 @@ import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { withMultiTenantPrisma } from "@calcom/prisma/store/withPrismaClient";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import { CalendarCache } from "../calendar-cache";
@@ -139,6 +140,8 @@ const handler = defaultResponder(async (request: NextApiRequest) => {
   };
 });
 
-export default defaultHandler({
-  GET: Promise.resolve({ default: defaultResponder(handler) }),
-});
+export default withMultiTenantPrisma(
+  defaultHandler({
+    GET: Promise.resolve({ default: defaultResponder(handler) }),
+  })
+);
