@@ -592,7 +592,7 @@ model Membership {
   user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   disableImpersonation Boolean           @default(false)
   AttributeToUser      AttributeToUser[]
-  createdAt            DateTime?
+  createdAt            DateTime?         @default(now())
   updatedAt            DateTime?         @updatedAt
 
   @@unique([userId, teamId])
@@ -2007,6 +2007,10 @@ model DelegationCredential {
   /// @zod.custom(imports.serviceAccountKeySchema)
   serviceAccountKey   Json
   enabled             Boolean               @default(false)
+  // lastEnabledAt is set when the delegation credential is enabled
+  lastEnabledAt       DateTime?
+  // lastDisabledAt is set when the delegation credential is disabled. So, lastDisabledAt could be earlier then lastEnabledAt if the delegation credential was enabled -> then disabled -> then enabled again.
+  lastDisabledAt      DateTime?
   organizationId      Int
   organization        Team                  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   domain              String
