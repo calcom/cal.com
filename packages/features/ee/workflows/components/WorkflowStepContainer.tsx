@@ -376,7 +376,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       label: t(`${step.template.toLowerCase()}`),
       value: step.template,
       needsTeamsUpgrade: false,
-      needsCredits: false, //todo
     };
 
     const canRequirePhoneNumber = (workflowStep: string) => {
@@ -818,17 +817,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         options={templateOptions.map((option) => ({
                           label: option.label,
                           value: option.value,
-                          needsCredits:
-                            option.needsCreditsOrUpgrade &&
-                            isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`)),
                           needsTeamsUpgrade:
-                            option.needsCreditsOrUpgrade &&
+                            option.needsTeamsUpgrade &&
                             !isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`)),
                         }))}
                         isOptionDisabled={(option: {
                           label: string;
                           value: any;
-                          needsCredits: boolean;
                           needsTeamsUpgrade: boolean;
                         }) => option.needsTeamsUpgrade}
                       />
@@ -872,7 +867,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </div>
                 )}
                 <div className="mb-2 flex items-center pb-1">
-                  <Label className="mb-0 flex-none ">
+                  <Label className="mb-0 flex-none">
                     {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                   </Label>
                 </div>
