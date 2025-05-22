@@ -39,6 +39,16 @@ export const bookingCreateBodySchema = z.object({
   _isDryRun: z.boolean().optional(),
   /** Whether to override the cache */
   _shouldServeCache: z.boolean().optional(),
+  tracking: z
+    .object({
+      utm_source: z.string().optional(),
+      utm_medium: z.string().optional(),
+      utm_campaign: z.string().optional(),
+      utm_term: z.string().optional(),
+      utm_content: z.string().optional(),
+    })
+    .optional(),
+  dub_id: z.string().nullish(),
 });
 
 export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;
