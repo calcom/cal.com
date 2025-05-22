@@ -69,7 +69,7 @@ model Host {
 }
 
 model CalVideoSettings {
-  eventTypeId Int
+  eventTypeId Int       @id
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
 
   disableRecordingForOrganizer Boolean @default(false)
@@ -79,7 +79,6 @@ model CalVideoSettings {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([eventTypeId])
   @@index([eventTypeId])
 }
 
