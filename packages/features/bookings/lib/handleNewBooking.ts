@@ -47,6 +47,7 @@ import {
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import EventManager from "@calcom/lib/EventManager";
+import { handleAnalyticsEvents } from "@calcom/lib/analyticsManager/handleAnalyticsEvents";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { enrichHostsWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
@@ -274,17 +275,16 @@ export const buildEventForTeamEventType = async ({
     throw new Error("Scheduling type is required for team event type");
   }
   const teamDestinationCalendars: DestinationCalendar[] = [];
+  const fixedUsers = users.filter((user) => user.isFixed);
+  const nonFixedUsers = users.filter((user) => !user.isFixed);
+  const filteredUsers =
+    schedulingType === SchedulingType.ROUND_ROBIN
+      ? [...fixedUsers, ...(nonFixedUsers.length > 0 ? [nonFixedUsers[0]] : [])]
+      : users;
 
   // Organizer or user owner of this event type it's not listed as a team member.
-  const teamMemberPromises = users
-    .filter((user) => {
-      if (user.email === organizerUser.email) return false;
-
-      // Skip non-fixed users in ROUND_ROBIN team event
-      if (schedulingType === SchedulingType.ROUND_ROBIN && !user.isFixed) return false;
-
-      return true;
-    })
+  const teamMemberPromises = filteredUsers
+    .filter((user) => user.email !== organizerUser.email)
     .map(async (user) => {
       // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
       // push to teamDestinationCalendars if it's a team event but collective only
@@ -2147,6 +2147,18 @@ async function handler(
     }
   } catch (error) {
     loggerWithEventDetails.error("Error while scheduling no show triggers", JSON.stringify({ error }));
+  }
+
+  if (!isDryRun) {
+    await handleAnalyticsEvents({
+      credentials: allCredentials,
+      rawBookingData,
+      bookingInfo: {
+        name: fullName,
+        email: bookerEmail,
+        eventName: "Cal.com lead",
+      },
+    });
   }
 
   // TODO: Refactor better so this booking object is not passed

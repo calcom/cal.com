@@ -21,6 +21,7 @@ export const apiHandlers = {
   demodesk: import("./demodesk/api"),
   dialpad: import("./dialpad/api"),
   discord: import("./discord/api"),
+  dub: import("./dub/api"),
   eightxeight: import("./eightxeight/api"),
   "element-call": import("./element-call/api"),
   elevenlabs: import("./elevenlabs/api"),
