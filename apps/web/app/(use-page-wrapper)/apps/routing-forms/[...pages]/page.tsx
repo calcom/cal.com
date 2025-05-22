@@ -5,7 +5,6 @@ import { cookies, headers } from "next/headers";
 
 import { routingFormsComponents } from "@calcom/app-store/routing-forms/pages/app-routing.client-config";
 import type { routingServerSidePropsConfig } from "@calcom/app-store/routing-forms/pages/app-routing.server-config";
-import Shell from "@calcom/features/shell/Shell";
 
 import { getServerSideProps } from "@lib/apps/routing-forms/[...pages]/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -41,22 +40,12 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
   const { mainPage } = normalizePages((await params).pages);
 
   const Component = await routingFormsComponents[mainPage as keyof typeof routingFormsComponents]();
-  const FinalComponent = () => (
+
+  return (
     <FormProvider>
       <Component {...(props as any)} />
     </FormProvider>
   );
-
-  // TODO: we should really be using layout for this.
-  if (mainPage === "forms") {
-    return (
-      <Shell withoutMain>
-        <FinalComponent />
-      </Shell>
-    );
-  }
-
-  return <FinalComponent />;
 };
 
 export default ServerPage;
