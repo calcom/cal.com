@@ -26,6 +26,7 @@ import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -329,6 +330,17 @@ function BookingListItem(booking: BookingItemProps) {
     });
   }
 
+  if (isBookingInPast) {
+    editBookingActions.push({
+      id: "delete_booking",
+      label: t("delete"),
+      onClick: () => {
+        setIsOpenDeleteDialog(true);
+      },
+      icon: "trash" as const,
+    });
+  }
+
   let bookedActions: ActionType[] = [
     {
       id: "cancel",
@@ -402,6 +414,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
   const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
   const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
+  const [isOpenDeleteDialog, setIsOpenDeleteDialog] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
       showToast(t("location_updated"), "success");
@@ -479,6 +492,22 @@ function BookingListItem(booking: BookingItemProps) {
 
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
 
+  const deleteMutation = trpc.viewer.bookings.delete.useMutation({
+    onSuccess: () => {
+      showToast(t("delete_booking_success"), "success");
+      setIsOpenDeleteDialog(false);
+
+      utils.viewer.bookings.invalidate();
+    },
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+  });
+
+  const deleteBookingHandler = (id: number) => {
+    deleteMutation.mutate({ id });
+  };
+
   return (
     <>
       <RescheduleDialog
@@ -532,6 +561,20 @@ function BookingListItem(booking: BookingItemProps) {
           isOpen={isNoShowDialogOpen}
         />
       )}
+      <Dialog open={isOpenDeleteDialog} onOpenChange={setIsOpenDeleteDialog}>
+        <ConfirmationDialogContent
+          variety="danger"
+          title={t("delete_booking_dialog_title")}
+          confirmBtnText={t("confirm_delete_booking")}
+          loadingText={t("confirm_delete_booking")}
+          isPending={deleteMutation.isPending}
+          onConfirm={(e) => {
+            e.preventDefault();
+            deleteBookingHandler(booking.id);
+          }}>
+          <p className="mt-5">{t("delete_booking_dialog_description")}</p>
+        </ConfirmationDialogContent>
+      </Dialog>
       <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
         <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
           <div>
