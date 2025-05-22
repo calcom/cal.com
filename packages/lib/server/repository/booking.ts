@@ -780,7 +780,7 @@ export class BookingRepository {
     ];
   }
 
-  static async getBookingFromEventTypeForAttendee({
+  static async getValidBookingFromEventTypeForAttendee({
     eventTypeId,
     bookerEmail,
     bookerPhoneNumber,
@@ -803,9 +803,7 @@ export class BookingRepository {
           },
         },
         startTime,
-        ...(filterForUnconfirmed && {
-          status: BookingStatus.PENDING,
-        }),
+        status: filterForUnconfirmed ? BookingStatus.PENDING : BookingStatus.ACCEPTED,
       },
       include: {
         attendees: true,
