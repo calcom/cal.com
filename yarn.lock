@@ -2933,6 +2933,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/dub@workspace:packages/app-store/dub":
+  version: 0.0.0-use.local
+  resolution: "@calcom/dub@workspace:packages/app-store/dub"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+    dub-package: "npm:dub@^0.61.12"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/ee@workspace:packages/features/ee":
   version: 0.0.0-use.local
   resolution: "@calcom/ee@workspace:packages/features/ee"
@@ -24728,6 +24738,21 @@ __metadata:
   version: 3.1.4
   resolution: "dset@npm:3.1.4"
   checksum: 9a7677e9ffd3c13ad850f7cf367aa94b39984006510e84c3c09b7b88bba0a5b3b7196d85a99d0c4cae4e47d67bdeca43dc1834a41d80f31bcdc86dd26121ecec
+  languageName: node
+  linkType: hard
+
+"dub-package@npm:dub@^0.61.12":
+  version: 0.61.14
+  resolution: "dub@npm:0.61.14"
+  peerDependencies:
+    "@modelcontextprotocol/sdk": ">=1.5.0 <1.10.0"
+    zod: ">= 3"
+  peerDependenciesMeta:
+    "@modelcontextprotocol/sdk":
+      optional: true
+  bin:
+    mcp: bin/mcp-server.js
+  checksum: 5cc08e5e3c85401f14141d898f43ab20908c2f9a113747b79ae194833e6e00e418c9c877113c4830b1d83c1c40901a8f2f07fff864d113b2d6561fd565cd7d1f
   languageName: node
   linkType: hard
 

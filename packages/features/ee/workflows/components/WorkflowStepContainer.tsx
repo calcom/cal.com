@@ -814,7 +814,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         }}
                         defaultValue={selectedTemplate}
                         value={selectedTemplate}
-                        options={templateOptions}
+                        options={templateOptions.map((option) => ({
+                          label: option.label,
+                          value: option.value,
+                          needsTeamsUpgrade:
+                            option.needsTeamsUpgrade &&
+                            !isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`)),
+                        }))}
                         isOptionDisabled={(option: {
                           label: string;
                           value: any;
@@ -860,9 +866,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       )}
                   </div>
                 )}
-
                 <div className="mb-2 flex items-center pb-1">
-                  <Label className="mb-0 flex-none ">
+                  <Label className="mb-0 flex-none">
                     {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                   </Label>
                 </div>
@@ -880,7 +885,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   updateTemplate={updateTemplate}
                   firstRender={firstRender}
                   setFirstRender={setFirstRender}
-                  editable={!props.readOnly && !isWhatsappAction(step.action) && hasActiveTeamPlan}
+                  editable={
+                    !props.readOnly &&
+                    !isWhatsappAction(step.action) &&
+                    (hasActiveTeamPlan || isSMSAction(step.action))
+                  }
                   excludedToolbarItems={
                     !isSMSAction(step.action) ? [] : ["blockType", "bold", "italic", "link"]
                   }

@@ -20,6 +20,8 @@ const delegationCredentialSafeSelect = {
   createdAt: true,
   updatedAt: true,
   organizationId: true,
+  lastEnabledAt: true,
+  lastDisabledAt: true,
   workspacePlatform: {
     select: {
       name: true,
@@ -172,6 +174,8 @@ export class DelegationCredentialRepository {
       domain: string;
       enabled: boolean;
       organizationId: number;
+      lastEnabledAt: Date;
+      lastDisabledAt: Date;
     }>;
   }) {
     const { workspacePlatformId, organizationId, ...rest } = data;
