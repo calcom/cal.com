@@ -1,12 +1,10 @@
-import type { ExpressionBuilder } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
 
 import kysely from "@calcom/kysely";
-import type { DB } from "@calcom/kysely/types";
 import prisma from "@calcom/prisma";
 import { RoleType } from "@calcom/prisma/enums";
 
-import type { PermissionString, Resource, CrudAction, CustomAction } from "../types/permission-registry";
+import type { PermissionString } from "../types/permission-registry";
 
 export class RoleRepository {
   async findRoleByName(name: string, teamId?: number) {
@@ -30,18 +28,23 @@ export class RoleRepository {
   }
 
   async createRolePermissions(roleId: string, permissions: PermissionString[]) {
+    const permissionData = permissions.map((permission) => {
+      const [resource, action] = permission.split(".");
+      return {
+        roleId,
+        resource,
+        action,
+      };
+    });
+
     return prisma.rolePermission.createMany({
-      data: permissions.map((permission) => {
-        const [resource, action] = permission.split(".") as [Resource, CrudAction | CustomAction];
-        return { roleId, resource, action };
-      }),
+      data: permissionData,
     });
   }
 
   async findRoleWithPermissions(roleId: string) {
     const role = await kysely
       .selectFrom("Role")
-      .leftJoin("RolePermission", "RolePermission.roleId", "Role.id")
       .select([
         "Role.id",
         "Role.name",
@@ -50,7 +53,7 @@ export class RoleRepository {
         "Role.type",
         "Role.createdAt",
         "Role.updatedAt",
-        (eb: ExpressionBuilder<DB, "Role" | "RolePermission">) =>
+        (eb) =>
           jsonArrayFrom(
             eb
               .selectFrom("RolePermission")
@@ -65,9 +68,8 @@ export class RoleRepository {
   }
 
   async findTeamRoles(teamId: number) {
-    return kysely
+    const roles = await kysely
       .selectFrom("Role")
-      .leftJoin("RolePermission", "RolePermission.roleId", "Role.id")
       .select([
         "Role.id",
         "Role.name",
@@ -76,7 +78,7 @@ export class RoleRepository {
         "Role.type",
         "Role.createdAt",
         "Role.updatedAt",
-        (eb: ExpressionBuilder<DB, "Role" | "RolePermission">) =>
+        (eb) =>
           jsonArrayFrom(
             eb
               .selectFrom("RolePermission")
@@ -84,10 +86,10 @@ export class RoleRepository {
               .whereRef("RolePermission.roleId", "=", "Role.id")
           ).as("permissions"),
       ])
-      .where((eb: ExpressionBuilder<DB, "Role" | "RolePermission">) =>
-        eb.or([eb("Role.teamId", "=", teamId), eb("Role.type", "=", RoleType.SYSTEM)])
-      )
+      .where((eb) => eb.or([eb("Role.teamId", "=", teamId), eb("Role.type", "=", RoleType.SYSTEM)]))
       .execute();
+
+    return roles;
   }
 
   async deleteRolePermissions(roleId: string) {
@@ -107,7 +109,7 @@ export class RoleRepository {
       .executeTakeFirstOrThrow();
   }
 
-  async transaction<T>(callback: (trx: typeof kysely) => Promise<T>): Promise<T> {
-    return kysely.transaction().execute(callback);
+  async transaction<T>(callback: (trx: any) => Promise<T>) {
+    return prisma.$transaction(callback);
   }
 }
