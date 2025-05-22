@@ -5,7 +5,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { lockUser, LockReason } from "@calcom/lib/autoLock";
 import { scheduleWorkflowNotifications } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
-import { scanWorkflowBody } from "./scanWorkflowBody";
+import { scanWorkflowBody, iffyScanBody } from "./scanWorkflowBody";
 
 vi.mock("@calcom/lib/autoLock", async (importActual) => {
   const actual = await importActual<typeof import("@calcom/lib/autoLock")>();
@@ -18,6 +18,14 @@ vi.mock("@calcom/lib/autoLock", async (importActual) => {
 vi.mock("@calcom/trpc/server/routers/viewer/workflows/util", () => ({
   scheduleWorkflowNotifications: vi.fn(),
 }));
+
+vi.mock("./scanWorkflowBody", async (importActual) => {
+  const actual = await importActual<typeof import("./scanWorkflowBody")>();
+  return {
+    ...actual,
+    iffyScanBody: vi.fn(),
+  };
+});
 
 const mockWorkflowStep = {
   id: 1,
@@ -58,7 +66,7 @@ describe("scanWorkflowBody", () => {
 
     await scanWorkflowBody(payload);
 
-    expect(prismaMock.workflowStep.findMany).not.toHaveBeenCalled();
+    expect(iffyScanBody).not.toHaveBeenCalled();
   });
 
   it("should mark workflow step as safe if no reminder body", async () => {
