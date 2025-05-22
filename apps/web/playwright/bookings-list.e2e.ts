@@ -464,10 +464,13 @@ test.describe("Bookings", () => {
     await page.locator('[data-testid="add-filter-button"]').click();
     await page.locator('[data-testid="add-filter-item-userId"]').click();
     await page.locator('[data-testid="filter-popover-trigger-userId"]').click();
+    const bookingsGetResponse2 = page.waitForResponse((response) =>
+      /\/api\/trpc\/bookings\/get.*/.test(response.url())
+    );
     await page
       .locator(`[data-testid="select-filter-options-userId"] [role="option"]:has-text("${anotherUser}")`)
       .click();
-    await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
+    await bookingsGetResponse2;
 
     await expect(page.locator('[data-testid="booking-item"]')).toHaveCount(0);
   });

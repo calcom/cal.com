@@ -431,6 +431,11 @@ test.describe("Bookings", () => {
 
           // Cancel the booking
           await page.goto(`/booking/${bookingUid}&cancel=true`);
+          await page.waitForSelector("text=Reason for cancellation");
+
+          await expect(page.locator('text="Cancel event"')).toBeVisible();
+
+          await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
           await submitAndWaitForResponse(page, "/api/cancel", {
             action: () => page.locator('[data-testid="confirm_cancel"]').click(),
           });
