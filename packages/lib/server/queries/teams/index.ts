@@ -7,12 +7,12 @@ import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { _EventTypeModel } from "@calcom/prisma/zod";
 import {
   EventTypeMetaDataSchema,
   allManagedEventTypeProps,
   unlockedManagedEventTypeProps,
 } from "@calcom/prisma/zod-utils";
+import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
 
 import { getBookerBaseUrlSync } from "../../../getBookerUrl/client";
 import { getTeam, getOrg } from "../../repository/team";
@@ -435,8 +435,8 @@ export function generateNewChildEventTypeDataForDB({
   includeWorkflow?: boolean;
   includeUserConnect?: boolean;
 }) {
-  const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps).extend({
-    bookingFields: _EventTypeModel.shape.bookingFields.nullish(),
+  const allManagedEventTypePropsZod = EventTypeSchema.pick(allManagedEventTypeProps).extend({
+    bookingFields: EventTypeSchema.shape.bookingFields.nullish(),
   });
 
   const managedEventTypeValues = allManagedEventTypePropsZod

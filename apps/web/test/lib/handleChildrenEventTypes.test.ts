@@ -8,10 +8,9 @@ import { buildEventType } from "@calcom/lib/test/builder";
 import type { EventType } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import type { CompleteEventType, CompleteWorkflowsOnEventTypes } from "@calcom/prisma/zod";
 
-const mockFindFirstEventType = (data?: Partial<CompleteEventType>) => {
-  const eventType = buildEventType(data as Partial<EventType>);
+const mockFindFirstEventType = (data?: Partial<Prisma.EventTypeCreateInput>) => {
+  const eventType = buildEventType(data);
   // const { scheduleId, destinationCalendar, ...restEventType } = eventType;
   prismaMock.eventType.findFirst.mockResolvedValue(eventType as EventType);
 

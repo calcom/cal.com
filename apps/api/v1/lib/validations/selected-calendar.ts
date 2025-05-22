@@ -1,13 +1,13 @@
 import z from "zod";
 
-import { _SelectedCalendarModel as SelectedCalendar } from "@calcom/prisma/zod";
+import { SelectedCalendarSchema } from "@calcom/prisma/zod/modelSchema/SelectedCalendarSchema";
 
 import { schemaQueryIdAsString } from "./shared/queryIdString";
 import { schemaQueryIdParseInt } from "./shared/queryIdTransformParseInt";
 
-export const schemaSelectedCalendarBaseBodyParams = SelectedCalendar;
+export const schemaSelectedCalendarBaseBodyParams = SelectedCalendarSchema;
 
-export const schemaSelectedCalendarPublic = SelectedCalendar.omit({});
+export const schemaSelectedCalendarPublic = SelectedCalendarSchema.omit({});
 
 export const schemaSelectedCalendarBodyParams = schemaSelectedCalendarBaseBodyParams
   .partial({
