@@ -888,9 +888,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   editable={
                     !props.readOnly &&
                     !isWhatsappAction(step.action) &&
-                    (hasActiveTeamPlan ||
-                      (form.getValues(`steps.${step.stepNumber - 1}.template`) === WorkflowTemplates.CUSTOM &&
-                        isSMSAction(step.action)))
+                    (hasActiveTeamPlan || isSMSAction(step.action))
                   }
                   excludedToolbarItems={
                     !isSMSAction(step.action) ? [] : ["blockType", "bold", "italic", "link"]
