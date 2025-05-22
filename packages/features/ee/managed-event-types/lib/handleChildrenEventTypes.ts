@@ -160,7 +160,7 @@ export default async function handleChildrenEventTypes({
       newUserIds.map((userId) => {
         return prisma.eventType.create({
           data: {
-            instantMeetingScheduleId: updatedEventType.instantMeetingScheduleId ?? undefined,
+            instantMeetingScheduleId: eventType.instantMeetingScheduleId ?? undefined,
             profileId: profileId ?? null,
             ...managedEventTypeValues,
             ...unlockedEventTypeValues,
