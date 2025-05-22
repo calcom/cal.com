@@ -44,6 +44,7 @@ import {
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import EventManager from "@calcom/lib/EventManager";
+import { handleAnalyticsEvents } from "@calcom/lib/analyticsManager/handleAnalyticsEvents";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import {
@@ -2158,6 +2159,18 @@ async function handler(
     }
   } catch (error) {
     loggerWithEventDetails.error("Error while scheduling no show triggers", JSON.stringify({ error }));
+  }
+
+  if (!isDryRun) {
+    await handleAnalyticsEvents({
+      credentials: allCredentials,
+      rawBookingData,
+      bookingInfo: {
+        name: fullName,
+        email: bookerEmail,
+        eventName: "Cal.com lead",
+      },
+    });
   }
 
   // TODO: Refactor better so this booking object is not passed
