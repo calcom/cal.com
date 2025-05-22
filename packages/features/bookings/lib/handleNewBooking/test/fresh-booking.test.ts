@@ -3297,15 +3297,10 @@ describe("handleNewBooking", () => {
         selectedCalendars: [TestData.selectedCalendars.google],
       });
 
-      const startTime = "2025-05-21T10:00:00.000Z";
-      const endTime = "2025-05-21T10:30:00.000Z";
-
       const mockBookingData = getMockRequestDataForBooking({
         data: {
           user: organizer.username,
           eventTypeId: 1,
-          startTime,
-          endTime,
           responses: {
             email: booker.email,
             name: booker.name,
@@ -3360,15 +3355,10 @@ describe("handleNewBooking", () => {
         selectedCalendars: [TestData.selectedCalendars.google],
       });
 
-      const startTime = "2025-05-21T10:00:00.000Z";
-      const endTime = "2025-05-21T10:30:00.000Z";
-
       const mockBookingData = getMockRequestDataForBooking({
         data: {
           user: organizer.username,
           eventTypeId: 1,
-          startTime,
-          endTime,
           responses: {
             email: booker.email,
             name: booker.name,
