@@ -15,7 +15,7 @@ const BookingFieldItem = ({
   className?: string;
 }) => {
   // Pass the field with hidden property to FormBuilderField
-  return <FormBuilderField className={className} field={{ ...field, hidden }} readOnly={readOnly} />;
+  return <FormBuilderField className={className || ""} field={{ ...field, hidden }} readOnly={readOnly} />;
 };
 
 // Memo to prevent re-renders when parent re-renders
