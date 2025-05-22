@@ -25,23 +25,6 @@ const schemaBookingBaseBodyParams = Booking.pick({
   createdAt: true,
 }).partial();
 
-// It has only the legacy props that are part of `responses` now. The API can still hit old props
-export const bookingCreateSchemaLegacyPropsForApi = z.object({
-  email: z.string(),
-  name: z.string(),
-  guests: z.array(z.string()).optional(),
-  notes: z.string().optional(),
-  location: z.string(),
-  smsReminderNumber: z.string().optional().nullable(),
-  rescheduleReason: z.string().optional(),
-  customInputs: z.array(z.object({ label: z.string(), value: z.union([z.string(), z.boolean()]) })),
-});
-
-// This is the schema that is used for the API. It has all the legacy props that are part of `responses` now.
-export const bookingCreateBodySchemaForApi = extendedBookingCreateBody.merge(
-  bookingCreateSchemaLegacyPropsForApi.partial()
-);
-
 export const schemaBookingCreateBodyParams = extendedBookingCreateBody.merge(schemaQueryUserId.partial());
 
 export const schemaBookingGetParams = z.object({
@@ -152,3 +135,8 @@ export const schemaBookingReadPublic = Booking.extend({
   rescheduledBy: true,
   createdAt: true,
 });
+
+export {
+  bookingCreateSchemaLegacyPropsForApi,
+  bookingCreateBodySchemaForApi,
+} from "@calcom/features/bookings/lib/bookingCreateBodySchema";

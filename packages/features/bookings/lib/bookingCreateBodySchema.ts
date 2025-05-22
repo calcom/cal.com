@@ -2,7 +2,7 @@
 import z from "zod";
 
 import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
-import { isSupportedTimeZone } from "@calcom/lib/date-fns";
+import { isSupportedTimeZone } from "@calcom/lib/dayjs";
 
 export const bookingCreateBodySchema = z.object({
   end: z.string().optional(),

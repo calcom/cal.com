@@ -5,8 +5,8 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { EventTypeCustomInput } from "@calcom/prisma/client";
-import { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod/custom/booking";
 
+import { bookingCreateSchemaLegacyPropsForApi } from "../bookingCreateBodySchema";
 import type { TgetBookingDataSchema } from "../getBookingDataSchema";
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
 import { handleCustomInputs } from "./handleCustomInputs";
