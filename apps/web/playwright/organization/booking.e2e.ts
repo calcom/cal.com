@@ -430,10 +430,9 @@ test.describe("Bookings", () => {
           await hostUser.apiLogin();
 
           // Cancel the booking
-          await page.goto(`/booking/${bookingUid}&cancel=true`);
-          await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-          await page.waitForSelector("text=Reason for cancellation");
-          await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
+          await page.goto(`/booking/${bookingUid}`);
+          await page.waitForLoadState("networkidle");
+          await page.getByTestId("cancel").click();
           await submitAndWaitForResponse(page, "/api/cancel", {
             action: () => page.locator('[data-testid="confirm_cancel"]').click(),
           });
