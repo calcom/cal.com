@@ -490,15 +490,21 @@ async function handler(
   });
 
   // For unconfirmed bookings or round robin bookings with the same attendee and timeslot, return the original booking
-  let existingBooking = null;
-  if ((!isConfirmedByDefault && !userReschedulingIsOwner) || eventType.schedulingType === "ROUND_ROBIN") {
-    existingBooking = await BookingRepository.getBookingFromEventTypeForAttendee({
+  if (
+    (!isConfirmedByDefault && !userReschedulingIsOwner) ||
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN
+  ) {
+    const booking = await BookingRepository.findBookingByUid({ bookingUid: "MOCKED_UID" });
+    console.log("🚀 ~ file: fresh-booking.test.ts:3351 ~ test ~ booking:", booking);
+
+    const existingBooking = await BookingRepository.getBookingFromEventTypeForAttendee({
       eventTypeId,
       bookerEmail,
       bookerPhoneNumber,
       startTime: new Date(dayjs(reqBody.start).utc().format()),
       filterForUnconfirmed: !isConfirmedByDefault,
     });
+    console.log("🚀 ~ file: handleNewBooking.ts:502 ~ existingBooking:", existingBooking);
 
     if (existingBooking) {
       const bookingResponse = {
