@@ -11,9 +11,9 @@ parentPort?.on("message", async (data) => {
     parentPort?.postMessage({
       success: false,
       error: {
-        message: error.message,
-        code: error.code,
-        stack: error.stack,
+        message: error instanceof Error ? error.message : "Unknown error",
+        code: error instanceof Error && "code" in error ? (error as any).code : "INTERNAL_SERVER_ERROR",
+        stack: error instanceof Error ? error.stack : undefined,
       },
     });
   }

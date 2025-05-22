@@ -6,6 +6,8 @@ import type { GetScheduleOptions } from "@calcom/trpc/server/routers/viewer/slot
 
 import { TRPCError } from "@trpc/server";
 
+import { TimeSlots } from "./slots-output.service";
+
 @Injectable()
 export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
   private readonly logger = new Logger(SlotsWorkerService_2024_04_15.name);
@@ -88,7 +90,6 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
                 ? {
                     cookies: task.options.ctx.req.cookies || {},
                     headers: task.options.ctx.req.headers || {},
-                    query: task.options.ctx.req.query || {},
                   }
                 : undefined,
             }
@@ -127,7 +128,9 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
           task.reject(
             new TRPCError({
               code: "INTERNAL_SERVER_ERROR",
-              message: `Failed to run task in worker: ${error.message}`,
+              message: `Failed to run task in worker: ${
+                error instanceof Error ? error.message : "Unknown error"
+              }`,
             })
           );
           this.processNextTask();
@@ -136,7 +139,7 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
     }
   }
 
-  async getAvailableSlotsInWorker(options: GetScheduleOptions) {
+  async getAvailableSlotsInWorker(options: GetScheduleOptions): Promise<TimeSlots> {
     return new Promise((resolve, reject) => {
       this.taskQueue.push({
         resolve,
