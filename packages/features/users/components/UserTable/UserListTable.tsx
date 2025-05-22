@@ -266,7 +266,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
         enableHiding: false,
         enableColumnFilter: false,
         size: 200,
-        header: "Members",
+        header: t("members"),
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
           return (
@@ -297,7 +297,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
       {
         id: "role",
         accessorFn: (data) => data.role,
-        header: "Role",
+        header: t("role"),
         size: 100,
         meta: {
           filter: { type: ColumnFilterType.MULTI_SELECT },
@@ -319,7 +319,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
       {
         id: "teams",
         accessorFn: (data) => data.teams.map((team) => team.name),
-        header: "Teams",
+        header: t("teams"),
         size: 140,
         meta: {
           filter: { type: ColumnFilterType.MULTI_SELECT },
@@ -338,7 +338,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
                   onClick={() => {
                     table.getColumn("role")?.setFilterValue(["PENDING"]);
                   }}>
-                  Pending
+                  {t("pending")}
                 </Badge>
               )}
 

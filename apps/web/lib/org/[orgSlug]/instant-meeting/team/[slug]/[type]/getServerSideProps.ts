@@ -1,13 +1,13 @@
-import { createRouterCaller } from "app/_trpc/context";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { EventRepository } from "@calcom/lib/server/repository/event";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { publicViewerRouter } from "@calcom/trpc/server/routers/publicViewer/_router";
 
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
@@ -38,18 +38,24 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const org = isValidOrgDomain ? currentOrgDomain : null;
+  if (!org) {
+    return {
+      notFound: true,
+    } as const;
+  }
+  const session = await getServerSession({ req: context.req });
+  const eventData = await EventRepository.getPublicEvent(
+    {
+      username: teamSlug,
+      eventSlug: meetingSlug,
+      isTeamEvent: true,
+      org,
+      fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
+    },
+    session?.user?.id
+  );
 
-  const caller = await createRouterCaller(publicViewerRouter);
-
-  const eventData = await caller.event({
-    username: teamSlug,
-    eventSlug: meetingSlug,
-    isTeamEvent: true,
-    org,
-    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-  });
-
-  if (!eventData || !org) {
+  if (!eventData) {
     return {
       notFound: true,
     } as const;
