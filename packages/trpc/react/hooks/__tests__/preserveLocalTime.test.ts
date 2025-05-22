@@ -24,19 +24,19 @@ describe("preserveLocalTime", () => {
   });
 
   it("should handle DST transitions correctly", () => {
-    // Test during US DST transition (March)
-    const beforeDST = "2024-03-09T06:59:00.000Z"; // 1:59 AM EST
-    const afterDST = "2024-03-09T07:00:00.000Z"; // 3:00 AM EDT (skips 2 AM)
+    // Test during US DST transition (March 10, 2024 at 2:00 AM EST -> 3:00 AM EDT)
+    const beforeDST = "2024-03-10T06:59:00.000Z"; // 1:59 AM EST
+    const afterDST = "2024-03-10T07:00:00.000Z"; // 3:00 AM EDT (clock jumps forward, skipping 2:00-2:59 AM)
 
     const resultBeforeDST = preserveLocalTime(beforeDST, "America/New_York", "Asia/Dubai");
     const resultAfterDST = preserveLocalTime(afterDST, "America/New_York", "Asia/Dubai");
 
-    const timeInDubaiBeforeDST = dayjs(resultBeforeDST).tz("Asia/Dubai");
-    const timeInDubaiAfterDST = dayjs(resultAfterDST).tz("Asia/Dubai");
+    expect(dayjs(resultBeforeDST).tz("Asia/Dubai").format("YYYY-MM-DD HH:mm")).toBe("2024-03-10 01:59"); // still 1:59 AM
+    expect(dayjs(resultAfterDST).tz("Asia/Dubai").format("YYYY-MM-DD HH:mm")).toBe("2024-03-10 03:00"); // still 3:00 AM
 
-    // The local time difference should be exactly 1 hour
-    const hourDiff = timeInDubaiAfterDST.hour() - timeInDubaiBeforeDST.hour();
-    expect(hourDiff).toBe(1);
+    // Calculate the time difference between before and after DST
+    const diffInMinutes = dayjs(resultAfterDST).diff(dayjs(resultBeforeDST), "minute");
+    expect(diffInMinutes).toBe(61); // Should be 61 minutes difference (skipping the DST hour)
   });
 
   it("should handle crossing the international date line", () => {
