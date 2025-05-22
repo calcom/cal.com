@@ -47,12 +47,10 @@ export const _getLocationValuesForDb = <
     const hasMemberSetConferencingPreference =
       !!defaultConferencingApp?.appSlug || !!defaultConferencingApp?.appLink;
 
-    if (!hasMemberSetConferencingPreference) {
-      firstDynamicGroupMemberDefaultLocationUrl =
-        firstDynamicGroupMemberDelegationCredentialConferencingAppLocation ?? null;
-    } else {
-      firstDynamicGroupMemberDefaultLocationUrl = defaultConferencingApp?.appLink ?? null;
-    }
+    firstDynamicGroupMemberDefaultLocationUrl =
+      (hasMemberSetConferencingPreference
+        ? defaultConferencingApp?.appLink
+        : firstDynamicGroupMemberDelegationCredentialConferencingAppLocation) ?? null;
 
     locationBodyString = firstDynamicGroupMemberDefaultLocationUrl || locationBodyString;
   }
