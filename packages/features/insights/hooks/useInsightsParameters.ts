@@ -13,11 +13,13 @@ import {
   CUSTOM_PRESET_VALUE,
   type PresetOptionValue,
 } from "@calcom/features/data-table/lib/dateRange";
+import { useUserTimePreferences } from "@calcom/trpc/react/hooks/useUserTimePreferences";
 
 import { useInsightsOrgTeams } from "./useInsightsOrgTeams";
 
 export function useInsightsParameters() {
   const { isAll, teamId, userId } = useInsightsOrgTeams();
+  const { preserveLocalTime } = useUserTimePreferences();
 
   const memberUserIds = useFilterValue("bookingUserId", ZMultiSelectFilterValue)?.data as
     | number[]
@@ -27,13 +29,14 @@ export function useInsightsParameters() {
   const routingFormId = useFilterValue("formId", ZSingleSelectFilterValue)?.data as string | undefined;
   const createdAtRange = useFilterValue("createdAt", ZDateRangeFilterValue)?.data;
   const startDate = useMemo(
-    () => createdAtRange?.startDate ?? getDefaultStartDate().toISOString(),
-    [createdAtRange?.startDate]
+    () => preserveLocalTime(createdAtRange?.startDate ?? getDefaultStartDate().toISOString()),
+    [createdAtRange?.startDate, preserveLocalTime]
   );
   const endDate = useMemo(
-    () => createdAtRange?.endDate ?? getDefaultEndDate().toISOString(),
-    [createdAtRange?.endDate]
+    () => preserveLocalTime(createdAtRange?.endDate ?? getDefaultEndDate().toISOString()),
+    [createdAtRange?.endDate, preserveLocalTime]
   );
+
   const dateRangePreset = useMemo<PresetOptionValue>(() => {
     return (createdAtRange?.preset as PresetOptionValue) ?? CUSTOM_PRESET_VALUE;
   }, [createdAtRange?.preset]);
