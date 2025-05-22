@@ -27,6 +27,10 @@ import {
   RoutingReasons,
 } from "./enums";
 import { getSalesforceAppKeys } from "./getSalesforceAppKeys";
+import { SalesforceGraphQLClient } from "./graphql/SalesforceGraphQLClient";
+import getAllPossibleWebsiteValuesFromEmailDomain from "./utils/getAllPossibleWebsiteValuesFromEmailDomain";
+import getDominantAccountId from "./utils/getDominantAccountId";
+import type { GetDominantAccountIdInput } from "./utils/getDominantAccountId";
 
 class SFObjectToUpdateNotFoundError extends RetryableError {
   constructor(message: string) {
@@ -78,6 +82,8 @@ export default class SalesforceCRMService implements CRM {
   private appOptions: z.infer<typeof appDataSchema>;
   private doNotCreateEvent = false;
   private fallbackToContact = false;
+  private accessToken: string;
+  private instanceUrl: string;
 
   constructor(credential: CredentialPayload, appOptions: z.infer<typeof appDataSchema>, testMode = false) {
     this.integrationName = "salesforce_other_calendar";
@@ -86,6 +92,9 @@ export default class SalesforceCRMService implements CRM {
     }
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
     this.appOptions = appOptions;
+    const credentialKey = credential.key as unknown as ExtendedTokenResponse;
+    this.accessToken = credentialKey.access_token;
+    this.instanceUrl = credentialKey.instance_url;
   }
 
   public getAppOptions() {
@@ -394,6 +403,7 @@ export default class SalesforceCRMService implements CRM {
     forRoundRobinSkip?: boolean;
   }) {
     const log = logger.getSubLogger({ prefix: [`[getContacts]:${emails}`] });
+
     try {
       const conn = await this.conn;
       const emailArray = Array.isArray(emails) ? emails : [emails];
@@ -415,6 +425,20 @@ export default class SalesforceCRMService implements CRM {
           appOptions,
         })
       );
+
+      if (recordToSearch === SalesforceRecordEnum.ACCOUNT && forRoundRobinSkip) {
+        try {
+          const client = new SalesforceGraphQLClient({
+            accessToken: this.accessToken,
+            instanceUrl: this.instanceUrl,
+          });
+
+          return await client.GetAccountRecordsForRRSkip(emailArray[0]);
+        } catch (error) {
+          log.error("Error getting account records for round robin skip", safeStringify({ error }));
+          return [];
+        }
+      }
 
       // Handle Account record type
       if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {
@@ -492,15 +516,6 @@ export default class SalesforceCRMService implements CRM {
 
       if (!records.length && results?.records?.length) {
         records = results.records as ContactRecord[];
-      }
-
-      if (recordToSearch === SalesforceRecordEnum.ACCOUNT && forRoundRobinSkip && !results.records.length) {
-        const attendeeEmail = emailArray[0];
-        // If we can't find the exact contact, then we need to search for an account where the contacts share the same email domain
-        const account = await this.getAccountBasedOnEmailDomainOfContacts(attendeeEmail);
-        if (account) {
-          records = [account];
-        }
       }
 
       if (!records.length) {
@@ -772,33 +787,8 @@ export default class SalesforceCRMService implements CRM {
     return this.doNotCreateEvent;
   }
 
-  private getDominantAccountId(contacts: { AccountId: string }[]) {
-    const log = logger.getSubLogger({ prefix: [`[getDominantAccountId]:${contacts}`] });
-    // To get the dominant AccountId we only need to iterate through half the array
-    const iterateLength = Math.ceil(contacts.length / 2);
-    // Store AccountId frequencies
-    const accountIdCounts: { [accountId: string]: number } = {};
-
-    for (const contact of contacts) {
-      const accountId = contact.AccountId;
-      accountIdCounts[accountId] = (accountIdCounts[accountId] || 0) + 1;
-      // If the number of AccountIds makes up 50% of the array length then return early
-      if (accountIdCounts[accountId] > iterateLength) return accountId;
-    }
-
-    // Else figure out which AccountId occurs the most
-    let dominantAccountId;
-    let highestCount = 0;
-
-    for (const accountId in accountIdCounts) {
-      if (accountIdCounts[accountId] > highestCount) {
-        highestCount = accountIdCounts[accountId];
-        dominantAccountId = accountId;
-      }
-    }
-
-    log.info("Dominant AccountId", safeStringify({ dominantAccountId }));
-    return dominantAccountId;
+  private getDominantAccountId(contacts: GetDominantAccountIdInput) {
+    return getDominantAccountId(contacts);
   }
 
   private async createAttendeeRecord({
@@ -946,14 +936,8 @@ export default class SalesforceCRMService implements CRM {
   }
 
   public getAllPossibleAccountWebsiteFromEmailDomain(emailDomain: string) {
-    const websites = [
-      emailDomain,
-      `www.${emailDomain}`,
-      `http://www.${emailDomain}`,
-      `http://${emailDomain}`,
-      `https://www.${emailDomain}`,
-      `https://${emailDomain}`,
-    ];
+    const websites = getAllPossibleWebsiteValuesFromEmailDomain(emailDomain);
+    // Format for SOQL query
     return websites.map((website) => `'${website}'`).join(", ");
   }
 
@@ -991,72 +975,6 @@ export default class SalesforceCRMService implements CRM {
     }
 
     return accountId;
-  }
-
-  public async getAccountBasedOnEmailDomainOfContacts(email: string) {
-    const conn = await this.conn;
-    const emailDomain = email.split("@")[1];
-    const log = logger.getSubLogger({ prefix: [`[getAccountBasedOnEmailDomainOfContacts]:${email}`] });
-    log.info("Querying first account matching email domain", safeStringify({ emailDomain }));
-    // First check if an account has the same website as the email domain of the attendee
-    const accountQuery = await conn.query(
-      `SELECT Id, OwnerId, Owner.Email, Website FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
-        emailDomain
-      )}) LIMIT 1`
-    );
-
-    if (accountQuery.records.length > 0) {
-      const account = accountQuery.records[0] as {
-        Id?: string;
-        OwnerId?: string;
-        Owner?: { Email?: string };
-        Website?: string;
-      };
-
-      log.info(
-        "Found account matching email domain",
-        safeStringify({
-          emailDomain,
-          accountWebsite: account.Website,
-          accountOwnerEmail: account.Owner?.Email,
-          accountOwnerId: account.OwnerId,
-          accountId: account.Id,
-        })
-      );
-
-      return {
-        ...account,
-        Email: undefined,
-      };
-    }
-
-    // Fallback to querying which account the majority of contacts are under
-    const contactQuery = await conn.query(
-      `SELECT Id, Email, AccountId, Account.OwnerId, Account.Owner.Email FROM Contact WHERE Email LIKE '%@${emailDomain}' AND AccountId != null`
-    );
-
-    const contacts = contactQuery?.records as {
-      AccountId: string;
-      Account: { OwnerId?: string; Owner: { Email: string } };
-    }[];
-    if (!contacts) return;
-
-    const dominantAccountId = this.getDominantAccountId(contacts);
-
-    const contactUnderAccount = contacts.find((contact) => contact.AccountId === dominantAccountId);
-    log.info("Using dominant account's owner", safeStringify({ dominantAccountId }));
-
-    return {
-      Id: dominantAccountId,
-      Email: undefined,
-      OwnerId: contactUnderAccount?.Account?.OwnerId,
-      Owner: {
-        Email: contactUnderAccount?.Account?.Owner?.Email,
-      },
-      attributes: {
-        type: SalesforceRecordEnum.ACCOUNT,
-      },
-    };
   }
 
   private setFallbackToContact(boolean: boolean) {
@@ -1149,9 +1067,9 @@ export default class SalesforceCRMService implements CRM {
   }): Promise<Record<string, any>> {
     const log = logger.getSubLogger({ prefix: [`[buildRecordUpdatePayload] ${recordId}`] });
     const writeOnRecordBody: Record<string, any> = {};
+    let fieldTypeHandled = false;
 
     for (const field of existingFields) {
-      let fieldTypeHandled = false;
       const fieldConfig = fieldsToWriteTo[field.name];
 
       if (!fieldConfig) {

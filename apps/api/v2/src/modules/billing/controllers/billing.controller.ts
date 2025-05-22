@@ -20,6 +20,7 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
+  Delete,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiExcludeController } from "@nestjs/swagger";
@@ -96,6 +97,19 @@ export class BillingController {
     };
   }
 
+  @Delete("/:organizationId/unsubscribe")
+  @UseGuards(NextAuthGuard, OrganizationRolesGuard)
+  @MembershipRoles(["OWNER", "ADMIN"])
+  async cancelTeamSubscriptionInStripe(
+    @Param("organizationId") organizationId: number
+  ): Promise<ApiResponse> {
+    await this.billingService.cancelTeamSubscription(organizationId);
+
+    return {
+      status: "success",
+    };
+  }
+
   @Post("/webhook")
   @HttpCode(HttpStatus.OK)
   async stripeWebhook(
@@ -112,6 +126,9 @@ export class BillingController {
         break;
       case "customer.subscription.deleted":
         await this.billingService.handleStripeSubscriptionDeleted(event);
+        break;
+      case "invoice.created":
+        await this.billingService.handleStripeSubscriptionForActiveManagedUsers(event);
         break;
       case "invoice.payment_failed":
         await this.billingService.handleStripePaymentFailed(event);

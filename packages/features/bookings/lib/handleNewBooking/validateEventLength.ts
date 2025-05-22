@@ -2,6 +2,7 @@ import type { Logger } from "tslog";
 
 import dayjs from "@calcom/dayjs";
 import { HttpError } from "@calcom/lib/http-error";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 
 type Props = {
   reqBodyStart: string;
@@ -11,7 +12,8 @@ type Props = {
   logger: Logger<unknown>;
 };
 
-export const validateEventLength = ({
+// Define the function with underscore prefix
+const _validateEventLength = ({
   reqBodyStart,
   reqBodyEnd,
   eventTypeMultipleDuration,
@@ -25,3 +27,5 @@ export const validateEventLength = ({
     throw new HttpError({ statusCode: 400, message: "Invalid event length" });
   }
 };
+
+export const validateEventLength = withReporting(_validateEventLength, "validateEventLength");

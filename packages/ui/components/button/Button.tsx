@@ -53,6 +53,8 @@ export const buttonClasses = cva(
           // Base colors
           "bg-brand-default",
           "text-brand",
+          // Hover state
+          "enabled:hover:bg-brand-emphasis",
           // Focus state
           "focus-visible:outline-none",
           "focus-visible:ring-0",
@@ -78,7 +80,6 @@ export const buttonClasses = cva(
           "border-default",
           // Hover state
           "enabled:hover:bg-muted",
-          "enabled:hover:border-emphasis",
           "enabled:hover:text-emphasis",
           // Disabled
           "disabled:opacity-30",
@@ -125,7 +126,7 @@ export const buttonClasses = cva(
           "text-error",
           // Hover state
           "dark:hover:text-red-100",
-          "hover:border-semantic-danager-subtle",
+          "hover:border-semantic-error",
           "hover:bg-error",
           // Focus state
           "focus-visible:text-red-700",
