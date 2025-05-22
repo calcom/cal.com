@@ -276,17 +276,16 @@ export const buildEventForTeamEventType = async ({
     throw new Error("Scheduling type is required for team event type");
   }
   const teamDestinationCalendars: DestinationCalendar[] = [];
+  const fixedUsers = users.filter((user) => user.isFixed);
+  const nonFixedUsers = users.filter((user) => !user.isFixed);
+  const filteredUsers =
+    schedulingType === SchedulingType.ROUND_ROBIN
+      ? [...fixedUsers, ...(nonFixedUsers.length > 0 ? [nonFixedUsers[0]] : [])]
+      : users;
 
   // Organizer or user owner of this event type it's not listed as a team member.
-  const teamMemberPromises = users
-    .filter((user) => {
-      if (user.email === organizerUser.email) return false;
-
-      // Skip non-fixed users in ROUND_ROBIN team event
-      if (schedulingType === SchedulingType.ROUND_ROBIN && !user.isFixed) return false;
-
-      return true;
-    })
+  const teamMemberPromises = filteredUsers
+    .filter((user) => user.email !== organizerUser.email)
     .map(async (user) => {
       // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
       // push to teamDestinationCalendars if it's a team event but collective only
