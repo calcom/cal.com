@@ -13,14 +13,11 @@ import FormProvider from "./FormProvider";
 
 const normalizePages = (pages: string[] | string | undefined) => {
   const normalizedPages = Array.isArray(pages) ? pages : pages?.split("/") ?? [];
-  return {
-    mainPage: normalizedPages[0] ?? "forms",
-    subPages: normalizedPages.slice(1),
-  };
+  return normalizedPages[0];
 };
 
 export const generateMetadata = async ({ params }: { params: Promise<{ pages: string[] }> }) => {
-  const { mainPage } = normalizePages((await params).pages);
+  const mainPage = normalizePages((await params).pages);
   return await _generateMetadata(
     (t) => (mainPage === "routing-link" ? `Form | Cal.com Forms` : `${t("routing_forms")} | Cal.com Forms`),
     () => "",
@@ -37,7 +34,7 @@ const getData = withAppDirSsr<GetServerSidePropsResult>(getServerSideProps);
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
   const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(context);
-  const { mainPage } = normalizePages((await params).pages);
+  const mainPage = normalizePages((await params).pages);
 
   const Component = await routingFormsComponents[mainPage as keyof typeof routingFormsComponents]();
 
