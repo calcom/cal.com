@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
 import {
-  selectFilter,
+  addFilter,
   openFilter,
   clearFilters,
   applySelectFilter,
@@ -286,7 +286,7 @@ test.describe("Insights > Routing Filters", () => {
 
     await page.goto(`/insights/routing`);
 
-    await selectFilter(page, "bookingAttendees");
+    await addFilter(page, "bookingAttendees");
     await openFilter(page, "bookingAttendees");
     await page.getByPlaceholder("Filter attendees by name or email").fill("John");
     await page.keyboard.press("Enter");
@@ -295,7 +295,7 @@ test.describe("Insights > Routing Filters", () => {
     await expect(page.getByText("Response 2")).toBeHidden();
 
     await clearFilters(page);
-    await selectFilter(page, "bookingAttendees");
+    await addFilter(page, "bookingAttendees");
     await openFilter(page, "bookingAttendees");
     await page.getByPlaceholder("Filter attendees by name or email").fill("jane.smith@example");
     await page.keyboard.press("Enter");
@@ -304,7 +304,7 @@ test.describe("Insights > Routing Filters", () => {
     await expect(page.getByText("Response 1")).toBeHidden();
 
     await clearFilters(page);
-    await selectFilter(page, "bookingAttendees");
+    await addFilter(page, "bookingAttendees");
     await openFilter(page, "bookingAttendees");
     await page.getByPlaceholder("Filter attendees by name or email").fill("JANE");
     await page.keyboard.press("Enter");
