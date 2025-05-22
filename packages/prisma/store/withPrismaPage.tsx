@@ -1,18 +1,20 @@
-import type { PrismaClient } from "@prisma/client";
 import { headers } from "next/headers";
 import type { ReactNode } from "react";
 
+import type { PrismaClient as ExtendedPrismaClient } from "@calcom/prisma";
+
 import { getPrismaFromHost, runWithTenants } from "./prismaStore";
 
-interface WithPrismaPageProps {
-  prisma: PrismaClient;
+interface WithPrismaPageInjectedProps {
+  prisma: ExtendedPrismaClient;
   host: string;
 }
 
-export function withPrismaPage<P extends WithPrismaPageProps>(
-  WrappedPageComponent: (props: P) => ReactNode | Promise<ReactNode>
-): (props: Omit<P, keyof WithPrismaPageProps>) => Promise<ReactNode> {
-  return async function WrapperComponent(props: Omit<P, keyof WithPrismaPageProps>) {
+// Update: Allow wrapping any component, not just those that extend WithPrismaPageProps
+export function withPrismaPage<P>(
+  WrappedPageComponent: (props: P & WithPrismaPageInjectedProps) => ReactNode | Promise<ReactNode>
+): (props: P) => Promise<ReactNode> {
+  return async function WrapperComponent(props: P) {
     const headersList = await headers();
     const host = headersList.get("host");
     if (!host) {
@@ -24,7 +26,7 @@ export function withPrismaPage<P extends WithPrismaPageProps>(
     return runWithTenants(async () => {
       const prisma = getPrismaFromHost(host);
       // Pass the props to the component and await the result
-      const componentProps = { ...(props as P), prisma, host };
+      const componentProps = { ...props, prisma, host };
       return await Promise.resolve(WrappedPageComponent(componentProps));
     });
   };

@@ -11,7 +11,7 @@ export const tenantToDatabaseUrl = {
 };
 
 export const getTenantFromHost = (host: string) => {
-  if (host.startsWith("app.cal.eu")) {
+  if (host.startsWith("app.cal.local")) {
     return Tenant.EU;
   }
   return Tenant.US;

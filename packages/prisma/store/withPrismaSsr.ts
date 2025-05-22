@@ -1,7 +1,7 @@
-import type { PrismaClient } from "@prisma/client";
 import type { GetServerSideProps, GetServerSidePropsContext } from "next";
+import { headers as nextHeaders } from "next/headers";
 
-import { getPrisma, runWithTenants } from "./prismaStore";
+import { runWithTenants } from "./prismaStore";
 import { getTenantFromHost } from "./tenants";
 
 /**
@@ -11,43 +11,34 @@ import { getTenantFromHost } from "./tenants";
  * @example
  * ```typescript
  * import { withPrismaSsr } from "@calcom/prisma/store/withPrismaSsr";
- * import { getTenantAwarePrisma } from "@calcom/prisma/store/prismaStore";
  *
- * const handler = async (ctx, prisma) => {
- *   // Option 1: Use the injected prisma client
- *   // const users = await prisma.user.findMany();
- *
- *   // Option 2: Use getTenantAwarePrisma() anywhere in your code
+ * const handler = async (ctx) => {
+ *   // Use getTenantAwarePrisma() anywhere in your code
  *   const prisma = getTenantAwarePrisma();
  *   const users = await prisma.user.findMany();
- *
  *   return { props: { users } };
  * };
  *
  * export const getServerSideProps = withPrismaSsr(handler);
  * ```
  */
-export function withPrismaSsr<P = any>(
-  handler: (ctx: GetServerSidePropsContext, prisma: PrismaClient) => Promise<{ props: P }>
-): GetServerSideProps<P> {
-  return async function wrappedHandler(ctx) {
-    try {
-      const host = ctx.req.headers.host || "";
+export function withPrismaSsr(
+  hof: <T extends Record<string, any>>(
+    getServerSideProps: GetServerSideProps<T>
+  ) => (context: GetServerSidePropsContext) => Promise<T>
+) {
+  return function <T extends Record<string, any>>(getServerSideProps: GetServerSideProps<T>) {
+    const wrapped = hof(getServerSideProps);
+    return async function (context: GetServerSidePropsContext) {
+      let host = "";
+      try {
+        const hdrs = await nextHeaders();
+        host = hdrs.get("host") || "";
+      } catch {
+        host = "";
+      }
       const tenant = getTenantFromHost(host);
-
-      return runWithTenants(tenant, async () => {
-        const prisma = getPrisma(tenant);
-        return await handler(ctx, prisma);
-      });
-    } catch (error) {
-      console.error(`[withPrismaSsr] Error:`, error);
-      return {
-        props: {
-          error: "Database connection error",
-          message: error instanceof Error ? error.message : "Unknown error",
-          tenant: ctx.req.headers.host || "unknown",
-        } as unknown as P,
-      };
-    }
+      return runWithTenants(tenant, async () => wrapped(context));
+    };
   };
 }

@@ -1,7 +1,9 @@
 import type { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { notFound, redirect } from "next/navigation";
 
-export const withAppDirSsr =
+import { withPrismaSsr } from "@calcom/prisma/store/withPrismaSsr";
+
+const _withAppDirSsr =
   <T extends Record<string, any>>(getServerSideProps: GetServerSideProps<T>) =>
   async (context: GetServerSidePropsContext) => {
     const ssrResponse = await getServerSideProps(context);
@@ -19,3 +21,5 @@ export const withAppDirSsr =
       ...props,
     };
   };
+
+export const withAppDirSsr = withPrismaSsr(_withAppDirSsr);

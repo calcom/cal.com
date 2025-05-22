@@ -4,6 +4,7 @@ import { generateMeetingMetadata } from "app/_utils";
 import { headers, cookies } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { withPrismaPage } from "@calcom/prisma/store/withPrismaPage";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 
@@ -54,4 +55,4 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
   return <LegacyPage {...props} />;
 };
 
-export default ServerPage;
+export default withPrismaPage(ServerPage);

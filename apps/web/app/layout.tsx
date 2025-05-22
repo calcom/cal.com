@@ -6,6 +6,7 @@ import React from "react";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { loadTranslations } from "@calcom/lib/server/i18n";
+import { withPrismaPage } from "@calcom/prisma/store/withPrismaPage";
 import { IconSprites } from "@calcom/ui/components/icon";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -94,7 +95,7 @@ const getInitialProps = async () => {
   };
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+async function RootLayout({ children }: { children: React.ReactNode }) {
   const h = await headers();
   const nonce = h.get("x-csp") ?? "";
 
@@ -160,3 +161,5 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     </html>
   );
 }
+
+export default withPrismaPage(RootLayout);
