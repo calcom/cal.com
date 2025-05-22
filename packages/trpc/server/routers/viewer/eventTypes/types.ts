@@ -73,7 +73,7 @@ const BaseEventTypeUpdateInput = EventTypeSchema.extend({
   seatsPerTimeSlot: z.number().min(1).max(MAX_SEATS_PER_TIME_SLOT).nullable().optional(),
 })
   .partial()
-  .extend(_EventTypeModel.pick({ id: true }).shape);
+  .extend(EventTypeSchema.pick({ id: true }).shape);
 
 export const ZUpdateInputSchema = BaseEventTypeUpdateInput.extend({
   aiPhoneCallConfig: aiPhoneCallConfig.refine(
