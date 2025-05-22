@@ -25,7 +25,8 @@ import { ApiResponse, GetAvailableSlotsInput_2024_04_15 } from "@calcom/platform
 export class SlotsController_2024_04_15 {
   constructor(
     private readonly slotsService: SlotsService_2024_04_15,
-    private readonly slotsOutputService: SlotsOutputService_2024_04_15
+    private readonly slotsOutputService: SlotsOutputService_2024_04_15,
+    private readonly slotsWorkerService: SlotsWorkerService_2024_04_15
   ) {}
 
   @Post("/reserve")
@@ -158,19 +159,20 @@ export class SlotsController_2024_04_15 {
     @Req() req: ExpressRequest
   ): Promise<ApiResponse<{ slots: TimeSlots["slots"] | RangeSlots["slots"] }>> {
     try {
-    const isTeamEvent =
-      query.isTeamEvent === undefined
-        ? await this.slotsService.checkIfIsTeamEvent(query.eventTypeId)
-        : query.isTeamEvent;
-    const availableSlots = await getAvailableSlots({
-      input: {
-        ...query,
-        isTeamEvent,
-      },
-      ctx: {
-        req,
-      },
-    });
+      const isTeamEvent =
+        query.isTeamEvent === undefined
+          ? await this.slotsService.checkIfIsTeamEvent(query.eventTypeId)
+          : query.isTeamEvent;
+
+      const availableSlots = await this.slotsWorkerService.getAvailableSlotsInWorker({
+        input: {
+          ...query,
+          isTeamEvent,
+        },
+        ctx: {
+          req,
+        },
+      });
 
       const { slots } = await this.slotsOutputService.getOutputSlots(
         availableSlots,
