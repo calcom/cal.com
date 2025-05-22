@@ -1,5 +1,5 @@
-import { availabilityUserSelect, prisma } from "@calcom/prisma";
-import type { MembershipRole } from "@calcom/prisma/client";
+import { availabilityUserSelect, prisma, type PrismaTransaction } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
@@ -295,6 +295,32 @@ export class MembershipRepository {
     };
   }
 
+  static async getAdminOrOwnerMembership(userId: number, teamId: number) {
+    return prisma.membership.findFirst({
+      where: {
+        userId,
+        teamId,
+        accepted: true,
+        role: {
+          in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
+  static async findAllAcceptedMemberships(userId: number, tx?: PrismaTransaction) {
+    return (tx ?? prisma).membership.findMany({
+      where: {
+        userId,
+        accepted: true,
+      },
+      select: {
+        teamId: true,
+      },
+    });
+  }
   /**
    * Get all team IDs that a user is a member of
    */
@@ -310,5 +336,33 @@ export class MembershipRepository {
     });
 
     return memberships.map((membership) => membership.teamId);
+  }
+
+  /**
+   * Returns members who joined after the given time
+   */
+  static async findMembershipsCreatedAfterTimeIncludeUser({
+    organizationId,
+    time,
+  }: {
+    organizationId: number;
+    time: Date;
+  }) {
+    return prisma.membership.findMany({
+      where: {
+        teamId: organizationId,
+        createdAt: { gt: time },
+        accepted: true,
+      },
+      include: {
+        user: {
+          select: {
+            email: true,
+            name: true,
+            id: true,
+          },
+        },
+      },
+    });
   }
 }

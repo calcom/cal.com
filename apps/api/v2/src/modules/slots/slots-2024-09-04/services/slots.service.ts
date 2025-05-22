@@ -42,24 +42,33 @@ export class SlotsService_2024_09_04 {
   ) {}
 
   async getAvailableSlots(query: GetSlotsInput_2024_09_04) {
-    const queryTransformed = await this.slotsInputService.transformGetSlotsQuery(query);
+    try {
+      const queryTransformed = await this.slotsInputService.transformGetSlotsQuery(query);
+      const availableSlots: TimeSlots = await getAvailableSlots({
+        input: {
+          ...queryTransformed,
+        },
+        ctx: {},
+      });
+      const formatted = await this.slotsOutputService.getAvailableSlots(
+        availableSlots,
+        queryTransformed.eventTypeId,
+        queryTransformed.duration,
+        query.format,
+        queryTransformed.timeZone
+      );
 
-    const availableSlots: TimeSlots = await getAvailableSlots({
-      input: {
-        ...queryTransformed,
-      },
-      ctx: {},
-    });
-
-    const formatted = await this.slotsOutputService.getAvailableSlots(
-      availableSlots,
-      queryTransformed.eventTypeId,
-      queryTransformed.duration,
-      query.format,
-      queryTransformed.timeZone
-    );
-
-    return formatted;
+      return formatted;
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message.includes("Invalid time range given")) {
+          throw new BadRequestException(
+            "Invalid time range given - check the 'start' and 'end' query parameters."
+          );
+        }
+      }
+      throw error;
+    }
   }
 
   async reserveSlot(input: ReserveSlotInput_2024_09_04, authUserId?: number) {

@@ -8,6 +8,7 @@ type EmailData = Omit<WorkflowEmailData, "to"> & {
 
 export async function sendOrScheduleWorkflowEmails(mailData: EmailData) {
   if (mailData.sendAt) {
+    if (mailData.sendAt <= new Date()) return;
     const { sendAt, referenceUid, ...taskerData } = mailData;
     return await tasker.create("sendWorkflowEmails", taskerData, {
       scheduledAt: sendAt,
