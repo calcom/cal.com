@@ -194,9 +194,8 @@ const BookerComponent = ({
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep, layout, isInstantMeeting]);
 
-  const unavailableTimeSlots = !isQuickAvailabilityCheckFeatureEnabled
-    ? []
-    : allSelectedTimeslots.filter((slot) => {
+  const unavailableTimeSlots = isQuickAvailabilityCheckFeatureEnabled
+    ? allSelectedTimeslots.filter((slot) => {
         return !isTimeSlotAvailable({
           scheduleData: schedule?.data ?? null,
           slotToCheckInIso: slot,
@@ -205,7 +204,8 @@ const BookerComponent = ({
             ? { onlyShowFirstAvailableSlot: event.data.onlyShowFirstAvailableSlot }
             : undefined,
         });
-      });
+      })
+    : [];
 
   const slot = getQueryParam("slot");
 
