@@ -1,36 +1,14 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { prisma } from "@calcom/prisma";
 
 import { listMembersHandler } from "./listMembers.handler";
 
-vi.mock("./listMembers.handler");
-
 const prismaMock = {
   membership: {
-    findMany: vi.fn().mockResolvedValue([
-      {
-        id: 1,
-        role: "MEMBER",
-        accepted: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        user: {
-          id: 1,
-          username: "testuser",
-          profiles: [],
-          email: "test@example.com",
-          avatarUrl: null,
-          timeZone: "UTC",
-          disableImpersonation: false,
-          completedOnboarding: true,
-          lastActiveAt: new Date(),
-          teams: [],
-        },
-      },
-    ]),
-    count: vi.fn().mockResolvedValue(1),
+    findMany: vi.fn().mockResolvedValue([]),
+    count: vi.fn().mockResolvedValue(0),
   },
   attributeOption: {
     findMany: vi.fn().mockResolvedValue([
@@ -66,10 +44,6 @@ const mockUser = {
 };
 
 describe("listMembersHandler", () => {
-  beforeEach(() => {
-    vi.resetAllMocks();
-  });
-
   it("should combine multiple attribute filters with AND logic", async () => {
     const roleFilter: TypedColumnFilter<ColumnFilterType.MULTI_SELECT> = {
       id: "role",
@@ -115,16 +89,49 @@ describe("listMembersHandler", () => {
       },
     });
 
-    expect(listMembersHandler).toHaveBeenCalledWith({
-      ctx: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        user: mockUser as any,
-      },
-      input: {
-        limit: 25,
-        offset: 0,
-        filters: [roleFilter, teamFilter, attributeFilter1, attributeFilter2],
-      },
-    });
+    expect(prisma.membership.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          role: {
+            in: ["ADMIN"],
+          },
+          teamId: ORGANIZATION_ID,
+          user: {
+            isPlatformManaged: false,
+            teams: {
+              some: {
+                team: {
+                  name: {
+                    in: ["team1"],
+                  },
+                },
+              },
+            },
+          },
+          AND: [
+            {
+              AttributeToUser: {
+                some: {
+                  attributeOption: {
+                    attribute: { id: "1" },
+                    value: { in: ["value1"] },
+                  },
+                },
+              },
+            },
+            {
+              AttributeToUser: {
+                some: {
+                  attributeOption: {
+                    attribute: { id: "2" },
+                    value: { in: ["value2"] },
+                  },
+                },
+              },
+            },
+          ],
+        }),
+      })
+    );
   });
 });
