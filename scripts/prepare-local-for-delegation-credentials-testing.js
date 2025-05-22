@@ -63,6 +63,7 @@ async function main() {
         teamId: org.id,
         featureId: "delegation-credential",
         assignedAt: new Date(),
+        assignedBy: "prepare-local-script",
       },
     });
     console.log("Created TeamFeatures: delegation-credential");

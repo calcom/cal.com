@@ -1,5 +1,5 @@
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { getTokenObjectFromCredential } from "./getTokenObjectFromCredential";
@@ -8,20 +8,10 @@ const log = logger.getSubLogger({
   prefix: ["getCurrentTokenObject"],
 });
 
-async function getDelegationUserCredentialInDb({
-  userId,
-  delegationCredentialId,
-}: {
-  userId: number;
-  delegationCredentialId: string;
-}) {
-  const delegationUserCredentialInDb = await prisma.credential.findFirst({
-    where: {
-      userId,
-      delegationCredentialId,
-    },
-  });
-  return delegationUserCredentialInDb;
+function buildDummyTokenObjectForDelegationUserCredential() {
+  return {
+    access_token: "TOKEN_PLACEHOLDER_FOR_DELEGATION_CREDENTIAL",
+  };
 }
 
 export async function getCurrentTokenObject(
@@ -33,16 +23,17 @@ export async function getCurrentTokenObject(
       log.error("DelegationCredential: No user id found for delegation credential");
     } else {
       log.debug("Getting current token object for delegation credential");
-      const delegationUserCredentialInDb = await getDelegationUserCredentialInDb({
-        userId: credential.userId,
-        delegationCredentialId: credential.delegatedToId,
-      });
+      const delegationUserCredentialInDb =
+        await CredentialRepository.findUniqueByUserIdAndDelegationCredentialId({
+          userId: credential.userId,
+          delegationCredentialId: credential.delegatedToId,
+        });
       inDbCredential = delegationUserCredentialInDb;
       if (!inDbCredential) {
         log.error("getCurrentTokenObject: No delegation user credential found in db");
-        return {
-          access_token: "TOKEN_PLACEHOLDER_FOR_DELEGATION_CREDENTIAL",
-        };
+        // We return a dummy token object. OAuthManager requires a token object that must have access_token.
+        // OAuthManager will help fetching new token object and then that would be stored in DB.
+        return buildDummyTokenObjectForDelegationUserCredential();
       }
     }
   } else {

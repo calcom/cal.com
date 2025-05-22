@@ -51,4 +51,5 @@ const defaultMockOAuthManager = vi.fn().mockImplementation(() => {
     }),
   };
 });
+
 export { oAuthManagerMock, defaultMockOAuthManager, setFullMockOAuthManagerRequest };

@@ -1,7 +1,9 @@
+import type { Prisma } from "@prisma/client";
 import type z from "zod";
 
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 
 import type { OAuth2UniversalSchemaWithCalcomBackwardCompatibility } from "./universalSchema";
@@ -60,35 +62,30 @@ export const updateTokenObjectInDb = async (
       log.error("Cannot update token object in DB for Delegation as delegatedToId is not present");
       return;
     }
-    const updated = await prisma.credential.updateMany({
-      where: {
-        userId: userId,
-        delegationCredentialId: delegatedToId,
-      },
+
+    const updated = await CredentialRepository.updateWhereUserIdAndDelegationCredentialId({
+      userId,
+      delegationCredentialId: delegatedToId,
       data: {
-        key: tokenObject,
+        key: tokenObject as Prisma.InputJsonValue,
       },
     });
     // If no delegation-credential is found, create one
     if (updated.count === 0) {
       log.debug("No delegation-credential found. Creating one");
-      await prisma.credential.create({
-        data: {
-          userId,
-          delegationCredentialId: delegatedToId,
-          type: credentialType,
-          key: tokenObject,
-        },
+      await CredentialRepository.createDelegationCredential({
+        userId,
+        delegationCredentialId: delegatedToId,
+        type: credentialType,
+        key: tokenObject as Prisma.InputJsonValue,
       });
     }
   } else {
     const { credentialId } = args;
-    await prisma.credential.update({
-      where: {
-        id: credentialId,
-      },
+    await CredentialRepository.updateWhereId({
+      id: credentialId,
       data: {
-        key: tokenObject,
+        key: tokenObject as Prisma.InputJsonValue,
       },
     });
   }

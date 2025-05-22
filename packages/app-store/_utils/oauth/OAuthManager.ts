@@ -355,7 +355,7 @@ export class OAuthManager {
   }
 
   /**
-   * currentTokenObject is set in getTokenObjectOrFetch and refreshOAuthToken
+   * currentTokenObject is set through getTokenObjectOrFetch call
    */
   private assertCurrentTokenObjectIsSet(): asserts this is this & {
     currentTokenObject: CurrentTokenObject;
@@ -374,6 +374,7 @@ export class OAuthManager {
     if (this.autoCheckTokenExpiryOnRequest) {
       await this.getTokenObjectOrFetch();
     }
+    // `getTokenObjectOrFetch` has been called or `currentTokenObject` is set through constructor
     this.assertCurrentTokenObjectIsSet();
     const headers = {
       Authorization: `Bearer ${this.currentTokenObject.access_token}`,
