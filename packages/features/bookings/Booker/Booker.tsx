@@ -194,25 +194,18 @@ const BookerComponent = ({
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep, layout, isInstantMeeting]);
 
-  const unavailableTimeSlots = useMemo(() => {
-    if (!isQuickAvailabilityCheckFeatureEnabled) return [];
-    return allSelectedTimeslots.filter((slot) => {
-      return !isTimeSlotAvailable({
-        scheduleData: schedule?.data ?? null,
-        slotToCheckInIso: slot,
-        quickAvailabilityChecks: slots.quickAvailabilityChecks,
-        eventType: event?.data
-          ? { onlyShowFirstAvailableSlot: event.data.onlyShowFirstAvailableSlot }
-          : undefined,
+  const unavailableTimeSlots = !isQuickAvailabilityCheckFeatureEnabled
+    ? []
+    : allSelectedTimeslots.filter((slot) => {
+        return !isTimeSlotAvailable({
+          scheduleData: schedule?.data ?? null,
+          slotToCheckInIso: slot,
+          quickAvailabilityChecks: slots.quickAvailabilityChecks,
+          eventType: event?.data
+            ? { onlyShowFirstAvailableSlot: event.data.onlyShowFirstAvailableSlot }
+            : undefined,
+        });
       });
-    });
-  }, [
-    isQuickAvailabilityCheckFeatureEnabled,
-    allSelectedTimeslots,
-    schedule?.data,
-    slots.quickAvailabilityChecks,
-    event?.data,
-  ]);
 
   const slot = getQueryParam("slot");
 

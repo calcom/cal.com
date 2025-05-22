@@ -1,5 +1,6 @@
 import type { NextApiRequest } from "next";
 
+import dayjs from "@calcom/dayjs";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPastTimeAndMinimumBookingNoticeBoundsStatus } from "@calcom/lib/isOutOfBounds";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
@@ -81,23 +82,42 @@ export const isAvailableHandler = async ({
   // Apply onlyShowFirstAvailableSlot restriction if enabled
   if (eventType.onlyShowFirstAvailableSlot) {
     const slotsByDay: Record<string, TIsAvailableOutputSchema["slots"]> = {};
+    const eventTimeZone = eventType.timeZone || "UTC";
 
+    // First, group slots by their date in the event's timezone
     slotsWithStatus.forEach((slot) => {
-      const dateStr = slot.utcStartIso.split("T")[0];
+      const slotInEventTimeZone = dayjs(slot.utcStartIso).tz(eventTimeZone);
+      const dateStr = slotInEventTimeZone.format("YYYY-MM-DD");
+
       if (!slotsByDay[dateStr]) {
         slotsByDay[dateStr] = [];
       }
       slotsByDay[dateStr].push(slot);
     });
 
-    // For each day, only keep the first available slot and mark others as unavailable
+    // For each day, find the first available slot considering slots from previous and next days
     const filteredSlots: TIsAvailableOutputSchema["slots"] = [];
 
     Object.keys(slotsByDay).forEach((date) => {
-      const sortedDaySlots = slotsByDay[date].sort((a, b) => a.utcStartIso.localeCompare(b.utcStartIso));
-      const firstAvailableSlot = sortedDaySlots.find((slot) => slot.status === "available");
+      const currentDate = dayjs(date);
+      const prevDate = currentDate.subtract(1, "day").format("YYYY-MM-DD");
+      const nextDate = currentDate.add(1, "day").format("YYYY-MM-DD");
 
-      sortedDaySlots.forEach((slot) => {
+      // Get all slots for the current day and adjacent days
+      const allRelevantSlots = [
+        ...(slotsByDay[prevDate] || []),
+        ...(slotsByDay[date] || []),
+        ...(slotsByDay[nextDate] || []),
+      ];
+
+      // Sort all slots by their UTC time
+      const sortedSlots = allRelevantSlots.sort((a, b) => a.utcStartIso.localeCompare(b.utcStartIso));
+
+      // Find the first available slot
+      const firstAvailableSlot = sortedSlots.find((slot) => slot.status === "available");
+
+      // Process all slots for the current day
+      slotsByDay[date].forEach((slot) => {
         if (slot === firstAvailableSlot) {
           filteredSlots.push(slot);
         } else if (slot.status !== "available") {
