@@ -56,10 +56,8 @@ export const deleteHandler = async ({ input, ctx }: DeleteOptions) => {
         defaultScheduleId: scheduleToSetAsDefault?.id || null,
       },
     });
-  } else {
-    if (user.defaultScheduleId) {
-      await updateHostsWithNewDefaultSchedule(user.id, input.scheduleId, user.defaultScheduleId, prisma);
-    }
+  } else if (user.defaultScheduleId) {
+    await updateHostsWithNewDefaultSchedule(user.id, input.scheduleId, user.defaultScheduleId, prisma);
   }
 
   await prisma.schedule.delete({
