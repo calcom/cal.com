@@ -200,15 +200,7 @@ const Item = ({
         {readOnly ? (
           <div>
             {content()}
-            <EventTypeDescription
-              eventType={{
-                ...type,
-                hideOrganizerEmail: false,
-                includeNoShowInRRCalculation: false,
-                customReplyToEmail: null,
-              }}
-              shortenDescription
-            />
+            <EventTypeDescription eventType={type} shortenDescription />
           </div>
         ) : (
           <Link href={`/event-types/${type.id}?tabName=setup`} title={type.title}>
@@ -232,13 +224,7 @@ const Item = ({
               )}
             </div>
             <EventTypeDescription
-              eventType={{
-                ...type,
-                descriptionAsSafeHTML: type.safeDescription,
-                hideOrganizerEmail: false,
-                includeNoShowInRRCalculation: false,
-                customReplyToEmail: null,
-              }}
+              eventType={{ ...type, descriptionAsSafeHTML: type.safeDescription }}
               shortenDescription
             />
           </Link>

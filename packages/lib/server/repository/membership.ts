@@ -25,7 +25,6 @@ const membershipSelect = Prisma.validator<Prisma.MembershipSelect>()({
   accepted: true,
   role: true,
   disableImpersonation: true,
-  createdAt: true,
 });
 
 const teamParentSelect = Prisma.validator<Prisma.TeamSelect>()({
@@ -174,7 +173,6 @@ export class MembershipRepository {
       accepted: true,
       role: true,
       disableImpersonation: true,
-      createdAt: true,
       team: {
         select: {
           ...teamParentSelect,

@@ -15,9 +15,6 @@ export const baseEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   requiresConfirmation: true,
   requiresBookerEmailVerification: true,
   canSendCalVideoTranscriptionEmails: true,
-  hideOrganizerEmail: true,
-  customReplyToEmail: true,
-  includeNoShowInRRCalculation: true,
 });
 
 export const bookEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
@@ -45,9 +42,6 @@ export const bookEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   userId: true,
   seatsPerTimeSlot: true,
   bookingFields: true,
-  hideOrganizerEmail: true,
-  customReplyToEmail: true,
-  includeNoShowInRRCalculation: true,
   workflows: {
     include: {
       workflow: {
@@ -100,9 +94,6 @@ export const availiblityPageEventTypeSelect = Prisma.validator<Prisma.EventTypeS
   schedulingType: true,
   recurringEvent: true,
   requiresConfirmation: true,
-  hideOrganizerEmail: true,
-  customReplyToEmail: true,
-  includeNoShowInRRCalculation: true,
   schedule: {
     select: {
       availability: true,
