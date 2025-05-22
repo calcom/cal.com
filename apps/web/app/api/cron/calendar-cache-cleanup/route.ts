@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import prisma from "@calcom/prisma";
-import { withMultiTenantPrisma } from "@calcom/prisma/store/withPrismaClient";
+import { withMultiTenantPrisma } from "@calcom/prisma/store/withMultiTenantPrisma";
 
 async function postHandler(request: NextRequest) {
   const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");

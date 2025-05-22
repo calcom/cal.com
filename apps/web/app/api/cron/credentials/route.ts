@@ -11,7 +11,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
-import { withMultiTenantPrisma } from "@calcom/prisma/store/withPrismaClient";
+import { withMultiTenantPrisma } from "@calcom/prisma/store/withMultiTenantPrisma";
 
 import { defaultResponderForAppDir } from "../../defaultResponderForAppDir";
 

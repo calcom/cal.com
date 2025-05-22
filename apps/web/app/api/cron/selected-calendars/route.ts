@@ -14,7 +14,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
-import { withMultiTenantPrisma } from "@calcom/prisma/store/withPrismaClient";
+import { withMultiTenantPrisma } from "@calcom/prisma/store/withMultiTenantPrisma";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 import type { Ensure } from "@calcom/types/utils";
 
