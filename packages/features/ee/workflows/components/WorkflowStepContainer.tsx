@@ -376,6 +376,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       label: t(`${step.template.toLowerCase()}`),
       value: step.template,
       needsTeamsUpgrade: false,
+      needsCredits: false, //todo
     };
 
     const canRequirePhoneNumber = (workflowStep: string) => {
@@ -814,10 +815,20 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         }}
                         defaultValue={selectedTemplate}
                         value={selectedTemplate}
-                        options={templateOptions}
+                        options={templateOptions.map((option) => ({
+                          label: option.label,
+                          value: option.value,
+                          needsCredits:
+                            option.needsCreditsOrUpgrade &&
+                            isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`)),
+                          needsTeamsUpgrade:
+                            option.needsCreditsOrUpgrade &&
+                            !isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`)),
+                        }))}
                         isOptionDisabled={(option: {
                           label: string;
                           value: any;
+                          needsCredits: boolean;
                           needsTeamsUpgrade: boolean;
                         }) => option.needsTeamsUpgrade}
                       />
@@ -860,7 +871,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       )}
                   </div>
                 )}
-
                 <div className="mb-2 flex items-center pb-1">
                   <Label className="mb-0 flex-none ">
                     {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
@@ -880,7 +890,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   updateTemplate={updateTemplate}
                   firstRender={firstRender}
                   setFirstRender={setFirstRender}
-                  editable={!props.readOnly && !isWhatsappAction(step.action) && hasActiveTeamPlan}
+                  editable={
+                    !props.readOnly &&
+                    !isWhatsappAction(step.action) &&
+                    (hasActiveTeamPlan ||
+                      (form.getValues(`steps.${step.stepNumber - 1}.template`) === WorkflowTemplates.CUSTOM &&
+                        isSMSAction(step.action)))
+                  }
                   excludedToolbarItems={
                     !isSMSAction(step.action) ? [] : ["blockType", "bold", "italic", "link"]
                   }

@@ -54,7 +54,7 @@ export function getWorkflowTemplateOptions(
     return {
       label: t(`${template.toLowerCase()}`),
       value: template,
-      needsTeamsUpgrade: !hasPaidPlan && template == WorkflowTemplates.CUSTOM,
+      needsCreditsOrUpgrade: !hasPaidPlan && template == WorkflowTemplates.CUSTOM,
     };
-  }) as { label: string; value: any; needsTeamsUpgrade: boolean }[];
+  }) as { label: string; value: any; needsCreditsOrUpgrade: boolean }[];
 }
