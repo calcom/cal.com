@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
@@ -11,6 +13,7 @@ import {
   EventTypeMetaDataSchema,
   allManagedEventTypeProps,
   unlockedManagedEventTypeProps,
+  eventTypeLocations,
 } from "@calcom/prisma/zod-utils";
 import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
 
@@ -430,13 +433,19 @@ export function generateNewChildEventTypeDataForDB({
   includeWorkflow = true,
   includeUserConnect = true,
 }: {
-  eventType: Prisma.EventTypeGetPayload<{ select: typeof allManagedEventTypeProps & { id: true } }>;
+  eventType: Omit<
+    Prisma.EventTypeGetPayload<{ select: typeof allManagedEventTypeProps & { id: true } }>,
+    "locations"
+  > & { locations: Prisma.JsonValue | null };
   userId: number;
   includeWorkflow?: boolean;
   includeUserConnect?: boolean;
 }) {
   const allManagedEventTypePropsZod = EventTypeSchema.pick(allManagedEventTypeProps).extend({
     bookingFields: EventTypeSchema.shape.bookingFields.nullish(),
+    locations: z
+      .preprocess((val: unknown) => (val === null ? undefined : val), eventTypeLocations)
+      .optional(),
   });
 
   const managedEventTypeValues = allManagedEventTypePropsZod
