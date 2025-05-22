@@ -187,6 +187,8 @@ export default async function handleChildrenEventTypes({
             rrSegmentQueryValue: undefined,
             assignRRMembersUsingSegment: false,
             useEventLevelSelectedCalendars: false,
+            restrictionScheduleId: undefined,
+            useBookerTimezone: undefined,
           },
         });
       })
@@ -253,6 +255,8 @@ export default async function handleChildrenEventTypes({
             ...updatePayloadFiltered,
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
             scheduleId: eventType.scheduleId || null,
+            restrictionScheduleId: null,
+            useBookerTimezone: false,
             hashedLink:
               "multiplePrivateLinks" in unlockedFieldProps
                 ? undefined
