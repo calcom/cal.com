@@ -50,6 +50,7 @@ import type { ChangeOfEmailVerifyLink } from "./templates/change-account-email-v
 import ChangeOfEmailVerifyEmail from "./templates/change-account-email-verify";
 import CreditBalanceLimitReachedEmail from "./templates/credit-balance-limit-reached-email";
 import CreditBalanceLowWarningEmail from "./templates/credit-balance-low-warning-email";
+import DelegationCredentialDisabledEmail from "./templates/delegation-credential-disabled-email";
 import DisabledAppEmail from "./templates/disabled-app-email";
 import type { Feedback } from "./templates/feedback-email";
 import FeedbackEmail from "./templates/feedback-email";
@@ -834,4 +835,26 @@ export const sendCreditBalanceLimitReachedEmails = async ({
   if (user) {
     await sendEmail(() => new CreditBalanceLimitReachedEmail({ user }));
   }
+};
+
+export const sendDelegationCredentialDisabledEmail = async ({
+  recipientEmail,
+  recipientName,
+  calendarAppName,
+  conferencingAppName,
+}: {
+  recipientEmail: string;
+  recipientName?: string;
+  calendarAppName: string;
+  conferencingAppName: string;
+}) => {
+  await sendEmail(
+    () =>
+      new DelegationCredentialDisabledEmail({
+        recipientEmail,
+        recipientName,
+        calendarAppName,
+        conferencingAppName,
+      })
+  );
 };
