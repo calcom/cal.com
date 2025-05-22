@@ -270,6 +270,8 @@ export default async function handleChildrenEventTypes({
                 : {}),
               ...(metadata?.apps && "apps" in unlockedFieldProps ? { apps: metadata.apps } : {}),
             },
+            restrictionScheduleId: undefined,
+            useBookerTimezone: undefined,
           },
         });
       })
