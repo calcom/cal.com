@@ -1,19 +1,18 @@
-import type { NextApiRequest } from "next";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
-import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
-import { withMultiTenantPrisma } from "@calcom/prisma/store/withPrismaClient";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import { CalendarCache } from "../calendar-cache";
 
 const log = logger.getSubLogger({ prefix: ["CalendarCacheCron"] });
 
-const validateRequest = (req: NextApiRequest) => {
-  const apiKey = req.headers.authorization || req.query.apiKey;
+const validateRequest = (req: NextRequest) => {
+  const url = new URL(req.url);
+  const apiKey = req.headers.get("authorization") || url.searchParams.get("apiKey");
   if (![process.env.CRON_API_KEY, `Bearer ${process.env.CRON_SECRET}`].includes(`${apiKey}`)) {
     throw new HttpError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -130,18 +129,12 @@ const handleCalendarsToWatch = async () => {
 };
 
 // This cron is used to activate and renew calendar subscriptions
-const handler = defaultResponder(async (request: NextApiRequest) => {
+export const handler = async (request: NextRequest) => {
   validateRequest(request);
   await Promise.allSettled([handleCalendarsToWatch(), handleCalendarsToUnwatch()]);
 
   // TODO: Credentials can be installed on a whole team, check for selected calendars on the team
-  return {
+  return NextResponse.json({
     executedAt: new Date().toISOString(),
-  };
-});
-
-export default withMultiTenantPrisma(
-  defaultHandler({
-    GET: Promise.resolve({ default: defaultResponder(handler) }),
-  })
-);
+  });
+};
