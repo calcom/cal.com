@@ -5,7 +5,7 @@ import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
-import { selectFilter, openFilter } from "./filter-helpers";
+import { addFilter, openFilter } from "./filter-helpers";
 import { createTeamEventType } from "./fixtures/users";
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
@@ -77,7 +77,7 @@ test.describe("Bookings", () => {
       await page.goto(`/bookings/upcoming`, { waitUntil: "domcontentloaded" });
       await bookingsGetResponse;
 
-      await selectFilter(page, "dateRange");
+      await addFilter(page, "dateRange");
       await openFilter(page, "dateRange");
 
       await expect(page.locator('[data-testid="date-range-options-c"]')).toBeHidden();
@@ -243,7 +243,7 @@ test.describe("Bookings", () => {
       await page.goto(`/bookings/past`);
       await bookingsGetResponse;
 
-      await selectFilter(page, "dateRange");
+      await addFilter(page, "dateRange");
       await openFilter(page, "dateRange");
 
       await expect(page.locator('[data-testid="date-range-options-c"]')).toBeVisible();
@@ -353,7 +353,7 @@ test.describe("Bookings", () => {
     await page.goto(`/bookings/upcoming`, { waitUntil: "domcontentloaded" });
     await bookingsGetResponse;
 
-    await selectFilter(page, "userId");
+    await addFilter(page, "userId");
     await openFilter(page, "userId");
 
     const bookingsGetResponse2 = page.waitForResponse(
@@ -459,7 +459,7 @@ test.describe("Bookings", () => {
     await page.goto("/bookings/upcoming", { waitUntil: "domcontentloaded" });
     await bookingsGetResponse1;
 
-    await selectFilter(page, "userId");
+    await addFilter(page, "userId");
     await openFilter(page, "userId");
     await page
       .locator(`[data-testid="select-filter-options-userId"] [role="option"]:has-text("${anotherUser}")`)

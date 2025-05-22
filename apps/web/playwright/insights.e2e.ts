@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
 
-import { selectFilter, openFilter, clearFilters } from "./filter-helpers";
+import { addFilter, openFilter, clearFilters } from "./filter-helpers";
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
@@ -203,7 +203,7 @@ test.describe("Insights", async () => {
     await page.keyboard.press("Escape");
 
     // Choose User filter item from dropdown
-    await selectFilter(page, "bookingUserId");
+    await addFilter(page, "bookingUserId");
 
     // Wait for the URL to include bookingUserId
     await page.waitForURL((url) => url.toString().includes("bookingUserId"));

@@ -7,7 +7,7 @@ import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { selectFilter, openFilter } from "./filter-helpers";
+import { addFilter, openFilter } from "./filter-helpers";
 import { test } from "./lib/fixtures";
 import { localize } from "./lib/localize";
 import { submitAndWaitForResponse } from "./lib/testUtils";
@@ -658,7 +658,7 @@ test.describe("Out of office", () => {
       await page.waitForResponse(
         (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
       );
-      await selectFilter(page, "dateRange");
+      await addFilter(page, "dateRange");
       await expect(
         page.locator('[data-testid="filter-popover-trigger-dateRange"]', { hasText: "Last 7 Days" }).first()
       ).toBeVisible();
@@ -672,7 +672,7 @@ test.describe("Out of office", () => {
       await page.waitForResponse(
         (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
       );
-      await selectFilter(page, "dateRange");
+      await addFilter(page, "dateRange");
       await openFilter(page, "dateRange");
 
       await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeVisible(); //Today
@@ -776,7 +776,7 @@ test.describe("Out of office", () => {
 
       //Default filter 'Last 7 Days' when DateRange Filter is selected
       await test.step("Default filter - 'Last 7 Days'", async () => {
-        await selectFilter(page, "dateRange");
+        await addFilter(page, "dateRange");
         const entriesListRespPromise = page.waitForResponse(
           (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
         );
@@ -837,7 +837,7 @@ test.describe("Out of office", () => {
 
       //Select 'Last 30 Days'
       await test.step("select 'Last 30 Days'", async () => {
-        await selectFilter(page, "dateRange");
+        await addFilter(page, "dateRange");
         const entriesListRespPromise1 = page.waitForResponse(
           (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
         );
