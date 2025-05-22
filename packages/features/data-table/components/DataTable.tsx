@@ -312,6 +312,7 @@ function DataTableBody<TData>({
             return (
               <TableCell
                 key={cell.id}
+                data-testid={`data-table-td-${cell.column.id}`}
                 style={{
                   ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
                   ...(column.getIsPinned() === "right" && { right: `${column.getStart("right")}px` }),
