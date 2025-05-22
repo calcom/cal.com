@@ -12,6 +12,14 @@ type CredentialCreateInput = {
   delegationCredentialId?: string | null;
 };
 
+type CredentialUpdateInput = {
+  type?: string;
+  key?: any;
+  userId?: number;
+  appId?: string;
+  delegationCredentialId?: string | null;
+};
+
 export class CredentialRepository {
   static async create(data: CredentialCreateInput) {
     const credential = await prisma.credential.create({ data: { ...data } });
@@ -62,6 +70,13 @@ export class CredentialRepository {
 
   static async deleteById({ id }: { id: number }) {
     await prisma.credential.delete({ where: { id } });
+  }
+
+  static async updateCredentialById({ id, data }: { id: number; data: CredentialUpdateInput }) {
+    await prisma.credential.update({
+      where: { id },
+      data,
+    });
   }
 
   static async deleteAllByDelegationCredentialId({
