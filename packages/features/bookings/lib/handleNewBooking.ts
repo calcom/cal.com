@@ -494,9 +494,6 @@ async function handler(
     (!isConfirmedByDefault && !userReschedulingIsOwner) ||
     eventType.schedulingType === SchedulingType.ROUND_ROBIN
   ) {
-    const booking = await BookingRepository.findBookingByUid({ bookingUid: "MOCKED_UID" });
-    console.log("🚀 ~ file: fresh-booking.test.ts:3351 ~ test ~ booking:", booking);
-
     const existingBooking = await BookingRepository.getBookingFromEventTypeForAttendee({
       eventTypeId,
       bookerEmail,
@@ -504,7 +501,6 @@ async function handler(
       startTime: new Date(dayjs(reqBody.start).utc().format()),
       filterForUnconfirmed: !isConfirmedByDefault,
     });
-    console.log("🚀 ~ file: handleNewBooking.ts:502 ~ existingBooking:", existingBooking);
 
     if (existingBooking) {
       const bookingResponse = {
