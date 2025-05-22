@@ -38,5 +38,5 @@ export const filterHostsBySameRoundRobinHost = async <
     },
   });
 
-  return hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
+  return hosts.filter((host) => host.user.id === (originalRescheduledBooking?.userId || 0));
 };

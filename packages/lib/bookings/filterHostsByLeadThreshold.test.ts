@@ -1,12 +1,10 @@
-import { describe, expect, it, vi, afterEach } from "vitest";
+import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
 
 import prisma from "@calcom/prisma";
 import { RRResetInterval } from "@calcom/prisma/client";
 
 import { getOrderedListOfLuckyUsers } from "../server/getLuckyUser";
 import { filterHostsByLeadThreshold, errorCodes } from "./filterHostsByLeadThreshold";
-
-// Import the original Prisma client
 
 // Mocking setup
 const prismaMock = {
@@ -28,6 +26,10 @@ afterEach(() => {
 });
 
 describe("filterHostByLeadThreshold", () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
   it("skips filter if lead threshold is null", async () => {
     const hosts = [
       {
@@ -41,7 +43,7 @@ describe("filterHostByLeadThreshold", () => {
         },
       },
     ];
-    expect(
+    await expect(
       filterHostsByLeadThreshold({
         hosts,
         maxLeadThreshold: null,
@@ -59,7 +61,7 @@ describe("filterHostByLeadThreshold", () => {
   });
 
   it("throws error when maxLeadThreshold = 0, 0 ahead makes no sense.", async () => {
-    expect(
+    await expect(
       filterHostsByLeadThreshold({
         hosts: [],
         maxLeadThreshold: 0,
@@ -106,7 +108,7 @@ describe("filterHostByLeadThreshold", () => {
       },
     });
 
-    expect(
+    await expect(
       filterHostsByLeadThreshold({
         hosts,
         maxLeadThreshold: 3,
@@ -166,21 +168,7 @@ describe("filterHostByLeadThreshold", () => {
       },
     });
 
-    const test = filterHostsByLeadThreshold({
-      hosts,
-      maxLeadThreshold: 3,
-      eventType: {
-        id: 1,
-        isRRWeightsEnabled: true,
-        team: {
-          parentId: null,
-          rrResetInterval: RRResetInterval.MONTH,
-        },
-      },
-      routingFormResponse: null,
-    });
-
-    expect(
+    await expect(
       filterHostsByLeadThreshold({
         hosts,
         maxLeadThreshold: 3,

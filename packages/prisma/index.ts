@@ -32,6 +32,11 @@ if (!isNaN(loggerLevel)) {
 
 export const prisma = new Proxy({} as PrismaClientWithExtensions, {
   get(target, prop) {
+    if (process.env.NODE_ENV === "test") {
+      const defaultPrisma = getPrisma(Tenant.US, prismaOptions);
+      return Reflect.get(defaultPrisma, prop);
+    }
+
     try {
       const tenantPrisma = getTenantAwarePrisma(prismaOptions);
       return Reflect.get(tenantPrisma, prop);

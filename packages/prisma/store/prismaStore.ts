@@ -9,8 +9,7 @@ import { excludeLockedUsersExtension } from "../extensions/exclude-locked-users"
 import { excludePendingPaymentsExtension } from "../extensions/exclude-pending-payment-teams";
 import { usageTrackingExtention } from "../extensions/usage-tracking";
 import { bookingReferenceMiddleware } from "../middleware";
-import type { Tenant } from "./tenants";
-import { getTenantFromHost, tenantToDatabaseUrl } from "./tenants";
+import { Tenant, getTenantFromHost, tenantToDatabaseUrl } from "./tenants";
 
 export type PrismaClientWithExtensions = ReturnType<typeof getPrismaClient>;
 
@@ -33,6 +32,13 @@ const getPrismaClient = (options?: Prisma.PrismaClientOptions) => {
 };
 
 export function runWithTenants<T>(tenant?: Tenant | (() => Promise<T>), fn?: () => Promise<T>) {
+  if (process.env.NODE_ENV === "test") {
+    if (fn === undefined && typeof tenant === "function") {
+      return (tenant as () => Promise<T>)();
+    }
+    return fn!();
+  }
+
   if (fn === undefined && typeof tenant === "function") {
     fn = tenant as () => Promise<T>;
     tenant = undefined;
@@ -52,6 +58,16 @@ export function runWithTenants<T>(tenant?: Tenant | (() => Promise<T>), fn?: () 
 }
 
 export function getPrisma(tenant: Tenant, options?: Prisma.PrismaClientOptions) {
+  if (process.env.NODE_ENV === "test") {
+    const url = tenantToDatabaseUrl[tenant];
+    if (!url) throw new Error(`Missing DB URL for tenant: ${tenant}`);
+
+    return getPrismaClient({
+      ...options,
+      datasources: { db: { url } },
+    });
+  }
+
   const store = als.getStore();
   if (!store)
     throw new Error("Prisma Store not initialized. You must wrap your handler with runWithTenants.");
@@ -81,6 +97,10 @@ export function getPrismaFromHost(host: string) {
  * @returns The Prisma client for the current tenant
  */
 export function getTenantAwarePrisma(options?: Prisma.PrismaClientOptions) {
+  if (process.env.NODE_ENV === "test") {
+    return getPrisma(Tenant.US, options);
+  }
+
   const store = als.getStore();
   if (!store)
     throw new Error("Prisma Store not initialized. You must wrap your handler with runWithTenants.");
