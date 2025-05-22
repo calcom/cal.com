@@ -7,38 +7,19 @@ import { outOfOfficeCreateOrUpdate } from "../ooo/outOfOfficeCreateOrUpdate.hand
 
 const prismaMock = {
   outOfOfficeEntry: {
-    findFirst: vi.fn().mockImplementation((args) => {
-      if (args?.where?.OR && args.select?.toUserId) {
-        return Promise.resolve(null);
-      }
-      if (args?.where?.userId && args?.where?.start && args?.where?.end) {
-        return Promise.resolve({
-          uuid: "test-uuid", // This matches the UUID in the test input
-          userId: args.where.userId,
-          start: args.where.start,
-          end: args.where.end,
-        });
-      }
-      return Promise.resolve(undefined);
-    }),
+    findFirst: vi.fn().mockResolvedValue(undefined),
     findUnique: vi.fn().mockResolvedValue(undefined),
     upsert: vi.fn().mockResolvedValue(undefined),
   },
-  membership: {
-    findMany: vi.fn().mockResolvedValue([]),
-  },
 };
-
 vi.spyOn(prisma.outOfOfficeEntry, "findFirst").mockImplementation(prismaMock.outOfOfficeEntry.findFirst);
 vi.spyOn(prisma.outOfOfficeEntry, "findUnique").mockImplementation(prismaMock.outOfOfficeEntry.findUnique);
 vi.spyOn(prisma.outOfOfficeEntry, "upsert").mockImplementation(prismaMock.outOfOfficeEntry.upsert);
-vi.spyOn(prisma.membership, "findMany").mockImplementation(prismaMock.membership.findMany);
 
 afterEach(() => {
   prismaMock.outOfOfficeEntry.findFirst.mockClear();
   prismaMock.outOfOfficeEntry.findUnique.mockClear();
   prismaMock.outOfOfficeEntry.upsert.mockClear();
-  prismaMock.membership.findMany.mockClear();
 });
 
 const mockUser = {
@@ -87,7 +68,7 @@ describe("outOfOfficeCreateOrUpdate", () => {
     );
   });
 
-  it.skip("should handle timezone offset correctly", async () => {
+  it("should handle timezone offset correctly", async () => {
     const input = {
       dateRange: {
         startDate: new Date("2025-03-28T23:00:00.000Z"),
@@ -98,7 +79,6 @@ describe("outOfOfficeCreateOrUpdate", () => {
       reasonId: 1,
       notes: "",
       toTeamUserId: null,
-      uuid: "test-uuid", // Add UUID to match the mock
     };
     const startTimeUtc = "2025-03-29T00:00:00.000Z";
     const endTimeUtc = "2025-04-02T23:59:59.999Z";
