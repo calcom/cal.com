@@ -160,6 +160,7 @@ export default async function handleChildrenEventTypes({
       newUserIds.map((userId) => {
         return prisma.eventType.create({
           data: {
+            instantMeetingScheduleId: updatedEventType.instantMeetingScheduleId ?? undefined,
             profileId: profileId ?? null,
             ...managedEventTypeValues,
             ...unlockedEventTypeValues,
@@ -187,8 +188,8 @@ export default async function handleChildrenEventTypes({
             rrSegmentQueryValue: undefined,
             assignRRMembersUsingSegment: false,
             useEventLevelSelectedCalendars: false,
-            restrictionScheduleId: undefined,
-            useBookerTimezone: undefined,
+            restrictionScheduleId: null,
+            useBookerTimezone: false,
           },
         });
       })
@@ -270,8 +271,6 @@ export default async function handleChildrenEventTypes({
                 : {}),
               ...(metadata?.apps && "apps" in unlockedFieldProps ? { apps: metadata.apps } : {}),
             },
-            restrictionScheduleId: undefined,
-            useBookerTimezone: undefined,
           },
         });
       })
