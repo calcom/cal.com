@@ -1599,6 +1599,7 @@
   "team_url": "Team URL",
   "team_members": "Team members",
   "more": "More",
+  "and_count_more": "and {{count}} more",
   "more_page_footer": "We view the mobile application as an extension of the web application. If you are performing any complicated actions, please refer back to the web application.",
   "workflow_example_1": "Send SMS reminder 24 hours before event starts to attendee",
   "workflow_example_2": "Send custom SMS when event is rescheduled to attendee",
@@ -1779,6 +1780,7 @@
   "number_sms_notifications": "Phone number (SMS notifications)",
   "attendee_email_variable": "Attendee email",
   "attendee_email_info": "The person booking's email",
+  "booking_uid": "Booking UID",
   "kbar_search_placeholder": "Type a command or search...",
   "invalid_credential": "It looks like permissions expired or were revoked for {{appName}}.",
   "invalid_credential_action": "Reinstall app",
@@ -3118,6 +3120,8 @@
   "could_not_find_slug_to_publish_org": "Could not find slug to publish the organization",
   "picklist": "Picklist",
   "most_cancelled_bookings": "Most Cancelled Bookings",
+  "interface_language": "Interface Language",
+  "visitors_browser_language": "Visitor's browser language",
   "name_or_email": "Name or Email",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "If no contact is found, fallback to lead owner if it exists",
   "credit_purchase_failed": "Credit purchase failed. Please try again or contact support.",
@@ -3218,5 +3222,7 @@
   "requires_credits": "Requires credits",
   "requires_credits_tooltip": "You need enough credits in your account to use this feature",
   "available_credits": "Available credits",
+  "members_affected_by_disabling_delegation_credential": "Affected members",
+  "no_members_affected_by_disabling_delegation_credential": "No members affected by disabling delegation credential",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

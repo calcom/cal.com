@@ -15,7 +15,7 @@ import { withMultiTenantPrisma } from "@calcom/prisma/store/withPrismaClient";
 
 import { defaultResponderForAppDir } from "../../defaultResponderForAppDir";
 
-const log = logger.getSubLogger({ prefix: ["CreateCredentials"] });
+const moduleLogger = logger.getSubLogger({ prefix: ["[api]", "[delegation]", "[credentials/cron]"] });
 const batchSizeToCreateCredentials = 100;
 const validateRequest = (req: NextRequest) => {
   const url = new URL(req.url);
@@ -25,8 +25,11 @@ const validateRequest = (req: NextRequest) => {
   }
 };
 
-async function handleCreateCredentials() {
+export async function handleCreateCredentials() {
+  const log = moduleLogger.getSubLogger({ prefix: ["CreateCredentials"] });
   const delegationCredentials = await DelegationCredentialRepository.findAllEnabledIncludeDelegatedMembers();
+
+  log.info(`Found ${delegationCredentials.length} enabled delegation credentials to create credentials for`);
 
   if (!delegationCredentials.length) {
     return {
@@ -108,8 +111,11 @@ async function handleCreateCredentials() {
 }
 
 async function handleDeleteCredentials() {
+  const log = moduleLogger.getSubLogger({ prefix: ["DeleteCredentials"] });
   const delegationCredentials =
     await DelegationCredentialRepository.findAllDisabledAndIncludeNextBatchOfMembersToProcess();
+
+  log.info(`Found ${delegationCredentials.length} delegation credentials to delete credentials for`);
 
   if (!delegationCredentials.length) {
     return {
