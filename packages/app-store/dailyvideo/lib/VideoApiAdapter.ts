@@ -149,11 +149,9 @@ export const updateMeetingTokenIfExpired = async ({
 export const generateGuestMeetingTokenFromOwnerMeetingToken = async ({
   meetingToken,
   userId,
-  redirectUrlOnExit,
 }: {
   meetingToken: string | null;
   userId?: number;
-  redirectUrlOnExit?: string | null;
 }) => {
   if (!meetingToken) return null;
 
@@ -164,9 +162,6 @@ export const generateGuestMeetingTokenFromOwnerMeetingToken = async ({
       exp: token.exp,
       enable_recording_ui: false,
       user_id: userId,
-      ...(!!redirectUrlOnExit && {
-        redirect_on_meeting_exit: redirectUrlOnExit,
-      }),
     },
   }).then(meetingTokenSchema.parse);
 

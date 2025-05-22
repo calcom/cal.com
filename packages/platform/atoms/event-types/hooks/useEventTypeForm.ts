@@ -163,6 +163,13 @@ export const useEventTypeForm = ({
           offsetStart: z.union([z.string().transform((val) => +val), z.number()]).optional(),
           bookingFields: eventTypeBookingFieldsSchema,
           locations: locationsResolver(t),
+          calVideoSettings: z
+            .object({
+              redirectUrlOnExit: z.string().url().optional().nullable(),
+              disableRecordingForOrganizer: z.boolean().nullable(),
+              disableRecordingForGuests: z.boolean().nullable(),
+            })
+            .optional(),
         })
         // TODO: Add schema for other fields later.
         .passthrough()

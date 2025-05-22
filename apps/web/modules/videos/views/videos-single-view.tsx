@@ -3,6 +3,7 @@
 import type { DailyCall } from "@daily-co/daily-js";
 import DailyIframe from "@daily-co/daily-js";
 import { DailyProvider } from "@daily-co/daily-react";
+import { useDailyEvent } from "@daily-co/daily-react";
 import { useState, useEffect, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -34,6 +35,7 @@ export default function JoinCall(props: PageProps) {
     displayLogInOverlay,
     loggedInUserName,
     showRecordingButton,
+    redirectUrlOnExit,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
 
@@ -131,7 +133,7 @@ export default function JoinCall(props: PageProps) {
       </div>
       {displayLogInOverlay && <LogInOverlay isLoggedIn={!!loggedInUserName} bookingUid={booking.uid} />}
 
-      <VideoMeetingInfo booking={booking} />
+      <VideoMeetingInfo booking={booking} redirectUrlOnExit={redirectUrlOnExit} />
     </DailyProvider>
   );
 }
@@ -260,15 +262,22 @@ export function LogInOverlay(props: LogInOverlayProps) {
 
 interface VideoMeetingInfo {
   booking: PageProps["booking"];
+  redirectUrlOnExit?: string | null;
 }
 
 export function VideoMeetingInfo(props: VideoMeetingInfo) {
   const [open, setOpen] = useState(false);
-  const { booking } = props;
+  const { booking, redirectUrlOnExit } = props;
   const { t } = useLocale();
 
   const endTime = new Date(booking.endTime);
   const startTime = new Date(booking.startTime);
+
+  useDailyEvent("left-meeting", () => {
+    if (redirectUrlOnExit) {
+      window.location.href = redirectUrlOnExit;
+    }
+  });
 
   return (
     <>

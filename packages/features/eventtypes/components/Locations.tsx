@@ -377,7 +377,16 @@ const Locations: React.FC<LocationsProps> = ({
                         defaultValue={eventType.calVideoSettings?.redirectUrlOnExit || ""}
                         data-testid="calVideoSettings.redirectUrlOnExit"
                         containerClassName="mt-2"
-                        {...formMethods.register("calVideoSettings.redirectUrlOnExit")}
+                        {...formMethods.register("calVideoSettings.redirectUrlOnExit", {
+                          setValueAs: (v) => (!v || v.trim() === "" ? null : v),
+                        })}
+                      />
+                      <ErrorMessage
+                        errors={formMethods.formState.errors?.calVideoSettings}
+                        name="redirectUrlOnExit"
+                        className={classNames("text-error text-sm")}
+                        as="div"
+                        id="calVideoSettings.redirectUrlOnExit-error"
                       />
                     </div>
                   </div>

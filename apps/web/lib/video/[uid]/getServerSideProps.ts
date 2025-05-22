@@ -137,7 +137,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     const guestMeetingPassword = await generateGuestMeetingTokenFromOwnerMeetingToken({
       meetingToken: videoReferencePassword,
       userId: sessionUserId,
-      redirectUrlOnExit: bookingObj.eventType?.calVideoSettings?.redirectUrlOnExit,
     });
 
     bookingObj.references.forEach((bookRef) => {
@@ -193,6 +192,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       displayLogInOverlay,
       loggedInUserName: sessionUserId ? session?.user?.name : undefined,
       showRecordingButton,
+      redirectUrlOnExit:
+        sessionUserId !== bookingObj.user?.id
+          ? bookingObj.eventType?.calVideoSettings?.redirectUrlOnExit
+          : undefined,
     },
   };
 }
