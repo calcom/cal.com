@@ -682,40 +682,44 @@ const UseTeamEventScheduleSettingsToggle = ({
     eventType.restrictionScheduleId
   );
   return (
-    <div className="border-subtle space-y-6 rounded-lg border p-6">
-      <SettingsToggle
-        checked={!useHostSchedulesForTeamEvent}
-        onCheckedChange={toggleScheduleState}
-        title={t("choose_common_schedule_team_event")}
-        description={t("choose_common_schedule_team_event_description")}>
-        <EventTypeSchedule
-          customClassNames={customClassNames?.userAvailability}
-          eventType={eventType}
-          fieldName="schedule"
-          {...rest}
-        />
-      </SettingsToggle>
-      {useHostSchedulesForTeamEvent && (
-        <div className="lg:ml-14">
-          <TeamAvailability
-            teamMembers={rest.teamMembers}
-            hostSchedulesQuery={rest.hostSchedulesQuery}
-            customClassNames={customClassNames?.teamAvailability}
+    <div className="space-y-4">
+      <div className="border-subtle space-y-6 rounded-lg border p-6">
+        <SettingsToggle
+          checked={!useHostSchedulesForTeamEvent}
+          onCheckedChange={toggleScheduleState}
+          title={t("choose_common_schedule_team_event")}
+          description={t("choose_common_schedule_team_event_description")}>
+          <EventTypeSchedule
+            customClassNames={customClassNames?.userAvailability}
+            eventType={eventType}
+            fieldName="schedule"
+            {...rest}
           />
-        </div>
-      )}
-      <SettingsToggle
-        checked={restrictScheduleForHosts}
-        onCheckedChange={toggleRestrictScheduleState}
-        title={t("choose_restriction_schedule")}
-        description={t("choose_restriction_schedule_description")}>
-        <EventTypeSchedule
-          customClassNames={customClassNames?.userAvailability}
-          eventType={eventType}
-          fieldName="restrictionSchedule"
-          {...rest}
-        />
-      </SettingsToggle>
+        </SettingsToggle>
+        {useHostSchedulesForTeamEvent && (
+          <div className="lg:ml-14">
+            <TeamAvailability
+              teamMembers={rest.teamMembers}
+              hostSchedulesQuery={rest.hostSchedulesQuery}
+              customClassNames={customClassNames?.teamAvailability}
+            />
+          </div>
+        )}
+      </div>
+      <div className="border-subtle space-y-6 rounded-lg border p-6">
+        <SettingsToggle
+          checked={restrictScheduleForHosts}
+          onCheckedChange={toggleRestrictScheduleState}
+          title={t("choose_restriction_schedule")}
+          description={t("choose_restriction_schedule_description")}>
+          <EventTypeSchedule
+            customClassNames={customClassNames?.userAvailability}
+            eventType={eventType}
+            fieldName="restrictionSchedule"
+            {...rest}
+          />
+        </SettingsToggle>
+      </div>
     </div>
   );
 };
