@@ -1,7 +1,6 @@
 import { z } from "zod";
 
-import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
-import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
+import { extendedBookingCreateBody } from "@calcom/features/bookings/lib/bookingCreateBodySchema";
 import { iso8601 } from "@calcom/prisma/zod-utils";
 import { AttendeeSchema } from "@calcom/prisma/zod/modelSchema/AttendeeSchema";
 import { BookingSchema as Booking } from "@calcom/prisma/zod/modelSchema/BookingSchema";
@@ -25,84 +24,6 @@ const schemaBookingBaseBodyParams = Booking.pick({
   cancelledBy: true,
   createdAt: true,
 }).partial();
-
-export const bookingCreateBodySchema = z.object({
-  end: z.string().optional(),
-  eventTypeId: z.number(),
-  eventTypeSlug: z.string().optional(),
-  rescheduleUid: z.string().optional(),
-  recurringEventId: z.string().optional(),
-  rescheduledBy: z.string().email({ message: "Invalid email" }).optional(),
-  start: z.string(),
-  timeZone: timeZoneSchema,
-  user: z.union([z.string(), z.array(z.string())]).optional(),
-  language: z.string(),
-  bookingUid: z.string().optional(),
-  metadata: z.record(z.string()),
-  hasHashedBookingLink: z.boolean().optional(),
-  hashedLink: z.string().nullish(),
-  seatReferenceUid: z.string().optional(),
-  orgSlug: z.string().optional(),
-  teamMemberEmail: z.string().nullish(),
-  crmOwnerRecordType: z.string().nullish(),
-  routedTeamMemberIds: z.array(z.number()).nullish(),
-  routingFormResponseId: z.number().optional(),
-  skipContactOwner: z.boolean().optional(),
-  crmAppSlug: z.string().nullish().optional(),
-  cfToken: z.string().nullish().optional(),
-
-  /**
-   * Holds the corrected responses of the Form for a booking, provided during rerouting
-   */
-  reroutingFormResponses: routingFormResponseInDbSchema.optional(),
-  /**
-   * Used to identify if the booking is a dry run.
-   */
-  _isDryRun: z.boolean().optional(),
-  /** Whether to override the cache */
-  _shouldServeCache: z.boolean().optional(),
-  tracking: z
-    .object({
-      utm_source: z.string().optional(),
-      utm_medium: z.string().optional(),
-      utm_campaign: z.string().optional(),
-      utm_term: z.string().optional(),
-      utm_content: z.string().optional(),
-    })
-    .optional(),
-});
-
-export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;
-
-export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
-  z.object({
-    noEmail: z.boolean().optional(),
-    recurringCount: z.number().optional(),
-    allRecurringDates: z
-      .array(
-        z.object({
-          start: z.string(),
-          end: z.string(),
-        })
-      )
-      .optional(),
-    currentRecurringIndex: z.number().optional(),
-    appsStatus: z
-      .array(
-        z.object({
-          appName: z.string(),
-          success: z.number(),
-          failures: z.number(),
-          type: z.string(),
-          errors: z.string().array(),
-          warnings: z.string().array().optional(),
-        })
-      )
-      .optional(),
-    luckyUsers: z.array(z.number()).optional(),
-    customInputs: z.undefined().optional(),
-  })
-);
 
 // It has only the legacy props that are part of `responses` now. The API can still hit old props
 export const bookingCreateSchemaLegacyPropsForApi = z.object({
