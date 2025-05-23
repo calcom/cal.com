@@ -63,12 +63,14 @@ const ServerPage = async ({ params }: PageProps) => {
   const eventTypeId = parsed.data.type;
   const user = {
     id: session.user.id,
-    organization: session.user.org ? { isOrgAdmin: session.user.role === "ADMIN" } : undefined,
+    organization: session.user.org
+      ? { isOrgAdmin: session.user.org.role === "ADMIN" || session.user.org.role === "OWNER" }
+      : undefined,
     profile: session.user.profile?.organizationId
       ? { organizationId: session.user.profile.organizationId }
       : undefined,
   };
-  console.log(session.user);
+  console.log(user);
 
   const data = await getCachedEventType(eventTypeId, user);
   if (!data?.eventType) {
