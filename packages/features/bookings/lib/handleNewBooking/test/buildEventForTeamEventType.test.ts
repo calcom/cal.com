@@ -104,11 +104,11 @@ describe("buildEventForTeamEventType", () => {
     expect(withDestinationCalendarArgs).toHaveLength(0);
   });
 
-  it("excludes non-fixed users for ROUND_ROBIN", async () => {
+  it("includes one non-fixed user for ROUND_ROBIN when fixed users exist", async () => {
     await buildEventForTeamEventType({
       existingEvent: {},
       users: [
-        baseUser({ id: 2, isFixed: false, email: "notfixed@example.com" }),
+        baseUser({ id: 2, isFixed: false, email: "nonfixed@example.com" }),
         baseUser({ id: 3, isFixed: true, email: "fixed@example.com" }),
       ],
       organizerUser: { email: "organizer@example.com" },
@@ -119,7 +119,27 @@ describe("buildEventForTeamEventType", () => {
     const memberEmails = teamArgs.members.map((m: any) => m.email);
 
     expect(memberEmails).toContain("fixed@example.com");
-    expect(memberEmails).not.toContain("notfixed@example.com");
+    expect(memberEmails).toContain("nonfixed@example.com");
+  });
+
+  it("includes only the first non-fixed user for ROUND_ROBIN when multiple exist", async () => {
+    await buildEventForTeamEventType({
+      existingEvent: {},
+      users: [
+        baseUser({ id: 3, isFixed: true, email: "fixed@example.com" }),
+        baseUser({ id: 2, isFixed: false, email: "nonfixed1@example.com" }),
+        baseUser({ id: 4, isFixed: false, email: "nonfixed2@example.com" }),
+      ],
+      organizerUser: { email: "organizer@example.com" },
+      schedulingType: SchedulingType.ROUND_ROBIN,
+    });
+
+    const teamArgs = withTeamSpy.mock.calls[0][0];
+    const memberEmails = teamArgs.members.map((m: any) => m.email);
+
+    expect(memberEmails).toContain("fixed@example.com");
+    expect(memberEmails).toContain("nonfixed1@example.com");
+    expect(memberEmails).not.toContain("nonfixed2@example.com");
   });
 
   it("builds a team with fallback name and id", async () => {

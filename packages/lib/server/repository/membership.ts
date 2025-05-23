@@ -337,4 +337,32 @@ export class MembershipRepository {
 
     return memberships.map((membership) => membership.teamId);
   }
+
+  /**
+   * Returns members who joined after the given time
+   */
+  static async findMembershipsCreatedAfterTimeIncludeUser({
+    organizationId,
+    time,
+  }: {
+    organizationId: number;
+    time: Date;
+  }) {
+    return prisma.membership.findMany({
+      where: {
+        teamId: organizationId,
+        createdAt: { gt: time },
+        accepted: true,
+      },
+      include: {
+        user: {
+          select: {
+            email: true,
+            name: true,
+            id: true,
+          },
+        },
+      },
+    });
+  }
 }
