@@ -1,7 +1,7 @@
 import { withAccelerate } from "@prisma/extension-accelerate";
 
-import { PrismaClient as PrismaClientWithoutExtension } from "./client";
-import type { Prisma } from "./client";
+import { PrismaClient as PrismaClientWithoutExtensions, type Prisma } from "@calcom/prisma/client";
+
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
 import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
@@ -12,7 +12,7 @@ import { bookingReferenceMiddleware } from "./middleware";
 const prismaOptions: Prisma.PrismaClientOptions = {};
 
 const globalForPrisma = global as unknown as {
-  prismaWithoutClientExtensions: PrismaClientWithoutExtension;
+  prismaWithoutClientExtensions: PrismaClientWithoutExtensions;
   prismaWithClientExtensions: PrismaClientWithExtensions;
 };
 
@@ -39,10 +39,10 @@ if (!isNaN(loggerLevel)) {
 
 // Prevents flooding with idle connections
 const prismaWithoutClientExtensions =
-  globalForPrisma.prismaWithoutClientExtensions || new PrismaClientWithoutExtension(prismaOptions);
+  globalForPrisma.prismaWithoutClientExtensions || new PrismaClientWithoutExtensions(prismaOptions);
 
 export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
-  new PrismaClientWithoutExtension({ ...prismaOptions, ...options })
+  new PrismaClientWithoutExtensions({ ...prismaOptions, ...options })
     .$extends(usageTrackingExtention())
     .$extends(excludeLockedUsersExtension())
     .$extends(excludePendingPaymentsExtension())
