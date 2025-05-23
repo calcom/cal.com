@@ -1,9 +1,4 @@
 /* eslint-disable playwright/no-conditional-in-test */
-
-/**
- * TODO — enable once the schema enforces mandatory `label`
- *         and `visibleIf.parent` validation.
- */
 import { describe, it, expect } from "vitest";
 import type { z } from "zod";
 
@@ -56,12 +51,6 @@ describe("form-builder schema", () => {
     expect(parsed).toEqual(validPayload);
   });
 
-  /* ———————————————————————————————————————————————————————————————————
-     The schema does not yet enforce label presence everywhere,
-     so this test is postponed until that contract changes.
-     ——————————————————————————————————————————————————————————————————— */
-  it.todo("rejects when a required key (e.g. `label`) is missing");
-
   it("rejects an unknown `type`", async () => {
     // @ts-expect-error – deliberate wrong type value
     const payload = [...validPayload, makeField({ type: "made-up" })];
@@ -96,11 +85,5 @@ describe("form-builder schema", () => {
       const parsed = await schema.parseAsync([parent, child]);
       expect(parsed[1].visibleIf).toEqual(child.visibleIf);
     });
-
-    /* ——————————————————————————————————————————————————————————————
-       Same story: parent-existence validation is not enforced today.
-       Enable once the schema gains that check.
-       —————————————————————————————————————————————————————————————— */
-    it.todo("rejects when the referenced `parent` field is not present");
   });
 });
