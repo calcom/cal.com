@@ -61,8 +61,15 @@ const ServerPage = async ({ params }: PageProps) => {
     throw new Error("Invalid Event Type id");
   }
   const eventTypeId = parsed.data.type;
+  const user = {
+    id: session.user.id,
+    organization: session.user.organization
+      ? { isOrgAdmin: session.user.organization.isOrgAdmin }
+      : undefined,
+    profile: session.user.profile ? { organizationId: session.user.profile.organizationId } : undefined,
+  };
 
-  const data = await getCachedEventType(eventTypeId, session.user);
+  const data = await getCachedEventType(eventTypeId, user);
   if (!data?.eventType) {
     throw new Error("This event type does not exist");
   }
