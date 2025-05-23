@@ -41,6 +41,7 @@ import {
   GetBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
+  UpdateBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import {
   CreateBookingInput_2024_08_13,
@@ -2243,7 +2244,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
           timeZone,
         });
 
-        // now this created booking, we need to write tests to update it using the newly created endpoint
         const booking = await bookingsRepositoryFixture.create({
           uid: `booking-uid-${randomString(10)}`,
           title: "booking title",
@@ -2271,6 +2271,134 @@ describe("Bookings Endpoints 2024-08-13", () => {
             },
           },
         });
+        const bookingUid = booking.uid;
+        const bookingId = booking.id;
+
+        it("can update location to type address", async () => {
+          const updatedBookingBody: UpdateBookingInput_2024_08_13 = {
+            location: {
+              type: "address",
+            },
+          };
+
+          const updatedBookingResponse = await request(app.getHttpServer())
+            .patch(`/v2/bookings/${bookingUid}`)
+            .send(updatedBookingBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(201);
+
+          const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+          const updatedBooking = updatedBookingResponseBody.data;
+          expect(updatedBooking).toHaveProperty("id");
+          expect(createdBooking.location).toEqual(address);
+        });
+
+        it("can update location to type link", async () => {
+          const updatedBookingBody: UpdateBookingInput_2024_08_13 = {
+            location: {
+              type: "link",
+            },
+          };
+
+          const updatedBookingResponse = await request(app.getHttpServer())
+            .patch(`/v2/bookings/${bookingUid}`)
+            .send(updatedBookingBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(201);
+
+          const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+          const updatedBooking = updatedBookingResponseBody.data;
+          expect(updatedBooking).toHaveProperty("id");
+          expect(createdBooking.location).toEqual(link);
+        });
+
+        it("can update location to type phone", async () => {
+          const updatedBookingBody: UpdateBookingInput_2024_08_13 = {
+            location: {
+              type: "phone",
+            },
+          };
+
+          const updatedBookingResponse = await request(app.getHttpServer())
+            .patch(`/v2/bookings/${bookingUid}`)
+            .send(updatedBookingBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(201);
+
+          const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+          const updatedBooking = updatedBookingResponseBody.data;
+          expect(updatedBooking).toHaveProperty("id");
+          expect(createdBooking.location).toEqual(phone);
+        });
+
+        it("can update location to type attendeeAddress", async () => {
+          const attendeeAddress = "123 Example St, City, Valhalla";
+          const updatedBookingBody: UpdateBookingInput_2024_08_13 = {
+            location: {
+              type: "attendeeAddress",
+              address: attendeeAddress,
+            },
+          };
+
+          const updatedBookingResponse = await request(app.getHttpServer())
+            .patch(`/v2/bookings/${bookingUid}`)
+            .send(updatedBookingBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(201);
+
+          const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+          const updatedBooking = updatedBookingResponseBody.data;
+          expect(updatedBooking).toHaveProperty("id");
+          expect(createdBooking.location).toEqual(attendeeAddress);
+        });
+
+        it("can update location to type attendeePhone", async () => {
+          const attendeePhone = "+37120993151";
+          const updatedBookingBody: UpdateBookingInput_2024_08_13 = {
+            location: {
+              type: "attendeePhone",
+              phone: attendeePhone,
+            },
+          };
+
+          const updatedBookingResponse = await request(app.getHttpServer())
+            .patch(`/v2/bookings/${bookingUid}`)
+            .send(updatedBookingBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(201);
+
+          const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+          const updatedBooking = updatedBookingResponseBody.data;
+          expect(updatedBooking).toHaveProperty("id");
+          expect(createdBooking.location).toEqual(attendeePhone);
+        });
+
+        it("can update location to type attendeeDefined", async () => {
+          const attendeeDefinedLocation = "namek 100";
+          const updatedBookingBody: UpdateBookingInput_2024_08_13 = {
+            location: {
+              type: "attendeeDefined",
+              location: attendeeDefinedLocation,
+            },
+          };
+
+          const updatedBookingResponse = await request(app.getHttpServer())
+            .patch(`/v2/bookings/${bookingUid}`)
+            .send(updatedBookingBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(201);
+
+          const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+          const updatedBooking = updatedBookingResponseBody.data;
+          expect(updatedBooking).toHaveProperty("id");
+          expect(createdBooking.location).toEqual(attendeeDefinedLocation);
+        });
+
+        if (responseDataIsBooking(booking)) {
+          await bookingsRepositoryFixture.deleteById(bookingId);
+        } else {
+          throw new Error("Unexpected response data type");
+        }
       });
     });
 
