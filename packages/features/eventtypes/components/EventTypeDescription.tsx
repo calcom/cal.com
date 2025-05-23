@@ -135,6 +135,13 @@ export const EventTypeDescription = ({
               </Badge>
             </li>
           ) : null}
+          {!!eventType.teamId && eventType.hosts.length === 0 ? (
+            <li>
+              <Badge variant="orange" startIcon="info">
+                <p>{t("add_host")}</p>
+              </Badge>
+            </li>
+          ) : null}
         </ul>
       </div>
     </>
