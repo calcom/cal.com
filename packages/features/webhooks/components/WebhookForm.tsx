@@ -33,6 +33,7 @@ export type WebhookFormData = {
   payloadTemplate: string | undefined | null;
   time?: number | null;
   timeUnit?: TimeUnit | null;
+  delayMinutes?: number;
 };
 
 export type WebhookFormSubmitData = WebhookFormData & {
@@ -127,6 +128,7 @@ const WebhookForm = (props: {
       payloadTemplate: props?.webhook?.payloadTemplate || undefined,
       timeUnit: props?.webhook?.timeUnit || undefined,
       time: props?.webhook?.time || undefined,
+      delayMinutes: props?.webhook?.delayMinutes || 10,
     },
   });
 
@@ -240,6 +242,20 @@ const WebhookForm = (props: {
           <div className="mt-5">
             <Label>{t("how_long_after_user_no_show_minutes")}</Label>
             <TimeTimeUnitInput disabled={false} defaultTime={5} />
+          </div>
+        )}
+
+        {formMethods.watch("eventTriggers")?.includes(WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT) && (
+          <div className="mt-4">
+            <TextField
+              label={t("trigger_delay")}
+              labelClassName="font-medium text-emphasis font-sm"
+              type="number"
+              min={5}
+              defaultValue={10}
+              {...formMethods.register("delayMinutes")}
+            />
+            <p className="text-subtle text-sm">{t("delay_applies_only_to_this_trigger")}</p>
           </div>
         )}
 
