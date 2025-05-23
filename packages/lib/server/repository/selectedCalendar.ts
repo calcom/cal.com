@@ -28,6 +28,12 @@ export type FindManyArgs = {
       | {
           not: null;
         };
+    outlookSubscriptionId?:
+      | string
+      | null
+      | {
+          not: null;
+        };
   };
   orderBy?: {
     userId?: "asc" | "desc";
@@ -165,16 +171,22 @@ export class SelectedCalendarRepository {
             },
           },
         },
-        // RN we only support google calendar subscriptions for now
-        integration: "google_calendar",
+        // We only support google calendar and outlook subscriptions for now
+        OR: [
+          {
+            integration: "google_calendar",
+            OR: [{ googleChannelExpiration: null }, { googleChannelExpiration: { lt: tomorrowTimestamp } }],
+          },
+          {
+            integration: "office365_calendar",
+            OR: [
+              { outlookSubscriptionExpiration: null },
+              { outlookSubscriptionExpiration: { lt: tomorrowTimestamp } },
+            ],
+          },
+        ],
         // We skip retrying calendars that have errored
         error: null,
-        OR: [
-          // Either is a calendar pending to be watched
-          { googleChannelExpiration: null },
-          // Or is a calendar that is about to expire
-          { googleChannelExpiration: { lt: tomorrowTimestamp } },
-        ],
       },
     });
     return nextBatch;
@@ -185,9 +197,17 @@ export class SelectedCalendarRepository {
    */
   static async getNextBatchToUnwatch(limit = 100) {
     const where: Prisma.SelectedCalendarWhereInput = {
-      // RN we only support google calendar subscriptions for now
-      integration: "google_calendar",
-      googleChannelExpiration: { not: null },
+      // We only support google calendar and outlook subscriptions for now
+      OR: [
+        {
+          integration: "office365_calendar",
+          outlookSubscriptionExpiration: { not: null },
+        },
+        {
+          integration: "google_calendar",
+          googleChannelExpiration: { not: null },
+        },
+      ],
       user: {
         teams: {
           every: {
@@ -227,6 +247,26 @@ export class SelectedCalendarRepository {
     return await prisma.selectedCalendar.findFirst({
       where: {
         googleChannelId,
+      },
+      select: {
+        credential: {
+          select: {
+            ...credentialForCalendarServiceSelect,
+            selectedCalendars: {
+              orderBy: {
+                externalId: "asc",
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  static async findByOutlookSubscriptionId(subscriptionId: string) {
+    return await prisma.selectedCalendar.findFirst({
+      where: {
+        outlookSubscriptionId: subscriptionId,
       },
       select: {
         credential: {
@@ -322,6 +362,36 @@ export class SelectedCalendarRepository {
         ...ensureUserLevelWhere,
       },
     });
+  }
+
+  static async updateManyForEventTypeIds({
+    data,
+    eventTypeIds,
+  }: {
+    data: Prisma.SelectedCalendarUncheckedCreateInput;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+  }) {
+    const userId = data.userId;
+    return await Promise.allSettled(
+      eventTypeIds.map((eventTypeId) => {
+        SelectedCalendarRepository.update({
+          where: {
+            userId: data.userId,
+            integration: data.integration,
+            externalId: data.externalId,
+            eventTypeId: data.eventTypeId || null,
+          },
+          data: {
+            ...data,
+            eventTypeId,
+            userId,
+            integration: data.integration,
+            externalId: data.externalId,
+            credentialId: data.credentialId,
+          },
+        });
+      })
+    );
   }
 
   static async upsertManyForEventTypeIds({
