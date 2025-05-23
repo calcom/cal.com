@@ -3,12 +3,10 @@ import { default as get } from "lodash/get";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import type z from "zod";
 
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import type { Prisma } from "@calcom/prisma/client";
+import type { Prisma, EventType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import type { _EventTypeModel } from "@calcom/prisma/zod/eventtype";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Switch } from "@calcom/ui/components/form";
@@ -95,7 +93,7 @@ const useLockedFieldsManager = ({
   translate,
   formMethods,
 }: {
-  eventType: Pick<z.infer<typeof _EventTypeModel>, "schedulingType" | "userId" | "metadata" | "id">;
+  eventType: Pick<EventType, "schedulingType" | "userId" | "metadata" | "id">;
   translate: TFunction;
   formMethods: UseFormReturn<FormValues>;
 }) => {

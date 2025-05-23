@@ -9,8 +9,12 @@ import type { EventType } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 
-const mockFindFirstEventType = (data?: Partial<Prisma.EventTypeCreateInput>) => {
-  const eventType = buildEventType(data);
+// create input does not allow ID
+const mockFindFirstEventType = (data?: Partial<Prisma.EventTypeCreateInput> & { id: number }) => {
+  const eventType = buildEventType({
+    ...data,
+    metadata: data.metadata === null ? {} : data.metadata,
+  });
   // const { scheduleId, destinationCalendar, ...restEventType } = eventType;
   prismaMock.eventType.findFirst.mockResolvedValue(eventType as EventType);
 
