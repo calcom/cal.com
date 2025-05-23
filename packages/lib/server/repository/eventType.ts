@@ -1,16 +1,26 @@
 import type { EventType as PrismaEventType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
+import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma, availabilityUserSelect } from "@calcom/prisma";
+import type { SchedulingType } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
+import {
+  EventTypeMetaDataSchema,
+  rrSegmentQueryValueSchema,
+  teamMetadataSchema,
+} from "@calcom/prisma/zod-utils";
 import type { Ensure } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
 
-import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
 import { MembershipRepository } from "./membership";
 import { LookupTarget, ProfileRepository } from "./profile";
@@ -915,5 +925,182 @@ export class EventTypeRepository {
     eventTypeId: number;
   }) {
     return user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventTypeId);
+  }
+
+  static compareMembership(mship1: MembershipRole, mship2: MembershipRole) {
+    const mshipToNumber = (mship: MembershipRole) =>
+      Object.keys(MembershipRole).findIndex((mmship) => mmship === mship);
+    return mshipToNumber(mship1) > mshipToNumber(mship2);
+  }
+
+  static async getUserEventGroups({
+    upId,
+    userId,
+    filters,
+    forRoutingForms,
+  }: {
+    upId: string;
+    userId: number;
+    filters?: {
+      teamIds?: number[];
+      upIds?: string[];
+      schedulingTypes?: SchedulingType[];
+    };
+    forRoutingForms?: boolean;
+  }) {
+    const profile = await ProfileRepository.findByUpId(upId);
+    const parentOrgHasLockedEventTypes =
+      profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
+    const isFilterSet = filters && hasFilter(filters);
+    const isUpIdInFilter = filters?.upIds?.includes(upId);
+
+    let shouldListUserEvents = !isFilterSet || isUpIdInFilter;
+
+    if (isFilterSet && filters?.upIds && !isUpIdInFilter) {
+      shouldListUserEvents = true;
+    }
+
+    const profileMemberships = await MembershipRepository.findAllByUpIdIncludeTeam(
+      {
+        upId,
+      },
+      {
+        where: {
+          accepted: true,
+        },
+      }
+    );
+
+    if (!profile) {
+      throw new Error("Profile not found");
+    }
+
+    const memberships = profileMemberships.map((membership) => ({
+      ...membership,
+      team: {
+        ...membership.team,
+        metadata: teamMetadataSchema.parse(membership.team.metadata),
+      },
+    }));
+
+    const teamMemberships = profileMemberships.map((membership) => ({
+      teamId: membership.team.id,
+      membershipRole: membership.role,
+    }));
+
+    type EventTypeGroup = {
+      teamId?: number | null;
+      parentId?: number | null;
+      bookerUrl: string;
+      membershipRole?: MembershipRole | null;
+      profile: {
+        slug: (typeof profile)["username"] | null;
+        name: (typeof profile)["name"];
+        image: string;
+        eventTypesLockedByOrg?: boolean;
+      };
+      metadata: {
+        membershipCount: number;
+        readOnly: boolean;
+      };
+    };
+
+    let eventTypeGroups: EventTypeGroup[] = [];
+
+    if (shouldListUserEvents) {
+      const bookerUrl = await getBookerBaseUrl(profile.organizationId ?? null);
+      eventTypeGroups.push({
+        teamId: null,
+        bookerUrl,
+        membershipRole: null,
+        profile: {
+          slug: profile.username,
+          name: profile.name,
+          image: getUserAvatarUrl({
+            avatarUrl: profile.avatarUrl,
+          }),
+          eventTypesLockedByOrg: parentOrgHasLockedEventTypes,
+        },
+        metadata: {
+          membershipCount: 1,
+          readOnly: false,
+        },
+      });
+    }
+
+    eventTypeGroups = ([] as EventTypeGroup[]).concat(
+      eventTypeGroups,
+      await Promise.all(
+        memberships
+          .filter((mmship) => {
+            if (mmship.team.isOrganization) {
+              return false;
+            } else {
+              if (!filters || !hasFilter(filters)) {
+                return true;
+              }
+              return filters?.teamIds?.includes(mmship?.team?.id || 0) ?? false;
+            }
+          })
+          .map(async (membership) => {
+            const orgMembership = teamMemberships.find(
+              (teamM) => teamM.teamId === membership.team.parentId
+            )?.membershipRole;
+
+            const team = {
+              ...membership.team,
+              metadata: teamMetadataSchema.parse(membership.team.metadata),
+            };
+
+            let slug;
+
+            if (forRoutingForms) {
+              slug = `team/${team.slug}`;
+            } else {
+              slug = team.slug ? (!team.parentId ? `team/${team.slug}` : `${team.slug}`) : null;
+            }
+
+            const teamParentMetadata = team.parent ? teamMetadataSchema.parse(team.parent.metadata) : null;
+            return {
+              teamId: team.id,
+              parentId: team.parentId,
+              bookerUrl: getBookerBaseUrlSync(team.parent?.slug ?? teamParentMetadata?.requestedSlug ?? null),
+              membershipRole:
+                orgMembership && this.compareMembership(orgMembership, membership.role)
+                  ? orgMembership
+                  : membership.role,
+              profile: {
+                image: team.parent
+                  ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
+                  : getPlaceholderAvatar(team.logoUrl, team.name),
+                name: team.name,
+                slug,
+              },
+              metadata: {
+                membershipCount: 0,
+                readOnly:
+                  membership.role ===
+                  (team.parentId
+                    ? orgMembership && this.compareMembership(orgMembership, membership.role)
+                      ? orgMembership
+                      : MembershipRole.MEMBER
+                    : MembershipRole.MEMBER),
+              },
+            };
+          })
+      )
+    );
+
+    const denormalizedPayload = {
+      eventTypeGroups,
+      profiles: eventTypeGroups.map((group) => ({
+        ...group.profile,
+        ...group.metadata,
+        teamId: group.teamId,
+        membershipRole: group.membershipRole,
+      })),
+    };
+
+    return denormalizedPayload;
   }
 }
