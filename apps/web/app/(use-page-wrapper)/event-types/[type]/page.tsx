@@ -35,7 +35,7 @@ const getCachedEventType = unstable_cache(
     eventTypeId: number,
     user: {
       id: number;
-      organization?: { id?: number; isOrgAdmin?: boolean };
+      organization?: { id: number; isOrgAdmin: boolean };
     }
   ) => {
     const prisma = (await import("@calcom/prisma")).default;
