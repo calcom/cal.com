@@ -23,7 +23,7 @@ export const generateMetadata = async ({ params }: { params: Promise<{ pages: st
     () => "",
     undefined,
     undefined,
-    `/apps/routing-forms/${(await params).pages.join("/")}`
+    `/routing/${(await params).pages.join("/")}`
   );
 };
 
