@@ -1,12 +1,15 @@
 import type { calendar_v3 } from "@googleapis/calendar";
-import type { BookingSeat, DestinationCalendar, Prisma, SelectedCalendar as _SelectedCalendar } from "@prisma/client";
+import type {
+  BookingSeat,
+  DestinationCalendar,
+  Prisma,
+  SelectedCalendar as _SelectedCalendar,
+} from "@prisma/client";
 import type { Dayjs } from "dayjs";
 import type { TFunction } from "i18next";
 import type { Time } from "ical.js";
 import type { Frequency } from "rrule";
 import type z from "zod";
-
-
 
 import type { bookingResponse } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { Calendar } from "@calcom/features/calendars/weeklyview";
@@ -14,10 +17,7 @@ import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
-
-
 import type { Ensure } from "./utils";
-
 
 export type { VideoCallData } from "./VideoApiAdapter";
 
@@ -224,6 +224,7 @@ export interface CalendarEvent {
   delegationCredentialId?: string | null;
   domainWideDelegationCredentialId?: string | null;
   customReplyToEmail?: string | null;
+  rescheduledBy?: string;
 }
 
 export interface EntryPoint {

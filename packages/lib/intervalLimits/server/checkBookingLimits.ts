@@ -1,6 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -9,7 +10,7 @@ import { ascendingLimitKeys, intervalLimitKeyToUnit } from "../intervalLimit";
 import type { IntervalLimit, IntervalLimitKey } from "../intervalLimitSchema";
 import { parseBookingLimit } from "../isBookingLimits";
 
-export async function checkBookingLimits(
+async function _checkBookingLimits(
   bookingLimits: IntervalLimit,
   eventStartDate: Date,
   eventId: number,
@@ -40,7 +41,9 @@ export async function checkBookingLimits(
   }
 }
 
-export async function checkBookingLimit({
+export const checkBookingLimits = withReporting(_checkBookingLimits, "checkBookingLimits");
+
+async function _checkBookingLimit({
   eventStartDate,
   eventId,
   key,
@@ -110,3 +113,5 @@ export async function checkBookingLimit({
     });
   }
 }
+
+export const checkBookingLimit = withReporting(_checkBookingLimit, "checkBookingLimit");

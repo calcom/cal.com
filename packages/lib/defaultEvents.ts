@@ -127,8 +127,10 @@ const commons = {
   autoTranslateDescriptionEnabled: false,
   fieldTranslations: [],
   maxLeadThreshold: null,
+  includeNoShowInRRCalculation: false,
   useEventLevelSelectedCalendars: false,
   rrResetInterval: null,
+  interfaceLanguage: null,
   customReplyToEmail: null,
 };
 
