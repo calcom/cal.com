@@ -2,7 +2,7 @@
 import z from "zod";
 
 import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
-import { isSupportedTimeZone } from "@calcom/lib/dayjs";
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 
 export const bookingCreateBodySchema = z.object({
   end: z.string().optional(),
@@ -12,7 +12,7 @@ export const bookingCreateBodySchema = z.object({
   recurringEventId: z.string().optional(),
   rescheduledBy: z.string().email({ message: "Invalid email" }).optional(),
   start: z.string(),
-  timeZone: z.string().refine((value: string) => isSupportedTimeZone(value), { message: "Invalid timezone" }),
+  timeZone: timeZoneSchema,
   user: z.union([z.string(), z.array(z.string())]).optional(),
   language: z.string(),
   bookingUid: z.string().optional(),
