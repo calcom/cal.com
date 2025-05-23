@@ -202,9 +202,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     type: booking?.eventType?.slug as string,
     title: booking.title,
     description: booking.description,
-    enableSMSNotification: !!booking.eventType?.bookingFields.find(
-      (field) => field.name === "attendeePhoneNumber" && field.enableSMSNotification
-    ),
     bookerUrl,
     // TODO: Remove the usage of `bookingFields` in computing responses. We can do that by storing `label` with the response. Also, this would allow us to correctly show the label for a field even after the Event Type has been deleted.
     ...getCalEventResponses({

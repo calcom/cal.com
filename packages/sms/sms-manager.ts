@@ -6,7 +6,6 @@ import { SENDER_ID } from "@calcom/lib/constants";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
-import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 const handleSendingSMS = async ({
@@ -15,38 +14,25 @@ const handleSendingSMS = async ({
   senderID,
   teamId,
   bookingUid,
+  organizerUserId,
 }: {
   reminderPhone: string;
   smsMessage: string;
   senderID: string;
   teamId?: number;
   bookingUid?: string | null;
+  organizerUserId?: number;
 }) => {
-  if (teamId) {
-    const team = await prisma.team.findUnique({
-      where: { id: teamId },
-      select: {
-        parent: {
-          select: {
-            isOrganization: true,
-            organizationSettings: {
-              select: {
-                disablePhoneOnlySMSNotifications: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (team?.parent?.organizationSettings?.disablePhoneOnlySMSNotifications) {
-      return; // resolves implicitly (as undefined)
-    }
-  }
-
   try {
+    // If teamId is provided, we check the rate limit for the team.
+    // If organizerUserId is provided, we check the rate limit for the organizer.
+    // If neither is provided(Just in case), we check the rate limit for the reminderPhone.
     await checkSMSRateLimit({
-      identifier: teamId ? `handleSendingSMS:team:${teamId}` : `handleSendingSMS:user:${reminderPhone}`,
+      identifier: teamId
+        ? `handleSendingSMS:team:${teamId}`
+        : organizerUserId
+        ? `handleSendingSMS:user:${organizerUserId}`
+        : `handleSendingSMS:user:${reminderPhone}`,
       rateLimitingType: "sms",
     });
 
@@ -71,39 +57,41 @@ export default abstract class SMSManager {
   calEvent: CalendarEvent;
   isTeamEvent = false;
   teamId: number | undefined = undefined;
-  private _isSMSNotificationEnabled: boolean | null = null;
+  organizerUserId: number | undefined = undefined;
 
   constructor(calEvent: CalendarEvent) {
     this.calEvent = calEvent;
     this.teamId = this.calEvent?.team?.id;
     this.isTeamEvent = !!this.calEvent?.team?.id;
+    this.organizerUserId = this.calEvent?.organizer?.id;
   }
 
   private async isSMSNotificationEnabled(): Promise<boolean> {
-    if (this._isSMSNotificationEnabled !== null) {
-      return this._isSMSNotificationEnabled;
+    const teamId = this.teamId;
+
+    if (teamId) {
+      const team = await prisma.team.findUnique({
+        where: { id: teamId },
+        select: {
+          parent: {
+            select: {
+              isOrganization: true,
+              organizationSettings: {
+                select: {
+                  disablePhoneOnlySMSNotifications: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (team?.parent?.organizationSettings?.disablePhoneOnlySMSNotifications) {
+        return false;
+      }
     }
 
-    if (!this.calEvent.eventTypeId) {
-      this._isSMSNotificationEnabled = false;
-      return false;
-    }
-
-    const eventType = await prisma.eventType.findUnique({
-      where: { id: this.calEvent.eventTypeId },
-      select: { bookingFields: true },
-    });
-
-    const parsedBookingFields = eventTypeBookingFields.parse(eventType?.bookingFields || []);
-
-    this._isSMSNotificationEnabled =
-      parsedBookingFields.length > 0
-        ? !!parsedBookingFields.find(
-            (field) => field.name === "attendeePhoneNumber" && field.enableSMSNotification
-          )
-        : true;
-
-    return this._isSMSNotificationEnabled;
+    return true;
   }
 
   getFormattedTime(
@@ -140,6 +128,7 @@ export default abstract class SMSManager {
       senderID,
       teamId,
       bookingUid,
+      organizerUserId: this.organizerUserId,
     });
   }
 

@@ -53,7 +53,6 @@ export class CalendarEventBuilder {
     seatsShowAttendees?: boolean | null;
     seatsShowAvailabilityCount?: boolean | null;
     customReplyToEmail?: string | null;
-    enableSMSNotification: boolean;
   }) {
     this.event = {
       ...this.event,
@@ -69,7 +68,6 @@ export class CalendarEventBuilder {
       seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
       seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
       customReplyToEmail: eventType.customReplyToEmail,
-      enableSMSNotification: eventType.enableSMSNotification,
     };
     return this;
   }
@@ -260,14 +258,6 @@ export class CalendarEventBuilder {
     this.event = {
       ...this.event,
       oneTimePassword,
-    };
-    return this;
-  }
-
-  withEnableSMSNotification({ enableSMSNotification }: { enableSMSNotification: boolean }) {
-    this.event = {
-      ...this.event,
-      enableSMSNotification,
     };
     return this;
   }
