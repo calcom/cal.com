@@ -7,6 +7,7 @@ import { Suspense } from "react";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { AppFlags } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
 import { Resource, CrudAction, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
@@ -74,19 +75,13 @@ const Page = async () => {
     getCachedResourcePermissions(session.user.id, session.user.org.id, Resource.Role),
   ]);
 
-  const hasRolePermissions = rolePermissions.some((permission) =>
-    [
-      `${Resource.Role}.${CrudAction.Create}`,
-      `${Resource.Role}.${CrudAction.Read}`,
-      `${Resource.Role}.${CrudAction.Update}`,
-      `${Resource.Role}.${CrudAction.Delete}`,
-      `${Resource.Role}.${CustomAction.Manage}`,
-    ].includes(permission)
-  );
-
-  if (!hasRolePermissions) {
-    return notFound();
-  }
+  const roleActions = PermissionMapper.toActionMap(rolePermissions);
+  const hasRolePermissions =
+    roleActions[CrudAction.Create] ||
+    roleActions[CrudAction.Read] ||
+    roleActions[CrudAction.Update] ||
+    roleActions[CrudAction.Delete] ||
+    roleActions[CustomAction.Manage];
 
   return (
     <SettingsHeader

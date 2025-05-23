@@ -23,6 +23,12 @@ FROM (
     ('eventType', 'update'),
     ('eventType', 'delete'),
     
+    -- Role Permissions
+    ('role', 'create'),
+    ('role', 'read'),
+    ('role', 'update'),
+    ('role', 'delete'), 
+    
     -- Team permissions
     ('team', 'create'),
     ('team', 'read'),
