@@ -14,7 +14,11 @@ const schemaMembershipRequiredParams = z.object({
   teamId: z.number(),
 });
 
-export const membershipCreateBodySchema = MembershipSchema.omit({ id: true })
+export const membershipCreateBodySchema = MembershipSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+})
   .partial({
     accepted: true,
     role: true,
@@ -32,6 +36,8 @@ export const membershipEditBodySchema = MembershipSchema.omit({
   teamId: true,
   userId: true,
   id: true,
+  createdAt: true,
+  updatedAt: true,
 })
   .partial({
     accepted: true,
