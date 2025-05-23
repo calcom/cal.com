@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import type { z } from "zod";
 
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { PriceIcon } from "@calcom/features/bookings/components/event-meta/PriceIcon";
@@ -8,8 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { baseEventTypeSelect } from "@calcom/prisma";
-import type { EventType } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import type { Prisma, EventType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
@@ -17,7 +15,7 @@ import { Badge } from "@calcom/ui/components/badge";
 
 export type EventTypeDescriptionProps = {
   eventType: Pick<
-    z.infer<typeof EventType>,
+    EventType,
     Exclude<keyof typeof baseEventTypeSelect, "recurringEvent"> | "metadata" | "seatsPerTimeSlot"
   > & {
     descriptionAsSafeHTML?: string | null;
@@ -41,9 +39,11 @@ export const EventTypeDescription = ({
     [eventType.recurringEvent]
   );
 
+  const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata);
+
   const paymentAppData = getPaymentAppData({
     ...eventType,
-    metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
+    metadata,
   });
 
   return (
@@ -62,8 +62,8 @@ export const EventTypeDescription = ({
           />
         )}
         <ul className="mt-2 flex flex-wrap gap-x-2 gap-y-1">
-          {eventType.metadata?.multipleDuration ? (
-            eventType.metadata.multipleDuration.map((dur, idx) => (
+          {metadata?.multipleDuration ? (
+            metadata.multipleDuration.map((dur, idx) => (
               <li key={idx}>
                 <Badge variant="gray" startIcon="clock">
                   {dur}m
@@ -112,7 +112,7 @@ export const EventTypeDescription = ({
           {eventType.requiresConfirmation && (
             <li className="hidden xl:block" data-testid="requires-confirmation-badge">
               <Badge variant="gray" startIcon="clipboard">
-                {eventType.metadata?.requiresConfirmationThreshold
+                {metadata?.requiresConfirmationThreshold
                   ? t("may_require_confirmation")
                   : t("requires_confirmation")}
               </Badge>
