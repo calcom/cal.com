@@ -136,11 +136,8 @@ export const FormBuilder = function FormBuilder({
           {title}
           {LockedIcon}
         </div>
-        <div className="flex items-center justify-between">
-          <p className="text-subtle mt-0.5 max-w-[280px] break-words text-sm sm:max-w-[500px]">
-            {description}
-          </p>
-
+        <div className="flex items-start justify-between">
+          <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">{description}</p>
           {showPhoneAndEmailToggle && (
             <ToggleGroup
               defaultValue="email"
@@ -148,10 +145,17 @@ export const FormBuilder = function FormBuilder({
                 {
                   value: "email",
                   label: "Email",
+                  iconLeft: <Icon name="mail" className="h-4 w-4" />,
                 },
                 {
                   value: "phone",
                   label: "Phone",
+                  iconLeft: <Icon name="phone" className="h-4 w-4" />,
+                },
+                {
+                  value: "none",
+                  label: "None",
+                  iconLeft: <Icon name="bell-off" className="h-4 w-4" />,
                 },
               ]}
               onValueChange={(value) => {
@@ -181,11 +185,18 @@ export const FormBuilder = function FormBuilder({
                     hidden: false,
                     required: true,
                   });
+                } else if (value == "none") {
                 }
               }}
             />
           )}
         </div>
+        <p className="text-default mt-5 text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
+          {t("questions")}
+        </p>
+        <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">
+          {t("all_info_your_booker_provide")}
+        </p>
         <ul ref={parent} className="border-subtle divide-subtle mt-4 divide-y rounded-md border">
           {fields.map((field, index) => {
             let options = field.options ?? null;
@@ -663,24 +674,6 @@ function FieldEditDialog({
                         }}
                         label={t("exclude_emails_that_contain")}
                         placeholder="gmail.com, hotmail.com, ..."
-                      />
-                    )}
-
-                    {fieldName === "attendeePhoneNumber" && (
-                      <Controller
-                        name="enableSMSNotification"
-                        control={fieldForm.control}
-                        render={({ field: { value, onChange } }) => {
-                          return (
-                            <BooleanToggleGroupField
-                              data-testid="field-enable-sms-notification"
-                              value={value}
-                              onValueChange={onChange}
-                              label={t("enable_sms_notification")}
-                              infoBadgeContent={t("enable_sms_notification_info")}
-                            />
-                          );
-                        }}
                       />
                     )}
 

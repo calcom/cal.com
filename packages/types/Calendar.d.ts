@@ -206,7 +206,6 @@ export interface CalendarEvent {
   iCalUID?: string | null;
   iCalSequence?: number | null;
   hideOrganizerEmail?: boolean;
-  enableSMSNotification?: boolean;
 
   // It has responses to all the fields(system + user)
   responses?: CalEventResponses | null;

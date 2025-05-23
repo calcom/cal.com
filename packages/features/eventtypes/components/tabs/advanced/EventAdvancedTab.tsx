@@ -574,7 +574,7 @@ export const EventAdvancedTab = ({
           <div className="text-default text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
             {t("booking_questions_title")}
           </div>
-          <p className="text-subtle mt-0.5 max-w-[280px] break-words text-sm sm:max-w-[500px]">
+          <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">
             {t("booking_questions_description")}
           </p>
         </div>
