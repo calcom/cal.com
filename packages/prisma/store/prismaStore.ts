@@ -15,6 +15,18 @@ export type PrismaClientWithExtensions = ReturnType<typeof getPrismaClient>;
 
 type Store = { clients: Record<Tenant, PrismaClientWithExtensions>; currentTenant?: Tenant };
 
+// DRY & KISS: Utility to get the clients map, using globalThis in dev
+type ClientsMap = Partial<Record<Tenant, PrismaClientWithExtensions>>;
+function getClientsMap(): ClientsMap {
+  if (process.env.NODE_ENV === "production") {
+    return {};
+  }
+  if (!(globalThis as any).__prismaClients) {
+    (globalThis as any).__prismaClients = {};
+  }
+  return (globalThis as any).__prismaClients;
+}
+
 const als = new AsyncLocalStorage<Store>();
 
 const getPrismaClient = (options?: Prisma.PrismaClientOptions) => {
@@ -54,7 +66,7 @@ export function runWithTenants<T>(tenant?: Tenant | (() => Promise<T>), fn?: () 
     return fn!();
   }
   // Otherwise, create a new context
-  return als.run({ clients: {}, currentTenant: tenant as Tenant | undefined } as Store, fn!);
+  return als.run({ clients: getClientsMap(), currentTenant: tenant as Tenant | undefined } as Store, fn!);
 }
 
 export function getPrisma(tenant: Tenant, options?: Prisma.PrismaClientOptions) {
