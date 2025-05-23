@@ -33,6 +33,6 @@
     "declarationMap": false,
     "resolveJsonModule": true,
     "declarationDir": "types/server",
-    "moduleResolution": "node"
+    "moduleResolution": "nodenext"
   }
 }

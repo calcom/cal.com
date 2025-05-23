@@ -5,6 +5,7 @@
     "target": "ES2015",
     "baseUrl": ".",
     "module": "ESNext",
+    "moduleResolution": "node",
     "declaration": true,
     "outDir": "dist",
     "paths": {
