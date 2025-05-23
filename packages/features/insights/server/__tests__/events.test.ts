@@ -394,5 +394,111 @@ describe("EventsInsights", () => {
 
       expect(ranges).toEqual([]);
     });
+
+    describe("Week start variations", () => {
+      const timeZone = "UTC";
+
+      it("should handle weekly ranges with Monday start", () => {
+        const startDate = "2025-05-01T00:00:00.000Z"; // Thursday
+        const endDate = "2025-05-14T23:59:59.999Z"; // Wednesday
+
+        const ranges = EventsInsights.getDateRanges({
+          startDate,
+          endDate,
+          timeZone,
+          timeView: "week",
+          weekStart: "Monday",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        expect(ranges).toHaveLength(3);
+        expect(ranges[0]).toEqual({
+          startDate: "2025-05-01T00:00:00.000Z",
+          endDate: "2025-05-04T23:59:59.999Z",
+          formattedDate: "May 1 - May 4, 2025",
+        });
+        expect(ranges[1]).toEqual({
+          startDate: "2025-05-05T00:00:00.000Z",
+          endDate: "2025-05-11T23:59:59.999Z",
+          formattedDate: "May 5 - May 11, 2025",
+        });
+        expect(ranges[2]).toEqual({
+          startDate: "2025-05-12T00:00:00.000Z",
+          endDate: "2025-05-14T23:59:59.999Z",
+          formattedDate: "May 12 - May 14, 2025",
+        });
+      });
+
+      it("should handle weekly ranges with Sunday start", () => {
+        const startDate = "2025-05-01T00:00:00.000Z"; // Thursday
+        const endDate = "2025-05-14T23:59:59.999Z"; // Wednesday
+
+        const ranges = EventsInsights.getDateRanges({
+          startDate,
+          endDate,
+          timeZone,
+          timeView: "week",
+          weekStart: "Sunday",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        expect(ranges).toHaveLength(3);
+        expect(ranges[0]).toEqual({
+          startDate: "2025-05-01T00:00:00.000Z",
+          endDate: "2025-05-03T23:59:59.999Z",
+          formattedDate: "May 1 - May 3, 2025",
+        });
+        expect(ranges[1]).toEqual({
+          startDate: "2025-05-04T00:00:00.000Z",
+          endDate: "2025-05-10T23:59:59.999Z",
+          formattedDate: "May 4 - May 10, 2025",
+        });
+        expect(ranges[2]).toEqual({
+          startDate: "2025-05-11T00:00:00.000Z",
+          endDate: "2025-05-14T23:59:59.999Z",
+          formattedDate: "May 11 - May 14, 2025",
+        });
+      });
+
+      it("should handle weekly ranges with Saturday start", () => {
+        const startDate = "2025-05-01T00:00:00.000Z"; // Thursday
+        const endDate = "2025-05-14T23:59:59.999Z"; // Wednesday
+
+        const ranges = EventsInsights.getDateRanges({
+          startDate,
+          endDate,
+          timeZone,
+          timeView: "week",
+          weekStart: "Saturday",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        expect(ranges).toHaveLength(3);
+        expect(ranges[0]).toEqual({
+          startDate: "2025-05-01T00:00:00.000Z",
+          endDate: "2025-05-02T23:59:59.999Z",
+          formattedDate: "May 1 - May 2, 2025",
+        });
+        expect(ranges[1]).toEqual({
+          startDate: "2025-05-03T00:00:00.000Z",
+          endDate: "2025-05-09T23:59:59.999Z",
+          formattedDate: "May 3 - May 9, 2025",
+        });
+        expect(ranges[2]).toEqual({
+          startDate: "2025-05-10T00:00:00.000Z",
+          endDate: "2025-05-14T23:59:59.999Z",
+          formattedDate: "May 10 - May 14, 2025",
+        });
+      });
+    });
   });
 });
