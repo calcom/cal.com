@@ -73,11 +73,7 @@ function Field({
         }
         deleteField={router ? null : deleteField}>
         <div className="bg-default border-default w-full gap-3 rounded-2xl border p-3">
-          <AddQuestionsForm
-            shouldConsiderRequired={() => true}
-            fieldForm={hookForm}
-            fieldNameSpace={hookFieldNamespace}
-          />
+          <AddQuestionsForm fieldForm={hookForm} fieldNameSpace={hookFieldNamespace} />
         </div>
       </FormCard>
     </div>

@@ -233,7 +233,8 @@ export function AddQuestionsForm({
                 render={({ field: { value, onChange } }) => {
                   const isRequired = shouldConsiderRequired
                     ? shouldConsiderRequired(fieldForm.getValues())
-                    : value;
+                    : !!value;
+
                   return (
                     <BooleanToggleGroupField
                       data-testid="field-required"
