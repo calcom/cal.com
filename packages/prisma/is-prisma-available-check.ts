@@ -1,6 +1,6 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 
-import prisma from ".";
+const prisma = new PrismaClient();
 
 export async function isPrismaAvailableCheck() {
   try {
