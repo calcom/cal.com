@@ -191,6 +191,7 @@ export class CalendarAuth {
         });
       },
       isTokenObjectUnusable: async function (response) {
+        // TODO: Confirm that if this logic should go to isAccessTokenUnusable
         if (!response.ok || (response.status < 200 && response.status >= 300)) {
           const responseBody = await response.json();
           if (responseBody.error === "invalid_grant") {
@@ -202,6 +203,8 @@ export class CalendarAuth {
         return null;
       },
       isAccessTokenUnusable: async () => {
+        // As long as refresh_token is valid, access_token is regenerated and fixed automatically by Google Calendar when a problem with it is detected
+        // So, a situation where access_token is invalid but refresh_token is valid should not happen
         return null;
       },
       invalidateTokenObject: () => invalidateCredential(this.credential.id),
@@ -220,6 +223,8 @@ export class CalendarAuth {
         if (this.oAuthClient) {
           this.oAuthClient.setCredentials(token);
         }
+
+        // Update cached credential as well
         this.credential.key = token as Prisma.JsonValue;
       },
     });

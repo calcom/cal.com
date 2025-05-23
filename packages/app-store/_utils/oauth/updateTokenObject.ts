@@ -2,7 +2,6 @@ import type { Prisma } from "@prisma/client";
 import type z from "zod";
 
 import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 
@@ -50,13 +49,7 @@ export const updateTokenObjectInDb = async (
       }
   )
 ) => {
-  const { tokenObject, ...rest } = args;
-  log.debug(
-    "Updating token object in DB",
-    safeStringify({
-      ...rest,
-    })
-  );
+  const { tokenObject } = args;
   if (args.authStrategy === "jwt") {
     const { userId, delegatedToId, credentialType } = args;
     if (!userId) {
