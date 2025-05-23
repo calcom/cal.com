@@ -44,7 +44,7 @@ export const appsRouter = router({
     }),
   getUsersDefaultConferencingApp: authedProcedure.query(async ({ ctx }) => {
     const { getUsersDefaultConferencingAppHandler } = await import(
-      "./getUsersDefaultConferencingApp.handler"
+      "./getUsersDefaultConferencingApp.handler.js"
     );
     return getUsersDefaultConferencingAppHandler({ ctx });
   }),

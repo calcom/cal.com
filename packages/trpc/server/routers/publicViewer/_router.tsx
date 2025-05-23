@@ -16,35 +16,35 @@ const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 export const publicViewerRouter = router({
   session,
   countryCode: publicProcedure.query(async (opts) => {
-    const { default: handler } = await import("./countryCode.handler");
-    return handler(opts);
+    const handler = await import("./countryCode.handler");
+    return handler.default(opts);
   }),
   submitRating: publicProcedure.input(ZSubmitRatingInputSchema).mutation(async (opts) => {
-    const { default: handler } = await import("./submitRating.handler");
-    return handler(opts);
+    const handler = await import("./submitRating.handler");
+    return handler.default(opts);
   }),
   markHostAsNoShow: publicProcedure.input(ZMarkHostAsNoShowInputSchema).mutation(async (opts) => {
-    const { default: handler } = await import("./markHostAsNoShow.handler");
-    return handler(opts);
+    const handler = await import("./markHostAsNoShow.handler");
+    return handler.default(opts);
   }),
   samlTenantProduct: publicProcedure.input(ZSamlTenantProductInputSchema).mutation(async (opts) => {
-    const { default: handler } = await import("./samlTenantProduct.handler");
-    return handler(opts);
+    const handler = await import("./samlTenantProduct.handler");
+    return handler.default(opts);
   }),
   stripeCheckoutSession: publicProcedure.input(ZStripeCheckoutSessionInputSchema).query(async (opts) => {
-    const { default: handler } = await import("./stripeCheckoutSession.handler");
-    return handler(opts);
+    const handler = await import("./stripeCheckoutSession.handler");
+    return handler.default(opts);
   }),
   event,
   ssoConnections: publicProcedure.query(async () => {
-    const { default: handler } = await import("./ssoConnections.handler");
-    return handler();
+    const handler = await import("./ssoConnections.handler");
+    return handler.default();
   }),
 
   checkIfUserEmailVerificationRequired: publicProcedure
     .input(ZUserEmailVerificationRequiredSchema)
     .query(async (opts) => {
-      const { default: handler } = await import("./checkIfUserEmailVerificationRequired.handler");
-      return handler(opts);
+      const handler = await import("./checkIfUserEmailVerificationRequired.handler");
+      return handler.default(opts);
     }),
 });
