@@ -23,7 +23,7 @@ type CalVideoSettings = {
   disableRecordingForOrganizer: boolean;
 };
 
-const checkShowRecordingButton = ({
+const shouldEnableRecordButton = ({
   hasTeamPlan,
   calVideoSettings,
   isOrganizer,
@@ -131,9 +131,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   });
 
   const sessionUserId = !!session?.user?.impersonatedBy ? session.user.impersonatedBy.id : session?.user.id;
+  const isAttendee = sessionUserId !== bookingObj.user?.id;
 
   // set meetingPassword for guests
-  if (sessionUserId !== bookingObj.user?.id) {
+  if (isAttendee) {
     const guestMeetingPassword = await generateGuestMeetingTokenFromOwnerMeetingToken({
       meetingToken: videoReferencePassword,
       userId: sessionUserId,
@@ -165,7 +166,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     ? await featureRepo.checkIfTeamHasFeature(profile.organizationId, "cal-video-log-in-overlay")
     : false;
 
-  const showRecordingButton = checkShowRecordingButton({
+  const showRecordingButton = shouldEnableRecordButton({
     hasTeamPlan: !!hasTeamPlan,
     calVideoSettings: bookingObj.eventType?.calVideoSettings,
     isOrganizer: sessionUserId === bookingObj.user?.id,
@@ -192,10 +193,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       displayLogInOverlay,
       loggedInUserName: sessionUserId ? session?.user?.name : undefined,
       showRecordingButton,
-      redirectUrlOnExit:
-        sessionUserId !== bookingObj.user?.id
-          ? bookingObj.eventType?.calVideoSettings?.redirectUrlOnExit
-          : undefined,
+      rediectAttendeeToOnExit: isAttendee
+        ? bookingObj.eventType?.calVideoSettings?.redirectUrlOnExit
+        : undefined,
     },
   };
 }

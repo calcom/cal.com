@@ -35,7 +35,7 @@ export default function JoinCall(props: PageProps) {
     displayLogInOverlay,
     loggedInUserName,
     showRecordingButton,
-    redirectUrlOnExit,
+    rediectAttendeeToOnExit,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
 
@@ -133,7 +133,7 @@ export default function JoinCall(props: PageProps) {
       </div>
       {displayLogInOverlay && <LogInOverlay isLoggedIn={!!loggedInUserName} bookingUid={booking.uid} />}
 
-      <VideoMeetingInfo booking={booking} redirectUrlOnExit={redirectUrlOnExit} />
+      <VideoMeetingInfo booking={booking} rediectAttendeeToOnExit={rediectAttendeeToOnExit} />
     </DailyProvider>
   );
 }
@@ -262,20 +262,20 @@ export function LogInOverlay(props: LogInOverlayProps) {
 
 interface VideoMeetingInfo {
   booking: PageProps["booking"];
-  redirectUrlOnExit?: string | null;
+  rediectAttendeeToOnExit?: string | null;
 }
 
 export function VideoMeetingInfo(props: VideoMeetingInfo) {
   const [open, setOpen] = useState(false);
-  const { booking, redirectUrlOnExit } = props;
+  const { booking, rediectAttendeeToOnExit } = props;
   const { t } = useLocale();
 
   const endTime = new Date(booking.endTime);
   const startTime = new Date(booking.startTime);
 
   useDailyEvent("left-meeting", () => {
-    if (redirectUrlOnExit) {
-      window.location.href = redirectUrlOnExit;
+    if (rediectAttendeeToOnExit) {
+      window.location.href = rediectAttendeeToOnExit;
     }
   });
 

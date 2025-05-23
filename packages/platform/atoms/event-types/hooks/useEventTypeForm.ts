@@ -165,7 +165,7 @@ export const useEventTypeForm = ({
           locations: locationsResolver(t),
           calVideoSettings: z
             .object({
-              redirectUrlOnExit: z.string().url().optional().nullable(),
+              redirectUrlOnExit: z.string().url().nullish(),
               disableRecordingForOrganizer: z.boolean().nullable(),
               disableRecordingForGuests: z.boolean().nullable(),
             })

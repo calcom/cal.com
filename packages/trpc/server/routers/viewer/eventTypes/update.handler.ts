@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
+import { DailyLocationType } from "@calcom/app-store/locations";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -11,11 +12,13 @@ import tasker from "@calcom/features/tasker";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType, EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
+import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -528,33 +531,20 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (calVideoSettings) {
-    await ctx.prisma.calVideoSettings.upsert({
-      where: { eventTypeId: id },
-      update: {
-        disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
-        disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
-        redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
-        updatedAt: new Date(),
-      },
-      create: {
-        disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
-        disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
-        redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
-        eventTypeId: id,
-      },
+    await CalVideoSettingsRepository.createOrUpdateCalVideoSettings({
+      eventTypeId: id,
+      calVideoSettings,
     });
   }
 
+  const parsedEventTypeLocations = eventTypeLocations.parse(eventType.locations ?? []);
+
   const isCalVideoLocationActive = locations
-    ? locations.some((location) => location.type === "integrations:daily")
-    : (eventType.locations as { type: string }[] | undefined)?.some(
-        (location) => location.type === "integrations:daily"
-      );
+    ? locations.some((location) => location.type === DailyLocationType)
+    : parsedEventTypeLocations?.some((location) => location.type === DailyLocationType);
 
   if (eventType.calVideoSettings && !isCalVideoLocationActive) {
-    await ctx.prisma.calVideoSettings.delete({
-      where: { eventTypeId: id },
-    });
+    await CalVideoSettingsRepository.deleteCalVideoSettings(id);
   }
 
   // Logic for updating `fieldTranslations`
