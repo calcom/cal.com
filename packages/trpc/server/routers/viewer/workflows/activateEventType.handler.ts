@@ -5,7 +5,7 @@ import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { MembershipRole, SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -26,7 +26,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
   const { eventTypeId, workflowId } = input;
 
   // Check that event type belong to the user or team
-  const userEventType = await prisma.eventType.findFirst({
+  const eventType = await prisma.eventType.findFirst({
     where: {
       id: eventTypeId,
       OR: [
@@ -46,29 +46,87 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         },
       ],
     },
-    include: {
-      children: true,
+    select: {
+      id: true,
+      teamId: true,
+      hideOrganizerEmail: true,
+      customReplyToEmail: true,
+      schedulingType: true,
+      slug: true,
+      hosts: {
+        select: {
+          user: {
+            select: {
+              email: true,
+              destinationCalendar: {
+                select: {
+                  primaryEmail: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      children: {
+        select: {
+          id: true,
+          teamId: true,
+          hideOrganizerEmail: true,
+          customReplyToEmail: true,
+          schedulingType: true,
+          slug: true,
+          hosts: {
+            select: {
+              user: {
+                select: {
+                  email: true,
+                  destinationCalendar: {
+                    select: {
+                      primaryEmail: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
 
-  if (!userEventType)
+  if (!eventType)
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authorized to edit this event type" });
+
+  // at this point we know that the event type belongs to the user or team
+  // so we don't use OR, we use logic.
+  const whereClause = eventType.teamId ? { teamId: eventType.teamId } : { userId: ctx.user.id };
 
   // Check that the workflow belongs to the user or team
   const eventTypeWorkflow = await prisma.workflow.findFirst({
     where: {
       id: workflowId,
-      OR: [
-        {
-          userId: ctx.user.id,
-        },
-        {
-          teamId: userEventType.teamId || undefined,
-        },
-      ],
+      ...whereClause,
     },
-    include: {
-      steps: true,
+    select: {
+      steps: {
+        select: {
+          id: true,
+          action: true,
+          sendTo: true,
+          numberRequired: true,
+          template: true,
+          sender: true,
+          emailSubject: true,
+          reminderBody: true,
+          verifiedAt: true,
+        },
+      },
+      trigger: true,
+      time: true,
+      timeUnit: true,
+      isActiveOnAll: true,
+      teamId: true,
+      userId: true,
       team: {
         select: {
           isOrganization: true,
@@ -94,15 +152,21 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
 
   const isOrg = eventTypeWorkflow.team?.isOrganization ?? false;
 
-  const activeOn = [eventTypeId].concat(userEventType.children.map((ch) => ch.id));
+  const activeOnEventTypes = new Map<number, typeof eventType>([
+    [eventType.id, eventType],
+    ...(eventType.children
+      ? eventType.children.map((child) => [child.id, child] as [number, typeof eventType])
+      : []),
+  ]);
 
   if (isActive) {
     // disable workflow for this event type & delete all reminders
     const remindersToDelete = await prisma.workflowReminder.findMany({
       where: {
         booking: {
-          eventTypeId: eventTypeId,
-          userId: ctx.user.id,
+          eventTypeId: {
+            in: Array.from(activeOnEventTypes.keys()),
+          },
         },
         workflowStepId: {
           in: eventTypeWorkflow.steps.map((step) => {
@@ -123,7 +187,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
     await prisma.workflowsOnEventTypes.deleteMany({
       where: {
         workflowId,
-        eventTypeId: { in: [eventTypeId].concat(userEventType.children.map((ch) => ch.id)) },
+        eventTypeId: { in: Array.from(activeOnEventTypes.keys()) },
       },
     });
 
@@ -139,7 +203,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
 
       let allEventTypes = [];
 
-      //get all event types of of team or user
+      //get all event types of team or user
       if (eventTypeWorkflow.teamId) {
         allEventTypes = await prisma.eventType.findMany({
           where: {
@@ -184,7 +248,11 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         });
       }
     }
-    await removeSmsReminderFieldForEventTypes({ activeOnToRemove: activeOn, workflowId, isOrg });
+    await removeSmsReminderFieldForEventTypes({
+      activeOnToRemove: Array.from(activeOnEventTypes.keys()),
+      workflowId,
+      isOrg,
+    });
   } else {
     if (
       eventTypeWorkflow.trigger == WorkflowTriggerEvents.BEFORE_EVENT ||
@@ -193,41 +261,49 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       // activate workflow and schedule reminders for existing bookings
       const bookingsForReminders = await prisma.booking.findMany({
         where: {
-          eventTypeId: eventTypeId,
+          eventTypeId: {
+            in: Array.from(activeOnEventTypes.keys()),
+          },
           status: BookingStatus.ACCEPTED,
           startTime: {
             gte: new Date(),
           },
         },
-        include: {
-          attendees: true,
-          eventType: {
+        select: {
+          eventTypeId: true,
+          metadata: true,
+          userId: true,
+          smsReminderNumber: true,
+          userPrimaryEmail: true,
+          startTime: true,
+          endTime: true,
+          title: true,
+          uid: true,
+          attendees: {
             select: {
-              schedulingType: true,
-              slug: true,
-              hosts: {
-                select: {
-                  user: {
-                    select: {
-                      email: true,
-                      destinationCalendar: {
-                        select: {
-                          primaryEmail: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
+              name: true,
+              email: true,
+              timeZone: true,
+              locale: true,
             },
           },
-          user: true,
+          user: {
+            select: {
+              name: true,
+              email: true,
+              timeZone: true,
+              locale: true,
+              timeFormat: true,
+            },
+          },
         },
       });
 
       const bookerUrl = await getBookerBaseUrl(ctx.user.organizationId ?? null);
 
       for (const booking of bookingsForReminders) {
+        // eventTypeId is technically nullable but we know it will be there
+        const bookingEventType = activeOnEventTypes.get(booking.eventTypeId!);
         const defaultLocale = "en";
         const bookingInfo = {
           uid: booking.uid,
@@ -253,12 +329,14 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
           endTime: booking.endTime.toISOString(),
           title: booking.title,
           language: { locale: booking?.user?.locale || defaultLocale },
+          hideOrganizerEmail: bookingEventType?.hideOrganizerEmail,
           eventType: {
-            slug: booking.eventType?.slug || "",
-            schedulingType: booking.eventType?.schedulingType,
-            hosts: booking.eventType?.hosts,
+            slug: bookingEventType?.slug || "",
+            schedulingType: bookingEventType?.schedulingType,
+            hosts: bookingEventType?.hosts,
           },
           metadata: booking.metadata,
+          customReplyToEmail: bookingEventType?.customReplyToEmail,
         };
         for (const step of eventTypeWorkflow.steps) {
           if (
@@ -310,6 +388,8 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               sender: step.sender,
               workflowStepId: step.id,
               verifiedAt: step.verifiedAt,
+              userId: eventTypeWorkflow.userId,
+              teamId: eventTypeWorkflow.teamId,
             });
           } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
             await scheduleSMSReminder({
@@ -346,18 +426,54 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               teamId: eventTypeWorkflow.teamId,
               verifiedAt: step.verifiedAt,
             });
+          } else if (booking.smsReminderNumber) {
+            if (step.action === WorkflowActions.SMS_ATTENDEE) {
+              await scheduleSMSReminder({
+                evt: bookingInfo,
+                reminderPhone: booking.smsReminderNumber,
+                triggerEvent: eventTypeWorkflow.trigger,
+                action: step.action,
+                timeSpan: {
+                  time: eventTypeWorkflow.time,
+                  timeUnit: eventTypeWorkflow.timeUnit,
+                },
+                message: step.reminderBody || "",
+                workflowStepId: step.id,
+                template: step.template,
+                sender: step.sender,
+                userId: booking.userId,
+                teamId: eventTypeWorkflow.teamId,
+                verifiedAt: step.verifiedAt,
+              });
+            } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE) {
+              await scheduleWhatsappReminder({
+                evt: bookingInfo,
+                reminderPhone: booking.smsReminderNumber,
+                triggerEvent: eventTypeWorkflow.trigger,
+                action: step.action,
+                timeSpan: {
+                  time: eventTypeWorkflow.time,
+                  timeUnit: eventTypeWorkflow.timeUnit,
+                },
+                message: step.reminderBody || "",
+                workflowStepId: step.id,
+                template: step.template,
+                sender: step.sender,
+                userId: booking.userId,
+                teamId: eventTypeWorkflow.teamId,
+                verifiedAt: step.verifiedAt,
+              });
+            }
           }
         }
       }
     }
 
     await prisma.workflowsOnEventTypes.createMany({
-      data: [
-        {
-          workflowId,
-          eventTypeId,
-        },
-      ].concat(userEventType.children.map((ch) => ({ workflowId, eventTypeId: ch.id }))),
+      data: Array.from(activeOnEventTypes).map(([eventTypeId]) => ({
+        workflowId,
+        eventTypeId,
+      })),
     });
     const requiresAttendeeNumber = (action: WorkflowActions) =>
       action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.WHATSAPP_ATTENDEE;
@@ -367,7 +483,12 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         return requiresAttendeeNumber(step.action) && step.numberRequired;
       });
 
-      await upsertSmsReminderFieldForEventTypes({ activeOn, workflowId, isSmsReminderNumberRequired, isOrg });
+      await upsertSmsReminderFieldForEventTypes({
+        activeOn: Array.from(activeOnEventTypes.keys()),
+        workflowId,
+        isSmsReminderNumberRequired,
+        isOrg,
+      });
     }
   }
 };

@@ -20,6 +20,7 @@ type TaskPayloads = {
   createCRMEvent: z.infer<typeof import("./tasks/crm/schema").createCRMEventSchema>;
   sendWorkflowEmails: z.infer<typeof import("./tasks/sendWorkflowEmails").ZSendWorkflowEmailsSchema>;
   scanWorkflowBody: z.infer<typeof import("./tasks/scanWorkflowBody").scanWorkflowBodySchema>;
+  sendAnalyticsEvent: z.infer<typeof import("./tasks/analytics/schema").sendAnalyticsEventSchema>;
 };
 export type TaskTypes = keyof TaskPayloads;
 export type TaskHandler = (payload: string) => Promise<void>;
@@ -34,4 +35,5 @@ export interface Tasker {
   processQueue(): Promise<void>;
   cleanup(): Promise<void>;
   cancel(id: string): Promise<string>;
+  cancelWithReference(referenceUid: string, type: TaskTypes): Promise<string | null>;
 }

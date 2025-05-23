@@ -6,8 +6,9 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential/server";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { DailyLocationType } from "@calcom/lib/location";
 import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -251,6 +252,7 @@ const handleDeleteCredential = async ({
                   seatsPerTimeSlot: true,
                   seatsShowAttendees: true,
                   eventName: true,
+                  hideOrganizerEmail: true,
                   team: {
                     select: {
                       id: true,
@@ -346,6 +348,7 @@ const handleDeleteCredential = async ({
                 cancellationReason: "Payment method removed by organizer",
                 seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
                 seatsShowAttendees: booking.eventType?.seatsShowAttendees,
+                hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
                 team: !!booking.eventType?.team
                   ? {
                       name: booking.eventType.team.name,

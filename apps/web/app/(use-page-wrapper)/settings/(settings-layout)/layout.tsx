@@ -1,38 +1,39 @@
 import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 import React from "react";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import type { AppFlags } from "@calcom/features/flags/config";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import type { SettingsLayoutProps } from "./SettingsLayoutAppDirClient";
 import SettingsLayoutAppDirClient from "./SettingsLayoutAppDirClient";
 
-type SettingsLayoutAppDirProps = Omit<SettingsLayoutProps, "currentOrg" | "otherTeams">;
-
-export default async function SettingsLayoutAppDir(props: SettingsLayoutAppDirProps) {
+export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const userId = session?.user?.id;
+  if (!userId) {
+    return redirect("/auth/login");
+  }
 
-  const userId = session?.user?.id ?? -1;
-  const orgId = session?.user?.org?.id ?? -1;
-  let currentOrg = null;
-  let otherTeams = null;
+  let teamFeatures: Record<number, Record<keyof AppFlags, boolean>> | null = null;
 
-  try {
-    currentOrg = await OrganizationRepository.findCurrentOrg({ userId, orgId });
-  } catch (err) {}
-
-  try {
-    otherTeams = await OrganizationRepository.findTeamsInOrgIamNotPartOf({
-      userId,
-      parentId: orgId,
-    });
-  } catch (err) {}
+  // For now we only grab organization features but it would be nice to fetch these on the server side for specific team feature flags
+  if (session?.user.org) {
+    const featuresRepository = new FeaturesRepository();
+    const features = await featuresRepository.getTeamFeatures(session.user.org.id);
+    if (features) {
+      teamFeatures = {
+        [session.user.org.id]: features,
+      };
+    }
+  }
 
   return (
     <>
-      <SettingsLayoutAppDirClient {...props} currentOrg={currentOrg} otherTeams={otherTeams} />
+      <SettingsLayoutAppDirClient {...props} teamFeatures={teamFeatures} />
     </>
   );
 }

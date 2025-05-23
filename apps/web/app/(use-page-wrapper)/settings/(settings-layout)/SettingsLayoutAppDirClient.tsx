@@ -10,13 +10,14 @@ import React, { useEffect, useState, useMemo } from "react";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { OrganizationBranding } from "@calcom/features/ee/organizations/context/provider";
+import type { AppFlags } from "@calcom/features/flags/config";
+import { useIsFeatureEnabledForTeam } from "@calcom/features/flags/hooks/useIsFeatureEnabledForTeam";
 import Shell from "@calcom/features/shell/Shell";
 import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { IdentityProvider, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -27,6 +28,8 @@ import { Icon } from "@calcom/ui/components/icon";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { VerticalTabItem } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
+
+type TeamFeatures = Record<number, Record<keyof AppFlags, boolean>> | null;
 
 const getTabs = (orgBranding: OrganizationBranding | null) => {
   const tabs: VerticalTabItemProps[] = [
@@ -255,7 +258,7 @@ const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnab
 const BackButtonInSidebar = ({ name }: { name: string }) => {
   return (
     <Link
-      href="/"
+      href="/event-types"
       className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4 transition"
       data-testid={`vertical-tab-${name}`}>
       <Icon
@@ -273,8 +276,7 @@ interface SettingsSidebarContainerProps {
   className?: string;
   navigationIsOpenedOnMobile?: boolean;
   bannersHeight?: number;
-  currentOrg: SettingsLayoutProps["currentOrg"];
-  otherTeams: SettingsLayoutProps["otherTeams"];
+  teamFeatures?: TeamFeatures;
 }
 
 const TeamListCollapsible = () => {
@@ -441,10 +443,10 @@ const SettingsSidebarContainer = ({
   className = "",
   navigationIsOpenedOnMobile,
   bannersHeight,
-  currentOrg: currentOrgProp,
-  otherTeams: otherTeamsProp,
+  teamFeatures,
 }: SettingsSidebarContainerProps) => {
   const searchParams = useCompatSearchParams();
+  const orgBranding = useOrgBranding();
   const { t } = useLocale();
   const [otherTeamMenuState, setOtherTeamMenuState] = useState<
     {
@@ -453,19 +455,21 @@ const SettingsSidebarContainer = ({
     }[]
   >();
   const session = useSession();
-  const { data: _currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    enabled: !!session.data?.user?.org && !currentOrgProp,
+
+  const isDelegationCredentialEnabled = useIsFeatureEnabledForTeam({
+    teamFeatures,
+    teamId: session.data?.user?.org?.id,
+    feature: "delegation-credential",
   });
 
   const tabsWithPermissions = useTabs({
-    isDelegationCredentialEnabled: !!_currentOrg?.features?.delegationCredential,
+    isDelegationCredentialEnabled,
   });
 
-  const { data: _otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
-    enabled: !!session.data?.user?.org && !otherTeamsProp,
+  const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
+    enabled: !!session.data?.user?.org,
   });
-  const currentOrg = currentOrgProp ?? _currentOrg;
-  const otherTeams = otherTeamsProp ?? _otherTeams;
+
   // Same as above but for otherTeams
   useEffect(() => {
     if (otherTeams) {
@@ -485,8 +489,7 @@ const SettingsSidebarContainer = ({
     }
   }, [searchParams?.get("id"), otherTeams]);
 
-  const isOrgAdminOrOwner =
-    currentOrg && currentOrg?.user?.role && ["OWNER", "ADMIN"].includes(currentOrg?.user?.role);
+  const isOrgAdminOrOwner = checkAdminOrOwner(orgBranding?.role);
 
   return (
     <nav
@@ -569,7 +572,7 @@ const SettingsSidebarContainer = ({
                       </div>
                     </Link>
                     <TeamListCollapsible />
-                    {(!currentOrg || (currentOrg && currentOrg?.user?.role !== "MEMBER")) && (
+                    {(!orgBranding?.id || isOrgAdminOrOwner) && (
                       <VerticalTabItem
                         name={t("add_a_team")}
                         href={`${WEBAPP_URL}/settings/teams/new`}
@@ -733,17 +736,11 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 
 export type SettingsLayoutProps = {
   children: React.ReactNode;
-  currentOrg: Awaited<ReturnType<typeof OrganizationRepository.findCurrentOrg>> | null;
-  otherTeams: Awaited<ReturnType<typeof OrganizationRepository.findTeamsInOrgIamNotPartOf>> | null;
   containerClassName?: string;
+  teamFeatures?: TeamFeatures;
 } & ComponentProps<typeof Shell>;
 
-export default function SettingsLayoutAppDirClient({
-  children,
-  currentOrg,
-  otherTeams,
-  ...rest
-}: SettingsLayoutProps) {
+export default function SettingsLayoutAppDirClient({ children, teamFeatures, ...rest }: SettingsLayoutProps) {
   const pathname = usePathname();
   const state = useState(false);
   const [sideContainerOpen, setSideContainerOpen] = state;
@@ -773,10 +770,9 @@ export default function SettingsLayoutAppDirClient({
       {...rest}
       SidebarContainer={
         <SidebarContainerElement
-          currentOrg={currentOrg}
-          otherTeams={otherTeams}
           sideContainerOpen={sideContainerOpen}
           setSideContainerOpen={setSideContainerOpen}
+          teamFeatures={teamFeatures}
         />
       }
       drawerState={state}
@@ -794,12 +790,18 @@ export default function SettingsLayoutAppDirClient({
   );
 }
 
+type SidebarContainerElementProps = {
+  sideContainerOpen: boolean;
+  bannersHeight?: number;
+  setSideContainerOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  teamFeatures?: TeamFeatures;
+};
+
 const SidebarContainerElement = ({
   sideContainerOpen,
   bannersHeight,
   setSideContainerOpen,
-  currentOrg,
-  otherTeams,
+  teamFeatures,
 }: SidebarContainerElementProps) => {
   const { t } = useLocale();
   return (
@@ -815,17 +817,8 @@ const SidebarContainerElement = ({
       <SettingsSidebarContainer
         navigationIsOpenedOnMobile={sideContainerOpen}
         bannersHeight={bannersHeight}
-        currentOrg={currentOrg}
-        otherTeams={otherTeams}
+        teamFeatures={teamFeatures}
       />
     </>
   );
-};
-
-type SidebarContainerElementProps = {
-  sideContainerOpen: boolean;
-  bannersHeight?: number;
-  setSideContainerOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  currentOrg: SettingsLayoutProps["currentOrg"];
-  otherTeams: SettingsLayoutProps["otherTeams"];
 };

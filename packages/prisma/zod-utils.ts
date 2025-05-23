@@ -609,6 +609,7 @@ export const downloadLinkSchema = z.object({
 export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true } = {
   title: true,
   description: true,
+  interfaceLanguage: true,
   isInstantEvent: true,
   instantMeetingParameters: true,
   instantMeetingExpiryTimeOffsetInSeconds: true,
@@ -665,8 +666,10 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   isRRWeightsEnabled: true,
   eventTypeColor: true,
   allowReschedulingPastBookings: true,
+  hideOrganizerEmail: true,
   rescheduleWithSameRoundRobinHost: true,
   maxLeadThreshold: true,
+  customReplyToEmail: true,
 };
 
 // All properties that are defined as unlocked based on all managed props
