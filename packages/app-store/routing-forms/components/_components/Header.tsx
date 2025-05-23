@@ -246,7 +246,7 @@ export function Header({
   const watchedName = form.watch("name");
 
   return (
-    <div className="bg-default flex flex-col lg:grid lg:grid-cols-3 lg:items-center">
+    <div className="bg-default sticky top-0 z-10 flex flex-col lg:grid lg:grid-cols-3 lg:items-center">
       {/* Left - Back button and title */}
       <div className="border-muted flex items-center gap-2 border-b px-4 py-3">
         <Button
