@@ -3,9 +3,10 @@ import logger from "@calcom/lib/logger";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
+import { PermissionMapper } from "../domain/mappers/PermissionMapper";
 import type { PermissionCheck, TeamPermissions } from "../domain/models/Permission";
 import type { IPermissionRepository } from "../domain/repositories/IPermissionRepository";
-import type { PermissionString } from "../domain/types/permission-registry";
+import type { PermissionString, Resource } from "../domain/types/permission-registry";
 import { PermissionRepository } from "../infrastructure/repositories/PermissionRepository";
 import { PermissionService } from "./permission.service";
 
@@ -27,6 +28,36 @@ export class PermissionCheckService {
   async getUserPermissions(userId: number): Promise<TeamPermissions[]> {
     const memberships = await this.repository.getUserMemberships(userId);
     return memberships;
+  }
+
+  /**
+   * Gets all permissions for a specific resource in a team context
+   */
+  async getResourcePermissions({
+    userId,
+    teamId,
+    resource,
+  }: {
+    userId: number;
+    teamId: number;
+    resource: Resource;
+  }): Promise<PermissionString[]> {
+    try {
+      const isPBACEnabled = await this.featuresRepository.checkIfTeamHasFeature(
+        teamId,
+        this.PBAC_FEATURE_FLAG
+      );
+
+      if (!isPBACEnabled) {
+        return [];
+      }
+
+      const actions = await this.repository.getResourcePermissions(userId, teamId, resource);
+      return actions.map((action) => PermissionMapper.toPermissionString({ resource, action }));
+    } catch (error) {
+      this.logger.error(error);
+      return [];
+    }
   }
 
   /**

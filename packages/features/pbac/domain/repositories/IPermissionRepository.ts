@@ -1,5 +1,5 @@
 import type { TeamPermissions } from "../models/Permission";
-import type { PermissionString } from "../types/permission-registry";
+import type { PermissionString, Resource, CrudAction, CustomAction } from "../types/permission-registry";
 
 export interface IPermissionRepository {
   getUserMemberships(userId: number): Promise<TeamPermissions[]>;
@@ -35,4 +35,13 @@ export interface IPermissionRepository {
 
   checkRolePermission(roleId: string, permission: PermissionString): Promise<boolean>;
   checkRolePermissions(roleId: string, permissions: PermissionString[]): Promise<boolean>;
+
+  /**
+   * Gets all permissions for a specific resource in a team context
+   */
+  getResourcePermissions(
+    userId: number,
+    teamId: number,
+    resource: Resource
+  ): Promise<(CrudAction | CustomAction)[]>;
 }

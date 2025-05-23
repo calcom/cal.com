@@ -3,7 +3,12 @@ import kysely from "@calcom/kysely";
 import { PermissionMapper } from "../../domain/mappers/PermissionMapper";
 import type { TeamPermissions } from "../../domain/models/Permission";
 import type { IPermissionRepository } from "../../domain/repositories/IPermissionRepository";
-import type { PermissionString } from "../../domain/types/permission-registry";
+import type {
+  PermissionString,
+  Resource,
+  CrudAction,
+  CustomAction,
+} from "../../domain/types/permission-registry";
 
 export class PermissionRepository implements IPermissionRepository {
   async getUserMemberships(userId: number): Promise<TeamPermissions[]> {
@@ -155,5 +160,62 @@ export class PermissionRepository implements IPermissionRepository {
       .executeTakeFirstOrThrow();
 
     return Number(matchingPermissionsCount.count) >= permissions.length;
+  }
+
+  async getResourcePermissions(
+    userId: number,
+    teamId: number,
+    resource: Resource
+  ): Promise<(CrudAction | CustomAction)[]> {
+    // First get the user's membership and team info
+    const membership = await kysely
+      .selectFrom("Membership")
+      .leftJoin("Team", "Team.id", "Membership.teamId")
+      .select([
+        "Membership.id",
+        "Membership.teamId",
+        "Membership.customRoleId",
+        "Team.parentId as team_parentId",
+      ])
+      .where("Membership.userId", "=", userId)
+      .where("Membership.teamId", "=", teamId)
+      .executeTakeFirst();
+
+    if (!membership?.customRoleId) return [];
+
+    const permissions: (CrudAction | CustomAction)[] = [];
+
+    // Get team-level permissions
+    const teamPermissions = await kysely
+      .selectFrom("RolePermission")
+      .select(["action"])
+      .where("roleId", "=", membership.customRoleId)
+      .where("resource", "=", resource)
+      .execute();
+
+    permissions.push(...teamPermissions.map((p) => p.action as CrudAction | CustomAction));
+
+    // If team has a parent org, get org-level permissions (since they are higher permissions than specific team ones)
+    if (membership.team_parentId) {
+      const orgMembership = await kysely
+        .selectFrom("Membership")
+        .select("customRoleId")
+        .where("userId", "=", userId)
+        .where("teamId", "=", membership.team_parentId)
+        .executeTakeFirst();
+
+      if (orgMembership?.customRoleId) {
+        const orgPermissions = await kysely
+          .selectFrom("RolePermission")
+          .select(["action"])
+          .where("roleId", "=", orgMembership.customRoleId)
+          .where("resource", "=", resource)
+          .execute();
+
+        permissions.push(...orgPermissions.map((p) => p.action as CrudAction | CustomAction));
+      }
+    }
+
+    return Array.from(new Set(permissions));
   }
 }

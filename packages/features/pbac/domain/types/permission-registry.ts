@@ -5,6 +5,7 @@ export enum Resource {
   Organization = "organization",
   Booking = "booking",
   Insights = "insights",
+  Role = "role",
 }
 
 export enum CrudAction {
@@ -44,6 +45,13 @@ export type PermissionString = `${Resource}.${CrudAction | CustomAction}`;
 export const PERMISSION_REGISTRY: PermissionRegistry = {
   [Resource.All]: {
     [CrudAction.All]: { description: "All actions on all resources", category: "system" },
+  },
+  [Resource.Role]: {
+    [CrudAction.Create]: { description: "Create roles", category: "role" },
+    [CrudAction.Read]: { description: "View roles", category: "role" },
+    [CrudAction.Update]: { description: "Update roles", category: "role" },
+    [CrudAction.Delete]: { description: "Delete roles", category: "role" },
+    [CustomAction.Manage]: { description: "All actions on roles", category: "role" },
   },
   [Resource.EventType]: {
     [CrudAction.Create]: { description: "Create event types", category: "event" },
