@@ -2,8 +2,6 @@ import { _generateMetadata } from "app/_utils";
 
 import Forms from "@calcom/app-store/routing-forms/pages/forms/[...appPages]";
 
-import FormProvider from "../[...pages]/FormProvider";
-
 export const generateMetadata = async () => {
   return await _generateMetadata(
     (t) => `${t("routing_forms")} | Cal.com Forms`,
@@ -15,11 +13,7 @@ export const generateMetadata = async () => {
 };
 
 const ServerPage = async () => {
-  return (
-    <FormProvider>
-      <Forms appUrl="/routing" />
-    </FormProvider>
-  );
+  return <Forms appUrl="/routing" />;
 };
 
 export default ServerPage;

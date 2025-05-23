@@ -9,8 +9,6 @@ import type { routingServerSidePropsConfig } from "@calcom/app-store/routing-for
 import { getServerSideProps } from "@lib/apps/routing-forms/[...pages]/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-import FormProvider from "./FormProvider";
-
 const normalizePages = (pages: string[] | string | undefined) => {
   const normalizedPages = Array.isArray(pages) ? pages : pages?.split("/") ?? [];
   return normalizedPages[0];
@@ -38,11 +36,7 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
 
   const Component = await routingFormsComponents[mainPage as keyof typeof routingFormsComponents]();
 
-  return (
-    <FormProvider>
-      <Component {...(props as any)} />
-    </FormProvider>
-  );
+  return <Component {...(props as any)} />;
 };
 
 export default ServerPage;
