@@ -90,6 +90,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
       eventTypeId: eventType.id,
       time: values.time,
       timeUnit: values.timeUnit,
+      delayMinutes: values.delayMinutes,
     });
   };
 
@@ -269,6 +270,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                     eventTypeId: webhookToEdit?.eventTypeId || undefined,
                     timeUnit: values.timeUnit,
                     time: values.time,
+                    delayMinutes: values.delayMinutes,
                   });
                 }}
               />

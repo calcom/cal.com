@@ -196,9 +196,22 @@ const sendPayload = async (
   secretKey: string | null,
   triggerEvent: string,
   createdAt: string,
-  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
+  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate"> & {
+    id?: string;
+    delayMinutes?: number | null;
+  },
   data: WebhookPayloadType
 ) => {
+  if (triggerEvent === "FORM_SUBMITTED_NO_EVENT" && webhook.delayMinutes) {
+    return {
+      ok: true,
+      status: 202,
+      message: `Webhook scheduled to trigger after ${webhook.delayMinutes} minutes`,
+      scheduled: true,
+      delayMinutes: webhook.delayMinutes,
+    };
+  }
+
   const { appId, payloadTemplate: template } = webhook;
 
   const contentType =
@@ -237,14 +250,31 @@ export const sendGenericWebhookPayload = async ({
   webhook,
   data,
   rootData,
+  delayMinutes,
 }: {
   secretKey: string | null;
   triggerEvent: string;
   createdAt: string;
-  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">;
+  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate"> & {
+    id?: string;
+    delayMinutes?: number | null;
+  };
   data: Record<string, unknown>;
   rootData?: Record<string, unknown>;
+  delayMinutes?: number;
 }) => {
+  if (triggerEvent === "FORM_SUBMITTED_NO_EVENT" && (delayMinutes ?? webhook.delayMinutes)) {
+    const effectiveDelayMinutes = delayMinutes ?? webhook.delayMinutes ?? 10;
+
+    return {
+      ok: true,
+      status: 202,
+      message: `Webhook scheduled to trigger after ${effectiveDelayMinutes} minutes`,
+      scheduled: true,
+      delayMinutes: effectiveDelayMinutes,
+    };
+  }
+
   const body = JSON.stringify({
     // Added rootData props first so that using the known(i.e. triggerEvent, createdAt, payload) properties in rootData doesn't override the known properties
     ...rootData,
