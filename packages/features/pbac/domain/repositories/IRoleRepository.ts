@@ -1,4 +1,6 @@
-import type { Kysely } from "kysely";
+import type { Transaction } from "kysely";
+
+import type { DB } from "@calcom/kysely";
 
 import type { Role, CreateRoleData } from "../models/Role";
 import type { PermissionString } from "../types/permission-registry";
@@ -10,5 +12,5 @@ export interface IRoleRepository {
   create(data: CreateRoleData): Promise<Role>;
   delete(id: string): Promise<void>;
   updatePermissions(roleId: string, permissions: PermissionString[]): Promise<Role>;
-  transaction<T>(callback: (repository: IRoleRepository, trx: Kysely<any>) => Promise<T>): Promise<T>;
+  transaction<T>(callback: (repository: IRoleRepository, trx: Transaction<DB>) => Promise<T>): Promise<T>;
 }

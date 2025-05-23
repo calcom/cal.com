@@ -44,7 +44,7 @@ export class RoleService {
       const role = await repo.findById(roleId);
       if (!role) throw new Error("Role not found");
 
-      // TODO: Move this to a MembershipRepository
+      // TODO: Move this to a MembershipRepository - bit difficult due to the trx record here.
       await trx
         .updateTable("Membership")
         .set({ customRoleId: roleId })

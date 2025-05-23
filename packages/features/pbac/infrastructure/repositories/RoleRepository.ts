@@ -1,6 +1,8 @@
+import type { Transaction } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { v4 as uuidv4 } from "uuid";
 
+import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
 import { RoleType } from "@calcom/prisma/enums";
 
@@ -159,7 +161,9 @@ export class RoleRepository implements IRoleRepository {
     });
   }
 
-  async transaction<T>(callback: (repository: IRoleRepository, trx: any) => Promise<T>): Promise<T> {
+  async transaction<T>(
+    callback: (repository: IRoleRepository, trx: Transaction<DB>) => Promise<T>
+  ): Promise<T> {
     return kysely.transaction().execute(async (trx) => {
       // Create a new repository instance with the transaction connection
       const transactionRepo = new RoleRepository();
