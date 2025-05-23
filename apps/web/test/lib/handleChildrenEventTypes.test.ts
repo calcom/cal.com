@@ -5,18 +5,20 @@ import { describe, expect, it, vi } from "vitest";
 
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { buildEventType } from "@calcom/lib/test/builder";
-import type { EventType } from "@calcom/prisma/client";
+import type { EventType, User, WorkflowsOnEventTypes } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 // create input does not allow ID
-const mockFindFirstEventType = (data?: Partial<Prisma.EventTypeCreateInput> & { id: number }) => {
+const mockFindFirstEventType = (
+  data?: Partial<EventType> & { workflows?: WorkflowsOnEventTypes[] } & { users?: User[] }
+) => {
   const eventType = buildEventType({
     ...data,
-    metadata: data.metadata === null ? {} : data.metadata,
+    metadata: !data?.metadata || data.metadata === null ? {} : (data.metadata as Prisma.JsonValue),
   });
   // const { scheduleId, destinationCalendar, ...restEventType } = eventType;
-  prismaMock.eventType.findFirst.mockResolvedValue(eventType as EventType);
+  prismaMock.eventType.findFirst.mockResolvedValue(eventType);
 
   return eventType;
 };
@@ -415,7 +417,7 @@ describe("handleChildrenEventTypes", () => {
         workflows: [
           {
             workflowId: 11,
-          } as CompleteWorkflowsOnEventTypes,
+          } as WorkflowsOnEventTypes,
         ],
       });
 

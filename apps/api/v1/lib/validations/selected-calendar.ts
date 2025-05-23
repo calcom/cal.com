@@ -10,14 +10,13 @@ export const schemaSelectedCalendarBaseBodyParams = SelectedCalendarSchema;
 export const schemaSelectedCalendarPublic = SelectedCalendarSchema.omit({});
 
 export const schemaSelectedCalendarBodyParams = schemaSelectedCalendarBaseBodyParams
-  .partial({
+  .pick({
+    integration: true,
+    externalId: true,
     userId: true,
   })
-  .omit({
-    // id will be set by the database
-    id: true,
-    // No eventTypeId support in API v1
-    eventTypeId: true,
+  .partial({
+    userId: true,
   });
 
 export const schemaSelectedCalendarUpdateBodyParams = schemaSelectedCalendarBaseBodyParams
