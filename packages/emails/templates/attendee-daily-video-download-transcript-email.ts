@@ -12,14 +12,21 @@ export default class AttendeeDailyVideoDownloadTranscriptEmail extends BaseEmail
   attendee: Person;
   transcriptDownloadLinks: Array<string>;
   t: TFunction;
+  summaries: Array<string>;
 
-  constructor(calEvent: CalendarEvent, attendee: Person, transcriptDownloadLinks: string[]) {
+  constructor(
+    calEvent: CalendarEvent,
+    attendee: Person,
+    transcriptDownloadLinks: string[],
+    summaries: string[]
+  ) {
     super();
     this.name = "SEND_TRANSCRIPT_DOWNLOAD_LINK";
     this.calEvent = calEvent;
     this.attendee = attendee;
     this.transcriptDownloadLinks = transcriptDownloadLinks;
     this.t = attendee.language.translate;
+    this.summaries = summaries;
   }
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const attachments = await Promise.all(
@@ -51,6 +58,7 @@ export default class AttendeeDailyVideoDownloadTranscriptEmail extends BaseEmail
         transcriptDownloadLinks: this.transcriptDownloadLinks,
         language: this.t,
         name: this.attendee.name,
+        summaries: this.summaries,
       }),
       attachments,
     };

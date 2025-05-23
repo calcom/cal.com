@@ -11,13 +11,15 @@ import BaseEmail from "./_base-email";
 export default class OrganizerDailyVideoDownloadTranscriptEmail extends BaseEmail {
   calEvent: CalendarEvent;
   transcriptDownloadLinks: Array<string>;
+  summaries?: Array<string>;
   t: TFunction;
 
-  constructor(calEvent: CalendarEvent, transcriptDownloadLinks: string[]) {
+  constructor(calEvent: CalendarEvent, transcriptDownloadLinks: string[], summaries?: string[]) {
     super();
     this.name = "SEND_TRANSCRIPT_DOWNLOAD_LINK";
     this.calEvent = calEvent;
     this.transcriptDownloadLinks = transcriptDownloadLinks;
+    this.summaries = summaries;
     this.t = this.calEvent.organizer.language.translate;
   }
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
@@ -48,6 +50,7 @@ export default class OrganizerDailyVideoDownloadTranscriptEmail extends BaseEmai
         title: this.calEvent.title,
         date: this.getFormattedDate(),
         transcriptDownloadLinks: this.transcriptDownloadLinks,
+        summaries: this.summaries,
         language: this.t,
         name: this.calEvent.organizer.name,
       }),
