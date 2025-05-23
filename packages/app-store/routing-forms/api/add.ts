@@ -1,12 +1,10 @@
 import prisma from "@calcom/prisma";
 import type { AppDeclarativeHandler } from "@calcom/types/AppHandler";
 
-import appConfig from "../config.json";
-
 const handler: AppDeclarativeHandler = {
-  appType: appConfig.type,
-  variant: appConfig.variant,
-  slug: appConfig.slug,
+  appType: "routing-forms_other",
+  variant: "other",
+  slug: "routing-forms",
   supportsMultipleInstalls: false,
   handlerType: "add",
   createCredential: async ({ user, appType, slug, teamId }) => {
