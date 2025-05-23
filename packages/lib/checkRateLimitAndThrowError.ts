@@ -1,3 +1,4 @@
+import { prisma } from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -47,7 +48,6 @@ export async function checkSMSRateLimit({
 }
 
 async function changeSMSLockState(identifier: string, status: SMSLockState) {
-  const prisma = (await import("@calcom/prisma")).prisma;
   let userId, teamId;
 
   if (identifier.startsWith("sms:user:")) {
