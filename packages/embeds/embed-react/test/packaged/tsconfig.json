@@ -1,9 +1,9 @@
 {
   "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
-    "module": "ESNext",
+    "module": "NodeNext",
     "target": "ES2015",
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "baseUrl": ".",
     "declaration": true,
     "jsx": "preserve",

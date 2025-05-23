@@ -4,8 +4,8 @@
     "jsx": "react",
     "target": "ES2015",
     "baseUrl": ".",
-    "module": "ESNext",
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
     "declaration": true,
     "outDir": "dist",
     "paths": {

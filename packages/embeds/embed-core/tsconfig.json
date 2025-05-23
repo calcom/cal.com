@@ -3,8 +3,8 @@
   "compilerOptions": {
     "jsx": "react",
     "target": "ES2015",
-    "module": "ESNext",
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
     "baseUrl": ".",
     "outDir": "dist",
     "paths": {
