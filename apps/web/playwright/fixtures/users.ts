@@ -1043,13 +1043,9 @@ export async function login(
   const passwordLocator = loginLocator.locator("#password");
   const signInLocator = loginLocator.locator('[type="submit"]');
 
-  // Check if current URL already has a login form with callbackUrl
-  const currentUrl = page.url();
-  const isLoginFormVisible = await loginLocator.isVisible();
-  if (!currentUrl.includes("callbackUrl") && !isLoginFormVisible) {
-    await page.goto("/");
-    await page.waitForSelector("text=Welcome back");
-  }
+  //login
+  await page.goto("/");
+  await page.waitForSelector("text=Welcome back");
 
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
