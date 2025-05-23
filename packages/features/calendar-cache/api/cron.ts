@@ -68,7 +68,8 @@ const handleCalendarsToUnwatch = async () => {
           // So we don't retry on next cron run
 
           // FIXME: There could actually be multiple calendars with the same externalId and thus we need to technically update error for all of them
-          await SelectedCalendarRepository.updateById(id, {
+          await SelectedCalendarRepository.setErrorInUnwatching({
+            id,
             error: "Missing credentialId",
           });
           log.error("no credentialId for SelectedCalendar: ", id);
@@ -78,25 +79,29 @@ const handleCalendarsToUnwatch = async () => {
         try {
           const cc = await CalendarCache.initFromCredentialId(credentialId);
           await cc.unwatchCalendar({ calendarId: externalId, eventTypeIds });
+          await SelectedCalendarRepository.removeUnwatchingError({ id });
         } catch (error) {
           let errorMessage = "Unknown error";
           if (error instanceof Error) {
             errorMessage = error.message;
           }
           log.error(
-            "Error unwatching calendar: ",
+            `Error unwatching calendar ${externalId}`,
             safeStringify({
               selectedCalendarId: id,
               error: errorMessage,
             })
           );
-          await SelectedCalendarRepository.updateById(id, {
-            error: `Error unwatching calendar: ${errorMessage}`,
+          await SelectedCalendarRepository.setErrorInUnwatching({
+            id,
+            error: `${errorMessage}`,
           });
         }
       }
     )
   );
+
+  log.info(`Processed ${result.length} calendars for unwatching`);
 
   result.forEach(logRejected);
   return result;
@@ -110,9 +115,7 @@ const handleCalendarsToWatch = async () => {
       async ([externalId, { credentialId, eventTypeIds, id }]) => {
         if (!credentialId) {
           // So we don't retry on next cron run
-          await SelectedCalendarRepository.updateById(id, {
-            error: "Missing credentialId",
-          });
+          await SelectedCalendarRepository.setErrorInWatching({ id, error: "Missing credentialId" });
           log.error("no credentialId for SelectedCalendar: ", id);
           return;
         }
@@ -120,25 +123,28 @@ const handleCalendarsToWatch = async () => {
         try {
           const cc = await CalendarCache.initFromCredentialId(credentialId);
           await cc.watchCalendar({ calendarId: externalId, eventTypeIds });
+          await SelectedCalendarRepository.removeWatchingError({ id });
         } catch (error) {
           let errorMessage = "Unknown error";
           if (error instanceof Error) {
             errorMessage = error.message;
           }
           log.error(
-            "Error watching calendar: ",
+            `Error watching calendar ${externalId}`,
             safeStringify({
               selectedCalendarId: id,
               error: errorMessage,
             })
           );
-          await SelectedCalendarRepository.updateById(id, {
-            error: `Error watching calendar: ${errorMessage}`,
+          await SelectedCalendarRepository.setErrorInWatching({
+            id,
+            error: `${errorMessage}`,
           });
         }
       }
     )
   );
+  log.info(`Processed ${result.length} calendars for watching`);
   result.forEach(logRejected);
   return result;
 };
