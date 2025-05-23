@@ -21,7 +21,7 @@ import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repo
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { WebhookRepositoryFixture } from "test/fixtures/repository/webhooks.repository.fixture";
 import { randomString } from "test/utils/randomString";
-import { withNextAuth } from "test/utils/withNextAuth";
+import { withApiAuth } from "test/utils/withApiAuth";
 
 import { PlatformOAuthClient, Team, Webhook } from "@calcom/prisma/client";
 
@@ -47,7 +47,7 @@ describe("OAuth client WebhooksController (e2e)", () => {
   let webhook: OAuthClientWebhookOutputResponseDto["data"];
 
   beforeAll(async () => {
-    const moduleRef = await withNextAuth(
+    const moduleRef = await withApiAuth(
       userEmail,
       Test.createTestingModule({
         imports: [AppModule, PrismaModule, UsersModule, TokensModule],
