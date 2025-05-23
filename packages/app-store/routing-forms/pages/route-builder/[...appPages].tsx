@@ -12,7 +12,7 @@ import { Toaster } from "sonner";
 import type { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils";
+import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils.shared";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { buildEmptyQueryValue, raqbQueryValueUtils } from "@calcom/lib/raqb/raqbUtils";
 import { SchedulingType } from "@calcom/prisma/client";
