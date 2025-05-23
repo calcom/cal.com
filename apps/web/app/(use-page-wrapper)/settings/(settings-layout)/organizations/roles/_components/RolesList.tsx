@@ -20,7 +20,14 @@ type Role = {
 
 type Roles = Role[];
 
-export function RolesList({ roles }: { roles: Roles }) {
+type Permissions = {
+  canCreate: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
+  canRead: boolean;
+};
+
+export function RolesList({ roles }: { roles: Roles; permissions: Permissions }) {
   const { t } = useLocale();
   return (
     <div className="mt-4">

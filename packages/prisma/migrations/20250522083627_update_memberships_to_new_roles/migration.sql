@@ -90,6 +90,9 @@ FROM (
     
     -- Team permissions
     ('team', 'read'),
+
+    -- Role Permissions
+    ('role', 'read'),
     
     -- Organization permissions
     ('organization', 'read'),

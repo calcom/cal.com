@@ -32,6 +32,7 @@ export class PermissionCheckService {
 
   /**
    * Gets all permissions for a specific resource in a team context
+   * @warning: this approach of fetching permssions per resource does not account for fall back roles. This should be used in places where you know PBAC is enabled and has been rolled out.
    */
   async getResourcePermissions({
     userId,

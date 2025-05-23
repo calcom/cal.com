@@ -1,6 +1,8 @@
 import type { TeamPermissions, Permission } from "../models/Permission";
-import { CrudAction, CustomAction } from "../types/permission-registry";
-import type { PermissionString, Resource } from "../types/permission-registry";
+import { CrudAction, CustomAction, Resource, PERMISSION_REGISTRY } from "../types/permission-registry";
+import type { PermissionString, PermissionRegistry } from "../types/permission-registry";
+
+export type ResourceActions<R extends Resource> = keyof PermissionRegistry[R];
 
 export class PermissionMapper {
   static toDomain(
@@ -52,28 +54,47 @@ export class PermissionMapper {
     };
   }
 
-  static toActionMap(permissions: PermissionString[]): Record<CrudAction | CustomAction, boolean> {
-    const actionMap = {} as Record<CrudAction | CustomAction, boolean>;
+  static toActionMap<R extends Resource>(
+    permissions: PermissionString[],
+    resource: R
+  ): Record<ResourceActions<R>, boolean> {
+    const actionMap = {} as Record<ResourceActions<R>, boolean>;
 
     // Initialize all actions as false
     Object.values(CrudAction).forEach((action) => {
-      if (action !== "*") actionMap[action] = false;
+      if (action !== "*" && this.isActionAvailableForResource(resource, action)) {
+        actionMap[action as ResourceActions<R>] = false;
+      }
     });
     Object.values(CustomAction).forEach((action) => {
-      actionMap[action] = false;
+      if (this.isActionAvailableForResource(resource, action)) {
+        actionMap[action as ResourceActions<R>] = false;
+      }
     });
 
     // Set permitted actions to true
     permissions.forEach((permString) => {
       try {
-        const { action } = this.fromPermissionString(permString);
-        if (action === "*") {
-          // If wildcard, set all actions to true
+        // Check for *.* first as it grants all permissions
+        if (permString === `${Resource.All}.${CrudAction.All}`) {
           Object.keys(actionMap).forEach((key) => {
-            actionMap[key as CrudAction | CustomAction] = true;
+            actionMap[key as ResourceActions<R>] = true;
           });
-        } else {
-          actionMap[action] = true;
+          return;
+        }
+
+        const { action, resource: permResource } = this.fromPermissionString(permString);
+
+        // Only process permissions for the requested resource
+        if (permResource === resource || permResource === Resource.All) {
+          if (action === CrudAction.All) {
+            // If wildcard action, set all available actions to true
+            Object.keys(actionMap).forEach((key) => {
+              actionMap[key as ResourceActions<R>] = true;
+            });
+          } else if (this.isActionAvailableForResource(resource, action)) {
+            actionMap[action as ResourceActions<R>] = true;
+          }
         }
       } catch (error) {
         console.error(`Invalid permission string: ${permString}`);
@@ -81,5 +102,12 @@ export class PermissionMapper {
     });
 
     return actionMap;
+  }
+
+  private static isActionAvailableForResource(
+    resource: Resource,
+    action: CrudAction | CustomAction
+  ): boolean {
+    return !!PERMISSION_REGISTRY[resource]?.[action];
   }
 }

@@ -75,22 +75,35 @@ const Page = async () => {
     getCachedResourcePermissions(session.user.id, session.user.org.id, Resource.Role),
   ]);
 
-  const roleActions = PermissionMapper.toActionMap(rolePermissions);
-  const hasRolePermissions =
-    roleActions[CrudAction.Create] ||
-    roleActions[CrudAction.Read] ||
-    roleActions[CrudAction.Update] ||
-    roleActions[CrudAction.Delete] ||
-    roleActions[CustomAction.Manage];
+  // NOTE: this approach of fetching permssions per resource does not account for fall back roles.
+  const roleActions = PermissionMapper.toActionMap(rolePermissions, Resource.Role);
+
+  const canCreate = roleActions[CrudAction.Create] ?? false;
+  const canRead = roleActions[CrudAction.Read] ?? false;
+  const canUpdate = roleActions[CrudAction.Update] ?? false;
+  const canDelete = roleActions[CrudAction.Delete] ?? false;
+  const canManage = roleActions[CustomAction.Manage] ?? false;
+
+  if (!canRead) {
+    return notFound();
+  }
 
   return (
     <SettingsHeader
       title={t("roles_and_permissions")}
       description={t("roles_and_permissions_description")}
       borderInShellHeader={false}
-      CTA={<CreateRoleCTA />}>
+      CTA={canCreate || canManage ? <CreateRoleCTA /> : null}>
       <Suspense fallback={<SkeletonLoader />}>
-        <RolesList roles={roles} />
+        <RolesList
+          roles={roles}
+          permissions={{
+            canCreate: canCreate || canManage,
+            canRead: canRead || canManage,
+            canUpdate: canUpdate || canManage,
+            canDelete: canDelete || canManage,
+          }}
+        />
       </Suspense>
     </SettingsHeader>
   );

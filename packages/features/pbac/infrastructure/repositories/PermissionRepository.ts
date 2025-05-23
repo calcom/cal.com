@@ -3,12 +3,8 @@ import kysely from "@calcom/kysely";
 import { PermissionMapper } from "../../domain/mappers/PermissionMapper";
 import type { TeamPermissions } from "../../domain/models/Permission";
 import type { IPermissionRepository } from "../../domain/repositories/IPermissionRepository";
-import type {
-  PermissionString,
-  Resource,
-  CrudAction,
-  CustomAction,
-} from "../../domain/types/permission-registry";
+import type { CrudAction, CustomAction } from "../../domain/types/permission-registry";
+import { Resource, type PermissionString } from "../../domain/types/permission-registry";
 
 export class PermissionRepository implements IPermissionRepository {
   async getUserMemberships(userId: number): Promise<TeamPermissions[]> {
@@ -188,14 +184,16 @@ export class PermissionRepository implements IPermissionRepository {
     // Get team-level permissions
     const teamPermissions = await kysely
       .selectFrom("RolePermission")
-      .select(["action"])
+      .select(["action", "resource"])
       .where("roleId", "=", membership.customRoleId)
-      .where("resource", "=", resource)
+      .where((eb) => eb.or([eb("resource", "=", resource), eb("resource", "=", Resource.All)]))
       .execute();
+
+    console.log({ teamPermissions });
 
     permissions.push(...teamPermissions.map((p) => p.action as CrudAction | CustomAction));
 
-    // If team has a parent org, get org-level permissions (since they are higher permissions than specific team ones)
+    // If team has a parent org, get org-level permissions
     if (membership.team_parentId) {
       const orgMembership = await kysely
         .selectFrom("Membership")
@@ -207,9 +205,9 @@ export class PermissionRepository implements IPermissionRepository {
       if (orgMembership?.customRoleId) {
         const orgPermissions = await kysely
           .selectFrom("RolePermission")
-          .select(["action"])
+          .select(["action", "resource"])
           .where("roleId", "=", orgMembership.customRoleId)
-          .where("resource", "=", resource)
+          .where((eb) => eb.or([eb("resource", "=", resource), eb("resource", "=", Resource.All)]))
           .execute();
 
         permissions.push(...orgPermissions.map((p) => p.action as CrudAction | CustomAction));
