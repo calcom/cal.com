@@ -501,6 +501,7 @@ model Team {
   // Available for Organization only
   delegationCredentials  DelegationCredential[]
   domainWideDelegations  DomainWideDelegation[]
+  roles                  Role[] // Added for Role relation
 
   features TeamFeatures[]
 
@@ -585,11 +586,13 @@ model Membership {
   userId               Int
   accepted             Boolean           @default(false)
   role                 MembershipRole
+  customRoleId         String?
+  customRole           Role?             @relation(fields: [customRoleId], references: [id])
   team                 Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   disableImpersonation Boolean           @default(false)
   AttributeToUser      AttributeToUser[]
-  createdAt            DateTime?
+  createdAt            DateTime?         @default(now())
   updatedAt            DateTime?         @updatedAt
 
   @@unique([userId, teamId])
@@ -597,6 +600,7 @@ model Membership {
   @@index([userId])
   @@index([accepted])
   @@index([role])
+  @@index([customRoleId])
 }
 
 model VerificationToken {
@@ -1132,14 +1136,14 @@ model App_RoutingForms_FormResponse {
 }
 
 model RoutingFormResponseField {
-  id               Int                              @id @default(autoincrement())
-  responseId       Int?
+  id               Int                             @id @default(autoincrement())
+  responseId       Int
   fieldId          String
   valueString      String?
   valueNumber      Decimal?
   valueStringArray String[]
-  response         App_RoutingForms_FormResponse?   @relation(fields: [responseId], references: [id], map: "RoutingFormResponseField_response_fkey")
-  denormalized     RoutingFormResponseDenormalized? @relation("DenormalizedResponseToFields", fields: [responseId], references: [id])
+  response         App_RoutingForms_FormResponse   @relation(fields: [responseId], references: [id], map: "RoutingFormResponseField_response_fkey", onDelete: Cascade)
+  denormalized     RoutingFormResponseDenormalized @relation("DenormalizedResponseToFields", fields: [responseId], references: [id], onDelete: Cascade)
 
   @@index([responseId])
   @@index([fieldId])
@@ -2003,6 +2007,10 @@ model DelegationCredential {
   /// @zod.custom(imports.serviceAccountKeySchema)
   serviceAccountKey   Json
   enabled             Boolean               @default(false)
+  // lastEnabledAt is set when the delegation credential is enabled
+  lastEnabledAt       DateTime?
+  // lastDisabledAt is set when the delegation credential is disabled. So, lastDisabledAt could be earlier then lastEnabledAt if the delegation credential was enabled -> then disabled -> then enabled again.
+  lastDisabledAt      DateTime?
   organizationId      Int
   organization        Team                  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   domain              String
@@ -2264,4 +2272,39 @@ model WorkflowOptOutContact {
   updatedAt DateTime            @updatedAt
 
   @@unique([type, value])
+}
+
+enum RoleType {
+  SYSTEM
+  CUSTOM
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  name        String
+  description String?
+  teamId      Int? // null for global roles
+  team        Team?            @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  permissions RolePermission[]
+  memberships Membership[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  type        RoleType         @default(CUSTOM)
+
+  @@unique([name, teamId])
+  @@index([teamId])
+}
+
+model RolePermission {
+  id        String   @id @default(cuid())
+  roleId    String
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  resource  String
+  action    String
+  createdAt DateTime @default(now())
+
+  @@unique([roleId, resource, action])
+  @@index([roleId])
+  // TODO: come back to this with indexs.
+  @@index([action])
 }

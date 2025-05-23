@@ -2519,7 +2519,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.202"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.208"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -2930,6 +2930,16 @@ __metadata:
   dependencies:
     "@calcom/lib": "*"
     "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/dub@workspace:packages/app-store/dub":
+  version: 0.0.0-use.local
+  resolution: "@calcom/dub@workspace:packages/app-store/dub"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+    dub-package: "npm:dub@^0.61.12"
   languageName: unknown
   linkType: soft
 
@@ -3568,13 +3578,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.202":
-  version: 0.0.202
-  resolution: "@calcom/platform-libraries@npm:0.0.202"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.208":
+  version: 0.0.208
+  resolution: "@calcom/platform-libraries@npm:0.0.208"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: ca2e25e5c8ce81b2afd7c91f407686f28ede0b7507842f9184236c9e7ece4f650942817287ef0da15d91903ec943cfdec9ad39c99b565965bcd52fb28fcdc7d0
+  checksum: bee3d47c331a210e452fd5b26ed75075f4906f07ba44903385ee2ddd764e4a6294eca0795a207fd875e8483d2beb60e6546dc4b9bda8a78e028b7a47ac5f2275
   languageName: node
   linkType: hard
 
@@ -24800,6 +24810,21 @@ __metadata:
   version: 3.1.4
   resolution: "dset@npm:3.1.4"
   checksum: 9a7677e9ffd3c13ad850f7cf367aa94b39984006510e84c3c09b7b88bba0a5b3b7196d85a99d0c4cae4e47d67bdeca43dc1834a41d80f31bcdc86dd26121ecec
+  languageName: node
+  linkType: hard
+
+"dub-package@npm:dub@^0.61.12":
+  version: 0.61.14
+  resolution: "dub@npm:0.61.14"
+  peerDependencies:
+    "@modelcontextprotocol/sdk": ">=1.5.0 <1.10.0"
+    zod: ">= 3"
+  peerDependenciesMeta:
+    "@modelcontextprotocol/sdk":
+      optional: true
+  bin:
+    mcp: bin/mcp-server.js
+  checksum: 5cc08e5e3c85401f14141d898f43ab20908c2f9a113747b79ae194833e6e00e418c9c877113c4830b1d83c1c40901a8f2f07fff864d113b2d6561fd565cd7d1f
   languageName: node
   linkType: hard
 
