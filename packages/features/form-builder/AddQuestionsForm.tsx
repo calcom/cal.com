@@ -48,8 +48,6 @@ export function AddQuestionsForm({
 
   const fieldType = getCurrentFieldType(fieldForm, fieldNameSpace);
 
-  const variantsConfig = fieldForm.watch(withNamespace(fieldNameSpace, "variantsConfig"));
-
   const fieldTypes = useMemo(() => Object.values(fieldTypesConfigMap), []);
 
   useEffect(() => {
@@ -62,9 +60,33 @@ export function AddQuestionsForm({
       variantsConfig: fieldForm.getValues(withNamespace(fieldNameSpace, "variantsConfig")),
     });
 
+    resetValues();
+
     // We need to set the variantsConfig in the RHF instead of using a derived value because RHF won't have the variantConfig for the variant that's not rendered yet.
     fieldForm.setValue(withNamespace(fieldNameSpace, "variantsConfig"), variantsConfig);
   }, [fieldForm]);
+
+  const resetValues = () => {
+    const fieldsToReset = [
+      "placeholder",
+      "options",
+      "disableOnPrefill",
+      "label",
+      "defaultLabel",
+      "defaultPlaceholder",
+      "requireEmails",
+      "excludeEmails",
+      "minLength",
+      "maxLength",
+      "variant",
+      "variantsConfig",
+      "options",
+    ];
+
+    fieldsToReset.forEach((field) => {
+      fieldForm.setValue(withNamespace(fieldNameSpace, field), undefined, { shouldDirty: true });
+    });
+  };
 
   return (
     <>
@@ -88,7 +110,7 @@ export function AddQuestionsForm({
         label={t("input_type")}
       />
       {(() => {
-        if (!variantsConfig) {
+        if (!fieldForm.getValues(withNamespace(fieldNameSpace, "variantsConfig"))) {
           return (
             <>
               <InputField
@@ -235,7 +257,7 @@ export function AddQuestionsForm({
 
         return (
           <VariantFields
-            variantsConfig={variantsConfig}
+            variantsConfig={fieldForm.getValues(withNamespace(fieldNameSpace, "variantsConfig"))}
             fieldForm={fieldForm}
             fieldNameSpace={fieldNameSpace}
           />

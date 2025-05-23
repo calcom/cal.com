@@ -136,8 +136,17 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
   } as UptoDateForm;
 
   const handleSubmit = (data: RoutingFormWithResponseCount) => {
-    mutation.mutate({
+    // We need to remove the undefined values from the fields array
+    const fields = data.fields.map((field) =>
+      Object.fromEntries(Object.entries(field).filter(([_, v]) => v !== undefined))
+    );
+    const dataUpdated = {
       ...data,
+      fields,
+    };
+
+    mutation.mutate({
+      ...dataUpdated,
     });
   };
 
