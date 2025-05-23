@@ -317,8 +317,8 @@ class EventsInsights {
   };
 
   static getDateRanges({
-    startDate,
-    endDate,
+    startDate: _startDate,
+    endDate: _endDate,
     timeZone,
     timeView,
     weekStart,
@@ -327,8 +327,30 @@ class EventsInsights {
       return [];
     }
 
+    const startDate = dayjs(_startDate).tz(timeZone);
+    const endDate = dayjs(_endDate).tz(timeZone);
+    // _startDate: '2025-05-15T22:00:00.000Z',
+    // _endDate: '2025-05-23T21:59:59.999Z'
     const ranges: { startDate: string; endDate: string; formattedDate: string }[] = [];
-
+    let currentStartDate = startDate;
+    while (currentStartDate.isBefore(endDate)) {
+      let currentEndDate = currentStartDate.endOf(timeView).tz(timeZone);
+      if (currentEndDate.isAfter(endDate)) {
+        currentEndDate = endDate;
+        ranges.push({
+          startDate: currentStartDate.toISOString(),
+          endDate: currentEndDate.toISOString(),
+          formattedDate: this.formatPeriod(currentStartDate, currentEndDate, timeView),
+        });
+        break;
+      }
+      ranges.push({
+        startDate: currentStartDate.toISOString(),
+        endDate: currentEndDate.toISOString(),
+        formattedDate: this.formatPeriod(currentStartDate, currentEndDate, timeView),
+      });
+      currentStartDate = currentEndDate.add(1, "day").startOf(timeView).tz(timeZone);
+    }
     return ranges;
   }
 
