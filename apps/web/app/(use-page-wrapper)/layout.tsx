@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import Script from "next/script";
+import { parse } from "url";
 
 import PageWrapper from "@components/PageWrapperAppDir";
 
@@ -9,6 +10,13 @@ export default async function PageWrapperLayout({ children }: { children: React.
   const headScript = process.env.NEXT_PUBLIC_HEAD_SCRIPTS;
   const bodyScript = process.env.NEXT_PUBLIC_BODY_SCRIPTS;
 
+  const referer = h.get("referer") ?? "";
+  const pathname = referer ? parse(referer, true).pathname ?? "/" : "/";
+
+  // Define routes where GTM should NOT be loaded
+  const restrictedRoutes = [/^\/d\/.*/]; // Matches /d/[link]/[slug] and other /d/* routes
+
+  // Filter scripts based on the current route
   const scripts = [
     {
       id: "injected-head-script",
@@ -16,7 +24,7 @@ export default async function PageWrapperLayout({ children }: { children: React.
     },
     {
       id: "injected-body-script",
-      script: bodyScript ?? "",
+      script: restrictedRoutes.some((regex) => regex.test(pathname)) ? "" : bodyScript ?? "",
     },
   ].filter((script): script is { id: string; script: string } => !!script.script);
 
