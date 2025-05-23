@@ -172,11 +172,8 @@ describe("FormBuilder", () => {
   });
 
   /**
-   * TODO 2025-05-20
-   * ---------------
-   * Fails because the edit-dialog’s query selectors don’t yet expose
-   * conditional-logic controls in a testable way.
-   * Enable when those selectors are wired up.
+   * TODO — enable when the edit-dialog exposes
+   *        conditional-logic selectors in the test DOM.
    */
   /* eslint-disable playwright/no-skipped-test */
   describe.skip("Visible If … logic", () => {
