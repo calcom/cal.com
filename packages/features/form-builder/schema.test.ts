@@ -1,16 +1,8 @@
 /* eslint-disable playwright/no-conditional-in-test */
 
 /**
- * NOTE 2025-05-20
- * ------------------------------------------------------------
- * The two `.todo()` blocks below assert behaviour that the live
- * schema does **not** yet enforce (mandatory label + visibleIf
- * parent existence).  Enabling them today would require a repo-
- * wide refactor of fixtures and possibly production code.
- *
- * When the schema is hardened, replace `it.todo` with `it`
- * and remove this banner.
- * ------------------------------------------------------------
+ * TODO — enable once the schema enforces mandatory `label`
+ *         and `visibleIf.parent` validation.
  */
 import { describe, it, expect } from "vitest";
 import type { z } from "zod";
