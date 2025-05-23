@@ -67,7 +67,7 @@ export interface DateRange {
   formattedDate: string;
 }
 
-interface GetDateRangesParams {
+export interface GetDateRangesParams {
   startDate: string;
   endDate: string;
   timeZone: string;
@@ -330,15 +330,16 @@ class EventsInsights {
 
       // Adjust week boundaries based on weekStart parameter
       if (timeView === "week") {
-        const weekStartNum = {
-          Sunday: 0,
-          Monday: 1,
-          Tuesday: 2,
-          Wednesday: 3,
-          Thursday: 4,
-          Friday: 5,
-          Saturday: 6,
-        }[weekStart];
+        const weekStartNum =
+          {
+            Sunday: 0,
+            Monday: 1,
+            Tuesday: 2,
+            Wednesday: 3,
+            Thursday: 4,
+            Friday: 5,
+            Saturday: 6,
+          }[weekStart] ?? 0;
 
         currentEndDate = currentEndDate.add(weekStartNum, "day");
         if (currentEndDate.subtract(7, "day").isAfter(currentStartDate)) {

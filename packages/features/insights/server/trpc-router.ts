@@ -15,7 +15,7 @@ import { router } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import { EventsInsights } from "./events";
+import { EventsInsights, type GetDateRangesParams } from "./events";
 import { RoutingEventsInsights } from "./routing-events";
 import { VirtualQueuesInsights } from "./virtual-queues";
 
@@ -505,7 +505,7 @@ export const insightsRouter = router({
         endDate,
         timeView,
         timeZone: ctx.user.timeZone,
-        weekStart: ctx.user.weekStart,
+        weekStart: ctx.user.weekStart as GetDateRangesParams["weekStart"],
       });
       if (!dateRanges.length) {
         return [];
@@ -514,8 +514,8 @@ export const insightsRouter = router({
       // Fetch counts grouped by status for the entire range
       const countsByStatus = await EventsInsights.countGroupedByStatusForRanges(
         whereConditional,
-        startDate,
-        endDate,
+        dayjs(startDate),
+        dayjs(endDate),
         timeView
       );
 
@@ -675,15 +675,7 @@ export const insightsRouter = router({
     return result;
   }),
   averageEventDuration: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
-    const {
-      teamId,
-      startDate: startDateString,
-      endDate: endDateString,
-      memberUserId,
-      userId,
-      eventTypeId,
-      isAll,
-    } = input;
+    const { teamId, startDate, endDate, memberUserId, userId, eventTypeId, isAll } = input;
 
     if (userId && ctx.user?.id !== userId) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -692,9 +684,6 @@ export const insightsRouter = router({
     if (!teamId && !userId) {
       return [];
     }
-
-    const startDate = dayjs.utc(startDateString).startOf("day");
-    const endDate = dayjs.utc(endDateString).endOf("day");
 
     const { whereCondition: whereConditional } = await buildBaseWhereCondition({
       teamId,
@@ -709,10 +698,14 @@ export const insightsRouter = router({
       },
     });
 
-    console.log("💡 TEST", ctx.user);
-
-    const timeView = EventsInsights.getTimeView("week", startDate, endDate);
-    const dateRanges = EventsInsights.getDateRanges(startDate, endDate, "week");
+    const timeView = EventsInsights.getTimeView("week", dayjs(startDate), dayjs(endDate));
+    const dateRanges = EventsInsights.getDateRanges({
+      startDate,
+      endDate,
+      timeView,
+      timeZone: ctx.user.timeZone,
+      weekStart: ctx.user.weekStart as GetDateRangesParams["weekStart"],
+    });
 
     if (!dateRanges.length) {
       return [];
@@ -728,8 +721,8 @@ export const insightsRouter = router({
       where: {
         ...whereConditional,
         createdAt: {
-          gte: startDate.toDate(),
-          lte: endDate.toDate(),
+          gte: startDate,
+          lte: endDate,
         },
       },
     });
