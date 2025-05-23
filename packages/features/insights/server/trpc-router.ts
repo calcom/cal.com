@@ -459,16 +459,11 @@ export const insightsRouter = router({
         eventTypeId,
         memberUserId,
         isAll,
-        startDate: startDateString,
-        endDate: endDateString,
+        startDate,
+        endDate,
         timeView: inputTimeView,
         userId: selfUserId,
       } = input;
-
-      // Convert to UTC without shifting the time zone
-      let startDate = dayjs.utc(startDateString).startOf("day");
-      let endDate = dayjs.utc(endDateString).endOf("day");
-
       if (selfUserId && ctx.user?.id !== selfUserId) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
@@ -506,7 +501,7 @@ export const insightsRouter = router({
       const { whereCondition: whereConditional } = r;
 
       // Get date ranges directly instead of using timeline
-      const dateRanges = EventsInsights.getDateRanges(startDate, endDate, timeView);
+      const dateRanges = EventsInsights.getDateRanges(startDate, endDate, ctx.user.timeZone, timeView);
       if (!dateRanges.length) {
         return [];
       }

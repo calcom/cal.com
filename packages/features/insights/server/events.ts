@@ -61,6 +61,13 @@ function buildSqlCondition(condition: any): string {
   }
 }
 
+type DateRangeParams = {
+  startDate: string;
+  endDate: string;
+  timeZone: string;
+  timeView: TimeViewType;
+};
+
 class EventsInsights {
   static countGroupedByStatusForRanges = async (
     whereConditional: Prisma.BookingTimeStatusWhereInput,
@@ -295,17 +302,18 @@ class EventsInsights {
     return result;
   };
 
-  static getDateRanges = (startDate: Dayjs, endDate: Dayjs, timeView: TimeViewType) => {
+  static getDateRanges = ({ startDate, endDate, timeZone, timeView }: DateRangeParams) => {
     if (!["day", "week", "month", "year"].includes(timeView)) {
       return [];
     }
 
     const ranges: { startDate: string; endDate: string; formattedDate: string }[] = [];
-    let currentDate = dayjs.utc(startDate).startOf("day");
-    const utcEndDate = dayjs.utc(endDate);
+    // Work in the target timezone
+    let currentDate = dayjs(startDate).tz(timeZone);
+    const tzEndDate = dayjs(endDate).tz(timeZone);
     const dateFormat = timeView === "year" ? "YYYY" : timeView === "month" ? "MMM YYYY" : "ll";
 
-    while (currentDate.isBefore(utcEndDate) || currentDate.isSame(utcEndDate, "day")) {
+    while (currentDate.isBefore(tzEndDate)) {
       let periodStart = currentDate.startOf(timeView);
       let periodEnd = currentDate.endOf(timeView);
 
@@ -316,17 +324,22 @@ class EventsInsights {
       }
 
       // Don't go beyond the requested date range
-      if (periodStart.isBefore(startDate)) {
-        periodStart = dayjs.utc(startDate).startOf("day");
+      if (periodStart.isBefore(dayjs(startDate).tz(timeZone))) {
+        periodStart = dayjs(startDate).tz(timeZone);
       }
-      if (periodEnd.isAfter(utcEndDate)) {
-        periodEnd = dayjs.utc(endDate).endOf("day");
+      if (periodEnd.isAfter(tzEndDate)) {
+        periodEnd = dayjs(endDate).tz(timeZone);
       }
 
       ranges.push({
-        startDate: periodStart.toISOString(),
-        endDate: periodEnd.toISOString(),
-        formattedDate: timeView === "year" ? periodStart.format("YYYY") : periodStart.format(dateFormat),
+        startDate: periodStart.utc().toISOString(),
+        endDate: periodEnd.utc().toISOString(),
+        formattedDate:
+          timeView === "week"
+            ? `${periodStart.format("MMM D")} - ${periodEnd.format("MMM D, YYYY")}`
+            : timeView === "year"
+            ? periodStart.format("YYYY")
+            : periodStart.format(dateFormat),
       });
 
       // Move to next period
@@ -337,7 +350,6 @@ class EventsInsights {
       } else if (timeView === "month") {
         currentDate = currentDate.add(1, "month");
       } else if (timeView === "year") {
-        // For year view, we need to ensure we move to the start of next year
         currentDate = currentDate.add(1, "year").startOf("year");
       }
     }
