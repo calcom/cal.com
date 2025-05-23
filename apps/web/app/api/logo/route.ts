@@ -199,7 +199,6 @@ async function getHandler(request: NextRequest) {
       const { detectContentType, optimizeImage } = await import("next/dist/server/image-optimizer");
 
       // Skip image optimization in TypeScript 5.8.3 due to type incompatibility
-      /*
       buffer = await optimizeImage({
         buffer,
         contentType: detectContentType(buffer) ?? "image/jpeg",
@@ -207,7 +206,6 @@ async function getHandler(request: NextRequest) {
         width: logoDefinition.w,
         height: logoDefinition.h, // optional
       });
-      */
     }
 
     // Create a new response with the image buffer
