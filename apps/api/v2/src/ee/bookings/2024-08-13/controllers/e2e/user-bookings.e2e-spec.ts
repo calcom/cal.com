@@ -2394,11 +2394,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
           expect(createdBooking.location).toEqual(attendeeDefinedLocation);
         });
 
-        if (responseDataIsBooking(booking)) {
-          await bookingsRepositoryFixture.deleteById(bookingId);
-        } else {
-          throw new Error("Unexpected response data type");
-        }
+        afterAll(async () => {
+          if (responseDataIsBooking(booking)) {
+            await bookingsRepositoryFixture.deleteById(bookingId);
+          } else {
+            throw new Error("Unexpected response data type");
+          }
+        });
       });
     });
 
