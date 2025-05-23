@@ -66,6 +66,7 @@ import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFre
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -109,7 +110,6 @@ import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from 
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
-import { getBookingRequest } from "./requiresConfirmation/getBookingRequest";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -488,20 +488,24 @@ async function handler(
     bookerEmail,
   });
 
-  // If a request already exists for the timeslot, return that request
-  if (!isConfirmedByDefault && !userReschedulingIsOwner) {
-    const requestedBooking = await getBookingRequest({
+  // For unconfirmed bookings or round robin bookings with the same attendee and timeslot, return the original booking
+  if (
+    (!isConfirmedByDefault && !userReschedulingIsOwner) ||
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN
+  ) {
+    const existingBooking = await BookingRepository.getValidBookingFromEventTypeForAttendee({
       eventTypeId,
       bookerEmail,
       bookerPhoneNumber,
       startTime: new Date(dayjs(reqBody.start).utc().format()),
+      filterForUnconfirmed: !isConfirmedByDefault,
     });
 
-    if (requestedBooking) {
+    if (existingBooking) {
       const bookingResponse = {
-        ...requestedBooking,
+        ...existingBooking,
         user: {
-          ...requestedBooking.user,
+          ...existingBooking.user,
           email: null,
         },
         paymentRequired: false,
