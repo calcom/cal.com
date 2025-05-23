@@ -35,13 +35,12 @@ export const useBookerLayout = (
   // In Embed we give preference to embed configuration for the layout.If that's not set, we use the App configuration for the event layout
   // But if it's mobile view, there is only one layout supported which is 'mobile'
   const layout = isEmbed ? (isMobile ? "mobile" : validateLayout(embedUiConfig.layout) || _layout) : _layout;
-  const extraDays = isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop;
+  const layoutExtraDays = extraDaysConfig[layout] || {};
+  const extraDays = isTablet ? layoutExtraDays.tablet || 0 : layoutExtraDays.desktop || 0;
   const embedType = useEmbedType();
   // Floating Button and Element Click both are modal and thus have dark background
   const hasDarkBackground = isEmbed && embedType !== "inline";
-  const columnViewExtraDays = useRef<number>(
-    isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop
-  );
+  const columnViewExtraDays = useRef<number>(extraDays);
 
   useEffect(() => {
     if (isMobile && layout !== "mobile") {
