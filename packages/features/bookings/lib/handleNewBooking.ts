@@ -1,8 +1,4 @@
 import type { DestinationCalendar, User } from "@prisma/client";
-import {
-  getDefaultConferencingAppLocation,
-  getOrganizerOrFirstDynamicGroupMemberDefaultLocationUrl,
-} from "bookings/lib/getDefaultConferencingAppLocation";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import short, { uuid } from "short-uuid";
@@ -28,6 +24,10 @@ import {
 } from "@calcom/emails";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
+import {
+  getDefaultConferencingAppLocation,
+  getOrganizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+} from "@calcom/features/bookings/lib/getDefaultConferencingAppLocation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
