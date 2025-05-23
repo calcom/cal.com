@@ -6,8 +6,8 @@ import { Badge } from "@calcom/ui/badge";
 type Role = {
   id: string;
   name: string;
-  description: string | null;
-  teamId: number | null;
+  description?: string;
+  teamId?: number;
   createdAt: Date;
   updatedAt: Date;
   type: "SYSTEM" | "CUSTOM";
