@@ -31,6 +31,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { Shell as PlatformShell } from "../../../platform/atoms/src/components/ui/shell";
 import { DeleteDialog } from "./dialogs/DeleteDialog";
+import { NoHostDialog } from "./dialogs/NoHostDialog";
 
 type Props = {
   children: React.ReactNode;
@@ -69,6 +70,9 @@ function EventTypeSingleLayout({
   const eventTypesLockedByOrg = eventType.team?.parent?.organizationSettings?.lockEventTypeCreationForUsers;
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [noHostDialogOpen, setNoHostDialogOpen] = useState(false);
+
+  console.log({ noHostDialogOpen });
 
   const hasPermsToDelete =
     currentUserMembership?.role !== "MEMBER" ||
@@ -267,7 +271,12 @@ function EventTypeSingleLayout({
             loading={isUpdateMutationLoading}
             disabled={!formMethods.formState.isDirty}
             data-testid="update-eventtype"
-            form="event-type-form">
+            form="event-type-form"
+            onClick={() => {
+              if (eventType.hosts?.length === 0) {
+                setNoHostDialogOpen(true);
+              }
+            }}>
             {t("save")}
           </Button>
         </div>
@@ -305,6 +314,7 @@ function EventTypeSingleLayout({
         onDelete={onDelete}
         isDeleting={isDeleting}
       />
+      <NoHostDialog eventTypeId={eventType.id} open={noHostDialogOpen} onOpenChange={setNoHostDialogOpen} />
 
       {!isPlatform && <EventTypeEmbedDialog />}
     </Shell>
