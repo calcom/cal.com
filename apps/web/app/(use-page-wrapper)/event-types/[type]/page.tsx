@@ -1,4 +1,3 @@
-import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
 import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { unstable_cache } from "next/cache";
@@ -8,7 +7,7 @@ import { z } from "zod";
 
 import { EventTypeWebWrapper } from "@calcom/atoms/event-types/wrappers/EventTypeWebWrapper";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
+import getEventTypeById from "@calcom/lib/event-types/getEventTypeById";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -33,8 +32,22 @@ export const generateMetadata = async () => {
 
 const getCachedEventType = unstable_cache(
   async (eventTypeId: number, headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
-    const caller = await createRouterCaller(eventTypesRouter, await getTRPCContext(headers, cookies));
-    return await caller.get({ id: eventTypeId });
+    const prisma = (await import("@calcom/prisma")).default;
+    const req = buildLegacyRequest(headers, cookies);
+    const session = await getServerSession({ req });
+
+    if (!session?.user) {
+      throw new Error("Session not found");
+    }
+
+    return await getEventTypeById({
+      eventTypeId,
+      userId: session.user.id,
+      prisma,
+      isTrpcCall: false,
+      isUserOrganizationAdmin: !!session.user?.organization?.isOrgAdmin,
+      currentOrganizationId: session.user.profile?.organizationId ?? null,
+    });
   },
   ["viewer.eventTypes.get"],
   { revalidate: 3600 } // Cache for 1 hour
