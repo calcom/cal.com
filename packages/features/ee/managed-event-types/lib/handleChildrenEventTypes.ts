@@ -160,9 +160,14 @@ export default async function handleChildrenEventTypes({
       newUserIds.map((userId) => {
         return prisma.eventType.create({
           data: {
-            profileId: profileId ?? null,
             ...managedEventTypeValues,
-            ...unlockedEventTypeValues,
+            ...{
+              ...unlockedEventTypeValues,
+              // pre-genned as allowed null
+              locations: Array.isArray(unlockedEventTypeValues.locations)
+                ? unlockedEventTypeValues.locations
+                : undefined,
+            },
             bookingLimits:
               (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
             recurringEvent:
@@ -187,6 +192,7 @@ export default async function handleChildrenEventTypes({
             rrSegmentQueryValue: undefined,
             assignRRMembersUsingSegment: false,
             useEventLevelSelectedCalendars: false,
+            profileId: profileId ?? null,
           },
         });
       })
