@@ -116,7 +116,7 @@ export const BooleanToggleGroupField = function BooleanToggleGroupField(
   const id = useId();
   return (
     <div className={classNames(containerClassName)}>
-      <div className={classNames(className, "flex items-center gap-1")}>
+      <div className={className}>
         {!!label && (
           <Label htmlFor={id} {...labelProps} className={classNames(props.error && "text-error", "mt-4")}>
             {label}

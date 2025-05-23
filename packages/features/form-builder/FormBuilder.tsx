@@ -152,15 +152,13 @@ export const FormBuilder = function FormBuilder({
                   label: "Phone",
                   iconLeft: <Icon name="phone" className="h-4 w-4" />,
                 },
-                {
-                  value: "none",
-                  label: "None",
-                  iconLeft: <Icon name="bell-off" className="h-4 w-4" />,
-                },
+                // {
+                //   value: "none",
+                //   label: "None",
+                //   iconLeft: <Icon name="bell-off" className="h-4 w-4" />,
+                // },
               ]}
               onValueChange={(value) => {
-                console.log("phone");
-                console.log("fields", fields);
                 const phoneFieldIndex = fields.findIndex((field) => field.name === "attendeePhoneNumber");
                 const emailFieldIndex = fields.findIndex((field) => field.name === "email");
                 if (value === "email") {
@@ -185,8 +183,9 @@ export const FormBuilder = function FormBuilder({
                     hidden: false,
                     required: true,
                   });
-                } else if (value == "none") {
                 }
+                // else if (value == "none") {
+                // }
               }}
             />
           )}
