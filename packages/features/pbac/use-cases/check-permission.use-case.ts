@@ -1,12 +1,12 @@
-import { PermissionCheckService } from "pbac/services/permission-check.service";
+import type { PermissionString } from "pbac/domain/types/permission-registry";
 
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
+import { PermissionCheckService } from "../services/permission-check.service";
 import { PermissionService } from "../services/permission.service";
-import type { PermissionString } from "../types/permission-registry";
 
 interface CheckPermissionInput {
   userId: number;
@@ -15,11 +15,8 @@ interface CheckPermissionInput {
   fallbackRoles: MembershipRole[];
 }
 
-interface CheckPermissionsInput {
-  userId: number;
-  teamId: number;
+interface CheckPermissionsInput extends Omit<CheckPermissionInput, "permission"> {
   permissions: PermissionString[];
-  fallbackRoles: MembershipRole[];
 }
 
 export class CheckPermissionUseCase {
@@ -42,8 +39,10 @@ export class CheckPermissionUseCase {
    */
   public async check({ userId, teamId, permission, fallbackRoles }: CheckPermissionInput): Promise<boolean> {
     try {
-      if (!this.permissionService.validatePermission(permission)) {
-        throw new Error(`Invalid permission format: ${permission}`);
+      const validationResult = this.permissionService.validatePermission(permission);
+      if (!validationResult.isValid) {
+        this.checkPermissionLogger.error(validationResult.error);
+        return false;
       }
 
       // We auto handle checking their org membership to check permissions if the target resource is a sub-team inside of permission check service
@@ -64,7 +63,7 @@ export class CheckPermissionUseCase {
 
       if (isPBACEnabled) {
         // If user has a custom role, check permissions associated with that role
-        // They should always have a customRoleId as we created a trigget to keep them in sync until Membership.Role is marked as depricated.
+        // They should always have a customRoleId as we created a trigger to keep them in sync until Membership.Role is marked as deprecated.
         if (membership.customRoleId) {
           const hasPermissionForResource = await this.permissionCheckService.hasPermission(
             {
@@ -85,6 +84,7 @@ export class CheckPermissionUseCase {
       // Fall back to role-based check
       return this.checkFallbackRoles(membership.role, fallbackRoles);
     } catch (error) {
+      this.checkPermissionLogger.error(error);
       return false;
     }
   }
@@ -100,8 +100,10 @@ export class CheckPermissionUseCase {
   }: CheckPermissionsInput): Promise<boolean> {
     try {
       // First validate if all permission formats are valid
-      if (!this.permissionService.validatePermissions(permissions)) {
-        throw new Error(`Invalid permissions format in: ${permissions.join(", ")}`);
+      const validationResult = this.permissionService.validatePermissions(permissions);
+      if (!validationResult.isValid) {
+        this.checkPermissionLogger.error(validationResult.error);
+        return false;
       }
 
       // Get user's membership in the team
@@ -123,7 +125,7 @@ export class CheckPermissionUseCase {
 
       if (isPBACEnabled) {
         // If user has a custom role, check permissions associated with that role
-        // They should always have a customRoleId as we created a trigget to keep them in sync until Membership.Role is marked as depricated.
+        // They should always have a customRoleId as we created a trigger to keep them in sync until Membership.Role is marked as deprecated.
         if (membership.customRoleId) {
           const hasPermissionForResource = await this.permissionCheckService.hasPermissions(
             {
@@ -142,11 +144,12 @@ export class CheckPermissionUseCase {
       }
       return this.checkFallbackRoles(membership.role, fallbackRoles);
     } catch (error) {
+      this.checkPermissionLogger.error(error);
       return false;
     }
   }
 
-  private checkFallbackRoles(userRole: MembershipRole, fallbackRoles: MembershipRole[]): boolean {
-    return fallbackRoles.includes(userRole);
+  private checkFallbackRoles(userRole: MembershipRole, allowedRoles: MembershipRole[]): boolean {
+    return allowedRoles.includes(userRole);
   }
 }

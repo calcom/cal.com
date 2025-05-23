@@ -2,8 +2,8 @@ import { vi, type Mock, describe, it, expect, beforeEach } from "vitest";
 
 import { RoleType } from "@calcom/prisma/enums";
 
-import { RoleRepository } from "../../repository/role.repository";
-import type { PermissionString } from "../../types/permission-registry";
+import type { PermissionString } from "../../domain/types/permission-registry";
+import { RoleRepository } from "../../infrastructure/repositories/RoleRepository";
 import { RoleService } from "../role.service";
 
 vi.mock("../../repository/role.repository", () => ({

@@ -1,7 +1,9 @@
+import kysely from "@calcom/kysely";
 import { MembershipRole, RoleType } from "@calcom/prisma/enums";
 
-import { RoleRepository } from "../repository/role.repository";
-import type { PermissionString } from "../types/permission-registry";
+import type { CreateRoleData, UpdateRolePermissionsData } from "../domain/models/Role";
+import type { IRoleRepository } from "../domain/repositories/IRoleRepository";
+import { RoleRepository } from "../infrastructure/repositories/RoleRepository";
 import { PermissionService } from "./permission.service";
 
 // These IDs must match the ones in the migration
@@ -12,22 +14,14 @@ const DEFAULT_ROLE_IDS = {
 } as const;
 
 export class RoleService {
-  private repository: RoleRepository;
-  private permissionService: PermissionService;
+  constructor(
+    private readonly repository: IRoleRepository = new RoleRepository(),
+    private readonly permissionService: PermissionService = new PermissionService()
+  ) {}
 
-  constructor() {
-    this.repository = new RoleRepository();
-    this.permissionService = new PermissionService();
-  }
-
-  async createRole(data: {
-    name: string;
-    description?: string;
-    teamId?: number;
-    permissions: PermissionString[];
-  }) {
+  async createRole(data: CreateRoleData) {
     // Check if role name conflicts with default roles
-    const existingRole = await this.repository.findRoleByName(data.name, data.teamId);
+    const existingRole = await this.repository.findByName(data.name, data.teamId);
     if (existingRole) {
       throw new Error(`Role with name "${data.name}" already exists`);
     }
@@ -37,20 +31,7 @@ export class RoleService {
       throw new Error("Invalid permissions provided");
     }
 
-    return this.repository.transaction(async (trx) => {
-      // Create role
-      const role = await this.repository.createRole({
-        name: data.name,
-        description: data.description,
-        teamId: data.teamId,
-        type: RoleType.CUSTOM,
-      });
-
-      // Create permissions
-      const permissions = await this.repository.createRolePermissions(role.id, data.permissions);
-
-      return { ...role, permissions };
-    });
+    return this.repository.create(data);
   }
 
   async getDefaultRoleId(role: MembershipRole): Promise<string> {
@@ -58,30 +39,45 @@ export class RoleService {
   }
 
   async assignRoleToMember(roleId: string, membershipId: number) {
-    return this.repository.updateMembershipRole(membershipId, roleId);
+    // This would be handled by a MembershipService in a full DDD implementation
+    // For now, we'll keep the existing implementation
+    return this.repository.transaction(async (repo) => {
+      const role = await repo.findById(roleId);
+      if (!role) throw new Error("Role not found");
+
+      // TODO: Move this to a MembershipRepository
+      await kysely
+        .updateTable("Membership")
+        .set({ customRoleId: roleId })
+        .where("id", "=", membershipId)
+        .execute();
+    });
   }
 
   async getRolePermissions(roleId: string) {
-    const role = await this.repository.findRoleWithPermissions(roleId);
+    const role = await this.repository.findById(roleId);
     return role?.permissions ?? [];
   }
 
   async removeRoleFromMember(membershipId: number) {
-    return this.repository.updateMembershipRole(membershipId, null);
+    // TODO: Move this to a MembershipRepository
+    await kysely
+      .updateTable("Membership")
+      .set({ customRoleId: null })
+      .where("id", "=", membershipId)
+      .execute();
   }
 
-  async changeUserRole(membershipId: number, roleId: string) {
-    // Verify role exists first
-    const role = await this.getRole(roleId);
-    if (!role) {
-      throw new Error("Role not found");
-    }
+  async getRole(roleId: string) {
+    return this.repository.findById(roleId);
+  }
 
-    return this.repository.updateMembershipRole(membershipId, roleId);
+  async getTeamRoles(teamId: number) {
+    return this.repository.findByTeamId(teamId);
   }
 
   async deleteRole(roleId: string) {
-    const role = await this.repository.findRoleWithPermissions(roleId);
+    const role = await this.repository.findById(roleId);
     if (!role) {
       throw new Error("Role not found");
     }
@@ -91,24 +87,11 @@ export class RoleService {
       throw new Error("Cannot delete default roles");
     }
 
-    return this.repository.transaction(async (trx) => {
-      // Delete permissions first
-      await this.repository.deleteRolePermissions(roleId);
-      // Then delete the role
-      return this.repository.deleteRole(roleId);
-    });
+    await this.repository.delete(roleId);
   }
 
-  async getRole(roleId: string) {
-    return this.repository.findRoleWithPermissions(roleId);
-  }
-
-  async getTeamRoles(teamId: number) {
-    return this.repository.findTeamRoles(teamId);
-  }
-
-  async updateRolePermissions(roleId: string, permissions: PermissionString[]) {
-    const role = await this.getRole(roleId);
+  async updateRolePermissions(data: UpdateRolePermissionsData) {
+    const role = await this.repository.findById(data.roleId);
     if (!role) {
       throw new Error("Role not found");
     }
@@ -119,16 +102,10 @@ export class RoleService {
     }
 
     // Validate permissions
-    if (!this.permissionService.validatePermissions(permissions)) {
+    if (!this.permissionService.validatePermissions(data.permissions)) {
       throw new Error("Invalid permissions provided");
     }
 
-    return this.repository.transaction(async (trx) => {
-      // Delete existing permissions
-      await this.repository.deleteRolePermissions(roleId);
-      // Create new permissions
-      const newPermissions = await this.repository.createRolePermissions(roleId, permissions);
-      return { ...role, permissions: newPermissions };
-    });
+    return this.repository.updatePermissions(data.roleId, data.permissions);
   }
 }

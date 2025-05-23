@@ -1,66 +1,63 @@
+import { PermissionMapper } from "../domain/mappers/PermissionMapper";
+import type { Permission, PermissionPattern, PermissionValidationResult } from "../domain/models/Permission";
 import type {
   PermissionString,
   Resource,
   CrudAction,
   CustomAction,
-  PermissionDetails,
-} from "../types/permission-registry";
-import { PERMISSION_REGISTRY } from "../types/permission-registry";
+} from "../domain/types/permission-registry";
+import { PERMISSION_REGISTRY } from "../domain/types/permission-registry";
 
 export class PermissionService {
-  validatePermission(permission: PermissionString): boolean {
-    const [resource, action] = permission.split(".") as [Resource, CrudAction | CustomAction];
-    return !!PERMISSION_REGISTRY[resource]?.[action];
+  validatePermission(permission: PermissionString): PermissionValidationResult {
+    try {
+      const permissionObj = PermissionMapper.fromPermissionString(permission);
+      const isValid = !!PERMISSION_REGISTRY[permissionObj.resource]?.[permissionObj.action];
+      return {
+        isValid,
+        error: isValid ? undefined : `Invalid permission: ${permission}`,
+      };
+    } catch (error) {
+      return {
+        isValid: false,
+        error: `Invalid permission format: ${permission}`,
+      };
+    }
   }
 
-  validatePermissions(permissions: PermissionString[]): boolean {
-    return permissions.every((permission) => this.validatePermission(permission));
+  validatePermissions(permissions: PermissionString[]): PermissionValidationResult {
+    for (const permission of permissions) {
+      const result = this.validatePermission(permission);
+      if (!result.isValid) {
+        return result;
+      }
+    }
+    return { isValid: true };
   }
 
-  // Helper function to check if a permission matches a pattern (including wildcards)
-  permissionMatches(pattern: PermissionString, permission: PermissionString): boolean {
+  permissionMatches(pattern: PermissionPattern, permission: Permission): boolean {
     // Handle full wildcard
-    if (pattern === "*.*") return true;
-
-    const [patternResource, patternAction] = pattern.split(".") as [
-      Resource | "*",
-      CrudAction | CustomAction | "*"
-    ];
-    const [permissionResource, permissionAction] = permission.split(".") as [
-      Resource,
-      CrudAction | CustomAction
-    ];
+    if (pattern.resource === "*" && pattern.action === "*") return true;
 
     // Check if resource matches (either exact match or wildcard)
-    const resourceMatches = patternResource === "*" || patternResource === permissionResource;
+    const resourceMatches = pattern.resource === "*" || pattern.resource === permission.resource;
 
     // Check if action matches (either exact match or wildcard)
-    const actionMatches = patternAction === "*" || patternAction === permissionAction;
+    const actionMatches = pattern.action === "*" || pattern.action === permission.action;
 
     return resourceMatches && actionMatches;
   }
 
-  // Helper function to create a permission string
-  createPermissionString(
-    resource: Resource | "*",
-    action: CrudAction | CustomAction | "*",
-    isCustom = false
-  ): PermissionString {
-    const prefix = isCustom ? "custom:" : "";
-    return `${prefix}${resource}.${action}` as PermissionString;
-  }
-
-  // Helper function to get all permissions as an array
-  getAllPermissions(): Array<{ resource: Resource; action: CrudAction | CustomAction } & PermissionDetails> {
-    const permissions: Array<{ resource: Resource; action: CrudAction | CustomAction } & PermissionDetails> =
-      [];
+  getAllPermissions(): Permission[] {
+    const permissions: Permission[] = [];
 
     Object.entries(PERMISSION_REGISTRY).forEach(([resource, actions]) => {
       Object.entries(actions).forEach(([action, details]) => {
         permissions.push({
           resource: resource as Resource,
           action: action as CrudAction | CustomAction,
-          ...details,
+          description: details.description,
+          category: details.category,
         });
       });
     });
@@ -68,26 +65,33 @@ export class PermissionService {
     return permissions;
   }
 
-  getPermissionsByCategory(category: string) {
-    return this.getAllPermissions().filter((p) => p.category === category);
-  }
-
-  getPermissionCategories(): string[] {
-    return Array.from(new Set(this.getAllPermissions().map((p) => p.category)));
-  }
-
-  getPermissionsByResource(resource: Resource) {
+  getPermissionsByResource(resource: Resource): Permission[] {
     const resourcePermissions = PERMISSION_REGISTRY[resource];
     if (!resourcePermissions) return [];
 
     return Object.entries(resourcePermissions).map(([action, details]) => ({
       resource,
       action: action as CrudAction | CustomAction,
-      ...details,
+      description: details.description,
+      category: details.category,
     }));
   }
 
-  getPermissionsByAction(action: CrudAction | CustomAction) {
+  getPermissionsByCategory(category: string) {
+    return this.getAllPermissions().filter((p) => p.category === category);
+  }
+
+  getPermissionCategories(): string[] {
+    return Array.from(
+      new Set(
+        this.getAllPermissions()
+          .map((p) => p.category)
+          .filter((category): category is string => category !== undefined)
+      )
+    );
+  }
+
+  getPermissionsByAction(action: CrudAction | CustomAction): Permission[] {
     return this.getAllPermissions().filter((p) => p.action === action);
   }
 }

@@ -1,50 +1,17 @@
-import { PermissionRepository } from "../repository/permission.repository";
-import type { PermissionString } from "../types/permission-registry";
-
-export function transformDbPermissionsToTeamPermissions(
-  memberships: {
-    teamId: number;
-    role: { id: string | null; permissions: { resource: string | null; action: string | null }[] } | null;
-  }[]
-): Record<number, { roleId: string; permissions: PermissionString[] }> {
-  const teamPermissions: Record<number, { roleId: string; permissions: PermissionString[] }> = {};
-
-  for (const membership of memberships) {
-    if (!membership.teamId || !membership.role?.id || !membership.role.permissions) continue;
-
-    const validPermissions = membership.role.permissions.filter(
-      (p): p is { resource: string; action: string } =>
-        typeof p.resource === "string" &&
-        typeof p.action === "string" &&
-        p.resource !== null &&
-        p.action !== null
-    );
-
-    teamPermissions[membership.teamId] = {
-      roleId: membership.role.id,
-      permissions: validPermissions.map((p) => `${p.resource}.${p.action}` as PermissionString),
-    };
-  }
-
-  return teamPermissions;
-}
+import type { PermissionCheck, TeamPermissions } from "../domain/models/Permission";
+import type { IPermissionRepository } from "../domain/repositories/IPermissionRepository";
+import type { PermissionString } from "../domain/types/permission-registry";
+import { PermissionRepository } from "../infrastructure/repositories/PermissionRepository";
 
 export class PermissionCheckService {
-  private repository: PermissionRepository;
+  constructor(private readonly repository: IPermissionRepository = new PermissionRepository()) {}
 
-  constructor() {
-    this.repository = new PermissionRepository();
-  }
-
-  async getUserPermissions(userId: number) {
+  async getUserPermissions(userId: number): Promise<TeamPermissions[]> {
     const memberships = await this.repository.getUserMemberships(userId);
-    return transformDbPermissionsToTeamPermissions(memberships);
+    return memberships;
   }
 
-  async hasPermission(
-    query: { membershipId?: number; userId?: number; teamId?: number },
-    permission: PermissionString
-  ): Promise<boolean> {
+  async hasPermission(query: PermissionCheck, permission: PermissionString): Promise<boolean> {
     const { membership, orgMembership } = await this.getMembership(query);
 
     // Check team membership first
@@ -64,10 +31,7 @@ export class PermissionCheckService {
     return false;
   }
 
-  async hasPermissions(
-    query: { membershipId?: number; userId?: number; teamId?: number },
-    permissions: PermissionString[]
-  ): Promise<boolean> {
+  async hasPermissions(query: PermissionCheck, permissions: PermissionString[]): Promise<boolean> {
     const { membership, orgMembership } = await this.getMembership(query);
 
     // Check team membership first
@@ -87,7 +51,7 @@ export class PermissionCheckService {
     return false;
   }
 
-  private async getMembership(query: { membershipId?: number; userId?: number; teamId?: number }) {
+  private async getMembership(query: PermissionCheck) {
     let membership = null;
     let orgMembership = null;
 

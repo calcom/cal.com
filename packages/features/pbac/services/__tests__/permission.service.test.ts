@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 
-import type { PermissionString } from "../../types/permission-registry";
-import { CrudAction, Resource } from "../../types/permission-registry";
-import { PERMISSION_REGISTRY } from "../../types/permission-registry";
+import type { PermissionString } from "../../domain/types/permission-registry";
+import { CrudAction, PERMISSION_REGISTRY, Resource } from "../../domain/types/permission-registry";
 import { PermissionService } from "../permission.service";
 
 describe("PermissionService", () => {
@@ -26,11 +25,11 @@ describe("PermissionService", () => {
 
   describe("validatePermissions", () => {
     it("should validate multiple valid permissions", () => {
-      const permissions: PermissionString[] = [
+      const permissions = [
         "eventType.create",
         "team.invite",
         "organization.manageBilling",
-      ];
+      ] as PermissionString[];
       expect(service.validatePermissions(permissions)).toBe(true);
     });
 
