@@ -51,18 +51,27 @@ BEGIN
             LOOP
                 BEGIN
                     -- Skip if field is invalid
-                    IF field_record->>'id' IS NULL OR field_record->>'type' IS NULL THEN
+                    IF field_record->>'id' IS NULL THEN
+                        RAISE WARNING 'Field record is missing id property, skipping field';
+                        CONTINUE;
+                    END IF;
+                    IF field_record->>'type' IS NULL THEN
+                        RAISE WARNING 'Field record % is missing type property, skipping field', field_record->>'id';
                         CONTINUE;
                     END IF;
 
+                    -- Overwrite
+                    DELETE FROM "RoutingFormResponseField" rf
+                    WHERE rf."responseId" = response_record.id
+                      AND rf."fieldId" = field_record->>'id';
                     -- Skip if this field already exists for this response
-                    IF EXISTS (
-                        SELECT 1 FROM "RoutingFormResponseField" rf 
-                        WHERE rf."responseId" = response_record.id 
-                        AND rf."fieldId" = field_record->>'id'
-                    ) THEN
-                        CONTINUE;
-                    END IF;
+                    -- IF EXISTS (
+                    --     SELECT 1 FROM "RoutingFormResponseField" rf 
+                    --     WHERE rf."responseId" = response_record.id 
+                    --     AND rf."fieldId" = field_record->>'id'
+                    -- ) THEN
+                    --     CONTINUE;
+                    -- END IF;
 
                     -- Get response for this field
                     response_field := response_record.response_data->(field_record->>'id');
@@ -74,35 +83,51 @@ BEGIN
                     field_type := field_record->>'type';
 
                     -- Insert based on field type
-                    IF field_type = 'multiselect' AND 
-                       response_field->>'value' IS NOT NULL AND 
-                       jsonb_typeof(response_field->'value') = 'array' THEN
-                        INSERT INTO "RoutingFormResponseField" ("responseId", "fieldId", "valueStringArray")
-                        VALUES (
-                            response_record.id,
-                            field_record->>'id',
-                            ARRAY(SELECT jsonb_array_elements_text(response_field->'value'))
-                        );
-                    ELSIF field_type = 'number' AND 
-                          response_field->>'value' IS NOT NULL AND 
-                          jsonb_typeof(response_field->'value') = 'number' THEN
-                        INSERT INTO "RoutingFormResponseField" ("responseId", "fieldId", "valueNumber")
-                        VALUES (
-                            response_record.id,
-                            field_record->>'id',
-                            (response_field->>'value')::decimal
-                        );
-                    ELSIF response_field->>'value' IS NOT NULL AND 
-                          jsonb_typeof(response_field->'value') = 'string' THEN
-                        INSERT INTO "RoutingFormResponseField" ("responseId", "fieldId", "valueString")
-                        VALUES (
-                            response_record.id,
-                            field_record->>'id',
-                            response_field->>'value'
-                        );
+                    IF field_type = 'multiselect' THEN
+                        -- Handle array values for multiselect
+                        IF response_field->>'value' IS NOT NULL AND jsonb_typeof(response_field->'value') = 'array' THEN
+                            BEGIN
+                                INSERT INTO "RoutingFormResponseField" ("responseId", "fieldId", "valueStringArray")
+                                VALUES (
+                                    response_record.id,
+                                    field_record->>'id',
+                                    ARRAY(SELECT jsonb_array_elements_text(response_field->'value'))
+                                );
+                            EXCEPTION WHEN OTHERS THEN
+                                RAISE WARNING 'Failed to insert multiselect values for field %', field_record->>'id';
+                            END;
+                        END IF;
+                    ELSIF field_type = 'number' THEN
+                        -- Handle number values
+                        IF response_field->>'value' IS NOT NULL AND jsonb_typeof(response_field->'value') = 'number' THEN
+                            BEGIN
+                                INSERT INTO "RoutingFormResponseField" ("responseId", "fieldId", "valueNumber")
+                                VALUES (
+                                    response_record.id,
+                                    field_record->>'id',
+                                    (response_field->>'value')::decimal
+                                );
+                            EXCEPTION WHEN OTHERS THEN
+                                RAISE WARNING 'Failed to insert number value for field %', field_record->>'id';
+                            END;
+                        END IF;
+                    ELSE
+                        -- Handle all other types as strings
+                        IF response_field->>'value' IS NOT NULL AND jsonb_typeof(response_field->'value') = 'string' THEN
+                            BEGIN
+                                INSERT INTO "RoutingFormResponseField" ("responseId", "fieldId", "valueString")
+                                VALUES (
+                                    response_record.id,
+                                    field_record->>'id',
+                                    response_field->>'value'
+                                );
+                            EXCEPTION WHEN OTHERS THEN
+                                RAISE WARNING 'Failed to insert string value for field %', field_record->>'id';
+                            END;
+                        END IF;
                     END IF;
                 EXCEPTION WHEN OTHERS THEN
-                    RAISE WARNING 'Error processing field % for response %', field_record->>'id', response_record.id;
+                    RAISE WARNING 'Error processing field %: %', field_record->>'id', SQLERRM;
                     CONTINUE;
                 END;
             END LOOP;
