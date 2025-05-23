@@ -14,14 +14,14 @@ generator client {
 }
 
 generator zod {
-  provider                  = "zod-prisma-types"
-  output                    = "./zod"
-  useMultipleFiles          = true
-  createInputTypes          = false
-  addIncludeType            = false
-  addSelectType             = false
-  validateWhereUniqueInput  = false
-  createRelationValuesTypes = true
+  provider                 = "zod-prisma-types"
+  output                   = "./zod"
+  useMultipleFiles         = true
+  createInputTypes         = false
+  addIncludeType           = false
+  addSelectType            = false
+  validateWhereUniqueInput = false
+  /// createRelationValuesTypes = true
 }
 
 generator kysely {
