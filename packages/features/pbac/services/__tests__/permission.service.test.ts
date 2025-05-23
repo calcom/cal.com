@@ -13,13 +13,15 @@ describe("PermissionService", () => {
 
   describe("validatePermission", () => {
     it("should validate a valid permission", () => {
-      expect(service.validatePermission("eventType.create" as PermissionString)).toBe(true);
-      expect(service.validatePermission("team.invite" as PermissionString)).toBe(true);
+      const result = service.validatePermission("eventType.create" as PermissionString);
+      expect(result.isValid).toBe(true);
+      expect(result.error).toBeNull();
     });
 
     it("should reject an invalid permission", () => {
-      expect(service.validatePermission("invalid.action" as PermissionString)).toBe(false);
-      expect(service.validatePermission("eventType.invalid" as PermissionString)).toBe(false);
+      const result = service.validatePermission("invalid.action" as PermissionString);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe("Invalid permission format");
     });
   });
 
@@ -30,7 +32,9 @@ describe("PermissionService", () => {
         "team.invite",
         "organization.manageBilling",
       ] as PermissionString[];
-      expect(service.validatePermissions(permissions)).toBe(true);
+      const result = service.validatePermissions(permissions);
+      expect(result.isValid).toBe(true);
+      expect(result.error).toBeNull();
     });
 
     it("should reject if any permission is invalid", () => {
@@ -39,25 +43,36 @@ describe("PermissionService", () => {
         "invalid.action",
         "organization.billing",
       ] as PermissionString[];
-      expect(service.validatePermissions(permissions)).toBe(false);
+      const result = service.validatePermissions(permissions);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe("Invalid permission: invalid.action");
     });
   });
 
   describe("getAllPermissions", () => {
-    it("should return all permissions from registry", () => {
+    it("should return all permissions from registry as domain objects", () => {
       const permissions = service.getAllPermissions();
       const expectedCount = Object.values(PERMISSION_REGISTRY).reduce(
         (count, resource) => count + Object.keys(resource).length,
         0
       );
       expect(permissions).toHaveLength(expectedCount);
+      expect(permissions[0]).toHaveProperty("resource");
+      expect(permissions[0]).toHaveProperty("action");
+      expect(permissions[0]).toHaveProperty("description");
+      expect(permissions[0]).toHaveProperty("category");
     });
   });
 
   describe("getPermissionsByCategory", () => {
-    it("should return permissions for a specific category", () => {
+    it("should return permissions for a specific category as domain objects", () => {
       const eventPermissions = service.getPermissionsByCategory("event");
       expect(eventPermissions.every((p) => p.category === "event")).toBe(true);
+      expect(eventPermissions[0]).toMatchObject({
+        resource: expect.any(String),
+        action: expect.any(String),
+        category: "event",
+      });
     });
 
     it("should return empty array for non-existent category", () => {
@@ -80,9 +95,13 @@ describe("PermissionService", () => {
   });
 
   describe("getPermissionsByResource", () => {
-    it("should return permissions for a specific resource", () => {
+    it("should return permissions for a specific resource as domain objects", () => {
       const eventTypePermissions = service.getPermissionsByResource(Resource.EventType);
       expect(eventTypePermissions.every((p) => p.resource === Resource.EventType)).toBe(true);
+      expect(eventTypePermissions[0]).toMatchObject({
+        resource: Resource.EventType,
+        action: expect.any(String),
+      });
     });
 
     it("should return empty array for non-existent resource", () => {
@@ -92,9 +111,13 @@ describe("PermissionService", () => {
   });
 
   describe("getPermissionsByAction", () => {
-    it("should return permissions for a specific action", () => {
+    it("should return permissions for a specific action as domain objects", () => {
       const createPermissions = service.getPermissionsByAction(CrudAction.Create);
       expect(createPermissions.every((p) => p.action === CrudAction.Create)).toBe(true);
+      expect(createPermissions[0]).toMatchObject({
+        action: CrudAction.Create,
+        resource: expect.any(String),
+      });
     });
 
     it("should return empty array for non-existent action", () => {

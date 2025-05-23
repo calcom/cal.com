@@ -4,9 +4,9 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { MembershipRole } from "@calcom/prisma/enums";
 
+import type { PermissionString } from "../../domain/types/permission-registry";
 import { PermissionCheckService } from "../../services/permission-check.service";
 import { PermissionService } from "../../services/permission.service";
-import type { PermissionString } from "../../types/permission-registry";
 import { CheckPermissionUseCase } from "../check-permission.use-case";
 
 // Mock the dependencies
@@ -34,7 +34,8 @@ describe("CheckPermissionUseCase", () => {
     vi.clearAllMocks();
 
     // Setup default mock implementations
-    vi.mocked(PermissionService.prototype.validatePermission).mockReturnValue(true);
+    vi.mocked(PermissionService.prototype.validatePermission).mockReturnValue({ isValid: true });
+    vi.mocked(PermissionService.prototype.validatePermissions).mockReturnValue({ isValid: true });
     vi.mocked(MembershipRepository.findFirstByUserIdAndTeamId).mockResolvedValue(mockMembership);
     vi.mocked(FeaturesRepository.prototype.checkIfTeamHasFeature).mockResolvedValue(false);
     vi.mocked(PermissionCheckService.prototype.hasPermission).mockResolvedValue(true);
@@ -50,7 +51,10 @@ describe("CheckPermissionUseCase", () => {
     };
 
     it("should return false if permission format is invalid", async () => {
-      vi.mocked(PermissionService.prototype.validatePermission).mockReturnValue(false);
+      vi.mocked(PermissionService.prototype.validatePermission).mockReturnValue({
+        isValid: false,
+        error: "Invalid permission format",
+      });
 
       const result = await checkPermissionUseCase.check(defaultParams);
 
@@ -135,7 +139,10 @@ describe("CheckPermissionUseCase", () => {
     };
 
     it("should return false if permissions format is invalid", async () => {
-      vi.mocked(PermissionService.prototype.validatePermissions).mockReturnValue(false);
+      vi.mocked(PermissionService.prototype.validatePermissions).mockReturnValue({
+        isValid: false,
+        error: "Invalid permission format",
+      });
 
       const result = await checkPermissionUseCase.checkAll(defaultParams);
 

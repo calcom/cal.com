@@ -2,15 +2,13 @@ import { vi, type Mock, describe, it, expect, beforeEach } from "vitest";
 
 import type { MembershipRole } from "@calcom/prisma/enums";
 
-import { PermissionRepository } from "../../infrastructure/repositories/PermissionRepository";
+import type { IPermissionRepository } from "../../domain/repositories/IPermissionRepository";
 import { PermissionCheckService } from "../permission-check.service";
 
-vi.mock("../../repository/permission.repository", () => ({
-  PermissionRepository: vi.fn(),
-}));
+vi.mock("../../infrastructure/repositories/PermissionRepository");
 
 type MockRepository = {
-  [K in keyof PermissionRepository]: Mock;
+  [K in keyof IPermissionRepository]: Mock;
 };
 
 describe("PermissionCheckService", () => {
@@ -27,10 +25,7 @@ describe("PermissionCheckService", () => {
       checkRolePermission: vi.fn(),
       checkRolePermissions: vi.fn(),
     };
-    vi.mocked(PermissionRepository).mockImplementation(
-      () => mockRepository as unknown as PermissionRepository
-    );
-    service = new PermissionCheckService();
+    service = new PermissionCheckService(mockRepository);
   });
 
   describe("hasPermission", () => {
@@ -55,6 +50,45 @@ describe("PermissionCheckService", () => {
       expect(result).toBe(true);
       expect(mockRepository.getMembershipByMembershipId).toHaveBeenCalledWith(1);
       expect(mockRepository.checkRolePermission).toHaveBeenCalledWith("admin_role", "eventType.create");
+    });
+
+    it("should check organization permissions if team permission not found", async () => {
+      const teamMembership = {
+        id: 1,
+        teamId: 2,
+        userId: 1,
+        accepted: true,
+        role: "MEMBER" as MembershipRole,
+        customRoleId: "team_role",
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        team_parentId: 1,
+      };
+
+      const orgMembership = {
+        id: 2,
+        teamId: 1,
+        userId: 1,
+        accepted: true,
+        role: "ADMIN" as MembershipRole,
+        customRoleId: "org_role",
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockRepository.getMembershipByMembershipId.mockResolvedValueOnce(teamMembership);
+      mockRepository.checkRolePermission.mockResolvedValueOnce(false);
+      mockRepository.getOrgMembership.mockResolvedValueOnce(orgMembership);
+      mockRepository.checkRolePermission.mockResolvedValueOnce(true);
+
+      const result = await service.hasPermission({ membershipId: 1 }, "eventType.create");
+      expect(result).toBe(true);
+      expect(mockRepository.getMembershipByMembershipId).toHaveBeenCalledWith(1);
+      expect(mockRepository.checkRolePermission).toHaveBeenCalledWith("team_role", "eventType.create");
+      expect(mockRepository.getOrgMembership).toHaveBeenCalledWith(1, 1);
+      expect(mockRepository.checkRolePermission).toHaveBeenCalledWith("org_role", "eventType.create");
     });
 
     it("should return false if neither team nor org has permission", async () => {
