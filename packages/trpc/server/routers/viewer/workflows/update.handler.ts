@@ -333,7 +333,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
     } else if (isStepEdited(oldStep, { ...newStep, verifiedAt: oldStep.verifiedAt })) {
       // check if step that require team plan already existed before
-      if (!hasPaidPlan) {
+      if (!hasPaidPlan && isEmailAction(newStep.action)) {
         const isChangingToCustomTemplate =
           newStep.template === WorkflowTemplates.CUSTOM && oldStep.template !== WorkflowTemplates.CUSTOM;
 
@@ -348,16 +348,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
           }
 
-          if (isEmailAction(newStep.action)) {
-            // on free plans always use predefined templates
-            const { emailBody, emailSubject } = await getEmailTemplateText(newStep.template, {
-              locale: ctx.user.locale,
-              action: newStep.action,
-              timeFormat: ctx.user.timeFormat,
-            });
+          // on free plans always use predefined templates
+          const { emailBody, emailSubject } = await getEmailTemplateText(newStep.template, {
+            locale: ctx.user.locale,
+            action: newStep.action,
+            timeFormat: ctx.user.timeFormat,
+          });
 
-            newStep = { ...newStep, reminderBody: emailBody, emailSubject };
-          }
+          newStep = { ...newStep, reminderBody: emailBody, emailSubject };
         }
       }
 
@@ -419,7 +417,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     steps
       .filter((step) => step.id <= 0)
       .map(async (newStep) => {
-        if (!hasPaidPlan) {
+        if (!hasPaidPlan && isEmailAction(newStep.action)) {
           if (newStep.template === WorkflowTemplates.CUSTOM) {
             throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
           }
