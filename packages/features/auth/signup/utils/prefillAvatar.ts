@@ -91,7 +91,7 @@ const getImageUrlAvatarAPI = async (email: string) => {
     }
     return info.Image as string;
   } catch (error: unknown) {
-    if (error.name === "AbortError") {
+    if (error instanceof DOMException && error.name === "AbortError") {
       console.warn("Avatar API request timed out");
     } else {
       console.error("Avatar API request failed:", error);
