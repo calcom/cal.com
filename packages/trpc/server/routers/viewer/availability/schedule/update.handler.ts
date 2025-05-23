@@ -62,7 +62,7 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
   let updatedUser;
   if (input.isDefault) {
     if (user?.defaultScheduleId) {
-      await updateHostsWithNewDefaultSchedule(user.id, user.defaultScheduleId, input.scheduleId, prisma);
+      await updateHostsWithNewDefaultSchedule(user.id, user.defaultScheduleId, input.scheduleId);
     }
 
     const setupDefault = await setupDefaultSchedule(user.id, input.scheduleId, prisma);
